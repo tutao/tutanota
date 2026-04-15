@@ -7,11 +7,11 @@ import {
 	PublicKeyIdentifier,
 } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { sysServices } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import testData from "../crypto/CompatibilityTestData.json"
 import { bytesToKyberPublicKey, EncryptedPqKeyPairs, hexToRsaPublicKey, KeyPairType, PQPublicKeys, RsaPublicKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
@@ -19,7 +19,6 @@ import { PublicKeyIdentifierType } from "@tutao/appEnv"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
 import { PublicEncryptionKeyCache } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyCache"
-import { sysTypeRefs } from "@tutao/typeRefs"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
@@ -255,7 +254,9 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				}),
 			)
 			o(currentVersion).notEquals(requestedVersion)
-			await assertThrows(InvalidDataError, async () => publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion))
+			await assertThrows(restError.TooManyRequestsError, async () =>
+				publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion),
+			)
 		})
 
 		o("rsa key in version other than 0", async function () {

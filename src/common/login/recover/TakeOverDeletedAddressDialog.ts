@@ -1,6 +1,6 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import { AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
@@ -69,13 +69,13 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 }
 
 function handleError(e: Error) {
-	if (e instanceof NotAuthenticatedError) {
+	if (e instanceof restError.NotAuthenticatedError) {
 		Dialog.message("loginFailed_msg")
-	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
+	} else if (e instanceof restError.TooManyRequestsError || e instanceof restError.AccessDeactivatedError) {
 		Dialog.message("loginFailedOften_msg")
-	} else if (e instanceof InvalidDataError) {
+	} else if (e instanceof restError.TooManyRequestsError) {
 		Dialog.message("takeoverAccountInvalid_msg")
-	} else if (e instanceof TooManyRequestsError) {
+	} else if (e instanceof restError.TooManyRequestsError) {
 		Dialog.message("tooManyAttempts_msg")
 	} else {
 		throw e

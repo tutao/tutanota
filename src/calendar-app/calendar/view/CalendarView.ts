@@ -7,7 +7,18 @@ import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
 import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { DEFAULT_CALENDAR_COLOR, Keys, NewPaidPlans, ShareCapability, TimeFormat, UpgradePromptType, WeekStart } from "@tutao/appEnv"
+import {
+	DEFAULT_CALENDAR_COLOR,
+	GroupType,
+	isApp,
+	isDesktop,
+	Keys,
+	NewPaidPlans,
+	ShareCapability,
+	TimeFormat,
+	UpgradePromptType,
+	WeekStart,
+} from "@tutao/appEnv"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
@@ -22,7 +33,7 @@ import {
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
-import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
@@ -84,7 +95,6 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
-import { GroupType, isApp, isDesktop } from "@tutao/appEnv"
 
 export type GroupColors = Map<Id, string>
 
@@ -1029,7 +1039,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				),
 			).then((confirmed) => {
 				if (confirmed) {
-					this.viewModel.deleteCalendar(calendarInfo).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
+					this.viewModel
+						.deleteCalendar(calendarInfo)
+						.catch(ofClass(restError.NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 				}
 			})
 		})
@@ -1105,7 +1117,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						})
 					})
 			})
-			.catch(ofClass(LockedError, noOp))
+			.catch(ofClass(restError.LockedError, noOp))
 
 		if (client.isCalendarApp()) {
 			calendarLocator.systemFacade.requestWidgetRefresh()
@@ -1283,7 +1295,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const contactId = decodeBase64("utf8", base64ContactId).split("/")
 			const contact = await locator.entityClient.load(tutanotaTypeRefs.ContactTypeRef, [contactId[0], contactId[1]])
 			if (!contact) {
-				throw new NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
+				throw new restError.NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
 			}
 			const popupModel = await locator.calendarContactPreviewModel(selectedEvent, contact!, true)
 			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)

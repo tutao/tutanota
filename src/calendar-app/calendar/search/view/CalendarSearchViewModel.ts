@@ -19,7 +19,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
-import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -531,7 +531,7 @@ export class CalendarSearchViewModel {
 						.load(lastResult.restriction.type, id)
 						.then((entity) => new CalendarSearchResultListEntry(entity))
 						.catch(
-							ofClass(NotFoundError, (_) => {
+							ofClass(restError.NotFoundError, (_) => {
 								return null
 							}),
 						)

@@ -6,14 +6,15 @@ import {
 	assertMainOrNode,
 	AvailablePlans,
 	BookingItemFeatureType,
+	Const,
 	isIOSApp,
 	LegacyPlans,
 	NewPaidPlans,
 	OperationType,
 	PaymentMethodType,
 	PlanType,
+	UpgradePromptType,
 } from "@tutao/appEnv"
-import { Const, UpgradePromptType } from "@tutao/appEnv"
 import { elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getEtId, getPaymentMethodType, sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
@@ -25,7 +26,7 @@ import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
-import { NotFoundError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import {
 	appStorePlanName,
 	getCurrentCount,
@@ -521,7 +522,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		try {
 			customerInfo = await userController.loadCustomerInfo()
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
 				return
 			} else {

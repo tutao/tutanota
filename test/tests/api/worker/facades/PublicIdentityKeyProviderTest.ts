@@ -7,8 +7,8 @@ import { Aes256Key, bytesToEd25519PublicKey, Ed25519PublicKey } from "@tutao/cry
 import { SigningKeyPairType } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { arrayEquals, hexToUint8Array } from "@tutao/utils"
 import { PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/appEnv"
-import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
+import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import testData from "../crypto/CompatibilityTestData.json"
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
@@ -16,7 +16,6 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { CryptoError } from "@tutao/crypto/error"
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -264,7 +263,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 			const identityKeyGetOut: sysTypeRefs.IdentityKeyGetOut = object()
 			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
 			identityKeyGetOut.publicIdentityKeyVersion = "5"
-			when(serviceExecutor.get(sysServices.IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("not found"))
+			when(serviceExecutor.get(sysServices.IdentityKeyService, matchers.anything())).thenReject(new restError.NotFoundError("not found"))
 			when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenResolve(false)
 
 			const identifier: PublicKeyIdentifier = {

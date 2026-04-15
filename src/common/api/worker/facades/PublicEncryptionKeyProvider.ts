@@ -1,12 +1,8 @@
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { sysServices } from "@tutao/typeRefs"
-import { cryptoUtils } from "@tutao/crypto"
-import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { PublicKeyIdentifierType } from "@tutao/appEnv"
-import { InvalidDataError } from "../../common/error/RestError.js"
-import { CryptoError } from "@tutao/crypto/error"
+import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
 import {
 	bytesToKyberPublicKey,
+	cryptoUtils,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
 	isVersionedPqPublicKey,
@@ -16,9 +12,12 @@ import {
 	PublicKey,
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
+import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
+import { PublicKeyIdentifierType } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
+import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"
-import { sysTypeRefs } from "@tutao/typeRefs"
 
 export type PublicKeyIdentifier = {
 	identifier: string
@@ -85,7 +84,7 @@ export class PublicEncryptionKeyProvider {
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {
-			throw new InvalidDataError("the server returned a key version that was not requested")
+			throw new restError.TooManyRequestsError("the server returned a key version that was not requested")
 		}
 		return publicEncryptionKey
 	}

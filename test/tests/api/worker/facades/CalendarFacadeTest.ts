@@ -18,7 +18,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
@@ -295,7 +295,7 @@ o.spec("CalendarFacadeTest", function () {
 				if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
 					if (listId === listId1) {
 						return Promise.reject(
-							new SetupMultipleError("could not save event", [new Error("failed"), new ConnectionError("no connection")], instances),
+							new SetupMultipleError("could not save event", [new Error("failed"), new restError.ConnectionError("no connection")], instances),
 						)
 					} else if (listId === listId2) {
 						return Promise.resolve(["eventId2"])
@@ -322,7 +322,7 @@ o.spec("CalendarFacadeTest", function () {
 				},
 			]
 			// @ts-ignore
-			await assertThrows(ConnectionError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
+			await assertThrows(restError.ConnectionError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
 			// @ts-ignore
 			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
 			// @ts-ignore

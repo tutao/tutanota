@@ -15,11 +15,10 @@
  */
 import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../api/common/EntityClient"
-import { getEtId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"
-import { LockedError } from "../../api/common/error/RestError"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { restError } from "@tutao/restClient"
 
 /** When there is only a single name that can be edited */
 export interface SingleGroupNameData {
@@ -118,6 +117,6 @@ export class GroupSettingsModel {
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 		}
 
-		await this.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
+		await this.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
 	}
 }

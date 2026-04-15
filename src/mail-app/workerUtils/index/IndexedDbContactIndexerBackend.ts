@@ -1,16 +1,13 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { AttributeModel, ClientTypeModelResolver, elementIdPart, getElementId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IndexerCore } from "./IndexerCore"
 import type { SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { SuggestionFacade } from "./SuggestionFacade"
 import { assertNotNull, neverNull, tokenize } from "@tutao/utils"
-import { elementIdPart, getElementId } from "@tutao/typeRefs"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import { NotFoundError } from "../../../common/api/common/error/RestError"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
-import { AttributeModel } from "@tutao/typeRefs"
+import { restError } from "@tutao/restClient"
 
 export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	private _core: IndexerCore
@@ -58,7 +55,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 				this.suggestionFacade.store(),
 			])
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				return
 			}
 			throw e

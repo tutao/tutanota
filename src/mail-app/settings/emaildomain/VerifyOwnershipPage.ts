@@ -1,4 +1,4 @@
-import { CustomDomainValidationResult, UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, CustomDomainType, CustomDomainTypeCount, CustomDomainValidationResult, UpgradePromptType } from "@tutao/appEnv"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -6,11 +6,10 @@ import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
-import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertMainOrNode, CustomDomainType, CustomDomainTypeCount } from "@tutao/appEnv"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerUtils.js"
@@ -115,7 +114,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return true
 			})
 			.catch(
-				ofClass(PreconditionFailedError, async (e) => {
+				ofClass(restError.PreconditionFailedError, async (e) => {
 					if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 						const nbrOfCustomDomains = this.data.customerInfo.domainInfos.filter((domainInfo) => domainInfo.whitelabelConfig == null).length
 						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => {

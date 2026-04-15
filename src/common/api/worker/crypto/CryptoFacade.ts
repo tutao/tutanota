@@ -14,26 +14,40 @@ import {
 	uint8ArrayToBase64,
 	Versioned,
 } from "@tutao/utils"
-import { CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState, PublicKeyIdentifierType } from "@tutao/appEnv"
-import { asCryptoProtoocolVersion, assertEnumValue, ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "@tutao/typeRefs"
 import {
+	AccountType,
+	assertWorkerOrNode,
+	BucketPermissionType,
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	GroupType,
+	PermissionType,
+	PresentableKeyVerificationState,
+	PublicKeyIdentifierType,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+} from "@tutao/appEnv"
+import {
+	asCryptoProtoocolVersion,
+	assertEnumValue,
 	AttributeModel,
+	ClientTypeModel,
 	elementIdPart,
+	Entity,
 	getElementId,
 	getListId,
 	isSameId,
 	PatchOperationType,
+	ServerModelEncryptedParsedInstance,
+	SomeEntity,
 	sysServices,
 	sysTypeRefs,
 	tutanotaServices,
 	tutanotaTypeRefs,
 	TypeModelResolver,
 } from "@tutao/typeRefs"
-import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
+import { HttpMethod, RestClient, restError } from "@tutao/restClient"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { AccountType, assertWorkerOrNode, BucketPermissionType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/appEnv"
 import type { EntityClient } from "../../common/EntityClient"
-import { HttpMethod, RestClient } from "@tutao/restClient"
 import {
 	Aes256Key,
 	aes256RandomKey,
@@ -645,7 +659,7 @@ export class CryptoFacade {
 			// is not defined for some old AccountingInfos
 			let bucketPermissionOwnerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
 			await this.updateWithSymPermissionKey(instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
-				ofClass(NotFoundError, () => {
+				ofClass(restError.NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
 				}),
 			)
@@ -728,14 +742,14 @@ export class CryptoFacade {
 				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey.publicEncryptionKey, senderUserGroupId)
 			}
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				notFoundRecipients.push(recipientMailAddress)
 				return null
 			}
 			if (e instanceof KeyVerificationMismatchError) {
 				keyVerificationMismatchRecipients.push(recipientMailAddress)
 				return null
-			} else if (e instanceof TooManyRequestsError) {
+			} else if (e instanceof restError.TooManyRequestsError) {
 				throw new RecipientNotResolvedError("")
 			} else {
 				throw e
@@ -876,7 +890,7 @@ export class CryptoFacade {
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(
-				ofClass(PayloadTooLargeError, (e) => {
+				ofClass(restError.TooManyRequestsError, (e) => {
 					console.log("Could not update owner enc session key - PayloadTooLargeError", e)
 				}),
 			)

@@ -4,9 +4,6 @@ import type { Translation, TranslationKey } from "../../common/misc/LanguageView
 import { lang } from "../../common/misc/LanguageViewModel"
 import { isMailAddress } from "../../common/misc/FormatValidator"
 import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
-import { Keys } from "@tutao/appEnv"
-import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import {
 	assertMainOrNode,
 	ContactAddressType,
@@ -17,9 +14,12 @@ import {
 	ContactSocialType,
 	ContactWebsiteType,
 	GroupType,
+	Keys,
 } from "@tutao/appEnv"
+import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
-import { LockedError, NotFoundError, PayloadTooLargeError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
 import { birthdayToIsoDate } from "../../common/api/common/utils/BirthdayUtils"
@@ -326,10 +326,10 @@ export class ContactEditor {
 			this.close()
 		} catch (e) {
 			this.saving = false
-			if (e instanceof PayloadTooLargeError) {
+			if (e instanceof restError.TooManyRequestsError) {
 				return Dialog.message("requestTooLarge_msg")
 			}
-			if (e instanceof LockedError) {
+			if (e instanceof restError.LockedError) {
 				return Dialog.message("operationStillActive_msg")
 			}
 		}
@@ -340,7 +340,7 @@ export class ContactEditor {
 		try {
 			await this.entityClient.update(this.contact)
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log(TAG, `could not update contact ${this.contact._id}: not found`)
 			}
 		}

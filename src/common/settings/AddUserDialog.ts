@@ -1,16 +1,15 @@
 import m from "mithril"
 import { lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, BookingItemFeatureType, UpgradePromptType } from "@tutao/appEnv"
 import { Dialog } from "../gui/base/Dialog.js"
 import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
 import { assertNotNull, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { assertMainOrNode, BookingItemFeatureType } from "@tutao/appEnv"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { showUpgradeWizard } from "../subscription/UpgradeSubscriptionWizard.js"
@@ -114,7 +113,7 @@ export async function show(): Promise<void> {
 					p,
 					operation.progress,
 				)
-					.catch(ofClass(PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
+					.catch(ofClass(restError.PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
 					.then(() => dialog.close())
 					.finally(() => operation.done())
 			}

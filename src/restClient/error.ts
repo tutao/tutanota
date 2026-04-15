@@ -1,3 +1,5 @@
+//@bundleInto:common-min
+
 import { TutanotaError } from "@tutao/appEnv"
 import { filterInt } from "@tutao/utils"
 

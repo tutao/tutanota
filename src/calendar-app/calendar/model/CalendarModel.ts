@@ -24,6 +24,10 @@ import {
 	DEFAULT_CALENDAR_COLOR,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	FeatureType,
+	isApp,
+	isDesktop,
+	OperationType,
+	TutanotaError,
 } from "@tutao/appEnv"
 import { EventController } from "../../../common/api/main/EventController"
 import {
@@ -40,7 +44,7 @@ import {
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -103,7 +107,6 @@ import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-import { isApp, isDesktop, OperationType, TutanotaError } from "@tutao/appEnv"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 
@@ -350,7 +353,7 @@ export class CalendarModel {
 				])
 				groupInstances.push(result)
 			} catch (e) {
-				if (e instanceof NotFoundError) {
+				if (e instanceof restError.NotFoundError) {
 					notFoundMemberships.push(membership)
 				} else {
 					throw e
@@ -365,7 +368,7 @@ export class CalendarModel {
 				const calendarInfo = await this.makeCalendarInfo(userController.userId, group, userController.userSettingsGroupRoot, groupRoot, groupInfo)
 				calendarInfos.set(groupRoot._id, calendarInfo)
 			} catch (e) {
-				if (e instanceof NotAuthorizedError) {
+				if (e instanceof restError.NotAuthorizedError) {
 					console.log("NotAuthorizedError when initializing calendar. Calendar has been removed ")
 				} else {
 					throw e
@@ -570,7 +573,7 @@ export class CalendarModel {
 				this.externalCalendarRetryCount.set(calendar.group, retryCount + 1)
 
 				if (retryCount >= EXTERNAL_CALENDAR_RETRY_LIMIT) {
-					if (!(err instanceof NotFoundError)) {
+					if (!(err instanceof restError.NotFoundError)) {
 						throw err
 					}
 				} else {
@@ -635,7 +638,7 @@ export class CalendarModel {
 			// Remove events that are not going to be updated
 			for (const event of eventsToRemove) {
 				await this.deleteEvent(event).catch((err) => {
-					if (err instanceof NotFoundError) {
+					if (err instanceof restError.NotFoundError) {
 						console.log(`Already deleted event, removing from cache`, event._id)
 						return this.calendarFacade.removeEventFromCache(listIdPart(event._id), elementIdPart(event._id))
 					}
@@ -865,7 +868,7 @@ export class CalendarModel {
 				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
 				throw new NoOwnerEncSessionKeyForCalendarEventError("no owner enc session key found on the calendar data's file")
 			}
-			if (e instanceof ParserError || e instanceof NotFoundError) {
+			if (e instanceof ParserError || e instanceof restError.NotFoundError) {
 				console.warn(TAG, "could not get calendar update data", e)
 				return null
 			}
@@ -888,19 +891,19 @@ export class CalendarModel {
 				await this.processParsedCalendarDataFromIcs(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
-			if (e instanceof NotAuthorizedError) {
+			if (e instanceof restError.NotAuthorizedError) {
 				// we might be authorized in the near future if some permission is delayed, unlikely to be permanent.
 				console.warn(TAG, "could not process calendar update: not authorized", e)
 				return
-			} else if (e instanceof PreconditionFailedError) {
+			} else if (e instanceof restError.PreconditionFailedError) {
 				// unclear where precon would be thrown, probably in the blob store?
 				console.warn(TAG, "could not process calendar update: precondition failed", e)
 				return
-			} else if (e instanceof LockedError) {
+			} else if (e instanceof restError.LockedError) {
 				// we can try again after the lock is released
 				console.warn(TAG, "could not process calendar update: locked", e)
 				return
-			} else if (e instanceof NotFoundError) {
+			} else if (e instanceof restError.NotFoundError) {
 				// either the updated event(s) or the file data could not be found,
 				// so we should try to delete since the update itself is obsolete.
 				console.warn(TAG, "could not process calendar update: not found", e)
@@ -1185,7 +1188,7 @@ export class CalendarModel {
 		try {
 			calendarGroupRoot = await this.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, ownerGroup!)
 		} catch (e) {
-			if (!(e instanceof NotFoundError) && !(e instanceof NotAuthorizedError)) throw e
+			if (!(e instanceof restError.NotFoundError) && !(e instanceof restError.NotAuthorizedError)) throw e
 			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
 			return
 		}
@@ -1357,7 +1360,7 @@ export class CalendarModel {
 						const deferredEvent = this.getPendingAlarmRequest(userAlarmInfo.alarmInfo.calendarRef.elementId)
 						deferredEvent.pendingAlarmCounter++
 					} catch (e) {
-						if (e instanceof NotFoundError) {
+						if (e instanceof restError.NotFoundError) {
 							console.log(TAG, e, "Event or alarm were not found: ", entityEventData, e)
 						} else {
 							throw e
@@ -1422,7 +1425,7 @@ export class CalendarModel {
 				try {
 					this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo, scheduler)
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						console.log(TAG, "event not found", [listId, elementId])
 					} else {
 						throw e

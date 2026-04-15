@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ArchiveDataType } from "@tutao/appEnv"
+import { ArchiveDataType, Mode } from "@tutao/appEnv"
 import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { NativeFileApp } from "../../../src/common/native/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -8,11 +8,10 @@ import { neverNull } from "@tutao/utils"
 import { DataFile } from "../../../src/common/api/common/DataFile.js"
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
-import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { Mode } from "@tutao/appEnv"
 
 const { anything, argThat } = matchers
 
@@ -70,10 +69,10 @@ o.spec("FileControllerTest", function () {
 					_id: ["fileListId", "fileElementId"],
 				})
 				when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), anything(), anything(), anything())).thenReject(
-					new ConnectionError("no connection"),
+					new restError.ConnectionError("no connection"),
 				)
 				await assertThrows(
-					ConnectionError,
+					restError.ConnectionError,
 					async () => await withOverriddenEnv(androidEnv, async () => await (await testableFileController.download(file)).promise),
 				)
 				verify(fileAppMock.deleteFile(anything()), { times: 0 }) // mock for cleanup
@@ -102,10 +101,10 @@ o.spec("FileControllerTest", function () {
 				}
 				when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), "works.txt", anything(), anything())).thenResolve(fileReferenceWorks)
 				when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), "broken.txt", anything(), anything())).thenReject(
-					new ConnectionError("no connection"),
+					new restError.ConnectionError("no connection"),
 				)
 				await assertThrows(
-					ConnectionError,
+					restError.ConnectionError,
 					async () =>
 						await withOverriddenEnv(
 							androidEnv,

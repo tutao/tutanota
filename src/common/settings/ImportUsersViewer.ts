@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { isMailAddress } from "../misc/FormatValidator.js"
 import { contains, delay, ofClass, promiseMap } from "@tutao/utils"
-import { PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
@@ -156,7 +156,7 @@ async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
 		}),
 		operation.progress,
 	)
-		.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
+		.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
 		.finally(() => operation.done)
 
 	if (notAvailableUsers.length > 0) {

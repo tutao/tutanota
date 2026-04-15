@@ -4,10 +4,10 @@ import m from "mithril"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { LockedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { MailReportType } from "@tutao/appEnv"
+import { MailReportType, MailSetKind } from "@tutao/appEnv"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { groupByAndMap } from "@tutao/utils"
@@ -15,7 +15,6 @@ import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
-import { MailSetKind } from "@tutao/appEnv"
 
 type MailSet = tutanotaTypeRefs.MailSet
 /**
@@ -126,7 +125,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 				}
 			}
 		} catch (error) {
-			if (isOfflineError(error) || !(error instanceof LockedError)) {
+			if (isOfflineError(error) || !(error instanceof restError.LockedError)) {
 				throw error
 			}
 		}

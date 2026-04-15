@@ -1,6 +1,6 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/appEnv"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
@@ -8,8 +8,7 @@ import { client } from "../misc/ClientDetector.js"
 import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { ArchiveDataType } from "@tutao/appEnv"
-import { ConnectionError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { CryptoError } from "@tutao/crypto/error"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -17,7 +16,6 @@ import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { createReferencingInstance, DownloadableFileEntity } from "../api/common/utils/BlobUtils.js"
 import { TransferId } from "../api/common/drive/DriveTypes"
-import { isApp } from "@tutao/appEnv"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -95,7 +93,7 @@ export abstract class FileController {
 				}
 			}
 			if (isOffline) {
-				throw new ConnectionError("currently offline")
+				throw new restError.ConnectionError("currently offline")
 			}
 		} finally {
 			// we don't necessarily know when the user is done with the temporary file that was opened

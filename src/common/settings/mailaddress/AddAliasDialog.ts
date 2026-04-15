@@ -6,7 +6,7 @@ import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../gui/base/Expander.js"
 import { filterInt, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
 import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
@@ -113,9 +113,9 @@ async function addAlias(model: MailAddressTableModel, alias: string, senderName:
 	try {
 		await showProgressDialog("pleaseWait_msg", model.addAlias(alias, senderName))
 	} catch (error) {
-		if (error instanceof InvalidDataError) {
+		if (error instanceof restError.TooManyRequestsError) {
 			Dialog.message("mailAddressNA_msg")
-		} else if (error instanceof PreconditionFailedError) {
+		} else if (error instanceof restError.PreconditionFailedError) {
 			let errorMsg = error.toString()
 
 			if (error.data === FAILURE_USER_DISABLED) {

@@ -26,13 +26,23 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
-import { FeatureType, MailReportType, ReportMovedMailsType } from "@tutao/appEnv"
+import {
+	FeatureType,
+	MailReportType,
+	MailSetKind,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	Mode,
+	OperationType,
+	ReportMovedMailsType,
+	SystemFolderType,
+	TutanotaError,
+} from "@tutao/appEnv"
 
 import m from "mithril"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
@@ -40,7 +50,6 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, Mode, OperationType, SystemFolderType, TutanotaError } from "@tutao/appEnv"
 import { isExpectedErrorForSynchronization } from "../../../common/api/common/utils/ErrorUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
@@ -127,7 +136,7 @@ export class MailModel {
 					// cached entities owned by groups that the user lost access to. As MailboxModel isn't immediately
 					// updated (until finally receiving the entity event), it will still have an outdated list of
 					// mailbox details (temporarily).
-					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+					if (e instanceof restError.NotAuthorizedError || e instanceof restError.NotFoundError) {
 						console.warn(
 							"Got",
 							e.name,
@@ -394,7 +403,7 @@ export class MailModel {
 		}
 
 		for (const mail of mails) {
-			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
+			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(restError.NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
 
@@ -548,9 +557,9 @@ export class MailModel {
 
 		return await this.mailFacade
 			.deleteFolder(folder._id)
-			.catch(ofClass(NotFoundError, () => console.log("mail folder already deleted")))
+			.catch(ofClass(restError.NotFoundError, () => console.log("mail folder already deleted")))
 			.catch(
-				ofClass(PreconditionFailedError, () => {
+				ofClass(restError.PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")
 				}),
 			)

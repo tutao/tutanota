@@ -1,6 +1,6 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog.js"
-import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { isDomainName } from "../misc/FormatValidator.js"
 import stream from "mithril/stream"
@@ -22,13 +22,13 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 				dialog.close()
 			})
 			.catch(
-				ofClass(InvalidDataError, (e) => {
+				ofClass(restError.TooManyRequestsError, (e) => {
 					Dialog.message("certificateError_msg")
 				}),
 			)
-			.catch(ofClass(LockedError, (e) => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(restError.LockedError, (e) => Dialog.message("operationStillActive_msg")))
 			.catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(restError.PreconditionFailedError, (e) => {
 					switch (e.data) {
 						case "lock.locked":
 							Dialog.message("operationStillActive_msg")

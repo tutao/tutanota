@@ -10,7 +10,17 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
-import { CryptoProtocolVersion, GroupKeyRotationType, PublicKeyIdentifierType, RolloutType } from "@tutao/appEnv"
+import {
+	AccountType,
+	assertWorkerOrNode,
+	CryptoProtocolVersion,
+	GroupKeyRotationType,
+	GroupType,
+	Mode,
+	PublicKeyIdentifierType,
+	RolloutType,
+	TutanotaError,
+} from "@tutao/appEnv"
 import {
 	assertNotNull,
 	downcast,
@@ -45,7 +55,6 @@ import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { PQFacade } from "./PQFacade.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
-import { AccountType, assertWorkerOrNode, GroupType, Mode, TutanotaError } from "@tutao/appEnv"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
 import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
@@ -53,7 +62,7 @@ import { UserFacade } from "./UserFacade.js"
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
-import { LockedError, NotAuthenticatedError } from "../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
@@ -157,7 +166,7 @@ export class KeyRotationFacade {
 			const pendingKeyRotations = await this.loadPendingKeyRotations(user)
 			await this.processPendingKeyRotation(pendingKeyRotations, user, pwKey)
 		} catch (e) {
-			if (e instanceof LockedError || e instanceof NotAuthenticatedError) {
+			if (e instanceof restError.LockedError || e instanceof restError.NotAuthenticatedError) {
 				// we catch here so that we also catch errors in the `finally` block
 				// NotAuthenticated error might happen when signing up (temporary session) and logging out too quickly again
 				console.log("error when processing key rotation or group key update", e)

@@ -8,9 +8,9 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { ShareCapability, UpgradePromptType } from "@tutao/appEnv"
+import { GroupType, ShareCapability, UpgradePromptType } from "@tutao/appEnv"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { PreconditionFailedError, TooManyRequestsError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { TextField } from "../../gui/base/TextField.js"
 import { getCapabilityText, getMemberCapability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
@@ -29,7 +29,6 @@ import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUti
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
 import { sysTypeRefs } from "@tutao/typeRefs"
-import { GroupType } from "@tutao/appEnv"
 
 export async function showGroupSharingDialog(groupInfo: sysTypeRefs.GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -282,7 +281,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						await import("../../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
 							({ showMultiRecipientsKeyVerificationRecoveryDialog }) => showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
 						)
-					} else if (e instanceof PreconditionFailedError && e.data !== "keys.absent") {
+					} else if (e instanceof restError.PreconditionFailedError && e.data !== "keys.absent") {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const { getAvailablePlansWithSharing } = await import("../../subscription/utils/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
@@ -292,7 +291,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						}
 					} else if (e instanceof UserError) {
 						showUserError(e)
-					} else if (e instanceof TooManyRequestsError) {
+					} else if (e instanceof restError.TooManyRequestsError) {
 						Dialog.message("tooManyAttempts_msg")
 					} else {
 						throw e

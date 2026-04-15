@@ -1,7 +1,7 @@
 import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
 import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
-import { NotAuthenticatedError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
 import { assertWorkerOrNode, isMainOrNode } from "@tutao/appEnv"
@@ -331,7 +331,7 @@ export class WorkerImpl implements NativeInterface {
 				const errorTypes = {
 					ProgrammingError,
 					CryptoError,
-					NotAuthenticatedError,
+					NotAuthenticatedError: restError.NotAuthenticatedError,
 				}
 				// @ts-ignore
 				let ErrorType = errorTypes[message.args[0].errorType]

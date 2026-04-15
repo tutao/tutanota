@@ -5,7 +5,7 @@ import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSaniti
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getConfirmation } from "../../../common/gui/base/GuiUtils.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 
 type KnowledgeBaseEntryViewAttrs = {
@@ -70,7 +70,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			title: "remove_action",
 			icon: Icons.TrashFilled,
 			click: () => {
-				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
+				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(restError.NotFoundError, noOp)))
 			},
 		})
 	}

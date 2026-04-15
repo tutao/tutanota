@@ -10,7 +10,6 @@ import {
 	GENERATED_MAX_ID,
 	getElementId,
 	isPermanentDeleteAllowedForFolder,
-	isPermanentDeleteAllowedMailSetKind,
 	isSameId,
 	ListElement,
 	ListElementEntity,
@@ -18,7 +17,7 @@ import {
 	sortCompareByReverseId,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/appEnv"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
@@ -42,7 +41,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {
@@ -81,7 +80,6 @@ import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
-import { isBrowser, MailSetKind, Mode, OperationType } from "@tutao/appEnv"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -916,7 +914,7 @@ export class SearchViewModel {
 						.load(lastResult.restriction.type, id)
 						.then((entity) => new SearchResultListEntry(entity))
 						.catch(
-							ofClass(NotFoundError, (_) => {
+							ofClass(restError.NotFoundError, (_) => {
 								return null
 							}),
 						)

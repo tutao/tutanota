@@ -28,7 +28,7 @@ import {
 } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
@@ -256,7 +256,7 @@ export class CalendarFacade {
 		if (failed !== 0) {
 			if (errors.some(isOfflineError)) {
 				//In this case the user will not be informed about the number of failed events. We considered this is okay because it is not actionable anyways.
-				throw new ConnectionError("Connection lost while saving events")
+				throw new restError.ConnectionError("Connection lost while saving events")
 			} else {
 				console.log("Could not save events. Number of failed imports: ", failed)
 				throw new ImportError(errors[0], "Could not save events.", failed)
@@ -324,7 +324,9 @@ export class CalendarFacade {
 		if (newEvent.uid == null) throw new Error("no uid set on the event")
 		newEvent.hashedUid = hashUid(newEvent.uid)
 
-		await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
+		await this.cachingEntityClient
+			.erase(oldEvent)
+			.catch(ofClass(restError.NotFoundError, () => console.log("could not delete old event when saving new one")))
 		return await this.saveCalendarEvents(
 			[
 				{
@@ -447,7 +449,7 @@ export class CalendarFacade {
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
 			return this.cachingEntityClient.loadMultiple(tutanotaTypeRefs.CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
 				// handle NotAuthorized here because user could have been removed from group.
-				if (error instanceof NotAuthorizedError) {
+				if (error instanceof restError.NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
 					return []
 				}
@@ -511,7 +513,7 @@ export class CalendarFacade {
 					ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!"),
 				}
 			} catch (e) {
-				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+				if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 					continue
 				}
 				throw e
@@ -533,7 +535,7 @@ export class CalendarFacade {
 			try {
 				await this.serviceExecutor.post(sysServices.AlarmService, requestEntity, { sessionKey: notificationSessionKey })
 			} catch (e) {
-				if (e instanceof PayloadTooLargeError) {
+				if (e instanceof restError.TooManyRequestsError) {
 					return this.infoMessageHandler.onInfoMessage({
 						translationKey: "calendarAlarmsTooBigError_msg",
 						args: {},

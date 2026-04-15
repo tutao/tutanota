@@ -2,7 +2,7 @@ import { Dialog } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import m from "mithril"
-import { NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNonNull, assertNotNull, Base64, newPromise, ofClass } from "@tutao/utils"
 import { asKdfType, sysTypeRefs } from "@tutao/typeRefs"
@@ -92,7 +92,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 					await Dialog.message("pwChangeValid_msg")
 				})
 				.catch(
-					ofClass(NotAuthenticatedError, (e) => {
+					ofClass(restError.NotAuthenticatedError, (e) => {
 						Dialog.message("oldPasswordInvalid_msg")
 					}),
 				)

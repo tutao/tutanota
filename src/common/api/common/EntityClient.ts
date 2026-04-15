@@ -6,14 +6,24 @@ import {
 	EntityRestInterface,
 	OwnerEncSessionKeyProvider,
 } from "../worker/rest/EntityRestClient"
-import { CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/typeRefs"
-import { Type, ValueType } from "@tutao/typeRefs"
-import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
-import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
+import {
+	ClientTypeModelResolver,
+	CUSTOM_MIN_ID,
+	elementIdPart,
+	firstBiggerThanSecond,
+	GENERATED_MIN_ID,
+	getElementId,
+	getLetId,
+	listIdPart,
+	RANGE_ITEM_LIMIT,
+	sysTypeRefs,
+	Type,
+	ValueType,
+} from "@tutao/typeRefs"
+import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
+import { restError } from "@tutao/restClient"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { ClientTypeModelResolver } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -176,7 +186,7 @@ export async function loadMultipleFromLists<T extends ListElementEntity>(
 				} catch (e) {
 					// these are thrown if the list itself is inaccessible. elements will just be missing
 					// in the loadMultiple result.
-					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+					if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
 						console.log(`could not load entities of type ${type} from list ${listId}: ${e.name}`)
 						return []
 					} else {

@@ -68,7 +68,7 @@ import {
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/utils"
 import { cleanMailAddress, makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
@@ -373,9 +373,9 @@ export class CalendarEventModel {
 			await this.strategy.apply()
 			return EventSaveResult.Saved
 		} catch (e) {
-			if (e instanceof PayloadTooLargeError) {
+			if (e instanceof restError.PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
-			} else if (e instanceof NotFoundError) {
+			} else if (e instanceof restError.NotFoundError) {
 				return EventSaveResult.NotFound
 			} else {
 				throw e

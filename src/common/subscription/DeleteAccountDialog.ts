@@ -1,16 +1,15 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
-import { InvalidDataError, LockedError, PreconditionFailedError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
 import { getEtId, sysTypeRefs } from "@tutao/typeRefs"
-import { CloseEventBusOption } from "@tutao/appEnv"
+import { CloseEventBusOption, isIOSApp } from "@tutao/appEnv"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { client } from "../misc/ClientDetector"
-import { isIOSApp } from "@tutao/appEnv"
 
 export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | null = null) {
 	let takeover = ""
@@ -79,9 +78,9 @@ async function deleteAccount(takeover: string, password: string, surveyData: sys
 			await locator.loginFacade.deleteAccount(password, neverNull(cleanedTakeover), surveyData)
 			return true
 		} catch (e) {
-			if (e instanceof PreconditionFailedError) await Dialog.message("passwordWrongInvalid_msg")
-			if (e instanceof InvalidDataError) await Dialog.message("takeoverAccountInvalid_msg")
-			if (e instanceof LockedError) await Dialog.message("operationStillActive_msg")
+			if (e instanceof restError.PreconditionFailedError) await Dialog.message("passwordWrongInvalid_msg")
+			if (e instanceof restError.TooManyRequestsError) await Dialog.message("takeoverAccountInvalid_msg")
+			if (e instanceof restError.LockedError) await Dialog.message("operationStillActive_msg")
 			return false
 		}
 	}

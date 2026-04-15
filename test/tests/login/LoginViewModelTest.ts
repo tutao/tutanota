@@ -9,7 +9,7 @@ import { SecondFactorHandler } from "../../../src/common/misc/2fa/SecondFactorHa
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
-import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/common/api/worker/facades/LoginFacade"
 import { createTestEntity, domainConfigStub, textIncludes } from "../TestUtils.js"
@@ -261,7 +261,7 @@ o.spec("LoginViewModelTest", () => {
 			viewModel.displayMode = DisplayMode.DeleteCredentials
 			const credentialsAndKey = credentialsToUnencrypted(testCredentials, null)
 			await credentialsProviderMock.store(credentialsAndKey)
-			when(loginControllerMock.deleteOldSession(credentialsAndKey, null)).thenReject(new ConnectionError("testmessage"))
+			when(loginControllerMock.deleteOldSession(credentialsAndKey, null)).thenReject(new restError.ConnectionError("testmessage"))
 
 			const result = await viewModel.deleteCredentials(encryptedTestCredentials.credentialInfo)
 
@@ -301,7 +301,7 @@ o.spec("LoginViewModelTest", () => {
 		o("login should fail with invalid stored credentials", async function () {
 			const credentialsAndKey = credentialsToUnencrypted(testCredentials, null)
 			await credentialsProviderMock.store(credentialsAndKey)
-			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new NotAuthenticatedError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new restError.NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -316,7 +316,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should fail for expired stored credentials", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
-			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new AccessExpiredError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new restError.AccessExpiredError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)

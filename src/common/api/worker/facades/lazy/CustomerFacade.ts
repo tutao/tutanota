@@ -1,6 +1,17 @@
-import { Const, CounterType, CryptoProtocolVersion, InvoiceData, SpamRuleFieldType } from "@tutao/appEnv"
+import {
+	AccountType,
+	assertWorkerOrNode,
+	BookingItemFeatureType,
+	Const,
+	CounterType,
+	CryptoProtocolVersion,
+	FeatureType,
+	GroupType,
+	InvoiceData,
+	SpamRuleFieldType,
+	SpamRuleType,
+} from "@tutao/appEnv"
 import { PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { AccountType, assertWorkerOrNode, BookingItemFeatureType, FeatureType, GroupType, SpamRuleType } from "@tutao/appEnv"
 import { assertNotNull, Hex, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
@@ -8,7 +19,7 @@ import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import type { Country } from "../../../../../appEnv/CountryList.js"
 import { getByAbbreviation } from "../../../../../appEnv/CountryList.js"
-import { LockedError } from "../../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -200,7 +211,7 @@ export class CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
-			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(restError.LockedError, noOp))
 		})
 	}
 
@@ -214,7 +225,7 @@ export class CustomerFacade {
 			}
 
 			props.emailSenderList[index] = spamRule
-			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(restError.LockedError, noOp))
 		})
 	}
 

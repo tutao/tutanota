@@ -1,7 +1,7 @@
 import { KeyLoaderFacade } from "../KeyLoaderFacade"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient"
 import { IServiceExecutor } from "../../../common/ServiceRequest"
-import { ArchiveDataType } from "@tutao/appEnv"
+import { ArchiveDataType, GroupType } from "@tutao/appEnv"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../UserFacade"
 import { aes256RandomKey } from "@tutao/crypto"
@@ -12,11 +12,10 @@ import { CryptoFacade } from "../../crypto/CryptoFacade"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { NotFoundError } from "../../../common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
-import { GroupType } from "@tutao/appEnv"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -122,7 +121,7 @@ export class DriveFacade {
 		try {
 			driveGroupRoot = await this.entityClient.load(driveTypeRefs.DriveGroupRootTypeRef, fileGroupId)
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				driveGroupRoot = await this.createGroupRoot(fileGroupId)
 			} else {
 				throw e

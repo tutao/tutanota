@@ -1,6 +1,6 @@
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
-import { NotFoundError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { NewsListItem } from "./NewsListItem.js"
 import { isIOSApp } from "@tutao/appEnv"
 
@@ -62,7 +62,7 @@ export class NewsModel {
 			await this.serviceExecutor.post(tutanotaServices.NewsService, data)
 			return true
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				// NewsItem not found, likely deleted on the server
 				console.log(`Could not acknowledge newsItem with ID '${newsItemId}'`)
 				return false

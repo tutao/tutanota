@@ -10,12 +10,11 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import { assertWorkerOrNode } from "@tutao/appEnv"
-import { Const } from "@tutao/appEnv"
+import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/appEnv"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
-import { RestClient, restSuspension as susHandler } from "@tutao/restClient"
+import { RestClient, restError, restSuspension as susHandler } from "@tutao/restClient"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -52,7 +51,6 @@ import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
 import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { ConnectionError, ServiceUnavailableError } from "../../../common/api/common/error/RestError.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
@@ -109,7 +107,6 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
-import { getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/appEnv"
 
 assertWorkerOrNode()
 
@@ -916,12 +913,12 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 			user: assertNotNull(locator.user.getUser()),
 		})
 	} catch (e) {
-		if (e instanceof ServiceUnavailableError) {
+		if (e instanceof restError.TooManyRequestsError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
 			return fullLoginIndexerInit(worker)
-		} else if (e instanceof ConnectionError) {
+		} else if (e instanceof restError.ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
 			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")

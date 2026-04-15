@@ -11,7 +11,7 @@ import {
 } from "@tutao/crypto"
 import { customIdToString, KeyVersion, lazyAsync, promiseMap, stringToCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "./UserFacade.js"
-import { NotFoundError } from "../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typeRefs"
 import { KeyCache } from "./KeyCache.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
@@ -304,7 +304,7 @@ export class KeyLoaderFacade {
 
 	private validateAndDecryptKeyPair(keyPair: sysTypeRefs.KeyPair | null, groupId: Id, groupKey: VersionedKey) {
 		if (keyPair == null) {
-			throw new NotFoundError(`no key pair on group ${groupId}`)
+			throw new restError.NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
 		const decryptedKeyPair = decryptKeyPair(groupKey.object, keyPair as EncryptedKeyPairs)

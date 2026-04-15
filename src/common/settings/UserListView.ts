@@ -1,15 +1,14 @@
 import m, { Children } from "mithril"
-import { NotFoundError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { component_size } from "../gui/size.js"
 import { elementIdPart, entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
 import { contains, LazyLoaded, noOp } from "@tutao/utils"
 import { UserViewer } from "./UserViewer.js"
-import { FeatureType } from "@tutao/appEnv"
+import { assertMainOrNode, FeatureType, GroupType } from "@tutao/appEnv"
 import { Icon } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { compareGroupInfos } from "../api/common/utils/GroupUtils.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
-import { assertMainOrNode, GroupType } from "@tutao/appEnv"
 import { locator } from "../api/main/CommonLocator.js"
 import Stream from "mithril/stream"
 import * as AddUserDialog from "./AddUserDialog.js"
@@ -215,7 +214,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				try {
 					return await locator.entityClient.load<sysTypeRefs.GroupInfo>(sysTypeRefs.GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
-					if (e instanceof NotFoundError) {
+					if (e instanceof restError.NotFoundError) {
 						// we return null if the GroupInfo does not exist
 						return null
 					} else {

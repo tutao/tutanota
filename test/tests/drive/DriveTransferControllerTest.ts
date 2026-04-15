@@ -10,7 +10,7 @@ import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { driveTypeRefs } from "@tutao/typeRefs"
 import { ArchiveDataType } from "@tutao/appEnv"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
-import { ConnectionError } from "../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController
@@ -151,7 +151,7 @@ o.spec("DriveTransferController", function () {
 					transferredSize: 0,
 				},
 			])
-			uploadDeferred1.reject(new ConnectionError("upload failed"))
+			uploadDeferred1.reject(new restError.ConnectionError("upload failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{
@@ -428,7 +428,7 @@ o.spec("DriveTransferController", function () {
 			})
 			await transferController.download(file1)
 			await transferController.download(file2)
-			deferredDownload1.reject(new ConnectionError("download failed"))
+			deferredDownload1.reject(new restError.ConnectionError("download failed"))
 			await waitForUiUpdate()
 			o.check(transferController.state).deepEquals([
 				{

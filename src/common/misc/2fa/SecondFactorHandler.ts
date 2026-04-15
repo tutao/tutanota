@@ -1,12 +1,11 @@
 import m from "mithril"
 import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typeRefs"
 import { Dialog } from "../../gui/base/Dialog"
-import { SessionState } from "@tutao/appEnv"
+import { assertMainOrNode, OperationType, SessionState } from "@tutao/appEnv"
 import { lang } from "../LanguageViewModel"
 import { neverNull } from "@tutao/utils"
-import { NotFoundError } from "../../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { EventController } from "../../api/main/EventController"
-import { assertMainOrNode, OperationType } from "@tutao/appEnv"
 import type { EntityClient } from "../../api/common/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
@@ -58,7 +57,7 @@ export class SecondFactorHandler {
 					try {
 						session = await this.entityClient.load(sysTypeRefs.SessionTypeRef, sessionId)
 					} catch (e) {
-						if (e instanceof NotFoundError) {
+						if (e instanceof restError.NotFoundError) {
 							console.log("Failed to load session", e)
 						} else {
 							throw e
@@ -82,7 +81,7 @@ export class SecondFactorHandler {
 					try {
 						session = await this.entityClient.load(sysTypeRefs.SessionTypeRef, sessionId)
 					} catch (e) {
-						if (e instanceof NotFoundError) {
+						if (e instanceof restError.NotFoundError) {
 							console.log("Failed to load session", e)
 						} else {
 							throw e

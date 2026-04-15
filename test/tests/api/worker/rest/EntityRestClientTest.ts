@@ -1,11 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import {
-	BadRequestError,
-	ConnectionError,
-	InternalServerError,
-	NotAuthorizedError,
-	PayloadTooLargeError,
-} from "../../../../../src/common/api/common/error/RestError.js"
+import { HttpMethod, MediaType, RestClient, restError } from "@tutao/restClient"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import {
 	AttributeModel,
@@ -21,7 +15,6 @@ import {
 	TypeModelResolver,
 } from "@tutao/typeRefs"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import { HttpMethod, MediaType, RestClient } from "@tutao/restClient"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { AuthDataProvider, UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -750,7 +743,7 @@ o.spec("EntityRestClient", function () {
 					baseUrl: firstServer,
 					suspensionBehavior: undefined,
 				}),
-			).thenReject(new ConnectionError("test connection error for retry"))
+			).thenReject(new restError.ConnectionError("test connection error for retry"))
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
 					headers: {},
@@ -1084,13 +1077,13 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("A single request is made and an error occurs, all entities should be returned as failedInstances", async function () {
-			when(restClient.request(anything(), anything(), anything())).thenReject(new BadRequestError("canny do et"))
+			when(restClient.request(anything(), anything(), anything())).thenReject(new restError.BadRequestError("canny do et"))
 
 			const newContacts = groupMembers(100)
 			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newContacts))
 			o(result.failedInstances.length).equals(newContacts.length)
 			o(result.errors.length).equals(1)
-			o(result.errors[0] instanceof BadRequestError).equals(true)
+			o(result.errors[0] instanceof restError.BadRequestError).equals(true)
 			o(result.failedInstances).deepEquals(newContacts)
 		})
 
@@ -1118,7 +1111,7 @@ o.spec("EntityRestClient", function () {
 					return JSON.stringify(untypedPostReturns.slice((requestCounter - 1) * 100, requestCounter * 100))
 				} else {
 					// First and Third requests are failure
-					throw new BadRequestError("It was a bad request")
+					throw new restError.BadRequestError("It was a bad request")
 				}
 			})
 
@@ -1126,7 +1119,7 @@ o.spec("EntityRestClient", function () {
 			verify(restClient.request(anything(), anything()), { times: 4, ignoreExtraArgs: true })
 			o(result.failedInstances).deepEquals(newGroupMembers.slice(0, 100).concat(newGroupMembers.slice(200, 300)))
 			o(result.errors.length).equals(2)
-			o(result.errors.every((e) => e instanceof BadRequestError)).equals(true)
+			o(result.errors.every((e) => e instanceof restError.BadRequestError)).equals(true)
 		})
 
 		o("Post multiple: When a PayloadTooLarge error occurs individual instances are posted", async function () {
@@ -1146,10 +1139,10 @@ o.spec("EntityRestClient", function () {
 			when(restClient.request(anything(), anything(), anything())).thenDo((path: string, method: HttpMethod, { body }) => {
 				//post multiple - body is an array
 				if (body && body.startsWith("[")) {
-					throw new PayloadTooLargeError("test") //post single
+					throw new restError.TooManyRequestsError("test") //post single
 				} else if (step === 1) {
 					step += 1
-					throw new InternalServerError("might happen")
+					throw new restError.TooManyRequestsError("might happen")
 				} else {
 					return JSON.stringify(untypedPostReturns[step++])
 				}
@@ -1162,7 +1155,7 @@ o.spec("EntityRestClient", function () {
 			o(result.failedInstances.length).equals(1) //one individual post results in an error
 
 			o(result.errors.length).equals(1)
-			o(result.errors[0] instanceof InternalServerError).equals(true)
+			o(result.errors[0] instanceof restError.TooManyRequestsError).equals(true)
 			o(result.failedInstances).deepEquals([instances[1]])
 		})
 	})
@@ -1365,7 +1358,7 @@ o.spec("EntityRestClient", function () {
 			]
 			const mapperMock = func<Mapper<string, object>>()
 			const expectedResult = { response: "response-from-server" }
-			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
+			when(mapperMock("w1", 0)).thenReject(new restError.ConnectionError("test"))
 			when(mapperMock("w2", 1)).thenResolve(expectedResult)
 			const result = await tryServers(servers, mapperMock, "error")
 			o(result).deepEquals(expectedResult)
@@ -1378,9 +1371,9 @@ o.spec("EntityRestClient", function () {
 				createTestEntity(storageTypeRefs.BlobServerUrlTypeRef, { url: "w2" }),
 			]
 			const mapperMock = func<Mapper<string, object>>()
-			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
-			when(mapperMock("w2", 1)).thenReject(new ConnectionError("test"))
-			const e = await assertThrows(ConnectionError, () => tryServers(servers, mapperMock, "error log msg"))
+			when(mapperMock("w1", 0)).thenReject(new restError.ConnectionError("test"))
+			when(mapperMock("w2", 1)).thenReject(new restError.ConnectionError("test"))
+			const e = await assertThrows(restError.ConnectionError, () => tryServers(servers, mapperMock, "error log msg"))
 			o(e.message).equals("test")
 			verify(mapperMock(anything(), anything()), { times: 2 })
 		})
@@ -1393,13 +1386,13 @@ o.spec("EntityRestClient", function () {
 			let errorThrown = 0
 			const doBlobRequest = async () => {
 				blobRequestCallCount += 1
-				throw new NotAuthorizedError("test error")
+				throw new restError.NotAuthorizedError("test error")
 			}
 			const evictCache = () => {
 				evictCacheCallCount += 1
 			}
 			await doBlobRequestWithRetry(doBlobRequest, evictCache).catch(
-				ofClass(NotAuthorizedError, (e) => {
+				ofClass(restError.NotAuthorizedError, (e) => {
 					errorThrown += 1 // must be thrown
 				}),
 			)
@@ -1415,7 +1408,7 @@ o.spec("EntityRestClient", function () {
 				//only throw on first call
 				if (blobRequestCallCount === 0) {
 					blobRequestCallCount += 1
-					throw new NotAuthorizedError("test error")
+					throw new restError.NotAuthorizedError("test error")
 				}
 			}
 			const evictCache = () => {

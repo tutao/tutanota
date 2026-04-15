@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { AccountType, assertMainOrNode, AvailablePlans, isIOSApp, NewPaidPlans, PaymentMethodType } from "@tutao/appEnv"
+import { AccountType, assertMainOrNode, AvailablePlans, isIOSApp, NewPaidPlans, PaymentMethodType, PostingType, UpgradePromptType } from "@tutao/appEnv"
 import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
@@ -19,8 +19,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
-import { PostingType, UpgradePromptType } from "@tutao/appEnv"
-import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { getByAbbreviation } from "../../appEnv/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
@@ -466,10 +465,10 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						"pleaseWait_msg",
 						locator.serviceExecutor
 							.put(sysServices.DebitService, sysTypeRefs.createDebitServicePutData({}))
-							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
-							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
-							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
-							.catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
+							.catch(ofClass(restError.LockedError, () => "operationStillActive_msg" as TranslationKey))
+							.catch(ofClass(restError.PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
+							.catch(ofClass(restError.TooManyRequestsError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
+							.catch(ofClass(restError.TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
 					)
 				}
 			})

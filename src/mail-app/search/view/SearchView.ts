@@ -2,8 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailReportType, UpgradePromptType } from "@tutao/appEnv"
-import { assertMainOrNode, isApp, isBrowser, MailSetKind } from "@tutao/appEnv"
+import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, MailReportType, MailSetKind, UpgradePromptType } from "@tutao/appEnv"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { getElementId, getIds, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
@@ -79,7 +78,7 @@ import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../common/gui/base/List.js"
 import { SearchViewModel } from "./SearchViewModel.js"
-import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
@@ -796,7 +795,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
 		viewModel
 			.reportSpamForMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
 
@@ -1414,7 +1413,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 				for (const contact of selected) {
 					locator.entityClient.erase(contact).catch(
-						ofClass(NotFoundError, (_) => {
+						ofClass(restError.NotFoundError, (_) => {
 							// ignore because the delete key shortcut may be executed again while the contact is already deleted
 						}),
 					)

@@ -1,5 +1,5 @@
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 import {
 	ClientTypeModelResolver,
 	entityUpdateUtils,
@@ -48,7 +48,6 @@ import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
-import { GroupType, OperationType } from "@tutao/appEnv"
 
 export type InitParams = {
 	user: sysTypeRefs.User
@@ -196,7 +195,7 @@ export class IndexedDbIndexer implements Indexer {
 					aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
 					indexedMailCount: 0,
 					failedIndexingUpTo: this.mailIndexer.currentIndexTimestamp,
-					error: e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+					error: e instanceof restError.ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
 				})
 
 				this.initDeferred.reject(e)
@@ -218,7 +217,7 @@ export class IndexedDbIndexer implements Indexer {
 			}
 		} catch (e) {
 			// external users have no contact list.
-			if (!(e instanceof NotFoundError)) {
+			if (!(e instanceof restError.NotFoundError)) {
 				throw e
 			}
 		}
@@ -517,7 +516,7 @@ export class IndexedDbIndexer implements Indexer {
 							break
 					}
 				} catch (e) {
-					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+					if (e instanceof restError.NotAuthorizedError || e instanceof restError.NotFoundError) {
 						continue
 					} else {
 						throw e

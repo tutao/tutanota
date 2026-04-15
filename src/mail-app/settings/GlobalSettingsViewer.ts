@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { DAY_IN_MILLIS, SpamRuleFieldType, UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, DAY_IN_MILLIS, GroupType, OperationType, SpamRuleFieldType, SpamRuleType, UpgradePromptType } from "@tutao/appEnv"
 import {
 	entityUpdateUtils,
 	GENERATED_MAX_ID,
@@ -16,7 +16,7 @@ import {
 import stream from "mithril/stream"
 import { formatDateTime } from "../../common/misc/Formatter"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { LockedError, PreconditionFailedError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
@@ -31,7 +31,6 @@ import { getUserGroupMemberships } from "../../common/api/common/utils/GroupUtil
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { getDomainPart } from "../../common/misc/parsing/MailAddressParser"
 import { locator } from "../../common/api/main/CommonLocator"
-import { assertMainOrNode, GroupType, OperationType, SpamRuleType } from "@tutao/appEnv"
 import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { getCustomMailDomains } from "../../common/api/common/utils/CustomerUtils.js"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../common/settings/AccountMaintenanceSettings.js"
@@ -172,7 +171,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					actionButtonAttrs: createRowActions(
 						{
 							getArray: () => props.emailSenderList,
-							updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+							updateInstance: () => locator.entityClient.update(props).catch(ofClass(restError.LockedError, noOp)),
 						},
 						rule,
 						index,
@@ -415,7 +414,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				locator.customerFacade
 					.removeDomain(domainInfo.domain)
 					.catch(
-						ofClass(PreconditionFailedError, () => {
+						ofClass(restError.PreconditionFailedError, () => {
 							Dialog.message(
 								lang.getTranslation("customDomainDeletePreconditionFailed_msg", {
 									"{domainName}": domainInfo.domain,
@@ -423,7 +422,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							)
 						}),
 					)
-					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+					.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
 			}
 		})
 	}

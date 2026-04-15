@@ -16,7 +16,7 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 
 import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
@@ -138,7 +138,7 @@ export class ConversationViewModel {
 				this.onUiUpdate()
 			}
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				// Ignore, something was already deleted
 			} else {
 				throw e
@@ -162,14 +162,14 @@ export class ConversationViewModel {
 				// ideally checking the `mail` ref should be enough but we sometimes get an update with UNKNOWN and non-existing email but still with the ref
 				conversationEntry.conversationType !== ConversationType.UNKNOWN && conversationEntry.mail
 					? await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, conversationEntry.mail).catch(
-							ofClass(NotFoundError, () => {
+							ofClass(restError.NotFoundError, () => {
 								console.log(`Could not find updated mail ${JSON.stringify(conversationEntry.mail)}`)
 								return null
 							}),
 						)
 					: null
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				// Ignore, something was already deleted
 				return
 			} else {
@@ -234,7 +234,7 @@ export class ConversationViewModel {
 					}
 				}
 			} catch (e) {
-				if (e instanceof NotAuthorizedError) {
+				if (e instanceof restError.NotAuthorizedError) {
 					// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
 					// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
 					// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.

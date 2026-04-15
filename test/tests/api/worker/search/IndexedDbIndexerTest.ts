@@ -1,8 +1,8 @@
 import { ClientModelInfo, ClientTypeModelResolver, entityUpdateUtils, sysTypeRefs, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/appEnv"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
-import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import o, { mock } from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
@@ -24,7 +24,6 @@ import type { GroupData } from "../../../../../src/common/api/worker/search/Sear
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { GroupType, OperationType } from "@tutao/appEnv"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {
@@ -822,8 +821,8 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			o.test("gracefully handles not found errors", async () => {
-				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotFoundError("Not found :("))
-				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotFoundError("Not found :("))
+				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new restError.NotFoundError("Not found :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new restError.NotFoundError("Not found :("))
 				await indexer._processEntityEvents(testBatch)
 
 				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
@@ -842,8 +841,8 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			o.test("gracefully handles not authorized errors", async () => {
-				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotAuthorizedError("You shall not pass :("))
-				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotAuthorizedError("You shall not pass :("))
+				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new restError.NotAuthorizedError("You shall not pass :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new restError.NotAuthorizedError("You shall not pass :("))
 				await indexer._processEntityEvents(testBatch)
 
 				verify(mailIndexer.afterMailCreated(["create", "id-1"]))

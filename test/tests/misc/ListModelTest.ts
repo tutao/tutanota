@@ -1,11 +1,10 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { getElementId, sortCompareById, timestampToGeneratedId } from "@tutao/typeRefs"
+import { getElementId, sortCompareById, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"
-import { ConnectionError } from "../../../src/common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 
@@ -63,7 +62,7 @@ o.spec("ListModel", function () {
 		o("when connection error occurs it wil set state to connectionLost", async function () {
 			const loading = listModel.loadInitial()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
-			fetchDefer.reject(new ConnectionError("oops"))
+			fetchDefer.reject(new restError.ConnectionError("oops"))
 			await loading
 			o(listModel.state.loadingStatus).equals(ListLoadingState.ConnectionLost)
 		})
@@ -98,7 +97,7 @@ o.spec("ListModel", function () {
 		})
 		o("when called with retryLoading after connection error it will set state to loading and will load again", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.reject(new ConnectionError("oops"))
+			fetchDefer.reject(new restError.ConnectionError("oops"))
 			await initialLoading
 
 			fetchDefer = defer()

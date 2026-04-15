@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, MailSetKind } from "@tutao/appEnv"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, OperationType, MailSetKind} from "@tutao/appEnv"
 import {
 	assertNotNull,
 	clamp,
@@ -24,7 +24,7 @@ import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSa
 	sysTypeRefs,
 	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
@@ -38,7 +38,6 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { cryptoUtils } from "@tutao/crypto"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { OperationType } from "@tutao/appEnv"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -120,7 +119,7 @@ export class MailIndexer {
 					.then((d) => {
 						const draft = first(d)
 						if (draft == null) {
-							throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
+							throw new restError.NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
 						}
 						return draft.details
 					})
@@ -134,7 +133,7 @@ export class MailIndexer {
 					.then((d) => {
 						const blob = first(d)
 						if (blob == null) {
-							throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+							throw new restError.NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 						}
 						return blob.details
 					})
@@ -147,10 +146,10 @@ export class MailIndexer {
 				attachments,
 			}
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("tried to index non existing mail", mailId)
 				return null
-			} else if (e instanceof NotAuthorizedError) {
+			} else if (e instanceof restError.NotAuthorizedError) {
 				console.log("tried to index mail without permission", mailId)
 				return null
 			} else {
@@ -281,7 +280,7 @@ export class MailIndexer {
 			const updatedIndexState: Partial<SearchIndexStateInfo> = {
 				progress: restarting ? 1 : 0,
 				failedIndexingUpTo: cancelled ? null : oldestTimestamp,
-				error: cancelled ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+				error: cancelled ? null : e instanceof restError.ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
 			}
 
 			if (cancelled) {

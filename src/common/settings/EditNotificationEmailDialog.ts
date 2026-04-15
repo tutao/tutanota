@@ -11,18 +11,17 @@ import { TextField } from "../gui/base/TextField.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/utils"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
-import { PayloadTooLargeError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { SegmentControl } from "../gui/base/SegmentControl.js"
 import { UserError } from "../api/main/UserError.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs.js"
 import { getAvailablePlansWithWhitelabel, isWhitelabelActive } from "../subscription/utils/SubscriptionUtils.js"
 import type { UserController } from "../api/main/UserController.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { PlanType, UpgradePromptType } from "@tutao/appEnv"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 
 import { insertInlineImageB64ClickHandler } from "../mailFunctionality/SharedMailUtils.js"
-import { PlanType } from "@tutao/appEnv"
 
 export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: sysTypeRefs.NotificationMailTemplate | undefined = undefined
@@ -235,7 +234,7 @@ export function show(existingTemplate: sysTypeRefs.NotificationMailTemplate | nu
 					}),
 				)
 				.catch(
-					ofClass(PayloadTooLargeError, () => {
+					ofClass(restError.TooManyRequestsError, () => {
 						template.subject = oldSubject
 						template.body = oldBody
 						template.language = oldLanguage

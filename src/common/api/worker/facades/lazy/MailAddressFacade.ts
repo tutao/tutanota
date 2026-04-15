@@ -5,7 +5,7 @@ import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertNotNull, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
-import { PreconditionFailedError } from "../../../common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 
 import { VersionedKey } from "@tutao/instancePipeline"
@@ -296,7 +296,7 @@ export class MailAddressFacade {
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		return assertNotNull(
 			await this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
-				ofClass(PreconditionFailedError, (e) => {
+				ofClass(restError.PreconditionFailedError, (e) => {
 					// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
 					if (e.data && e.data.startsWith("exists:")) {
 						const existingId = e.data.substring("exists:".length)

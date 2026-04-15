@@ -5,7 +5,7 @@ import { assertNotNull, Hex, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { assertMainOrNode, GroupType, isApp } from "@tutao/appEnv"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
-import { AccessBlockedError, NotAuthenticatedError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { getEtId, isSameId, sysTypeRefs } from "@tutao/typeRefs"
@@ -53,8 +53,8 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action) {
 					showRecoverCodeDialog(recoverCode)
 					return ""
 				})
-				.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
-				.catch(ofClass(AccessBlockedError, () => lang.get("tooManyAttempts_msg")))
+				.catch(ofClass(restError.NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
+				.catch(ofClass(restError.TooManyRequestsError, () => lang.get("tooManyAttempts_msg")))
 		},
 		cancel: {
 			textId: "cancel_action",

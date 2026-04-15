@@ -5,7 +5,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"
-import { LimitReachedError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
@@ -129,7 +129,7 @@ export class MailAddressTableModel {
 			await this.mailAddressFacade.addMailAlias(this.userInfo.userGroupInfo.group, alias)
 			await this.setAliasName(alias, senderName)
 		} catch (e) {
-			if (e instanceof LimitReachedError) {
+			if (e instanceof restError.TooManyRequestsError) {
 				await this.handleTooManyAliases()
 			}
 			throw e

@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { assertMainOrNode, InboxRuleType, MailSetKind, UpgradePromptType } from "@tutao/appEnv"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../common/misc/FormatValidator"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { elementIdPart, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
@@ -10,9 +10,8 @@ import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
 import { neverNull } from "@tutao/utils"
-import { LockedError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
-import { assertMainOrNode, InboxRuleType, MailSetKind } from "@tutao/appEnv"
 import { locator } from "../../common/api/main/CommonLocator"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 import { mailLocator } from "../mailLocator.js"
@@ -120,7 +119,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 						props.inboxRules = inboxRules
 						//do not close
 						throw error
-					} else if (error instanceof LockedError) {
+					} else if (error instanceof restError.LockedError) {
 						dialog.close()
 					} else {
 						props.inboxRules = inboxRules

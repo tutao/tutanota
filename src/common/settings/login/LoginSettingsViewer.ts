@@ -7,10 +7,10 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { elementIdPart, entityUpdateUtils, getElementId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/utils"
 import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
-import { SessionState } from "@tutao/appEnv"
+import { assertMainOrNode, isDesktop, SessionState } from "@tutao/appEnv"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
-import { NotFoundError } from "../../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
@@ -19,7 +19,6 @@ import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
-import { assertMainOrNode, isDesktop } from "@tutao/appEnv"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
@@ -354,7 +353,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 	private _closeSession(session: sysTypeRefs.Session) {
 		locator.entityClient.erase(session).catch(
-			ofClass(NotFoundError, () => {
+			ofClass(restError.NotFoundError, () => {
 				console.log(`session ${JSON.stringify(session._id)} already deleted`)
 			}),
 		)

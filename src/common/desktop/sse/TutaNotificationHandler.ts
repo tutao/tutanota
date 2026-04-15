@@ -8,6 +8,7 @@ import {
 	EncryptedParsedInstance,
 	ServerModelUntypedInstance,
 	StrippedEntity,
+	sysTypeRefs,
 	tutanotaModelInfo,
 	tutanotaTypeRefs,
 	TypeModel,
@@ -16,7 +17,6 @@ import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncry
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
 import { log } from "../DesktopLog"
-import { handleRestError } from "../../api/common/error/RestError"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
@@ -24,7 +24,7 @@ import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { InstancePipeline } from "@tutao/instancePipeline"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { restError } from "@tutao/restClient"
 
 const TAG = "[notifications]"
 
@@ -137,7 +137,7 @@ export class TutaNotificationHandler {
 		try {
 			const response = await this.fetch(url, { headers })
 			if (!response.ok) {
-				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
+				throw restError.handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
 			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>

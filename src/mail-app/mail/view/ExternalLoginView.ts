@@ -1,12 +1,12 @@
 import m, { Children, Vnode } from "mithril"
-import { AccessExpiredError } from "../../../common/api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tutao/utils"
 import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { KdfType, Keys } from "@tutao/appEnv"
+import { assertMainOrNode, KdfType, Keys } from "@tutao/appEnv"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { Autocomplete } from "../../../common/gui/base/TextField.js"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
@@ -14,7 +14,6 @@ import { MessageBox } from "../../../common/gui/base/MessageBox.js"
 import { asKdfType, GENERATED_MIN_ID } from "@tutao/typeRefs"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../../common/misc/LoginUtils.js"
 import type { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
-import { assertMainOrNode } from "@tutao/appEnv"
 import { credentialsToUnencrypted } from "../../../common/misc/credentials/Credentials.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { ResumeSessionErrorReason } from "../../../common/api/worker/facades/LoginFacade.js"
@@ -132,7 +131,7 @@ export class ExternalLoginViewModel {
 		} catch (e) {
 			const messageId = getLoginErrorMessage(e, true)
 
-			if (e instanceof AccessExpiredError) {
+			if (e instanceof restError.AccessExpiredError) {
 				this.errorMessageId = messageId
 			} else {
 				this.helpText = messageId

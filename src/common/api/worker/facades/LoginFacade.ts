@@ -28,13 +28,11 @@ import {
 	tutanotaTypeRefs,
 	TypeModelResolver,
 } from "@tutao/typeRefs"
-import { CloseEventBusOption, Const, DeactivationReason, KdfType, RolloutType } from "@tutao/appEnv"
-import { assertWorkerOrNode, DEFAULT_KDF_TYPE } from "@tutao/appEnv"
+import { assertWorkerOrNode, CloseEventBusOption, Const, DeactivationReason, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "@tutao/appEnv"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { CacheMode, EntityRestClient, typeModelToRestPath } from "../rest/EntityRestClient"
-import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
+import { HttpMethod, MediaType, RestClient, restError } from "@tutao/restClient"
 import { CancelledError } from "../../common/error/CancelledError"
-import { HttpMethod, MediaType, RestClient } from "@tutao/restClient"
 import { EntityClient } from "../../common/EntityClient"
 import type { Credentials } from "../../../misc/credentials/Credentials"
 import {
@@ -425,7 +423,7 @@ export class LoginFacade {
 				return this.waitUntilSecondFactorApproved(accessToken, sessionId, 0)
 			}
 		} catch (e) {
-			if (e instanceof ConnectionError && retryOnNetworkError < 10) {
+			if (e instanceof restError.ConnectionError && retryOnNetworkError < 10) {
 				// Connection error can occur on ios when switching between apps or just as a timeout (our request timeout is shorter than the overall
 				// auth flow timeout). Just retry in this case.
 				return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
@@ -527,14 +525,14 @@ export class LoginFacade {
 		await this.serviceExecutor
 			.delete(sysServices.SecondFactorAuthService, secondFactorAuthDeleteData)
 			.catch(
-				ofClass(NotFoundError, (e) => {
+				ofClass(restError.NotFoundError, (e) => {
 					// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
 					// cancel too late. No harm here anyway if the session is already gone.
 					console.warn("Tried to cancel second factor but it was not there anymore", e)
 				}),
 			)
 			.catch(
-				ofClass(LockedError, (e) => {
+				ofClass(restError.LockedError, (e) => {
 					// Might happen if we trigger cancel and confirm at the same time.
 					console.warn("Tried to cancel second factor but it is currently locked", e)
 				}),
@@ -673,13 +671,13 @@ export class LoginFacade {
 		try {
 			await this.finishResumeSession(credentials, null, cacheInfo)
 		} catch (e) {
-			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
+			if (e instanceof restError.NotAuthenticatedError || e instanceof restError.SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
 				this.asyncLoginState = { state: "idle" }
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
 				this.asyncLoginState = { state: "failed", credentials, cacheInfo }
-				if (!(e instanceof ConnectionError)) {
+				if (!(e instanceof restError.ConnectionError)) {
 					await this.applicationTypesFacade.invalidateApplicationTypes()
 					await this.sendError(e)
 				}
@@ -844,7 +842,7 @@ export class LoginFacade {
 			// Do not delete session or credentials, we can still use them if the password
 			// hasn't been changed.
 			this.resetSession()
-			throw new AccessExpiredError("Salt changed, outdated link?")
+			throw new restError.AccessExpiredError("Salt changed, outdated link?")
 		}
 	}
 
@@ -862,7 +860,7 @@ export class LoginFacade {
 			// delete the obsolete session to make sure it can not be used any more
 			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
 			await this.resetSession()
-			throw new NotAuthenticatedError("Auth verifier has changed")
+			throw new restError.NotAuthenticatedError("Auth verifier has changed")
 		}
 	}
 
@@ -905,12 +903,12 @@ export class LoginFacade {
 				queryParams,
 			})
 			.catch(
-				ofClass(NotAuthenticatedError, () => {
+				ofClass(restError.NotAuthenticatedError, () => {
 					console.log("authentication failed => session is already closed")
 				}),
 			)
 			.catch(
-				ofClass(NotFoundError, () => {
+				ofClass(restError.NotFoundError, () => {
 					console.log("authentication failed => session instance is already deleted")
 				}),
 			)

@@ -1,7 +1,6 @@
-import { AccessExpiredError } from "../../../common/error/RestError.js"
+import { restError, restSuspension } from "@tutao/restClient"
 import { tutanotaServices } from "@tutao/typeRefs"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { restSuspension } from "@tutao/restClient"
 
 const TAG = "[MailExportTokenFacade]"
 
@@ -35,7 +34,7 @@ export class MailExportTokenFacade {
 			return await request(token)
 		} catch (e) {
 			// We only allow one retry
-			if (e instanceof AccessExpiredError) {
+			if (e instanceof restError.AccessExpiredError) {
 				let newToken
 				if (this.currentExportToken === token) {
 					console.log(TAG, `token expired for exporting and will be renewed`)

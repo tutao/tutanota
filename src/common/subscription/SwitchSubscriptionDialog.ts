@@ -3,7 +3,21 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
 import { getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { BookingFailureReason, Const, InvoiceData, Keys, UnsubscribeFailureReason } from "@tutao/appEnv"
+import {
+	AccountType,
+	AvailablePlanType,
+	BookingFailureReason,
+	Const,
+	GroupType,
+	InvoiceData,
+	isIOSApp,
+	Keys,
+	LegacyPlans,
+	NewBusinessPlans,
+	PaymentMethodType,
+	PlanType,
+	UnsubscribeFailureReason,
+} from "@tutao/appEnv"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -11,7 +25,7 @@ import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
-import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { restError } from "@tutao/restClient"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
@@ -40,7 +54,6 @@ import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanS
 import { px } from "../gui/size"
 import { Icons } from "../gui/base/icons/Icons"
 import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
-import { AccountType, AvailablePlanType, GroupType, isIOSApp, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "@tutao/appEnv"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -345,7 +358,7 @@ async function runTemplateCleanupFlow(customer: sysTypeRefs.Customer) {
  * @returns boolean true if we should re-try the switch, false if the customer cancelled the sub-flow or we can't handle
  * the issue automatically
  */
-export async function handleSwitchAccountPreconditionFailed(customer: sysTypeRefs.Customer, e: PreconditionFailedError): Promise<boolean> {
+export async function handleSwitchAccountPreconditionFailed(customer: sysTypeRefs.Customer, e: restError.PreconditionFailedError): Promise<boolean> {
 	const reason = e.data
 
 	if (reason == null) {
@@ -466,12 +479,12 @@ export async function tryDowngradePremiumToFree(
 		await locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, switchAccountTypeData)
 		return PlanType.Free
 	} catch (e) {
-		if (e instanceof PreconditionFailedError) {
+		if (e instanceof restError.PreconditionFailedError) {
 			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 			if (shouldRetry) {
 				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
 			}
-		} else if (e instanceof InvalidDataError) {
+		} else if (e instanceof restError.TooManyRequestsError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
 		} else {
 			throw e
@@ -545,7 +558,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
 			return
 		} catch (e) {
-			if (e instanceof PreconditionFailedError) {
+			if (e instanceof restError.PreconditionFailedError) {
 				const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 				if (shouldRetry) {
 					return switchSubscription(targetSubscription, dialog, currentPlanInfo)

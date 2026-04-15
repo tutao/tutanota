@@ -1,15 +1,19 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, InboxRuleType, isApp, isBrowser, OperationType } from "@tutao/appEnv"
-import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
-import { elementIdPart, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
+	assertMainOrNode,
 	Const,
 	FeatureType,
 	FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
+	InboxRuleType,
+	isApp,
+	isBrowser,
+	OperationType,
 	ReportMovedMailsType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "@tutao/appEnv"
+import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
+import { elementIdPart, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
@@ -29,7 +33,7 @@ import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { LockedError } from "../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
@@ -527,7 +531,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: createRowActions(
 							{
 								getArray: () => props.inboxRules,
-								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(restError.LockedError, noOp)),
 							},
 							rule,
 							index,

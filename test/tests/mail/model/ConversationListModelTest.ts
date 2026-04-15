@@ -11,8 +11,8 @@ import {
 	getListId,
 	isSameId,
 	listIdPart,
-	tutanotaTypeRefs,
 	sysTypeRefs,
+	tutanotaTypeRefs,
 } from "@tutao/typeRefs"
 import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
@@ -22,7 +22,7 @@ import { ExposedCacheStorage } from "../../../../src/common/api/worker/rest/Defa
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
-import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { assertNotNull, clamp, lastThrow, pad } from "@tutao/utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
@@ -189,10 +189,10 @@ o.spec("ConversationListModel", () => {
 
 		if (offline) {
 			when(entityClient.loadRange(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are offline"),
 			)
 			when(entityClient.loadMultiple(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are offline"),
 			)
 		} else {
 			when(entityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(

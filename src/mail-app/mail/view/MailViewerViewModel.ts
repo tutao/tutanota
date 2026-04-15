@@ -1,21 +1,19 @@
-import {
-	entityUpdateUtils,
-	haveSameId,
-	isPermanentDeleteAllowedForFolder,
-	isPermanentDeleteAllowedMailSetKind,
-	isSameId,
-	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+import { entityUpdateUtils, haveSameId, isPermanentDeleteAllowedMailSetKind, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
 import {
 	ArchiveDataType,
+	ConversationType,
 	EncryptionAuthStatus,
 	ExternalImageRule,
 	FeatureType,
+	isBrowser,
 	MailAuthenticationStatus,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
+	MailSetKind,
+	MailState,
 	NewsletterBannerRule,
+	OperationType,
 } from "@tutao/appEnv"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -41,7 +39,7 @@ import {
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
@@ -79,7 +77,6 @@ import { UndoModel } from "../../UndoModel"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { ConversationType, isBrowser, MailSetKind, MailState, OperationType } from "@tutao/appEnv"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -191,7 +188,7 @@ export class MailViewerViewModel {
 							const updatedMail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, this.mail._id)
 							this.updateMail({ mail: updatedMail })
 						} catch (e) {
-							if (e instanceof NotFoundError) {
+							if (e instanceof restError.NotFoundError) {
 								console.log(`could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
 							} else {
 								throw e
@@ -611,7 +608,7 @@ export class MailViewerViewModel {
 				})
 			}
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("mail already moved")
 			} else {
 				throw e
@@ -727,8 +724,8 @@ export class MailViewerViewModel {
 
 			await this.entityClient
 				.update(this.mail)
-				.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
-				.catch(ofClass(NotFoundError, noOp))
+				.catch(ofClass(restError.LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
+				.catch(ofClass(restError.NotFoundError, noOp))
 		}
 	}
 
@@ -886,13 +883,13 @@ export class MailViewerViewModel {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
-			if (e instanceof NotFoundError) {
+			if (e instanceof restError.NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
 				this.errorOccurredWhileLoadingMailDetails = true
 				return []
 			}
 
-			if (e instanceof NotAuthorizedError) {
+			if (e instanceof restError.NotAuthorizedError) {
 				console.log("could load mail body as the permission is missing", e)
 				this.errorOccurredWhileLoadingMailDetails = true
 				return []
@@ -957,7 +954,7 @@ export class MailViewerViewModel {
 				}
 				m.redraw()
 			} catch (e) {
-				if (e instanceof NotFoundError) {
+				if (e instanceof restError.NotFoundError) {
 					console.log("could load attachments as they have been moved/deleted already", e)
 				} else {
 					throw e
@@ -981,8 +978,8 @@ export class MailViewerViewModel {
 
 					this.entityClient
 						.update(mail)
-						.catch(ofClass(LockedError, (_) => console.log("could not update mail phishing status as mail is locked")))
-						.catch(ofClass(NotFoundError, (_) => console.log("mail already moved")))
+						.catch(ofClass(restError.LockedError, (_) => console.log("could not update mail phishing status as mail is locked")))
+						.catch(ofClass(restError.NotFoundError, (_) => console.log("mail already moved")))
 
 					m.redraw()
 				}

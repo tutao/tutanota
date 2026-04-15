@@ -1,4 +1,4 @@
-import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restSuspension } from "@tutao/restClient"
+import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restError, restSuspension } from "@tutao/restClient"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -22,7 +22,6 @@ import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
-import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
@@ -516,7 +515,7 @@ export class BlobFacade {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash))
 		} else {
-			throw handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
+			throw restError.handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
 		}
 	}
 
@@ -696,7 +695,7 @@ export class BlobFacade {
 				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, fileId),
 			)
 		} else {
-			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
+			throw restError.handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
 		}
 	}
 

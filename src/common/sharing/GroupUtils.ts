@@ -1,11 +1,10 @@
 import { getEtId, GroupTypeNameByCode, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ShareCapability } from "@tutao/appEnv"
+import { GroupType, ShareCapability } from "@tutao/appEnv"
 import { lang } from "../misc/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../api/common/EntityClient"
-import { NotFoundError } from "../api/common/error/RestError"
+import { restError } from "@tutao/restClient"
 import { UserController } from "../api/main/UserController"
-import { GroupType } from "@tutao/appEnv"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -100,7 +99,7 @@ export function loadReceivedGroupInvitations(
 		.load(sysTypeRefs.UserGroupRootTypeRef, userController.userGroupInfo.group)
 		.then((userGroupRoot) => entityClient.loadAll(sysTypeRefs.ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
 		.then((invitations) => invitations.filter((invitation) => getInvitationGroupType(invitation) === type))
-		.catch(ofClass(NotFoundError, () => []))
+		.catch(ofClass(restError.NotFoundError, () => []))
 }
 
 // Group invitations without a type set were sent when Calendars were the only shareable kind of user group

@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode, ShareCapability } from "@tutao/appEnv"
 import { elementIdPart, entityUpdateUtils, getEtId, listIdPart, sortCompareById, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
 import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
@@ -9,8 +9,7 @@ import { EventController } from "../api/main/EventController.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
-import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
-import { ShareCapability } from "@tutao/appEnv"
+import { restError } from "@tutao/restClient"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 
@@ -167,8 +166,8 @@ export class ContactModel {
 				// when the group root is already deleted, or we deleted our membership
 				(groupInfo) =>
 					this.getContactListInfo(groupInfo)
-						.catch(ofClass(NotFoundError, () => null))
-						.catch(ofClass(NotAuthorizedError, () => null)),
+						.catch(ofClass(restError.NotFoundError, () => null))
+						.catch(ofClass(restError.NotAuthorizedError, () => null)),
 			)
 		).filter(isNotNull)
 
@@ -216,7 +215,7 @@ export function lazyContactListId(logins: LoginController, entityClient: EntityC
 				return contactList.contacts
 			})
 			.catch(
-				ofClass(NotFoundError, (e) => {
+				ofClass(restError.NotFoundError, (e) => {
 					if (!logins.getUserController().isInternalUser()) {
 						return null // external users have no contact list.
 					} else {
