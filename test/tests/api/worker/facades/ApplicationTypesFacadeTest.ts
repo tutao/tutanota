@@ -12,15 +12,15 @@ import {
 	ServerModels,
 	ServerTypeModel,
 	Type,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
-import { HttpMethod, MediaType, RestClient } from "@tutao/restClient"
+import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
 import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
 import { ServiceDefinition } from "../../../../../src/common/api/common/ServiceRequest"
-import { compressString, decompressString } from "@tutao/instancePipeline"
+import { compressString, decompressString } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../../../TestUtils"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "../../../../../src/app-env"
 
 const { anything } = matchers
 

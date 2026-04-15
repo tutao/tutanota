@@ -9,7 +9,7 @@ import { MailAddressTableModel } from "../../../../src/common/settings/mailaddre
 import { object } from "testdouble"
 import { noOp } from "@tutao/utils"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const data: AddDomainData = {
 	domain: stream("domain"),

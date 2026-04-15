@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import {
 	AesKey,
 	AsymmetricKeyPair,
@@ -20,17 +20,17 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/appEnv"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/app-env"
 import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { asCryptoProtoocolVersion, sysServices, sysTypeRefs, TypeId } from "@tutao/typeRefs"
+import { asCryptoProtoocolVersion, sysServices, sysTypeRefs, TypeId } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../facades/PublicEncryptionKeyProvider.js"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { AdminKeyLoaderFacade } from "../facades/AdminKeyLoaderFacade"
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { CryptoWrapper } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 

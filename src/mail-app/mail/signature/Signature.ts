@@ -1,8 +1,8 @@
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { assertMainOrNode, EmailSignatureType } from "@tutao/appEnv"
+import { assertMainOrNode, EmailSignatureType } from "@tutao/app-env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
 
 assertMainOrNode()

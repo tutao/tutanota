@@ -1,8 +1,8 @@
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { client } from "../../misc/ClientDetector.js"
 import { isColorLight } from "./Color.js"
 import { theme } from "../theme.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

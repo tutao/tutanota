@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { getElementId } from "@tutao/typeRefs"
+import { getElementId } from "@tutao/typerefs"
 import { DriveFolderBrowserEntry, DriveFolderBrowserEntryAttrs } from "./DriveFolderBrowserEntry"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
 import { isEmpty, lastIndex } from "@tutao/utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 
 export interface DriveFolderBrowserAttrs {
 	items: readonly FolderItem[]

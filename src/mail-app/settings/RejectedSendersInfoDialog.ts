@@ -1,7 +1,7 @@
 import m from "mithril"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /*
 label: TranslationKey | lazy<string>,

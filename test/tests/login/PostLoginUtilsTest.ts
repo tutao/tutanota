@@ -2,9 +2,9 @@ import o from "@tutao/otest"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/common/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
-import { Const } from "@tutao/appEnv"
+import { Const } from "../../../src/app-env"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("PostLoginUtils", () => {
 	o.spec("shouldShowUpgradeReminder", () => {

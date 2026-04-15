@@ -9,7 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
 import { downcast } from "@tutao/utils"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {
 	notificationMailTemplates: Array<sysTypeRefs.NotificationMailTemplate>

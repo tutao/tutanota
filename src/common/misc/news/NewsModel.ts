@@ -1,8 +1,8 @@
-import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { NewsListItem } from "./NewsListItem.js"
-import { isIOSApp } from "@tutao/appEnv"
+import { isIOSApp } from "@tutao/app-env"
 
 /**
  * Interface for storing information about displayed news items on the device.

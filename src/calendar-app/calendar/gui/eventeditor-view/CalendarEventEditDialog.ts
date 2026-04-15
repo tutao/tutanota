@@ -9,7 +9,7 @@
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
-import { Keys, UpgradePromptType } from "@tutao/appEnv"
+import { Keys, UpgradePromptType } from "@tutao/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/utils"

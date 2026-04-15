@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished } from "@tutao/appEnv"
+import { assertMainOrNodeBoot, bootFinished } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
@@ -30,7 +30,7 @@ import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.j
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { isApp, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 bootFinished()

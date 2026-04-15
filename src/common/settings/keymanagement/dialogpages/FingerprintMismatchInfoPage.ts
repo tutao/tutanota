@@ -9,7 +9,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/utils"
 import { Icon, IconSize } from "../../../gui/base/Icon"
-import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
 type VerificationErrorInfoPageAttrs = {
 	model: KeyVerificationModel

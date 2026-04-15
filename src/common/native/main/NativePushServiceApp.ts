@@ -1,4 +1,4 @@
-import { getElementId, sysModelInfo, sysTypeRefs } from "@tutao/typeRefs"
+import { getElementId, sysModelInfo, sysTypeRefs } from "@tutao/typerefs"
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { LoginController } from "../../api/main/LoginController"
@@ -12,7 +12,7 @@ import { EntityClient } from "../../api/common/EntityClient.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
 import { AppType } from "../../misc/ClientConstants.js"
-import { isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/appEnv"
+import { isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/app-env"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts

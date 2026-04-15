@@ -8,9 +8,9 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { GroupType, ShareCapability, UpgradePromptType } from "@tutao/appEnv"
+import { GroupType, ShareCapability, UpgradePromptType } from "@tutao/app-env"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { TextField } from "../../gui/base/TextField.js"
 import { getCapabilityText, getMemberCapability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
@@ -28,7 +28,7 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export async function showGroupSharingDialog(groupInfo: sysTypeRefs.GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))

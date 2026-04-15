@@ -8,13 +8,13 @@ import {
 	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
-} from "@tutao/typeRefs"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { tutanotaTypeModels } from "@tutao/typeRefs"
+} from "@tutao/typerefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { tutanotaTypeModels } from "@tutao/typerefs"
 
-import { ElementEntity } from "@tutao/typeRefs"
+import { ElementEntity } from "@tutao/typerefs"
 import { clone, TypeRef } from "@tutao/utils"
-import { hasError } from "@tutao/typeRefs"
+import { hasError } from "@tutao/typerefs"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {

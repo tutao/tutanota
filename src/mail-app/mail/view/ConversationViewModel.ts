@@ -1,4 +1,4 @@
-import { elementIdPart, entityUpdateUtils, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import {
@@ -16,7 +16,7 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
@@ -24,7 +24,7 @@ import { MailModel } from "../model/MailModel.js"
 
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
-import { ConversationType, MailSetKind, OperationType } from "@tutao/appEnv"
+import { ConversationType, MailSetKind, OperationType } from "@tutao/app-env"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 

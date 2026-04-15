@@ -11,9 +11,9 @@ import {
 	ReportMovedMailsType,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
-import { elementIdPart, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
@@ -33,7 +33,7 @@ import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"

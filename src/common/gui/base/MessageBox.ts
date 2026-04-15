@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 
 assertMainOrNode()
 export type MessageBoxAttrs = {

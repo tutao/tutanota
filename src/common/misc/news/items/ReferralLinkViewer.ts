@@ -2,7 +2,7 @@ import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { showInfoSnackbar } from "../../../gui/base/SnackBar.js"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../gui/base/IconButton.js"
@@ -11,7 +11,7 @@ import { Icons } from "../../../gui/base/icons/Icons.js"
 import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { MoreInfoLink } from "../MoreInfoLink.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 export type ReferralLinkAttrs = {
 	referralLink: string

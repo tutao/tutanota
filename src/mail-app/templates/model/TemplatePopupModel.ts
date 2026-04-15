@@ -1,6 +1,6 @@
 import type { LanguageCode } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { entityUpdateUtils, getElementId, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
@@ -9,7 +9,7 @@ import { LazyLoaded, promiseMap, SortedArray } from "@tutao/utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel.js"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 /**
  *   Model that holds main logic for the Template Feature.

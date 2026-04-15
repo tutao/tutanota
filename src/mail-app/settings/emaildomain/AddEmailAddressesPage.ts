@@ -12,14 +12,14 @@ import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
 import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { restError } from "@tutao/restClient"
-import { assertMainOrNode, UpgradePromptType } from "@tutao/appEnv"
+import { restError } from "@tutao/rest-client"
+import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

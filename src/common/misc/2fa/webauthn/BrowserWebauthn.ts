@@ -8,7 +8,7 @@ import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedi
 import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
 import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
 import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 

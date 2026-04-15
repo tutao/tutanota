@@ -5,12 +5,12 @@ import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "../../
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
-import { elementIdPart, entityUpdateUtils, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createTestEntity } from "../TestUtils"
 import { defer } from "@tutao/utils"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "../../../src/app-env"
 
 o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	const MAILGROUP_ID = "mail-group"

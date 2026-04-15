@@ -10,7 +10,7 @@ import { assertNotNull, noOp } from "@tutao/utils"
 import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { client } from "../../misc/ClientDetector.js"
 
 assertMainOrNode()

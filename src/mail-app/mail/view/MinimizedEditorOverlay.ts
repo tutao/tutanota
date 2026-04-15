@@ -8,12 +8,12 @@ import { px } from "../../../common/gui/size"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { styles } from "../../../common/gui/styles"
 import { trashMails } from "./MailGuiUtils"
-import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { promiseMap } from "@tutao/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {

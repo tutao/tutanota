@@ -6,7 +6,7 @@ import { CredentialType } from "./CredentialType.js"
 import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
-import { isBrowser, Mode } from "@tutao/appEnv"
+import { isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.

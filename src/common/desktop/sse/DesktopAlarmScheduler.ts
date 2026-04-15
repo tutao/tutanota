@@ -1,4 +1,4 @@
-import { ClientModelUntypedInstance } from "@tutao/typeRefs"
+import { ClientModelUntypedInstance } from "@tutao/typerefs"
 import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
@@ -6,7 +6,7 @@ import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { isSameDay } from "@tutao/utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export class DesktopAlarmScheduler {
 	constructor(

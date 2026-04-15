@@ -104,20 +104,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 			],
 			plugins: [
 				preludeEnvPlugin(localEnv),
-				resolveLibs("..", {
-					"@tutao/otest": path.normalize("test/otest/dist/index.js"),
-					"@tutao/crypto/rsa": path.normalize("src/crypto/dist/encryption/Rsa.js"),
-					"@tutao/crypto/random": path.normalize("src/crypto/dist/random/SecureRandom.js"),
-					"@tutao/crypto/symmetric-cipher-utils": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherUtils.js"),
-					"@tutao/crypto/symmetric-cipher-facade": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherFacade.js"),
-					"@tutao/crypto/symmetric-key-deriver": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricKeyDeriver.js"),
-					"@tutao/crypto/symmetric-cipher-version": path.normalize("src/crypto/dist/encryption/symmetric/SymmetricCipherVersion.js"),
-					"@tutao/crypto/aes-cbc-facade": path.normalize("src/crypto/dist/encryption/symmetric/AesCbcFacade.js"),
-					"@tutao/crypto/sha256": path.normalize("src/crypto/dist/hashes/Sha256.js"),
-					"@tutao/crypto/blake3": path.normalize("src/crypto/dist/hashes/Blake3.js"),
-					"@tutao/crypto/sjcl": path.normalize("src/crypto/dist/internal/sjcl.js"),
-					"@tutao/crypto/jsbn": path.normalize("src/crypto/dist/internal/crypto-jsbn-2012-08-09_1.js"),
-				}),
+				resolveLibs(".."),
 				nodeGypPlugin({
 					rootDir: projectRoot,
 					platform: process.platform,

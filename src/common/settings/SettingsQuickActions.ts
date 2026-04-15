@@ -4,7 +4,7 @@ import { isNotNull } from "@tutao/utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"
-import { isApp, isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [

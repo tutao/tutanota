@@ -4,8 +4,8 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { SpamDecision } from "@tutao/appEnv"
+import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { SpamDecision } from "../../../../../../src/app-env"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/common/api/common/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
@@ -13,7 +13,7 @@ import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy
 import { createTestEntity } from "../../../../TestUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/utils"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/appEnv"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../../src/app-env"
 
 const { anything } = matchers
 

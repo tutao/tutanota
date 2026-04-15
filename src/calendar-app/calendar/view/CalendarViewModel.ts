@@ -16,7 +16,7 @@ import {
 	millisToDays,
 	noOp,
 } from "@tutao/utils"
-import { entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
@@ -27,8 +27,8 @@ import {
 	TimeFormat,
 	UpgradePromptType,
 	WeekStart,
-} from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+} from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import stream from "mithril/stream"

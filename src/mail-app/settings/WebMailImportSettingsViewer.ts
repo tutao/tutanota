@@ -3,8 +3,8 @@ import { lang } from "../../common/misc/LanguageViewModel"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { Mode } from "@tutao/appEnv"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { Mode } from "@tutao/app-env"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.

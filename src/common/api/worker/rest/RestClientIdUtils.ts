@@ -1,5 +1,5 @@
-import type { TypeModel } from "@tutao/typeRefs"
-import { Type } from "@tutao/typeRefs"
+import type { TypeModel } from "@tutao/typerefs"
+import { Type } from "@tutao/typerefs"
 
 export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	if (listId != null) {

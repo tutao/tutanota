@@ -8,12 +8,12 @@ import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailI
 import { object, replace } from "testdouble"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
 import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
-import { getElementId, getListId } from "@tutao/typeRefs"
+import { getElementId, getListId } from "@tutao/typerefs"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

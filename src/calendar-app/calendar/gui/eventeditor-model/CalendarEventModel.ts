@@ -54,7 +54,7 @@
  *     * etc.
  */
 
-import { getStrippedClone, Stripped, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getStrippedClone, Stripped, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
@@ -68,7 +68,7 @@ import {
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/utils"
 import { cleanMailAddress, makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
@@ -91,7 +91,7 @@ import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/Ca
 import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
-import { AccountType } from "@tutao/appEnv"
+import { AccountType } from "@tutao/app-env"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {

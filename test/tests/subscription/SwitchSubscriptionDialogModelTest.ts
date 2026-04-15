@@ -1,10 +1,10 @@
-import { FeatureType } from "@tutao/appEnv"
+import { FeatureType } from "../../../src/app-env"
 import o from "@tutao/otest"
 import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/SwitchSubscriptionDialogModel.js"
 import { PaymentInterval } from "../../../src/common/subscription/utils/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { AccountType, BookingItemFeatureType, PlanType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { AccountType, BookingItemFeatureType, PlanType } from "../../../src/app-env"
 
 o.spec("SwitchSubscriptionDialogModelTest", function () {
 	const paidPlanType = PlanType.Premium

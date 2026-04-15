@@ -1,12 +1,12 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { InfoLink, lang } from "../../LanguageViewModel.js"
 import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../SubscriptionDialogs.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { UpgradePromptType } from "@tutao/app-env"
 
 /**
  * News item that informs admin users about the new pricing model.

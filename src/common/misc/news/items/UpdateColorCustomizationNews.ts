@@ -1,6 +1,6 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { lang } from "../../LanguageViewModel.js"
 import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"

@@ -1,7 +1,7 @@
 import m from "mithril"
 import { show as showNotificationOverlay } from "./base/NotificationOverlay"
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { SearchIndexStateInfo } from "../api/worker/search/SearchTypes.js"
 
 assertMainOrNode()

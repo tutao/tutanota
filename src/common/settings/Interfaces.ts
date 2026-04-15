@@ -3,7 +3,7 @@ import { TopLevelAttrs } from "../../TopLevelView.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { AppHeaderAttrs } from "../gui/Header.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 /** UI component shown in the second column of settings. */
 export interface UpdatableSettingsViewer extends Component {

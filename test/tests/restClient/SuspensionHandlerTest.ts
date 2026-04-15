@@ -1,5 +1,5 @@
 import o, { spy, verify } from "@tutao/otest"
-import { restSuspension } from "@tutao/restClient"
+import { restSuspension } from "@tutao/rest-client"
 import { deferWithHandler } from "@tutao/utils"
 import { func } from "testdouble"
 import { SystemTimeout } from "../../../types"

@@ -1,5 +1,14 @@
 import o from "@tutao/otest"
-import { DAY_IN_MILLIS, daysToMillis, HOUR_IN_MILLIS, hoursToMillis, MINUTE_IN_MILLIS, minutesToMillis, SECOND_IN_MILLIS, secondsToMillis } from "@tutao/appEnv"
+import {
+	DAY_IN_MILLIS,
+	daysToMillis,
+	HOUR_IN_MILLIS,
+	hoursToMillis,
+	MINUTE_IN_MILLIS,
+	minutesToMillis,
+	SECOND_IN_MILLIS,
+	secondsToMillis,
+} from "../../../src/app-env"
 
 o.spec("TimeUtils", () => {
 	o.test("seconds", () => {

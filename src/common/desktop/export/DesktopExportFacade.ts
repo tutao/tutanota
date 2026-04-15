@@ -22,7 +22,7 @@ import { formatSortableDate } from "@tutao/utils"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { ExportError, ExportErrorReason } from "../../api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "./DesktopExportLock"
-import { elementIdPart } from "@tutao/typeRefs"
+import { elementIdPart } from "@tutao/typerefs"
 
 const EXPORT_DIR = "export"
 

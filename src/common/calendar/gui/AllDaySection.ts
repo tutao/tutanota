@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { downcast, getFirstOrThrow } from "@tutao/utils"
 import {
 	CalendarEventBubble,

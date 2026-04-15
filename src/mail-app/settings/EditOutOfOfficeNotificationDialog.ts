@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { Keys, UpgradePromptType } from "@tutao/appEnv"
+import { Keys, UpgradePromptType } from "@tutao/app-env"
 import { Checkbox } from "../../common/gui/base/Checkbox.js"
 import { px } from "../../common/gui/size"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -21,7 +21,7 @@ import { ofClass } from "@tutao/utils"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
-import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "@tutao/appEnv"
+import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "@tutao/app-env"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { HttpMethod, MediaType, RestClient, restError, restSuspension } from "@tutao/restClient"
+import { HttpMethod, MediaType, RestClient, restError, restSuspension } from "@tutao/rest-client"
 import { defer, noOp } from "@tutao/utils"
 import http from "node:http"
 import express from "express"

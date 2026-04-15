@@ -1,13 +1,13 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { AttributeModel, ClientTypeModelResolver, elementIdPart, getElementId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { AttributeModel, ClientTypeModelResolver, elementIdPart, getElementId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { IndexerCore } from "./IndexerCore"
 import type { SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { SuggestionFacade } from "./SuggestionFacade"
 import { assertNotNull, neverNull, tokenize } from "@tutao/utils"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 
 export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	private _core: IndexerCore

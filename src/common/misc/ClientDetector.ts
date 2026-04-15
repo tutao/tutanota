@@ -1,7 +1,7 @@
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
-import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/appEnv"
+import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

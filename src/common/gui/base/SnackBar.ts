@@ -8,7 +8,7 @@ import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewM
 import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode, secondsToMillis } from "@tutao/appEnv"
+import { assertMainOrNode, secondsToMillis } from "@tutao/app-env"
 import { isNotEmpty, remove } from "@tutao/utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"

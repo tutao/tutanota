@@ -8,7 +8,7 @@ import {
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
 import { matchers, object, verify, when } from "testdouble"
@@ -16,7 +16,7 @@ import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/ap
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
 import { assertNotNull } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("IndexedDbMailIndexerBackend", () => {
 	let core: IndexerCore

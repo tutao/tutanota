@@ -1,6 +1,6 @@
 import { groupBy } from "@tutao/utils"
-import { elementIdPart, getElementId, isSameId, isTopLevelMailSet, isVisibleSystemMailSet, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailSetKind, SystemFolderType } from "@tutao/appEnv"
+import { elementIdPart, getElementId, isSameId, isTopLevelMailSet, isVisibleSystemMailSet, tutanotaTypeRefs } from "@tutao/typerefs"
+import { MailSetKind, SystemFolderType } from "@tutao/app-env"
 
 export interface IndentedFolder {
 	level: number

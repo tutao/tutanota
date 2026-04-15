@@ -2,7 +2,7 @@ import type { EasingFunction } from "./Easing"
 import { ease } from "./Easing"
 import { downcast, newPromise } from "@tutao/utils"
 import { hexToRgb } from "../base/Color"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

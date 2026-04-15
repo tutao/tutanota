@@ -6,7 +6,7 @@ import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/utils"
 import { isKeyPressed, keyHandler, useKeyHandler } from "../../misc/KeyManager"
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 

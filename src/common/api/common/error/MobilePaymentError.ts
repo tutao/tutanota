@@ -1,4 +1,4 @@
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 
 /**
  * An error related to mobile payments.

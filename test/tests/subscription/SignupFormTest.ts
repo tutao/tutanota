@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { CaptchaDialogViewModel } from "../../../src/common/subscription/captcha/CaptchaDialog.js"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const challenge = createTestEntity(sysTypeRefs.CaptchaChallengeTypeRef)
 const viewModel = new CaptchaDialogViewModel(challenge, challenge)

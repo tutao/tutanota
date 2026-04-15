@@ -10,17 +10,17 @@ import {
 	testTypeModel,
 	TestTypeRef,
 } from "../crypto/InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "@tutao/typeRefs"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "@tutao/typerefs"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 import { createTestEntityWithDummyResolver } from "../../../TestUtils"
-import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "@tutao/typeRefs"
-import { AttributeModel } from "@tutao/typeRefs"
-import { ValueType } from "@tutao/typeRefs"
-import { areValuesDifferent, computePatches } from "@tutao/typeRefs"
+import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "@tutao/typerefs"
+import { AttributeModel } from "@tutao/typerefs"
+import { ValueType } from "@tutao/typerefs"
+import { areValuesDifferent, computePatches } from "@tutao/typerefs"
 import { object } from "testdouble"
 
 o.spec("computePatches", function () {

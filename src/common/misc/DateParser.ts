@@ -1,5 +1,5 @@
 import { DateTime } from "luxon"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 /**

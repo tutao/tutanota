@@ -1,5 +1,5 @@
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import {
 	bytesToKyberPublicKey,
 	cryptoUtils,
@@ -13,8 +13,8 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { PublicKeyIdentifierType } from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+import { PublicKeyIdentifierType } from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"

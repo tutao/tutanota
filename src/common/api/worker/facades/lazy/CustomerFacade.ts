@@ -10,16 +10,15 @@ import {
 	InvoiceData,
 	SpamRuleFieldType,
 	SpamRuleType,
-} from "@tutao/appEnv"
-import { PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+} from "@tutao/app-env"
+import { PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, Hex, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
-import type { Country } from "../../../../../appEnv/CountryList.js"
-import { getByAbbreviation } from "../../../../../appEnv/CountryList.js"
-import { restError } from "@tutao/restClient"
+import { countryList } from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -35,7 +34,7 @@ import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
@@ -344,7 +343,7 @@ export class CustomerFacade {
 		paymentInterval: PaymentInterval,
 		invoiceData: InvoiceData,
 		paymentData: PaymentData | null,
-		confirmedInvoiceCountry: Country | null,
+		confirmedInvoiceCountry: countryList.Country | null,
 	): Promise<sysTypeRefs.PaymentDataServicePutReturn> {
 		let customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer))
 		let customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
@@ -374,7 +373,7 @@ export class CustomerFacade {
 		accountingInfo: sysTypeRefs.AccountingInfo,
 		newPaymentInterval: PaymentInterval,
 	): Promise<sysTypeRefs.PaymentDataServicePutReturn> {
-		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
+		const invoiceCountry = neverNull(countryList.getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 
 		return this.updatePaymentData(
 			newPaymentInterval,

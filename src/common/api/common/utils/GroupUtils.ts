@@ -1,5 +1,5 @@
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { GroupType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { GroupType } from "@tutao/app-env"
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: sysTypeRefs.GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)

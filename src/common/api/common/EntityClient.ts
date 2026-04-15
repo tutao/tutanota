@@ -6,7 +6,7 @@ import {
 	EntityRestInterface,
 	OwnerEncSessionKeyProvider,
 } from "../worker/rest/EntityRestClient"
-import type { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typeRefs"
+import type { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typerefs"
 import {
 	ClientTypeModelResolver,
 	CUSTOM_MIN_ID,
@@ -20,9 +20,9 @@ import {
 	sysTypeRefs,
 	Type,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ProgrammingError } from "./error/ProgrammingError"
 
 export class EntityClient {

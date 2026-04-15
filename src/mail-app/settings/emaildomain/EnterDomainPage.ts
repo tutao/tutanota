@@ -7,7 +7,7 @@ import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
 assertMainOrNode()

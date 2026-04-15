@@ -1,4 +1,4 @@
-import { elementIdPart, ListElementEntity, listIdPart, SomeEntity, sysTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, ListElementEntity, listIdPart, SomeEntity, sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * Common interface for instances that are referencing blobs. Main purpose is to have a proper way to access the attribute for the Blob aggregated type

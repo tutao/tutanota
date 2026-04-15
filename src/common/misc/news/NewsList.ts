@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { NewsListItem } from "./NewsListItem.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"

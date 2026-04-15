@@ -3,7 +3,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { extractCityName, extractPostalCode, XRechnungInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
 
 import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("XRechnungInvoiceGenerator", function () {
 	o("xrechnung generation for japanese invoice noVat 2_items", async function () {

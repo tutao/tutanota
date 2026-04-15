@@ -1,7 +1,7 @@
 // @bundleInto:common-min
 
 import { downcast } from "@tutao/utils"
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 
 export type Parser<T> = (arg0: StringIterator) => T
 

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"

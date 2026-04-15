@@ -7,10 +7,10 @@ import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/Deskt
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
-import { InstancePipeline } from "@tutao/instancePipeline"
-import { TypeModelResolver } from "@tutao/typeRefs"
+import { InstancePipeline } from "@tutao/instance-pipeline"
+import { TypeModelResolver } from "@tutao/typerefs"
 import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
-import { sysTypeRefs, hasError } from "@tutao/typeRefs"
+import { sysTypeRefs, hasError } from "@tutao/typerefs"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade

@@ -8,13 +8,13 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { freshVersioned } from "@tutao/utils"
 import { AesKey, KeyPairType, PQKeyPairs } from "@tutao/crypto"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "../../../../../src/app-env"
 
 const { anything } = matchers
 

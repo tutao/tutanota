@@ -4,11 +4,11 @@ import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { InvoiceDataInput } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import { restError } from "@tutao/restClient"
-import type { InvoiceData } from "@tutao/appEnv"
+import { restError } from "@tutao/rest-client"
+import type { InvoiceData } from "@tutao/app-env"
 import { ofClass } from "@tutao/utils"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export function show(
 	businessUse: boolean,

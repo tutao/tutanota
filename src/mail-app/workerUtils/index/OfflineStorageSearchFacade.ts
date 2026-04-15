@@ -6,12 +6,12 @@ import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlC
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, isSameTypeRef, last, splitArrayAt } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
-import { isSameId } from "@tutao/typeRefs"
+import { isSameId } from "@tutao/typerefs"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries

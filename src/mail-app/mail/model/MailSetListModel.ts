@@ -1,11 +1,11 @@
-import { elementIdPart, entityUpdateUtils, getElementId, listIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, entityUpdateUtils, getElementId, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
 import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
-import { MailSetKind } from "@tutao/appEnv"
+import { MailSetKind } from "@tutao/app-env"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSetEntry = tutanotaTypeRefs.MailSetEntry

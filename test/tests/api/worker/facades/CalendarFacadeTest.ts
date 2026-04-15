@@ -9,7 +9,7 @@ import {
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { assertNotNull, clone, downcast, isSameTypeRef, neverNull } from "@tutao/utils"
-import { getElementId, getLetId, getListId, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
+import { getElementId, getLetId, getListId, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
 import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
@@ -18,13 +18,13 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { base64ToKey } from "@tutao/crypto"
-import { GroupType, OperationType } from "@tutao/appEnv"
+import { GroupType, OperationType } from "../../../../../src/app-env"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id

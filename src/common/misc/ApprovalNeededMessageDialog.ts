@@ -3,13 +3,13 @@ import { InfoLink, lang } from "./LanguageViewModel.js"
 import { assertNotNull, defer } from "@tutao/utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { BannerButton, BannerButtonAttrs } from "../gui/base/buttons/BannerButton"
 import { theme } from "../gui/theme"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { CancelledError } from "../api/common/error/CancelledError"
 import { locator } from "../api/main/CommonLocator"
-import { ApprovalStatus } from "@tutao/appEnv"
+import { ApprovalStatus } from "@tutao/app-env"
 
 // Function for rendering the more info link
 function renderMoreInfoLink(link: InfoLink) {

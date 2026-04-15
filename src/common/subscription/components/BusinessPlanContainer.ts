@@ -9,7 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { TranslationKey } from "../../misc/LanguageViewModel"
 import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
-import { PlanType } from "@tutao/appEnv"
+import { PlanType } from "@tutao/app-env"
 
 export type PlanFeature = {
 	label: TranslationKey

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EncryptionAuthStatus } from "@tutao/appEnv"
+import { EncryptionAuthStatus } from "../../../../../src/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
@@ -9,8 +9,8 @@ import { getConfidentialIcon } from "../../../../../src/mail-app/mail/view/MailG
 import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
 import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
 import { isTutanotaTeamAddress, isTutaTeamMail } from "../../../../../src/common/mailFunctionality/SharedMailUtils"
-import { MailState } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { MailState } from "../../../../../src/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 export function createSystemMail(overrides: Partial<tutanotaTypeRefs.Mail> = {}): tutanotaTypeRefs.Mail {
 	return createTestEntity(tutanotaTypeRefs.MailTypeRef, {

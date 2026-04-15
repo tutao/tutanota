@@ -30,13 +30,13 @@ import {
 	TypeModel,
 	TypeModelResolver,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { assertWorkerOrNode, Mode, OperationType } from "@tutao/appEnv"
+import { assertWorkerOrNode, Mode, OperationType } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { collapseId, expandId } from "./RestClientIdUtils"
-import { PatchMerger } from "@tutao/instancePipeline"
+import { PatchMerger } from "@tutao/instance-pipeline"
 import { isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
 import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
 

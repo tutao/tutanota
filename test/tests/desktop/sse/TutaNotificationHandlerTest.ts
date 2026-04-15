@@ -17,10 +17,10 @@ import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWin
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull } from "@tutao/utils"
-import { sysTypeRefs, tutanotaModelInfo, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaModelInfo, tutanotaTypeRefs } from "@tutao/typerefs"
 
 type UndiciFetch = typeof undiciFetch
 

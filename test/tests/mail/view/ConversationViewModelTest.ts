@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/mail/view/ConversationViewModel.js"
-import { ClientModelInfo, entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
@@ -13,7 +13,7 @@ import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunction
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
-import { MailSetKind, MailState, OperationType } from "@tutao/appEnv"
+import { MailSetKind, MailState, OperationType } from "../../../../src/app-env"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: tutanotaTypeRefs.ConversationEntry[]

@@ -5,12 +5,12 @@ import m from "mithril"
 import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
 import { assertNotNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { PushServiceType, UpgradePromptType } from "@tutao/appEnv"
+import { PushServiceType, UpgradePromptType } from "@tutao/app-env"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
 import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { AppType } from "../../common/misc/ClientConstants.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export class AddNotificationEmailDialog {
 	constructor(

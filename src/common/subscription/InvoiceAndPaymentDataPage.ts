@@ -5,7 +5,7 @@ import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { InvoiceData, Keys } from "@tutao/appEnv"
+import { InvoiceData, Keys } from "@tutao/app-env"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { assertNotNull, LazyLoaded, neverNull, newPromise, noOp, promiseMap } from "@tutao/utils"
 import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
@@ -13,7 +13,7 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
-import type { Country } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval } from "./utils/PriceUtils.js"
@@ -25,8 +25,8 @@ import { createAccount, getVisiblePaymentMethods, validateInvoiceData, validateP
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { PaypalButton } from "./PaypalButton"
-import { entityUpdateUtils, getClientType, PaymentData, sysTypeRefs } from "@tutao/typeRefs"
-import { AvailablePlanType, PaymentDataResultType, PaymentMethodType } from "@tutao/appEnv"
+import { entityUpdateUtils, getClientType, PaymentData, sysTypeRefs } from "@tutao/typerefs"
+import { AvailablePlanType, PaymentDataResultType, PaymentMethodType } from "@tutao/app-env"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -250,7 +250,7 @@ export async function updatePaymentData(
 	paymentInterval: PaymentInterval,
 	invoiceData: InvoiceData,
 	paymentData: PaymentData | null,
-	confirmedCountry: Country | null,
+	confirmedCountry: countryList.Country | null,
 	isSignup: boolean,
 	price: string | null,
 	accountingInfo: sysTypeRefs.AccountingInfo,

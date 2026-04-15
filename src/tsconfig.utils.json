@@ -10,7 +10,7 @@
 	},
 	"references": [
 		{
-			"path": "tsconfig.appEnv.json"
+			"path": "tsconfig.app-env.json"
 		}
 	]
 }

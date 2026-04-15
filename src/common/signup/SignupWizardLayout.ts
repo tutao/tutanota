@@ -19,8 +19,8 @@ import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { PlanTypeToName } from "@tutao/typeRefs"
-import { AvailablePlanType, PlanType } from "@tutao/appEnv"
+import { PlanTypeToName } from "@tutao/typerefs"
+import { AvailablePlanType, PlanType } from "@tutao/app-env"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24

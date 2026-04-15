@@ -1,5 +1,5 @@
 import { createTestEntity } from "../../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * Produces a bulk list of mocked InvoiceItems

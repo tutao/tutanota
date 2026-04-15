@@ -1,6 +1,6 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { getLetId } from "@tutao/typeRefs"
+import { getLetId } from "@tutao/typerefs"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/utils"
 import { FileController } from "../../../common/file/FileController"

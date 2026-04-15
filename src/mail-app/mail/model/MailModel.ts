@@ -25,7 +25,7 @@ import {
 	SimpleMoveMailTarget,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	FeatureType,
 	MailReportType,
@@ -36,13 +36,13 @@ import {
 	ReportMovedMailsType,
 	SystemFolderType,
 	TutanotaError,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 
 import m from "mithril"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"

@@ -20,9 +20,9 @@ import {
 } from "./PreprocessPatterns"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { getMailBodyText } from "../../CommonMailUtils"
-import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "@tutao/appEnv"
+import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "@tutao/app-env"
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean

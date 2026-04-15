@@ -4,7 +4,7 @@ import { px, size } from "../../gui/size"
 import { Translation } from "../../misc/LanguageViewModel"
 import { PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 interface PromotionRibbonAttrs {
 	translation: Translation

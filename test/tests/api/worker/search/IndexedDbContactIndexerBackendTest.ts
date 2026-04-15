@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { AttributeModel, ClientModelInfo, getElementId } from "@tutao/typeRefs"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { AttributeModel, ClientModelInfo, getElementId } from "@tutao/typerefs"
+import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
@@ -9,7 +9,7 @@ import { IndexedDbContactIndexerBackend } from "../../../../../src/mail-app/work
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("IndexedDbContactIndexerBackend", () => {
 	let entityClient: EntityClient

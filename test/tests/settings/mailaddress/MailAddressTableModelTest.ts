@@ -5,14 +5,14 @@ import { matchers, object, when } from "testdouble"
 import { MailAddressFacade } from "../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "../../subscription/priceTestUtils.js"
 import { clone, noOp } from "@tutao/utils"
 import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
 import { UserError } from "../../../../src/common/api/main/UserError.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { PlanType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { PlanType } from "../../../../src/app-env"
 
 o.spec("MailAddressTableModel", function () {
 	let model: MailAddressTableModel

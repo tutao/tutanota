@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 
 export interface CalendarViewToolbarAttrs {
 	event: tutanotaTypeRefs.CalendarEvent | null

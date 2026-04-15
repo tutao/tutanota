@@ -8,8 +8,8 @@ import { DateTime } from "luxon"
 import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog"
 import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
 import { px } from "../../gui/size.js"
-import { isApp, isIOSApp } from "@tutao/appEnv"
-import { getCurrentDate } from "@tutao/typeRefs"
+import { isApp, isIOSApp } from "@tutao/app-env"
+import { getCurrentDate } from "@tutao/typerefs"
 
 interface EvaluationPageAttrs {
 	triggerType: TriggerType

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("InstanceSessionKeysCacheTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache

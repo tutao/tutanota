@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import { px } from "../size"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Button, ButtonType } from "./Button.js"
 

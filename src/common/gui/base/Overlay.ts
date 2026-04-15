@@ -1,7 +1,7 @@
 import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "../../../RootView"
 import { lazy, makeSingleUse, newPromise } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { component_size, px } from "../size.js"
 import { styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"

@@ -8,8 +8,8 @@ import {
 	ContactPhoneNumberType,
 	ContactRelationshipType,
 	ContactWebsiteType,
-} from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+} from "@tutao/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

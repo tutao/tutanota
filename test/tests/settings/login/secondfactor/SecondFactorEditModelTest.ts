@@ -11,9 +11,9 @@ import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/Weba
 import { TotpSecret, TotpVerifier } from "@tutao/crypto"
 import { noOp } from "@tutao/utils"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
-import { SecondFactorType } from "@tutao/appEnv"
+import { SecondFactorType } from "../../../../../src/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)

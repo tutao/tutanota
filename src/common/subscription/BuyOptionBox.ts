@@ -11,7 +11,7 @@ import { Icons } from "../gui/base/icons/Icons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { isDarkTheme, theme } from "../gui/theme.js"
 import { goEuropeanBlue } from "../gui/builtinThemes.js"
-import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/appEnv"
+import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/app-env"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children

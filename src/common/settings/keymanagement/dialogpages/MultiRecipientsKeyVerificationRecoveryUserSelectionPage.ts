@@ -10,7 +10,7 @@ import { TitleSection } from "../../../gui/TitleSection"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
 import { type RadioSelectorOption } from "../../../gui/base/RadioSelectorItem"
-import { IdentityKeySourceOfTrust } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
 type VerificationErrorUserSelectionPageAttrs = {
 	model: RecipientKeyVerificationRecoveryModel

@@ -16,8 +16,8 @@ import { PlanBadge } from "./PlanBadge"
 import { blackFridayTheme, DiscountDetail, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import Stream from "mithril/stream"
-import { PlanTypeToName } from "@tutao/typeRefs"
-import { PlanType } from "@tutao/appEnv"
+import { PlanTypeToName } from "@tutao/typerefs"
+import { PlanType } from "@tutao/app-env"
 
 type BusinessPlanBoxAttrs = {
 	planConfig: PlanConfig

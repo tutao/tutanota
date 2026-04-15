@@ -11,7 +11,7 @@ import {
 	PresentableKeyVerificationState,
 	ProcessingState,
 	PublicKeyIdentifierType,
-} from "@tutao/appEnv"
+} from "../../../../../src/app-env"
 import {
 	asCryptoProtoocolVersion,
 	AttributeModel,
@@ -26,8 +26,8 @@ import {
 	TypeModel,
 	TypeModelResolver,
 	UntypedInstance,
-} from "@tutao/typeRefs"
-import { HttpMethod, RestClient, restError } from "@tutao/restClient"
+} from "@tutao/typerefs"
+import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {
 	Aes256Key,
@@ -67,7 +67,7 @@ import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worke
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
-import { CryptoWrapper, EntityAdapter } from "@tutao/instancePipeline"
+import { CryptoWrapper, EntityAdapter } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"

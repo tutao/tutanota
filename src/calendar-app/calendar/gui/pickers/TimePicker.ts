@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField, TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { theme } from "../../../../common/gui/theme.js"
-import { Keys, TabIndex, TimeFormat } from "@tutao/appEnv"
+import { Keys, TabIndex, TimeFormat } from "@tutao/app-env"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
@@ -12,7 +12,7 @@ import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { lang, Translation, TranslationKey } from "../../../../common/misc/LanguageViewModel"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 export type TimePickerAttrs = {
 	time: Time | null

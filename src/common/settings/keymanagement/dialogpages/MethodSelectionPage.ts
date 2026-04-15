@@ -4,7 +4,7 @@ import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 import { px, size } from "../../../gui/size"
 import { Card } from "../../../gui/base/Card"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
+import { IdentityKeyVerificationMethod } from "@tutao/app-env"
 
 type MethodSelectionPageAttrs = {
 	model: KeyVerificationModel

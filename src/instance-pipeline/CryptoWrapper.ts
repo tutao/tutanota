@@ -48,7 +48,7 @@ import {
 } from "@tutao/crypto"
 import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * An AesKey (usually a group key) and its version.

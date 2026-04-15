@@ -1,4 +1,4 @@
-import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restError, restSuspension } from "@tutao/restClient"
+import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restError, restSuspension } from "@tutao/rest-client"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -16,8 +16,8 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/utils"
-import { ArchiveDataType, assertWorkerOrNode, CANCEL_UPLOAD_EVENT, isApp, isDesktop } from "@tutao/appEnv"
-import { AttributeModel, ServerModelUntypedInstance, SomeEntity, storageServices, storageTypeModels, storageTypeRefs, sysTypeRefs } from "@tutao/typeRefs"
+import { ArchiveDataType, assertWorkerOrNode, CANCEL_UPLOAD_EVENT, isApp, isDesktop } from "@tutao/app-env"
+import { AttributeModel, ServerModelUntypedInstance, SomeEntity, storageServices, storageTypeModels, storageTypeRefs, sysTypeRefs } from "@tutao/typerefs"
 import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
@@ -25,7 +25,7 @@ import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUt
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
-import { _encryptBytes, InstancePipeline } from "@tutao/instancePipeline"
+import { _encryptBytes, InstancePipeline } from "@tutao/instance-pipeline"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferId, UploadProgressInfo } from "../../../common/drive/DriveTypes"

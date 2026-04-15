@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import type { WorkerClient } from "../../../../src/common/api/main/WorkerClient.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { Request } from "../../../../src/common/api/common/threading/MessageDispatcher.js"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError.js"
 import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"

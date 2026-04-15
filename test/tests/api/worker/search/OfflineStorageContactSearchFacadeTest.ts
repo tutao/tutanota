@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { OfflineStorageContactSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageContactSearchFacade"
 import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { object, when } from "testdouble"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 
 o.spec("OfflineStorageContactSearchFacade", () => {

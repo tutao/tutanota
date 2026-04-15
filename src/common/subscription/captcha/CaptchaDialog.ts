@@ -1,14 +1,14 @@
 import { newPromise, uint8ArrayToBase64 } from "@tutao/utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { sysServices } from "@tutao/typeRefs"
+import { sysServices } from "@tutao/typerefs"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
 import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import m, { Children } from "mithril"
 import { TextField } from "../../gui/base/TextField.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { px } from "../../gui/size"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const enum CaptchaType {
 	Visual,

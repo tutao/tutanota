@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -13,7 +13,7 @@ import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { client } from "../misc/ClientDetector"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

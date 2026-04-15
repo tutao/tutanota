@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../TestUtils.js"
-import { RolloutType } from "@tutao/appEnv"
+import { RolloutType } from "../../../../src/app-env"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/utils"
@@ -17,7 +17,7 @@ import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
 import { IdentityKeyCreator } from "../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 
 import { noPatchesAndInstance } from "./EventBusClientTest"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "../../../../src/app-env"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator

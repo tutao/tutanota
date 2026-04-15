@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { knowledgeBaseSearch } from "../../../src/mail-app/knowledgebase/model/KnowledgeBaseSearchFilter.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("KnowledgeBaseSearchFilter", function () {

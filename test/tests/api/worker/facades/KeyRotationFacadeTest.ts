@@ -41,17 +41,17 @@ import {
 	RolloutType,
 	ShareCapability,
 	TutanotaError,
-} from "@tutao/appEnv"
-import { sysServices, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+} from "../../../../../src/app-env"
+import { sysServices, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/utils"
-import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instancePipeline"
+import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
 import {

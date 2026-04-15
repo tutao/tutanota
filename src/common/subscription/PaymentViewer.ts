@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { AccountType, assertMainOrNode, AvailablePlans, isIOSApp, NewPaidPlans, PaymentMethodType, PostingType, UpgradePromptType } from "@tutao/appEnv"
+import { AccountType, assertMainOrNode, AvailablePlans, isIOSApp, NewPaidPlans, PaymentMethodType, PostingType, UpgradePromptType } from "@tutao/app-env"
 import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
@@ -11,7 +11,7 @@ import {
 	getPaymentMethodType,
 	sysServices,
 	sysTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
@@ -19,9 +19,9 @@ import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { formatDate } from "../misc/Formatter"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { Dialog, DialogType } from "../gui/base/Dialog"
-import { getByAbbreviation } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
@@ -202,7 +202,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	private changeInvoiceData() {
 		if (this.accountingInfo) {
 			const accountingInfo = neverNull(this.accountingInfo)
-			const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
+			const invoiceCountry = accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null
 			InvoiceDataDialog.show(
 				neverNull(neverNull(this.customer).businessUse),
 				{

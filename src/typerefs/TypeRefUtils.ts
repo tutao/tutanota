@@ -35,7 +35,7 @@ import {
 	UsageTestParticipationMode,
 	UsageTestState,
 	WeekStart,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { downcast } from "@tutao/utils"
 
 export const getMailFolderType = (folder: tutanotaTypeRefs.MailSet): MailSetKind => downcast(folder.folderType)

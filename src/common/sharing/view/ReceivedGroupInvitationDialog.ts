@@ -1,4 +1,4 @@
-import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { TextField } from "../../gui/base/TextField.js"
@@ -11,14 +11,14 @@ import { getCapabilityText, getDefaultGroupName, getInvitationGroupType, isTempl
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import type { GroupSharingTexts } from "../GroupGuiUtils.js"
 import { getTextsForGroupType } from "../GroupGuiUtils.js"
-import { GroupType, UpgradePromptType } from "@tutao/appEnv"
+import { GroupType, UpgradePromptType } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ColorPickerView } from "../../gui/base/colorPicker/ColorPickerView"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 export function showGroupInvitationDialog(invitation: sysTypeRefs.ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)

@@ -1,7 +1,7 @@
 //@bundleInto:common
 
 import type { DeviceEncryptionFacade } from "../../api/worker/facades/DeviceEncryptionFacade"
-import { isBrowser, Mode } from "@tutao/appEnv"
+import { isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * Factory for generating an offline storage database key

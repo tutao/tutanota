@@ -1,7 +1,7 @@
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { sysServices } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 /**
  * Class containing state of the affiliate model.

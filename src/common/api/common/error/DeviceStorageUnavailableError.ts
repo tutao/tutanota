@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 
 /**
  * this error is thrown when the client fails to get access to a safe storage for

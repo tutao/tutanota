@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatSortableDate } from "@tutao/utils"
 import { ParsingError } from "../error/ParsingError"
 

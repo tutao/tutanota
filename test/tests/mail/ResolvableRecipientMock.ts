@@ -2,8 +2,8 @@ import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsMode
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { LazyLoaded } from "@tutao/utils"
 import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { PresentableKeyVerificationState } from "@tutao/appEnv"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { PresentableKeyVerificationState } from "../../../src/app-env"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes

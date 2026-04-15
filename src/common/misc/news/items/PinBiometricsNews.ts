@@ -1,5 +1,5 @@
 import { NewsListItem } from "../NewsListItem.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import Mithril from "mithril"
 import m from "mithril"
 import { lang } from "../../LanguageViewModel.js"
@@ -9,7 +9,7 @@ import { showCredentialsEncryptionModeDialog } from "../../../gui/dialogs/Select
 import { CredentialsProvider } from "../../credentials/CredentialsProvider.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 import { ExternalLink } from "../../../gui/base/ExternalLink.js"
-import { isAndroidApp, isIOSApp } from "@tutao/appEnv"
+import { isAndroidApp, isIOSApp } from "@tutao/app-env"
 
 const playstoreLink = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"

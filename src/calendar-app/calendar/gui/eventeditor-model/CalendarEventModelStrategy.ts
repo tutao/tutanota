@@ -3,7 +3,7 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { getAsEnumValue, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getAsEnumValue, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/utils"
@@ -17,13 +17,13 @@ import {
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { StrippedEntity } from "@tutao/typeRefs"
+import { StrippedEntity } from "@tutao/typerefs"
 import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../../common/calendar/date/Time"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { RecipientList } from "../../../../common/api/common/recipients/Recipient"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils"
-import { CalendarAttendeeStatus } from "@tutao/appEnv"
+import { CalendarAttendeeStatus } from "@tutao/app-env"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */

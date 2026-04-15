@@ -13,7 +13,7 @@ import { styles } from "../gui/styles"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { assertNotNull } from "@tutao/utils"
 import { RecoverCodeDisplay } from "./RecoverCodeDisplay"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 
 assertMainOrNode()
 

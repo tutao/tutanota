@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { _findMatchingRule, _matchesRegularExpression } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { createTestEntity } from "../TestUtils.js"
-import { InboxRuleType } from "@tutao/appEnv"
+import { InboxRuleType } from "../../../src/app-env"
 
 o.spec("InboxRuleHandlerTest", function () {
 	o.spec("Test _matchesRegularExpression", function () {

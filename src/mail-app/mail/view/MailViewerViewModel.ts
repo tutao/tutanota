@@ -1,4 +1,4 @@
-import { entityUpdateUtils, haveSameId, isPermanentDeleteAllowedMailSetKind, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, haveSameId, isPermanentDeleteAllowedMailSetKind, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	ArchiveDataType,
 	ConversationType,
@@ -14,7 +14,7 @@ import {
 	MailState,
 	NewsletterBannerRule,
 	OperationType,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
@@ -39,7 +39,7 @@ import {
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"

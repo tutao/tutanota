@@ -8,7 +8,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { Card } from "../../gui/base/Card.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { MailMethod } from "@tutao/appEnv"
+import { MailMethod } from "@tutao/app-env"
 import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -22,7 +22,7 @@ import { px, size } from "../../gui/size.js"
 import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { PlanTypeToName } from "@tutao/typeRefs"
+import { PlanTypeToName } from "@tutao/typerefs"
 
 type Props = {
 	data: SupportDialogState

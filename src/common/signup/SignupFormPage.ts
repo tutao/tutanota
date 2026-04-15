@@ -7,7 +7,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { theme } from "../gui/theme"
 import { layout_size, px, size } from "../gui/size"
 import { styles } from "../gui/styles"
-import { PlanType } from "@tutao/appEnv"
+import { PlanType } from "@tutao/app-env"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {

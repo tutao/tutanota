@@ -1,7 +1,7 @@
 import XRechnungUBLTemplate from "./XRechnungUBLTemplate.js"
 import InvoiceTexts from "./InvoiceTexts.js"
 import { countryUsesGerman, getInvoiceItemTypeName, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 const DE_POSTAL_CODE_REGEX = new RegExp(/\d{5}/)
 const CITY_NAME_REGEX = new RegExp(/\d{5}/)

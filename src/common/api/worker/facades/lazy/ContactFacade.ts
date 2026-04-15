@@ -1,6 +1,6 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
 

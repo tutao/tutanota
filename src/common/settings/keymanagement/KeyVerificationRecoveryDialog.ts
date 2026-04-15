@@ -1,5 +1,5 @@
 import { Dialog } from "../../gui/base/Dialog"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { RecipientKeyVerificationRecoveryInfoPage } from "./dialogpages/RecipientKeyVerificationRecoveryInfoPage"

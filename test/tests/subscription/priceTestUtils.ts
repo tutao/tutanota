@@ -1,8 +1,8 @@
 import { matchers, object, when } from "testdouble"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
-import { sysServices } from "@tutao/typeRefs"
+import { sysServices } from "@tutao/typerefs"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export const PLAN_PRICES = {
 	Free: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {

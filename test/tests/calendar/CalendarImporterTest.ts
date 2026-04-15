@@ -7,9 +7,9 @@ import {
 	serializeRepeatRule,
 	serializeTrigger,
 } from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 import { DateTime } from "luxon"
-import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "@tutao/appEnv"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/app-env"
 import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { getFirstOrThrow, Require } from "@tutao/utils"
@@ -26,7 +26,7 @@ import {
 	ParsedEvent,
 	sortOutParsedEvents,
 } from "../../../src/common/calendar/gui/ImportExportUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")

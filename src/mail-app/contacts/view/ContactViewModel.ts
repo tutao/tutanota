@@ -2,7 +2,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { entityUpdateUtils, getElementId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getElementId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../common/gui/base/List.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"

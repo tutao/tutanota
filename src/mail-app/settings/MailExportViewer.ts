@@ -1,12 +1,12 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
 import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
-import { isDesktop, Mode } from "@tutao/appEnv"
+import { isDesktop, Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 

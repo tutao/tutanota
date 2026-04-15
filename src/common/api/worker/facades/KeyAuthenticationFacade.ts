@@ -1,8 +1,8 @@
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { concat, KeyVersion } from "@tutao/utils"
 import { Aes256Key, AesKey, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/crypto"
-import { assertWorkerOrNode } from "@tutao/appEnv"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { assertWorkerOrNode } from "@tutao/app-env"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertWorkerOrNode()
 

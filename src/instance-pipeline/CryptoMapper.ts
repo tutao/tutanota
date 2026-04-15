@@ -14,7 +14,7 @@ import {
 	ServerTypeModel,
 	ServerTypeReferenceResolver,
 	ValueType,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	Base64,
 	base64ToUint8Array,
@@ -29,7 +29,7 @@ import {
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper"
-import { isWebClient, ProgrammingError } from "@tutao/appEnv"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade"
 import { EntityAdapter } from "./EntityAdapter"
 

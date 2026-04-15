@@ -35,10 +35,10 @@
 			"@tutao/usagetests": ["./src/usagetests"],
 			"@tutao/mimimi": ["./src/mimimi"],
 			"@tutao/otest": ["./test/otest"],
-			"@tutao/restClient": ["./src/restClient"],
-			"@tutao/appEnv": ["./src/appEnv"],
-			"@tutao/typeRefs": ["./src/typeRefs"],
-			"@tutao/instancePipeline": ["./src/instancePipeline"]
+			"@tutao/rest-client": ["./src/rest-client"],
+			"@tutao/app-env": ["./src/app-env"],
+			"@tutao/typerefs": ["./src/typerefs"],
+			"@tutao/instance-pipeline": ["./src/instance-pipeline"]
 		}
 	}
 }

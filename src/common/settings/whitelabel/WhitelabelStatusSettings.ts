@@ -6,7 +6,7 @@ import { TextField } from "../../gui/base/TextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { UpgradePromptType } from "@tutao/app-env"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean

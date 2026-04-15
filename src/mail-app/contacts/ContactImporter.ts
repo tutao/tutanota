@@ -21,8 +21,8 @@ import { MobileContactsFacade } from "../../common/native/common/generatedipc/Mo
 import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { _compareContactsForMerge } from "./ContactMergeUtils"
 import { ContactSelectionDialogAttrs, ContactSelectionDialogSize, showContactSelectionDialog } from "./view/ContactSelectionDialog"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ContactComparisonResult, isIOSApp } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ContactComparisonResult, isIOSApp } from "@tutao/app-env"
 
 export class ContactImporter {
 	constructor(

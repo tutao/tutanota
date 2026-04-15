@@ -1,9 +1,9 @@
 import { isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import type { TypeModel } from "@tutao/typeRefs"
-import { sysTypeRefs, tutanotaTypeModels, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { GroupType, isTest } from "@tutao/appEnv"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import type { TypeModel } from "@tutao/typerefs"
+import { sysTypeRefs, tutanotaTypeModels, tutanotaTypeRefs } from "@tutao/typerefs"
+import { GroupType, isTest } from "@tutao/app-env"
 
 export type TypeInfo = {
 	appId: number

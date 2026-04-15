@@ -1,15 +1,15 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { formatDate } from "../misc/Formatter"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { neverNull } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"

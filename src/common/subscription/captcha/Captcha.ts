@@ -1,7 +1,7 @@
 import { locator } from "../../api/main/CommonLocator.js"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { defer } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
@@ -12,7 +12,7 @@ import { PowSolution } from "../../api/common/pow-worker"
 import { client } from "../../misc/ClientDetector.js"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
-import { isIOSApp } from "@tutao/appEnv"
+import { isIOSApp } from "@tutao/app-env"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }

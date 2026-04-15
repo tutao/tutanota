@@ -7,7 +7,7 @@ import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalend
 import { DateTime } from "luxon"
 import { spy } from "@tutao/otest"
 import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { DAY_IN_MILLIS } from "@tutao/appEnv"
+import { DAY_IN_MILLIS } from "../../../src/app-env"
 
 const INIT_MOUSE_POS = {
 	x: 0,

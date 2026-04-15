@@ -1,5 +1,5 @@
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
-import { Const } from "@tutao/appEnv"
+import { Const } from "@tutao/app-env"
 
 /**
  * Given appId (from the U2fKey), figure out which url should the user use for the login with that appId.

@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, OperationType, MailSetKind} from "@tutao/appEnv"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, OperationType, MailSetKind } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -23,9 +23,8 @@ import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSa
 	listIdPart,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
-import { restError } from "@tutao/restClient"
-import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
+} from "@tutao/typerefs"
+import { restError } from "@tutao/rest-client"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"

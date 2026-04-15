@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { object, when } from "testdouble"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { IndexedDbContactSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactSearchFacade"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
-import { TypeModelResolver } from "@tutao/typeRefs"
+import { TypeModelResolver } from "@tutao/typerefs"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { typedValues } from "@tutao/utils"
 

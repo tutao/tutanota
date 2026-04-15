@@ -1,6 +1,6 @@
 import { filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
-import { reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -17,7 +17,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
-import { CalendarAttendeeStatus, CalendarMethod, DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/appEnv"
+import { CalendarAttendeeStatus, CalendarMethod, DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"

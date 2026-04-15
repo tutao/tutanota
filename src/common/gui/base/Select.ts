@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../size.js"
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 import { focusNext, focusPrevious, isKeyPressed, keyManager, Shortcut, ShortcutType } from "../../misc/KeyManager.js"
 import { DomRectReadOnlyPolyfilled } from "./Dropdown.js"
 import { lang } from "../../misc/LanguageViewModel.js"

@@ -2,12 +2,12 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 
-import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { restError } from "@tutao/restClient"
+import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
+import { restError } from "@tutao/rest-client"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
-import { OperationType } from "@tutao/appEnv"
+import { OperationType } from "@tutao/app-env"
 
 const TAG = "[CalendarEventUpdateCoordinator]"
 

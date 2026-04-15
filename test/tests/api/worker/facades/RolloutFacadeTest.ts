@@ -2,9 +2,9 @@ import o from "@tutao/otest"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { RolloutAction, RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
 import { func, matchers, object, verify, when } from "testdouble"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
-import { RolloutType } from "@tutao/appEnv"
+import { RolloutType } from "../../../../../src/app-env"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 o.spec("RolloutFacadeTest", function () {

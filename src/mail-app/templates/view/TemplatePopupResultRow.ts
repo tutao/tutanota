@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../../../common/gui/size"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../model/TemplatePopupModel.js"
 import { TEMPLATE_LIST_ENTRY_HEIGHT } from "./TemplateConstants.js"
 

@@ -11,7 +11,7 @@ import { px, size } from "../gui/size.js"
 import { getTutaLogo } from "../gui/base/Logo.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
 import { client } from "../misc/ClientDetector"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown

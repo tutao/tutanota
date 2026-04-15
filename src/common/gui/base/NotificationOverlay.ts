@@ -4,7 +4,7 @@ import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { ClickHandler } from "./GuiUtils"
 
 assertMainOrNode()

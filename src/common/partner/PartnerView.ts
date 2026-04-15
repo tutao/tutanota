@@ -1,5 +1,5 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { ViewSlider } from "../gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
@@ -24,7 +24,7 @@ import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsVie
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../gui/base/icons/Icons"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 assertMainOrNode()
 

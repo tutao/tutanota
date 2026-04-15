@@ -5,7 +5,7 @@ import { ExtendedNotificationMode } from "../../common/native/common/generatedip
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { renderNotificationPermissionsDialog } from "../../common/settings/NotificationPermissionsDialog.js"
-import { isApp, isDesktop } from "@tutao/appEnv"
+import { isApp, isDesktop } from "@tutao/app-env"
 
 export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode

@@ -28,7 +28,7 @@ import {
 	isDesktop,
 	OperationType,
 	TutanotaError,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
 import {
 	DELETE_MULTIPLE_LIMIT,
@@ -42,9 +42,9 @@ import {
 	sysServices,
 	sysTypeRefs,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"

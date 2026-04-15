@@ -2,7 +2,7 @@ import type { TypeInfo } from "../../common/utils/IndexUtils"
 import { Base64, TypeRef } from "@tutao/utils"
 import { Aes256Key } from "@tutao/crypto"
 import { SearchToken } from "../../common/utils/QueryTokenUtils"
-import { GroupType } from "@tutao/appEnv"
+import { GroupType } from "@tutao/app-env"
 // db types
 
 /**

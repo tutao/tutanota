@@ -2,8 +2,8 @@ import Stream from "mithril/stream"
 import { TranslationKey } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { downcast, getFromMap } from "@tutao/utils"
-import { PlanTypeToName, sysTypeRefs } from "@tutao/typeRefs"
-import { AvailablePlans, isIOSApp, PlanName, PlanType } from "@tutao/appEnv"
+import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
+import { AvailablePlans, isIOSApp, PlanName, PlanType } from "@tutao/app-env"
 
 let dataProvider: FeatureListProvider | null = null
 

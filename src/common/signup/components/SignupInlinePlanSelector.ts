@@ -7,7 +7,7 @@ import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subs
 import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { px, size } from "../../gui/size"
-import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/appEnv"
+import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/app-env"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel

@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 import type { ImportErrorData } from "../../../desktop/mailimport/DesktopMailImportFacade.js"
 
 export const enum ImportErrorCategories {

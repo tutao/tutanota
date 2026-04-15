@@ -6,7 +6,7 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { theme } from "../../../gui/theme"
 import { QrCodePageErrorType } from "./VerificationByQrCodeInputPage"
-import { IdentityKeyVerificationMethod } from "@tutao/appEnv"
+import { IdentityKeyVerificationMethod } from "@tutao/app-env"
 
 type VerificationErrorPageAttrs = {
 	model: KeyVerificationModel

@@ -1,7 +1,7 @@
 import o, { mock, Spy, spy, verify } from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import { MailSetKind, OperationType, ProcessingState } from "@tutao/appEnv"
-import { ClientModelInfo, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { MailSetKind, OperationType, ProcessingState } from "../../../src/app-env"
+import { ClientModelInfo, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { downcast } from "@tutao/utils"
@@ -16,7 +16,7 @@ import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFaca
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"

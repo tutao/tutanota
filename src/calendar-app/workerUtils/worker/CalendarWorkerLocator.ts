@@ -9,11 +9,11 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/appEnv"
+import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
-import { RestClient } from "@tutao/restClient"
+import { RestClient } from "@tutao/rest-client"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -48,7 +48,7 @@ import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAc
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typeRefs"
+import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
@@ -66,7 +66,7 @@ import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { CryptoWrapper, InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instancePipeline"
+import { CryptoWrapper, InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instance-pipeline"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
@@ -92,7 +92,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { SuspensionHandler } from "../../../restClient/SuspensionHandler.js"
+import { restSuspension } from "@tutao/rest-client"
 
 assertWorkerOrNode()
 
@@ -183,7 +183,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const mainInterface = worker.getMainInterface()
 
-	const suspensionHandler = new SuspensionHandler(self, () => {
+	const suspensionHandler = new restSuspension.SuspensionHandler(self, () => {
 		mainInterface.infoMessageHandler.onInfoMessage({
 			translationKey: "clientSuspensionWait_label",
 			args: {},

@@ -1,4 +1,4 @@
-import { entityUpdateUtils, SomeEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, SomeEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/utils"
 import { ExposedCacheStorage } from "../DefaultEntityRestCache.js"
 

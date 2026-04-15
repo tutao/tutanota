@@ -1,5 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/crypto"
+import {
+	aes256RandomKey,
+	aesDecrypt,
+	aesEncrypt,
+	random,
+	SYMMETRIC_CIPHER_FACADE,
+	SymmetricCipherFacade,
+	ValueDecryptor
+} from "@tutao/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
 import {
 	Cardinality,
@@ -13,12 +21,9 @@ import {
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	ValueType,
-	SYMMETRIC_CIPHER_FACADE,
-	SymmetricCipherFacade,
-	ValueDecryptor,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instancePipeline"
+import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 

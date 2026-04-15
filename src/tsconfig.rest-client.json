@@ -1,0 +1,19 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["rest-client", "./../types/"],
+	"exclude": ["rest-client/dist"],
+	"compilerOptions": {
+		"rootDir": "rest-client",
+		"outDir": "rest-client/dist",
+		"tsBuildInfoFile": "rest-client/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.app-env.json"
+		},
+		{
+			"path": "tsconfig.utils.json"
+		}
+	]
+}

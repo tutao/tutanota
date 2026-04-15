@@ -1,7 +1,7 @@
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 import { purgeSyncMetrics, syncMetrics } from "./utils/SyncMetrics"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 export type QueuedBatch = {
 	events: readonly entityUpdateUtils.EntityUpdateData[]

@@ -1,14 +1,14 @@
 import type { Hex } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import { InvoiceData, NewPaidPlans, UpgradePromptType } from "@tutao/appEnv"
-import { getByAbbreviation } from "../../appEnv/CountryList"
+import { InvoiceData, NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
+import { countryList } from "@tutao/app-env"
 import stream from "mithril/stream"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
-import { assertMainOrNode, AvailablePlans, AvailablePlanType, isIOSApp, PlanType, SubscriptionType } from "@tutao/appEnv"
+import { assertMainOrNode, AvailablePlans, AvailablePlanType, isIOSApp, PlanType, SubscriptionType } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -27,7 +27,7 @@ import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
 import type { UsageTest } from "@tutao/usagetests"
-import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typeRefs"
+import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typerefs"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -116,7 +116,7 @@ export async function showUpgradeWizard({
 		},
 		invoiceData: {
 			invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-			country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
+			country: accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null,
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		},
 		paymentData: {

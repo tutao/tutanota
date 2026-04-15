@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "@tutao/appEnv"
+import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../../src/app-env"
 import { func, matchers, object, verify, when } from "testdouble"
 import {
 	CalendarOperation,
@@ -9,7 +9,7 @@ import {
 } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
 import { clone, identity, noOp } from "@tutao/utils"
@@ -20,7 +20,7 @@ import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/comm
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
-import { AccountType } from "@tutao/appEnv"
+import { AccountType } from "../../../../src/app-env"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender

@@ -5,13 +5,13 @@ import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
-import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/appEnv"
+import { restError } from "@tutao/rest-client"
+import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { AppType } from "../../../common/misc/ClientConstants.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null

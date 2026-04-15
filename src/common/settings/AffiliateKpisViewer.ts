@@ -8,7 +8,7 @@ import { AffiliateViewModel } from "./AffiliateViewModel.js"
 import { formatPrice } from "../subscription/utils/PriceUtils.js"
 import { LazyLoaded } from "@tutao/utils"
 import { DateTime } from "luxon"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 export class AffiliateKpisViewer implements UpdatableSettingsDetailsViewer {
 	private readonly affiliateViewModel: LazyLoaded<AffiliateViewModel> = new LazyLoaded<AffiliateViewModel>(async () => await mailLocator.affiliateViewModel())

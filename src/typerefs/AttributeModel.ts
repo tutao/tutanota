@@ -11,7 +11,7 @@ import {
 	TypeId,
 	TypeModel,
 } from "./EntityTypes"
-import { ProgrammingError } from "@tutao/appEnv"
+import { ProgrammingError } from "@tutao/app-env"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {

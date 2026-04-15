@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getConfirmation } from "../../../common/gui/base/GuiUtils.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 
 type KnowledgeBaseEntryViewAttrs = {

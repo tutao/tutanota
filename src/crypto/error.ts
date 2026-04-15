@@ -3,7 +3,7 @@
  * Needed in case we only want to handle the errors but don't want to include the rest of the code.
  */
 
-import { TutanotaError } from "@tutao/appEnv"
+import { TutanotaError } from "@tutao/app-env"
 
 export class CryptoError extends TutanotaError {
 	constructor(message: string, error?: Error) {

@@ -2,7 +2,7 @@ import type { BrowserWindow, ContextMenuParams, HandlerDetails, NativeImage, Res
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import type { lazy } from "@tutao/utils"
 import { capitalizeFirstLetter, newPromise, noOp, typedEntries, typedKeys } from "@tutao/utils"
-import { Keys } from "@tutao/appEnv"
+import { Keys } from "@tutao/app-env"
 import type { Key } from "../misc/KeyManager"
 import path from "node:path"
 import type { TranslationKey } from "../misc/LanguageViewModel"

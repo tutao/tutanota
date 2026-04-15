@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { getElementId, sortCompareById, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getElementId, sortCompareById, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 

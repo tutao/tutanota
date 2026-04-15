@@ -4,10 +4,10 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.j
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
-import { isApp } from "@tutao/appEnv"
+import { isApp } from "@tutao/app-env"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]

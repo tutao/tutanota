@@ -1,9 +1,9 @@
-import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "@tutao/appEnv"
+import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "@tutao/app-env"
 import { LazyLoaded, noOp } from "@tutao/utils"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { getReferralLink, ReferralLinkViewer } from "../misc/news/items/ReferralLinkViewer.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 /**
  * Section in user settings to display the referral link and let users share it.

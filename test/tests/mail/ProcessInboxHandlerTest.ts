@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
-import { MailSetKind, ProcessingState, SpamDecision } from "@tutao/appEnv"
+import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/app-env"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { assertNotNull, delay } from "@tutao/utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
@@ -13,7 +13,7 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 const { captor, anything } = matchers
 

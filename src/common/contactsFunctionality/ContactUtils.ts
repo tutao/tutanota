@@ -7,8 +7,8 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+} from "@tutao/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatDate } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"

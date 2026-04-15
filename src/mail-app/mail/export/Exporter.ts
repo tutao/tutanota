@@ -1,7 +1,7 @@
 import { noOp, promiseMap, sortableTimestamp, splitInChunks } from "@tutao/utils"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { downloadMailBundle } from "./Bundler"
-import { elementIdPart, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { elementIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { FileController, zipDataFiles } from "../../../common/file/FileController"
@@ -11,7 +11,7 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
-import { isDesktop } from "@tutao/appEnv"
+import { isDesktop } from "@tutao/app-env"
 
 const EXPORT_CHUNK_SIZE = 10000
 

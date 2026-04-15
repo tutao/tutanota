@@ -54,7 +54,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdPart, generatedIdToTimestamp, listIdPart } from "@tutao/typeRefs"
+import { elementIdPart, generatedIdToTimestamp, listIdPart } from "@tutao/typerefs"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -94,8 +94,8 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import {
 	decryptIndexKey,

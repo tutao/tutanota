@@ -1,5 +1,5 @@
 import { keyManager } from "./KeyManager.js"
-import { FeatureType, Keys } from "@tutao/appEnv"
+import { FeatureType, Keys } from "@tutao/app-env"
 import m from "mithril"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "./RouteChange.js"
 import { showQuickActionBar } from "./quickactions/QuickActionBar"

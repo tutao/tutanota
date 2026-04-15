@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { deduplicate, identity, incrementDate } from "@tutao/utils"
 import { getRangeOfDays, getStartOfWeek, isSameEventInstance } from "../../../common/calendar/date/CalendarUtils"
-import { WeekStart } from "@tutao/appEnv"
+import { WeekStart } from "@tutao/app-env"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { styles } from "../../../common/gui/styles"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, ScrollByListener } from "./CalendarViewModel"

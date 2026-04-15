@@ -4,12 +4,12 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
-import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/typeRefs"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/typerefs"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { Base64 } from "@tutao/utils"
 import { base64ToKey } from "@tutao/crypto"
 import { log } from "../DesktopLog"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(

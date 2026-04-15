@@ -3,7 +3,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 import { px } from "../../../common/gui/size.js"
-import { TabIndex } from "@tutao/appEnv"
+import { TabIndex } from "@tutao/app-env"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { EventWrapper } from "./CalendarViewModel.js"
 

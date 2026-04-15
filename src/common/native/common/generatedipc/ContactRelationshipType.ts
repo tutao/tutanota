@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { ContactRelationshipType } from "@tutao/appEnv"
+export { ContactRelationshipType } from "@tutao/app-env"

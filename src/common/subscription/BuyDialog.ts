@@ -3,13 +3,13 @@ import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@t
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { assertMainOrNode, BookingItemFeatureType, FeatureType } from "@tutao/appEnv"
+import { assertMainOrNode, BookingItemFeatureType, FeatureType } from "@tutao/app-env"
 import { formatDate } from "../misc/Formatter.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

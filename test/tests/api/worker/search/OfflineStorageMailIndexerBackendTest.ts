@@ -2,11 +2,11 @@ import o from "@tutao/otest"
 import { OfflineStorageMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, verify, when } from "testdouble"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupType } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { GroupType } from "../../../../../src/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence

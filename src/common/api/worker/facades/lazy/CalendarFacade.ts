@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, TutanotaError } from "@tutao/appEnv"
+import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, TutanotaError } from "@tutao/app-env"
 import {
 	AttributeModel,
 	ClientModelUntypedInstance,
@@ -11,7 +11,7 @@ import {
 	sysTypeRefs,
 	tutanotaServices,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	assertNotNull,
 	flatMap,
@@ -28,7 +28,7 @@ import {
 } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
@@ -54,7 +54,7 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventAlarmsTuple } from "../../../../calendar/gui/ImportExportUtils.js"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 assertWorkerOrNode()

@@ -24,7 +24,7 @@ import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { showInfoSnackbar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
-import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 /**

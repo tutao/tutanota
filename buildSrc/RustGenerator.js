@@ -3,12 +3,12 @@
  * but is checked in here so that it's updated in lockstep with rust code that expects it.
  */
 
-import { AssociationType, Type, ValueType } from "../src/typeRefs/EntityConstants.js"
+import { AssociationType, Type, ValueType } from "../src/typerefs/EntityConstants.js"
 import { capitalizeFirstLetter } from "../src/utils/dist/StringUtils.js"
 
 /**
  * @param models {object}
- * @param typeModel {import("../src/typeRefs/EntityTypes.ts").TypeModel}
+ * @param typeModel {import("../src/typerefs/EntityTypes.ts").TypeModel}
  * @param modelName {string}
  * @return {string}
  */
@@ -169,8 +169,8 @@ function mapTypeName(name, modelName) {
 
 /**
  * @param valueName {string}
- * @param typeModel {import("../src/typeRefs/EntityTypes.js").TypeModel}
- * @param value {import("../src/typeRefs/EntityTypes.js").ModelValue}
+ * @param typeModel {import("../src/typerefs/EntityTypes.js").TypeModel}
+ * @param value {import("../src/typerefs/EntityTypes.js").ModelValue}
  * @return {string}
  */
 function rustValueType(valueName, typeModel, value) {
@@ -205,7 +205,7 @@ function rustValueType(valueName, typeModel, value) {
 }
 
 /**
- * @param association {import("../src/typeRefs/EntityTypes.js").ModelAssociation}
+ * @param association {import("../src/typerefs/EntityTypes.js").ModelAssociation}
  * @return {string}
  */
 function rustAssociationType(association, modelName, models) {

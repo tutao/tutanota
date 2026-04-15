@@ -7,8 +7,8 @@ import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHan
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade

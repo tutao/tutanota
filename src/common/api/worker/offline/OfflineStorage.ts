@@ -18,7 +18,7 @@ import {
 	Type as TypeId,
 	TypeModel,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import type { CacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -48,10 +48,10 @@ import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFa
 import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { ModelMapper } from "@tutao/instancePipeline"
+import { ModelMapper } from "@tutao/instance-pipeline"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { isBrowser, isDesktop, Mode } from "@tutao/appEnv"
+import { isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

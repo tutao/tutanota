@@ -1,4 +1,4 @@
-import { getByAbbreviation } from "../../../../appEnv/CountryList.js"
+import { countryList } from "@tutao/app-env"
 
 export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
 	let result = ""
@@ -15,7 +15,7 @@ export function formatNameAndAddress(name: string, address: string, countryCode?
 		result += address
 	}
 
-	const country = countryCode && getByAbbreviation(countryCode)
+	const country = countryCode && countryList.getByAbbreviation(countryCode)
 	if (country) {
 		if (result) {
 			result += "\n"

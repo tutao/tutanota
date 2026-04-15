@@ -1,6 +1,6 @@
 import type { Language, LanguageCode, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { lang, languageByCode, languages } from "../../common/misc/LanguageViewModel"
-import { getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { clone, difference, downcast, getFirstOrThrow, remove } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"

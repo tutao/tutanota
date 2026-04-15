@@ -12,7 +12,7 @@ import { withOverriddenEnv } from "../../../TestUtils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
-import { IdentityKeySourceOfTrust, Mode } from "@tutao/appEnv"
+import { IdentityKeySourceOfTrust, Mode } from "../../../../../src/app-env"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {

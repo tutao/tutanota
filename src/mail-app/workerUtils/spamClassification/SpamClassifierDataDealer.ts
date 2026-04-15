@@ -11,12 +11,12 @@ import {
 	StrippedEntity,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
-import { SpamDecision } from "@tutao/appEnv"
+} from "@tutao/typerefs"
+import { SpamDecision } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { isAppleDevice, isDesktop, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/appEnv"
+import { isAppleDevice, isDesktop, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/app-env"
 
 // visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000

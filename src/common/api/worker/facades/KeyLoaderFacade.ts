@@ -11,14 +11,14 @@ import {
 } from "@tutao/crypto"
 import { customIdToString, KeyVersion, lazyAsync, promiseMap, stringToCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "./UserFacade.js"
-import { restError } from "@tutao/restClient"
-import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typeRefs"
+import { restError } from "@tutao/rest-client"
+import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typerefs"
 import { KeyCache } from "./KeyCache.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
-import { GroupType } from "@tutao/appEnv"
+import { CryptoWrapper, VersionedKey } from "@tutao/instance-pipeline"
+import { GroupType } from "@tutao/app-env"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(customIdToString(customId))

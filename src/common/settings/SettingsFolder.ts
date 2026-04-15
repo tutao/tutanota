@@ -2,7 +2,7 @@ import type { lazyIcon } from "../gui/base/Icon.js"
 import type { MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { isSelectedPrefix } from "../gui/base/NavButton.js"
 import type { lazy } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 
 assertMainOrNode()

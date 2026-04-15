@@ -24,11 +24,11 @@ import { cryptoUtils } from "@tutao/crypto"
 import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, VersionedKey } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

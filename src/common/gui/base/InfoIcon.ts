@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 
 export interface InfoIconAttrs {
 	text: Children

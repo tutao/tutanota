@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { HttpMethod, MediaType, RestClient, restError } from "@tutao/restClient"
+import { HttpMethod, MediaType, RestClient, restError } from "@tutao/rest-client"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import {
 	AttributeModel,
@@ -13,7 +13,7 @@ import {
 	tutanotaTypeRefs,
 	TypeModel,
 	TypeModelResolver,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
@@ -36,7 +36,7 @@ import {
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { CryptoWrapper, InstancePipeline, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, InstancePipeline, VersionedKey } from "@tutao/instance-pipeline"
 import { aes256RandomKey, AesKey, decryptKey } from "@tutao/crypto"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"

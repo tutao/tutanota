@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { noOp } from "@tutao/utils"
 import { isAllDayEvent } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { EndType, RepeatPeriod } from "@tutao/appEnv"
+import { EndType, RepeatPeriod } from "../../../../src/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/common/calendar/date/Time.js"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<tutanotaTypeRefs.CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)

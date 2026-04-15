@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP } from "@tutao/appEnv"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
 import {
 	ClientTypeModelResolver,
 	constructMailSetEntryId,
@@ -12,7 +12,7 @@ import {
 	timestampToGeneratedId,
 	tutanotaTypeModels,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	_getCurrentIndexTimestamp,
 	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
@@ -31,7 +31,7 @@ import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../.
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 class FixedDateProvider implements DateProvider {
 	now: number

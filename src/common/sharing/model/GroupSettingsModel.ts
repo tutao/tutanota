@@ -15,10 +15,10 @@
  */
 import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../api/common/EntityClient"
-import { getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 /** When there is only a single name that can be edited */
 export interface SingleGroupNameData {

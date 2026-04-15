@@ -1,7 +1,7 @@
-import { assertWorkerOrNode } from "@tutao/appEnv"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { monitorServices, monitorTypeRefs } from "@tutao/typeRefs"
-import { CounterType } from "@tutao/appEnv"
+import { monitorServices, monitorTypeRefs } from "@tutao/typerefs"
+import { CounterType } from "@tutao/app-env"
 
 assertWorkerOrNode()
 

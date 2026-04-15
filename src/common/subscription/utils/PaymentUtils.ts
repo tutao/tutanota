@@ -1,6 +1,5 @@
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
-import { type InvoiceData, Keys, PaymentDataResultType, PaymentMethodType, PlanType } from "@tutao/appEnv"
-import { Country, CountryType } from "../../../appEnv/CountryList"
+import { countryList, type InvoiceData, Keys, PaymentDataResultType, PaymentMethodType, PlanType } from "@tutao/app-env"
 import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
 import { locator } from "../../api/main/CommonLocator"
@@ -9,7 +8,7 @@ import { client } from "../../misc/ClientDetector"
 import { getPreconditionFailedPaymentMsg, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
 import { SessionType } from "../../api/common/SessionType"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { SignupViewModel } from "../../signup/SignupView"
@@ -18,15 +17,15 @@ import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonType } from "../../gui/base/Button"
 
-import { entityUpdateUtils, getClientType, PaymentData, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, getClientType, PaymentData, sysTypeRefs } from "@tutao/typerefs"
 
-export function isOnAccountAllowed(country: Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): boolean {
+export function isOnAccountAllowed(country: countryList.Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
 		return false
 	} else if (accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
 		return true
 	} else {
-		return isBusiness && country.t !== CountryType.OTHER
+		return isBusiness && country.t !== countryList.CountryType.OTHER
 	}
 }
 
@@ -145,7 +144,7 @@ export async function updatePaymentData(
 	paymentInterval: PaymentInterval,
 	invoiceData: InvoiceData,
 	paymentData: PaymentData | null,
-	confirmedCountry: Country | null,
+	confirmedCountry: countryList.Country | null,
 	isSignup: boolean,
 	price: string | null,
 	accountingInfo: sysTypeRefs.AccountingInfo,
@@ -238,7 +237,7 @@ export function validatePaymentData({
 	isBusiness,
 }: {
 	paymentMethod: PaymentMethodType
-	country: Country | null
+	country: countryList.Country | null
 	accountingInfo: sysTypeRefs.AccountingInfo
 	isBusiness: boolean
 }): TranslationKey | null {
@@ -314,14 +313,14 @@ export function getInvoiceData({
 	vatNumber,
 }: {
 	address: string
-	country: Country
+	country: countryList.Country
 	isBusiness: boolean
 	vatNumber: string
 }): InvoiceData {
 	return {
 		invoiceAddress: address,
 		country: country,
-		vatNumber: country?.t === CountryType.EU && isBusiness ? vatNumber : "",
+		vatNumber: country?.t === countryList.CountryType.EU && isBusiness ? vatNumber : "",
 	}
 }
 

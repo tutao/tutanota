@@ -1,5 +1,5 @@
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type TemplateGroupInstance = {
 	group: sysTypeRefs.Group

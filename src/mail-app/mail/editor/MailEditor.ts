@@ -31,8 +31,8 @@ import {
 	secondsToMillis,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
-} from "@tutao/appEnv"
-import { restError } from "@tutao/restClient"
+} from "@tutao/app-env"
+import { restError } from "@tutao/rest-client"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
@@ -47,7 +47,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "@tutao/utils"
 import {

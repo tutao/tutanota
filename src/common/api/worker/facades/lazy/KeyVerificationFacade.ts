@@ -1,5 +1,5 @@
-import { assertWorkerOrNode, IdentityKeySourceOfTrust } from "@tutao/appEnv"
-import { EncryptionKeyVerificationState, PublicKeyIdentifierType } from "@tutao/appEnv"
+import { assertWorkerOrNode, IdentityKeySourceOfTrust } from "@tutao/app-env"
+import { EncryptionKeyVerificationState, PublicKeyIdentifierType } from "@tutao/app-env"
 import { concat, Hex, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/crypto"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"

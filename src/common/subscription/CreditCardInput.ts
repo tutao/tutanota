@@ -6,7 +6,7 @@ import { LoginTextField, LoginTextFieldAttrs } from "../gui/base/LoginTextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
 import { styles } from "../gui/styles"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel

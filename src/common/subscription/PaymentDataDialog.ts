@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { Country, getByAbbreviation } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -16,8 +16,8 @@ import { lang } from "../misc/LanguageViewModel"
 import { PaypalButton } from "./PaypalButton"
 import { getVisiblePaymentMethods, isOnAccountAllowed, validatePaymentData } from "./utils/PaymentUtils"
 import { MessageBox } from "../gui/base/MessageBox"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { PaymentMethodType } from "@tutao/appEnv"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { PaymentMethodType } from "@tutao/app-env"
 
 function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 	return m(SimplifiedCreditCardInput, { viewModel: ccViewModel })
@@ -41,7 +41,7 @@ function renderPaypalInput(
 	})
 }
 
-function renderInvoiceInput(country: Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): Children {
+function renderInvoiceInput(country: countryList.Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): Children {
 	return m(
 		".flex-center",
 		m(
@@ -86,7 +86,7 @@ export async function show(
 	const payPalRequestUrl = getLazyLoadedPayPalUrl()
 	const invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
+		country: accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo,
 	}
 	const subscriptionOptions = {

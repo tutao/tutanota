@@ -1,5 +1,5 @@
 import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
-import { isApp, SecondFactorType } from "@tutao/appEnv"
+import { isApp, SecondFactorType } from "@tutao/app-env"
 import type { DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
@@ -21,8 +21,8 @@ import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
-import { restError } from "@tutao/restClient"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { restError } from "@tutao/rest-client"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean

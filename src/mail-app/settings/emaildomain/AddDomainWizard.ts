@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { DnsRecordType } from "@tutao/appEnv"
+import { DnsRecordType } from "@tutao/app-env"
 import type { MailAddressTableAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import { AddEmailAddressesPage, AddEmailAddressesPageAttrs } from "./AddEmailAddressesPage"
 import { DomainDnsStatus } from "../DomainDnsStatus"
@@ -8,12 +8,12 @@ import { VerifyOwnershipPage, VerifyOwnershipPageAttrs } from "./VerifyOwnership
 import { VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs } from "./VerifyDnsRecordsPage"
 import { EnterDomainPage, EnterDomainPageAttrs } from "./EnterDomainPage"
 import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/WizardDialog.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
 import { newPromise } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 export type AddDomainData = {

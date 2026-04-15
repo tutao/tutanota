@@ -8,13 +8,13 @@ import { matchers, object, verify, when } from "testdouble"
 import { AesKey, cryptoUtils, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { CryptoProtocolVersion, PublicKeyIdentifierType } from "@tutao/appEnv"
+import { CryptoProtocolVersion, PublicKeyIdentifierType } from "../../../../../src/app-env"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { GroupType, TutanotaError } from "@tutao/appEnv"
+import { GroupType, TutanotaError } from "../../../../../src/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
-import { sysTypeRefs } from "@tutao/typeRefs"
-import { CryptoWrapper, VersionedKey } from "@tutao/instancePipeline"
+import { sysTypeRefs } from "@tutao/typerefs"
+import { CryptoWrapper, VersionedKey } from "@tutao/instance-pipeline"
 
 const { anything, argThat, captor } = matchers
 

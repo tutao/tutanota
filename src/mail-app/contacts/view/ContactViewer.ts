@@ -13,7 +13,7 @@ import {
 	getContactSocialTypeLabel,
 } from "./ContactGuiUtils"
 import { formatContactDate, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { assertMainOrNode, ContactAddressType, ContactPhoneNumberType } from "@tutao/appEnv"
+import { assertMainOrNode, ContactAddressType, ContactPhoneNumberType } from "@tutao/app-env"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
@@ -23,7 +23,7 @@ import type { AllIcons } from "../../../common/gui/base/Icon.js"
 import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
-import { getContactSocialType, getCustomDateType, getRelationshipType, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { getContactSocialType, getCustomDateType, getRelationshipType, tutanotaTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

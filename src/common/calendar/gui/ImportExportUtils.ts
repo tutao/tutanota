@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs, Stripped, StrippedEntity, sysTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs, Stripped, StrippedEntity, sysTypeRefs } from "@tutao/typerefs"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/utils"

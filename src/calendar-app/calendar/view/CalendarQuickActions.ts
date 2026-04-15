@@ -11,9 +11,9 @@ import { showNotAvailableForFreeDialog } from "../../../common/misc/Subscription
 import { type CalendarProperties, showCreateEditCalendarDialog } from "../gui/EditCalendarDialog"
 import { CalendarType } from "../../../common/calendar/date/CalendarUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
-import { UpgradePromptType } from "@tutao/appEnv"
+import { UpgradePromptType } from "@tutao/app-env"
 
 export async function quickCalendarActions(
 	router: Router,

@@ -1,7 +1,7 @@
 import { RequestInit } from "undici"
 import { assertNotNull, filterInt } from "@tutao/utils"
 import { customFetch, FetchImpl, UndiciResponse } from "./NetAgent"
-import { restSuspension } from "@tutao/restClient"
+import { restSuspension } from "@tutao/rest-client"
 
 const TAG = "[suspending-fetch]"
 

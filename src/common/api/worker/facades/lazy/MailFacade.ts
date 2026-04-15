@@ -16,7 +16,7 @@ import {
 	sysTypeRefs,
 	tutanotaServices,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
+} from "@tutao/typerefs"
 import {
 	ArchiveDataType,
 	assertWorkerOrNode,
@@ -40,7 +40,7 @@ import {
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
-} from "@tutao/appEnv"
+} from "@tutao/app-env"
 import {
 	Aes128Key,
 	aes256RandomKey,
@@ -57,7 +57,7 @@ import {
 	sha256Hash,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import {
 	addressDomain,
 	assertNotNull,
@@ -83,7 +83,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { CryptoWrapper, UNCOMPRESSED_MAX_SIZE, VersionedKey } from "@tutao/instancePipeline"
+import { CryptoWrapper, UNCOMPRESSED_MAX_SIZE, VersionedKey } from "@tutao/instance-pipeline"
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"

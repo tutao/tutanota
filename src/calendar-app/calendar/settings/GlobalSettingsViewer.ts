@@ -1,11 +1,11 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, OperationType } from "@tutao/appEnv"
+import { assertMainOrNode, OperationType } from "@tutao/app-env"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../../common/settings/AccountMaintenanceSettings.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import stream from "mithril/stream"
 import { calendarLocator } from "../../calendarLocator.js"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typeRefs"
+import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

@@ -2,7 +2,7 @@ import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/bas
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { driveTypeRefs } from "@tutao/typeRefs"
+import { driveTypeRefs } from "@tutao/typerefs"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DropType } from "../../../common/gui/base/GuiUtils"

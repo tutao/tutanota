@@ -1,15 +1,15 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { isDomainName } from "../misc/FormatValidator.js"
 import stream from "mithril/stream"
 import { TextField } from "../gui/base/TextField.js"
 import { ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator.js"
-import { assertMainOrNode } from "@tutao/appEnv"
+import { assertMainOrNode } from "@tutao/app-env"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
-import { sysTypeRefs } from "@tutao/typeRefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 

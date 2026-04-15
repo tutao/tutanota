@@ -5,7 +5,7 @@ import { theme } from "../theme"
 import { lazy } from "@tutao/utils"
 import { component_size, px, size } from "../size"
 import { ExpanderPanel } from "./Expander"
-import { Keys, TabIndex } from "@tutao/appEnv"
+import { Keys, TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../misc/KeyManager"
 import { styles } from "../styles"
 

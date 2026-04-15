@@ -1,10 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/restClient"
+import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/rest-client"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { ArchiveDataType } from "@tutao/appEnv"
-import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ArchiveDataType } from "../../../../../src/app-env"
+import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
@@ -14,9 +14,9 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
-import { InstancePipeline } from "@tutao/instancePipeline"
+import { InstancePipeline } from "@tutao/instance-pipeline"
 import { TransferId } from "../../../../../src/common/api/common/drive/DriveTypes"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "../../../../../src/app-env"
 
 const { anything, captor } = matchers
 

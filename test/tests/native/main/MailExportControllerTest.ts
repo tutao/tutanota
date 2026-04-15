@@ -6,7 +6,7 @@ import { ExportFacade } from "../../../../src/common/native/common/generatedipc/
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { createTestEntity, SchedulerMock } from "../../TestUtils.js"
-import { GENERATED_MAX_ID, getElementId, sysTypeRefs, tutanotaTypeRefs, storageTypeRefs } from "@tutao/typeRefs"
+import { GENERATED_MAX_ID, getElementId, sysTypeRefs, tutanotaTypeRefs, storageTypeRefs } from "@tutao/typerefs"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { assertNotNull } from "@tutao/utils"
 import { createDataFile } from "../../../../src/common/api/common/DataFile.js"

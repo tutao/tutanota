@@ -16,8 +16,8 @@ import {
 	listIdPart,
 	sortCompareByReverseId,
 	tutanotaTypeRefs,
-} from "@tutao/typeRefs"
-import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/appEnv"
+} from "@tutao/typerefs"
+import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
@@ -41,7 +41,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {

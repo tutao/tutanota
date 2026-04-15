@@ -5,12 +5,12 @@ import {
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { splitArrayAt, splitUint8Array } from "@tutao/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
-import { DEFAULT_VECTOR_MAX_LENGTH } from "@tutao/appEnv"
+import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/app-env"
 
 o.spec("SpamMailProcessor Tests", () => {
 	let spamMailProcessor: SpamMailProcessor

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { CryptoWrapper } from "@tutao/instancePipeline"
+import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest"
 import { generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "@tutao/crypto"
 import { assertThrows } from "@tutao/otest"

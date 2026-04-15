@@ -1,7 +1,7 @@
 import { neverNull } from "@tutao/utils"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { ContactComparisonResult, IndifferentContactComparisonResult } from "@tutao/appEnv"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ContactComparisonResult, IndifferentContactComparisonResult } from "@tutao/app-env"
 
 type Contact = tutanotaTypeRefs.Contact
 

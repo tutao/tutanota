@@ -1,5 +1,5 @@
 import { assert } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

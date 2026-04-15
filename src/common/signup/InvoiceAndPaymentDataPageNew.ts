@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { lang } from "../misc/LanguageViewModel"
-import { Countries, Country, CountryType } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog } from "../gui/base/Dialog"
 import { assertNotNull, LazyLoaded, neverNull } from "@tutao/utils"
@@ -18,13 +18,13 @@ import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { px, size } from "../gui/size"
-import { sysServices, sysTypeRefs } from "@tutao/typeRefs"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { TextFieldType } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
-import { PaymentMethodType } from "@tutao/appEnv"
+import { PaymentMethodType } from "@tutao/app-env"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -42,7 +42,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
 		locator.serviceExecutor.get(sysServices.LocationService, null).then((location: sysTypeRefs.LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
-				const country = Countries.find((c) => c.a === location.country)
+				const country = countryList.Countries.find((c) => c.a === location.country)
 
 				if (country) {
 					vnode.attrs.ctx.viewModel.invoiceData.country = country
@@ -131,12 +131,12 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			}),
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country | null) => {
+				onSelectionChanged: (country: countryList.Country | null) => {
 					if (country == null) return
 					ctx.viewModel.updateInvoiceCountry(country)
 					ctx.markComplete(false)
 
-					if (country.t !== CountryType.EU) {
+					if (country.t !== countryList.CountryType.EU) {
 						ctx.viewModel.invoiceData.vatNumber = ""
 					}
 				},
@@ -232,11 +232,11 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			m(`.flex.col${styles.isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
 				renderCountryDropdownNew({
 					selectedCountry: ctx.viewModel.invoiceData.country,
-					onSelectionChanged: (country: Country | null) => {
+					onSelectionChanged: (country: countryList.Country | null) => {
 						if (country == null) return
 						ctx.viewModel.updateInvoiceCountry(country)
 						ctx.markComplete(false)
-						if (country.t !== CountryType.EU) {
+						if (country.t !== countryList.CountryType.EU) {
 							ctx.viewModel.invoiceData.vatNumber = ""
 						}
 					},
@@ -303,11 +303,11 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		return m(`.flex.col${this.formGap}`, [
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country | null) => {
+				onSelectionChanged: (country: countryList.Country | null) => {
 					if (country == null) return
 					ctx.viewModel.updateInvoiceCountry(country)
 					ctx.markComplete(false)
-					if (country.t !== CountryType.EU) {
+					if (country.t !== countryList.CountryType.EU) {
 						ctx.viewModel.invoiceData.vatNumber = ""
 					}
 				},
@@ -361,7 +361,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 
 	private isVatIdFieldVisible(ctx: WizardStepContext<SignupViewModel>): boolean {
 		const selectedCountry = ctx.viewModel.invoiceData.country
-		return ctx.viewModel.options.businessUse() && selectedCountry != null && selectedCountry.t === CountryType.EU
+		return ctx.viewModel.options.businessUse() && selectedCountry != null && selectedCountry.t === countryList.CountryType.EU
 	}
 }
 

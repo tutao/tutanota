@@ -1,5 +1,5 @@
 import m, { Vnode } from "mithril"
-import { assertMainOrNode, AvailablePlanType, isDesktop, isIOSApp, PlanType, SubscriptionType } from "@tutao/appEnv"
+import { assertMainOrNode, AvailablePlanType, isDesktop, isIOSApp, PlanType, SubscriptionType } from "@tutao/app-env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
@@ -8,7 +8,7 @@ import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscri
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "../subscription/utils/PriceUtils"
-import { InvoiceData } from "@tutao/appEnv"
+import { InvoiceData } from "@tutao/app-env"
 import { canSubscribeToPlan, queryAppStoreSubscriptionOwnership, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { locator } from "../api/main/CommonLocator"
 import {
@@ -28,7 +28,7 @@ import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
 import { theme } from "../gui/theme"
-import { Country } from "../../appEnv/CountryList"
+import { countryList } from "@tutao/app-env"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
@@ -37,7 +37,7 @@ import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
 import { Icons } from "../gui/base/icons/Icons"
-import { getDefaultPaymentMethod, PaymentData, sysTypeRefs } from "@tutao/typeRefs"
+import { getDefaultPaymentMethod, PaymentData, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 
@@ -148,7 +148,7 @@ export class SignupViewModel {
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 	}
 
-	public updateInvoiceCountry(country: Country) {
+	public updateInvoiceCountry(country: countryList.Country) {
 		this.invoiceData.country = country
 		// We overwrite this flag only for th UI change, this does not affect anything for the stored data in the server.
 		// Actual paymentBillingAgreement is removed in PaymentDataService.put if the updated payment method is not PayPal.

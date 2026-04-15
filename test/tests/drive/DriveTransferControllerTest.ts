@@ -7,10 +7,10 @@ import { defer, DeferredObject } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
 import { createTestEntity, SchedulerMock } from "../TestUtils"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
-import { driveTypeRefs } from "@tutao/typeRefs"
-import { ArchiveDataType } from "@tutao/appEnv"
+import { driveTypeRefs } from "@tutao/typerefs"
+import { ArchiveDataType } from "../../../src/app-env"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
-import { restError } from "@tutao/restClient"
+import { restError } from "@tutao/rest-client"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController

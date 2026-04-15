@@ -10,8 +10,8 @@ import { spy } from "@tutao/otest"
 import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
-import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typeRefs"
-import { TypeModel, tutanotaTypeRefs } from "@tutao/typeRefs"
+import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/typerefs"
+import { TypeModel, tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("SuggestionFacade test", () => {
 	let db: EncryptedDbWrapper

@@ -10,13 +10,13 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { TextField } from "../../gui/base/TextField.js"
 import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { assertMainOrNode, GroupType } from "@tutao/appEnv"
+import { assertMainOrNode, GroupType } from "@tutao/app-env"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetailsModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
-import { entityUpdateUtils } from "@tutao/typeRefs"
+import { entityUpdateUtils } from "@tutao/typerefs"
 
 assertMainOrNode()
 

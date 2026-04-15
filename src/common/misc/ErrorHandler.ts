@@ -2,9 +2,9 @@
  * @file Handler for all the uncaught errors.
  * ErrorHandler is decoupled from ErrorHandlerImpl to reduce boot bundle size.
  */
-import { assertMainOrNodeBoot } from "@tutao/appEnv"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { delay } from "@tutao/utils"
-import { Mode } from "@tutao/appEnv"
+import { Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

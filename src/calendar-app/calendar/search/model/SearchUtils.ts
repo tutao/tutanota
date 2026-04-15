@@ -2,9 +2,9 @@ import m from "mithril"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, filterInt, getEndOfDay, getStartOfDay, incrementMonth, stringToBase64 } from "@tutao/utils"
 import { RouteSetFn, throttleRoute } from "../../../../common/misc/RouteChange"
 import type { SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "@tutao/appEnv"
-import { tutanotaTypeRefs } from "@tutao/typeRefs"
-import { getElementId } from "@tutao/typeRefs"
+import { assertMainOrNode } from "@tutao/app-env"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { getElementId } from "@tutao/typerefs"
 
 assertMainOrNode()
 
