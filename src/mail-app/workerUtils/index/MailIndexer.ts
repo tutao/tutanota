@@ -1,22 +1,11 @@
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, NOTHING_INDEXED_TIMESTAMP, OperationType, MailSetKind } from "@tutao/app-env"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
+import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
 import {
-	assertNotNull,
-	clamp,
-	defer,
-	DeferredObject,
-	findAllAndRemove,
-	first,
-	isEmpty,
-	isNotEmpty,
-	isNotNull,
-	newPromise,
-	promiseMap,
-} from "@tutao/utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSameId, listIdPart } from "@tutao/typeRefs"
 	deconstructMailSetEntryId,
 	elementIdPart,
 	entityUpdateUtils,
 	getElementId,
+	getListId,
 	hasError,
 	isFolder,
 	isSameId,
@@ -521,7 +510,7 @@ export class MailIndexer {
 		return mailSets.filter(isFolder).map((set) => set.entries)
 	}
 
-	private async loadMailSets(mailbox: MailBox) {
+	private async loadMailSets(mailbox: tutanotaTypeRefs.MailBox) {
 		return await this.entityClient.loadAll(tutanotaTypeRefs.MailSetTypeRef, mailbox.mailSets.mailSets)
 	}
 
@@ -572,8 +561,8 @@ export class MailIndexer {
 			return []
 		}
 
-		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, assertNotNull(importMailState._ownerGroup))
-		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const mailboxGroupRoot = await this.entityClient.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, assertNotNull(importMailState._ownerGroup))
+		const mailbox = await this.entityClient.load(tutanotaTypeRefs.MailBoxTypeRef, mailboxGroupRoot.mailbox)
 		const mailSets = await this.loadMailSets(mailbox)
 		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
 

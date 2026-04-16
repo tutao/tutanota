@@ -152,7 +152,7 @@ async function deleteCredentialsByMailAddress(cleanMailAddress: string) {
 function handleError(e: Error) {
 	if (e instanceof restError.NotAuthenticatedError) {
 		Dialog.message("loginFailed_msg")
-	} else if (e instanceof restError.TooManyRequestsError || e instanceof restError.AccessDeactivatedError) {
+	} else if (e instanceof restError.AccessBlockedError || e instanceof restError.AccessDeactivatedError) {
 		Dialog.message("loginFailedOften_msg")
 	} else if (e instanceof CancelledError) {
 		// Thrown when second factor dialog is cancelled

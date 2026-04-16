@@ -73,9 +73,9 @@ function handleError(e: Error) {
 		Dialog.message("loginFailed_msg")
 	} else if (e instanceof restError.TooManyRequestsError || e instanceof restError.AccessDeactivatedError) {
 		Dialog.message("loginFailedOften_msg")
-	} else if (e instanceof restError.TooManyRequestsError) {
+	} else if (e instanceof restError.AccessBlockedError) {
 		Dialog.message("takeoverAccountInvalid_msg")
-	} else if (e instanceof restError.TooManyRequestsError) {
+	} else if (e instanceof restError.InvalidDataError) {
 		Dialog.message("tooManyAttempts_msg")
 	} else {
 		throw e

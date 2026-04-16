@@ -61,7 +61,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		}
 	} else if (
 		e instanceof restError.NotAuthenticatedError ||
-		e instanceof restError.TooManyRequestsError ||
+		e instanceof restError.AccessBlockedError ||
 		e instanceof restError.AccessDeactivatedError ||
 		e instanceof restError.AccessExpiredError
 	) {
@@ -88,7 +88,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		await worker.getWorkerInterface().cacheStorage.purgeStorage()
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })
-	} else if (e instanceof restError.TooManyRequestsError) {
+	} else if (e instanceof restError.InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog("insufficientStorageAdmin_msg")
 		} else {
@@ -98,7 +98,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			)
 			Dialog.message(errorMessage)
 		}
-	} else if (e instanceof restError.TooManyRequestsError) {
+	} else if (e instanceof restError.ServiceUnavailableError) {
 		if (!serviceUnavailableDialogActive) {
 			serviceUnavailableDialogActive = true
 			Dialog.message("serviceUnavailable_msg").then(() => {

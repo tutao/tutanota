@@ -1,19 +1,16 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/app-env"
-import { listIdPart } from "@tutao/typerefs"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -313,7 +310,7 @@ export class SearchModel {
 						throw e
 					}),
 				)
-		} else if (isSameTypeRef(ContactTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
 			// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
 			this.lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)

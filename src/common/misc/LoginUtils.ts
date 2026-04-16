@@ -105,7 +105,7 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Ma
 		case restError.AccessDeactivatedError:
 			return "loginFailed_msg"
 
-		case restError.TooManyRequestsError:
+		case restError.AccessBlockedError:
 			return "loginFailedOften_msg"
 
 		case restError.AccessExpiredError:

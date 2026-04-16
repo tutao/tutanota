@@ -60,7 +60,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	})
 
 	await runStep("Rolldown", async () => {
-		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key]) // See: devbuild.js
+		for (const key of Object.keys(tsImportAliases)) delete tsImportAliases[key] // See: devbuild.js
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],

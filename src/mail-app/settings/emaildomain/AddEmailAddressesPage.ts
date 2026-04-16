@@ -172,9 +172,9 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				)
 				return true
 			} catch (e) {
-				if (e instanceof restError.TooManyRequestsError) {
+				if (e instanceof restError.InvalidDataError) {
 					await Dialog.message("mailAddressNA_msg")
-				} else if (e instanceof restError.TooManyRequestsError) {
+				} else if (e instanceof restError.LimitReachedError) {
 					// ignore
 				} else if (e instanceof UpgradeRequiredError) {
 					await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_ALIASES_NEEDED, e.plans, e.message)
