@@ -47,7 +47,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
@@ -58,6 +58,7 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -157,7 +158,7 @@ class MainActivity : FragmentActivity() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this),
+			SystemAlarmFacade(this, MailAlarmIntentFactory()),
 			localNotificationsFacade,
 			DateProviderImpl(),
 			TimeZone.getDefault()

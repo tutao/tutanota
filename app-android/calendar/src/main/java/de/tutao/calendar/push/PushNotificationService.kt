@@ -6,13 +6,14 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.AlarmNotificationsManager
-import de.tutao.calendar.alarms.SystemAlarmFacade
+import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
 import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.SuspensionHandler
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
@@ -84,7 +85,7 @@ class PushNotificationService : LifecycleJobService() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
-			SystemAlarmFacade(this),
+			SystemAlarmFacade(this, CalendarAlarmIntentFactory()),
 			localNotificationsFacade,
 			dateProvider,
 			TimeZone.getDefault()

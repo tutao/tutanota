@@ -1,7 +1,7 @@
 package de.tutao.tutanota
 
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
