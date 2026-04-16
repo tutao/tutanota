@@ -1,6 +1,7 @@
 {
 	"extends": "./tsconfig_common.json",
 	"compilerOptions": {
+		"composite": true,
 		"removeComments": false,
 		"declaration": false,
 		"outDir": "build",
