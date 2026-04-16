@@ -30,7 +30,7 @@
 		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json"
 	},
 	"dependencies": {
-		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#35b3e9acdbd9f186675523eb7a38af4899cb0bea",
+		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@fingerprintjs/botd": "1.9.1",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
