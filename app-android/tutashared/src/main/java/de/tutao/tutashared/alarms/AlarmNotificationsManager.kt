@@ -1,23 +1,16 @@
-package de.tutao.calendar.alarms
+package de.tutao.tutashared.alarms
 
 import android.util.Log
-import de.tutao.calendar.R
-import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.OperationType
-import de.tutao.tutashared.alarms.AlarmInterval
-import de.tutao.tutashared.alarms.AlarmModel
-import de.tutao.tutashared.alarms.AlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
-import de.tutao.tutashared.alarms.decrypt
-import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.R
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.isAllDayEventByTimes
+import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
@@ -29,7 +22,7 @@ class AlarmNotificationsManager(
 	private val sseStorage: SseStorage,
 	private val crypto: AndroidNativeCryptoFacade,
 	private val systemAlarmFacade: SystemAlarmFacade,
-	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val localNotificationsFacade: LocalErrorNotificationsFacade,
 	private val dateProvider: DateProvider,
 	private val timeZone: TimeZone
 ) {

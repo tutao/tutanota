@@ -199,7 +199,7 @@
 		</receiver>
 
 		<receiver
-				android:name=".alarms.AlarmBroadcastReceiver"
+				android:name=".alarms.MailAlarmBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="de.tutao.tutanota.ALARM"/>

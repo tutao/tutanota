@@ -2,7 +2,7 @@ package de.tutao.calendar.push
 
 import android.util.Log
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.DataWrapper

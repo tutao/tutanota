@@ -4,7 +4,7 @@ import android.database.SQLException
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.R
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.HttpError
 import de.tutao.tutasdk.LoginException

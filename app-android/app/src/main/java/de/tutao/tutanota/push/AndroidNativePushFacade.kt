@@ -2,7 +2,7 @@ package de.tutao.tutanota.push
 
 import android.util.Log
 import de.tutao.tutanota.MainActivity
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.DataWrapper
