@@ -1,24 +1,13 @@
-package de.tutao.calendar
+package de.tutao.tutashared.alarms
 
-import de.tutao.calendar.alarms.AlarmNotificationsManager
-import de.tutao.calendar.alarms.SystemAlarmFacade
-import de.tutao.calendar.push.LocalNotificationsFacade
+import de.tutao.calendar.arrayEq
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
-import de.tutao.tutashared.alarms.AlarmInterval
-import de.tutao.tutashared.alarms.AlarmIntervalUnit
-import de.tutao.tutashared.alarms.AlarmModel
 import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutashared.alarms.EncryptedAlarmInfo
-import de.tutao.tutashared.alarms.EncryptedAlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
-import de.tutao.tutashared.alarms.EncryptedRepeatRule
-import de.tutao.tutashared.alarms.EndType
-import de.tutao.tutashared.alarms.RepeatPeriod
-import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import org.junit.Before
@@ -37,8 +26,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
 
-class AlarmNotificationsManagerTest {
 
+class AlarmNotificationsManagerTest {
 	private lateinit var manager: AlarmNotificationsManager
 
 	private lateinit var systemAlarmFacade: SystemAlarmFacade
@@ -58,20 +47,19 @@ class AlarmNotificationsManagerTest {
 		systemAlarmFacade = Mockito.mock(SystemAlarmFacade::class.java)
 		sseStorage = Mockito.mock(SseStorage::class.java)
 		crypto = Mockito.mock(AndroidNativeCryptoFacade::class.java)
+
 		manager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
 			systemAlarmFacade,
-			Mockito.mock(LocalNotificationsFacade::class.java),
+			Mockito.mock(LocalErrorNotificationsFacade::class.java),
 			fakeDateProvider,
 			timeZone
 		)
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)
-		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any()))
-			.thenReturn(true) // this is the default behavior, even if the setting is not present.
-
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(true)
 	}
 
 	@Test
@@ -158,6 +146,17 @@ class AlarmNotificationsManagerTest {
 		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
 		Mockito.verify(systemAlarmFacade, Mockito.times(2))
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId), any())
+	}
+
+	@Test
+	fun testNotScheduleAlarmForMailAppWithReceiveCalendarNotificationsFalse() {
+		Mockito.`when`(sseStorage.getReceiveCalendarNotificationConfig(any())).thenReturn(false)
+		val identifier = "newAlarm"
+		val startDate = Date()
+		val alarmNotifications = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
+		manager.scheduleNewAlarms(listOf(alarmNotifications), null)
+		Mockito.verify(systemAlarmFacade, Mockito.never())
+			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any(), any())
 	}
 
 	@Test
