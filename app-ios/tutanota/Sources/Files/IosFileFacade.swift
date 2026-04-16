@@ -191,7 +191,7 @@ final class IosFileFacade: FileFacade {
 	}
 	func abortDownload(_ fileId: String) async {
 		TUTSLog("Abort download for \(fileId) \(activeTransfers[fileId] != nil) \(activeTransfers)")
-		 self.activeDownloadsLock.withLock { $0[fileId]?.cancel() }
+		self.activeDownloadsLock.withLock { $0[fileId]?.cancel() }
 	}
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
