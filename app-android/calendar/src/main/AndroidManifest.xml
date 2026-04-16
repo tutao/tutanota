@@ -110,7 +110,7 @@
 			</intent-filter>
 		</receiver>
 		<receiver
-				android:name=".alarms.AlarmBroadcastReceiver"
+				android:name=".alarms.CalendarAlarmBroadcastReceiver"
 				android:exported="false">
 			<intent-filter>
 				<action android:name="de.tutao.tutanota.ALARM"/>

@@ -43,8 +43,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.alarms.AlarmNotificationsManager
-import de.tutao.calendar.alarms.SystemAlarmFacade
+import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
 import de.tutao.calendar.push.AndroidNativePushFacade
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.PushNotificationService
@@ -54,6 +53,8 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -151,7 +152,7 @@ class MainActivity : FragmentActivity() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this),
+			SystemAlarmFacade(this, CalendarAlarmIntentFactory()),
 			localNotificationsFacade,
 			DateProviderImpl(),
 			TimeZone.getDefault()
