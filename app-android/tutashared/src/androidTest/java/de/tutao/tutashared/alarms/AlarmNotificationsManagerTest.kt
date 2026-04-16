@@ -1,24 +1,13 @@
-package de.tutao.tutanota
+package de.tutao.tutashared.alarms
 
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutashared.alarms.SystemAlarmFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.calendar.arrayEq
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
-import de.tutao.tutashared.alarms.AlarmInterval
-import de.tutao.tutashared.alarms.AlarmIntervalUnit
-import de.tutao.tutashared.alarms.AlarmModel
 import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutashared.alarms.EncryptedAlarmInfo
-import de.tutao.tutashared.alarms.EncryptedAlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
-import de.tutao.tutashared.alarms.EncryptedRepeatRule
-import de.tutao.tutashared.alarms.EndType
-import de.tutao.tutashared.alarms.RepeatPeriod
-import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import org.junit.Before
@@ -63,7 +52,7 @@ class AlarmNotificationsManagerTest {
 			sseStorage,
 			crypto,
 			systemAlarmFacade,
-			Mockito.mock(LocalNotificationsFacade::class.java),
+			Mockito.mock(LocalErrorNotificationsFacade::class.java),
 			fakeDateProvider,
 			timeZone
 		)
