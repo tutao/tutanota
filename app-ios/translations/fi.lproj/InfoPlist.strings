@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "Henkilön {name} syntymäpäivä";
 TutaoBirthdayEventAgeTitle = "{age}-vuotias";
 TutaoBirthdayCalendarLabel = "Syntymäpäivät";
 TutaoAllDayLabel = "Koko päivä";
+TutaoAttachFilesAction = "Liitä tiedostoja";

@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "{name} doğum günü";
 TutaoBirthdayEventAgeTitle = "{age} yaşında";
 TutaoBirthdayCalendarLabel = "Doğum günleri";
 TutaoAllDayLabel = "tüm gün";
+TutaoAttachFilesAction = "Dosya ekle";

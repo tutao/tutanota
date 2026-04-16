@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "Fødselsdag for {name}";
 TutaoBirthdayEventAgeTitle = "{age} år gammel";
 TutaoBirthdayCalendarLabel = "Fødselsdager";
 TutaoAllDayLabel = "Hele dagen";
+TutaoAttachFilesAction = "Legg ved filer";

@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "cumpleaños de {name}";
 TutaoBirthdayEventAgeTitle = "{age} años";
 TutaoBirthdayCalendarLabel = "Cumpleaños";
 TutaoAllDayLabel = "Todo el día";
+TutaoAttachFilesAction = "Adjuntar archivos";

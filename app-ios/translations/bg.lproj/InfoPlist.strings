@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "Изпращане на журнал";
 TutaoAccountLabel = "Потребител";
 TutaoDefaultCalendarNameTitle = "Лично";
 TutaoAllDayLabel = "Всички дни";
+TutaoAttachFilesAction = "Прикачи файлове";

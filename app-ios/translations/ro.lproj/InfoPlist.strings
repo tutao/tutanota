@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "Aniversarea lui {name}";
 TutaoBirthdayEventAgeTitle = "{age} ani";
 TutaoBirthdayCalendarLabel = "Aniversări";
 TutaoAllDayLabel = "Toată Ziua";
+TutaoAttachFilesAction = "Atașează fișiere";

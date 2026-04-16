@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "{name}születésnapja";
 TutaoBirthdayEventAgeTitle = "{age} éves";
 TutaoBirthdayCalendarLabel = "Születésnapok";
 TutaoAllDayLabel = "Egész nap.";
+TutaoAttachFilesAction = "Mellékletek csatolása";

@@ -24,3 +24,4 @@ TutaoBirthdayEventTitle = "{name}'s rođendan";
 TutaoBirthdayEventAgeTitle = "{age} godina star";
 TutaoBirthdayCalendarLabel = "Rođendani";
 TutaoAllDayLabel = "Cijeli dan";
+TutaoAttachFilesAction = "Priloži datoteke";
