@@ -92,7 +92,7 @@ import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/Pub
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { type IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
@@ -200,6 +200,8 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
+	const { IdentityKeyTrustDatabase } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase")
+
 	locator._worker = worker
 	locator._browserData = browserData
 	locator.keyCache = new KeyCache()

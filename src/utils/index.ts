@@ -174,7 +174,7 @@ export {
 	insideRect,
 	mapNullable,
 	mapObject,
-	Require,
+	type Require,
 	BoundedExecutor,
 	freshVersioned,
 	isKeyVersion,
@@ -204,15 +204,15 @@ export type {
 export {
 	callWebAssemblyFunctionWithArguments,
 	allocateBuffer,
-	Ptr,
-	ConstPtr,
-	FreeFN,
+	type Ptr,
+	type ConstPtr,
+	type FreeFN,
 	MutableUint8Array,
 	SecureFreeUint8Array,
 	mutableSecureFree,
 	secureFree,
 	mutable,
-	WASMExports,
+	type WASMExports,
 } from "./WebAssembly.js"
 
 export { mod, clamp } from "./MathUtils.js"

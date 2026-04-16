@@ -8,10 +8,10 @@ export {
 	aes256EncryptSearchIndexEntryWithIV,
 } from "./encryption/Aes.js"
 export {
-	X25519PrivateKey,
-	X25519PublicKey,
-	X25519KeyPair,
-	X25519SharedSecrets,
+	type X25519PrivateKey,
+	type X25519PublicKey,
+	type X25519KeyPair,
+	type X25519SharedSecrets,
 	generateX25519KeyPair,
 	x25519Encapsulate,
 	x25519Decapsulate,
@@ -21,12 +21,12 @@ import {
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
 	bytesToEd25519Signature,
-	Ed25519KeyPair,
-	Ed25519PrivateKey,
+	type Ed25519KeyPair,
+	type Ed25519PrivateKey,
 	ed25519PrivateKeyToBytes,
-	Ed25519PublicKey,
+	type Ed25519PublicKey,
 	ed25519PublicKeyToBytes,
-	Ed25519Signature,
+	type Ed25519Signature,
 	ed25519SignatureToBytes,
 	generateEd25519KeyPair,
 	initEd25519,
@@ -35,10 +35,10 @@ import {
 } from "./encryption/Ed25519"
 
 export {
-	Ed25519PrivateKey,
-	Ed25519PublicKey,
-	Ed25519KeyPair,
-	Ed25519Signature,
+	type Ed25519PrivateKey,
+	type Ed25519PublicKey,
+	type Ed25519KeyPair,
+	type Ed25519Signature,
 	generateEd25519KeyPair,
 	signWithEd25519,
 	verifyEd25519Signature,
@@ -52,7 +52,7 @@ export {
 }
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
-	LibOQSExports,
+	type LibOQSExports,
 	generateKeyPair as generateKeyPairKyber,
 	encapsulate as encapsulateKyber,
 	decapsulate as decapsulateKyber,
@@ -61,10 +61,10 @@ export {
 	KYBER_SYMBYTES,
 } from "./encryption/Liboqs/Kyber.js"
 export {
-	KyberEncapsulation,
-	KyberPrivateKey,
-	KyberPublicKey,
-	KyberKeyPair,
+	type KyberEncapsulation,
+	type KyberPrivateKey,
+	type KyberPublicKey,
+	type KyberKeyPair,
 	bytesToKyberPrivateKey,
 	kyberPublicKeyToBytes,
 	kyberPrivateKeyToBytes,
@@ -72,20 +72,20 @@ export {
 	extractKyberPublicKeyFromKyberPrivateKey,
 } from "./encryption/Liboqs/KyberKeyPair.js"
 export {
-	Argon2IDExports,
+	type Argon2IDExports,
 	generateKeyFromPassphrase as generateKeyFromPassphraseArgon2id,
 	ARGON2ID_ITERATIONS,
 	ARGON2ID_KEY_LENGTH,
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { KeyLength, EntropySource, HkdfKeyDerivationDomains } from "./misc/Constants.js"
+export { KeyLength, type EntropySource, type HkdfKeyDerivationDomains } from "./misc/Constants.js"
 export {
-	AbstractEncryptedKeyPair,
-	EncryptedKeyPairs,
-	EncryptedPqKeyPairs,
-	EncryptedRsaKeyPairs,
-	EncryptedRsaX25519KeyPairs,
+	type AbstractEncryptedKeyPair,
+	type EncryptedKeyPairs,
+	type EncryptedPqKeyPairs,
+	type EncryptedRsaKeyPairs,
+	type EncryptedRsaX25519KeyPairs,
 	isEncryptedPqKeyPairs,
 	encryptKey,
 	decryptKey,
@@ -109,11 +109,18 @@ export {
 	extractRawPublicRsaKeyFromPrivateRsaKey,
 	rsaPublicKeyToBytes,
 } from "./encryption/Rsa.js"
-export { RsaKeyPair, RsaX25519KeyPair, RsaPrivateKey, RawRsaPublicKey, RsaPublicKey, RsaX25519PublicKey } from "./encryption/RsaKeyPair.js"
+export {
+	type RsaKeyPair,
+	type RsaX25519KeyPair,
+	type RsaPrivateKey,
+	type RawRsaPublicKey,
+	type RsaPublicKey,
+	type RsaX25519PublicKey,
+} from "./encryption/RsaKeyPair.js"
 export {
 	KeyPairType,
-	AsymmetricKeyPair,
-	PublicKey,
+	type AsymmetricKeyPair,
+	type PublicKey,
 	isRsaPublicKey,
 	isRsaOrRsaX25519KeyPair,
 	isRsaX25519KeyPair,
@@ -125,15 +132,15 @@ export {
 	isVersionedRsaOrRsaX25519PublicKey,
 	isRsaX25519PublicKey,
 } from "./encryption/AsymmetricKeyPair.js"
-export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
+export { type PQKeyPairs, type PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"
 export { TotpVerifier } from "./misc/TotpVerifier.js"
-export { TotpSecret } from "./misc/TotpVerifier.js"
+export { type TotpSecret } from "./misc/TotpVerifier.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
-export { hmacSha256, verifyHmacSha256, MacTag, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
+export { hmacSha256, verifyHmacSha256, type MacTag, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
 export {
 	aes256RandomKey,
 	keyToUint8Array,
@@ -144,10 +151,10 @@ export {
 	bitArrayToUint8Array,
 	createAuthVerifierAsBase64Url,
 	createAuthVerifier,
-	BitArray,
-	AesKey,
-	Aes128Key,
-	Aes256Key,
+	type BitArray,
+	type AesKey,
+	type Aes128Key,
+	type Aes256Key,
 	IV_BYTE_LENGTH,
 	FIXED_IV,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
