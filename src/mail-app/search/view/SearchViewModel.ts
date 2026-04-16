@@ -499,14 +499,18 @@ export class SearchViewModel {
 					const offlineRange = this.offlineStorageSettings.getTimeRange().getTime()
 					const isIndexingDoneOrCancelled = newState.progress === 0 && newState.error == null
 
-					// update offline storage range as index extends to not lose what's already indexed if the user logs out before indexing is done.
+					// update offline storage range as index extends to not lose what's already indexed if the user logs
+					// out before indexing is done.
 					// Update offline range when indexing is cancelled to not continue indexing on next login
 					if (offlineRange > newState.currentMailIndexTimestamp || isIndexingDoneOrCancelled) {
 						this.offlineStorageSettings.setTimeRange(
 							new Date(
-								newState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP
-									? newState.aimedMailIndexTimestamp
-									: newState.currentMailIndexTimestamp,
+								newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP
+									? newState.currentMailIndexTimestamp
+									: // aimedMailIndexTimestamp is set by the user and therefore might not be valid
+										this.offlineStorageSettings.isValidDate(new Date(newState.aimedMailIndexTimestamp))
+										? newState.aimedMailIndexTimestamp
+										: FULL_INDEXED_TIMESTAMP,
 							),
 						)
 					}

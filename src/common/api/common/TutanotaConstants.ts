@@ -736,8 +736,11 @@ export enum FeatureType {
 	SolutionPartner = "23",
 }
 
-export const FULL_INDEXED_TIMESTAMP: number = 0
-export const NOTHING_INDEXED_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+export const GENERATED_ID_MAX_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+export const GENERATED_ID_MIN_TIMESTAMP: number = 0
+
+export const FULL_INDEXED_TIMESTAMP: number = GENERATED_ID_MIN_TIMESTAMP
+export const NOTHING_INDEXED_TIMESTAMP: number = GENERATED_ID_MAX_TIMESTAMP
 
 export const ENTITY_EVENT_BATCH_TTL_DAYS: number = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
 
