@@ -3,9 +3,7 @@ public import PhotosUI
 import UIKit
 
 /// Utility class which shows pickers for files.
-public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate,
-	UIDocumentPickerDelegate
-{
+public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate {
 	private let sourceController: UIViewController
 	private let imagePickerController: UIImagePickerController
 	private let supportedUTIs: [String]
@@ -35,30 +33,13 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 			// If we only want to browse files, open the file picker directly
 			self.showFilePicker()
 		} else {
-			// Otherwise present a menu with options: camera, photos or picking file
-			let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-			controller.addAction(
-				UIAlertAction(
-					title: translate("TutaoChoosePhotosAction", default: "Photos"),
-					style: .default,
-					handler: { _ in self.showPhpicker(anchor: anchorRect) }
-				)
-			)
-			if UIImagePickerController.isSourceTypeAvailable(.camera) {
-				controller.addAction(
-					UIAlertAction(title: translate("TutaoShowCameraAction", default: "Camera"), style: .default, handler: { _ in self.openCamera() })
-				)
+			let option = await showPickerOptions(near: anchorRect, of: self.sourceController)
+			switch option {
+			case .photos: self.showPhpicker(anchor: anchorRect)
+			case .camera: self.openCamera()
+			case .files: self.showFilePicker()
+			case .none: return []
 			}
-			// FIXME: translate
-			controller.addAction(UIAlertAction(title: "Pick file", style: .default, handler: { _ in self.showFilePicker() }))
-			if UIDevice.current.userInterfaceIdiom == .pad {
-				controller.modalPresentationStyle = .popover
-				let popOverController = controller.popoverPresentationController
-				popOverController?.sourceView = self.sourceController.view
-				popOverController?.sourceRect = anchorRect
-				popOverController?.delegate = self
-			}
-			sourceController.present(controller, animated: true)
 		}
 		return try await withCheckedThrowingContinuation { continuation in resultHandler = continuation.resume(with:) }
 	}
@@ -66,6 +47,47 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		let filePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content, UTType.archive, UTType.data], asCopy: true)
 		filePicker.delegate = self
 		sourceController.present(filePicker, animated: true)
+	}
+	private enum FilePickerOptions {
+		case photos
+		case camera
+		case files
+	}
+
+	/// Present a menu with options: camera, photos or picking file
+	@MainActor private func showPickerOptions(near anchorRect: CGRect, of sourceController: UIViewController) async -> FilePickerOptions? {
+		let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+		let popoverDelegate = PopoverAsyncAdapter<FilePickerOptions>()
+		controller.addAction(
+			UIAlertAction(
+				title: translate("TutaoChoosePhotosAction", default: "Photos"),
+				style: .default,
+				handler: { _ in popoverDelegate.pick(option: .photos) }
+			)
+		)
+		if UIImagePickerController.isSourceTypeAvailable(.camera) {
+			controller.addAction(
+				UIAlertAction(
+					title: translate("TutaoShowCameraAction", default: "Camera"),
+					style: .default,
+					handler: { _ in popoverDelegate.pick(option: .camera) }
+				)
+			)
+		}
+		controller.addAction(
+			UIAlertAction(
+				title: translate("TutaoAttachFilesAction", default: "Attach files"),
+				style: .default,
+				handler: { _ in popoverDelegate.pick(option: .files) }
+			)
+		)
+		controller.modalPresentationStyle = .popover
+		let popOverController = controller.popoverPresentationController
+		popOverController?.sourceView = sourceController.view
+		popOverController?.sourceRect = anchorRect
+		popOverController?.delegate = popoverDelegate
+		sourceController.present(controller, animated: true)
+		return await popoverDelegate.waitForResult()
 	}
 
 	private func showPhpicker(anchor: CGRect) {
@@ -85,10 +107,6 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		self.imagePickerController.showsCameraControls = true
 		self.sourceController.present(self.imagePickerController, animated: true, completion: nil)
 	}
-
-	// from UIPopoverPresentationControllerDelegate
-	public func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) { sendResult(filePath: nil) }
-
 	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
 		copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
 	}
@@ -188,8 +206,12 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 	}
 
 	func sendMultipleResults(filePaths: [String]) {
-		resultHandler?(.success(filePaths))
-		resultHandler = nil
+		if let resultHandler = self.resultHandler {
+			resultHandler(.success(filePaths))
+			self.resultHandler = nil
+		} else {
+			TUTSLog("FileChooser resultHandler is not set!")
+		}
 	}
 
 	func sendError(error: any Error) {
@@ -222,13 +244,12 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 
 extension TUTFileChooser: PHPickerViewControllerDelegate {
 	/**
-        Invoked when user finished picking the files.
-     */
+	 Invoked when user finished picking the files.
+	 */
 	public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
 		picker.dismiss(animated: true, completion: nil)
 		Task {
 			var urls = [URL]()
-
 			func requestFileOfType(result: PHPickerResult, type: String) async -> URL? {
 				if result.itemProvider.hasItemConformingToTypeIdentifier(type) {
 					return try? await withCheckedThrowingContinuation { cont in
@@ -251,7 +272,6 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
 				}
 				return nil
 			}
-
 			for result in results {
 				// Try out multiple formats until we get one which is supported.
 				// We request jpeg and png instead of public.image to not get .heic
@@ -265,4 +285,19 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
 			self.sendMultipleResults(filePaths: urls.map { $0.path })
 		}
 	}
+}
+
+/// A popover delegate to bridge from delegate hell to async.
+/// Create an instance of it, set it as a delegate of a `PopoverPresentationController`, make your actions call `pick()`
+/// and await for it's result. It will return whatever is picked or `nil` if dismissed.
+@MainActor class PopoverAsyncAdapter<T: Sendable>: NSObject, UIPopoverPresentationControllerDelegate {
+	private var onSelected: CheckedContinuation<T?, Never>?
+	func pick(option: T) {
+		// Important: we cannot resume the continuation more than once
+		// but didDismiss method below *will* be called even if the user picks an option.
+		// So if something is picked we take the continuation out.
+		self.onSelected.take()?.resume(returning: option)
+	}
+	func presentationControllerDidDismiss(_ presentationController: UIPresentationController) { self.onSelected.take()?.resume(returning: nil) }
+	func waitForResult() async -> T? { await withCheckedContinuation { cont in self.onSelected = cont } }
 }
