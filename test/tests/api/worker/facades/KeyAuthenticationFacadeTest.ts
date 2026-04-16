@@ -7,11 +7,9 @@ import {
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/crypto"
-import { CryptoWrapper } from "@tutao/instance-pipeline"
+import { Aes256Key, aes256RandomKey, cryptoUtils, CryptoWrapper, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVersion } from "@tutao/utils"
-import { cryptoUtils } from "@tutao/crypto"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible

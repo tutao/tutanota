@@ -37,6 +37,7 @@ import {
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	PhishingMarkerStatus,
+	ProgrammingError,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
@@ -48,6 +49,7 @@ import {
 	AesKey,
 	createAuthVerifier,
 	cryptoUtils,
+	CryptoWrapper,
 	decryptKey,
 	encryptKey,
 	generateRandomSalt,
@@ -55,6 +57,7 @@ import {
 	murmurHash,
 	random,
 	sha256Hash,
+	VersionedKey,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { restError } from "@tutao/rest-client"
@@ -83,7 +86,7 @@ import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { CryptoWrapper, UNCOMPRESSED_MAX_SIZE, VersionedKey } from "@tutao/instance-pipeline"
+import { UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
 import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
@@ -91,7 +94,6 @@ import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"

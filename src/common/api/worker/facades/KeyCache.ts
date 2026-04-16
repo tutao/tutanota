@@ -1,7 +1,5 @@
 import { getFromMap, neverNull } from "@tutao/utils"
-import { VersionedKey } from "@tutao/instance-pipeline"
-import { Aes256Key } from "@tutao/crypto"
-import { cryptoUtils } from "@tutao/crypto"
+import { Aes256Key, cryptoUtils, VersionedKey } from "@tutao/crypto"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 /**

@@ -1,11 +1,10 @@
-import { aesDecrypt, cryptoUtils, EntropySource, random, Randomizer } from "@tutao/crypto"
+import { _encryptBytes, aesDecrypt, cryptoUtils, EntropySource, random, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { lazy, noOp, ofClass } from "@tutao/utils"
 import { restError } from "@tutao/rest-client"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
-import { _encryptBytes } from "@tutao/instance-pipeline"
 
 export interface EntropyDataChunk {
 	source: EntropySource

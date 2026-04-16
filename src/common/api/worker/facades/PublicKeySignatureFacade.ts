@@ -5,6 +5,7 @@ import { restError } from "@tutao/rest-client"
 import {
 	AsymmetricKeyPair,
 	cryptoUtils,
+	CryptoWrapper,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
 	isPqKeyPairs,
@@ -18,7 +19,6 @@ import {
 	PublicKey,
 	rsaPublicKeyToBytes,
 } from "@tutao/crypto"
-import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 assertWorkerOrNode()

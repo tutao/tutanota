@@ -16,6 +16,7 @@ import {
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	cryptoUtils,
+	CryptoWrapper,
 	Ed25519PrivateKey,
 	EncryptedPqKeyPairs,
 	getKeyLengthInBytes,
@@ -25,6 +26,9 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	RsaPublicKey,
+	uint8ArrayToKey,
+	VersionedEncryptedKey,
+	VersionedKey,
 } from "@tutao/crypto"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
@@ -45,7 +49,6 @@ import {
 import { sysServices, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/utils"
-import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"

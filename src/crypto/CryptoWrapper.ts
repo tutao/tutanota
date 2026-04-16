@@ -1,19 +1,11 @@
+import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
+import { CryptoError } from "./error.js"
+import { aes256RandomKey, AesKey, keyToUint8Array, uint8ArrayToKey } from "./encryption/symmetric/SymmetricCipherUtils.js"
+import { Aes256Key, Ed25519PrivateKey, Ed25519PublicKey } from "@tutao/crypto-primitives"
+import { aesDecrypt, aesEncrypt } from "./encryption/Aes.js"
 import {
-	Aes256Key,
-	aes256RandomKey,
-	aesDecrypt,
-	aesEncrypt,
-	AesKey,
-	AesKeyLength,
-	AsymmetricKeyPair,
-	bytesToEd25519PrivateKey,
 	decryptKey,
 	decryptKeyPair,
-	deriveX25519PublicKey,
-	Ed25519PrivateKey,
-	ed25519PrivateKeyToBytes,
-	Ed25519PublicKey,
-	ed25519PublicKeyToBytes,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
 	EncryptedRsaKeyPairs,
@@ -21,34 +13,28 @@ import {
 	encryptKey,
 	encryptKyberKey,
 	encryptX25519Key,
+} from "./encryption/KeyEncryption.js"
+import { deriveX25519PublicKey, generateX25519KeyPair, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "./encryption/X25519.js"
+import { bytesToEd25519PrivateKey, ed25519PrivateKeyToBytes, ed25519PublicKeyToBytes } from "./encryption/Ed25519.js"
+import {
 	extractKyberPublicKeyFromKyberPrivateKey,
-	extractRawPublicRsaKeyFromPrivateRsaKey,
-	generateX25519KeyPair,
-	getKeyLengthInBytes,
-	hkdf,
-	HkdfKeyDerivationDomains,
-	hmacSha256,
-	keyToUint8Array,
 	KyberKeyPair,
 	KyberPrivateKey,
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
-	MacTag,
-	type PQKeyPairs,
-	RawRsaPublicKey,
-	type RsaKeyPair,
-	type RsaX25519KeyPair,
-	sha256Hash,
-	uint8ArrayToKey,
-	verifyHmacSha256,
-	X25519KeyPair,
-	X25519PrivateKey,
-	X25519PublicKey,
-	cryptoUtils,
-} from "@tutao/crypto"
-import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
-import { CryptoError } from "@tutao/crypto/error"
-import { sysTypeRefs } from "@tutao/typerefs"
+} from "./encryption/Liboqs/KyberKeyPair.js"
+import { RawRsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "./encryption/RsaKeyPair.js"
+import { AsymmetricKeyPair } from "./encryption/AsymmetricKeyPair.js"
+import { sha256Hash } from "./hashes/Sha256.js"
+import { HkdfKeyDerivationDomains } from "./misc/Constants.js"
+import { AesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
+import { hmacSha256, MacTag, verifyHmacSha256 } from "./encryption/Hmac.js"
+import { extractRawPublicRsaKeyFromPrivateRsaKey } from "./encryption/Rsa.js"
+import * as cryptoUtils from "./CryptoUtils.js"
+import { PQKeyPairs } from "./encryption/PQKeyPairs.js"
+import { hkdf } from "./hashes/HKDF.js"
+
+type IdentityKeyPair = { privateEd25519Key: Uint8Array; identityKeyVersion: NumberString }
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -93,7 +79,7 @@ export class CryptoWrapper {
 		}
 	}
 
-	decryptEd25519PrivateKey(encryptedIdentityKeyPair: sysTypeRefs.IdentityKeyPair, decryptionKey: AesKey): Versioned<Ed25519PrivateKey> {
+	decryptEd25519PrivateKey(encryptedIdentityKeyPair: IdentityKeyPair, decryptionKey: AesKey): Versioned<Ed25519PrivateKey> {
 		return {
 			object: bytesToEd25519PrivateKey(aesDecrypt(decryptionKey, encryptedIdentityKeyPair.privateEd25519Key)),
 			version: cryptoUtils.parseKeyVersion(encryptedIdentityKeyPair.identityKeyVersion),

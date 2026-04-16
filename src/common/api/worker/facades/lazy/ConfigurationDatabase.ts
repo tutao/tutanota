@@ -1,7 +1,8 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
-import { ExternalImageRule, NewsletterBannerRule } from "@tutao/app-env"
+import { ExternalImageRule, NewsletterBannerRule, OperationType } from "@tutao/app-env"
 import {
+	_encryptKeyWithVersionedKey,
 	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
@@ -14,6 +15,7 @@ import {
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
+	VersionedKey,
 } from "@tutao/crypto"
 import { UserFacade } from "../UserFacade.js"
 import {
@@ -26,12 +28,10 @@ import {
 } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
-import { OperationType } from "@tutao/app-env"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"

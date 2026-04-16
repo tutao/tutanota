@@ -12,6 +12,8 @@ import {
 	bytesToEd25519Signature,
 	bytesToKyberPrivateKey,
 	bytesToKyberPublicKey,
+	cryptoUtils,
+	CryptoWrapper,
 	decapsulateKyber,
 	decryptKey,
 	Ed25519PrivateKey,
@@ -67,8 +69,6 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
-import { cryptoUtils } from "@tutao/crypto"
-import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 

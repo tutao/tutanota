@@ -156,6 +156,7 @@ export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./e
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { AeadFacade } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
+export * from "./CryptoWrapper.js"
 export { SymmetricKeyDeriver, SymmetricSubKeys, AeadSubKeys } from "./encryption/symmetric/SymmetricKeyDeriver.js"
 export {
 	SymmetricCipherVersion,

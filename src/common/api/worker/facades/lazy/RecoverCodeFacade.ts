@@ -1,12 +1,21 @@
 import { assertNotNull, type Hex, KeyVersion, uint8ArrayToHex } from "@tutao/utils"
 import { LoginFacade } from "../LoginFacade.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { Aes256Key, aes256RandomKey, AesKey, createAuthVerifier, createAuthVerifierAsBase64Url, decryptKey, encryptKey, keyToUint8Array } from "@tutao/crypto"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	AesKey,
+	createAuthVerifier,
+	createAuthVerifierAsBase64Url,
+	cryptoUtils,
+	decryptKey,
+	encryptKey,
+	keyToUint8Array,
+	VersionedKey,
+} from "@tutao/crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { cryptoUtils } from "@tutao/crypto"
-import { VersionedKey } from "@tutao/instance-pipeline"
 import { asKdfType, sysTypeRefs } from "@tutao/typerefs"
 
 assertWorkerOrNode()
