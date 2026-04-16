@@ -1,22 +1,13 @@
-package de.tutao.tutanota
+package de.tutao.tutashared.alarms
 
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.calendar.arrayEq
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CryptoError
+import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.OperationType
-import de.tutao.tutashared.alarms.AlarmInterval
-import de.tutao.tutashared.alarms.AlarmIntervalUnit
 import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutashared.alarms.EncryptedAlarmInfo
-import de.tutao.tutashared.alarms.EncryptedAlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
-import de.tutao.tutashared.alarms.EncryptedRepeatRule
-import de.tutao.tutashared.alarms.EndType
-import de.tutao.tutashared.alarms.RepeatPeriod
-import de.tutao.tutashared.alarms.toEntity
+import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import org.junit.Before
@@ -30,11 +21,11 @@ import org.mockito.kotlin.never
 import org.mockito.stubbing.Answer
 import java.security.KeyStoreException
 import java.security.UnrecoverableEntryException
-import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.Duration
+import java.time.Instant
 import java.util.Calendar
 import java.util.Date
-import java.util.concurrent.TimeUnit
+import java.util.TimeZone
 
 
 class AlarmNotificationsManagerTest {
@@ -48,17 +39,23 @@ class AlarmNotificationsManagerTest {
 	private val pushIdentifierElementId = "elementId"
 	private val pushIdentifierKey = "pushIdentifierKey".toByteArray()
 
+	private val fakeDateProvider: FakeDateProvider = FakeDateProvider(Instant.parse("2026-03-23T10:00:00Z"))
+	private val timeZone: TimeZone = TimeZone.getTimeZone("Europe/Berlin")
+
 	@Before
 	@Throws(CryptoError::class, UnrecoverableEntryException::class, KeyStoreException::class)
 	fun setUp() {
 		systemAlarmFacade = Mockito.mock(SystemAlarmFacade::class.java)
 		sseStorage = Mockito.mock(SseStorage::class.java)
 		crypto = Mockito.mock(AndroidNativeCryptoFacade::class.java)
+
 		manager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
 			systemAlarmFacade,
-			Mockito.mock(LocalNotificationsFacade::class.java)
+			Mockito.mock(LocalErrorNotificationsFacade::class.java),
+			fakeDateProvider,
+			timeZone
 		)
 		Mockito.`when`(crypto.aesDecryptBase64String(any(), Mockito.anyString()))
 			.thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
@@ -137,7 +134,7 @@ class AlarmNotificationsManagerTest {
 	@Test
 	fun testScheduleSingleNotTooFar() {
 		val notFarIdentifier = "notFar"
-		val startDate = Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20))
+		val startDate = Date.from(fakeDateProvider.now.plus(Duration.ofMinutes(20)))
 		val notTooFarSingle = createEncryptedAlarmNotification(userId, notFarIdentifier, startDate, null, null)
 		manager.scheduleNewAlarms(listOf(notTooFarSingle), null)
 		val alarmtime = calculateAlarmTime(startDate, null, AlarmInterval(AlarmIntervalUnit.MINUTE, 10))
@@ -148,11 +145,11 @@ class AlarmNotificationsManagerTest {
 	@Test
 	fun testNotScheduleSingleTooFar() {
 		val identifier = "tooFar"
-		val startDate = Date(
-			System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(
-				20
-			)
+		val startDate = Date.from(
+			fakeDateProvider.now.plusMillis(AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS)
+				.plus(Duration.ofMinutes(20))
 		)
+
 		val tooFarSingle = createEncryptedAlarmNotification(userId, identifier, startDate, null, null)
 		manager.scheduleNewAlarms(listOf(tooFarSingle), null)
 		Mockito.verify(systemAlarmFacade, Mockito.never())
@@ -162,7 +159,7 @@ class AlarmNotificationsManagerTest {
 	@Test
 	fun someAreTooFarRepeating() {
 		val identifier = "notTooFarR"
-		val startDate = Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))
+		val startDate = Date.from(fakeDateProvider.now.minus(Duration.ofDays(1)))
 		val repeatRule =
 			EncryptedRepeatRule(
 				RepeatPeriod.WEEKLY.value().toString(),
@@ -200,37 +197,32 @@ class AlarmNotificationsManagerTest {
 	@Test
 	fun simple_all_day_event_alarm_1_day_before_is_at_midnight_in_local_time_zone() {
 		// GIVEN an all day event with no repeat rule
-		val alarmIdentifier = "alarmId"
 		// Test dates must be valid all day dates. Also must be far enough in the future to have a valid
 		// alarm 24 hours before the event because AlarmNotificationsManager.schedule compares using
 		// newly generated Date()
-		val testAllDayStartDateUtc =
-			Date.from(LocalDate.now().plusDays(3).atStartOfDay(ZoneOffset.UTC).toInstant())
-		val testAllDayEndDateUtc =
-			Date.from(LocalDate.now().plusDays(4).atStartOfDay(ZoneOffset.UTC).toInstant())
+		val allDayStartDateUtc =
+			AlarmModel.getAllDayDateUTC(Date.from(fakeDateProvider.now.plus(Duration.ofDays(3))), timeZone)
+		val allDayEndDateUtc = Date.from(allDayStartDateUtc.toInstant().plus(Duration.ofDays(1)))
+
 		val encryptedAlarmNotification =
 			createEncryptedAlarmNotification(
 				userId,
-				alarmIdentifier,
-				testAllDayStartDateUtc,
-				testAllDayEndDateUtc,
+				"alarmId",
+				allDayStartDateUtc,
+				allDayEndDateUtc,
 				null,
 				"1D"
 			)
-		val alarms: List<EncryptedAlarmNotification> = listOf(encryptedAlarmNotification)
 
 		// WHEN creating an alarm 1 day in advance for the event
-		manager.scheduleNewAlarms(alarms, null)
-		// THEN the alarm will be scheduled correctly at 00:00 local time
+		manager.scheduleNewAlarms(listOf(encryptedAlarmNotification), null)
 
+		// THEN the alarm will be scheduled correctly at 00:00 local time
 		// Even though event has an All Day Date, the alarm must be at
 		// start of day (00:00:00) in UTC+1, 1 day before the original event.
 		// ZoneOffset.ofHours(1) designates UTC+1
 		val expected1DayAlarmTime =
-			Date.from(
-				testAllDayStartDateUtc.toInstant().atZone(ZoneOffset.UTC).toLocalDate().minusDays(1)
-					.atStartOfDay().toInstant(ZoneOffset.ofHours(1))
-			)
+			AlarmModel.getAllDayDateLocal(Date.from(allDayStartDateUtc.toInstant().minus(Duration.ofDays(1))), timeZone)
 
 		// verify system facade was called with the right time value (local 00:00:00)
 		Mockito.verify(systemAlarmFacade)
@@ -242,13 +234,9 @@ class AlarmNotificationsManagerTest {
 		// Having a separate test for alarms with repeat rules is necessary because the
 		// logic of converting all day dates to local dates is done separately
 		// in 2 different if/else branches.
-
-		val alarmIdentifier = "alarmId"
-
-		val testAllDayStartDateUtc =
-			Date.from(LocalDate.now().plusDays(3).atStartOfDay(ZoneOffset.UTC).toInstant())
-		val testAllDayEndDateUtc =
-			Date.from(LocalDate.now().plusDays(4).atStartOfDay(ZoneOffset.UTC).toInstant())
+		val allDayStartDateUtc =
+			AlarmModel.getAllDayDateUTC(Date.from(fakeDateProvider.now.plus(Duration.ofDays(3))), timeZone)
+		val allDayEndDateUtc = Date.from(allDayStartDateUtc.toInstant().plus(Duration.ofDays(1)))
 
 		val testAllDayRepeatRule = EncryptedRepeatRule(
 			frequency = RepeatPeriod.WEEKLY.value().toString(),
@@ -263,9 +251,9 @@ class AlarmNotificationsManagerTest {
 		val encryptedAlarmNotification =
 			createEncryptedAlarmNotification(
 				userId,
-				alarmIdentifier,
-				testAllDayStartDateUtc,
-				testAllDayEndDateUtc,
+				"alarmId",
+				allDayStartDateUtc,
+				allDayEndDateUtc,
 				testAllDayRepeatRule,
 				"1D"
 			)
@@ -274,10 +262,8 @@ class AlarmNotificationsManagerTest {
 		manager.scheduleNewAlarms(alarms, null)
 
 		val expected1DayAlarmTime =
-			Date.from(
-				testAllDayStartDateUtc.toInstant().atZone(ZoneOffset.UTC).toLocalDate().minusDays(1)
-					.atStartOfDay().toInstant(ZoneOffset.ofHours(1))
-			)
+			AlarmModel.getAllDayDateLocal(Date.from(allDayStartDateUtc.toInstant().minus(Duration.ofDays(1))), timeZone)
+
 
 		// verify system facade was called with the right time value (local 00:00:00)
 		Mockito.verify(systemAlarmFacade)
@@ -316,7 +302,6 @@ class AlarmNotificationsManagerTest {
 		val start = calendar.timeInMillis.toString()
 
 		calendar.add(Calendar.HOUR, 1)
-
 		val end = calendar.timeInMillis.toString()
 
 		return EncryptedAlarmNotification(
@@ -333,3 +318,5 @@ class AlarmNotificationsManagerTest {
 		)
 	}
 }
+
+private class FakeDateProvider(override val now: Instant) : DateProvider
