@@ -32,7 +32,7 @@ import {
 	RepeatRuleTypeRef,
 	UserAlarmInfoTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { clone, identity, noOp } from "@tutao/tutanota-utils"
+import { clone, identity, noOp } from "@tutao/utils"
 import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"

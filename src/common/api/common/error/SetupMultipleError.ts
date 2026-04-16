@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 
 //Error cannot be serialized to be passed between worker and main thread
 export class SetupMultipleError<T> extends TutanotaError {

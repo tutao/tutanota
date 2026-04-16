@@ -1,7 +1,9 @@
 import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
-import { assertNotNull, downcast, Nullable, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, Nullable, TypeRef } from "@tutao/utils"
 import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
+import { InstancePipeline } from "./InstancePipeline"
+import { Nullable } from "@tutao/utils"
 import { ModelMapper } from "./ModelMapper"
 
 export class EntityAdapter implements Entity {

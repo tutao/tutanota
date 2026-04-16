@@ -1,5 +1,5 @@
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { KeyVersion } from "@tutao/utils"
 import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../common/TutanotaConstants"
 
 /**

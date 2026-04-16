@@ -2,16 +2,7 @@ import { SseClient, SseEventHandler } from "./SseClient.js"
 import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
-import {
-	assertNotNull,
-	base64ToBase64Url,
-	downcast,
-	filterInt,
-	neverNull,
-	stringToUtf8Uint8Array,
-	throttleStart,
-	uint8ArrayToBase64,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, throttleStart, uint8ArrayToBase64 } from "@tutao/utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
 import {
 	AlarmNotificationTypeRef,
@@ -32,7 +23,7 @@ import { EncryptedMissedNotification } from "../../native/common/EncryptedMissed
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { OperationType } from "../../api/common/TutanotaConstants"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { AttributeModel } from "../../api/common/AttributeModel"

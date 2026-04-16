@@ -12,9 +12,9 @@ import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "../../../../../src
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
-import { freshVersioned } from "@tutao/tutanota-utils"
+import { freshVersioned } from "@tutao/utils"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { AesKey, KeyPairType, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, KeyPairType, PQKeyPairs } from "@tutao/crypto"
 
 const { anything } = matchers
 

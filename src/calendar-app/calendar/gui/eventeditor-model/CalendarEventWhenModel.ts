@@ -20,7 +20,7 @@ import {
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
 import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule, createAdvancedRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { EndType, RepeatPeriod, Weekday } from "../../../../common/api/common/TutanotaConstants.js"

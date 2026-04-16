@@ -1,7 +1,7 @@
 import { OperationType } from "../TutanotaConstants.js"
 import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
 import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
-import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/tutanota-utils"
+import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/utils"
 import { isSameId } from "./EntityUtils.js"
 import { ProgressMonitorId } from "./ProgressMonitor"
 

@@ -1,6 +1,6 @@
 import type { DbKey } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { DbTransaction, osName } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { downcast, neverNull } from "@tutao/tutanota-utils"
+import { downcast, neverNull } from "@tutao/utils"
 import {
 	ElementDataOS,
 	GroupDataOS,

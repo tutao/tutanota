@@ -5,8 +5,6 @@
 		"checkJs": false,
 		"target": "es2022",
 		"module": "es2022",
-		// We need either node16/nodenext or bundler to support export maps from modules but most of our imports don't
-		// contain the file extensions, so we can't use node16 as is. Bundler allows extensionless paths.
 		"moduleResolution": "bundler",
 		"skipLibCheck": true,
 		"declaration": true,
@@ -26,6 +24,18 @@
 		"noStrictGenericChecks": false,
 		"strictNullChecks": true,
 		"useUnknownInCatchVariables": false,
-		"types": ["node"]
+		"types": ["node"],
+		"incremental": true,
+		"paths": {
+			"@tutao/utils": ["./src/utils"],
+			"@tutao/crypto-primitives": ["./src/crypto-primitives"],
+			"@tutao/crypto": ["./src/crypto"],
+			"@tutao/crypto/error": ["./src/crypto/error"],
+			"@tutao/error": ["./src/error"],
+			"@tutao/wasm-loader": ["./src/wasm-loader"],
+			"@tutao/usagetests": ["./src/usagetests"],
+			"@tutao/mimimi": ["./src/mimimi"],
+			"@tutao/otest": ["./test/otest"]
+		}
 	}
 }

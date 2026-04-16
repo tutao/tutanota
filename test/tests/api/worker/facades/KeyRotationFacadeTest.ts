@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { assertThrows, mockAttribute, spy } from "@tutao/otest"
 import {
 	KeyRotationFacade,
 	KeyRotationRolloutAction,
@@ -59,7 +59,7 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	RsaPublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
@@ -77,7 +77,7 @@ import {
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { AdminGroupKeyRotationService, GroupKeyRotationService, UserGroupKeyRotationService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/utils"
 import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -85,10 +85,9 @@ import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/S
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError.js"
-import { assertThrows, mockAttribute, spy } from "@tutao/tutanota-test-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import {
 	AdminSymKeyAuthenticationParams,
 	brandKeyMac,
@@ -96,7 +95,7 @@ import {
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
@@ -1588,7 +1587,7 @@ o.spec("KeyRotationFacade", function () {
 			})
 
 			o("Successful user group key rotation - identity key exists", async function () {
-				let privateIdentityKey = new Uint8Array([1, 1, 1])
+				let privateIdentityKey = [1, 1, 1]
 				userGroup.identityKeyPair = createTestEntity(IdentityKeyPairTypeRef, { privateEd25519Key: object() })
 				let decryptedPrivateIdentityKey: Versioned<Ed25519PrivateKey> = {
 					object: privateIdentityKey,
@@ -1941,8 +1940,8 @@ o.spec("KeyRotationFacade", function () {
 				}
 
 				group.currentKeys = createTestEntity(KeyPairTypeRef)
-				const privateIdentityKey = new Uint8Array([1, 2, 3])
-				group.identityKeyPair = createTestEntity(IdentityKeyPairTypeRef, { privateEd25519Key: privateIdentityKey })
+				const privateIdentityKey = [1, 2, 3]
+				group.identityKeyPair = createTestEntity(IdentityKeyPairTypeRef, { privateEd25519Key: new Uint8Array(privateIdentityKey) })
 				let decryptedPrivateIdentityKey: Versioned<Ed25519PrivateKey> = {
 					object: privateIdentityKey,
 					version: 0,

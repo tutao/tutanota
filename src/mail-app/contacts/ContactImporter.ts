@@ -1,5 +1,5 @@
 import { Dialog, DialogType } from "../../common/gui/base/Dialog.js"
-import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/utils"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"

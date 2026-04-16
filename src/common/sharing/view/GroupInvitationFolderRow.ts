@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { component_size } from "../../gui/size"
 import { getCapabilityText } from "../GroupUtils"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import type { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"

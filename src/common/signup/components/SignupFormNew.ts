@@ -11,7 +11,7 @@ import {
 } from "../../api/common/TutanotaConstants"
 
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
-import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/utils"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { locator } from "../../api/main/CommonLocator"

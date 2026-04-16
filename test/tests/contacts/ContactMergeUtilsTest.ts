@@ -32,7 +32,7 @@ import {
 	IndifferentContactComparisonResult,
 } from "../../../src/common/api/common/TutanotaConstants.js"
 import { createFilledContact } from "./VCardExporterTest.js"
-import { downcast, neverNull } from "@tutao/tutanota-utils"
+import { downcast, neverNull } from "@tutao/utils"
 import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js"
 import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"

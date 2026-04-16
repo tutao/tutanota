@@ -5,7 +5,7 @@ import { Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { reverse } from "../../api/common/TutanotaConstants.js"
 
-import { newPromise } from "@tutao/tutanota-utils"
+import { newPromise } from "@tutao/utils"
 
 const log = makeTaggedLogger("[SSE]")
 

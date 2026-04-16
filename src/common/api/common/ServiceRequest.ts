@@ -1,7 +1,7 @@
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 import { assertMainOrNode } from "./Env.js"
 import type { Entity } from "./EntityTypes.js"
-import { Aes128Key, AesKey } from "@tutao/tutanota-crypto"
+import { Aes128Key, AesKey } from "@tutao/crypto"
 import { SuspensionBehavior } from "../worker/rest/RestClient"
 
 assertMainOrNode()

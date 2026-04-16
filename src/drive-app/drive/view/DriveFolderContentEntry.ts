@@ -2,7 +2,7 @@ import m, { _NoLifecycle, Children, CommonAttributes, Component, Vnode, VnodeDOM
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { assertNotNull, filterInt } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt } from "@tutao/utils"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
 import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"

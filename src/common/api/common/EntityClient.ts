@@ -19,7 +19,7 @@ import {
 	RANGE_ITEM_LIMIT,
 } from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants.js"
-import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
 import { ProgrammingError } from "./error/ProgrammingError"

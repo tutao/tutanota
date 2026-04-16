@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { InfoLink, lang } from "./LanguageViewModel.js"
-import { assertNotNull, defer } from "@tutao/tutanota-utils"
+import { assertNotNull, defer } from "@tutao/utils"
 import m from "mithril"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { ApprovalStatus, Keys } from "../api/common/TutanotaConstants.js"

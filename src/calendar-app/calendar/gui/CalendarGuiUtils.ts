@@ -22,7 +22,7 @@ import {
 	newPromise,
 	numberRange,
 	typedValues,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import {
 	formatDateTime,

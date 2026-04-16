@@ -2,8 +2,8 @@
  * @fileoverview This is an old homebrew mocking attempt. This is depreacted. Please use testdouble instead.
  */
 
-import { downcast } from "@tutao/tutanota-utils"
-import { spy } from "@tutao/tutanota-test-utils"
+import { downcast } from "@tutao/utils"
+import { spy } from "@tutao/otest"
 
 /**
  * you need to call .get() on the return value to actually register the replacer to spyify its functions.

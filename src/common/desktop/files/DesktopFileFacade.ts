@@ -9,16 +9,8 @@ import { DataFile } from "../../api/common/DataFile.js"
 import { FileUri } from "../../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { sha256Hash } from "@tutao/tutanota-crypto"
-import {
-	assertNotNull,
-	newPromise,
-	splitUint8ArrayInChunks,
-	stringToUtf8Uint8Array,
-	throttle,
-	uint8ArrayToBase64,
-	uint8ArrayToHex,
-} from "@tutao/tutanota-utils"
+import { sha256Hash } from "@tutao/crypto"
+import { assertNotNull, newPromise, splitUint8ArrayInChunks, stringToUtf8Uint8Array, throttle, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import type { WriteStream } from "node:fs"

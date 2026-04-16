@@ -12,7 +12,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
-import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/utils"
 import { styles } from "../../../common/gui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"

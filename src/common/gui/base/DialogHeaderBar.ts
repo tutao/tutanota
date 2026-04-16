@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { ButtonAttrs } from "./Button.js"
 import { Button } from "./Button.js"
-import type { lazy, MaybeLazy } from "@tutao/tutanota-utils"
-import { resolveMaybeLazy } from "@tutao/tutanota-utils"
+import type { lazy, MaybeLazy } from "@tutao/utils"
+import { resolveMaybeLazy } from "@tutao/utils"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 
 //If there is left/right Children it will override left/right

@@ -8,7 +8,7 @@ import {
 	SelectableRowSelectedSetter,
 } from "../../../common/gui/SelectableRowContainer.js"
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { NBSP, noOp } from "@tutao/tutanota-utils"
+import { NBSP, noOp } from "@tutao/utils"
 import m, { Children } from "mithril"
 import { component_size, px, size } from "../../../common/gui/size.js"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"

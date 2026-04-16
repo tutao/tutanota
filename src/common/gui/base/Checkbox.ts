@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
-import type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
 import { getOperatingClasses } from "./GuiUtils.js"
 import { component_size, px } from "../size"
 

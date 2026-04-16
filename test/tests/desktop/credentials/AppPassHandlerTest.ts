@@ -6,10 +6,10 @@ import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConf
 import { function as fn, matchers, object, verify, when } from "testdouble"
 import { CommonNativeFacade } from "../../../../src/common/native/common/generatedipc/CommonNativeFacade.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
-import { defer, delay, stringToBase64 } from "@tutao/tutanota-utils"
+import { defer, delay, stringToBase64 } from "@tutao/utils"
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { CancelledError } from "../../../../src/common/api/common/error/CancelledError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
 import { loadArgon2WASM } from "../../api/worker/WASMTestUtils.js"
 

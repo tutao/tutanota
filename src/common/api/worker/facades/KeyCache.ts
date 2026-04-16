@@ -1,7 +1,7 @@
-import { getFromMap, neverNull } from "@tutao/tutanota-utils"
+import { getFromMap, neverNull } from "@tutao/utils"
 import { User } from "../../entities/sys/TypeRefs.js"
 import { VersionedKey } from "../crypto/CryptoWrapper.js"
-import { Aes256Key } from "@tutao/tutanota-crypto"
+import { Aes256Key } from "@tutao/crypto"
 import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
 
 /**

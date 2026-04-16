@@ -7,8 +7,8 @@ import { KeychainEncryption } from "../../../../src/common/desktop/credentials/K
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { PersistedCredentials } from "../../../../src/common/native/common/generatedipc/PersistedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { aes256RandomKey } from "@tutao/crypto"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 
 o.spec("DesktopNativeCredentialsFacade", () => {

@@ -1,6 +1,6 @@
 import { DesktopNativeCryptoFacade } from "../../DesktopNativeCryptoFacade"
 import type { Config } from "../ConfigCommon"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import type { DesktopKeyStoreFacade } from "../../DesktopKeyStoreFacade.js"
 import { log } from "../../DesktopLog"
 

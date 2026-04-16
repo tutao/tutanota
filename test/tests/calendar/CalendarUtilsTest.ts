@@ -52,7 +52,7 @@ import {
 	EncryptedMailAddressTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
+import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
 import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeEventWrapper, makeUserController } from "./CalendarTestUtils.js"

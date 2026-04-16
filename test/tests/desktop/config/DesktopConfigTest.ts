@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopConfigMigrator } from "../../../../src/common/desktop/config/migrations/DesktopConfigMigrator.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"

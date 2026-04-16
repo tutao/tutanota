@@ -31,7 +31,7 @@ import { StructuredWebsite } from "../native/common/generatedipc/StructuredWebsi
 import { StructuredRelationship } from "../native/common/generatedipc/StructuredRelationship.js"
 import { StructuredMessengerHandle } from "../native/common/generatedipc/StructuredMessengerHandle.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
-import { parseUrl } from "@tutao/tutanota-utils"
+import { parseUrl } from "@tutao/utils"
 
 assertMainOrNode()
 

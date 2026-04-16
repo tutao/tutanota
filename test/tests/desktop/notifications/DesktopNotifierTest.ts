@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import type { NotificationFactory } from "../../../../src/common/desktop/notifications/NotificationFactory.js"
-import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
+import { downcast, LazyLoaded } from "@tutao/utils"
 import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import type { DesktopTray } from "../../../../src/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"

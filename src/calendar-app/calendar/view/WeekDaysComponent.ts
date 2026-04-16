@@ -7,8 +7,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { layout_size, px } from "../../../common/gui/size"
 import { DaySelector, DaySelectorAttrs } from "../gui/day-selector/DaySelector"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { DurationLikeObject } from "luxon"
-import { DateTime } from "../../../../libs/luxon"
+import { DateTime, DurationLikeObject } from "luxon"
 
 export enum HeaderVariant {
 	NORMAL,

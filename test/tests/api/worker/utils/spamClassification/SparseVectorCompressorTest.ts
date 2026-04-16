@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/utils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { DATASET_FILE_PATH, readMailDataFromCSV } from "./SpamClassifierTest"

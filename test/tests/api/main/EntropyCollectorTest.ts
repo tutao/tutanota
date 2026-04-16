@@ -3,7 +3,7 @@ import { EntropyCollector } from "../../../../src/common/api/main/EntropyCollect
 import { EntropyDataChunk, EntropyFacade } from "../../../../src/common/api/worker/facades/EntropyFacade.js"
 import { matchers, object, when } from "testdouble"
 import { SchedulerMock } from "../../TestUtils.js"
-import { getFromMap, remove } from "@tutao/tutanota-utils"
+import { getFromMap, remove } from "@tutao/utils"
 
 class FakeWindow {
 	listeners: Map<string, ((e: unknown) => unknown)[]> = new Map()

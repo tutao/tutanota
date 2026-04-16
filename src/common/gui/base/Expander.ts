@@ -8,7 +8,7 @@ import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 export type ExpanderAttrs = {
 	label: MaybeTranslation

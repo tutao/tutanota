@@ -1,4 +1,4 @@
-import { AesKey, IV_BYTE_LENGTH, keyToUint8Array, Randomizer } from "@tutao/tutanota-crypto"
+import { AesKey, IV_BYTE_LENGTH, keyToUint8Array, Randomizer } from "@tutao/crypto"
 import { FileUri } from "../common/FileApp"
 import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 import { EncryptedFileInfo } from "../common/generatedipc/EncryptedFileInfo"

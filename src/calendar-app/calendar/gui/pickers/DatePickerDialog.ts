@@ -5,8 +5,8 @@ import { DatePicker } from "./DatePicker.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
-import { debounceStart, noOp } from "@tutao/tutanota-utils"
-import { newPromise } from "@tutao/tutanota-utils"
+import { debounceStart, noOp } from "@tutao/utils"
+import { newPromise } from "@tutao/utils"
 
 assertMainOrNode()
 

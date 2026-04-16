@@ -1,6 +1,6 @@
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"
 import { EntityRestClientLoadOptions } from "./EntityRestClient.js"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"

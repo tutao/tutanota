@@ -25,7 +25,7 @@ import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/ap
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 o.spec("IndexedDbMailIndexerBackend", () => {

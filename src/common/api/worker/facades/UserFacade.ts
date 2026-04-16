@@ -1,13 +1,13 @@
 import { GroupType } from "../../common/TutanotaConstants"
-import { Aes256Key, AesKey, decryptKey } from "@tutao/tutanota-crypto"
-import { assertNotNull, KeyVersion } from "@tutao/tutanota-utils"
+import { Aes256Key, AesKey, decryptKey } from "@tutao/crypto"
+import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 import { isSameId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
 import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { checkKeyVersionConstraints, parseKeyVersion } from "./KeyLoaderFacade.js"
 
 export interface AuthDataProvider {

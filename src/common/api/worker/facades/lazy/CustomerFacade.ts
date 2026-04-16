@@ -31,8 +31,8 @@ import {
 	User,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import type { Hex, lazyAsync, Nullable } from "@tutao/tutanota-utils"
-import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import type { Hex, lazyAsync, Nullable } from "@tutao/utils"
+import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	BrandingDomainService,
@@ -71,7 +71,7 @@ import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs } from "@tutao/crypto"
 
 assertWorkerOrNode()
 

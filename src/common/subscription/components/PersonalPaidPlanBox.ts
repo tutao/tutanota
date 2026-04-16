@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { component_size, font_size, px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
-import { type Callback } from "@tutao/tutanota-utils"
+import { type Callback } from "@tutao/utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"

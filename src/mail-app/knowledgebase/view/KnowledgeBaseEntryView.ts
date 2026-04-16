@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { KnowledgeBaseEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { TemplateGroupRootTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
+import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"

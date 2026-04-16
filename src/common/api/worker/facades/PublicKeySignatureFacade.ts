@@ -1,7 +1,7 @@
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
 import { createPublicKeySignature, PublicKeySignature } from "../../entities/sys/TypeRefs"
-import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/tutanota-utils"
+import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/utils"
 import { InvalidDataError } from "../../common/error/RestError"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "../../common/TutanotaConstants"
 import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
@@ -19,7 +19,7 @@ import {
 	kyberPublicKeyToBytes,
 	PublicKey,
 	rsaPublicKeyToBytes,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { CryptoWrapper } from "../crypto/CryptoWrapper"
 
 assertWorkerOrNode()

@@ -1,7 +1,7 @@
 import { Mail, MailDetails, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
 import { MailAuthenticationStatus, MailPhishingStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"

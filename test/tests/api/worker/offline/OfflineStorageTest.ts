@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/otest"
 import { OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { instance, matchers, object, when } from "testdouble"
 import {
@@ -15,18 +15,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import {
-	assertNotNull,
-	downcast,
-	getDayShifted,
-	getFirstOrThrow,
-	getTypeString,
-	lastThrow,
-	mapNullable,
-	promiseMap,
-	typedKeys,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, getTypeString, lastThrow, mapNullable, promiseMap, typedKeys, TypeRef } from "@tutao/utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
 	BodyTypeRef,

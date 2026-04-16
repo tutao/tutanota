@@ -10,7 +10,7 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	RsaKeyPair,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"

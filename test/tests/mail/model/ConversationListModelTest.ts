@@ -34,7 +34,7 @@ import { EntityUpdateData } from "../../../../src/common/api/common/utils/Entity
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
-import { assertNotNull, clamp, lastThrow, pad } from "@tutao/tutanota-utils"
+import { assertNotNull, clamp, lastThrow, pad } from "@tutao/utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
 import { theme } from "../../../../src/common/gui/theme.js"

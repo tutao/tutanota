@@ -15,7 +15,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { Cardinality, ValueType } from "../EntityConstants.js"
 import { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 

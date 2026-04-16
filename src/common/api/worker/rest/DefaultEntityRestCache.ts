@@ -8,18 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import {
-	assertNotNull,
-	downcast,
-	getFirstOrThrow,
-	getTypeString,
-	isNotEmpty,
-	isSameTypeRef,
-	lastThrow,
-	lazyAsync,
-	Nullable,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, lazyAsync, Nullable, TypeRef } from "@tutao/utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,

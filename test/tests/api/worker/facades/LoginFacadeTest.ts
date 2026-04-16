@@ -21,7 +21,7 @@ import {
 	keyToUint8Array,
 	sha256Hash,
 	uint8ArrayToKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { LoginFacade, LoginListener } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
@@ -31,7 +31,7 @@ import { CacheStorageLateInitializer } from "../../../../../src/common/api/worke
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/common/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"
-import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/utils"
 import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/common/api/common/error/RestError"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"

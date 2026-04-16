@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { px, size } from "../../gui/size.js"
 
 export const GIFT_CARD_MESSAGE_COLS = 26

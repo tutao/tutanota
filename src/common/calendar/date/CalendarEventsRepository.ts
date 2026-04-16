@@ -31,7 +31,7 @@ import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "..
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,

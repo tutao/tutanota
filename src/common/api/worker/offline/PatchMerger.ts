@@ -17,7 +17,7 @@ import {
 	ServerTypeModel,
 } from "../../common/EntityTypes"
 import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, lazy, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, lazy, Nullable, promiseMap, TypeRef } from "@tutao/utils"
 import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
 import { PatchOperationError } from "../../common/error/PatchOperationError"
@@ -26,11 +26,11 @@ import { PatchOperationType, TypeModelResolver } from "../../common/EntityFuncti
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { isSameId } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
-import { AesKey, InstanceDecryptor, SymmetricCipherFacade } from "@tutao/tutanota-crypto"
+import { AesKey, InstanceDecryptor, SymmetricCipherFacade } from "@tutao/crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 
 export class PatchMerger {
 	constructor(

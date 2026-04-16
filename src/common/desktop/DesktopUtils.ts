@@ -1,7 +1,7 @@
 import path from "node:path"
 import { spawn } from "node:child_process"
 import type { NativeImage, Rectangle } from "electron"
-import { defer, delay } from "@tutao/tutanota-utils"
+import { defer, delay } from "@tutao/utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
 import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"

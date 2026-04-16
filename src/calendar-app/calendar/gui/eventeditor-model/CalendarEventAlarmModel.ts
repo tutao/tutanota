@@ -1,5 +1,5 @@
 import { generateEventElementId, serializeAlarmInterval } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { deepEqual, findAllAndRemove, isEmpty, noOp } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, isEmpty, noOp } from "@tutao/utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../../common/api/common/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"

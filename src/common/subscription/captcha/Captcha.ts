@@ -10,7 +10,7 @@ import {
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "../../api/common/error/RestError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { defer } from "@tutao/tutanota-utils"
+import { defer } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"

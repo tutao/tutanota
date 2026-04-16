@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import { incrementMonth, isSameDay } from "@tutao/tutanota-utils"
+import { incrementMonth, isSameDay } from "@tutao/utils"
 import { DaySelector } from "./DaySelector.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
 import { styles } from "../../../../common/gui/styles"

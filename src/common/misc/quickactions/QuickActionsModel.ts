@@ -1,4 +1,4 @@
-import { isNotNull, remove } from "@tutao/tutanota-utils"
+import { isNotNull, remove } from "@tutao/utils"
 
 export interface QuickAction {
 	/** Displayed in the list */

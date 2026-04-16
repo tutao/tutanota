@@ -36,7 +36,7 @@ import {
 	isNotNull,
 	newPromise,
 	promiseMap,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"

@@ -1,4 +1,4 @@
-import { isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { isSameTypeRef, TypeRef } from "@tutao/utils"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP } from "../TutanotaConstants"
 import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"

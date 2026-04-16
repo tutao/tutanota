@@ -1,5 +1,5 @@
 import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 import { typeModels } from "./TypeModels.js"
 import { Blob } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'

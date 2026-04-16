@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import {
 	asCryptoProtoocolVersion,
@@ -51,7 +51,7 @@ import {
 	User,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {
@@ -75,7 +75,7 @@ import {
 	rsaPublicKeyToHex,
 	X25519KeyPair,
 	X25519PublicKey,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"

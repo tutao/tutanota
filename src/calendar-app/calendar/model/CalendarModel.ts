@@ -15,7 +15,7 @@ import {
 	LazyLoaded,
 	splitInChunks,
 	symmetricDifference,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	CalendarAttendeeStatus,
@@ -128,7 +128,7 @@ import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 

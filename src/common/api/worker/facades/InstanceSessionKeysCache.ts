@@ -1,4 +1,4 @@
-import { assertNotNull, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, Nullable } from "@tutao/utils"
 import { InstanceSessionKey } from "../../entities/sys/TypeRefs"
 import { Entity } from "../../common/EntityTypes"
 

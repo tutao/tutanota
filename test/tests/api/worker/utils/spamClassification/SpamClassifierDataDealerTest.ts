@@ -27,7 +27,7 @@ import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy
 import { createTestEntity } from "../../../../TestUtils"
 import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/common/api/common/utils/EntityUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { last } from "@tutao/tutanota-utils"
+import { last } from "@tutao/utils"
 
 const { anything } = matchers
 

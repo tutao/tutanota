@@ -3,7 +3,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { getDefaultGroupName, ShareableGroupType } from "./GroupUtils"
 import type { ReceivedGroupInvitation } from "../api/entities/sys/TypeRefs.js"
-import type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
 
 export type GroupSharingTexts = {
 	readonly groupNameLabel: TranslationKey

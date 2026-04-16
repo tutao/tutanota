@@ -7,7 +7,7 @@ import { mailLocator } from "../../mail-app/mailLocator.js"
 import { formatShortMonthYear2Digit } from "../misc/Formatter.js"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
 import { formatPrice } from "../subscription/utils/PriceUtils.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { LazyLoaded } from "@tutao/utils"
 import { DateTime } from "luxon"
 
 export class AffiliateKpisViewer implements UpdatableSettingsDetailsViewer {

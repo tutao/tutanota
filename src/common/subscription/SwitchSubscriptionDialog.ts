@@ -40,7 +40,7 @@ import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
@@ -339,7 +339,10 @@ async function runTemplateCleanupFlow(customer: Customer) {
 		const groupInfos: Array<GroupInfo> = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		const userGroupIds = groupInfos.map((groupInfo) => groupInfo.group)
 		const userGroups = await locator.entityClient.loadMultiple(GroupTypeRef, null, userGroupIds)
-		const userIds: Array<string> = userGroups.map((g) => g.user).filter((userId) => userId !== null)
+		const userIds: Array<Id> = userGroups
+			.map((g) => g.user)
+			.filter((userId) => userId !== null)
+			.map((userId) => userId!)
 		if (userIds.length < userGroups.length) {
 			console.error("customer.userGroups contains groups without user? customer: ", customer)
 		}
@@ -466,6 +469,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 		return false
 	}
 }
+
 /**
  * @param customer
  * @param currentPlanType

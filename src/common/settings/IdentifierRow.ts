@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/utils"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { attachDropdown } from "../gui/base/Dropdown.js"
 import { IconButton } from "../gui/base/IconButton.js"

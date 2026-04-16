@@ -40,7 +40,7 @@ import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunction
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
 import { isBrowser } from "../../../../src/common/api/common/Env"

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "./icons/Icons"
 import type { Editor, Listing, Style } from "../editor/Editor"
 import { Alignment } from "../editor/Editor"
-import { numberRange } from "@tutao/tutanota-utils"
+import { numberRange } from "@tutao/utils"
 import { font_size } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
@@ -26,7 +26,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 	constructor({ attrs }: Vnode<RichTextToolbarAttrs>) {
 		try {
-			this.selectedSize = parseInt(attrs.editor.squire.getFontInfo().size.slice(0, -2))
+			this.selectedSize = parseInt(attrs.editor.squire!.getFontInfo()?.size!.slice(0, -2))
 		} catch (e) {
 			this.selectedSize = font_size.base
 		}
@@ -106,10 +106,10 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			icon,
 			() =>
 				editor.styles.listing === listing
-					? editor.squire.removeList()
+					? editor.squire!.removeList()
 					: listing === "ul"
-						? editor.squire.makeUnorderedList()
-						: editor.squire.makeOrderedList(),
+						? editor.squire!.makeUnorderedList()
+						: editor.squire!.makeOrderedList(),
 			() => editor.styles.listing === listing,
 		)
 	}
@@ -137,8 +137,8 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			return {
 				label: title,
 				click: () => {
-					attrs.editor.squire.setTextAlignment(alignment)
-					setTimeout(() => attrs.editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+					attrs.editor.squire!.setTextAlignment(alignment)
+					setTimeout(() => attrs.editor.squire!.focus(), 100) // blur for the editor is fired after the handler for some reason
 					m.redraw()
 				},
 				icon: icon,
@@ -194,9 +194,9 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 							return {
 								label: lang.makeTranslation("font_size_" + n, n.toString()),
 								click: () => {
-									editor.squire.setFontSize(n)
+									editor.squire!.setFontSize(String(n))
 									this.selectedSize = n
-									setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+									setTimeout(() => editor.squire!.focus(), 100) // blur for the editor is fired after the handler for some reason
 									m.redraw()
 								},
 							}
@@ -216,7 +216,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			icon: Icons.FormatClear,
 			click: (e) => {
 				e.stopPropagation()
-				attrs.editor.squire.removeAllFormatting()
+				attrs.editor.squire!.removeAllFormatting()
 			},
 			size: ButtonSize.Compact,
 		})

@@ -13,8 +13,8 @@ import {
 	initEd25519,
 	signWithEd25519,
 	verifyEd25519Signature,
-} from "@tutao/tutanota-crypto"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+} from "@tutao/crypto"
+import { LazyLoaded } from "@tutao/utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade"
 import { IPCEd25519PrivateKey } from "../../../native/common/generatedipc/IPCEd25519PrivateKey"
 import { IPCEd25519PublicKey } from "../../../native/common/generatedipc/IPCEd25519PublicKey"

@@ -4,10 +4,10 @@ import {
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 } from "../../../../../src/common/api/common/EntityTypes"
-import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, TypeRef } from "@tutao/utils"
 import o from "@tutao/otest"
 import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"

@@ -1,6 +1,6 @@
 import { SomeEntity } from "../../../common/EntityTypes.js"
 import { CalendarEvent, Mail } from "../../../entities/tutanota/TypeRefs.js"
-import { freezeMap, getTypeString, TypeRef } from "@tutao/tutanota-utils"
+import { freezeMap, getTypeString, TypeRef } from "@tutao/utils"
 import { ExposedCacheStorage } from "../DefaultEntityRestCache.js"
 import { User } from "../../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"

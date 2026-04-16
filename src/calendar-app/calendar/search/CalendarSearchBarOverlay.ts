@@ -1,6 +1,6 @@
 import { CalendarSearchBarAttrs, CalendarSearchBarState, Entry, ShowMoreAction } from "./CalendarSearchBar.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { downcast, isEmpty, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, isSameTypeRef, TypeRef } from "@tutao/utils"
 import { px, size } from "../../../common/gui/size.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"

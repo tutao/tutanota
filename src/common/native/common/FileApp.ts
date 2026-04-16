@@ -1,4 +1,4 @@
-import { promiseMap } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/utils"
 import { FileReference } from "../../api/common/utils/FileUtils"
 import { DataFile } from "../../api/common/DataFile"
 import { HttpMethod } from "../../api/common/EntityFunctions"

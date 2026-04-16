@@ -4,7 +4,7 @@ import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
+import { assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/utils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"

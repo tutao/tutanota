@@ -63,7 +63,7 @@ import {
 	lazyAsync,
 	promiseMap,
 	Versioned,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import {
@@ -81,7 +81,7 @@ import {
 	PublicKey,
 	uint8ArrayToKey,
 	X25519KeyPair,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { PQFacade } from "./PQFacade.js"
 import { AdminGroupKeyRotationService, GroupKeyRotationService, MembershipService, UserGroupKeyRotationService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
@@ -97,7 +97,7 @@ import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
 import { LockedError, NotAuthenticatedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"

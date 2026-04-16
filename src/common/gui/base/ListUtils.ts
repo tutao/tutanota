@@ -1,7 +1,7 @@
 import { ListElement } from "../../api/common/utils/EntityUtils.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
-import { mapLazily, NBSP } from "@tutao/tutanota-utils"
+import { mapLazily, NBSP } from "@tutao/utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { isBrowser } from "../../api/common/Env.js"

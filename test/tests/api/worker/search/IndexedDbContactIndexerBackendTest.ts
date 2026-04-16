@@ -17,7 +17,7 @@ import { IndexedDbContactIndexerBackend } from "../../../../../src/mail-app/work
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
 import { getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/utils"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 

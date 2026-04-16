@@ -12,7 +12,7 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
+import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"

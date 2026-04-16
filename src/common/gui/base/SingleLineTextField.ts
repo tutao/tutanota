@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { TextFieldType } from "./TextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
-import { filterInt } from "@tutao/tutanota-utils"
+import { filterInt } from "@tutao/utils"
 
 export enum InputMode {
 	NONE = "none",

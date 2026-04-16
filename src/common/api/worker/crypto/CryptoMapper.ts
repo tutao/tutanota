@@ -18,10 +18,10 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade } from "@tutao/tutanota-crypto"
+import { CryptoError } from "@tutao/crypto/error"
+import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { isWebClient } from "../../common/Env"

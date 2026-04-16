@@ -6,7 +6,7 @@ import {
 	NotAuthorizedError,
 	PayloadTooLargeError,
 } from "../../../../../src/common/api/common/error/RestError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import {
@@ -38,7 +38,7 @@ import {
 	promiseMap,
 	TypeRef,
 	uint8ArrayToBase64,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -56,7 +56,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
-import { aes256RandomKey, AesKey, decryptKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKey, decryptKey } from "@tutao/crypto"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"

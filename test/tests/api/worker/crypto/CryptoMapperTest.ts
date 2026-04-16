@@ -9,7 +9,7 @@ import {
 	SYMMETRIC_CIPHER_FACADE,
 	SymmetricCipherFacade,
 	ValueDecryptor,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { CryptoMapper, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
@@ -23,11 +23,13 @@ import {
 	ModelValue,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
-} from "../../../../../src/common/api/common/EntityTypes"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
+} from "../../../../../src/common/api/common/EntityTypes.js"
+import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
+import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
+import { assertThrows } from "@tutao/otest"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, ModelMapper } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE

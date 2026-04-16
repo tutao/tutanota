@@ -1,5 +1,5 @@
 import { DataFile } from "../../api/common/DataFile.js"
-import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { utf8Uint8ArrayToString } from "@tutao/utils"
 import { getTimeZone } from "../date/CalendarUtils.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"

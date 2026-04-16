@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { KeyVersion } from "@tutao/utils"
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/common/api/common/TutanotaConstants"

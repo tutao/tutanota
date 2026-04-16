@@ -1,4 +1,4 @@
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { Dialog } from "../base/Dialog.js"
 import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"

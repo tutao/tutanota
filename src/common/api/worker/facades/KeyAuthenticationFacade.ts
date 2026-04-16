@@ -1,6 +1,6 @@
 import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
-import { concat, KeyVersion } from "@tutao/tutanota-utils"
-import { Aes256Key, AesKey, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
+import { concat, KeyVersion } from "@tutao/utils"
+import { Aes256Key, AesKey, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
 

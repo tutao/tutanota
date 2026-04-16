@@ -38,7 +38,7 @@ import {
 	createContactSocialId,
 	createContactWebsite,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import { assertMainOrNode } from "../../common/api/common/Env"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../../common/api/common/error/RestError"

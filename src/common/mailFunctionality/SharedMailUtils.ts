@@ -2,7 +2,7 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import { Contact, createContact, createContactMailAddress, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,

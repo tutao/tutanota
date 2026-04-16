@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode } from "../../api/common/Env.js"
-import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import type {
 	Booking,
 	CertificateInfo,
