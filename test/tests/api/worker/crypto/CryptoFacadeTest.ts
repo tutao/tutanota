@@ -37,6 +37,7 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	cryptoUtils,
+	CryptoWrapper,
 	decryptKey,
 	encryptKey,
 	encryptRsaKey,
@@ -67,7 +68,7 @@ import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worke
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
-import { CryptoWrapper, EntityAdapter } from "@tutao/instance-pipeline"
+import { EntityAdapter } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"

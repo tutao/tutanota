@@ -1,4 +1,4 @@
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
 import { restError } from "@tutao/rest-client"
 import {
 	ClientTypeModelResolver,
@@ -26,7 +26,17 @@ import { MembershipRemovedError } from "../../../common/api/common/error/Members
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
-import { aes256EncryptSearchIndexEntry, aes256RandomKey, aesDecryptUnauthenticated, AesKey, decryptKey, IV_BYTE_LENGTH, random } from "@tutao/crypto"
+import {
+	_encryptKeyWithVersionedKey,
+	aes256EncryptSearchIndexEntry,
+	aes256RandomKey,
+	aesDecryptUnauthenticated,
+	AesKey,
+	decryptKey,
+	IV_BYTE_LENGTH,
+	random,
+	VersionedKey,
+} from "@tutao/crypto"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
@@ -41,11 +51,9 @@ import {
 } from "../../../common/api/worker/search/IndexTables.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { _encryptKeyWithVersionedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DateProvider } from "../../../common/api/common/DateProvider"
-import { ProgrammingError } from "@tutao/app-env"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
 

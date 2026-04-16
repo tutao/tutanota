@@ -1,11 +1,20 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { RestClient, RestClientOptions } from "@tutao/rest-client"
+import { HttpMethod, MediaType, RestClient, RestClientOptions } from "@tutao/rest-client"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
-import { DeleteService, GetService, PostService, PutService } from "../../../../../src/common/api/common/ServiceRequest.js"
-import { AttributeModel, ServerModelUntypedInstance, tutanotaTypeRefs } from "@tutao/typerefs"
-import { HttpMethod, MediaType } from "@tutao/rest-client"
+import {
+	accountingServices,
+	accountingTypeRefs,
+	AttributeModel,
+	DeleteService,
+	GetService,
+	PostService,
+	PutService,
+	ServerModelUntypedInstance,
+	sysTypeRefs,
+	TypeModelResolver,
+} from "@tutao/typerefs"
 import { deepEqual } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
@@ -13,8 +22,6 @@ import { LoginIncompleteError } from "../../../../../src/common/api/common/error
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
-import { accountingServices } from "@tutao/typerefs"
-import { sysTypeRefs, TypeModelResolver, accountingTypeRefs } from "@tutao/typerefs"
 
 const { anything } = matchers
 

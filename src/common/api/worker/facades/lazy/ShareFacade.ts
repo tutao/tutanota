@@ -1,15 +1,24 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { ShareCapability } from "@tutao/app-env"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { isSameTypeRef, neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { assertWorkerOrNode } from "@tutao/app-env"
-import { aes256RandomKey, cryptoUtils, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import {
+	_encryptBytes,
+	_encryptKeyWithVersionedKey,
+	_encryptString,
+	aes256RandomKey,
+	cryptoUtils,
+	encryptKey,
+	keyToUint8Array,
+	uint8ArrayToKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()

@@ -10,15 +10,13 @@ import {
 import { downcast, KeyVersion } from "@tutao/utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/app-env"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/crypto"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random, VersionedKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables.js"
-
-import { VersionedKey } from "@tutao/instance-pipeline"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 o.spec("ConfigurationDbTest", function () {

@@ -40,6 +40,7 @@ import {
 	AesKeyLength,
 	createAuthVerifier,
 	cryptoUtils,
+	CryptoWrapper,
 	EncryptedPqKeyPairs,
 	getAndVerifyAesKeyLength,
 	isEncryptedPqKeyPairs,
@@ -49,13 +50,14 @@ import {
 	PQPublicKeys,
 	PublicKey,
 	uint8ArrayToKey,
+	VersionedEncryptedKey,
+	VersionedKey,
 	X25519KeyPair,
 } from "@tutao/crypto"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { PQFacade } from "./PQFacade.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
-import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
 import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
 import { UserFacade } from "./UserFacade.js"

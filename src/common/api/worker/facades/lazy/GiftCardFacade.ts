@@ -11,15 +11,13 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
+import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { _encryptKeyWithVersionedKey } from "@tutao/instance-pipeline"
-import { GroupType } from "@tutao/app-env"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24

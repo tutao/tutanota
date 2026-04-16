@@ -1,15 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, AesKey } from "@tutao/crypto"
-import {
-	convertJsToDbType,
-	CryptoWrapper,
-	encryptValue,
-	PatchMerger,
-	PatchOperationError,
-	SessionKeyResolver,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "@tutao/instance-pipeline"
+import { aes256RandomKey, AesKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError, SessionKeyResolver } from "@tutao/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"

@@ -54,6 +54,7 @@ import {
 	aesEncrypt,
 	AesKey,
 	cryptoUtils,
+	CryptoWrapper,
 	decryptKey,
 	encryptKey,
 	isPqKeyPairs,
@@ -61,6 +62,8 @@ import {
 	keyToUint8Array,
 	PublicKey,
 	sha256Hash,
+	VersionedEncryptedKey,
+	VersionedKey,
 	X25519PublicKey,
 } from "@tutao/crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
@@ -68,7 +71,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { CryptoWrapper, EntityAdapter, InstancePipeline, VersionedEncryptedKey, VersionedKey } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"

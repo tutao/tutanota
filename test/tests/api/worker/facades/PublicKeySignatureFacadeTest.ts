@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { DeserializedPublicKeyForSigning, PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import {
+	CryptoWrapper,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
 	generateX25519KeyPair,
@@ -16,7 +17,6 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { PublicKeySignatureType } from "../../../../../src/app-env"
-import { CryptoWrapper } from "@tutao/instance-pipeline"
 import { Ed25519Facade, EncodedEd25519Signature } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade"
