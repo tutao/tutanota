@@ -20,8 +20,8 @@ disabled_rules:
   - trailing_comma
   - trailing_whitespace
   - leading_whitespace
-  - operator_whitespace
-  - redundant_self_in_closure
+  - function_name_whitespace
+  - redundant_self
   - return_arrow_whitespace
   - return_value_from_void_function
   - todo
@@ -53,7 +53,6 @@ opt_in_rules:
 - nslocalizedstring_key
 - override_in_extension
 - redundant_nil_coalescing
-- redundant_self_in_closure
 - reduce_into
 - required_enum_case
 - shorthand_optional_binding
