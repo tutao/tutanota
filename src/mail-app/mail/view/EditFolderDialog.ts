@@ -11,7 +11,7 @@ import { isFolderReadOnly, MailReportType, MailSetKind } from "../../../common/a
 import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { groupByAndMap } from "@tutao/tutanota-utils"
+import { groupByAndMap } from "@tutao/utils"
 import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"

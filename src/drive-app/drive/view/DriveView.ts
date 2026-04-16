@@ -35,7 +35,7 @@ import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./Dr
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import Stream from "mithril/stream"
-import { assertNotNull, isNotEmpty } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotEmpty } from "@tutao/utils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { MoveItems } from "./DriveMoveItemDialog"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"

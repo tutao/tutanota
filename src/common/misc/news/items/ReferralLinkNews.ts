@@ -6,7 +6,7 @@ import { NewsModel } from "../NewsModel.js"
 import { getReferralLink, ReferralLinkViewer } from "./ReferralLinkViewer.js"
 import { DateProvider } from "../../../api/common/DateProvider.js"
 import { generatedIdToTimestamp } from "../../../api/common/utils/EntityUtils.js"
-import { getDayShifted, neverNull } from "@tutao/tutanota-utils"
+import { getDayShifted, neverNull } from "@tutao/utils"
 import { UserController } from "../../../api/main/UserController.js"
 
 const REFERRAL_NEWS_DISPLAY_THRESHOLD_DAYS = 7

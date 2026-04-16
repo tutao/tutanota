@@ -1,4 +1,4 @@
-import { aes256RandomKey, aesDecrypt, aesEncrypt, keyToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, keyToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/crypto"
 
 export class DeviceEncryptionFacade {
 	/**

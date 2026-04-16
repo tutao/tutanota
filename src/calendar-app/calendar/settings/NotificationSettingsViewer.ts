@@ -6,7 +6,7 @@ import { PushIdentifier, PushIdentifierTypeRef, User } from "../../../common/api
 import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
-import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { noOp, ofClass } from "@tutao/utils"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { PushServiceType } from "../../../common/api/common/TutanotaConstants.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"

@@ -1,4 +1,4 @@
-import { debounce, identity, Nullable } from "@tutao/tutanota-utils"
+import { debounce, identity, Nullable } from "@tutao/utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"

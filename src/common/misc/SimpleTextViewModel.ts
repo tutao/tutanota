@@ -1,4 +1,4 @@
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 
 /**
  * Text view model suitable for data entry that isn't rendered as HTML

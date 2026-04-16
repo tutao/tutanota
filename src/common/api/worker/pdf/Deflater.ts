@@ -1,4 +1,4 @@
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 
 export class Deflater {
 	constructor() {}

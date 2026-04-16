@@ -1,4 +1,4 @@
-import { assertNotNull, downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, intersection, isSameTypeRef, toLowerCase } from "@tutao/utils"
 import type { File as TutanotaFile } from "../../entities/tutanota/TypeRefs.js"
 import { FileTypeRef as TutanotaFileTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { DataFile } from "../DataFile"

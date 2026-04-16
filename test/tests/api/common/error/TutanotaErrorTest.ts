@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 
 o.spec("TutanotaErrorTest", function () {
 	o("error name should be correct", () => {

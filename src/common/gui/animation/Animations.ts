@@ -1,6 +1,6 @@
 import type { EasingFunction } from "./Easing"
 import { ease } from "./Easing"
-import { downcast, newPromise } from "@tutao/tutanota-utils"
+import { downcast, newPromise } from "@tutao/utils"
 import { hexToRgb } from "../base/Color"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 

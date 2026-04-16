@@ -9,7 +9,7 @@ import { CounterFacade } from "../../../src/common/api/worker/facades/lazy/Count
 import { CounterType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { CounterValueTypeRef } from "../../../src/common/api/entities/monitor/TypeRefs.js"
 import { createTestEntity } from "../TestUtils.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/utils"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"

@@ -7,7 +7,7 @@ import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../a
 import { GroupMemberTypeRef, GroupTypeRef, SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
 import { NotFoundError } from "../../api/common/error/RestError"
-import { findAndRemove, lazy, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { findAndRemove, lazy, noOp, ofClass, promiseMap } from "@tutao/utils"
 import type { GroupMemberInfo } from "../GroupUtils"
 import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"

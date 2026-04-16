@@ -1,4 +1,4 @@
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { Mode } from "../api/common/Env"
 
 type LogFn = (...args: any) => void

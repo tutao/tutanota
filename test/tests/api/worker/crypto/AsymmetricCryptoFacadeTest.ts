@@ -3,7 +3,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
@@ -11,7 +11,7 @@ import {
 	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
 	aes256RandomKey,
@@ -26,11 +26,11 @@ import {
 	RsaX25519PublicKey,
 	uint8ArrayToBitArray,
 	X25519KeyPair,
-} from "@tutao/tutanota-crypto"
+} from "@tutao/crypto"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
-import { KeyVersion, Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion, Versioned } from "@tutao/utils"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"

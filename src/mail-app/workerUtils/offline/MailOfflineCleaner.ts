@@ -1,4 +1,4 @@
-import { assertNotNull, daysToMillis, groupByAndMap } from "@tutao/tutanota-utils"
+import { assertNotNull, daysToMillis, groupByAndMap } from "@tutao/utils"
 import {
 	constructMailSetEntryId,
 	elementIdPart,

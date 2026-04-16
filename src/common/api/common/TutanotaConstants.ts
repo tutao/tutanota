@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { DAY_IN_MILLIS, downcast } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, downcast } from "@tutao/utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
 import {

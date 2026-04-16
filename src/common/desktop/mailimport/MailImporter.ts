@@ -6,7 +6,7 @@ import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { MailSet } from "../../api/entities/tutanota/TypeRefs"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
-import { repeat } from "@tutao/tutanota-utils"
+import { repeat } from "@tutao/utils"
 import { Icons } from "../../gui/base/icons/Icons"
 
 /**

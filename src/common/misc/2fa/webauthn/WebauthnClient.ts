@@ -1,5 +1,5 @@
 import { decode } from "cborg"
-import { assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
 import type { U2fChallenge, U2fRegisteredDevice, WebauthnResponseData } from "../../../api/entities/sys/TypeRefs.js"
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fKey } from "../../../api/entities/sys/TypeRefs.js"
 import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"

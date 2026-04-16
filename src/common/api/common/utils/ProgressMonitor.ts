@@ -1,5 +1,5 @@
 import type { ProgressTracker } from "../../main/ProgressTracker"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 export type ProgressMonitorId = number
 export type ProgressListener = (percentageCompleted: number) => unknown

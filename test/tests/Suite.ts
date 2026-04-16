@@ -1,5 +1,4 @@
 import o from "@tutao/otest"
-
 import "./misc/WebsocketConnectivityModelTest"
 import "./api/common/error/RestErrorTest.js"
 import "./api/common/error/TutanotaErrorTest.js"
@@ -16,7 +15,6 @@ import "./api/main/SyncTrackerTest.js"
 import "./api/worker/CompressionTest.js"
 import "./api/worker/EventBusClientTest.js"
 import "./api/worker/EventBusEventCoordinatorTest.js"
-import "./api/worker/IndexedDbLastProcessedEventBatchStorageFacadeTest.js"
 import "./api/worker/SuspensionHandlerTest.js"
 import "./api/worker/UrlifierTest.js"
 import "./api/worker/crypto/AsymmetricCryptoFacadeTest.js"
@@ -197,11 +195,33 @@ import "./calendar/AllDaySectionTest"
 import "./mail/view/LabelsPopupViewModelTest.js"
 import "./settings/NotificationSettingsViewerModelTest.js"
 import "./drive/DriveTransferControllerTest.js"
-import "./api/worker/IndexedDbLastProcessedEventBatchStorageFacadeTest.ts"
+import "./api/worker/IndexedDbLastProcessedEventBatchStorageFacadeTest.js"
+import "./licc/ParserTest.js"
+import "./crypto/AesTest.js"
+import "./crypto/BcryptTest.js"
+import "./crypto/Argon2idTest.js"
+import "./crypto/SymmetricCipherUtilsTest.js"
+import "./crypto/SymmetricKeyDeriverTest.js"
+import "./crypto/SymmetricCipherFacadeTest.js"
+import "./crypto/AesCbcFacadeTest.js"
+import "./crypto/Ed25519Test.js"
+import "./crypto/KeyEncryptionTest.js"
+import "./crypto/MurmurHashTest.js"
+import "./crypto/RandomizerTest.js"
+import "./crypto/RsaTest.js"
+import "./crypto/Sha1Test.js"
+import "./crypto/Sha256Test.js"
+import "./crypto/HkdfTest.js"
+import "./crypto/TotpVerifierTest.js"
+import "./crypto/X25519Test.js"
+import "./crypto/KyberTest.js"
+import "./crypto/HmacTest.js"
+import "./crypto/Blake3Test.js"
+import "./crypto/AeadFacadeTest.js"
+import "./usagetests/UsageTestAll.js"
 
 import * as td from "testdouble"
-import { random } from "@tutao/tutanota-crypto"
-import { Mode } from "../../src/common/api/common/Env.js"
+import { Mode } from "../../src/common/api/common/Env"
 
 export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
 	await setupSuite({ integration })
@@ -213,7 +233,8 @@ export async function run({ integration, filter }: { integration?: boolean; filt
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl.js")
+	const { random } = await import("@tutao/crypto")
+	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process !== "undefined") {
@@ -228,6 +249,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 
 	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
+
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")

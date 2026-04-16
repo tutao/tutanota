@@ -7,7 +7,7 @@ import type { WindowManager } from "../DesktopWindowManager"
 import os from "node:os"
 import { getResourcePath } from "../resources"
 import type { PlatformTray } from "./DesktopTray"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 
 export class MacTray implements PlatformTray {
 	private readonly dock: Electron.Dock = assertNotNull(app.dock)

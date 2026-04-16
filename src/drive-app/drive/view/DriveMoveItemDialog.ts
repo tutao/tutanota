@@ -9,7 +9,7 @@ import { DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/dr
 import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItems } from "./DriveUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { DialogHeaderBar } from "../../../common/gui/base/DialogHeaderBar"

@@ -1,6 +1,6 @@
 import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName, reverse } from "../../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../../misc/LanguageViewModel"
-import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../../api/entities/sys/TypeRefs.js"
 import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../../api/entities/sys/TypeRefs.js"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"

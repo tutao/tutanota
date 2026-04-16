@@ -1,6 +1,6 @@
 import { Commands, MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import { exposeLocalDelayed } from "../../api/common/WorkerProxy"
-import { assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
 import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 

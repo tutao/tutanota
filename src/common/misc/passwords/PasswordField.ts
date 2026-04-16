@@ -6,7 +6,7 @@ import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "../../gu
 import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "./PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
-import type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
 import type { MaybeTranslation } from "../LanguageViewModel.js"
 
 type StatusSetting = Status | "auto"

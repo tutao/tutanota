@@ -7,7 +7,7 @@ import { KeyPermanentlyInvalidatedError } from "../../../src/common/api/common/e
 import { CredentialAuthenticationError } from "../../../src/common/api/common/error/CredentialAuthenticationError.js"
 import { Credentials, credentialsToUnencrypted } from "../../../src/common/misc/credentials/Credentials.js"
 import { SecondFactorHandler } from "../../../src/common/misc/2fa/SecondFactorHandler"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
@@ -20,7 +20,7 @@ import { NativePushServiceApp } from "../../../src/common/native/main/NativePush
 import { PersistedCredentials } from "../../../src/common/native/common/generatedipc/PersistedCredentials.js"
 import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
 import { UnencryptedCredentials } from "../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { AppLock } from "../../../src/common/login/AppLock.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 

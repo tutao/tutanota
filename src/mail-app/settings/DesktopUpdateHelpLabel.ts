@@ -1,7 +1,7 @@
 import m, { Child, Children, Vnode } from "mithril"
 import { Icon } from "../../common/gui/base/Icon"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { delay } from "@tutao/tutanota-utils"
+import { delay } from "@tutao/utils"
 import Stream from "mithril/stream"
 import { Icons } from "../../common/gui/base/icons/Icons"
 

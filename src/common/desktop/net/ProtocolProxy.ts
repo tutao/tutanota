@@ -3,7 +3,7 @@ import fs from "node:fs"
 import { log } from "../DesktopLog.js"
 import { Session } from "electron"
 import { errorToObj } from "../../api/common/threading/MessageDispatcher.js"
-import { lazyMemoized } from "@tutao/tutanota-utils"
+import { lazyMemoized } from "@tutao/utils"
 import { getMimeTypeForFile } from "../files/DesktopFileFacade.js"
 import { convertHeaders, customFetch, FetchImpl, toGlobalResponse, UndiciRequestInit } from "./NetAgent"
 

@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/tutanota-error"
+import { TutanotaError } from "@tutao/error"
 
 export const enum ExportErrorReason {
 	LockedForUser = "LockedForUser",

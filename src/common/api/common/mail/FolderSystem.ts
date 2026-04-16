@@ -1,4 +1,4 @@
-import { groupBy } from "@tutao/tutanota-utils"
+import { groupBy } from "@tutao/utils"
 import { Mail, MailSet } from "../../entities/tutanota/TypeRefs.js"
 import { isTopLevelMailSet, isVisibleSystemMailSet, MailSetKind, SystemFolderType } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"

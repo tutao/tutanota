@@ -12,7 +12,7 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
-import { assertNotNull, delay } from "@tutao/tutanota-utils"
+import { assertNotNull, delay } from "@tutao/utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../TestUtils"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"

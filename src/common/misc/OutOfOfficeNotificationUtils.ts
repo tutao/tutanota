@@ -4,7 +4,7 @@ import { formatDate } from "./Formatter"
 import { lang } from "./LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { MailboxGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
-import { getDayShifted } from "@tutao/tutanota-utils"
+import { getDayShifted } from "@tutao/utils"
 
 /**
  * Returns true if notifications are currently sent.

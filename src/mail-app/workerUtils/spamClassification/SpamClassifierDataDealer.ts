@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { assertNotNull, isEmpty, isNotNull, last, lazyAsync, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, isNotNull, last, lazyAsync, promiseMap, splitInChunks } from "@tutao/utils"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,

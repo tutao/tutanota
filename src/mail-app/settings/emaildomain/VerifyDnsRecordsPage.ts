@@ -9,7 +9,7 @@ import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../common/g
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import type { DnsRecord } from "../../../common/api/entities/sys/TypeRefs.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/utils"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"

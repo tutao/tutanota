@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { errorToString, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { errorToString, stringToUtf8Uint8Array } from "@tutao/utils"
 import { DataFile } from "./DataFile"
 
 export const LOG_SIZE = 1000

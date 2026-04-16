@@ -1,6 +1,6 @@
 import { pureComponent } from "./base/PureComponent.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { NBSP } from "@tutao/tutanota-utils"
+import { NBSP } from "@tutao/utils"
 import { AppHeaderAttrs } from "./Header.js"
 import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"

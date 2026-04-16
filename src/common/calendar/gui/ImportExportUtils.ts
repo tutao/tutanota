@@ -13,7 +13,7 @@ import {
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
-import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
+import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"

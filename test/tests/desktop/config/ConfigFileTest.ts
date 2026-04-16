@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import n from "../../nodemocker.js"
-import { delay, numberRange } from "@tutao/tutanota-utils"
+import { delay, numberRange } from "@tutao/utils"
 import { getConfigFile } from "../../../../src/common/desktop/config/ConfigFile.js"
 
 const MAX_LATENCY = 20

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, when } from "testdouble"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebauthnClient } from "../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
 import { WebAuthnFacade } from "../../../../src/common/native/common/generatedipc/WebAuthnFacade.js"
 import { U2fChallengeTypeRef, U2fKeyTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"

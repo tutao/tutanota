@@ -9,7 +9,7 @@ import {
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
 import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { assertNotNull, clone, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/utils"
 import {
 	CalendarAttendeeStatus,
 	ConversationType,

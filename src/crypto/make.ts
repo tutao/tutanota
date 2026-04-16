@@ -35,6 +35,13 @@ async function run(targetDir: string, options: { clean: boolean }) {
 
 	// note: --out-dir is relative to the rust package in `tuta-sdk/rust/crypto_primitives` (CRYPTO_PRIMITIVES_CRATE)
 	const wasmOutDir = `../../../${WASM_PACK_OUT_DIR}`
-	await $`npx wasm-pack build --target web --profile release-wasm ${CRYPTO_PRIMITIVES_CRATE} --out-dir ${wasmOutDir}`
+
+	// * we only want to build this again in case it does not exist yet.
+	// because invocation of wasm-pack leads to generation (file write) and optimization with wasm-opt (file read)
+	// which leads to problem in ci
+	// * pass --clean flag to force rebuilding
+	if (!fs.existsSync(`../../${WASM_PACK_OUT_DIR}`)) {
+		await $({ stdio: "inherit" })`npx wasm-pack build --target web --profile release-wasm ${CRYPTO_PRIMITIVES_CRATE} --out-dir ${wasmOutDir} --no-pack`
+	}
 	fs.copyFileSync(cryptoPrimitivesWasmFile, targetPath)
 }

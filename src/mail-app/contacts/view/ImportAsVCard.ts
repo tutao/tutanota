@@ -1,5 +1,5 @@
 import { showFileChooser, showNativeFilePicker } from "../../../common/file/FileController.js"
-import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { utf8Uint8ArrayToString } from "@tutao/utils"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"

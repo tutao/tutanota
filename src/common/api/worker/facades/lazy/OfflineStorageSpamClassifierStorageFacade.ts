@@ -3,7 +3,7 @@ import { sql } from "../../offline/Sql"
 import { untagSqlObject } from "../../offline/SqlValue"
 import type { OfflineStorageTable } from "../../offline/OfflineStorage"
 import type { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
-import { Nullable } from "@tutao/tutanota-utils"
+import { Nullable } from "@tutao/utils"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 
 export const SpamClassificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({

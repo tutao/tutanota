@@ -1,5 +1,5 @@
 import { Mail, MailDetailsBlobTypeRef } from "../../../entities/tutanota/TypeRefs"
-import { assertNotNull, lazy, lazyAsync } from "@tutao/tutanota-utils"
+import { assertNotNull, lazy, lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
 import { CustomCacheHandler } from "./CustomCacheHandler"
 import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"

@@ -1,7 +1,7 @@
 import { isIOSApp } from "../api/common/Env.js"
 import { Const } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 

@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
 	AccountingInfo,

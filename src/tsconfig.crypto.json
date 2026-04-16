@@ -1,0 +1,22 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["crypto", "../types/*.d.ts"],
+	"exclude": ["crypto/dist"],
+	"compilerOptions": {
+		"rootDir": "crypto",
+		"outDir": "crypto/dist",
+		"tsBuildInfoFile": "crypto/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.error.json"
+		},
+		{
+			"path": "tsconfig.crypto-primitives.json"
+		}
+	]
+}

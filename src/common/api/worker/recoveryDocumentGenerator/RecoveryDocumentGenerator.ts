@@ -1,7 +1,7 @@
 import { PDF_FONTS, PDF_IMAGES, PdfDocument } from "../pdf/PdfDocument.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
 import QRCode from "qrcode-svg"
-import { formatSortableDate } from "@tutao/tutanota-utils"
+import { formatSortableDate } from "@tutao/utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 const ON_SURFACE_HIGH: [number, number, number] = [245 / 255, 238 / 255, 234 / 255]

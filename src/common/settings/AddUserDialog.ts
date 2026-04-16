@@ -4,7 +4,7 @@ import { BookingItemFeatureType, UpgradePromptType } from "../api/common/Tutanot
 import { Dialog } from "../gui/base/Dialog.js"
 import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
-import { assertNotNull, getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
 import { showBuyDialog } from "../subscription/BuyDialog.js"

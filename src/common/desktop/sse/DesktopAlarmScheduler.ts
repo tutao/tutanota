@@ -4,7 +4,7 @@ import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
-import { isSameDay } from "@tutao/tutanota-utils"
+import { isSameDay } from "@tutao/utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 import { ClientModelUntypedInstance } from "../../api/common/EntityTypes"
 

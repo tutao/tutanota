@@ -11,7 +11,7 @@ import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { styles } from "../../gui/styles.js"
 import { getFeaturePlaceholderReplacement } from "../utils/SubscriptionUtils.js"
 import { PlanBadge } from "./PlanBadge.js"
-import { Callback } from "@tutao/tutanota-utils"
+import { Callback } from "@tutao/utils"
 import { boxShadowHigh } from "../../gui/main-styles"
 import { DiscountDetail, getBorderRadius, getBorderWidth } from "../utils/PlanSelectorUtils"
 

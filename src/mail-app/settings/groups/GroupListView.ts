@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import type { GroupInfo } from "../../../common/api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
-import { LazyLoaded, memoized, noOp } from "@tutao/tutanota-utils"
+import { LazyLoaded, memoized, noOp } from "@tutao/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../../common/gui/base/Icon.js"

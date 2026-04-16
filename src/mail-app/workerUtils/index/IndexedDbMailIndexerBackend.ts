@@ -1,5 +1,5 @@
 import { IndexerCore } from "./IndexerCore"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { File as TutanotaFile, Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import {
 	elementIdPart,

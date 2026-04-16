@@ -9,7 +9,7 @@ import { SurveyService } from "../../api/entities/sys/Services.js"
 import { px } from "../../gui/size.js"
 import { showSnackBar } from "../../gui/base/SnackBar.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { client } from "../../misc/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 

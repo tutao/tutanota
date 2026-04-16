@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { NewPaidPlans, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
-import { clone } from "@tutao/tutanota-utils"
+import { clone } from "@tutao/utils"
 
 import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
 

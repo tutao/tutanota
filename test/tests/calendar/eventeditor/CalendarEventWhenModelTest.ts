@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { isAllDayEvent } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"

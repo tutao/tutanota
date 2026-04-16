@@ -5,7 +5,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "..
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -18,12 +18,12 @@ import {
 	PubEncKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { TutanotaError } from "@tutao/tutanota-error"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { TutanotaError } from "@tutao/error"
+import { CryptoError } from "@tutao/crypto/error"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 
 const { anything, argThat, captor } = matchers

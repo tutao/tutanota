@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, isSameTypeRef, lazyAsync, tokenize } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, isSameTypeRef, lazyAsync, tokenize } from "@tutao/utils"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
 import { listIdPart } from "../../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMonitor.js"

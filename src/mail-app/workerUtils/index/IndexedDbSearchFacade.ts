@@ -17,7 +17,7 @@ import {
 	tokenize,
 	TypeRef,
 	uint8ArrayToBase64,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
 	ElementDataDbRow,

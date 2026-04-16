@@ -42,7 +42,7 @@ import {
 	promiseMap,
 	remove,
 	typedValues,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"

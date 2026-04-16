@@ -17,7 +17,7 @@ import {
 } from "../../api/common/TutanotaConstants"
 import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../../api/entities/sys/TypeRefs.js"
-import { downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { PaymentDataService } from "../../api/entities/sys/Services"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"

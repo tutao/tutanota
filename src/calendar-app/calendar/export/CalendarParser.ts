@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, filterInt, neverNull } from "@tutao/tutanota-utils"
+import { DAY_IN_MILLIS, filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import {
 	CalendarEventAttendee,

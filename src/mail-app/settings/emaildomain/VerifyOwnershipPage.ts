@@ -14,7 +14,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/Wiza
 import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
 import { PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { isEmpty, ofClass } from "@tutao/tutanota-utils"
+import { isEmpty, ofClass } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"

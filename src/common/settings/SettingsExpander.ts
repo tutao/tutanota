@@ -3,7 +3,7 @@ import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
 import { ifAllowedTutaLinks } from "../gui/base/GuiUtils.js"
-import type { lazy, Thunk } from "@tutao/tutanota-utils"
+import type { lazy, Thunk } from "@tutao/utils"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
 

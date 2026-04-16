@@ -1,4 +1,4 @@
-import { pad } from "@tutao/tutanota-utils"
+import { pad } from "@tutao/utils"
 import { DateTime } from "luxon"
 
 /**

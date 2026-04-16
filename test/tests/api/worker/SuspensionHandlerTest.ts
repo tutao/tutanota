@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { SuspensionHandler } from "../../../../src/common/api/worker/SuspensionHandler.js"
-import { deferWithHandler, downcast } from "@tutao/tutanota-utils"
+import { deferWithHandler, downcast } from "@tutao/utils"
 import type { SystemTimeout } from "../../../../src/common/api/common/utils/Scheduler.js"
 import { InfoMessageHandler } from "../../../../src/common/gui/InfoMessageHandler.js"
 import { func, matchers, object } from "testdouble"
-import { spy, verify } from "@tutao/tutanota-test-utils"
+import { spy, verify } from "@tutao/otest"
 
 o.spec("SuspensionHandler test", () => {
 	let suspensionHandler: SuspensionHandler

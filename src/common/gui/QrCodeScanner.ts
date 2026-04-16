@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import jsQR, { QRCode } from "jsqr"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { lang } from "../misc/LanguageViewModel.js"
 import { assertMainOrNode, isApp, isAppleDevice, isDesktop } from "../api/common/Env.js"
 import { locator } from "../api/main/CommonLocator.js"

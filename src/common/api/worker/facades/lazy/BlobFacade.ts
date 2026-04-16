@@ -15,14 +15,14 @@ import {
 	splitUint8ArrayInChunks,
 	uint8ArrayToBase64,
 	uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+} from "@tutao/utils"
 import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { isSuspensionResponse, SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
-import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/tutanota-crypto"
+import { aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
@@ -35,7 +35,7 @@ import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
 import { ServerModelUntypedInstance, SomeEntity } from "../../../common/EntityTypes.js"
 import { _encryptBytes } from "../../crypto/CryptoWrapper.js"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { CryptoError } from "@tutao/crypto/error"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"

@@ -4,7 +4,7 @@ import type { InfoLink, TranslationKey, MaybeTranslation } from "../misc/Languag
 import type { TableAttrs } from "../gui/base/Table.js"
 import { Table } from "../gui/base/Table.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import type { lazy } from "@tutao/tutanota-utils"
+import type { lazy } from "@tutao/utils"
 import Stream from "mithril/stream"
 
 type ExpandableTableAttrs = {

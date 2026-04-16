@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { PasswordModel } from "../../../src/common/settings/PasswordForm.js"
 import { matchers, object, when } from "testdouble"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/usagetests"
 
 o.spec("PasswordModelTest", function () {
 	let passwordModel: PasswordModel | null = null

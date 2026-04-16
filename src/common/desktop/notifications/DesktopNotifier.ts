@@ -2,7 +2,7 @@ import type { NativeImage } from "electron"
 import type { DesktopTray } from "../tray/DesktopTray"
 import type { ApplicationWindow } from "../ApplicationWindow"
 import type { Dismisser, NotificationFactory } from "./NotificationFactory"
-import { defer, DeferredObject, getFromMap, isEmpty, LazyLoaded, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFromMap, isEmpty, LazyLoaded, noOp } from "@tutao/utils"
 
 /**
  * Send and manipulate notifications on desktop.

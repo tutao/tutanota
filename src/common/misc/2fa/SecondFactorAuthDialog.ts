@@ -1,6 +1,6 @@
 import { SecondFactorType } from "../../api/common/TutanotaConstants.js"
-import type { Thunk } from "@tutao/tutanota-utils"
-import { assertNotNull, getFirstOrThrow } from "@tutao/tutanota-utils"
+import type { Thunk } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
 import type { TranslationKey } from "../LanguageViewModel.js"
 import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
 import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"

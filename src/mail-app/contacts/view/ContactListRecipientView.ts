@@ -6,7 +6,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { List, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { ContactListEntry } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { noOp } from "@tutao/utils"
 import { ContactListViewModel } from "./ContactListViewModel.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import {

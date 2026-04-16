@@ -8,7 +8,7 @@ import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js
 import { DropdownChildAttrs } from "./base/Dropdown.js"
 import { Contact } from "../api/entities/tutanota/TypeRefs.js"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
-import { getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, lazy } from "@tutao/utils"
 import { Dialog } from "./base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "./base/icons/Icons.js"

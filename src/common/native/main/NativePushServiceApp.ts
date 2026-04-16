@@ -1,6 +1,6 @@
 import type { PushIdentifier } from "../../api/entities/sys/TypeRefs.js"
 import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/sys/TypeRefs.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { PushServiceType } from "../../api/common/TutanotaConstants"
 import { lang } from "../../misc/LanguageViewModel"
 import { isAndroidApp, isApp, isDesktop, isIOSApp } from "../../api/common/Env"

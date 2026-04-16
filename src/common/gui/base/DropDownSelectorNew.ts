@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { createDropdown } from "./Dropdown.js"
 import type { AllIcons } from "./Icon"
-import { type lazy, noOp } from "@tutao/tutanota-utils"
+import { type lazy, noOp } from "@tutao/utils"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"

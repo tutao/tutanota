@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import type { App } from "electron"
 import type { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { delay, downcast } from "@tutao/tutanota-utils"
+import { delay, downcast } from "@tutao/utils"
 import { ElectronUpdater } from "../../../src/common/desktop/ElectronUpdater.js"
 import type { UpdaterWrapper } from "../../../src/common/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"
@@ -11,7 +11,7 @@ import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import en from "../../../src/mail-app/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FsExports } from "../../../src/common/desktop/ElectronExportTypes.js"
-import { spy } from "@tutao/tutanota-test-utils"
+import { spy } from "@tutao/otest"
 
 lang.init(en)
 

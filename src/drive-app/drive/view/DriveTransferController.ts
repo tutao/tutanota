@@ -1,6 +1,6 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { filterInt, SECOND_IN_MILLIS } from "@tutao/tutanota-utils"
+import { filterInt, SECOND_IN_MILLIS } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"

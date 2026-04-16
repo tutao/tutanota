@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { MailSetEntry, MailSetEntryTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { createTestEntity, equalToArray } from "../../../TestUtils"
-import { lastThrow } from "@tutao/tutanota-utils"
+import { lastThrow } from "@tutao/utils"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade"
 
 o.spec("BulkMailLoader", () => {

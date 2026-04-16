@@ -12,7 +12,7 @@ import {
 	createContactWebsite,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../../common/api/common/TutanotaConstants.js"
-import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/tutanota-utils"
+import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/utils"
 import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
 import { elementIdPart, getElementId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils.js"
 import {

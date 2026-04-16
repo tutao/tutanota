@@ -1,5 +1,5 @@
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { assertNotNull, Hex } from "@tutao/tutanota-utils"
+import { assertNotNull, Hex } from "@tutao/utils"
 import {
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,

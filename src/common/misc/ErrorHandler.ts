@@ -3,7 +3,7 @@
  * ErrorHandler is decoupled from ErrorHandlerImpl to reduce boot bundle size.
  */
 import { assertMainOrNodeBoot, isTest } from "../api/common/Env"
-import { delay } from "@tutao/tutanota-utils"
+import { delay } from "@tutao/utils"
 
 assertMainOrNodeBoot()
 

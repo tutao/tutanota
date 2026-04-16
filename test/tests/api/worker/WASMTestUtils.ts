@@ -1,6 +1,6 @@
-import { loadWasmModuleFromFile } from "../../../../packages/tutanota-crypto/test/WebAssemblyTestUtils.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
-import { Argon2IDExports, LibOQSExports } from "@tutao/tutanota-crypto"
+import { loadWasmModuleFromFile } from "../../crypto/WebAssemblyTestUtils.js"
+import { LazyLoaded } from "@tutao/utils"
+import { Argon2IDExports, LibOQSExports } from "@tutao/crypto"
 
 /**
  * Load the liboqs WASM and return its imports, automatically accounting for browser tests vs. node tests

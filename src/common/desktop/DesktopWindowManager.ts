@@ -15,7 +15,7 @@ import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 
 import { SseInfo } from "./sse/SseInfo.js"
-import { debounce, LazyLoaded } from "@tutao/tutanota-utils"
+import { debounce, LazyLoaded } from "@tutao/utils"
 import { lang } from "../misc/LanguageViewModel"
 
 const TAG = "[DesktopWindowManager]"

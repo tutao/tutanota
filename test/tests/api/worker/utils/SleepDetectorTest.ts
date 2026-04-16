@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../src/common/api/worker/utils/SleepDetector.js"
 import { SchedulerMock } from "../../../TestUtils.js"
 import { func, object, verify, when } from "testdouble"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 
 o.spec("SleepDetector", function () {
