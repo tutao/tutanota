@@ -138,7 +138,7 @@ o.spec("ListModel", function () {
 			const reloading2 = listModel.reload()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
-			const knowledgeBaseEntry2 = createTestEntity(KnowledgeBaseEntryTypeRef, {
+			const knowledgeBaseEntry2 = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
 				_id: [listId, timestampToGeneratedId(20)],
 			})
 
