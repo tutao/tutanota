@@ -2,7 +2,7 @@ import { assert, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
-import { DAY_IN_MILLIS, isBrowser, Mode } from "@tutao/app-env"
+import { GENERATED_ID_MIN_TIMESTAMP, isBrowser, Mode } from "@tutao/app-env"
 import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typerefs"
 
 /**
@@ -50,11 +50,10 @@ export class OfflineStorageSettingsModel {
 	}
 
 	isValidDate(newDate: Date): boolean {
-		// The choice of 7500 days (a bit over 20 years) is a bit arbitrary.
-		// The theoretical maximum is the number of days between Epoch and May 15th 2109, exceeding that will
-		// lead to an overflow in our 42 bit timestamp in the id.
-		const now = new Date().getTime()
-		return newDate.getTime() < now && now - newDate.getTime() < 7500 * DAY_IN_MILLIS
+		//For a date to be valid, it must be between Epoch and May 15th 2109, exceeding that will lead to an overflow
+		// in our 42 bit timestamp in the id.
+		const now = Date.now()
+		return newDate.getTime() < now && newDate.getTime() > GENERATED_ID_MIN_TIMESTAMP
 	}
 
 	isFixedDays(): boolean {
