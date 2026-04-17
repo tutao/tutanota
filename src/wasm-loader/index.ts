@@ -139,3 +139,34 @@ export function rollupWasmLoader(options: PluginOptions) {
 		},
 	}
 }
+
+export function esbuildWasmLoader(options) {
+	const libs = new Map(options.webassemblyLibraries.map((lib) => [lib.name, lib]))
+
+	return {
+		name: "wasm-virtual-module",
+		setup(build) {
+			// 1) Resolve "argon2.wasm" imports as virtual modules
+			build.onResolve({ filter: /\.wasm$/ }, (args) => {
+				if (libs.has(args.path)) {
+					return {
+						path: args.path,
+						namespace: "wasm-virtual",
+					}
+				}
+			})
+
+			// 2) Generate module contents dynamically
+			build.onLoad({ filter: /.*/, namespace: "wasm-virtual" }, async (args) => {
+				const lib = libs.get(args.path)
+				const wasmFileName = path.basename(lib.outputPath)
+				const contents = await generateImportCode(wasmFileName, false)
+				return {
+					contents,
+					loader: "js",
+					resolveDir: path.dirname(lib.outputPath),
+				}
+			})
+		},
+	}
+}
