@@ -31,7 +31,7 @@ import {
 	memoizedWithHiddenArgument,
 } from "@tutao/tutanota-utils"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
+import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
@@ -186,15 +186,17 @@ export class ConversationListModel implements MailSetListModel {
 
 	private async handleMailSetEntryCreation(mailSetEntryId: IdTuple) {
 		const loadedMail = await this.loadSingleMail(mailSetEntryId)
-		const addedMail = loadedMail.addedItems[0]
-		return await this.listModel.waitLoad(async () => {
-			if (addedMail != null) {
-				if (!this.listModel.canInsertItem(addedMail)) {
-					return
+		if (loadedMail) {
+			const addedMail = loadedMail.addedItems[0]
+			return await this.listModel.waitLoad(async () => {
+				if (addedMail != null) {
+					if (!this.listModel.canInsertItem(addedMail)) {
+						return
+					}
+					this.listModel.insertLoadedItem(addedMail)
 				}
-				this.listModel.insertLoadedItem(addedMail)
-			}
-		})
+			})
+		}
 	}
 
 	private async handleMailSetEntryDeletion(update: EntityUpdateData) {
@@ -248,10 +250,18 @@ export class ConversationListModel implements MailSetListModel {
 
 	private async loadSingleMail(id: IdTuple): Promise<{
 		addedItems: LoadedConversation[]
-	}> {
-		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
-		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		return this._insertOrUpdateLoadedMails(loadedMails)
+	} | null> {
+		try {
+			const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
+			const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
+			return this._insertOrUpdateLoadedMails(loadedMails)
+		} catch (e) {
+			if (isExpectedErrorForSynchronization(e)) {
+				return null
+			} else {
+				throw e
+			}
+		}
 	}
 
 	isEmptyAndDone(): boolean {
