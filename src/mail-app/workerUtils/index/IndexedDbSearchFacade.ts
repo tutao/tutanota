@@ -146,17 +146,17 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	}
 
 	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
-		return this.startOrContinueSearch({
-			...result,
-			restriction: {
-				...result.restriction,
-				end: extensionEnd,
-			},
-		}).then(() => {
-			const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
+		const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
+		result.restriction = {
+			...result.restriction,
+			end: extensionEnd,
+		}
+
+		return this.startOrContinueSearch(result).then(() => {
 			result.restriction.end = Math.min(restrictionEnd, extensionEnd)
 			result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
 			result.results.sort(compareNewestFirst)
+
 			return result
 		})
 	}
@@ -284,7 +284,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				markStart("_filterByListIdAndGroupSearchResults")
 				return this.filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
 			})
-			.then((result) => {
+			.then(() => {
 				markEnd("_filterByListIdAndGroupSearchResults")
 				if (typeof self !== "undefined") {
 					printMeasure("query: " + searchResult.query + ", maxResults: " + String(maxResults), [
@@ -297,7 +297,6 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						"_filterByListIdAndGroupSearchResults",
 					])
 				}
-				return result
 			})
 	}
 
@@ -601,7 +600,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	private reduceToUniqueElementIds(results: ReadonlyArray<DecryptedSearchIndexEntry>, previousResult: SearchResult): ReadonlyArray<MoreResultsIndexEntry> {
 		const uniqueIds = new Set<string>()
 		return results.filter((entry) => {
-			if (!uniqueIds.has(entry.id) && !previousResult.results.some((r) => r[1] === entry.id)) {
+			if (
+				!uniqueIds.has(entry.id) &&
+				!previousResult.results.some((r) => r[1] === entry.id) &&
+				!previousResult.moreResults.some((r) => r.id === entry.id)
+			) {
 				uniqueIds.add(entry.id)
 				return true
 			} else {
