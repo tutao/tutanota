@@ -19,7 +19,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
+import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
@@ -181,11 +181,13 @@ export class MailListModel implements MailSetListModel {
 				}
 			} else if (update.operation === OperationType.CREATE) {
 				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
-				await this.listModel.waitLoad(async () => {
-					if (this.listModel.canInsertItem(loadedMail)) {
-						this.listModel.insertLoadedItem(loadedMail)
-					}
-				})
+				if (loadedMail) {
+					await this.listModel.waitLoad(async () => {
+						if (this.listModel.canInsertItem(loadedMail)) {
+							this.listModel.insertLoadedItem(loadedMail)
+						}
+					})
+				}
 			}
 		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
@@ -355,11 +357,19 @@ export class MailListModel implements MailSetListModel {
 		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler, this.connectivityModel.isLeader())
 	}
 
-	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
-		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
-		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		this.updateMailMap(loadedMails)
-		return assertNotNull(loadedMails[0])
+	private async loadSingleMail(id: IdTuple): Promise<LoadedMail | null> {
+		try {
+			const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
+			const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
+			this.updateMailMap(loadedMails)
+			return assertNotNull(loadedMails[0])
+		} catch (e) {
+			if (isExpectedErrorForSynchronization(e)) {
+				return null
+			} else {
+				throw e
+			}
+		}
 	}
 
 	private async resolveMailSetEntries(
