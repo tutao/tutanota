@@ -10,6 +10,19 @@ public protocol AesDecryptable { static func aesDecrypt(base64: Base64, key: Key
 
 public protocol SimpleStringDecodable: AesDecryptable { init?(string: String) }
 
+//public enum SimpleStringConversionError: Error { case invalidIntValue(String) ) }
+
+private let SIMPLE_STRING_CONVERSION_ERROR = "de.tutao.tutashared.SimpleStringConversionError"
+
+/**
+ Simple error for handling for when we can't convert a decrypted SimpleStringDecodable into its intended concrete type.
+ */
+public class SimpleStringConversionError: TutanotaError {
+	public init() { super.init(message: "Cannot convert simple string value to concrete type", underlyingError: nil) }
+
+	public override var name: String { get { SIMPLE_STRING_CONVERSION_ERROR } }
+}
+
 extension SimpleStringDecodable {
 	public static func aesDecrypt(base64: Base64, key: Key) throws -> Self {
 		guard let decoded = Data(base64Encoded: base64) else { throw TutanotaError(message: "Could not convert BASE64 value to data for \(Self.self)") }
@@ -17,11 +30,7 @@ extension SimpleStringDecodable {
 		guard let decValue = String(data: decrypted, encoding: .utf8) else {
 			throw TutanotaError(message: "Cound not convert decrypted data to string for \(Self.self)")
 		}
-		if let value = Self.init(string: decValue) {
-			return value
-		} else {
-			throw TutanotaError(message: "Invalid string representation for \(Self.self): \(decValue)")
-		}
+		if let value = Self.init(string: decValue) { return value } else { throw SimpleStringConversionError.init() }
 	}
 }
 
