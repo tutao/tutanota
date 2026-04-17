@@ -1,6 +1,8 @@
-import { create, StrippedEntity } from "../../EntityUtils.js"
 import { TypeRef } from "@tutao/utils"
+import { create, StrippedEntity } from "../../EntityUtils.js"
 import { default as typeModels } from "./TypeModels.js"
+
+
 
 
 export const CustomerAccountPostingTypeRef: TypeRef<CustomerAccountPosting> = new TypeRef("accounting", 79)

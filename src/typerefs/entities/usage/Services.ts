@@ -1,15 +1,10 @@
-import { UsageTestAssignmentInTypeRef } from "./TypeRefs.js"
-import { UsageTestAssignmentOutTypeRef } from "./TypeRefs.js"
-import { UsageTestParticipationInTypeRef } from "./TypeRefs.js"
-import { UsageTestParticipationOutTypeRef } from "./TypeRefs.js"
-import { UsageTestParticipationDeleteInTypeRef } from "./TypeRefs.js"
-
+import * as usageTypeRefs from "./TypeRefs.js"
 export const UsageTestAssignmentService = Object.freeze({
 	app: "usage",
 	name: "UsageTestAssignmentService",
 	get: null,
-	post: { data: UsageTestAssignmentInTypeRef, return: UsageTestAssignmentOutTypeRef },
-	put: { data: UsageTestAssignmentInTypeRef, return: UsageTestAssignmentOutTypeRef },
+	post: { data: usageTypeRefs.UsageTestAssignmentInTypeRef, return: usageTypeRefs.UsageTestAssignmentOutTypeRef },
+	put: { data: usageTypeRefs.UsageTestAssignmentInTypeRef, return: usageTypeRefs.UsageTestAssignmentOutTypeRef },
 	delete: null,
 } as const)
 
@@ -17,7 +12,7 @@ export const UsageTestParticipationService = Object.freeze({
 	app: "usage",
 	name: "UsageTestParticipationService",
 	get: null,
-	post: { data: UsageTestParticipationInTypeRef, return: UsageTestParticipationOutTypeRef },
+	post: { data: usageTypeRefs.UsageTestParticipationInTypeRef, return: usageTypeRefs.UsageTestParticipationOutTypeRef },
 	put: null,
-	delete: { data: UsageTestParticipationDeleteInTypeRef, return: null },
+	delete: { data: usageTypeRefs.UsageTestParticipationDeleteInTypeRef, return: null },
 } as const)

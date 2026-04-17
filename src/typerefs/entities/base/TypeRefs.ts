@@ -1,6 +1,8 @@
-import { create, StrippedEntity } from "../../EntityUtils.js"
 import { TypeRef } from "@tutao/utils"
+import { create, StrippedEntity } from "../../EntityUtils.js"
 import { default as typeModels } from "./TypeModels.js"
+
+
 
 
 export const PersistenceResourcePostReturnTypeRef: TypeRef<PersistenceResourcePostReturn> = new TypeRef("base", 0)

@@ -1,15 +1,9 @@
-import { BlobAccessTokenPostInTypeRef } from "./TypeRefs.js"
-import { BlobAccessTokenPostOutTypeRef } from "./TypeRefs.js"
-import { BlobReferencePutInTypeRef } from "./TypeRefs.js"
-import { BlobReferenceDeleteInTypeRef } from "./TypeRefs.js"
-import { BlobGetInTypeRef } from "./TypeRefs.js"
-import { BlobPostOutTypeRef } from "./TypeRefs.js"
-
+import * as storageTypeRefs from "./TypeRefs.js"
 export const BlobAccessTokenService = Object.freeze({
 	app: "storage",
 	name: "BlobAccessTokenService",
 	get: null,
-	post: { data: BlobAccessTokenPostInTypeRef, return: BlobAccessTokenPostOutTypeRef },
+	post: { data: storageTypeRefs.BlobAccessTokenPostInTypeRef, return: storageTypeRefs.BlobAccessTokenPostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
@@ -19,15 +13,15 @@ export const BlobReferenceService = Object.freeze({
 	name: "BlobReferenceService",
 	get: null,
 	post: null,
-	put: { data: BlobReferencePutInTypeRef, return: null },
-	delete: { data: BlobReferenceDeleteInTypeRef, return: null },
+	put: { data: storageTypeRefs.BlobReferencePutInTypeRef, return: null },
+	delete: { data: storageTypeRefs.BlobReferenceDeleteInTypeRef, return: null },
 } as const)
 
 export const BlobService = Object.freeze({
 	app: "storage",
 	name: "BlobService",
-	get: { data: BlobGetInTypeRef, return: null },
-	post: { data: null, return: BlobPostOutTypeRef },
+	get: { data: storageTypeRefs.BlobGetInTypeRef, return: null },
+	post: { data: null, return: storageTypeRefs.BlobPostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)
