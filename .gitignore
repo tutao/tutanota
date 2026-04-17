@@ -13,7 +13,6 @@ test-ca
 **/*.xcbkptlist
 **/*.xcuserstate
 **/xcuserdata
-fastlane
 android-app/app/release
 app-ios/releases
 native-cache
@@ -30,3 +29,8 @@ DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
 import-trace.json
+**/fastlane/README.md
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
