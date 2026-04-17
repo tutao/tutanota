@@ -102,7 +102,7 @@ final class IosFileFacade: FileFacade {
 		request.httpMethod = method
 		request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
 		request.allHTTPHeaderFields = headers
-		defer { _ = self.activeTransfersLock.withLock { self.activeTransfers.removeValue(forKey: fileId) } }
+		defer { _ = self.activeTransfersLock.withLock { $0.removeValue(forKey: fileId) } }
 		final class UploadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 			private var progressCancellable: AnyCancellable?
 			private let taskCreated: (_ task: URLSessionTask) -> Void
@@ -126,7 +126,7 @@ final class IosFileFacade: FileFacade {
 		let uploadDelegate = UploadDelegate(
 			taskCreated: { [weak self] task in
 				guard let fileFacade = self else { return }
-				fileFacade.activeTransfersLock.withLock { fileFacade.activeTransfers[fileId] = task }
+				fileFacade.activeTransfersLock.withLock { $0[fileId] = task }
 			},
 			reporter: { bytesSent in self.uploadProgress(fileId, bytesSent) }
 		)
@@ -144,8 +144,8 @@ final class IosFileFacade: FileFacade {
 		}
 	}
 	func abortUpload(_ fileId: String) async throws {
-		TUTSLog("Abort upload for \(fileId) \(activeTransfers[fileId] != nil) \(activeTransfers)")
-		activeTransfers[fileId]?.cancel()
+		TUTSLog("Abort upload for \(fileId)")
+		activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
 
 	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
@@ -190,8 +190,8 @@ final class IosFileFacade: FileFacade {
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
 	func abortDownload(_ fileId: String) async {
-		TUTSLog("Abort download for \(fileId) \(activeTransfers[fileId] != nil) \(activeTransfers)")
-		self.activeDownloadsLock.withLock { $0[fileId]?.cancel() }
+		TUTSLog("Abort download for \(fileId)")
+		self.activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {

@@ -74,7 +74,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
 				urlSession: urlSession,
-				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } }
+				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } },
+				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
 			mobileContactsFacade: IosMobileContactsFacade(),
 			mobilePaymentsFacade: IosMobilePaymentsFacade(),

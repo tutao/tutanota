@@ -13,14 +13,24 @@ final class IosFileFacade: FileFacade {
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
 	private let downloadProgress: ProgressUpdater
-	private let activeDownloadsLock = OSAllocatedUnfairLock<Set<String>>(initialState: Set())
+	private let uploadProgress: ProgressUpdater
+	/// Map from fileId to the corresponding task
+	private let activeTransfersLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
 
-	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession, downloadProgress: @escaping ProgressUpdater) {
+	init(
+		chooser: TUTFileChooser,
+		viewer: FileViewer,
+		schemeHandler: ApiSchemeHandler,
+		urlSession: URLSession,
+		downloadProgress: @escaping ProgressUpdater,
+		uploadProgress: @escaping ProgressUpdater
+	) {
 		self.chooser = chooser
 		self.viewer = viewer
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
 		self.downloadProgress = downloadProgress
+		self.uploadProgress = uploadProgress
 	}
 
 	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
@@ -86,15 +96,53 @@ final class IosFileFacade: FileFacade {
 
 	func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String { fatalError("not implemented on this platform") }
 
-	func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String]) async throws -> UploadTaskResponse {
+	func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String], _ fileId: String) async throws
+		-> UploadTaskResponse
+	{
 		var request = URLRequest(url: URL(string: remoteUrl)!)
 		request.httpMethod = method
 		request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
 		request.allHTTPHeaderFields = headers
+		defer { _ = self.activeTransfersLock.withLock { $0.removeValue(forKey: fileId) } }
+		final class UploadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+			private var progressCancellable: AnyCancellable?
+			private let taskCreated: (_ task: URLSessionTask) -> Void
+			private let reporter: (_ bytesSent: Int) -> Void
+			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void, reporter: @escaping (_ bytesSent: Int) -> Void) {
+				self.reporter = reporter
+				self.taskCreated = taskCreated
+			}
+			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+				// We observe .fractionCompleted, as that changes frequently and accurately reacts to transfer progress.
+				// Other properties, such as .completedUnitCount are more abstract and do not immediately reflect progress.
+				// Progress handed into this method as task.progress internally consists of two progress trackers, the second
+				// one of which is the *actual* transfer progress. It seems inaccessible however, which is why we ask task
+				// directly for the bytes received.
 
-		let (data, response) = try await self.urlSession.upload(for: self.schemeHandler.rewriteRequest(request), fromFile: URL(fileURLWithPath: sourceFileUrl))
+				taskCreated(task)
+				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesSent)) }
+			}
+		}
+		let uploadDelegate = UploadDelegate(
+			taskCreated: { [weak self] task in
+				guard let fileFacade = self else { return }
+				fileFacade.activeTransfersLock.withLock { $0[fileId] = task }
+			},
+			reporter: { bytesSent in self.uploadProgress(fileId, bytesSent) }
+		)
+
+		let (data, response) = try await self.urlSession.upload(
+			for: self.schemeHandler.rewriteRequest(request),
+			fromFile: URL(fileURLWithPath: sourceFileUrl),
+			delegate: uploadDelegate
+		)
 		let httpResponse = response as! HTTPURLResponse
 		return UploadTaskResponse(httpResponse: httpResponse, responseBody: data)
+	}
+	func abortUpload(_ fileId: String) async throws {
+		TUTSLog("Abort upload for \(fileId)")
+		activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
 
 	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
@@ -102,19 +150,16 @@ final class IosFileFacade: FileFacade {
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
 		request.allHTTPHeaderFields = headers
-		_ = self.activeDownloadsLock.withLock { $0.insert(fileId) }
-		defer { _ = self.activeDownloadsLock.withLock { $0.remove(fileId) } }
+		defer { _ = self.activeTransfersLock.withLock { $0.removeValue(forKey: fileId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 			private var progressCancellable: AnyCancellable?
 			private let reporter: (_ bytesReceived: Int) -> Void
-			private let fileId: String
-			private let shouldCancel: (_ fileId: String) -> Bool
-			init(fileId: String, shouldCancel: @escaping (_ fileId: String) -> Bool, reporter: @escaping (_ bytesReceived: Int) -> Void) {
+			private let taskCreated: (_ task: URLSessionTask) -> Void
+			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void, reporter: @escaping (_ bytesReceived: Int) -> Void) {
 				self.reporter = reporter
-				self.fileId = fileId
-				self.shouldCancel = shouldCancel
+				self.taskCreated = taskCreated
 			}
 			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
 				// We observe .fractionCompleted, as that changes frequently and accurately reacts to download progress.
@@ -122,20 +167,13 @@ final class IosFileFacade: FileFacade {
 				// Progress handed into this method as task.progress internally consists of two progress trackers, the second
 				// one of which is the *actual* download progress. It seems inaccessible however, which is why we ask task
 				// directly for the bytes received.
+				taskCreated(task)
 				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
-					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true)
-					.sink { _ in
-						self.reporter(Int(task.countOfBytesReceived))
-						if self.shouldCancel(self.fileId) {
-							printLog("cancelling download task for fileId \(self.fileId)")
-							task.cancel()
-						}
-					}
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesReceived)) }
 			}
 		}
 		let downloadDelegate = DownloadDelegate(
-			fileId: fileId,
-			shouldCancel: { fileId in self.activeDownloadsLock.withLock { !$0.contains(fileId) } },
+			taskCreated: { task in self.activeTransfersLock.withLock { $0[fileId] = task } },
 			reporter: { bytesReceived in self.downloadProgress(fileId, bytesReceived) }
 		)
 		var response: URLResponse
@@ -148,7 +186,10 @@ final class IosFileFacade: FileFacade {
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
-	func abortDownload(_ fileId: String) async { _ = self.activeDownloadsLock.withLock { $0.remove(fileId) } }
+	func abortDownload(_ fileId: String) async {
+		TUTSLog("Abort download for \(fileId)")
+		self.activeTransfersLock.withLock { $0[fileId]?.cancel() }
+	}
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
 		let encryptedPath = try FileUtils.getEncryptedFolder()
