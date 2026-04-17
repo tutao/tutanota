@@ -162,6 +162,25 @@ export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
 	}
 }
 
+export function esBuildResolveLibs(baseDir = ".", extraDependenciesMap = {}) {
+	const tsImportAliases = {}
+	return {
+		name: "resolve-libs",
+
+		setup(build) {
+			build.onResolve({ filter: /^[^./]/ }, (args) => {
+				const value = dependencyMap[args.path] ?? extraDependenciesMap[args.path]
+
+				if (!value) return
+
+				return {
+					path: path.resolve(path.join(baseDir, value)),
+				}
+			})
+		},
+	}
+}
+
 /**
  * Returns the chunk name for the given moduleId which is usually the file path.
  * @param moduleId Rollup moduleId usually the file path.
