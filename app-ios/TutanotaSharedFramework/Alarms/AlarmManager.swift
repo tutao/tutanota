@@ -75,13 +75,18 @@ public class AlarmManager {
 	/// Take the alarms from the persistor and schedule the soonest occurrences
 	public func rescheduleAlarms() {
 		log("rescheduleAlarms")
-		let decryptedAlarms = self.savedAlarms()
-			.compactMap { encryptedAlarm in
-				do { return try alarmCryptor.decrypt(alarm: encryptedAlarm) } catch {
-					log("Error when decrypting alarm \(encryptedAlarm) \(error)")
-					return nil
-				}
+		var alarmsToRemove: [EncryptedAlarmNotification] = []
+		let savedAlarms = self.savedAlarms()
+		let decryptedAlarms = savedAlarms.compactMap { encryptedAlarm in
+			do { return try alarmCryptor.decrypt(alarm: encryptedAlarm) } catch let error as SimpleStringConversionError {
+				log("Invalid int value when when decrypting alarm \(encryptedAlarm): \(error) \(error.localizedDescription)")
+				alarmsToRemove.append(encryptedAlarm)
+				return nil
+			} catch {
+				log("Error when decrypting alarm \(encryptedAlarm) \(error) \(error.localizedDescription)")
+				return nil
 			}
+		}
 		let occurences = alarmModel.futureAlarmOccurrences(acrossAlarms: decryptedAlarms, upToForEach: EVENTS_SCHEDULED_AHEAD, upToOverall: SYSTEM_ALARM_LIMIT)
 
 		// Reverse in order to schedule the soonest one the last. This add reliability if we still schedule more alarms than iOS can handle because it seeems
@@ -92,6 +97,12 @@ public class AlarmManager {
 				summary: occurrence.alarmNotification.summary,
 				alarmIdentifier: occurrence.alarmNotification.alarmInfo.alarmIdentifer
 			)
+		}
+
+		if !alarmsToRemove.isEmpty {
+			log("cleanup failed alarms")
+			let cleanedAlarms = savedAlarms.filter { savedAlarm in !alarmsToRemove.contains(savedAlarm) }
+			self.alarmPersistor.store(alarms: Array(cleanedAlarms))
 		}
 		log("finished rescheduleAlarms")
 	}
