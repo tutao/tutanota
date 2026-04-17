@@ -28,6 +28,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 
+        allow_used_macros
 		clear_derived_data
 
 		build_app(
@@ -66,6 +67,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 
+        allow_used_macros
 		clear_derived_data
 
 		ipa_name = "tutanota-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj") + "-adhoc"
@@ -127,6 +129,7 @@ platform :ios do
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
 		)
 
+        allow_used_macros
 		clear_derived_data
 
 		build_app(
@@ -142,6 +145,8 @@ platform :ios do
 
 	desc "Run iOS mail test cases (Jenkins)"
 	lane :test_tuta_app do
+        allow_used_macros
+
 		# Create tutanota-3/build if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build"
 
@@ -162,11 +167,13 @@ platform :ios do
 
      desc "Run iOS shared framework test cases (Jenkins)"
      lane :test_tuta_shared_framework do
-         # Create tutanota-3/build if it's not there because we try to copy it during build
-         sh "mkdir -p ../../build"
+        allow_used_macros
 
-         # Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
-         sh "mkdir -p ../../build-calendar-app"
+        # Create tutanota-3/build if it's not there because we try to copy it during build
+        sh "mkdir -p ../../build"
+
+        # Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
+        sh "mkdir -p ../../build-calendar-app"
 
 		sh 'xcodebuild -downloadPlatform iOS -buildVersion 18.2'
         sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
@@ -181,6 +188,8 @@ platform :ios do
 
 	desc "Run iOS test cases (Github actions version)"
 	lane :test_github do
+        allow_used_macros
+
 		run_tests(
 				scheme: "tuta debug",
 		)
@@ -251,6 +260,7 @@ platform :ios do
 
    desc "Run iOS test cases for Calendar app (Github actions version)"
    lane :test_calendar_github do
+        allow_used_macros
    		run_tests(
    				scheme: "calendar debug",
    		)
@@ -271,6 +281,7 @@ platform :ios do
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
    		)
 
+        allow_used_macros
    		clear_derived_data
 
    		build_app(
@@ -296,6 +307,7 @@ platform :ios do
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
    		)
 
+        allow_used_macros
    		clear_derived_data
 
    		build_app(
@@ -324,6 +336,7 @@ platform :ios do
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
    		)
 
+        allow_used_macros
    		clear_derived_data
 
    		ipa_name = "calendar-" + get_version_number(target: "calendar", xcodeproj: "calendar.xcodeproj")  + "-adhoc"
@@ -350,6 +363,7 @@ platform :ios do
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
    		)
 
+        allow_used_macros
    		clear_derived_data
 
    		build_app(
