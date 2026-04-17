@@ -537,6 +537,15 @@ export class CryptoFacade {
 				pqMessageSenderKeyVersion,
 			)
 		} catch (e) {
+			if (e instanceof NotFoundError) {
+				// In case there is a NotFound 404 error thrown, we do want to handle it gracefully
+				// because this happens when accounts have been disabled.
+				return {
+					authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+					verificationState: PresentableKeyVerificationState.ALERT,
+				}
+			}
+
 			console.error("Could not authenticate sender", e)
 
 			// we want an error that users can report
