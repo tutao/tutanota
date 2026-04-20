@@ -75,16 +75,13 @@ public class AlarmManager {
 	/// Take the alarms from the persistor and schedule the soonest occurrences
 	public func rescheduleAlarms() {
 		log("rescheduleAlarms")
-		var alarmsToRemove = [EncryptedAlarmNotification]
+		var alarmsToRemove: [EncryptedAlarmNotification] = []
 		let savedAlarms = self.savedAlarms()
 		let decryptedAlarms = savedAlarms.compactMap { encryptedAlarm in
-			do { return try alarmCryptor.decrypt(alarm: encryptedAlarm) } catch let error as IntDecryptionError {
-				switch error {
-				case .invalidIntValue:
-					log("Invalid int value when when decrypting alarm \(encryptedAlarm): \(error) \(error.localizedDescription)")
-					alarmsToRemove.append(encryptedAlarm)
-					return nil
-				}
+			do { return try alarmCryptor.decrypt(alarm: encryptedAlarm) } catch let error as SimpleStringConversionError {
+				log("Invalid int value when when decrypting alarm \(encryptedAlarm): \(error) \(error.localizedDescription)")
+				alarmsToRemove.append(encryptedAlarm)
+				return nil
 			} catch {
 				log("Error when decrypting alarm \(encryptedAlarm) \(error) \(error.localizedDescription)")
 				return nil

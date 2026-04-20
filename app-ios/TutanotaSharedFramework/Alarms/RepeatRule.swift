@@ -13,8 +13,6 @@ extension RepeatRule {
 		self.interval = try decrypt(base64: encrypted.interval, key: sessionKey)
 		self.timeZone = try decrypt(base64: encrypted.timeZone, key: sessionKey)
 		let endType: EndType = try decrypt(base64: encrypted.endType, key: sessionKey)
-		// let endValueString: String? = try encrypted.endValue.map { endValue in try decrypt(base64: endValue, key: sessionKey) }
-
 		let endValue: Int64? = try encrypted.endValue.map { endValue in try decrypt(base64: endValue, key: sessionKey) }
 		self.endCondition = RepeatEndCondition(endType: endType, endValue: endValue ?? 0)
 		let decryptedExclusions: [Date] = try encrypted.excludedDates.map { try decrypt(base64: $0.date, key: sessionKey) }

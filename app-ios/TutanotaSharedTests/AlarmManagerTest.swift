@@ -71,7 +71,9 @@ struct AlarmManagerTest {
 	@Test func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+
 		addToFakePersistence(alarm: alarm)
+
 		let deleteAlarm = EncryptedAlarmNotification(
 			operation: .Delete,
 			summary: "",
