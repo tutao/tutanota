@@ -10,16 +10,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import {
-	assertWorkerOrNode,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isAndroidApp,
-	isBrowser,
-	isIOSApp,
-	isOfflineStorageAvailable,
-	isTest,
-} from "../../../common/api/common/Env.js"
+import { assertWorkerOrNode, isAdminClient, isAndroidApp, isBrowser, isIOSApp, isOfflineStorageAvailable, isTest } from "../../../common/api/common/Env.js"
 import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -880,7 +871,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cache ?? new AdminClientDummyEntityRestCache(),
 		locator.user,
 		locator.instancePipeline,
-		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(domainConfig.websocketUrl + path),
 		new SleepDetector(scheduler, dateProvider),
 		typeModelResolver,
 		locator.crypto,

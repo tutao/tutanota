@@ -141,6 +141,7 @@ export const domainConfigStub: DomainConfig = {
 	webauthnMobileUrl: "",
 	legacyWebauthnMobileUrl: "",
 	websiteBaseUrl: "",
+	websocketUrl: "",
 }
 
 // non-async copy of the function
