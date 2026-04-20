@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"

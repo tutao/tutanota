@@ -28,7 +28,7 @@ import {
 } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"

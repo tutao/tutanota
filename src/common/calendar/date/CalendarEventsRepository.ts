@@ -23,7 +23,7 @@ import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, OperationType, RepeatPeriod } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
 
 import { generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"

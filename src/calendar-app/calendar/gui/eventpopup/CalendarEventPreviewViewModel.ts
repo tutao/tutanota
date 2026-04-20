@@ -6,7 +6,7 @@ import {
 	getStartOfDayWithZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { CalendarAttendeeStatus, EndType } from "@tutao/app-env"

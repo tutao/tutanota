@@ -2,7 +2,7 @@ import { ClientModelInfo, ClientTypeModelResolver, entityUpdateUtils, sysTypeRef
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/app-env"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import o, { mock } from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"

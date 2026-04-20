@@ -5,7 +5,7 @@ import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { OperationType } from "../../../src/app-env"
 
 o.spec("ListElementListModel", function () {

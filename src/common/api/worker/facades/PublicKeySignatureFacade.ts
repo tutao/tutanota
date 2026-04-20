@@ -1,7 +1,7 @@
 import { asPublicKeySignatureType, assertWorkerOrNode, PublicKeySignatureType } from "@tutao/app-env"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
 import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/utils"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import {
 	AsymmetricKeyPair,
 	cryptoUtils,

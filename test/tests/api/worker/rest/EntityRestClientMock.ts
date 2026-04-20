@@ -14,7 +14,7 @@ import {
 	Type,
 	TypeModelResolver,
 } from "@tutao/typerefs"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/utils"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"

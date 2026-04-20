@@ -10,7 +10,7 @@ import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
 import { assertMainOrNode, isDesktop, SessionState } from "@tutao/app-env"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import { attachDropdown } from "../../gui/base/Dropdown.js"
 import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"

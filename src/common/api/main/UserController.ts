@@ -1,8 +1,7 @@
 import { AccountType, assertMainOrNode, FeatureType, getApiBaseUrl, GroupType, isDesktop, LegacyPlans, OperationType, PlanType } from "@tutao/app-env"
 import { assertNotNull, Base64Url, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
 import { elementIdPart, entityUpdateUtils, isSameId, listIdPart, sysServices, sysTypeModels, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-
-import { MediaType, restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations"
 import { EntityClient } from "../common/EntityClient"
@@ -11,6 +10,7 @@ import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
+import { MediaType } from "@tutao/rest-client"
 
 assertMainOrNode()
 

@@ -41,7 +41,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {
@@ -331,7 +331,7 @@ export class SearchViewModel {
 			this._selectedMailFolder = restriction.folderIds
 			this.loadAndSelectIfNeeded(args.id)
 			this.latestMailRestriction = restriction
-			} else if (isSameTypeRef(restriction.type, tutanotaTypeRefs.CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(restriction.type, tutanotaTypeRefs.CalendarEventTypeRef)) {
 			this._startDate = restriction.start ? new Date(restriction.start) : null
 			this._endDate = restriction.end ? new Date(restriction.end) : null
 			this._includeRepeatingEvents = restriction.eventSeries ?? true
@@ -354,7 +354,7 @@ export class SearchViewModel {
 				try {
 					const { start, id } = decodeCalendarSearchKey(args.id)
 					this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-							entry = entry as tutanotaTypeRefs.CalendarEvent
+						entry = entry as tutanotaTypeRefs.CalendarEvent
 						return id === getElementId(entry) && start === entry.startTime.getTime()
 					})
 				} catch (err) {

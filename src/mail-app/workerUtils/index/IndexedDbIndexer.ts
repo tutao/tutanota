@@ -1,5 +1,5 @@
 import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import {
 	ClientTypeModelResolver,
 	entityUpdateUtils,

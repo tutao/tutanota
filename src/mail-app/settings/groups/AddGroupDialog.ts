@@ -7,7 +7,7 @@ import { getGroupTypeDisplayName } from "../../../common/settings/groups/GroupDe
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"

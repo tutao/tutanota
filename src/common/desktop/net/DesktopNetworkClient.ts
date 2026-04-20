@@ -1,6 +1,6 @@
 import http from "node:http"
 import https from "node:https"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
 import { newPromise } from "@tutao/utils"

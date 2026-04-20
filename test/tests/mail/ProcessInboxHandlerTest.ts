@@ -13,7 +13,7 @@ import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 const { captor, anything } = matchers
 

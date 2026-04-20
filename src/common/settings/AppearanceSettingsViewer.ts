@@ -12,7 +12,7 @@ import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {

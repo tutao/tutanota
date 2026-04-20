@@ -25,6 +25,7 @@
 			"@tutao/otest": ["./otest"],
 			"@tutao/app-env": ["../src/app-env"],
 			"@tutao/rest-client": ["../src/rest-client"],
+			"@tutao/rest-client/error": ["../src/rest-client/error.ts"],
 			"@tutao/typerefs": ["../src/typerefs"],
 			"@tutao/instance-pipeline": ["../src/instance-pipeline"],
 			"@tutao/licc": ["../src/licc"],

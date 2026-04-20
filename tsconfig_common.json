@@ -36,6 +36,7 @@
 			"@tutao/mimimi": ["./src/mimimi"],
 			"@tutao/otest": ["./test/otest"],
 			"@tutao/rest-client": ["./src/rest-client"],
+			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
 			"@tutao/app-env": ["./src/app-env"],
 			"@tutao/typerefs": ["./src/typerefs"],
 			"@tutao/instance-pipeline": ["./src/instance-pipeline"]

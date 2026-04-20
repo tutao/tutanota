@@ -1,7 +1,6 @@
 import { ClientTypeModelResolver, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs, usageServices, usageTypeRefs } from "@tutao/typerefs"
 import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { restError, restSuspension } from "@tutao/rest-client"
 import { UsageTestMetricType } from "@tutao/app-env"
 import { SuspensionError } from "../api/common/error/SuspensionError"
 import { DateProvider } from "../api/common/DateProvider.js"
@@ -15,6 +14,8 @@ import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
+import * as restError from "@tutao/rest-client/error"
+import { SuspensionBehavior } from "@tutao/rest-client"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -308,10 +309,10 @@ export class UsageTestModel implements PingAdapter {
 		try {
 			const response: usageTypeRefs.UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(usageServices.UsageTestAssignmentService, data, {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					})
 				: await this.serviceExecutor.post(usageServices.UsageTestAssignmentService, data, {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
 			await this.storage().storeAssignments({
@@ -408,7 +409,7 @@ export class UsageTestModel implements PingAdapter {
 
 		try {
 			const { pingListId, pingId } = await this.serviceExecutor.post(usageServices.UsageTestParticipationService, data, {
-				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+				suspensionBehavior: SuspensionBehavior.Throw,
 			})
 			return { pingListId, pingId }
 		} catch (e) {

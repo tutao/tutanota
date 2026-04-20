@@ -1,6 +1,6 @@
 // @bundleInto:common
 
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"

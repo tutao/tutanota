@@ -8,7 +8,7 @@ import { TerminationPeriodOptions } from "@tutao/app-env"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { incrementDate } from "@tutao/utils"
 
 export class TerminationViewModel {

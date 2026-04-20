@@ -1,6 +1,6 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { isDomainName } from "../misc/FormatValidator.js"
 import stream from "mithril/stream"

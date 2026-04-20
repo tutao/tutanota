@@ -1,7 +1,7 @@
 import o, { spy } from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { defer, delay } from "@tutao/utils"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
 import { OperationType } from "../../../../../src/app-env"
 

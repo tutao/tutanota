@@ -5,7 +5,7 @@ import { matchers, object, when } from "testdouble"
 import http from "node:http"
 import { assertNotNull, defer, getFirstOrThrow } from "@tutao/utils"
 import { SchedulerMock } from "../../TestUtils.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 o.spec("SseClient", function () {
 	const defaultOptions: SseConnectOptions = Object.freeze({

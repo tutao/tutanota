@@ -123,7 +123,7 @@ async function buildMailApk({ buildType }) {
 	const outPath = `./build/app-android/${apkName}`
 
 	cd("./app-android")
-	await $`./gradlew :app:assembleTutao${buildType}`
+	await $({ stdio: "inherit" })`./gradlew :app:assembleTutao${buildType}`
 
 	cd("..")
 	await $`mkdir -p build/app-android`

@@ -24,7 +24,7 @@ import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvi
 import { TextField } from "../../gui/base/TextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { countryList } from "@tutao/app-env"

@@ -16,7 +16,7 @@ import {
 import stream from "mithril/stream"
 import { formatDateTime } from "../../common/misc/Formatter"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"

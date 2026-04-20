@@ -18,7 +18,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"

@@ -16,7 +16,7 @@ import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFaca
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"

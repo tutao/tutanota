@@ -17,7 +17,7 @@ import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/b
 import { PermissionType } from "../../common/native/common/generatedipc/PermissionType.js"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "@tutao/utils"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {

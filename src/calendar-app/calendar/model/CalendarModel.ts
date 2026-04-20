@@ -44,7 +44,7 @@ import {
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"

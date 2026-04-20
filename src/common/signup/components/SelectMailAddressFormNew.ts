@@ -13,7 +13,7 @@ import { Icon } from "../../gui/base/Icon"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils"
 import { locator } from "../../api/main/CommonLocator"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { theme } from "../../gui/theme"
 import { Icons } from "../../gui/base/icons/Icons"
 

@@ -1,6 +1,6 @@
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { NewsListItem } from "./NewsListItem.js"
 import { isIOSApp } from "@tutao/app-env"
 

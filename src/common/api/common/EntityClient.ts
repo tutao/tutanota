@@ -22,7 +22,7 @@ import {
 	ValueType,
 } from "@tutao/typerefs"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 
 export class EntityClient {

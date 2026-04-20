@@ -2,7 +2,7 @@ import { _encryptBytes, aesDecrypt, cryptoUtils, EntropySource, random, Randomiz
 import { UserFacade } from "./UserFacade.js"
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { lazy, noOp, ofClass } from "@tutao/utils"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 

@@ -1,4 +1,4 @@
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils.js"

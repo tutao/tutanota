@@ -20,7 +20,7 @@ import { MobileContactsFacade } from "../../../common/native/common/generatedipc
 import { ContactSyncResult } from "../../../common/native/common/generatedipc/ContactSyncResult.js"
 import { assertMainOrNode, GroupType, isApp, isIOSApp, OperationType } from "@tutao/app-env"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel"

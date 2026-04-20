@@ -3,7 +3,7 @@ import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from 
 import { Router } from "../../../common/gui/ScopedRouter"
 import { driveTypeRefs, elementIdPart, entityUpdateUtils, getElementId, isSameId, listIdPart } from "@tutao/typerefs"
 import m from "mithril"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"

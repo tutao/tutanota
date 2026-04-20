@@ -12,7 +12,7 @@ import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/common/api/worker/facades/WorkerFacade.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.js"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"

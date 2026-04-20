@@ -3,7 +3,7 @@ import { GroupType, ShareCapability } from "@tutao/app-env"
 import { lang } from "../misc/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../api/common/EntityClient"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { UserController } from "../api/main/UserController"
 
 /**

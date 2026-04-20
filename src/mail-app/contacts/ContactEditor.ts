@@ -19,7 +19,7 @@ import {
 import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
 import { birthdayToIsoDate } from "../../common/api/common/utils/BirthdayUtils"

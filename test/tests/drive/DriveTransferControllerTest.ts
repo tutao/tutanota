@@ -10,7 +10,7 @@ import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { driveTypeRefs } from "@tutao/typerefs"
 import { ArchiveDataType } from "../../../src/app-env"
 import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController

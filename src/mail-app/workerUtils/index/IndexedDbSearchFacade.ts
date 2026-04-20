@@ -57,7 +57,7 @@ import {
 } from "../../../common/api/common/utils/IndexUtils.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"

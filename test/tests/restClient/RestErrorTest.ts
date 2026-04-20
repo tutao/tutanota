@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { TutanotaError } from "@tutao/app-env"
 
 o.spec("RestErrorTest", function () {

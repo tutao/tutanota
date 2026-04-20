@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import {
 	AttributeModel,
 	Entity,
@@ -13,7 +13,7 @@ import {
 	tutanotaModelInfo,
 	tutanotaTypeRefs,
 	TypeModelResolver,
-	GENERATED_MIN_ID
+	GENERATED_MIN_ID,
 } from "@tutao/typerefs"
 import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"

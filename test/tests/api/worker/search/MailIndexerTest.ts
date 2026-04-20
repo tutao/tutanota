@@ -31,7 +31,7 @@ import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../.
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 class FixedDateProvider implements DateProvider {
 	now: number

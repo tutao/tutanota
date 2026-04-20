@@ -1,4 +1,4 @@
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 import { purgeSyncMetrics, syncMetrics } from "./utils/SyncMetrics"
 import { entityUpdateUtils } from "@tutao/typerefs"

@@ -24,7 +24,7 @@ import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 const TAG = "[notifications]"
 

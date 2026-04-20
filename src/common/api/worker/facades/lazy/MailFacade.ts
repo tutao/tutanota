@@ -60,7 +60,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import {
 	addressDomain,
 	assertNotNull,

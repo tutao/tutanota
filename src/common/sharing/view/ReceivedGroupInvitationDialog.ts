@@ -18,7 +18,7 @@ import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ColorPickerView } from "../../gui/base/colorPicker/ColorPickerView"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 export function showGroupInvitationDialog(invitation: sysTypeRefs.ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)

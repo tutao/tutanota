@@ -1,6 +1,6 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"

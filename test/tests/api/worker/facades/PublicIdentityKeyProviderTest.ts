@@ -8,7 +8,7 @@ import { SigningKeyPairType } from "../../../../../src/common/api/worker/facades
 import { arrayEquals, hexToUint8Array } from "@tutao/utils"
 import { PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import testData from "../crypto/CompatibilityTestData.json"
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"

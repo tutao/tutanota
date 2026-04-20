@@ -3,7 +3,7 @@ import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./Cale
 import { EventController } from "../../../common/api/main/EventController"
 
 import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"

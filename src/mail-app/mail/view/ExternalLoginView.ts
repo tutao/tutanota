@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tutao/utils"
 import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"

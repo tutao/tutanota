@@ -33,6 +33,7 @@ export let tsImportAliases = {
 	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
 	"@tutao/rest-client": path.normalize("src/rest-client/dist/index.js"),
+	"@tutao/rest-client/error": path.normalize("src/rest-client/dist/error.js"),
 	"@tutao/app-env": path.normalize("src/app-env/dist/index.js"),
 	"@tutao/typerefs": path.normalize("src/typerefs/dist/index.js"),
 	"@tutao/instance-pipeline": path.normalize("src/instance-pipeline/dist/index.js"),
@@ -179,7 +180,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env") || isIn("src/error")) {
+	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -345,7 +346,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "drive"
 	} else if (isIn("src/utils")) {
 		return "common-min"
-	} else if (isIn("src/typerefs")) {
+	} else if (isIn("src/typerefs") || isIn("src/rest-client/error.ts")) {
 		return "common"
 	} else if (isIn("src/rest-client") || isIn("src/crypto") || isIn("src/instance-pipeline")) {
 		return "worker"

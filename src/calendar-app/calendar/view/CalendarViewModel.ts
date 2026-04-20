@@ -28,7 +28,7 @@ import {
 	UpgradePromptType,
 	WeekStart,
 } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import stream from "mithril/stream"

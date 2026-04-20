@@ -14,7 +14,7 @@ import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNo
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
 import { CryptoError } from "@tutao/crypto/error"
 import { OperationType } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 const log = makeTaggedLogger("[SSEFacade]")
 

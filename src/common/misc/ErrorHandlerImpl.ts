@@ -1,4 +1,4 @@
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/app-env"

@@ -7,7 +7,7 @@ import { SuggestionFacade } from "./SuggestionFacade"
 import { assertNotNull, neverNull, tokenize } from "@tutao/utils"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	private _core: IndexerCore

@@ -10,7 +10,7 @@ import { driveServices, driveTypeRefs, getElementId, getListId, isSameId, listId
 import { CryptoFacade } from "../../crypto/CryptoFacade"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"

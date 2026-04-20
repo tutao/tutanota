@@ -9,7 +9,7 @@ import { SecondFactorHandler } from "../../../src/common/misc/2fa/SecondFactorHa
 import { CredentialsProvider } from "../../../src/common/misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../src/common/api/common/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig"
 import { ResumeSessionErrorReason } from "../../../src/common/api/worker/facades/LoginFacade"
 import { createTestEntity, domainConfigStub, textIncludes } from "../TestUtils.js"

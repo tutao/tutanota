@@ -26,7 +26,7 @@ import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import {
 	appStorePlanName,
 	getCurrentCount,

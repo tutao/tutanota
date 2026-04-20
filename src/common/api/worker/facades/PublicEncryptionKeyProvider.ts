@@ -14,7 +14,7 @@ import {
 } from "@tutao/crypto"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { PublicKeyIdentifierType } from "@tutao/app-env"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"

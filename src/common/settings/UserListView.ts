@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { component_size } from "../gui/size.js"
 import { elementIdPart, entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { contains, LazyLoaded, noOp } from "@tutao/utils"

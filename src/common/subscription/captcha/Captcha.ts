@@ -1,7 +1,7 @@
 import { locator } from "../../api/main/CommonLocator.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { defer } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"

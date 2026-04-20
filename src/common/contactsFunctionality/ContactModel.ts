@@ -9,7 +9,7 @@ import { EventController } from "../api/main/EventController.js"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
-import { restError } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 
