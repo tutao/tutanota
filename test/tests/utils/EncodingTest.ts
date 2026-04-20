@@ -23,15 +23,16 @@ import {
 o.spec("Encoding", function () {
 	//TODO test missing encoder functions (only tested partially)
 	o.before(async function () {
-		if (global.isBrowser) {
-			global.TextDecoder = window.TextDecoder
-			global.TextEncoder = window.TextEncoder
-		} else {
+		await browser(async () => {
+			globalThis.TextDecoder = window.TextDecoder
+			globalThis.TextEncoder = window.TextEncoder
+		})()
+		await node(async () => {
 			const { TextDecoder: nodeTextDecoder, TextEncoder: nodeTextEncoder } = await import("node:util")
 			// @ts-ignore
-			global.TextDecoder = nodeTextDecoder
-			global.TextEncoder = nodeTextEncoder
-		}
+			globalThis.TextDecoder = nodeTextDecoder
+			globalThis.TextEncoder = nodeTextEncoder
+		})()
 	})
 	o("_replaceLoneSurrogates", function () {
 		o(_replaceLoneSurrogates("a\uD800\uDFFFb")).equals("a\uD800\uDFFFb") // high and low
