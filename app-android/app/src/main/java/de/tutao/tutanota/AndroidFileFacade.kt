@@ -82,7 +82,7 @@ class AndroidFileFacade(
 	override suspend fun deleteFile(file: String) {
 		if (file.startsWith(Uri.fromFile(activity.filesDir).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
-			val fileInstance = File(Uri.parse(file).path!!)
+			val fileInstance = File(file.toUri().path!!)
 			try {
 				val deleted = fileInstance.delete()
 				if (!deleted && fileInstance.exists()) {
@@ -102,19 +102,20 @@ class AndroidFileFacade(
 	override suspend fun joinFiles(filename: String, files: List<String>): String {
 		val newFileName = getNonClobberingFileName(tempDir.decrypt, filename)
 		val outputFile = File(tempDir.decrypt, newFileName)
-		outputFile.parentFile!!.mkdirs()
-		val outputStream = FileOutputStream(outputFile)
+		return withContext(Dispatchers.IO) {
+			outputFile.parentFile!!.mkdirs()
 
-		for (infile in files) {
-			try {
-				val inputStream = FileInputStream(Uri.parse(infile).path)
-				IOUtils.copyLarge(inputStream, outputStream, ByteArray(COPY_BUFFER_SIZE))
-			} finally {
-				this.deleteFile(infile)
+			FileOutputStream(outputFile).use { outputStream ->
+				for (infile in files) {
+					try {
+						FileInputStream(infile.toUri().path).use { it.copyTo(outputStream, COPY_BUFFER_SIZE) }
+					} finally {
+						deleteFile(infile)
+					}
+				}
+				outputFile.toUri().toString()
 			}
 		}
-
-		return outputFile.toUri().toString()
 	}
 
 	override suspend fun openFileChooser(
