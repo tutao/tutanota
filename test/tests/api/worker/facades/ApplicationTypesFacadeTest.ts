@@ -7,6 +7,7 @@ import {
 	baseServices,
 	baseTypes,
 	Cardinality,
+	getServiceRestPath,
 	ModelAssociation,
 	ServerModelInfo,
 	ServerModels,
@@ -17,7 +18,6 @@ import {
 import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
-import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
 import { compressString, decompressString } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../../../TestUtils"
 import { Mode } from "../../../../../src/app-env"

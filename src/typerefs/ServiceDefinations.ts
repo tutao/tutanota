@@ -30,3 +30,7 @@ export interface DeleteService extends ServiceDefinition {
 export type ParamTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : null
 
 export type ReturnTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : undefined
+
+export function getServiceRestPath(service: ServiceDefinition) {
+	return `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
+}

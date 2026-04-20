@@ -9,10 +9,8 @@ import { matchers, object, reset, verify } from "testdouble"
 import { domainConfigStub } from "../TestUtils"
 import { ClientPlatform } from "../../../src/common/misc/ClientDetector"
 import { APPLICATION_TYPES_HASH_HEADER } from "@tutao/app-env"
-import { ServerModelInfo } from "@tutao/typerefs"
-import { baseServices } from "@tutao/typerefs"
+import { baseServices, getServiceRestPath, ServerModelInfo } from "@tutao/typerefs"
 import { UpdateAppTypesHashMiddleware } from "../../../src/common/api/common/UpdateTypesHashMiddleware"
-import { getServiceRestPath } from "../../../src/common/api/worker/rest/ServiceExecutor"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 

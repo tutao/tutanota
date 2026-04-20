@@ -3,13 +3,13 @@ import {
 	DeleteService,
 	Entity,
 	GetService,
+	getServiceRestPath,
 	MethodDefinition,
 	ParamTypeFromRef,
 	PostService,
 	PutService,
 	ReturnTypeFromRef,
 	ServerModelUntypedInstance,
-	ServiceDefinition,
 	TypeModelResolver,
 } from "@tutao/typerefs"
 import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
@@ -167,8 +167,4 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		return await this.instancePipeline.decryptAndMap(typeRef, cleanInstance, sessionKey)
 	}
-}
-
-export function getServiceRestPath(service: ServiceDefinition) {
-	return `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
 }

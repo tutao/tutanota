@@ -1,8 +1,7 @@
 import { HttpMethod, RestClientMiddleware } from "@tutao/rest-client"
 import { isNotNull } from "@tutao/utils"
-import { baseServices, ServerModelInfo } from "@tutao/typerefs"
+import { baseServices, getServiceRestPath, ServerModelInfo } from "@tutao/typerefs"
 import { APPLICATION_TYPES_HASH_HEADER } from "@tutao/app-env"
-import { getServiceRestPath } from "../worker/rest/ServiceExecutor"
 
 /**
  * handle new server model and update the applicationTypesJson file if applicable
