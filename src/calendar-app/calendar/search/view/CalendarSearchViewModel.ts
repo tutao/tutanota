@@ -1,7 +1,18 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
-import { assertIsEntity2, elementIdPart, entityUpdateUtils, GENERATED_MAX_ID, getElementId, isSameId, ListElement, tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	assertIsEntity2,
+	elementIdPart,
+	entityUpdateUtils,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	isSameTypeRef,
+	ListElement,
+	tutanotaTypeRefs,
+	TypeRef,
+} from "@tutao/typerefs"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
 	deepEqual,
@@ -10,12 +21,10 @@ import {
 	getStartOfDay,
 	incrementMonth,
 	isSameDayOfDate,
-	isSameTypeRef,
 	lazyMemoized,
 	neverNull,
 	ofClass,
 	stringToBase64,
-	TypeRef,
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"

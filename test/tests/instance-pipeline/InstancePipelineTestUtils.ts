@@ -1,6 +1,4 @@
-import { Entity, ModelValue, TypeModel } from "@tutao/typerefs"
-import { AssociationType, Cardinality, Type, ValueType } from "@tutao/typerefs"
-import { TypeRef } from "@tutao/utils"
+import { AssociationType, Cardinality, Entity, ModelValue, Type, TypeModel, TypeRef, ValueType } from "@tutao/typerefs"
 
 export const testTypeModel: TypeModel = {
 	app: "tutanota",

@@ -37,6 +37,7 @@ import {
 	WeekStart,
 } from "@tutao/app-env"
 import { downcast } from "@tutao/utils"
+import { TypeRef } from "./TypeRef.js"
 
 export const getMailFolderType = (folder: tutanotaTypeRefs.MailSet): MailSetKind => downcast(folder.folderType)
 
@@ -337,3 +338,27 @@ export function getCustomerApprovalStatus(customer: sysTypeRefs.Customer): Appro
 export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
 
 export const UpgradePromptTypeByName = Object.freeze(reverse(UpgradePromptType))
+
+export function clone<T>(instance: T): T {
+	if (instance instanceof Uint8Array) {
+		return downcast<T>(instance.slice())
+	} else if (instance instanceof Array) {
+		return downcast<T>(instance.map((i) => clone(i)))
+	} else if (instance instanceof Date) {
+		return new Date(instance.getTime()) as any
+	} else if (instance instanceof TypeRef) {
+		return instance
+	} else if (instance instanceof Object) {
+		// Can only pass null or Object, cannot pass undefined
+		const copy = Object.create(Object.getPrototypeOf(instance) || null)
+		Object.assign(copy, instance)
+
+		for (let key of Object.keys(copy)) {
+			copy[key] = clone(copy[key])
+		}
+
+		return copy as any
+	} else {
+		return instance
+	}
+}

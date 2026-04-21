@@ -7,7 +7,6 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, lazyAsync, Nullable, TypeRef } from "@tutao/utils"
 import {
 	AttributeModel,
 	CUSTOM_MAX_ID,
@@ -20,8 +19,10 @@ import {
 	GENERATED_MIN_ID,
 	get_IdValue,
 	getServerIdEncodingForType,
+	getTypeString,
 	hasError,
 	isCustomIdType,
+	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
 	ServerModelParsedInstance,
@@ -30,6 +31,7 @@ import {
 	tutanotaTypeRefs,
 	TypeModel,
 	TypeModelResolver,
+	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
 import { assertWorkerOrNode, Mode, OperationType, ProgrammingError } from "@tutao/app-env"

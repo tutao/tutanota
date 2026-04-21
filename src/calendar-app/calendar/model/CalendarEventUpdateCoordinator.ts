@@ -71,7 +71,7 @@ export class CalendarEventUpdateCoordinator {
 			) {
 				try {
 					const calendarEventUpdate = await this.entityClient.load(tutanotaTypeRefs.CalendarEventUpdateTypeRef, [
-						entityEventData.instanceListId,
+						entityEventData.instanceListId!,
 						entityEventData.instanceId,
 					])
 					await this.handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate)

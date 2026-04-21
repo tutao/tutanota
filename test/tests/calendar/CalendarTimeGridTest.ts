@@ -11,10 +11,10 @@ import {
 import { Time } from "../../../src/common/calendar/date/Time"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
-import { clone, incrementDate } from "@tutao/utils"
+import { incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
 import { RepeatPeriod } from "../../../src/app-env"
 
 o.spec("CalendarTimeGrid", function () {

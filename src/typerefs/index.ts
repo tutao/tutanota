@@ -6,6 +6,7 @@ export * from "./EntityFunctions.js"
 export * from "./PatchGenerator.js"
 export * from "./TypeRefUtils.js"
 export * from "./ServiceDefinations"
+export * from "./TypeRef.js"
 export * as baseTypes from "./baseTypes.js"
 export * as entityUpdateUtils from "./EntityUpdateUtils.js"
 

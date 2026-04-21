@@ -1,17 +1,4 @@
-import o from "@tutao/otest"
-import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError"
-import { clone, downcast, first } from "@tutao/utils"
-import { elementIdPart, getElementId, getLetId, getListId, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { matchers, object, verify, when } from "testdouble"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { GroupType } from "@tutao/app-env"
-import { EventAlarmInfoTemplatesTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
-import { ExposedOperationProgressTracker } from "../../../../../src/common/api/main/OperationProgressTracker"
-import { AlarmFacade } from "../../../../../src/common/api/worker/facades/lazy/AlarmFacade"
-import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
-import { EntityRestClientMock } from "../rest/EntityRestClientMock"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
+import o, { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/otest"
 import {
 	AlarmInfoTemplate,
 	CachingMode,
@@ -19,9 +6,22 @@ import {
 	CalendarFacade,
 	EventWithUserAlarmInfos,
 	sortByRecurrenceId,
-} from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade"
+} from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
+import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { downcast } from "@tutao/utils"
+import { clone, elementIdPart, getElementId, getLetId, getListId, isSameTypeRef, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
+import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
+import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { matchers, object, verify, when } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
+import { ExposedOperationProgressTracker } from "../../../../../src/common/api/main/OperationProgressTracker"
+import { AlarmFacade } from "../../../../../src/common/api/worker/facades/lazy/AlarmFacade"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
+import { GroupType } from "@tutao/app-env"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id

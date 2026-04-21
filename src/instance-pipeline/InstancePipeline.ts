@@ -7,9 +7,10 @@ import {
 	Entity,
 	ServerModelUntypedInstance,
 	ServerTypeReferenceResolver,
+	TypeRef,
 } from "@tutao/typerefs"
 import { ModelMapper } from "./ModelMapper"
-import { downcast, lazy, Nullable, TypeRef } from "@tutao/utils"
+import { downcast, lazy, Nullable } from "@tutao/utils"
 import { AesKey, SymmetricCipherFacade } from "@tutao/crypto"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"

@@ -51,10 +51,9 @@ import {
 	promiseMapCompat,
 	PromiseMapFn,
 	tokenize,
-	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdPart, generatedIdToTimestamp, listIdPart } from "@tutao/typerefs"
+import { elementIdPart, generatedIdToTimestamp, listIdPart, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -73,7 +72,7 @@ import type {
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
@@ -94,8 +93,6 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import {
 	decryptIndexKey,

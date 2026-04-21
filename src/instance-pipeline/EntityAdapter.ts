@@ -1,6 +1,6 @@
-import { assertNotNull, downcast, Nullable, TypeRef } from "@tutao/utils"
+import { assertNotNull, downcast, Nullable } from "@tutao/utils"
 import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "@tutao/typerefs"
-import { AttributeModel, sysTypeRefs } from "@tutao/typerefs"
+import { AttributeModel, sysTypeRefs, TypeRef } from "@tutao/typerefs"
 import { ModelMapper } from "./ModelMapper"
 
 export class EntityAdapter implements Entity {

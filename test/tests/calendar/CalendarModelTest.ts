@@ -1,6 +1,6 @@
 import o, { verify } from "@tutao/otest"
-import { elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/utils"
+import { clone, elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getFirstOrThrow, neverNull, Require } from "@tutao/utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/app-env"
 import { DateTime } from "luxon"

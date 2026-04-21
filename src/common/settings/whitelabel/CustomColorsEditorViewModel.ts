@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "@tutao/app-env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
-import { clone, downcast } from "@tutao/utils"
+import { downcast } from "@tutao/utils"
 import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -9,7 +9,7 @@ import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { clone, sysTypeRefs } from "@tutao/typerefs"
 
 assertMainOrNode()
 export type CustomColor = {

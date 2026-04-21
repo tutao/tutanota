@@ -20,12 +20,11 @@ import {
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { assertNotNull, clone, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
-import { Stripped, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertNotNull, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
+import { clone, Stripped, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
-import { sysTypeRefs } from "@tutao/typerefs"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes & {
 	repeatRule: tutanotaTypeRefs.CalendarRepeatRule | null

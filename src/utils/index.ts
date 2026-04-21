@@ -139,7 +139,6 @@ export {
 	localeCompare,
 	byteLength,
 } from "./StringUtils.js"
-export { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "./TypeRef.js"
 export {
 	defer,
 	deferWithHandler,
@@ -152,7 +151,6 @@ export {
 	assert,
 	isNotNull,
 	downcast,
-	clone,
 	makeSingleUse,
 	identity,
 	noOp,

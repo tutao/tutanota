@@ -10,16 +10,19 @@ import {
 	GENERATED_MIN_ID,
 	getElementId,
 	getServerIdEncodingForType,
+	getTypeString,
 	isCustomIdType,
 	ListElementEntity,
 	listIdPart,
 	localToServerIdEncoding,
+	parseTypeString,
 	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
 	SomeEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
 import type { CacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
@@ -29,17 +32,14 @@ import {
 	assertNotNull,
 	Base64Ext,
 	getFirstOrThrow,
-	getTypeString,
 	groupBy,
 	groupByAndMap,
 	isEmpty,
 	mapNullable,
 	Nullable,
-	parseTypeString,
 	splitInChunks,
 	typedEntries,
 	typedValues,
-	TypeRef,
 } from "@tutao/utils"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"

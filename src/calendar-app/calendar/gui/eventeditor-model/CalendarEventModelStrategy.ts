@@ -3,10 +3,10 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { getAsEnumValue, StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, getAsEnumValue, StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, clone, identity, isNotEmpty } from "@tutao/utils"
+import { assertNotNull, identity, isNotEmpty } from "@tutao/utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
