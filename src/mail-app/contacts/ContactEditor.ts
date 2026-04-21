@@ -15,9 +15,10 @@ import {
 	ContactWebsiteType,
 	GroupType,
 	Keys,
+	ProgrammingError,
 } from "@tutao/app-env"
-import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
+import { clone, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertNotNull, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import * as restError from "@tutao/rest-client/error"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"
@@ -46,7 +47,6 @@ import { EntityClient } from "../../common/api/common/EntityClient"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
-import { ProgrammingError } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { PasswordField } from "../../common/misc/passwords/PasswordField.js"

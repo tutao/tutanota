@@ -11,13 +11,15 @@ import {
 	getElementId,
 	isPermanentDeleteAllowedForFolder,
 	isSameId,
+	isSameTypeRef,
 	ListElement,
 	ListElementEntity,
 	listIdPart,
 	sortCompareByReverseId,
 	tutanotaTypeRefs,
+	TypeRef,
 } from "@tutao/typerefs"
-import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
@@ -30,14 +32,12 @@ import {
 	incrementMonth,
 	isEmpty,
 	isSameDayOfDate,
-	isSameTypeRef,
 	mapAndFilterNull,
 	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
 	onceAsync,
 	stringToBase64,
-	TypeRef,
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
@@ -66,7 +66,6 @@ import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"

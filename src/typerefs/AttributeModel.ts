@@ -1,4 +1,4 @@
-import { AppName, assertNotNull, downcast, Nullable } from "@tutao/utils"
+import { assertNotNull, downcast, Nullable } from "@tutao/utils"
 import {
 	AttributeId,
 	AttributeName,
@@ -12,6 +12,7 @@ import {
 	TypeModel,
 } from "./EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
+import { AppName } from "./TypeRef.js"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {

@@ -1,7 +1,8 @@
 import { OperationType } from "@tutao/app-env"
 import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "./EntityTypes.js"
 import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
-import { AppName, getTypeString, isSameTypeRef, Nullable, TypeRef } from "@tutao/utils"
+import { Nullable } from "@tutao/utils"
+import { type AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/typerefs"
 import { isSameId } from "./EntityUtils"
 
 /**

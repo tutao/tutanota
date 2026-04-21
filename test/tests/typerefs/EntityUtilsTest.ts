@@ -1,20 +1,20 @@
 import o from "@tutao/otest"
 import {
+	clone,
 	constructMailSetEntryId,
 	create,
 	deconstructMailSetEntryId,
+	ElementEntity,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
+	hasError,
 	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
+	tutanotaTypeModels,
+	tutanotaTypeRefs,
+	TypeRef,
 } from "@tutao/typerefs"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { tutanotaTypeModels } from "@tutao/typerefs"
-
-import { ElementEntity } from "@tutao/typerefs"
-import { clone, TypeRef } from "@tutao/utils"
-import { hasError } from "@tutao/typerefs"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {

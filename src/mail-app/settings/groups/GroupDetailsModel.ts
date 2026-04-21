@@ -10,6 +10,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { BookingItemFeatureType, GroupType, OperationType } from "@tutao/app-env"
+import { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "@tutao/typerefs"
 
 export class GroupDetailsModel {
 	groupInfo: sysTypeRefs.GroupInfo

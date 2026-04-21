@@ -12,6 +12,7 @@ import {
 	entityUpdateUtils,
 	hasError,
 	isSameId,
+	isSameTypeRef,
 	ModelValue,
 	ParsedAssociation,
 	ParsedInstance,
@@ -23,8 +24,9 @@ import {
 	ServerTypeModel,
 	sysTypeRefs,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, isSameTypeRef, Nullable, promiseMap, TypeRef } from "@tutao/utils"
+import { assertNotNull, Base64, deepEqual, isEmpty, Nullable, promiseMap } from "@tutao/utils"
 import { convertDbToJsType, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, SymmetricCipherFacade } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"

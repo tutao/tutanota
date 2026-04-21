@@ -1,8 +1,8 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { isSameTypeRef, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { ShareCapability } from "@tutao/app-env"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { isSameTypeRef, neverNull } from "@tutao/utils"
+import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import {
 	_encryptBytes,

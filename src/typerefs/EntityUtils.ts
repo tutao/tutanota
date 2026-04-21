@@ -4,18 +4,16 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
-	clone,
 	compare,
 	downcast,
 	Hex,
 	hexToBase64,
-	isSameTypeRef,
 	pad,
 	repeat,
-	TypeRef,
 	uint8ArrayToBase64,
 	uint8arrayToCustomId,
 } from "@tutao/utils"
+import { clone, isSameTypeRef, TypeRef } from "@tutao/typerefs"
 import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 

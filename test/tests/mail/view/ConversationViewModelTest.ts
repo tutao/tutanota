@@ -1,19 +1,18 @@
 import o from "@tutao/otest"
 import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/mail-app/mail/view/ConversationViewModel.js"
-import { ClientModelInfo, entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { ClientModelInfo, entityUpdateUtils, isSameId, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
-import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/utils"
+import { defer, DeferredObject, delay, noOp } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
-import { MailSetKind, MailState, OperationType } from "../../../../src/app-env"
+import { MailSetKind, MailState, OperationType } from "@tutao/app-env"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: tutanotaTypeRefs.ConversationEntry[]

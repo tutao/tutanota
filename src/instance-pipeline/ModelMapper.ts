@@ -6,7 +6,6 @@ import {
 	Nullable,
 	promiseMap,
 	stringToUtf8Uint8Array,
-	TypeRef,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
@@ -22,6 +21,7 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeReferenceResolver,
 	Type,
+	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
 import { compress, uncompress } from "./Compression"

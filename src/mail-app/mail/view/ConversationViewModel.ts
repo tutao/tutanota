@@ -1,18 +1,18 @@
-import { elementIdPart, entityUpdateUtils, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	elementIdPart,
+	entityUpdateUtils,
+	firstBiggerThanSecond,
+	getElementId,
+	haveSameId,
+	isSameId,
+	isSameTypeRef,
+	listIdPart,
+	tutanotaTypeRefs,
+	TypeRef,
+} from "@tutao/typerefs"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import {
-	assertNotNull,
-	findLast,
-	findLastIndex,
-	groupBy,
-	isSameTypeRef,
-	makeSingleUse,
-	memoizedWithHiddenArgument,
-	ofClass,
-	settledThen,
-	TypeRef,
-} from "@tutao/utils"
+import { assertNotNull, findLast, findLastIndex, groupBy, makeSingleUse, memoizedWithHiddenArgument, ofClass, settledThen } from "@tutao/utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"

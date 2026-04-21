@@ -1,8 +1,8 @@
 import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter.js"
-import { getAsEnumValue, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, getAsEnumValue, tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { CalendarAttendeeStatus, CalendarMethod } from "@tutao/app-env"
-import { assert, assertNotNull, clone, filterInt, Require } from "@tutao/utils"
+import { CalendarAttendeeStatus, CalendarMethod, ConversationType } from "@tutao/app-env"
+import { assert, assertNotNull, filterInt, Require } from "@tutao/utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -20,7 +20,6 @@ import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtil
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
-import { ConversationType } from "@tutao/app-env"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

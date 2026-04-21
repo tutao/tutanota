@@ -2,8 +2,7 @@ import o from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils"
 import { CalendarAttendeeStatus } from "../../../../src/app-env"
 import { eventHasSameFields } from "../../../../src/common/calendar/gui/ImportExportUtils"
-import { clone } from "@tutao/utils"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("calendar events have same fields", function () {

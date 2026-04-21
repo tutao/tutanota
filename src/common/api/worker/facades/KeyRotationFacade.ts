@@ -5,6 +5,7 @@ import {
 	elementIdPart,
 	getElementId,
 	isSameId,
+	isSameTypeRef,
 	listIdPart,
 	sysServices,
 	sysTypeRefs,
@@ -21,19 +22,7 @@ import {
 	RolloutType,
 	TutanotaError,
 } from "@tutao/app-env"
-import {
-	assertNotNull,
-	downcast,
-	getFirstOrThrow,
-	groupBy,
-	isEmpty,
-	isNotNull,
-	isSameTypeRef,
-	KeyVersion,
-	lazyAsync,
-	promiseMap,
-	Versioned,
-} from "@tutao/utils"
+import { assertNotNull, downcast, getFirstOrThrow, groupBy, isEmpty, isNotNull, KeyVersion, lazyAsync, promiseMap, Versioned } from "@tutao/utils"
 import {
 	Aes256Key,
 	AesKey,

@@ -6,8 +6,10 @@ import {
 	compareNewestFirst,
 	elementIdPart,
 	firstBiggerThanSecond,
+	isSameTypeRef,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
+	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -19,14 +21,12 @@ import {
 	downcast,
 	isEmpty,
 	isNotNull,
-	isSameTypeRef,
 	neverNull,
 	ofClass,
 	promiseMap,
 	promiseMapCompat,
 	PromiseMapFn,
 	tokenize,
-	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
 import type {

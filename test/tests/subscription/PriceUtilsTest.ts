@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import { asPaymentInterval, formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/common/subscription/utils/PriceUtils.js"
-import { clone } from "@tutao/utils"
 import { UpgradePriceType } from "../../../src/common/subscription/FeatureListProvider"
 import { lang } from "../../../src/common/misc/LanguageViewModel"
 import en from "../../../src/mail-app/translations/en"
@@ -8,6 +7,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { UserError } from "../../../src/common/api/main/UserError.js"
 import { PlanType } from "../../../src/app-env"
+import { clone } from "@tutao/typerefs"
 
 o.spec("PriceUtilsTest", function () {
 	o.before(async function () {

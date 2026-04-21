@@ -2,6 +2,8 @@ import o from "@tutao/otest"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { matchers, object, verify, when } from "testdouble"
 import {
+	AppName,
+	AppNameEnum,
 	AssociationType,
 	baseModelInfo,
 	baseServices,
@@ -15,7 +17,7 @@ import {
 	ServiceDefinition,
 	Type,
 } from "@tutao/typerefs"
-import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
+import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"

@@ -1,6 +1,6 @@
 import { entityUpdateUtils, ListElementEntity, SomeEntity } from "@tutao/typerefs"
 import { ProgrammingError } from "@tutao/app-env"
-import { TypeRef } from "@tutao/utils"
+import { TypeRef } from "@tutao/typerefs"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"
 import { EntityRestClientLoadOptions } from "./EntityRestClient.js"
 

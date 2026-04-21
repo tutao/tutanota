@@ -1,5 +1,6 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
-import { AppName, Nullable, TypeRef } from "@tutao/utils"
+import { AppName, TypeRef } from "./TypeRef.js"
+import { Nullable } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
 import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
 

@@ -1,10 +1,13 @@
 import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import {
+	type AppName,
 	AttributeModel,
 	Entity,
 	entityUpdateUtils,
+	GENERATED_MIN_ID,
 	hasError,
+	isSameTypeRef,
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	sysModelInfo,
@@ -13,9 +16,9 @@ import {
 	tutanotaModelInfo,
 	tutanotaTypeRefs,
 	TypeModelResolver,
-	GENERATED_MIN_ID,
+	TypeRef,
 } from "@tutao/typerefs"
-import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
+import { delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CancelledError } from "../common/error/CancelledError"
 import { WsConnectionState } from "../main/WorkerClient"

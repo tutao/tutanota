@@ -1,7 +1,6 @@
 import {
 	$Promisable,
 	assertNotNull,
-	clone,
 	deepEqual,
 	defer,
 	DeferredObject,
@@ -31,6 +30,7 @@ import {
 } from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
 import {
+	clone,
 	DELETE_MULTIPLE_LIMIT,
 	elementIdPart,
 	entityUpdateUtils,

@@ -30,8 +30,8 @@ import {
 	StandardAlarmInterval,
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { EndType, RepeatPeriod, ShareCapability } from "../../../src/app-env"
+import { clone, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/app-env"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
 import {
@@ -41,7 +41,7 @@ import {
 	serializeAlarmInterval,
 } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
-import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
+import { getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
 import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeEventWrapper, makeUserController } from "./CalendarTestUtils.js"
@@ -54,7 +54,6 @@ import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarM
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { AccountType, GroupType } from "../../../src/app-env"
 
 const zone = "Europe/Berlin"
 

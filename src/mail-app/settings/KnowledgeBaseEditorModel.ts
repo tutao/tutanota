@@ -1,10 +1,10 @@
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { clone, deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/utils"
+import { deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../common/api/main/UserError"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
 
 export class KnowledgeBaseEditorModel {
 	title: Stream<string>

@@ -12,6 +12,7 @@ import {
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
+	getTypeString,
 	listIdPart,
 	ServerModelParsedInstance,
 	SomeEntity,
@@ -21,13 +22,14 @@ import {
 	tutanotaTypeRefs,
 	Type as TypeId,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
-import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, getTypeString, lastThrow, mapNullable, promiseMap, typedKeys, TypeRef } from "@tutao/utils"
+import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, lastThrow, mapNullable, promiseMap, typedKeys } from "@tutao/utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlType, untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
-import { FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../../../src/app-env"
+import { AccountType, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, MailSetKind } from "@tutao/app-env"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
@@ -38,7 +40,6 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { AccountType, MailSetKind } from "../../../../../src/app-env"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)

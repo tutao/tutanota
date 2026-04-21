@@ -2,14 +2,14 @@ import o from "@tutao/otest"
 import { IndexedGroupData, OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
-import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
+import { assertNotNull, typedValues } from "@tutao/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { ClientModelInfo, ensureBase64Ext, getElementId, getListId, ListElementEntity, tutanotaTypeRefs } from "@tutao/typerefs"
+import { ClientModelInfo, ensureBase64Ext, getElementId, getListId, getTypeString, ListElementEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
 import { object } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { GroupType } from "../../../../../src/app-env"
+import { GroupType } from "@tutao/app-env"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

@@ -5,13 +5,14 @@ import {
 	entityUpdateUtils,
 	getMembershipGroupType,
 	isSameId,
+	isSameTypeRef,
 	sysTypeRefs,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, defer, downcast, isNotNull, isSameTypeRef, millisToDays, neverNull, promiseMap } from "@tutao/utils"
+import { contains, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"

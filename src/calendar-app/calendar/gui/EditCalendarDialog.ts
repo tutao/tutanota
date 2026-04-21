@@ -5,7 +5,7 @@ import Stream from "mithril/stream"
 import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
-import { clone, deepEqual, isNotNull } from "@tutao/utils"
+import { deepEqual, isNotNull } from "@tutao/utils"
 import { AlarmInterval, CalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { checkURLString, isIcal } from "../../../common/calendar/gui/ImportExportUtils.js"
@@ -17,6 +17,7 @@ import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPicke
 import { generateRandomColor } from "./CalendarGuiUtils.js"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../../common/sharing/view/GroupSettingNameInputFields"
+import { clone } from "@tutao/typerefs"
 
 export type CalendarProperties = {
 	nameData: GroupNameData

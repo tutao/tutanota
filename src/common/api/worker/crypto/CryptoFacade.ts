@@ -2,7 +2,6 @@ import {
 	assertNotNull,
 	downcast,
 	first,
-	isSameTypeRef,
 	KeyVersion,
 	lazy,
 	neverNull,
@@ -10,7 +9,6 @@ import {
 	ofClass,
 	promiseMap,
 	stringToUtf8Uint8Array,
-	TypeRef,
 	uint8ArrayToBase64,
 	Versioned,
 } from "@tutao/utils"
@@ -36,6 +34,7 @@ import {
 	getElementId,
 	getListId,
 	isSameId,
+	isSameTypeRef,
 	PatchOperationType,
 	ServerModelEncryptedParsedInstance,
 	SomeEntity,
@@ -44,6 +43,7 @@ import {
 	tutanotaServices,
 	tutanotaTypeRefs,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
 import { RestClient, restError } from "@tutao/rest-client"
 import { HttpMethod } from "@tutao/rest-client/types"

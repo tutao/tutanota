@@ -4,6 +4,7 @@
 import o, { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/otest"
 import {
 	AttributeModel,
+	clone,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	Entity,
@@ -13,6 +14,7 @@ import {
 	GENERATED_MIN_ID,
 	getElementId,
 	getListId,
+	isSameTypeRef,
 	listIdPart,
 	PatchOperationType,
 	ServerModelParsedInstance,
@@ -20,8 +22,9 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, stringToCustomId, TypeRef } from "@tutao/utils"
+import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToCustomId } from "@tutao/utils"
 import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
@@ -37,7 +40,7 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/co
 import { ModelMapper, PatchMerger } from "@tutao/instance-pipeline"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { OperationType } from "../../../../../src/app-env"
+import { OperationType } from "@tutao/app-env"
 
 const { anything } = matchers
 
