@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "L'aniversari de {name}";
 TutaoBirthdayEventAgeTitle = "{age} anys";
 TutaoBirthdayCalendarLabel = "Aniversaris";
 TutaoAllDayLabel = "Tot el dia";
+TutaoAttachFilesAction = "Adjunta fitxers";

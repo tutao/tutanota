@@ -870,7 +870,7 @@ export default {
 		"includesFuture_msg": "Dieser Zeitraum erstreckt sich in die Zukunft.",
 		"indexedMails_label": "Durchsuchbare E-Mails: {count}",
 		"indexing_error": "Der Aufbau des Such-Index wurde aufgrund eines Fehlers abgebrochen.",
-		"indexingEmails_msg": "E-Mails werden indiziert ...",
+		"indexingEmails_msg": "E-Mails werden indiziert…",
 		"indexingFailedConnection_error": " Der Aufbau des Such-Index wurde abgebrochen, da die Verbindung abgebrochen ist.",
 		"insertImage_action": "Bild einfügen",
 		"insertTemplate_action": "Vorlage einfügen",

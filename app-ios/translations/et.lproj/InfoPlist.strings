@@ -12,3 +12,4 @@ TutaoMarkReadAction = "Märgi loetuks";
 TutaoAccountLabel = "Kasutaja";
 TutaoDefaultCalendarNameTitle = "Privaatne";
 TutaoAllDayLabel = "Kogu päev";
+TutaoAttachFilesAction = "Lisa manuseid";

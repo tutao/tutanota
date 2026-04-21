@@ -9,3 +9,4 @@ TutaoPushNewMail = "Gautas naujas laiškas.";
 TutaoDeleteAction = "Pašalinti";
 TutaoMarkReadAction = "Žymėti kaip skaitytą";
 TutaoAccountLabel = "Vartotojas";
+TutaoAttachFilesAction = "Prisegti failus";

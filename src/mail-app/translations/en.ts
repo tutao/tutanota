@@ -870,7 +870,7 @@ export default {
 		"includesFuture_msg": "This search range includes dates that are in the future.",
 		"indexedMails_label": "Searchable emails: {count}",
 		"indexing_error": "Creating the search index was aborted due to an error",
-		"indexingEmails_msg": "Indexing emails ...",
+		"indexingEmails_msg": "Indexing emails…",
 		"indexingFailedConnection_error": "Creating the search index failed because the connection was lost.",
 		"insertImage_action": "Insert image",
 		"insertTemplate_action": "Insert selected template",

@@ -23,3 +23,4 @@ TutaoBirthdayEventTitle = "{name}ගේ උපන් දිනය";
 TutaoBirthdayEventAgeTitle = "වයස අවුරුදු {age}";
 TutaoBirthdayCalendarLabel = "උපන් දින";
 TutaoAllDayLabel = "දවස පුරාම";
+TutaoAttachFilesAction = "ගොනු අමුණන්න";

@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "שליחת דו\"חות";
 TutaoAccountLabel = "משתמש";
 TutaoDefaultCalendarNameTitle = "פרטי";
 TutaoAllDayLabel = "כל היום";
+TutaoAttachFilesAction = "צרף קבצים";

@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "إرسال السجلات";
 TutaoAccountLabel = "مستخدم";
 TutaoDefaultCalendarNameTitle = "خاصّ ";
 TutaoAllDayLabel = "كل يوم";
+TutaoAttachFilesAction = "إرفاق ملفات";

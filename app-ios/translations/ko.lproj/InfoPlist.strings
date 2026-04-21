@@ -20,3 +20,4 @@ TutaoAccountLabel = "사용자";
 TutaoDefaultCalendarNameTitle = "비공개";
 TutaoBirthdayCalendarLabel = "생일";
 TutaoAllDayLabel = "종일";
+TutaoAttachFilesAction = "첨부 파일";

@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "Rojstni dan osebe {name}";
 TutaoBirthdayEventAgeTitle = "{age} let";
 TutaoBirthdayCalendarLabel = "Rojstni dnevi";
 TutaoAllDayLabel = "Cel dan";
+TutaoAttachFilesAction = "Pripni datoteke";

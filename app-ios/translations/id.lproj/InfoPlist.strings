@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "Kirim catatan aktivitas";
 TutaoAccountLabel = "Pengguna";
 TutaoDefaultCalendarNameTitle = "Pribadi";
 TutaoAllDayLabel = "Sepanjang hari";
+TutaoAttachFilesAction = "Lampirkan berkas";

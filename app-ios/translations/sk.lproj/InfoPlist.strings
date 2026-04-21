@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "Odoslať denníky";
 TutaoAccountLabel = "Používateľ";
 TutaoDefaultCalendarNameTitle = "Súkromný";
 TutaoAllDayLabel = "Celý deň";
+TutaoAttachFilesAction = "Priložiť súbory";

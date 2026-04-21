@@ -28,3 +28,4 @@ TutaoWidgetMissingConfigurationErrorMsg = "Per favore configura questo widget";
 TutaoBirthdayEventTitle = "Compleanno di {name}";
 TutaoBirthdayCalendarLabel = "Compleanni";
 TutaoAllDayLabel = "Tutto il Giorno";
+TutaoAttachFilesAction = "Allega file";

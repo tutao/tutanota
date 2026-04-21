@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "{name}生日";
 TutaoBirthdayEventAgeTitle = "{age}歲";
 TutaoBirthdayCalendarLabel = "生日";
 TutaoAllDayLabel = "全日";
+TutaoAttachFilesAction = "附加檔案";

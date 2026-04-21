@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "Narozeniny: {name}";
 TutaoBirthdayEventAgeTitle = "{age} let";
 TutaoBirthdayCalendarLabel = "Narozeniny";
 TutaoAllDayLabel = "Celý den";
+TutaoAttachFilesAction = "Připojit soubory";

@@ -30,3 +30,4 @@ TutaoBirthdayEventTitle = "День рождения {name}";
 TutaoBirthdayEventAgeTitle = "{age} лет";
 TutaoBirthdayCalendarLabel = "Дни рождения";
 TutaoAllDayLabel = "Весь день";
+TutaoAttachFilesAction = "Прикрепить файлы";

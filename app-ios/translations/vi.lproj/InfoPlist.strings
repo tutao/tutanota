@@ -19,3 +19,4 @@ TutaoWidgetSendLogsAction = "Gửi nhật kí";
 TutaoAccountLabel = "Người dùng";
 TutaoDefaultCalendarNameTitle = "Riêng";
 TutaoAllDayLabel = "Cả ngày";
+TutaoAttachFilesAction = "Đính kèm tệp";

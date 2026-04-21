@@ -31,3 +31,4 @@ TutaoBirthdayEventTitle = "{name}の誕生日";
 TutaoBirthdayEventAgeTitle = "{age}歳";
 TutaoBirthdayCalendarLabel = "誕生日";
 TutaoAllDayLabel = "終日";
+TutaoAttachFilesAction = "ファイルを添付";

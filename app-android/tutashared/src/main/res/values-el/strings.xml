@@ -10,6 +10,7 @@
     <string name="markRead_action">Σήμανση ως αναγνωσμένου</string>
     <string name="sendLogs_action">Αποστολή αρχείων καταγραφής</string>
     <string name="account_label">Χρήστης</string>
+    <string name="calendars_label">Ημερολόγια</string>
     <string name="widgetNoCredentialsInfo_msg">Χωρίς στοιχεία σύνδεσης</string>
     <string name="widgetUnexpectedError_msg">Ουπς! Κάτι πήγε στραβά.</string>
     <string name="widgetCredentialsError_msg">Συνδεθείτε στο Ημερολόγιο</string>
@@ -17,5 +18,8 @@
     <string name="widgetNoEvents_msg">Κανένα συμβάν</string>
     <string name="widgetNoEventsToday_msg">Δεν υπάρχουν εκδηλώσεις σήμερα</string>
     <string name="widgetDescription_msg">Προβολή σημερινών συμβάντων</string>
+    <string name="birthdayCalendar_label">Γενέθλια</string>
+    <string name="birthdayEvent_title">Γενέθλια του/της {όνομα}</string>
+    <string name="birthdayEventAge_title">{ηλικία} χρονών</string>
     <string name="noTitle_label">&lt;Χωρίς τίτλο&gt;</string>
 </resources>
