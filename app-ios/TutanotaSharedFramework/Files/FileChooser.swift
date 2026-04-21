@@ -45,6 +45,7 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 	}
 	private func showFilePicker() {
 		let filePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content, UTType.archive, UTType.data], asCopy: true)
+		filePicker.allowsMultipleSelection = true
 		filePicker.delegate = self
 		sourceController.present(filePicker, animated: true)
 	}
@@ -107,8 +108,8 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		self.imagePickerController.showsCameraControls = true
 		self.sourceController.present(self.imagePickerController, animated: true, completion: nil)
 	}
-	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-		copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
+	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+		copyFilesToLocalFolderAndSendResults(srcUrls: urls)
 	}
 
 	// from UIDocumentPickerDelegate protocol
@@ -164,6 +165,16 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		do {
 			let targetUrl = try copyToLocalFolder(srcUrl: srcUrl, filename: filename)
 			sendResult(filePath: targetUrl.path)
+		} catch {
+			sendError(error: error)
+			return
+		}
+	}
+
+	private func copyFilesToLocalFolderAndSendResults(srcUrls: [URL]) {
+		do {
+			let localPaths = try srcUrls.map { srcUrl in try copyToLocalFolder(srcUrl: srcUrl, filename: srcUrl.lastPathComponent).path }
+			sendMultipleResults(filePaths: localPaths)
 		} catch {
 			sendError(error: error)
 			return
