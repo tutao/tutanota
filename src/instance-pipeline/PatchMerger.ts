@@ -26,13 +26,14 @@ import {
 	TypeModelResolver,
 	TypeRef,
 } from "@tutao/typerefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, Nullable, promiseMap } from "@tutao/utils"
+import { assertNotNull, Base64, deepEqual, isEmpty, lazy, Nullable, promiseMap } from "@tutao/utils"
 import { convertDbToJsType, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, SymmetricCipherFacade } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 
-export type SessionKeyResolver = (instance: Entity) => Promise<Nullable<AesKey>>
-
+export interface SessionKeyResolver {
+	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
+}
 /*
  * Note:
  * This is a subset of interface `CacheStorage`.
@@ -51,7 +52,7 @@ export class PatchMerger {
 		private readonly cacheStorage: GetOrPutInstance,
 		public readonly instancePipeline: InstancePipeline,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: SessionKeyResolver,
+		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 	) {}
 
@@ -67,7 +68,7 @@ export class PatchMerger {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 
 			const instance = await this.instancePipeline.modelMapper.mapToInstance(instanceType, parsedInstance)
-			const sk = await this.sessionKeyResolver(instance)
+			const sk = await this.sessionKeyResolver().resolveSessionKey(instance)
 			const ownerGroup = instance._ownerGroup ?? null
 			const kdfNonce = instance._kdfNonce ?? null
 			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sk, kdfNonce, String(instanceType.typeId))
