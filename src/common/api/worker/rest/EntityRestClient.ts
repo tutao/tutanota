@@ -1,31 +1,30 @@
-import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/rest-client"
+import { type RestClient, restError } from "@tutao/rest-client"
+import { HttpMethod, MediaType, SuspensionBehavior } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import type {
-	ClientModelUntypedInstance,
-	ClientTypeModel,
-	Entity,
-	ListElementEntity,
-	ServerModelEncryptedParsedInstance,
-	ServerModelParsedInstance,
-	ServerModelUntypedInstance,
-	ServerTypeModel,
-	TypeModel,
-	UntypedInstance,
-} from "@tutao/typerefs"
 import {
 	_verifyType,
 	AttributeModel,
 	baseTypeRefs,
+	ClientModelUntypedInstance,
+	ClientTypeModel,
 	computePatchPayload,
 	elementIdPart,
+	Entity,
 	entityUpdateUtils,
+	ListElementEntity,
 	LOAD_MULTIPLE_LIMIT,
 	POST_MULTIPLE_LIMIT,
+	ServerModelEncryptedParsedInstance,
+	ServerModelParsedInstance,
+	ServerModelUntypedInstance,
+	ServerTypeModel,
 	SomeEntity,
 	storageTypeRefs as storageTypeRefs,
 	sysTypeRefs,
 	Type,
+	TypeModel,
 	TypeModelResolver,
+	UntypedInstance,
 } from "@tutao/typerefs"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
@@ -34,7 +33,7 @@ import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
-import { AesKey, cryptoUtils, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
 import { expandId } from "./RestClientIdUtils"
@@ -108,7 +107,7 @@ export interface EntityRestClientLoadOptions {
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
 	baseUrl?: string
-	suspensionBehavior?: restSuspension.SuspensionBehavior
+	suspensionBehavior?: SuspensionBehavior
 }
 
 export interface OwnerEncSessionKeyProvider {

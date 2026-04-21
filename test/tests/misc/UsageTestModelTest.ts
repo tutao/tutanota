@@ -11,13 +11,13 @@ import { ClientModelInfo, sysTypeRefs, tutanotaTypeRefs, usageModelInfo, usageSe
 import { matchers, object, replace, verify, when } from "testdouble"
 import { clone } from "@tutao/utils"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
-import { restSuspension } from "@tutao/rest-client"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { createTestEntity } from "../TestUtils.js"
+import { SuspensionBehavior } from "@tutao/rest-client/types"
 
 const { anything } = matchers
 
@@ -110,7 +110,7 @@ o.spec("UsageTestModel", function () {
 			o("when there's no deviceId it does POST", async function () {
 				when(
 					serviceExecutor.post(usageServices.UsageTestAssignmentService, createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, {}), {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
 					createTestEntity(usageTypeRefs.UsageTestAssignmentOutTypeRef, {
@@ -136,7 +136,7 @@ o.spec("UsageTestModel", function () {
 						usageServices.UsageTestAssignmentService,
 						createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, { testDeviceId }),
 						{
-							suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+							suspensionBehavior: SuspensionBehavior.Throw,
 						},
 					),
 				).thenResolve(
@@ -156,7 +156,7 @@ o.spec("UsageTestModel", function () {
 						usageServices.UsageTestAssignmentService,
 						createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, { testDeviceId }),
 						{
-							suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+							suspensionBehavior: SuspensionBehavior.Throw,
 						},
 					),
 				).thenResolve(
@@ -192,7 +192,7 @@ o.spec("UsageTestModel", function () {
 						usageServices.UsageTestAssignmentService,
 						createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, { testDeviceId }),
 						{
-							suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+							suspensionBehavior: SuspensionBehavior.Throw,
 						},
 					),
 				).thenResolve(
@@ -345,7 +345,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(usageServices.UsageTestAssignmentService, createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, {}), {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
 					createTestEntity(usageTypeRefs.UsageTestAssignmentOutTypeRef, {
@@ -367,7 +367,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(usageServices.UsageTestAssignmentService, createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, {}), {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
 					createTestEntity(usageTypeRefs.UsageTestAssignmentOutTypeRef, {
@@ -393,7 +393,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(usageServices.UsageTestAssignmentService, createTestEntity(usageTypeRefs.UsageTestAssignmentInTypeRef, {}), {
-						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
 					createTestEntity(usageTypeRefs.UsageTestAssignmentOutTypeRef, {

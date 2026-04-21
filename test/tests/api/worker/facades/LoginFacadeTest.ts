@@ -1,7 +1,8 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 import { sysServices, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
+import { RestClient, restError } from "@tutao/rest-client"
+import { HttpMethod } from "@tutao/rest-client/types"
 import {
 	_encryptString,
 	aes256RandomKey,

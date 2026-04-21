@@ -76,7 +76,7 @@ import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, PatchMerger, SessionKeyResolver, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
@@ -101,7 +101,6 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../../../common/api/common/DateProvider"
-import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 
 assertWorkerOrNode()
 

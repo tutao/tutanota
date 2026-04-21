@@ -7,8 +7,9 @@ import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
-import { restError, restSuspension } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade"
+import { SuspensionBehavior } from "@tutao/rest-client/types"
 
 assertWorkerOrNode()
 
@@ -85,13 +86,13 @@ export class MailExportFacade {
 
 	private options(token: string): {
 		extraHeaders: Dict
-		suspensionBehavior: restSuspension.SuspensionBehavior
+		suspensionBehavior: SuspensionBehavior
 	} {
 		return {
 			extraHeaders: {
 				[MAIL_EXPORT_TOKEN_HEADER]: token,
 			},
-			suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
+			suspensionBehavior: SuspensionBehavior.Throw,
 		}
 	}
 }

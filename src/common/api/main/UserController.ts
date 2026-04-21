@@ -10,7 +10,7 @@ import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
-import { MediaType } from "@tutao/rest-client"
+import { MediaType } from "@tutao/rest-client/types"
 
 assertMainOrNode()
 

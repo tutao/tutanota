@@ -1,7 +1,7 @@
 import { promiseMap } from "@tutao/utils"
 import { FileReference } from "../../api/common/utils/FileUtils"
 import { DataFile } from "../../api/common/DataFile"
-import { HttpMethod } from "@tutao/rest-client"
+import { HttpMethod } from "@tutao/rest-client/types"
 import { FileFacade } from "./generatedipc/FileFacade.js"
 import { ExportFacade } from "./generatedipc/ExportFacade.js"
 import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
