@@ -8,7 +8,7 @@ import { ImportStatus, UpgradePromptType } from "@tutao/app-env"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { elementIdPart, entityUpdateUtils, generatedIdToTimestamp, isSameId, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, entityUpdateUtils, generatedIdToTimestamp, EntityIdEncoding, isSameId, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
@@ -280,7 +280,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		if (folders) {
 			return this.mailImporter()
 				.getFinalisedImports(mailboxId)
-				.sort(sortCompareByReverseId)
+				.sort((a, b) => sortCompareByReverseId(a, b, EntityIdEncoding.Base64Ext))
 				.map((im) => {
 					const targetFolderId = im.targetFolder
 					const displayTargetFolder = folders!.find((f) => isSameId(f.folder._id, targetFolderId))

@@ -1,6 +1,6 @@
 import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { EntityIdEncoding, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	ContactAddressType,
 	ContactCustomDateType,
@@ -194,13 +194,13 @@ export function compareContacts(contact1: tutanotaTypeRefs.Contact, contact2: tu
 				return 1
 			} else if (c1MailLength === 0 && c2MailLength === 0) {
 				// see Multiselect with shift and up arrow not working properly #152 at github
-				return sortCompareByReverseId(contact1, contact2)
+				return sortCompareByReverseId(contact1, contact2, EntityIdEncoding.Base64Ext)
 			} else {
 				result = contact1.mailAddresses[0].address.trim().localeCompare(contact2.mailAddresses[0].address.trim())
 
 				if (result === 0) {
 					// see Multiselect with shift and up arrow not working properly #152 at github
-					return sortCompareByReverseId(contact1, contact2)
+					return sortCompareByReverseId(contact1, contact2, EntityIdEncoding.Base64Ext)
 				} else {
 					return result
 				}
