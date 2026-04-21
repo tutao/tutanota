@@ -5,7 +5,8 @@ import {
 	parseMultipleBlobsResponse,
 	pipelineEncryptAndUpload,
 } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/rest-client"
+import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
+import { HttpMethod, RestClientOptions } from "@tutao/rest-client/types"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, Mode, ProgrammingError } from "@tutao/app-env"

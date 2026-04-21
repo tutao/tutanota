@@ -27,7 +27,8 @@ import {
 	TypeModelResolver,
 	UntypedInstance,
 } from "@tutao/typerefs"
-import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
+import { RestClient, restError } from "@tutao/rest-client"
+import { HttpMethod } from "@tutao/rest-client/types"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import {
 	Aes256Key,

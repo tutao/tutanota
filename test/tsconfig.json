@@ -26,6 +26,7 @@
 			"@tutao/app-env": ["../src/app-env"],
 			"@tutao/rest-client": ["../src/rest-client"],
 			"@tutao/rest-client/error": ["../src/rest-client/error.ts"],
+			"@tutao/rest-client/types": ["../src/rest-client/types.d.ts"],
 			"@tutao/typerefs": ["../src/typerefs"],
 			"@tutao/instance-pipeline": ["../src/instance-pipeline"],
 			"@tutao/licc": ["../src/licc"],
