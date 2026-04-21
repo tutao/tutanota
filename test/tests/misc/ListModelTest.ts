@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { getElementId, sortCompareById, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getElementId, EntityIdEncoding, sortCompareById, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"
@@ -10,6 +10,7 @@ import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js
 
 o.spec("ListModel", function () {
 	const listId = "listId"
+	const entityIdEncoding = EntityIdEncoding.Base64Ext
 	let fetchDefer: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>>
 	let listModel: ListModel<tutanotaTypeRefs.KnowledgeBaseEntry, Id>
 	let currentSelectBehavior = ListAutoSelectBehavior.OLDER
@@ -185,7 +186,7 @@ o.spec("ListModel", function () {
 	})
 
 	function getSortedSelection() {
-		return listModel.getSelectedAsArray().sort(sortCompareById)
+		return listModel.getSelectedAsArray().sort((a, b) => sortCompareById(a, b, entityIdEncoding))
 	}
 
 	o.spec("selection controls selectPrevious/selectNext", function () {
