@@ -1,20 +1,21 @@
 import o from "@tutao/otest"
-import { getElementId, getListId, sortCompareById, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getElementId, getListId, EntityIdEncoding, sortCompareById, tutanotaTypeRefs } from "@tutao/typerefs"
 import { defer, DeferredObject } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
 import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
 import * as restError from "@tutao/rest-client/error"
-import { OperationType } from "../../../src/app-env"
+import { OperationType } from "@tutao/app-env"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"
+	const entityIdEncoding = EntityIdEncoding.Base64Ext
 	let fetchDefer: DeferredObject<ListFetchResult<tutanotaTypeRefs.KnowledgeBaseEntry>>
 	let listModel: ListElementListModel<tutanotaTypeRefs.KnowledgeBaseEntry>
 	const defaultListConfig: ListElementListModelConfig<tutanotaTypeRefs.KnowledgeBaseEntry> = {
 		fetch: () => fetchDefer.promise,
-		sortCompare: sortCompareById,
+		sortCompare: (a, b) => sortCompareById(a, b, entityIdEncoding),
 		loadSingle: () => {
 			throw new Error("noop")
 		},
@@ -51,7 +52,7 @@ o.spec("ListElementListModel", function () {
 	})
 
 	function getSortedSelection() {
-		return listModel.getSelectedAsArray().sort(sortCompareById)
+		return listModel.getSelectedAsArray().sort((a, b) => sortCompareById(a, b, entityIdEncoding))
 	}
 
 	o.spec("selection controls", function () {

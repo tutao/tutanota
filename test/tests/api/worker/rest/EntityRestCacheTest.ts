@@ -8,7 +8,7 @@ import {
 	elementIdPart,
 	Entity,
 	entityUpdateUtils,
-	firstBiggerThanSecond,
+	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
@@ -1715,7 +1715,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadParsedInstancesRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
 				if (listId !== listIdToLoad) throw new restError.NotFoundError("unknown list id")
-				const startOfList = serverMails.filter((mail) => firstBiggerThanSecond(getElementId(mail), startId)).slice(0, count)
+				const startOfList = serverMails.filter((mail) => firstBiggerThanSecondBase64Ext(getElementId(mail), startId)).slice(0, count)
 				return Promise.all(startOfList.map(toStorableInstance))
 			})
 

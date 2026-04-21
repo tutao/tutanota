@@ -8,8 +8,10 @@ import {
 	ensureBase64Ext,
 	Entity,
 	firstBiggerThanSecond,
+	firstBiggerThanSecondBase64Ext,
 	GENERATED_MIN_ID,
 	getElementId,
+	getServerIdEncodingForType,
 	isCustomIdType,
 	ListElementEntity,
 	listIdPart,
@@ -457,7 +459,7 @@ export class OfflineStorage implements CacheStorage {
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 
 		const range = await this.getRange(typeRef, listId)
-		return range != null && !firstBiggerThanSecond(encodedElementId, range.upper) && !firstBiggerThanSecond(range.lower, encodedElementId)
+		return range != null && !firstBiggerThanSecondBase64Ext(encodedElementId, range.upper) && !firstBiggerThanSecondBase64Ext(range.lower, encodedElementId)
 	}
 
 	async provideFromRangeParsed<T extends ListElementEntity>(
@@ -998,17 +1000,17 @@ export class OfflineStorage implements CacheStorage {
 			// !!however ids for entities with a customId used to QUERY the offline database
 			// MUST always be base64Ext encoded
 			// Therefore, we need to compare against the rawCutoffId here!
-			const rangeWontBeModified = id != null && (firstBiggerThanSecond(id, rawCutoffId, typeModel) || id === rawCutoffId)
+			const rangeWontBeModified = id != null && (id === rawCutoffId || firstBiggerThanSecond(id, rawCutoffId, getServerIdEncodingForType(typeModel)))
 			if (rangeWontBeModified) {
 				return
 			}
 		}
 
-		if (firstBiggerThanSecond(encodedCutoffId, range.lower)) {
+		if (firstBiggerThanSecondBase64Ext(encodedCutoffId, range.lower)) {
 			// If the upper id of the range is below the cutoff, then the entire range will be deleted from the storage
 			// so we just delete the range as well
 			// Otherwise, we only want to modify
-			if (firstBiggerThanSecond(encodedCutoffId, range.upper)) {
+			if (firstBiggerThanSecondBase64Ext(encodedCutoffId, range.upper)) {
 				await this.deleteRange(typeRef, listId)
 			} else {
 				await this.setLowerRangeForList(typeRef, listId, rawCutoffId)

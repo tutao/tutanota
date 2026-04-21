@@ -5,12 +5,13 @@ import {
 	elementIdPart,
 	firstBiggerThanSecond,
 	generatedIdToTimestamp,
+	getServerIdEncodingForType,
 	listIdPart,
+	sysTypeRefs,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
-import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
-import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
+import { TypeInfo, typeInfoToTypeRef, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import {
 	ElementDataDbRow,
 	SearchIndexEntry,
@@ -22,7 +23,7 @@ import { Base64, groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
-import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
+import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
@@ -36,7 +37,6 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
-import { sysTypeRefs } from "@tutao/typerefs"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -50,6 +50,7 @@ const contactTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef)
 const browserData: BrowserData = browserDataStub
 const entityClient: EntityClient = object()
+const typeModelResolver = clientInitializedTypeModelResolver()
 o.spec("IndexedDbSearchFacade", () => {
 	let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
 	let user = createTestEntity(sysTypeRefs.UserTypeRef)
@@ -79,10 +80,9 @@ o.spec("IndexedDbSearchFacade", () => {
 		)
 	}
 
-	function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
+	async function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
 		let counter = 0
 		for (const [index, keyToIndexEntries] of dbData.entries()) {
-			keyToIndexEntries.indexEntries.sort((a, b) => compareOldestFirst(a.id, b.id))
 			const indexEntriesByType = groupBy(keyToIndexEntries.indexEntries, (e) => e.typeInfo)
 			const metaDataRow: SearchIndexMetaDataRow = {
 				id: index + 1,
@@ -90,6 +90,9 @@ o.spec("IndexedDbSearchFacade", () => {
 				rows: [],
 			}
 			for (const [typeInfo, entries] of indexEntriesByType.entries()) {
+				const typeModel = await typeModelResolver.resolveClientTypeReference(typeInfoToTypeRef(typeInfo))
+				entries.sort((a, b) => compareOldestFirst(a.id, b.id, getServerIdEncodingForType(typeModel)))
+
 				const chunks = splitInChunks(2, entries)
 				for (const chunk of chunks) {
 					counter++
@@ -153,7 +156,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		}
 	}
 
-	let testSearch = (
+	let testSearch = async (
 		dbData: KeyToIndexEntriesWithType[],
 		dbListIds: IdTuple[],
 		query: string,
@@ -163,13 +166,16 @@ o.spec("IndexedDbSearchFacade", () => {
 		minSuggestionCount: number = 0,
 		maxResults?: number,
 	): Promise<void> => {
-		createDbContent(transaction, dbData, dbListIds)
-		let s = createSearchFacade(transaction, currentIndexTimestamp)
-		return s.search(query, restriction, minSuggestionCount, maxResults).then((result) => {
-			o.check(result.query).equals(query)
-			o.check(result.restriction).deepEquals(restriction)
-			o.check(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => (firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1)))
-		})
+		await createDbContent(transaction, dbData, dbListIds)
+		const s = createSearchFacade(transaction, currentIndexTimestamp)
+		const typeModel = await typeModelResolver.resolveClientTypeReference(restriction.type)
+
+		const result = await s.search(query, restriction, minSuggestionCount, maxResults)
+		o.check(result.query).equals(query)
+		o.check(result.restriction).deepEquals(restriction)
+		o.check(result.results).deepEquals(
+			expectedResult.sort((idTuple1, idTuple2) => (firstBiggerThanSecond(idTuple1[1], idTuple2[1], getServerIdEncodingForType(typeModel)) ? -1 : 1)),
+		)
 	}
 
 	let dbStub: DbStub
@@ -430,7 +436,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
 
-		createDbContent(
+		await createDbContent(
 			transaction,
 			[
 				createKeyToIndexEntries("test", [
@@ -492,7 +498,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
 
-		createDbContent(
+		await createDbContent(
 			transaction,
 			[
 				createKeyToIndexEntries("test", [
@@ -554,7 +560,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
 
-		createDbContent(
+		await createDbContent(
 			transaction,
 			[
 				createKeyToIndexEntries("test", [
@@ -613,7 +619,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
 
-		createDbContent(
+		await createDbContent(
 			transaction,
 			[
 				createKeyToIndexEntries("test", [
@@ -675,7 +681,7 @@ o.spec("IndexedDbSearchFacade", () => {
 		let id3 = timestampToGeneratedId(new Date(2017, 5, 12).getTime())
 		let id4 = timestampToGeneratedId(new Date(2017, 5, 14).getTime())
 
-		createDbContent(
+		await createDbContent(
 			transaction,
 			[
 				createKeyToIndexEntries("test", [

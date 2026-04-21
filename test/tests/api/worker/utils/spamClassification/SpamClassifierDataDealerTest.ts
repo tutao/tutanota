@@ -4,8 +4,8 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { SpamDecision } from "../../../../../../src/app-env"
+import { compareNewestFirst, GENERATED_MIN_ID, getElementId, EntityIdEncoding, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/app-env"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/common/api/common/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
@@ -13,7 +13,6 @@ import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy
 import { createTestEntity } from "../../../../TestUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/utils"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../../src/app-env"
 
 const { anything } = matchers
 
@@ -489,7 +488,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
 
 			o(trainingDataset).deepEquals({
-				trainingData: updatedSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id)),
+				trainingData: updatedSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id, EntityIdEncoding.Base64Ext)),
 				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
 				hamCount: 80,
 				spamCount: 80,
