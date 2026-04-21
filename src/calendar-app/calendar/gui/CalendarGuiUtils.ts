@@ -10,7 +10,6 @@ import {
 	assert,
 	assertNotNull,
 	clamp,
-	clone,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -71,7 +70,7 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
 import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"

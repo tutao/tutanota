@@ -1,4 +1,5 @@
-import { AppName, AppNameEnum, assertNotNull, lazyAsync, TypeRef } from "@tutao/utils"
+import { assertNotNull, lazyAsync } from "@tutao/utils"
+import { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "./TypeRef.js"
 import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "./EntityTypes"
 
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"

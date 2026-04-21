@@ -14,26 +14,14 @@ import {
 	tutanotaTypeRefs,
 	TypeModel,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { AuthDataProvider, UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
-import {
-	assertNotNull,
-	Base64,
-	base64ToUint8Array,
-	deepEqual,
-	KeyVersion,
-	Mapper,
-	noOp,
-	Nullable,
-	ofClass,
-	promiseMap,
-	TypeRef,
-	uint8ArrayToBase64,
-} from "@tutao/utils"
+import { assertNotNull, Base64, base64ToUint8Array, deepEqual, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"

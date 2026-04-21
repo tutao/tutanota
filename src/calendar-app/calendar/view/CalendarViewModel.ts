@@ -1,7 +1,6 @@
 import {
 	$Promisable,
 	assertNotNull,
-	clone,
 	debounce,
 	deepEqual,
 	findAndRemove,
@@ -16,7 +15,7 @@ import {
 	millisToDays,
 	noOp,
 } from "@tutao/utils"
-import { entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, entityUpdateUtils, getElementId, getListId, getWeekStart, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
@@ -24,6 +23,7 @@ import {
 	GroupType,
 	NewPaidPlans,
 	OperationType,
+	ProgrammingError,
 	TimeFormat,
 	UpgradePromptType,
 	WeekStart,
@@ -57,7 +57,6 @@ import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
-import { ProgrammingError } from "@tutao/app-env"
 import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 

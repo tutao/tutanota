@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	addDaysForRecurringEvent,
 	calendarEventHasMoreThanOneOccurrencesLeft,
@@ -11,7 +11,7 @@ import * as restError from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarAttendeeStatus, EndType, ProgrammingError } from "@tutao/app-env"
 import m from "mithril"
-import { clone, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"
+import { deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"

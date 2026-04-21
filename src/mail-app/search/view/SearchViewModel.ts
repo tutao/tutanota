@@ -12,11 +12,13 @@ import {
 	getElementId,
 	isPermanentDeleteAllowedForFolder,
 	isSameId,
+	isSameTypeRef,
 	ListElement,
 	ListElementEntity,
 	listIdPart,
 	sortCompareByReverseId,
 	tutanotaTypeRefs,
+	TypeRef,
 } from "@tutao/typerefs"
 import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
@@ -31,14 +33,12 @@ import {
 	incrementMonth,
 	isEmpty,
 	isSameDayOfDate,
-	isSameTypeRef,
 	mapAndFilterNull,
 	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
 	onceAsync,
 	stringToBase64,
-	TypeRef,
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"

@@ -10,11 +10,12 @@ import {
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 	ServerTypeReferenceResolver,
+	TypeRef,
 	UntypedAssociation,
 	UntypedInstance,
 	UntypedValue,
 } from "@tutao/typerefs"
-import { TypeRef, uint8ArrayToBase64 } from "@tutao/utils"
+import { uint8ArrayToBase64 } from "@tutao/utils"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
 

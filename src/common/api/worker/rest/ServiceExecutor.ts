@@ -4,6 +4,7 @@ import {
 	Entity,
 	GetService,
 	getServiceRestPath,
+	isSameTypeRef,
 	MethodDefinition,
 	ParamTypeFromRef,
 	PostService,
@@ -11,11 +12,12 @@ import {
 	ReturnTypeFromRef,
 	ServerModelUntypedInstance,
 	TypeModelResolver,
+	TypeRef,
 } from "@tutao/typerefs"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "../../common/ServiceRequest.js"
-import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
+import { lazy } from "@tutao/utils"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { AuthDataProvider } from "../facades/UserFacade.js"

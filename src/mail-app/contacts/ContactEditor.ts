@@ -17,8 +17,8 @@ import {
 	Keys,
 	ProgrammingError,
 } from "@tutao/app-env"
-import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
+import { clone, timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertNotNull, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import * as restError from "@tutao/rest-client/error"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"

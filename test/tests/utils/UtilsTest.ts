@@ -1,6 +1,7 @@
 import o, { verify } from "@tutao/otest"
-import { arrayEquals, clone, deepEqual, deepMemoized, getChangedProps, memoized } from "@tutao/utils"
+import { arrayEquals, deepEqual, deepMemoized, getChangedProps, memoized } from "@tutao/utils"
 import { func, matchers, when } from "testdouble"
+import { clone } from "@tutao/typerefs"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {

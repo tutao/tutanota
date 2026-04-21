@@ -7,9 +7,8 @@ import {
 	UsageTestModel,
 	UsageTestStorage,
 } from "../../../src/common/misc/UsageTestModel.js"
-import { ClientModelInfo, sysTypeRefs, tutanotaTypeRefs, usageModelInfo, usageServices, usageTypeRefs } from "@tutao/typerefs"
+import { ClientModelInfo, clone, sysTypeRefs, tutanotaTypeRefs, usageModelInfo, usageServices, usageTypeRefs } from "@tutao/typerefs"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { clone } from "@tutao/utils"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"

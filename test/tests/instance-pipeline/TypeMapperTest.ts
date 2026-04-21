@@ -1,12 +1,18 @@
-import { ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel } from "@tutao/typerefs"
-import { assertNotNull, TypeRef } from "@tutao/utils"
-import o from "@tutao/otest"
+import {
+	AttributeModel,
+	ClientModelEncryptedParsedInstance,
+	ClientTypeModel,
+	ClientTypeReferenceResolver,
+	ServerModelUntypedInstance,
+	ServerTypeModel,
+	ServerTypeReferenceResolver,
+	TypeRef,
+} from "@tutao/typerefs"
+import { assertNotNull } from "@tutao/utils"
+import o, { assertThrows } from "@tutao/otest"
 import { TypeMapper } from "@tutao/instance-pipeline"
-import { assertThrows } from "@tutao/otest"
 import { ProgrammingError } from "@tutao/app-env"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typerefs"
-import { AttributeModel } from "@tutao/typerefs"
 
 const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 	"1:testValue": "test string",

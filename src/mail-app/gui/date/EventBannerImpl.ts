@@ -1,11 +1,11 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone, GENERATED_MIN_ID, tutanotaTypeRefs } from "@tutao/typerefs"
 import { DateTime } from "luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
-import { CalendarAttendeeStatus, CalendarMethod, Keys, SECOND_MS, TabIndex } from "@tutao/app-env"
+import { CalendarAttendeeStatus, CalendarMethod, Keys, ProgrammingError, SECOND_MS, TabIndex } from "@tutao/app-env"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
+import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
 import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
@@ -38,8 +38,6 @@ import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/cal
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { ProgrammingError } from "@tutao/app-env"
-import { GENERATED_MIN_ID } from "@tutao/typerefs"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
