@@ -15,6 +15,7 @@ import {
 	GENERATED_MIN_ID,
 	getElementId,
 	getLetId,
+	getServerIdEncodingForType,
 	listIdPart,
 	RANGE_ITEM_LIMIT,
 	sysTypeRefs,
@@ -77,7 +78,7 @@ export class EntityClient {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
-		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
+		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, getServerIdEncodingForType(typeModel)))
 
 		if (filteredEntities.length === rangeItemLimit) {
 			const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])

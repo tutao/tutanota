@@ -1,13 +1,24 @@
-import { BlobElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/typerefs"
-import { customIdToBase64Url, ensureBase64Ext, firstBiggerThanSecond, GENERATED_MIN_ID } from "@tutao/typerefs"
+import {
+	AttributeModel,
+	BlobElementEntity,
+	customIdToBase64Url,
+	ensureBase64Ext,
+	Entity,
+	firstBiggerThanSecondBase64Ext,
+	GENERATED_MIN_ID,
+	hasError,
+	ListElementEntity,
+	ServerModelParsedInstance,
+	ServerTypeModelResolver,
+	SomeEntity,
+	Type as TypeId,
+	TypeModel,
+} from "@tutao/typerefs"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, filterNull, getFromMap, getTypeString, newPromise, Nullable, parseTypeString, remove, TypeRef } from "@tutao/utils"
+import { assertNotNull, clone, filterNull, getFromMap, getTypeString, Nullable, parseTypeString, remove, TypeRef } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { Type as TypeId, hasError } from "@tutao/typerefs"
 import { ProgrammingError } from "@tutao/app-env"
-import { AttributeModel } from "@tutao/typerefs"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { ServerTypeModelResolver } from "@tutao/typerefs"
 import { expandId } from "./RestClientIdUtils"
 import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
@@ -111,7 +122,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		if (reverse) {
 			let i
 			for (i = range.length - 1; i >= 0; i--) {
-				if (firstBiggerThanSecond(startElementId, range[i])) {
+				if (firstBiggerThanSecondBase64Ext(startElementId, range[i])) {
 					break
 				}
 			}
@@ -127,7 +138,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				ids = []
 			}
 		} else {
-			const i = range.findIndex((id) => firstBiggerThanSecond(id, startElementId))
+			const i = range.findIndex((id) => firstBiggerThanSecondBase64Ext(id, startElementId))
 			ids = range.slice(i, i + count)
 		}
 		let result: ServerModelParsedInstance[] = []
@@ -221,7 +232,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		elementId = ensureBase64Ext(typeModel, elementId)
 
 		const cache = this.lists.get(getTypeString(typeRef))?.get(listId)
-		return cache != null && !firstBiggerThanSecond(elementId, cache.upperRangeId) && !firstBiggerThanSecond(cache.lowerRangeId, elementId)
+		return cache != null && !firstBiggerThanSecondBase64Ext(elementId, cache.upperRangeId) && !firstBiggerThanSecondBase64Ext(cache.lowerRangeId, elementId)
 	}
 
 	async put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
@@ -310,7 +321,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private insertIntoAllRange(allRange: Array<Id>, elementId: Id) {
 		for (let i = 0; i < allRange.length; i++) {
 			const rangeElement = allRange[i]
-			if (firstBiggerThanSecond(rangeElement, elementId)) {
+			if (firstBiggerThanSecondBase64Ext(rangeElement, elementId)) {
 				allRange.splice(i, 0, elementId)
 				return
 			}
