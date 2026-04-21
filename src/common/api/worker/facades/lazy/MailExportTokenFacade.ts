@@ -1,6 +1,7 @@
-import { restError, restSuspension } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
 import { tutanotaServices } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { SuspensionBehavior } from "@tutao/rest-client/types"
 
 const TAG = "[MailExportTokenFacade]"
 
@@ -66,7 +67,7 @@ export class MailExportTokenFacade {
 
 		this.currentExportToken = null
 		this.currentExportTokenRequest = this.serviceExecutor
-			.post(tutanotaServices.MailExportTokenService, null, { suspensionBehavior: restSuspension.SuspensionBehavior.Throw })
+			.post(tutanotaServices.MailExportTokenService, null, { suspensionBehavior: SuspensionBehavior.Throw })
 			.then(
 				(result) => {
 					this.currentExportToken = result.mailExportToken as MailExportToken

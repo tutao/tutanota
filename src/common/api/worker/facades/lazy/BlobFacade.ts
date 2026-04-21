@@ -1,4 +1,6 @@
-import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restError, restSuspension } from "@tutao/rest-client"
+import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
+import * as restError from "@tutao/rest-client/error"
+import { HttpMethod, MediaType, SuspensionBehavior } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -37,7 +39,7 @@ export const TAG = "BlobFacade"
 
 export interface BlobLoadOptions {
 	extraHeaders?: Dict
-	suspensionBehavior?: restSuspension.SuspensionBehavior
+	suspensionBehavior?: SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
 }

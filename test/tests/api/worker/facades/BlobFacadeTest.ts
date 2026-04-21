@@ -1,9 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/rest-client"
+import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
+import { HttpMethod, RestClientOptions } from "@tutao/rest-client/types"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { ArchiveDataType } from "../../../../../src/app-env"
+import { ArchiveDataType, Mode } from "../../../../../src/app-env"
 import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
@@ -16,7 +17,6 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { TransferId } from "../../../../../src/common/api/common/drive/DriveTypes"
-import { Mode } from "../../../../../src/app-env"
 
 const { anything, captor } = matchers
 

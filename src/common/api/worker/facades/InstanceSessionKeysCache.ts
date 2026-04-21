@@ -1,5 +1,5 @@
 import { assertNotNull, Nullable } from "@tutao/utils"
-import { Entity } from "@tutao/typerefs"
+import { Entity } from "@tutao/typerefs/types"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 /**

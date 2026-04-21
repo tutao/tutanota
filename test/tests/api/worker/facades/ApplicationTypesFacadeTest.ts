@@ -17,10 +17,11 @@ import {
 } from "@tutao/typerefs"
 import { AppName, AppNameEnum, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
-import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
+import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { compressString, decompressString } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../../../TestUtils"
-import { Mode } from "../../../../../src/app-env"
+import { Mode } from "@tutao/app-env"
 
 const { anything } = matchers
 

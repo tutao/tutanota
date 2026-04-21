@@ -2,6 +2,7 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import * as restError from "./error.js"
+import { HttpMethod, MediaType, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 
 assertWorkerOrNode()
 
@@ -16,57 +17,6 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
 ])
 const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
-
-interface ProgressListener {
-	/**
-	 * Called when data is sent with HTTP request.
-	 * @param percent of the overall data to be sent
-	 * @param bytes sent so far
-	 */
-	upload(percent: number, bytes: number): void
-
-	/**
-	 * Called when data is downloaded with HTTP request.
-	 * @param percent of the overall data to be downloded
-	 * @param bytes downloaded so far
-	 */
-	download(percent: number, bytes: number): void
-}
-
-export const enum MediaType {
-	Json = "application/json",
-	Binary = "application/octet-stream",
-	Text = "text/plain",
-}
-
-export const enum HttpMethod {
-	GET = "GET",
-	POST = "POST",
-	PUT = "PUT",
-	PATCH = "PATCH",
-	DELETE = "DELETE",
-}
-
-export interface RestClientOptions {
-	body?: string | Uint8Array
-	responseType?: MediaType
-	progressListener?: ProgressListener
-	baseUrl?: string
-	headers?: Dict
-	queryParams?: Dict
-	noCORS?: boolean
-	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: restSuspension.SuspensionBehavior
-	abortSignal?: AbortSignal
-}
-
-/**
- * Middlewares that are invoked after the request have been made
- * Hence the implementation should only read/modify response
- */
-export interface RestClientMiddleware {
-	interceptResponse(sentRequest: XMLHttpRequest, method: HttpMethod): Promise<void>
-}
 
 /**
  * Allows REST communication with the server.
@@ -189,7 +139,7 @@ export class RestClient {
 							const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 							const isSuspensionResp = restSuspension.isSuspensionResponse(xhr.status, suspensionTime)
 
-							if (isSuspensionResp && options.suspensionBehavior === restSuspension.SuspensionBehavior.Throw) {
+							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
 								reject(
 									new restError.SuspensionError(
 										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,

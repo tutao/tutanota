@@ -12,7 +12,8 @@ import {
 	ServerModelUntypedInstance,
 	TypeModelResolver,
 } from "@tutao/typerefs"
-import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
+import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "../../common/ServiceRequest.js"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"

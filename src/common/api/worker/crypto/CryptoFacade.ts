@@ -45,7 +45,8 @@ import {
 	tutanotaTypeRefs,
 	TypeModelResolver,
 } from "@tutao/typerefs"
-import { HttpMethod, RestClient, restError } from "@tutao/rest-client"
+import { RestClient, restError } from "@tutao/rest-client"
+import { HttpMethod } from "@tutao/rest-client/types"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { EntityClient } from "../../common/EntityClient"
 import {
