@@ -38,7 +38,7 @@ import { assertWorkerOrNode, Mode, OperationType, ProgrammingError } from "@tuta
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { collapseId, expandId } from "./RestClientIdUtils"
-import { PatchMerger } from "@tutao/instance-pipeline"
+import { GetOrPutInstance, PatchMerger } from "@tutao/instance-pipeline"
 import { isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
 import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
 
@@ -123,7 +123,7 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  * also exposes functions to repair an outdated cache in case we can't access the server without getting a new version of a cached entity
  * (mainly password changes)
  */
-export interface ExposedCacheStorage {
+export interface ExposedCacheStorage extends GetOrPutInstance {
 	get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
 
 	/**

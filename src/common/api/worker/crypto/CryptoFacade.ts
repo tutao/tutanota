@@ -72,7 +72,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { KeyLoaderFacade } from "../facades/KeyLoaderFacade.js"
-import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, SessionKeyResolver } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
@@ -89,7 +89,7 @@ type ResolvedSessionKeys = {
 	instanceSessionKeys: Array<sysTypeRefs.InstanceSessionKey>
 }
 
-export class CryptoFacade {
+export class CryptoFacade implements SessionKeyResolver {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,

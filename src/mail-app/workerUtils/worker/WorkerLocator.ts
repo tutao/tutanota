@@ -72,7 +72,7 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { InstancePipeline, PatchMerger, SessionKeyResolver, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
+import { InstancePipeline, PatchMerger, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
@@ -395,14 +395,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
-	locator.patchMerger = new PatchMerger(
-		locator.cacheStorage,
-		locator.instancePipeline,
-		typeModelResolver,
-		cryptoFacadeSessionKeyResolver,
-		SYMMETRIC_CIPHER_FACADE,
-	)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
