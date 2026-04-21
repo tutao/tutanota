@@ -19,6 +19,7 @@ import {
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
+	getServerIdEncodingForType,
 	hasError,
 	isCustomIdType,
 	ListElementEntity,
@@ -31,8 +32,7 @@ import {
 	TypeModelResolver,
 	ValueType,
 } from "@tutao/typerefs"
-import { ProgrammingError } from "@tutao/app-env"
-import { assertWorkerOrNode, Mode, OperationType } from "@tutao/app-env"
+import { assertWorkerOrNode, Mode, OperationType, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { collapseId, expandId } from "./RestClientIdUtils"
@@ -705,6 +705,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
+		const idEncoding = getServerIdEncodingForType(typeModel)
 		if (
 			(!reverse && (isCustomId ? upper === CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
 			(reverse && (isCustomId ? lower === CUSTOM_MIN_ID : lower === GENERATED_MIN_ID))
@@ -723,7 +724,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				elementsToRead = count - (allRangeList.length - 1 - indexOfStart)
 				startElementId = allRangeList[allRangeList.length - 1] // use the  highest id in allRange as start element
 			}
-		} else if (lower === start || (firstBiggerThanSecond(start, lower, typeModel) && firstBiggerThanSecond(allRangeList[0], start, typeModel))) {
+		} else if (lower === start || (firstBiggerThanSecond(start, lower, idEncoding) && firstBiggerThanSecond(allRangeList[0], start, idEncoding))) {
 			// Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
 			if (!reverse) {
 				// if not reverse read only elements that are not in allRange
@@ -733,7 +734,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			// if reverse read all elements
 		} else if (
 			upper === start ||
-			(firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1], typeModel) && firstBiggerThanSecond(upper, start, typeModel))
+			(firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1], idEncoding) && firstBiggerThanSecond(upper, start, idEncoding))
 		) {
 			// Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
 			if (reverse) {
@@ -967,7 +968,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
  * Check if a range request begins inside an existing range
  */
 function isStartIdWithinRange(range: Range, startId: Id, typeModel: TypeModel): boolean {
-	return !firstBiggerThanSecond(startId, range.upper, typeModel) && !firstBiggerThanSecond(range.lower, startId, typeModel)
+	const idEncoding = getServerIdEncodingForType(typeModel)
+	return !firstBiggerThanSecond(startId, range.upper, idEncoding) && !firstBiggerThanSecond(range.lower, startId, idEncoding)
 }
 
 /**
@@ -975,7 +977,8 @@ function isStartIdWithinRange(range: Range, startId: Id, typeModel: TypeModel): 
  * Assumes that the range request doesn't start inside the range
  */
 function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, start: string, typeModel: TypeModel) {
-	return reverse ? firstBiggerThanSecond(range.lower, start, typeModel) : firstBiggerThanSecond(start, range.upper, typeModel)
+	const idEncoding = getServerIdEncodingForType(typeModel)
+	return reverse ? firstBiggerThanSecond(range.lower, start, idEncoding) : firstBiggerThanSecond(start, range.upper, idEncoding)
 }
 
 /**

@@ -8,6 +8,7 @@ import {
 	firstBiggerThanSecond,
 	getElementId,
 	getListId,
+	getServerIdEncodingForType,
 	isSameId,
 	listIdPart,
 	timestampToGeneratedId,
@@ -138,14 +139,17 @@ export class EntityRestClientMock extends EntityRestClient {
 		if (!entriesForListId) return []
 		let filteredIds
 
+		const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
+		const idEncoding = getServerIdEncodingForType(typeModel)
+
 		if (reverse) {
 			filteredIds = Object.keys(entriesForListId)
-				.sort(compareNewestFirst)
-				.filter((id) => firstBiggerThanSecond(start, id))
+				.sort((a, b) => compareNewestFirst(a, b, idEncoding))
+				.filter((id) => firstBiggerThanSecond(start, id, idEncoding))
 		} else {
 			filteredIds = Object.keys(entriesForListId)
-				.sort(compareOldestFirst)
-				.filter((id) => firstBiggerThanSecond(id, start))
+				.sort((a, b) => compareOldestFirst(a, b, idEncoding))
+				.filter((id) => firstBiggerThanSecond(id, start, idEncoding))
 		}
 
 		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
@@ -155,8 +159,8 @@ export class EntityRestClientMock extends EntityRestClient {
 		const lid = listId
 
 		if (lid) {
-			const typeModule = await this._typeModelResolver.resolveClientTypeReference(typeRef)
-			if (typeModule.type === Type.ListElement.valueOf()) {
+			const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
+			if (typeModel.type === Type.ListElement.valueOf()) {
 				return elementIds
 					.map((id) => {
 						return downcast(this._getListEntry(lid, id))
