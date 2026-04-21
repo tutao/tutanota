@@ -1,4 +1,4 @@
-import { isSameTypeRef, TypeRef } from "@tutao/utils"
+import { isSameTypeRef, TypeRef } from "@tutao/typerefs"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import type { TypeModel } from "@tutao/typerefs"

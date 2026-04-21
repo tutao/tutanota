@@ -2,9 +2,9 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, MailReportType, MailSetKind, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, MailReportType, MailSetKind, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { getElementId, getIds, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getElementId, getIds, isSameId, isSameTypeRef, SimpleMoveMailTarget, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
@@ -17,7 +17,6 @@ import {
 	isEmpty,
 	isNotEmpty,
 	isSameDayOfDate,
-	isSameTypeRef,
 	last,
 	LazyLoaded,
 	lazyMemoized,
@@ -25,7 +24,6 @@ import {
 	noOp,
 	ofClass,
 	setDifference,
-	TypeRef,
 } from "@tutao/utils"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
@@ -112,7 +110,6 @@ import { FilterChip } from "../../../common/gui/base/FilterChip"
 import { formatDate } from "../../../common/misc/Formatter"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
-import { ProgrammingError } from "@tutao/app-env"
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"

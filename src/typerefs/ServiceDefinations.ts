@@ -1,4 +1,4 @@
-import { TypeRef } from "@tutao/utils"
+import { TypeRef } from "./TypeRef.js"
 import { Entity } from "./EntityTypes.js"
 
 export type MethodDefinition = {

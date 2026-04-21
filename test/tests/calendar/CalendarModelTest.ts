@@ -1,8 +1,8 @@
 import o, { verify } from "@tutao/otest"
-import { elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/utils"
+import { clone, elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getFirstOrThrow, neverNull, Require } from "@tutao/utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, RepeatPeriod } from "../../../src/app-env"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/app-env"
 import { DateTime } from "luxon"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
@@ -30,7 +30,6 @@ import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"
-import { GroupType } from "../../../src/app-env"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers

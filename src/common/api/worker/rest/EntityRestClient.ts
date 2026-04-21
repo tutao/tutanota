@@ -23,11 +23,12 @@ import {
 	sysTypeRefs,
 	Type,
 	TypeModel,
+	TypeRef,
 	TypeModelResolver,
 	UntypedInstance,
 } from "@tutao/typerefs"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/utils"
+import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"

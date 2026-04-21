@@ -19,9 +19,10 @@ import {
 	RANGE_ITEM_LIMIT,
 	sysTypeRefs,
 	Type,
+	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
-import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/utils"
+import { downcast, groupByAndMap, last, promiseMap } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 

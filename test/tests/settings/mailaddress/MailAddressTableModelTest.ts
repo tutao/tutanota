@@ -7,11 +7,11 @@ import { LoginController } from "../../../../src/common/api/main/LoginController
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "../../subscription/priceTestUtils.js"
-import { clone, noOp } from "@tutao/utils"
+import { noOp } from "@tutao/utils"
 import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
 import { UserError } from "../../../../src/common/api/main/UserError.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { clone, sysTypeRefs } from "@tutao/typerefs"
 import { PlanType } from "../../../../src/app-env"
 
 o.spec("MailAddressTableModel", function () {

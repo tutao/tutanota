@@ -11,27 +11,27 @@ import {
 	getStartOfDay,
 	incrementMonth,
 	isEmpty,
-	isSameTypeRef,
 	stringToBase64,
-	TypeRef,
 } from "@tutao/utils"
-import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
-import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "@tutao/app-env"
-import { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { tutanotaTypeModels } from "@tutao/typerefs"
-import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	ATTACHMENTS_ID,
 	getElementId,
+	isSameTypeRef,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 	SENDER_ID,
 	SUBJECT_ID,
+	tutanotaTypeModels,
+	tutanotaTypeRefs,
+	TypeRef,
 } from "@tutao/typerefs"
+import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
+import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { assertMainOrNode } from "@tutao/app-env"
+import { TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SearchQuery } from "./SearchModel"
 
 assertMainOrNode()

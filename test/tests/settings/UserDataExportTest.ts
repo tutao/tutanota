@@ -7,8 +7,7 @@ import { formatDateTimeUTC } from "../../../src/calendar-app/calendar/export/Cal
 import { CounterFacade } from "../../../src/common/api/worker/facades/lazy/CounterFacade.js"
 import { CounterType } from "../../../src/app-env"
 import { createTestEntity } from "../TestUtils.js"
-import { TypeRef } from "@tutao/utils"
-import { sysTypeRefs, monitorTypeRefs } from "@tutao/typerefs"
+import { monitorTypeRefs, sysTypeRefs, TypeRef } from "@tutao/typerefs"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"

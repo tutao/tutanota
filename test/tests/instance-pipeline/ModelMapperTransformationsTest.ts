@@ -1,14 +1,21 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { AssociationType, Cardinality, Type, ValueType } from "@tutao/typerefs"
-import { TypeRef } from "@tutao/utils"
+import {
+	AssociationType,
+	Cardinality,
+	ClientModelParsedInstance,
+	ClientTypeModel,
+	ClientTypeReferenceResolver,
+	ServerModelParsedInstance,
+	ServerTypeModel,
+	ServerTypeReferenceResolver,
+	Type,
+	TypeRef,
+	ValueType,
+} from "@tutao/typerefs"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
-import { ClientModelParsedInstance, ClientTypeModel, ServerModelParsedInstance, ServerTypeModel } from "@tutao/typerefs"
-import { assertThrows } from "@tutao/otest"
-import { ProgrammingError } from "@tutao/app-env"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "@tutao/typerefs"
+import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { removeOriginals } from "../TestUtils"
-import { InvalidModelError } from "@tutao/app-env"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {

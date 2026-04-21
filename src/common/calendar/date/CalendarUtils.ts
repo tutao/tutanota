@@ -1,6 +1,5 @@
 import {
 	assert,
-	clone,
 	decodeBase64,
 	deepEqual,
 	downcast,
@@ -22,7 +21,7 @@ import {
 } from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
-import { isSameId, StrippedEntity, sysTypeRefs } from "@tutao/typerefs"
+import { clone, isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -37,7 +36,6 @@ import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 
 export type CalendarTimeRange = {
 	start: number

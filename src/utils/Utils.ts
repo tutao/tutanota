@@ -1,5 +1,3 @@
-import { TypeRef } from "./TypeRef.js"
-
 export interface ErrorInfo {
 	readonly name: string | null
 	readonly message: string | null
@@ -177,30 +175,6 @@ export function assert(assertion: MaybeLazy<boolean>, message: string) {
 
 export function downcast<R = any>(object: any): R {
 	return object as any
-}
-
-export function clone<T>(instance: T): T {
-	if (instance instanceof Uint8Array) {
-		return downcast<T>(instance.slice())
-	} else if (instance instanceof Array) {
-		return downcast<T>(instance.map((i) => clone(i)))
-	} else if (instance instanceof Date) {
-		return new Date(instance.getTime()) as any
-	} else if (instance instanceof TypeRef) {
-		return instance
-	} else if (instance instanceof Object) {
-		// Can only pass null or Object, cannot pass undefined
-		const copy = Object.create(Object.getPrototypeOf(instance) || null)
-		Object.assign(copy, instance)
-
-		for (let key of Object.keys(copy)) {
-			copy[key] = clone(copy[key])
-		}
-
-		return copy as any
-	} else {
-		return instance
-	}
 }
 
 export type Callback<T> = (arg: T) => void

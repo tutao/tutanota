@@ -1,12 +1,11 @@
 import o from "@tutao/otest"
-import { entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { ContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/ContactIndexerBackend"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { TypeRef } from "@tutao/utils"
 
 import { noPatchesAndInstance } from "../EventBusClientTest"
 import { OperationType } from "../../../../../src/app-env"

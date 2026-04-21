@@ -7,7 +7,6 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, lazyAsync, Nullable, TypeRef } from "@tutao/utils"
 import {
 	AttributeModel,
 	CUSTOM_MAX_ID,
@@ -19,8 +18,10 @@ import {
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
+	getTypeString,
 	hasError,
 	isCustomIdType,
+	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
 	ServerModelParsedInstance,
@@ -29,10 +30,11 @@ import {
 	tutanotaTypeRefs,
 	TypeModel,
 	TypeModelResolver,
+	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
-import { ProgrammingError } from "@tutao/app-env"
-import { assertWorkerOrNode, Mode, OperationType } from "@tutao/app-env"
+import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
+import { assertWorkerOrNode, Mode, OperationType, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { collapseId, expandId } from "./RestClientIdUtils"
