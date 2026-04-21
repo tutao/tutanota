@@ -4,8 +4,8 @@ import { Aes256Key, AesKey, keyToUint8Array, uint8ArrayToKey } from "./Symmetric
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
-import { concat } from "@tutao/tutanota-utils"
-import { CryptoError } from "../../misc/CryptoError.js"
+import { concat } from "@tutao/utils"
+import { CryptoError } from "../../error.js"
 import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
 
 export type SymmetricSubKeys = {

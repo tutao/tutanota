@@ -1,4 +1,4 @@
-import { CryptoError } from "../../misc/CryptoError.js"
+import { CryptoError } from "../../error.js"
 
 /**
  * The version of the symmetric cipher.

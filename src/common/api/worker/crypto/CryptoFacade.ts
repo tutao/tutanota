@@ -79,6 +79,7 @@ import { OwnerKeyProvider, typeModelToRestPath } from "../rest/EntityRestClient"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
 import { isOfflineError } from "../../common/utils/ErrorUtils"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -118,7 +119,7 @@ export class CryptoFacade {
 	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+				const ownerKey = await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this.resolveSessionKey(migratedEntity)

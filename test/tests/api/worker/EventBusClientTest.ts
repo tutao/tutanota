@@ -13,9 +13,9 @@ import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFac
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { ProgrammingError } from "@tutao/app-env"
-import { GroupType, OperationType } from "../../../../src/app-env"
+import { GroupType, OperationType } from "@tutao/app-env"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Thunk } from "@tutao/tutanota-utils"
+import { Thunk } from "@tutao/utils"
 
 export const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,

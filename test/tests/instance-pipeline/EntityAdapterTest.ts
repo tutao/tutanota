@@ -115,15 +115,15 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _kdfNonce", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
 
-		const mail = createTestEntity(MailTypeRef, {
+		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
 			_permissions: "permissionListId",
-			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
+			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
+		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(tutanotaTypeRefs.MailTypeRef, mail)
 		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
 
 		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])

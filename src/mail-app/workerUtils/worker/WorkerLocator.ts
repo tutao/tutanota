@@ -10,7 +10,19 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
-import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAndroidApp, isBrowser, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import {
+	assertWorkerOrNode,
+	Const,
+	getWebsocketBaseUrl,
+	isAdminClient,
+	isAndroidApp,
+	isBrowser,
+	isIOSApp,
+	isOfflineStorageAvailable,
+	isTest,
+	Mode,
+	ProgrammingError,
+} from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -386,7 +398,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, cryptoFacadeSessionKeyResolver, SYMMETRIC_CIPHER_FACADE)
+	locator.patchMerger = new PatchMerger(
+		locator.cacheStorage,
+		locator.instancePipeline,
+		typeModelResolver,
+		cryptoFacadeSessionKeyResolver,
+		SYMMETRIC_CIPHER_FACADE,
+	)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {

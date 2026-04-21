@@ -27,11 +27,14 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade } from "@tutao/crypto"
-import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper"
+import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
+import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade"
-import { EntityAdapter } from "./EntityAdapter"
+import { EntityAdapter } from "./EntityAdapter.js"
+
+export interface SymmetricGroupKeyLoader {
+	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
+}
 
 // Exported for testing
 export function encryptValue(
@@ -56,7 +59,7 @@ export class CryptoMapper {
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
-		private readonly keyLoaderFacade: lazy<KeyLoaderFacade>,
+		private readonly symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		private readonly modelMapper: ModelMapper,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
@@ -71,7 +74,7 @@ export class CryptoMapper {
 		if (groupId === null) {
 			throw new CryptoError("Cannot load group key. Missing group Id.")
 		}
-		return this.keyLoaderFacade().loadSymGroupKey(groupId, requiredGroupKeyVersion)
+		return this.symGroupKeyLoader().loadSymGroupKey(groupId, requiredGroupKeyVersion)
 	}
 
 	public async decryptParsedInstance(

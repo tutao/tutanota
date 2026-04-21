@@ -5,9 +5,7 @@ import { aes256RandomKey, IV_BYTE_LENGTH } from "@tutao/crypto/symmetric-cipher-
 import { _aes128RandomKey } from "./AesTest.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { concat } from "@tutao/utils"
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
-
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade

@@ -3,10 +3,12 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
+	InstanceDecryptor,
+	MissingSessionKey,
 	random,
 	SYMMETRIC_CIPHER_FACADE,
 	SymmetricCipherFacade,
-	ValueDecryptor
+	ValueDecryptor,
 } from "@tutao/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
 import {
@@ -16,20 +18,18 @@ import {
 	ClientTypeReferenceResolver,
 	ServerTypeReferenceResolver,
 	ModelValue,
-	InstanceDecryptor,
-	MissingSessionKey,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	ValueType,
 } from "@tutao/typerefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, decryptValue, encryptValue } from "@tutao/instance-pipeline"
+import { CryptoMapper, encryptValue, ModelMapper, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE
-	const keyLoader: KeyLoaderFacade = object()
+	const keyLoader: SymmetricGroupKeyLoader = object()
 	const modelMapper: ModelMapper = object()
 	const cryptoMapper: CryptoMapper = new CryptoMapper(
 		dummyResolver as ClientTypeReferenceResolver,

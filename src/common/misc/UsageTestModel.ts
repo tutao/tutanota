@@ -15,7 +15,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
-import { SuspensionBehavior } from "@tutao/rest-client"
+import { restSuspension } from "@tutao/rest-client"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -309,10 +309,10 @@ export class UsageTestModel implements PingAdapter {
 		try {
 			const response: usageTypeRefs.UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(usageServices.UsageTestAssignmentService, data, {
-						suspensionBehavior: SuspensionBehavior.Throw,
+						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 					})
 				: await this.serviceExecutor.post(usageServices.UsageTestAssignmentService, data, {
-						suspensionBehavior: SuspensionBehavior.Throw,
+						suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
 			await this.storage().storeAssignments({
@@ -409,7 +409,7 @@ export class UsageTestModel implements PingAdapter {
 
 		try {
 			const { pingListId, pingId } = await this.serviceExecutor.post(usageServices.UsageTestParticipationService, data, {
-				suspensionBehavior: SuspensionBehavior.Throw,
+				suspensionBehavior: restSuspension.SuspensionBehavior.Throw,
 			})
 			return { pingListId, pingId }
 		} catch (e) {

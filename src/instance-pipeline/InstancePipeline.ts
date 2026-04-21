@@ -1,5 +1,5 @@
 import { TypeMapper } from "./TypeMapper"
-import { CryptoMapper } from "./CryptoMapper"
+import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import {
 	ClientModelParsedInstance,
 	ClientModelUntypedInstance,
@@ -9,10 +9,9 @@ import {
 	ServerTypeReferenceResolver,
 } from "@tutao/typerefs"
 import { ModelMapper } from "./ModelMapper"
-import { downcast, Nullable, TypeRef } from "@tutao/utils"
+import { downcast, lazy, Nullable, TypeRef } from "@tutao/utils"
 import { AesKey, SymmetricCipherFacade } from "@tutao/crypto"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
-import { KeyLoaderFacade } from "../facades/KeyLoaderFacade"
 import { EntityAdapter } from "./EntityAdapter"
 
 export class InstancePipeline {
@@ -23,7 +22,7 @@ export class InstancePipeline {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
-		keyLoaderFacade: lazy<KeyLoaderFacade>,
+		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
@@ -31,7 +30,13 @@ export class InstancePipeline {
 		}
 		this.typeMapper = new TypeMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
 		this.modelMapper = new ModelMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
-		this.cryptoMapper = new CryptoMapper(clientTypeReferenceResolver, serverTypeReferenceResolver, symmetricCipherFacade, keyLoaderFacade, this.modelMapper)
+		this.cryptoMapper = new CryptoMapper(
+			clientTypeReferenceResolver,
+			serverTypeReferenceResolver,
+			symmetricCipherFacade,
+			symGroupKeyLoader,
+			this.modelMapper,
+		)
 	}
 
 	async mapAndEncrypt<T extends Entity>(
