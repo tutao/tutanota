@@ -3,13 +3,13 @@ import {
 	aes256RandomKey,
 	AesKey,
 	CryptoWrapper,
-	VersionedEncryptedKey,
-	VersionedKey,
 	InstanceDecryptor,
 	SymmetricCipherFacade,
 	ValueDecryptor,
+	VersionedEncryptedKey,
+	VersionedKey,
 } from "@tutao/crypto"
-import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError, SessionKeyResolver } from "@tutao/instance-pipeline"
+import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError } from "@tutao/instance-pipeline"
 import { instance, matchers, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
@@ -72,10 +72,9 @@ o.spec("PatchMergerTest", () => {
 				noOp()
 			},
 		)
-		const fixedSessionKeyResolver: SessionKeyResolver = async (_instance: Entity): Promise<Nullable<AesKey>> => {
+		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk
 		}
-		cryptoFacadePartialStub.resolveSessionKey = fixedSessionKeyResolver
 
 		customCacheHandlerMap = object()
 		const modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
@@ -86,7 +85,7 @@ o.spec("PatchMergerTest", () => {
 		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
 		const symmetricCipherFacade: SymmetricCipherFacade = object()
-		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, fixedSessionKeyResolver, symmetricCipherFacade)
+		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub, symmetricCipherFacade)
 		valueDecryptor = object()
 		instanceDecryptor = object()
 		when(symmetricCipherFacade.getInstanceDecryptor(sk, null, matchers.anything())).thenReturn(instanceDecryptor)

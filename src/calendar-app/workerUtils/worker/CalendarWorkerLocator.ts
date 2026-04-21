@@ -284,14 +284,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
-	locator.patchMerger = new PatchMerger(
-		locator.cacheStorage,
-		locator.instancePipeline,
-		typeModelResolver,
-		cryptoFacadeSessionKeyResolver,
-		SYMMETRIC_CIPHER_FACADE,
-	)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
 
 	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
