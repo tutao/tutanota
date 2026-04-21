@@ -1,12 +1,13 @@
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import {
+	compareNewestFirst,
 	CUSTOM_MAX_ID,
-	customIdToUint8array,
 	deconstructMailSetEntryId,
 	elementIdPart,
 	entityUpdateUtils,
 	getElementId,
+	EntityIdEncoding,
 	isSameId,
 	listIdPart,
 	tutanotaTypeRefs,
@@ -19,7 +20,6 @@ import { MailModel } from "./MailModel"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import {
 	assertNotNull,
-	compare,
 	findAllAndRemove,
 	first,
 	insertIntoSortedArray,
@@ -580,7 +580,7 @@ export class ConversationListModel implements MailSetListModel {
 			return -1
 		}
 
-		return reverseCompareMailSetId(elementIdPart(item1Id), elementIdPart(item2Id))
+		return reverseCompareMailSetEntryId(elementIdPart(item1Id), elementIdPart(item2Id))
 	}
 
 	/**
@@ -692,9 +692,9 @@ export class ConversationListModel implements MailSetListModel {
 	}
 }
 
-function reverseCompareMailSetId(id1: Id, id2: Id): number {
+function reverseCompareMailSetEntryId(id1: Id, id2: Id): number {
 	// Sort in reverse order to ensure newer mails are first
-	return compare(customIdToUint8array(id2), customIdToUint8array(id1))
+	return compareNewestFirst(id1, id2, EntityIdEncoding.Base64URL)
 }
 
 /**
@@ -718,7 +718,7 @@ export class LoadedConversation {
 		insertIntoSortedArray(
 			mail,
 			this.conversationMails,
-			(a, b) => reverseCompareMailSetId(elementIdPart(a.mailSetEntryId), elementIdPart(b.mailSetEntryId)),
+			(a, b) => reverseCompareMailSetEntryId(elementIdPart(a.mailSetEntryId), elementIdPart(b.mailSetEntryId)),
 			() => true,
 		)
 	}

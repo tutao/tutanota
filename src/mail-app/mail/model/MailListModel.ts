@@ -1,11 +1,12 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import {
+	compareNewestFirst,
 	CUSTOM_MAX_ID,
-	customIdToUint8array,
 	deconstructMailSetEntryId,
 	elementIdPart,
 	entityUpdateUtils,
 	getElementId,
+	EntityIdEncoding,
 	isSameId,
 	listIdPart,
 	tutanotaTypeRefs,
@@ -13,7 +14,7 @@ import {
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode, OperationType } from "@tutao/app-env"
-import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
+import { assertNotNull, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
@@ -59,7 +60,7 @@ export class MailListModel implements MailSetListModel {
 				const item2Id = elementIdPart(item2.mailSetEntryId)
 
 				// Sort in reverse order to ensure newer mails are first
-				return compare(customIdToUint8array(item2Id), customIdToUint8array(item1Id))
+				return compareNewestFirst(item1Id, item2Id, EntityIdEncoding.Base64URL)
 			},
 
 			getItemId: (item) => elementIdPart(item.mailSetEntryId),

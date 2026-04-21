@@ -94,6 +94,8 @@ export {
 	base64ToBase64Ext,
 	base64ExtToBase64,
 	base64UrlToBase64,
+	base64UrlToBase64Ext,
+	base64ExtToBase64Url,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
 	hexToUint8Array,

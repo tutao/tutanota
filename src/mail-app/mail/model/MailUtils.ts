@@ -1,5 +1,5 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { isFolderReadOnly, isSameId, MOVE_SYSTEM_FOLDERS, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { EntityIdEncoding, isFolderReadOnly, isSameId, MOVE_SYSTEM_FOLDERS, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
@@ -186,7 +186,7 @@ export function mailInFolder(mail: tutanotaTypeRefs.Mail, folderId: IdTuple): bo
 export function compareMails(mail1: tutanotaTypeRefs.Mail, mail2: tutanotaTypeRefs.Mail): number {
 	const dateDifference = mail2.receivedDate.getTime() - mail1.receivedDate.getTime()
 	if (dateDifference === 0) {
-		return sortCompareByReverseId(mail1, mail2)
+		return sortCompareByReverseId(mail1, mail2, EntityIdEncoding.Base64Ext)
 	} else {
 		return dateDifference
 	}

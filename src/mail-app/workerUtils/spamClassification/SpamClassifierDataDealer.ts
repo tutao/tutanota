@@ -6,17 +6,17 @@ import {
 	getElementId,
 	getMailSetKind,
 	hasError,
+	EntityIdEncoding,
 	isFolder,
 	isSameId,
 	StrippedEntity,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
-import { SpamDecision } from "@tutao/app-env"
+import { isAppleDevice, isDesktop, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { isAppleDevice, isDesktop, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "@tutao/app-env"
 
 // visible for testing
 export const SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT = 1000
@@ -160,7 +160,7 @@ export class SpamClassifierDataDealer {
 		// we always want to include more recently received mails before including older mails
 		const HIGH_CONFIDENCE_THRESHOLD = 4
 
-		const dateSortedClientSpamTrainingData = clientSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id))
+		const dateSortedClientSpamTrainingData = clientSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id, EntityIdEncoding.Base64Ext))
 
 		const hamDataHighConfidence = dateSortedClientSpamTrainingData.filter(
 			(d) => Number(d.confidence) >= HIGH_CONFIDENCE_THRESHOLD && d.spamDecision === SpamDecision.WHITELIST,

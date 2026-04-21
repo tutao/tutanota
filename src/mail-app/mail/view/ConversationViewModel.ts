@@ -1,4 +1,13 @@
-import { elementIdPart, entityUpdateUtils, firstBiggerThanSecond, getElementId, haveSameId, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	elementIdPart,
+	entityUpdateUtils,
+	firstBiggerThanSecondBase64Ext,
+	getElementId,
+	haveSameId,
+	isSameId,
+	listIdPart,
+	tutanotaTypeRefs,
+} from "@tutao/typerefs"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import {
@@ -124,7 +133,7 @@ export class ConversationViewModel {
 					return
 				}
 				const mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, entry.mail)
-				let index = findLastIndex(conversation, (i) => firstBiggerThanSecond(getElementId(entry), elementIdPart(i.entryId)))
+				let index = findLastIndex(conversation, (i) => firstBiggerThanSecondBase64Ext(getElementId(entry), elementIdPart(i.entryId)))
 				if (index < 0) {
 					index = conversation.length
 				} else {

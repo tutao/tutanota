@@ -1,5 +1,5 @@
 import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
-import { elementIdPart, entityUpdateUtils, getEtId, listIdPart, sortCompareById, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, entityUpdateUtils, getEtId, EntityIdEncoding, listIdPart, sortCompareById, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -98,7 +98,7 @@ export class ContactModel {
 			(await this.findContactsUsingFacade(cleanedMailAddress, listId)) ?? (await this.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, listId))
 
 		// the result is sorted from newest to oldest, but we want to return the oldest first like before
-		result.sort(sortCompareById)
+		result.sort((a, b) => sortCompareById(a, b, EntityIdEncoding.Base64Ext))
 
 		// searchFacade is not guaranteed to return an exact match, but we are looking for an exact match for the given
 		// mail address

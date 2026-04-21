@@ -1,11 +1,11 @@
 import {
 	assertNotNull,
 	Base64,
-	base64ExtToBase64,
-	base64ToBase64Ext,
+	base64ExtToBase64Url,
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
+	base64UrlToBase64Ext,
 	getFirstOrThrow,
 	isEmpty,
 	uint8ArrayToBase64,
@@ -99,7 +99,7 @@ export class GiftCardFacade {
 	}
 
 	async decodeGiftCardToken(token: string): Promise<{ id: Id; key: Base64 }> {
-		const id = base64ToBase64Ext(base64UrlToBase64(token.slice(0, ID_LENGTH)))
+		const id = base64UrlToBase64Ext(token.slice(0, ID_LENGTH))
 		const key = base64UrlToBase64(token.slice(ID_LENGTH, token.length))
 
 		if (id.length !== ID_LENGTH || (key.length !== KEY_LENGTH_128_BIT_B64 && key.length !== KEY_LENGTH_256_BIT_B64)) {
@@ -118,7 +118,7 @@ export class GiftCardFacade {
 			throw new Error("Invalid gift card key")
 		}
 
-		const idPart = base64ToBase64Url(base64ExtToBase64(id))
+		const idPart = base64ExtToBase64Url(id)
 		const keyPart = base64ToBase64Url(keyBase64)
 		return idPart + keyPart
 	}

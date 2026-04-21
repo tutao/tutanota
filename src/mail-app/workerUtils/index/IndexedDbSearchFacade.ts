@@ -1,13 +1,15 @@
-import type { TypeModel } from "@tutao/typerefs"
 import {
 	AssociationType,
 	Cardinality,
 	ClientTypeModelResolver,
 	compareNewestFirst,
 	elementIdPart,
-	firstBiggerThanSecond,
+	EntityIdEncoding,
+	firstBiggerThanSecondBase64Ext,
+	getServerIdEncodingForType,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
+	TypeModel,
 	ValueType,
 } from "@tutao/typerefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -15,6 +17,7 @@ import {
 	arrayHashSigned,
 	assertNotNull,
 	asyncFind,
+	base64UrlToBase64Ext,
 	contains,
 	downcast,
 	isEmpty,
@@ -114,6 +117,8 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			let isFirstWordSearch = searchTokens.length === 1
 			let before = getPerformanceTimestamp()
 
+			const typeModel = await this.typeModelResolver.resolveClientTypeReference(restriction.type)
+			const idEncoding = getServerIdEncodingForType(typeModel)
 			let searchPromise
 
 			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
@@ -136,7 +141,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				searchPromise = this.startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-					result.results.sort(compareNewestFirst)
+					result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
 					return this.loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
 				})
 			} else {
@@ -144,7 +149,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			}
 
 			return searchPromise.then(() => {
-				result.results.sort(compareNewestFirst)
+				result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
 				return result
 			})
 		} else {
@@ -152,20 +157,22 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		}
 	}
 
-	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
+	async extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
 		const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
 		result.restriction = {
 			...result.restriction,
 			end: extensionEnd,
 		}
 
-		return this.startOrContinueSearch(result).then(() => {
-			result.restriction.end = Math.min(restrictionEnd, extensionEnd)
-			result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
-			result.results.sort(compareNewestFirst)
+		await this.startOrContinueSearch(result)
 
-			return result
-		})
+		result.restriction.end = Math.min(restrictionEnd, extensionEnd)
+		result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
+
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(result.restriction.type)
+		result.results.sort((a, b) => compareNewestFirst(a, b, getServerIdEncodingForType(typeModel)))
+
+		return result
 	}
 
 	private async loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
@@ -246,9 +253,10 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		}).then((found) => found != null)
 	}
 
-	private startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
+	private async startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
 		markStart("findIndexEntries")
 
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(searchResult.restriction.type)
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
 
 		if (maxResults && searchResult.moreResults.length >= maxResults) {
@@ -268,7 +276,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				.then((keyToIndexEntries) => {
 					markEnd("_decryptSearchResult")
 					markStart("_filterByTypeAndAttributeAndTime")
-					return this.filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction)
+					return this.filterByTypeAndAttributeAndTime(keyToIndexEntries, searchResult.restriction, typeModel)
 				})
 				.then((keyToIndexEntries) => {
 					markEnd("_filterByTypeAndAttributeAndTime")
@@ -289,7 +297,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		return moreResultsEntries
 			.then((searchIndexEntries: MoreResultsIndexEntry[]) => {
 				markStart("_filterByListIdAndGroupSearchResults")
-				return this.filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults)
+				return this.filterByListIdAndGroupSearchResults(searchIndexEntries, searchResult, maxResults, typeModel)
 			})
 			.then(() => {
 				markEnd("_filterByListIdAndGroupSearchResults")
@@ -525,15 +533,16 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		})
 	}
 
-	private filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction): KeyToIndexEntries[] {
+	private filterByTypeAndAttributeAndTime(results: KeyToIndexEntries[], restriction: SearchRestriction, typeModel: TypeModel): KeyToIndexEntries[] {
 		// first filter each index entry by itself
 		let endTimestamp = getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction)
 
+		const idEncoding = getServerIdEncodingForType(typeModel)
 		const minIncludedId = timestampToGeneratedId(endTimestamp)
 		const maxExcludedId = restriction.start ? timestampToGeneratedId(restriction.start + 1) : null
 		for (const result of results) {
 			result.indexEntries = result.indexEntries.filter((entry) => {
-				return this.isValidAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId)
+				return this.isValidAttributeAndTime(restriction, entry, minIncludedId, maxExcludedId, idEncoding)
 			})
 		}
 		// now filter all ids that are in all of the search words
@@ -559,22 +568,29 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		})
 	}
 
-	private isValidAttributeAndTime(restriction: SearchRestriction, entry: SearchIndexEntry, minIncludedId: Id, maxExcludedId: Id | null): boolean {
+	private isValidAttributeAndTime(
+		restriction: SearchRestriction,
+		entry: SearchIndexEntry,
+		minIncludedId: Id,
+		maxExcludedId: Id | null,
+		entryIdEncoding: EntityIdEncoding,
+	): boolean {
 		if (restriction.attributeIds) {
 			if (!contains(restriction.attributeIds, entry.attribute)) {
 				return false
 			}
 		}
 
+		const base64ExtEntryId = entryIdEncoding === EntityIdEncoding.Base64URL ? base64UrlToBase64Ext(entry.id) : entry.id
 		if (maxExcludedId) {
 			// timestampToGeneratedId provides the lowest id with the given timestamp (server id and counter set to 0),
 			// so we add one millisecond to make sure all ids of the timestamp are covered
-			if (!firstBiggerThanSecond(maxExcludedId, entry.id)) {
+			if (!firstBiggerThanSecondBase64Ext(maxExcludedId, base64ExtEntryId)) {
 				return false
 			}
 		}
 
-		return !firstBiggerThanSecond(minIncludedId, entry.id)
+		return !firstBiggerThanSecondBase64Ext(minIncludedId, base64ExtEntryId)
 	}
 
 	private reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): ReadonlyArray<DecryptedSearchIndexEntry> {
@@ -623,9 +639,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	private filterByListIdAndGroupSearchResults(
 		indexEntries: Array<MoreResultsIndexEntry>,
 		searchResult: SearchResult,
-		maxResults: number | null | undefined,
+		maxResults: number | undefined,
+		typeModel: TypeModel,
 	): Promise<void> {
-		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
+		const idEncoding = getServerIdEncodingForType(typeModel)
+		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id, idEncoding))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
 		// downcast: Array of optional elements in not subtype of non-optional elements
 		const entriesCopy: Array<MoreResultsIndexEntry | null> = downcast(indexEntries.slice())
