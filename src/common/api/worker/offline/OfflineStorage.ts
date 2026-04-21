@@ -998,7 +998,7 @@ export class OfflineStorage implements CacheStorage {
 			// !!however ids for entities with a customId used to QUERY the offline database
 			// MUST always be base64Ext encoded
 			// Therefore, we need to compare against the rawCutoffId here!
-			const rangeWontBeModified = id != null && (firstBiggerThanSecond(id, rawCutoffId) || id === rawCutoffId)
+			const rangeWontBeModified = id != null && (firstBiggerThanSecond(id, rawCutoffId, typeModel) || id === rawCutoffId)
 			if (rangeWontBeModified) {
 				return
 			}
