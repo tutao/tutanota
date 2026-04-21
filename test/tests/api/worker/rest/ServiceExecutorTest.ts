@@ -1,6 +1,7 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { HttpMethod, MediaType, RestClient, RestClientOptions } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
+import { HttpMethod, MediaType, RestClientOptions } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import {

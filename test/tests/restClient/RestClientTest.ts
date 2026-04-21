@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { HttpMethod, MediaType, RestClient, RestClientMiddleware, restError, restSuspension } from "@tutao/rest-client"
+import { RestClient, restError, restSuspension } from "@tutao/rest-client"
+import { HttpMethod, MediaType, RestClientMiddleware } from "@tutao/rest-client/types"
 import { defer, noOp } from "@tutao/utils"
 import http from "node:http"
 import express from "express"
@@ -10,7 +11,7 @@ import { domainConfigStub } from "../TestUtils"
 import { ClientPlatform } from "../../../src/common/misc/ClientDetector"
 import { APPLICATION_TYPES_HASH_HEADER } from "@tutao/app-env"
 import { baseServices, getServiceRestPath, ServerModelInfo } from "@tutao/typerefs"
-import { UpdateAppTypesHashMiddleware } from "../../../src/common/api/common/UpdateTypesHashMiddleware"
+import { UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 

@@ -1,10 +1,11 @@
 import o, { assertThrows } from "@tutao/otest"
-import { HttpMethod, MediaType, RestClient, restError } from "@tutao/rest-client"
+import { RestClient, restError } from "@tutao/rest-client"
+import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import {
 	AttributeModel,
 	baseTypeRefs,
-	type Entity,
+	Entity,
 	PatchOperationType,
 	storageTypeRefs,
 	sysModelInfo,

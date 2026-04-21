@@ -72,7 +72,7 @@ import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFa
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, PatchMerger, SessionKeyResolver, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
