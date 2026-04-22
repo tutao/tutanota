@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError } from "../../common/error/RestError"
 import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
-import { assertNotNull, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
@@ -83,7 +83,7 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return newPromise((resolve, reject) => {
+			const promise = newPromise((resolve, reject) => {
 				this.id++
 
 				const queryParams: Dict = options.queryParams ?? {}
@@ -294,6 +294,7 @@ export class RestClient {
 					xhr.send(options.body)
 				}
 			})
+			return delay(0).then(() => promise)
 		}
 	}
 

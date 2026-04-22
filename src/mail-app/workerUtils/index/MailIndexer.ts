@@ -54,7 +54,7 @@ import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 
-export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
+export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 2 * 365
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
 
 const TAG = "MailIndexer"

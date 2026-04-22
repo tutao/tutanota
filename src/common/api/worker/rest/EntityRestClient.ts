@@ -25,8 +25,8 @@ import type {
 	TypeModel,
 	UntypedInstance,
 } from "../../common/EntityTypes"
-import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
-import { AssociationType, Type } from "../../common/EntityConstants.js"
+import { elementIdPart, GENERATED_MIN_ID, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -200,6 +200,8 @@ export interface EntityRestInterface {
 	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]>
 }
 
+const memes: Map<Id, any> = new Map()
+
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *
@@ -362,20 +364,50 @@ export class EntityRestClient implements EntityRestInterface {
 			let queryParams = {
 				ids: idChunk.join(","),
 			}
-			let json: string
+
+			const doImmoralThings = true
+
+			let json
 			if (typeModel.type === Type.BlobElement) {
-				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts)
+				if (doImmoralThings) {
+					let map
+					if (memes.has(listId!)) {
+						map = memes.get(listId!)
+					} else {
+						const startDownload = performance.now()
+						const jsonRaw = await this.loadMultipleBlobElements(listId, { ids: GENERATED_MIN_ID }, headers, path, typeRef, opts)
+						const endDownload = performance.now()
+						const jsonParsed = JSON.parse(jsonRaw)
+						map = new Map()
+						const t = Object.entries(typeModel.values).find((q) => q[1].name === "_id")![0]
+						for (const c of jsonParsed) {
+							map.set(c[t][1], c)
+						}
+						memes.set(listId!, map)
+						const endParse = performance.now()
+						console.log("Download", endDownload - startDownload, "Parse", endParse - endDownload)
+					}
+
+					json = []
+					for (const e of idChunk) {
+						json.push(map.get(e))
+					}
+				} else {
+					json = JSON.parse(await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts))
+				}
 			} else {
-				json = await this.restClient.request(path, HttpMethod.GET, {
-					queryParams,
-					headers,
-					responseType: MediaType.Json,
-					baseUrl: opts.baseUrl,
-					suspensionBehavior: opts.suspensionBehavior,
-				})
+				json = JSON.parse(
+					await this.restClient.request(path, HttpMethod.GET, {
+						queryParams,
+						headers,
+						responseType: MediaType.Json,
+						baseUrl: opts.baseUrl,
+						suspensionBehavior: opts.suspensionBehavior,
+					}),
+				)
 			}
 			tm?.endMeasurement()
-			return this._handleLoadResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
+			return this._handleLoadResult(typeRef, json, ownerEncSessionKeyProvider)
 		})
 		return loadedChunks.flat()
 	}
@@ -449,15 +481,19 @@ export class EntityRestClient implements EntityRestInterface {
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
-				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
-				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
-				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
-				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
+				try {
+					const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
+					const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
+					let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+					return await this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
+				} catch (e) {
+					return null
+				}
 			},
 			{
 				concurrency: 5,
 			},
-		)
+		).then((a) => a.filter((q) => q != null))
 	}
 
 	async _decryptAndMap(
