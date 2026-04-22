@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-import { ContactPhoneNumberType } from "@tutao/app-env"
-
+import { ContactPhoneNumberType } from "./ContactPhoneNumberType.js"
 export interface StructuredPhoneNumber {
 	readonly number: string
 	readonly type: ContactPhoneNumberType

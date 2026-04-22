@@ -53,10 +53,13 @@ export interface FacadeDefinition {
 	doc?: string
 }
 
+/// When we refer to some entityTypeRefs(eg: sysTypeRefs),
+/// they are exported under a namespace, hence we need this struct
+export type TypescriptTypeRefLocation = { package: string; namespace: string }
 export interface TypeRefDefinition {
 	type: "typeref"
 	name: string
-	location: Record<Language, string>
+	location: Record<Language, string | TypescriptTypeRefLocation>
 }
 
 export interface MethodDefinition {

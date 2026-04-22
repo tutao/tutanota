@@ -2,7 +2,7 @@
 	"name": "ContactPhoneNumberType",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/common/api/common/TutanotaConstants.js",
+		"typescript": "@tutao/app-env",
 		"kotlin": "de.tutao.tutashared.contacts.ContactPhoneNumberType"
 	}
 }
