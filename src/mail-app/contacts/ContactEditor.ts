@@ -15,6 +15,7 @@ import {
 	ContactWebsiteType,
 	GroupType,
 	Keys,
+	ProgrammingError,
 } from "@tutao/app-env"
 import { timestampToGeneratedId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/utils"
@@ -46,7 +47,6 @@ import { EntityClient } from "../../common/api/common/EntityClient"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
-import { ProgrammingError } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { PasswordField } from "../../common/misc/passwords/PasswordField.js"
@@ -357,6 +357,22 @@ export class ContactEditor {
 		}
 	}
 
+	/**
+	 * We want the Other and Custom labels to always be at the end of the list when rendering contact field type labels
+	 */
+	private getFieldTypeLabels<K extends ContactSocialType | ContactMessengerHandleType, V extends TranslationKey>(
+		fieldTypeToLabel: Record<K, V>,
+		otherType: K,
+		customType: K,
+	): [K, V][] {
+		return typedEntries(fieldTypeToLabel)
+			.filter(([key]) => key !== otherType && key !== customType)
+			.concat([
+				[otherType, fieldTypeToLabel[otherType]],
+				[customType, fieldTypeToLabel[customType]],
+			])
+	}
+
 	private renderCustomDatesEditor(id: Id, allowCancel: boolean, date: CompleteCustomDate): Children {
 		let dateHelpText = (): Translation => {
 			let bday = tutanotaTypeRefs.createBirthday({
@@ -483,7 +499,8 @@ export class ContactEditor {
 	}
 
 	private renderSocialsEditor(id: Id, allowCancel: boolean, socialId: tutanotaTypeRefs.ContactSocialId): Children {
-		const typeLabels = typedEntries(ContactSocialTypeToLabel)
+		const typeLabels = this.getFieldTypeLabels(ContactSocialTypeToLabel, ContactSocialType.OTHER, ContactSocialType.CUSTOM)
+
 		return m(ContactAggregateEditor, {
 			value: socialId.socialId,
 			fieldType: LegacyTextFieldType.Text,
@@ -551,7 +568,8 @@ export class ContactEditor {
 	}
 
 	private renderMessengerHandleEditor(id: Id, allowCancel: boolean, messengerHandle: tutanotaTypeRefs.ContactMessengerHandle): Children {
-		const typeLabels = typedEntries(ContactMessengerHandleTypeToLabel)
+		const typeLabels = this.getFieldTypeLabels(ContactMessengerHandleTypeToLabel, ContactMessengerHandleType.OTHER, ContactMessengerHandleType.CUSTOM)
+
 		return m(ContactAggregateEditor, {
 			value: messengerHandle.handle,
 			fieldType: LegacyTextFieldType.Text,
