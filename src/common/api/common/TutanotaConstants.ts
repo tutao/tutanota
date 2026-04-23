@@ -289,10 +289,10 @@ export enum ContactSocialType {
 	FACEBOOK = "1",
 	XING = "2",
 	LINKED_IN = "3",
-	BLUESKY = "4",
-	FEDIVERSE = "5",
-	OTHER = "6",
-	CUSTOM = "7",
+	OTHER = "4",
+	CUSTOM = "5",
+	BLUESKY = "6",
+	FEDIVERSE = "7",
 }
 
 export const enum ContactRelationshipType {
@@ -315,9 +315,9 @@ export const enum ContactMessengerHandleType {
 	WHATSAPP = "1",
 	TELEGRAM = "2",
 	DISCORD = "3",
-	MATRIX = "4",
-	OTHER = "5",
-	CUSTOM = "6",
+	OTHER = "4",
+	CUSTOM = "5",
+	MATRIX = "6",
 }
 
 export const enum ContactWebsiteType {

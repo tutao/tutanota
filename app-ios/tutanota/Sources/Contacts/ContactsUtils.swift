@@ -36,6 +36,7 @@ enum StructuredMessengerHandleTypeName: String {
 	case whatsapp = "WhatsApp"
 	case telegram = "Telegram"
 	case discord = "Discord"
+	case matrix = "Matrix"
 }
 
 private extension CNLabeledValue<CNInstantMessageAddress> {
@@ -46,6 +47,7 @@ private extension CNLabeledValue<CNInstantMessageAddress> {
 			case StructuredMessengerHandleTypeName.whatsapp.rawValue: (.whatsapp, nil)
 			case StructuredMessengerHandleTypeName.telegram.rawValue: (.telegram, nil)
 			case StructuredMessengerHandleTypeName.discord.rawValue: (.discord, nil)
+			case StructuredMessengerHandleTypeName.matrix.rawValue: (.matrix, nil)
 			default: (.custom, Self.localizedString(forLabel: self.value.service))
 			}
 		return StructuredMessengerHandle(handle: value.username, type: type, customTypeName: label ?? "")
