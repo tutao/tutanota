@@ -7,8 +7,8 @@ import { ImapMailbox } from "../../../../../../src/common/api/common/utils/imapI
 export const IMAP_TEST_DATA_EXAMPLE_ONE: string = "./tests/desktop/imapimport/adsync/imapmail/sample/imap-example-1.txt"
 export const IMAP_TEST_HEADERS_EXAMPLE_ONE: string = "./tests/desktop/imapimport/adsync/imapmail/sample/imap-headers-example-1.txt"
 
-o.spec("imapMailFromImapFlowFetchMessageObject", function () {
-	o("correctly parses expected values", async function () {
+o.spec("ImapImportUtils", function () {
+	o("imapMailFromImapFlowFetchMessageObject correctly parses expected values", async function () {
 		const file = await fs.promises.readFile(IMAP_TEST_DATA_EXAMPLE_ONE)
 		const imapHeaders = await fs.promises.readFile(IMAP_TEST_HEADERS_EXAMPLE_ONE)
 		const source = Buffer.from(file)

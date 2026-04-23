@@ -6,6 +6,8 @@ import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../
 import { MailMethod, MailState, ReplyType } from "@tutao/app-env"
 import { PartialRecipient, RecipientList } from "../../recipients/Recipient"
 import { plainTextToHtml } from "../PlainTextToHtmlConverter"
+import { InitializeImapImportParams } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
+import { getConfigForDomain, ServerImapImportParams } from "./ImapWellKnownConfigs"
 
 const TEXT_CALENDAR_MIME_TYPE = "text/calendar"
 const CALENDAR_METHOD_MIME_PARAMETER = "method"
@@ -145,6 +147,16 @@ function recipientsFromImapMailAddresses(imapMailAddresses: ImapMailAddress[]): 
 		}
 		return partialRecipient
 	})
+}
+
+export function guessServerImapConfigFromEmail(username: string): ServerImapImportParams | null {
+	const domain = username.split("@")[1]
+	if (domain === undefined) {
+		return null
+	}
+
+	// TODO: Also add logic for guessing usual imap configs in case domain isn't on precomputed list
+	return getConfigForDomain(domain)
 }
 export enum ImportState {
 	NOT_INITIALIZED,
