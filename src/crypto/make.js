@@ -7,7 +7,7 @@ const CRYPTO_PRIMITIVES_CRATE = "../../tuta-sdk/rust/crypto-primitives"
 const WASM_PACK_OUT_DIR = "src/crypto-primitives"
 export const CRYPTO_PRIMITIVES_WASM_FILE = "crypto_primitives_bg.wasm"
 
-program
+await program
 	.argument("targetDir", "Absolute path to build directory where wasm file should be copied to")
 	.option("--clean, -c", "Clean the directory instead of building")
 	.action(run)
