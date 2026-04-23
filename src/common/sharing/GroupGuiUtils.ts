@@ -152,6 +152,49 @@ const CONTACT_LIST_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
 		}),
 })
 
+// FIXME
+const ADMIN_SHARING_TEXTS: lazy<GroupSharingTexts> = () => ({
+	groupNameLabel: "calendarName_label",
+	participantsLabel: (groupName) =>
+		lang.get("calendarParticipants_label", {
+			"{name}": groupName,
+		}),
+	acceptEmailSubject: lang.get("shareCalendarAcceptEmailSubject_msg"),
+	acceptEmailBody: (userName, invitee, groupName) =>
+		lang.get("shareCalendarAcceptEmailBody_msg", {
+			"{invitee}": invitee,
+			"{calendarName}": groupName,
+			"{recipientName}": userName,
+		}),
+	declineEmailSubject: lang.get("shareCalendarDeclineEmailSubject_msg"),
+	declineEmailBody: (userName, invitee, groupName) =>
+		lang.get("shareCalendarDeclineEmailBody_msg", {
+			"{invitee}": invitee,
+			"{calendarName}": groupName,
+			"{recipientName}": userName,
+		}),
+	shareEmailSubject: lang.get("shareCalendarInvitationEmailSubject_msg"),
+	shareEmailBody: (sender, calendarName) =>
+		lang.get("shareCalendarInvitationEmailBody_msg", {
+			// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
+			"{inviter}": sender,
+			"{calendarName}": calendarName,
+		}),
+	addMemberMessage: (_) => `${lang.get("shareCalendarWarning_msg")} ${lang.get("shareWarningAliases_msg")}`,
+	removeMemberMessage: (calendarName, invitee) =>
+		lang.get("removeCalendarParticipantConfirm_msg", {
+			"{participant}": invitee,
+			"{calendarName}": calendarName,
+		}),
+	alreadyGroupMemberMessage: "sharedCalendarAlreadyMember_msg",
+	receivedGroupInvitationMessage: `${lang.get("shareCalendarWarning_msg")} ${lang.get("shareWarningAliases_msg")}`,
+	sharedGroupDefaultCustomName: (groupOwnerName) => getDefaultGroupName(GroupType.Calendar),
+	yourCustomNameLabel: (groupName) =>
+		lang.get("calendarCustomName_label", {
+			"{customName}": groupName,
+		}),
+})
+
 export function getTextsForGroupType(groupType: ShareableGroupType): GroupSharingTexts {
 	switch (groupType) {
 		case GroupType.Calendar:
@@ -162,5 +205,7 @@ export function getTextsForGroupType(groupType: ShareableGroupType): GroupSharin
 
 		case GroupType.ContactList:
 			return CONTACT_LIST_SHARING_TEXTS()
+		case GroupType.Admin:
+			return ADMIN_SHARING_TEXTS()
 	}
 }

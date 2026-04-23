@@ -25,6 +25,8 @@ import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../gui/base/icons/Icons"
 import { entityUpdateUtils } from "@tutao/typerefs"
+import { PartnerViewModel } from "./PartnerViewModel"
+import { GroupInvitationFolderRow } from "../sharing/view/GroupInvitationFolderRow"
 
 assertMainOrNode()
 
@@ -32,6 +34,7 @@ export interface PartnerViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	logins: LoginController
+	partnerViewModel: PartnerViewModel
 }
 
 /**
@@ -48,13 +51,15 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 	private readonly _partnerFolders: SettingsFolder<unknown>[]
 	private _selectedFolder: SettingsFolder<unknown>
 	private _currentViewer: UpdatableSettingsViewer | null = null
+	private readonly viewModel: PartnerViewModel
 	/**
 	 * The URL which we want to navigate to once everything is loaded.
 	 * Reset on selecting another settings folder.
 	 */
 	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
-	constructor(vnode: Vnode<SettingsViewAttrs>) {
+	constructor(vnode: Vnode<PartnerViewAttrs>) {
 		super()
+		this.viewModel = vnode.attrs.partnerViewModel
 		this._partnerFolders = [
 			new SettingsFolder(
 				() => "adminManagedCustomerList_action",
@@ -86,6 +91,19 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 								},
 								[this._renderSidebarSectionChildren(this._partnerFolders)],
 							),
+							this.viewModel.adminInvitations().length > 0
+								? m(
+										SidebarSection,
+										{
+											name: "calendarInvitations_label",
+										},
+										this.viewModel.adminInvitations().map((invitation) =>
+											m(GroupInvitationFolderRow, {
+												invitation,
+											}),
+										),
+									)
+								: null,
 						]),
 						ariaLabel: "settings_label",
 					})

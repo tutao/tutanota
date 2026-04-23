@@ -15,7 +15,9 @@ test-ca
 **/xcuserdata
 fastlane
 android-app/app/release
+android-app/app/src/main/assets/tutanota
 app-ios/releases
+app-ios/tutanota/tutanota-web
 native-cache
 test/native-cache
 test/testdatabase.sqlite
@@ -33,3 +35,4 @@ import-trace.json
 src/crypto-primitives
 src/mimimi/package-lock.json
 src/licc/package-lock.json
+fdroid-metadata-workaround

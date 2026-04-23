@@ -113,7 +113,7 @@ export function isTemplateGroup(groupType: GroupType): boolean {
 	return groupType === GroupType.Template
 }
 
-export type ShareableGroupType = GroupType.Calendar | GroupType.Template | GroupType.ContactList
+export type ShareableGroupType = GroupType.Calendar | GroupType.Template | GroupType.ContactList | GroupType.Admin
 
 export function isShareableGroupType(groupType: GroupType): groupType is ShareableGroupType {
 	// Should be synchronised with GroupType::isShareableGroup in tutadb

@@ -46,6 +46,7 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import { isApp, isBrowser, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
+import { PartnerViewModel } from "../common/partner/PartnerViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -646,6 +647,7 @@ import("./translations/en.js")
 				{
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
+					partnerViewModel: PartnerViewModel
 				}
 			>(
 				{
@@ -657,13 +659,15 @@ import("./translations/en.js")
 							cache: {
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
+								partnerViewModel: await mailLocator.partnerViewModel(),
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({
-						drawerAttrs: cache.drawerAttrsFactory(),
-						header: cache.header,
+					prepareAttrs: ({ drawerAttrsFactory, header, partnerViewModel }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header: header,
 						logins: mailLocator.logins,
+						partnerViewModel,
 					}),
 				},
 				mailLocator.logins,

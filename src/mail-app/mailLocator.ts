@@ -154,6 +154,7 @@ import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { PartnerViewModel } from "../common/partner/PartnerViewModel"
 
 assertMainOrNode()
 
@@ -436,6 +437,10 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			this.logins,
 		)
+	})
+
+	readonly partnerViewModel: lazyAsync<PartnerViewModel> = lazyMemoized(async () => {
+		return new PartnerViewModel(await this.receivedGroupInvitationsModel(GroupType.Admin))
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
