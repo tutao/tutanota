@@ -13,12 +13,12 @@ type PasswordEntryPageProps = {
 export class PasswordEntryPage implements Component<PasswordEntryPageProps> {
 	private state: TitleState = "initial"
 	private password = ""
-	private debouncedOnInput = debounce(1000, async (value: string, data: AccountDeletionPageState) => {
+	private debouncedOnInput = debounce(1000, async (password: string, data: AccountDeletionPageState) => {
 		this.state = "sync"
-		const result = await checkPassword(value)
+		const result = await checkPassword(password)
 		if (result) {
 			data.canContinuePassword = true
-			data.userPassword = value
+			data.userPassword = password
 			this.state = "success"
 		} else {
 			this.state = "error"

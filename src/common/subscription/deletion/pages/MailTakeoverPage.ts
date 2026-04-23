@@ -19,13 +19,14 @@ export class MailTakeoverPage implements Component<MailTakeoverPageProps> {
 			//FIXME: Only checks if available, not if paid and existing...
 			const result = await locator.mailAddressFacade.isMailAddressAvailable(mailAddress)
 			if (!result) {
-				this.state = "success"
 				data.canContinueTakeoverMail = true
+				data.takeOverMailAddress = mailAddress
+				this.state = "success"
 			} else {
 				this.state = "error"
 			}
-			m.redraw()
 		}
+		m.redraw()
 	})
 	view({ attrs: { data } }: Vnode<MailTakeoverPageProps>): Children {
 		return m(
