@@ -25,7 +25,7 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "@tutao/app-env"
 import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
-import { LoginTextField } from "./LoginTextField"
+import { TextField } from "./TextField"
 
 assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"
@@ -977,7 +977,7 @@ export class Dialog implements ModalComponent {
 		dialog = Dialog.showActionDialog({
 			title: props.title,
 			child: () =>
-				m(LoginTextField, {
+				m(TextField, {
 					label: props.label,
 					value: result,
 					type: textFieldType,

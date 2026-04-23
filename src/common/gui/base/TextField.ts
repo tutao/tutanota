@@ -12,7 +12,7 @@ import { AriaPopupType } from "../AriaUtils.js"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { Autocapitalize, Autocomplete, LegacyTextFieldType } from "./LegacyTextField"
 
-export type LoginTextFieldAttrs = {
+export type TextFieldAttrs = {
 	id?: string
 	label: MaybeTranslation
 	value: string
@@ -62,7 +62,7 @@ const baseLabelPosition = "-50%"
 // 24px line-height + 12px label + some space between them = 36 + ?
 const minInputHeight = 56
 
-export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
+export class TextField implements ClassComponent<TextFieldAttrs> {
 	active: boolean
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
@@ -75,7 +75,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		this.active = false
 	}
 
-	view(vnode: CVnode<LoginTextFieldAttrs>): Children {
+	view(vnode: CVnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
 		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft && a.type !== LegacyTextFieldType.Area
@@ -200,7 +200,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		)
 	}
 
-	_getInputField(a: LoginTextFieldAttrs): Children {
+	_getInputField(a: TextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-break.selectable.text-ellipsis.block",
@@ -325,7 +325,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		}
 	}
 
-	_getTextArea(a: LoginTextFieldAttrs): Children {
+	_getTextArea(a: TextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-prewrap.text-break.selectable",
@@ -376,7 +376,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		}
 	}
 
-	focus(e: Event, a: LoginTextFieldAttrs) {
+	focus(e: Event, a: TextFieldAttrs) {
 		if (!this.active && !a.disabled && !a.isReadOnly) {
 			this.active = true
 			this.domInput.focus()
@@ -385,7 +385,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		}
 	}
 
-	blur(e: Event, a: LoginTextFieldAttrs) {
+	blur(e: Event, a: TextFieldAttrs) {
 		this._domWrapper.classList.remove("active")
 		this.active = false
 		if (a.onblur instanceof Function) a.onblur(e)

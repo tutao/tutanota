@@ -6,7 +6,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { px, size } from "../gui/size"
 import { theme } from "../gui/theme"
 import { RadioSelectorOption } from "../gui/base/RadioSelectorItem"
-import { LoginTextField } from "../gui/base/LoginTextField"
+import { TextField } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
 
@@ -31,7 +31,7 @@ export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<Si
 						},
 
 						[
-							m(LoginTextField, {
+							m(TextField, {
 								oninput: (newValue) => (ctx.viewModel.addressInputStore = newValue),
 								label: lang.getTranslation("address_label"),
 								value: ctx.viewModel.addressInputStore ?? "",

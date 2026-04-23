@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { LoginTextField } from "../../gui/base/LoginTextField"
+import { TextField } from "../../gui/base/TextField"
 import { Autocapitalize, Autocomplete } from "../../gui/base/LegacyTextField"
 import { assertMainOrNode } from "@tutao/app-env"
 import { EmailDomainData } from "../../settings/mailaddress/MailAddressesUtils"
@@ -80,7 +80,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 			}
 		}
 
-		return m(LoginTextField, {
+		return m(TextField, {
 			class: "",
 			label: "username_label",
 			value: this.username,

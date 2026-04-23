@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Autocomplete } from "../gui/base/LegacyTextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { LoginTextField, LoginTextFieldAttrs } from "../gui/base/LoginTextField"
+import { TextField, TextFieldAttrs } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { theme } from "../gui/theme"
 import { styles } from "../gui/styles"
@@ -44,7 +44,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 		const formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
 
 		return m(`.flex.col.mtb-16${formGap}`, [
-			m(LoginTextField, {
+			m(TextField, {
 				label: "creditCardNumber_label",
 				class: "",
 				helpLabel: () => this.renderCcNumberHelpLabel(viewModel),
@@ -60,9 +60,9 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 					icon: Icons.CreditcardFilled,
 					color: theme.on_surface_variant,
 				},
-			} satisfies LoginTextFieldAttrs),
+			} satisfies TextFieldAttrs),
 			m(`.flex.row.flex-grow${formGap}`, [
-				m(LoginTextField, {
+				m(TextField, {
 					label: "creditCardExpirationDateWithFormat_label",
 					class: "",
 					value: viewModel.expirationDate,
@@ -79,7 +79,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 						color: theme.on_surface_variant,
 					},
 				}),
-				m(LoginTextField, {
+				m(TextField, {
 					label: lang.makeTranslation("cvv", viewModel.getCvvLabel()),
 					class: "",
 					value: viewModel.cvv,

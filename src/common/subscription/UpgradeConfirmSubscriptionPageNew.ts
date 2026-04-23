@@ -27,7 +27,7 @@ import { formatDate } from "../misc/Formatter.js"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { theme } from "../gui/theme"
-import { LoginTextField } from "../gui/base/LoginTextField"
+import { TextField } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { IconButton } from "../gui/base/IconButton"
 import { styles } from "../gui/styles"
@@ -83,7 +83,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 							},
 						},
 						[
-							m(LoginTextField, {
+							m(TextField, {
 								label: "subscription_label",
 								value: getDisplayNameOfPlanType(data.targetPlanType),
 								isReadOnly: true,
@@ -107,7 +107,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								},
 							}),
 
-							m(LoginTextField, {
+							m(TextField, {
 								label: "paymentMethod_label",
 								value: getPaymentMethodName(data.paymentData.paymentMethod),
 								isReadOnly: true,
@@ -129,7 +129,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								},
 							}),
 							data.invoiceData.country &&
-								m(LoginTextField, {
+								m(TextField, {
 									label: "billingCountry_label",
 									value: data.invoiceData.country.n,
 									isReadOnly: true,
@@ -148,7 +148,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										})
 									},
 								}),
-							m(LoginTextField, {
+							m(TextField, {
 								label: "paymentInterval_label",
 								value: subscription,
 								isReadOnly: true,
@@ -186,7 +186,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 							!isAppStorePayment &&
 								m.fragment({}, [
 									isFirstMonthForFree &&
-										m(LoginTextField, {
+										m(TextField, {
 											label: lang.getTranslation("priceTill_label", {
 												"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 											}),
@@ -198,7 +198,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 												color: theme.on_surface_variant,
 											},
 										}),
-									m(LoginTextField, {
+									m(TextField, {
 										label: this.buildPriceLabel(isYearly, ctx),
 										value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
 										isReadOnly: true,
@@ -332,7 +332,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 
 	private renderPriceNextYear(data: SignupViewModel) {
 		return data.nextYearPrice
-			? m(LoginTextField, {
+			? m(TextField, {
 					label: "priceForNextYear_label",
 					value: buildPriceString(data.nextYearPrice.displayPrice, data.options),
 					isReadOnly: true,
