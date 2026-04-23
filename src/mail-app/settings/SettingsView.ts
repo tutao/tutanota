@@ -75,6 +75,7 @@ import { ButtonType } from "../../common/gui/base/Button"
 import { CancelledError } from "../../common/api/common/error/CancelledError"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
+import { AdministrationViewer } from "../../common/subscription/AdministrationViewer"
 
 assertMainOrNode()
 
@@ -479,6 +480,16 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.CreditcardFilled,
 						"invoice",
 						() => new PaymentViewer(),
+						undefined,
+					),
+				)
+
+				adminFolders.push(
+					new SettingsFolder<void>(
+						() => "adminAdministration_label",
+						() => Icons.Free,
+						"administration",
+						() => new AdministrationViewer(),
 						undefined,
 					),
 				)

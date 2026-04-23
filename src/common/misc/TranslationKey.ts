@@ -2265,3 +2265,6 @@ export type TranslationKeyType =
 	| "indexingEmails_msg"
 	| "searchUntil_msg"
 	| "emptyString_msg"
+	| "adminAdministration_label"
+	| "adminExternal_label"
+	| "adminAddPartner_label"
