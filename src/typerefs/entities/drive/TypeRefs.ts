@@ -1,10 +1,8 @@
-import { TypeRef } from "@tutao/utils"
 import { create, StrippedEntity } from "../../EntityUtils.js"
+import { TypeRef } from "@tutao/utils"
 import { default as typeModels } from "./TypeModels.js"
-import * as sysTypeRefs from "../sys/TypeRefs.js"
-
-type Blob = sysTypeRefs.Blob
-type BlobReferenceTokenWrapper = sysTypeRefs.BlobReferenceTokenWrapper
+import { Blob } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 

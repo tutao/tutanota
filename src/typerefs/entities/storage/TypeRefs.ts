@@ -1,10 +1,8 @@
-import { TypeRef } from "@tutao/utils"
 import { create, StrippedEntity } from "../../EntityUtils.js"
+import { TypeRef } from "@tutao/utils"
 import { default as typeModels } from "./TypeModels.js"
-import * as sysTypeRefs from "../sys/TypeRefs.js"
-
-type BlobReferenceTokenWrapper = sysTypeRefs.BlobReferenceTokenWrapper
-type Blob = sysTypeRefs.Blob
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { Blob } from '../sys/TypeRefs.js'
 
 export const BlobGetInTypeRef: TypeRef<BlobGetIn> = new TypeRef("storage", 50)
 
