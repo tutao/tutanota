@@ -62,7 +62,12 @@ export class ImapImporter implements ImapImportFacade {
 			}
 		}
 
-		this.imapImportState = new ImapImportState(ImportState.PAUSED)
+		if (importImapAccountSyncState?.postponedUntil) {
+			this.imapImportState = new ImapImportState(ImportState.PAUSED, new Date(parseInt(importImapAccountSyncState?.postponedUntil)))
+		} else {
+			this.imapImportState = new ImapImportState(ImportState.PAUSED)
+		}
+
 		return Promise.resolve(this.imapImportState)
 	}
 
@@ -88,7 +93,9 @@ export class ImapImporter implements ImapImportFacade {
 			this.imapImportState.postponedUntil = new Date(Number.parseInt(postponedUntil))
 		}
 
-		if (this.imapImportState.postponedUntil.getTime() > Date.now()) {
+		const datenow = Date.now()
+		console.log("second", this.imapImportState.postponedUntil.getTime() > datenow, { getTime: this.imapImportState.postponedUntil.getTime(), datenow })
+		if (this.imapImportState.postponedUntil.getTime() > datenow) {
 			this.imapImportState.state = ImportState.POSTPONED
 			return this.imapImportState
 		}

@@ -102,6 +102,7 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<ImapImportM
 
 			this.data.imapImportState = await initializeAndContinueImapImport(this.imapImporter, initializeImapImportParams)
 
+			console.log("the state after init and continue", this.data.imapImportState)
 			if (this.data.imapImportState.state === ImportState.POSTPONED) {
 				let postponedErrorMsg = "imapImportStartedPostponed_msg" as TranslationKey
 				return showErrorDialog ? Dialog.message(postponedErrorMsg).then(() => true) : Promise.resolve(true)
@@ -123,6 +124,6 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<ImapImportM
 async function initializeAndContinueImapImport(imapImporter: ImapImporter, initializeImportParams: InitializeImapImportParams): Promise<ImapImportState> {
 	return await showProgressDialog(
 		"startingImapImport_msg",
-		imapImporter.initializeImport(initializeImportParams).then(() => imapImporter.continueImport()),
+		imapImporter.initializeImport(initializeImportParams).then(async () => await imapImporter.continueImport()),
 	)
 }
