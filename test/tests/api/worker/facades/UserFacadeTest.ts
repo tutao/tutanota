@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
+import { KeyCache } from "../../../../../src/crypto/app-support/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, encryptKey } from "@tutao/crypto"
