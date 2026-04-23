@@ -3,7 +3,6 @@ import { ConfigureImapImportPage, ConfigureImapImportPageAttrs } from "./Configu
 import { ImapImportStartedPage, ImapImportStartedPageAttrs } from "./ImapImportStartedPage.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { isDomainName } from "../../../common/misc/FormatValidator"
 import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/WizardDialog"
 import { DialogType } from "../../../common/gui/base/Dialog"
 import { ImapImportState, ImportState } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
@@ -18,6 +17,7 @@ export interface ImapImportModelConfig {
 	readonly imapAccountPassword: string
 	readonly rootImportMailFolderName: string
 	readonly matchImportFoldersToTutanotaFolders: boolean
+	readonly isModifyingExistingImport: boolean
 }
 
 export class ImapImportModel {
@@ -29,6 +29,7 @@ export class ImapImportModel {
 	private _rootImportMailFolderName: string
 	private _imapImportState: ImapImportState
 	private _matchImportFoldersToTutanotaFolders: boolean
+	private _isModifyingExistingImport: boolean
 
 	constructor(readonly config: ImapImportModelConfig) {
 		this._imapAccountHost = config.imapAccountHost
@@ -38,6 +39,7 @@ export class ImapImportModel {
 		this._rootImportMailFolderName = config.rootImportMailFolderName
 		this._matchImportFoldersToTutanotaFolders = config.matchImportFoldersToTutanotaFolders
 		this._imapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
+		this._isModifyingExistingImport = config.isModifyingExistingImport
 	}
 
 	get imapAccountHost(): string {
@@ -102,6 +104,14 @@ export class ImapImportModel {
 
 	isImapAccountPasswordRevealed(): boolean {
 		return this.revealImapAccountPassword
+	}
+
+	get isModifyingExistingImport(): boolean {
+		return this._isModifyingExistingImport
+	}
+
+	set isModifyingExistingImport(value: boolean) {
+		this._isModifyingExistingImport = value
 	}
 
 	validateImapAccountHost(): TranslationKey | null {

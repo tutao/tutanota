@@ -1883,6 +1883,7 @@ export default {
 		"setUp_action": "Set up",
 		"share_action": "Share",
 		"setUpImapImport_label": "Set up IMAP import",
+		"modifyImapImport_label": "Modify IMAP import",
 		"shareCalendarAcceptEmailBody_msg": "Hello {recipientName}, <br/>{invitee} has accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",
 		"shareCalendarAcceptEmailSubject_msg": "Calendar invitation accepted",
 		"shareCalendarDeclineEmailBody_msg": "Hello {recipientName}, <br/>{invitee} has not accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",

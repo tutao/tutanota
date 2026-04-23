@@ -28,6 +28,7 @@ export class ConfigureImapImportPage implements WizardPageN<ImapImportModel> {
 			value: vnode.attrs.data.rootImportMailFolderName,
 			oninput: (value) => (vnode.attrs.data.rootImportMailFolderName = value),
 			helpLabel: () => lang.get("imapImportRootMailFolderName_helpLabel"),
+			disabled: vnode.attrs.data.isModifyingExistingImport,
 		}
 
 		const matchImportFoldersToTutanotaFoldersAttrs: SwitchAttrs = {
@@ -36,6 +37,7 @@ export class ConfigureImapImportPage implements WizardPageN<ImapImportModel> {
 			onclick(checked: boolean) {
 				vnode.attrs.data.matchImportFoldersToTutanotaFolders = checked
 			},
+			disabled: vnode.attrs.data.isModifyingExistingImport,
 		}
 
 		return m("", [
@@ -95,6 +97,7 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<ImapImportM
 				maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
 				rootImportMailFolderName: this.data.rootImportMailFolderName,
 				matchImportFoldersToTutanotaFolders: this.data.matchImportFoldersToTutanotaFolders,
+				isModifyingExistingImport: this.data.isModifyingExistingImport,
 			}
 
 			this.data.imapImportState = await initializeAndContinueImapImport(this.imapImporter, initializeImapImportParams)

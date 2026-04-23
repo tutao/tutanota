@@ -10215,7 +10215,7 @@ const typeModels = {
 				"encrypted": true
 			},
 			"1857": {
-				"final": true,
+				"final": false,
 				"name": "password",
 				"id": 1857,
 				"type": "String",
@@ -10629,7 +10629,7 @@ const typeModels = {
 				"dependency": null
 			},
 			"1908": {
-				"final": true,
+				"final": false,
 				"name": "imapAccount",
 				"id": 1908,
 				"type": "AGGREGATION",

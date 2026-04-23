@@ -67,6 +67,7 @@ export class ImapImportStartedPageAttrs implements WizardPageAttrs<ImapImportMod
 
 	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
 		await this.imapImporter.continueImport()
+		m.redraw()
 		return Promise.resolve(true)
 	}
 

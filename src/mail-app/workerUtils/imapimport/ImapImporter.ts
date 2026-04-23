@@ -35,6 +35,7 @@ export interface InitializeImapImportParams {
 	maxQuota: string
 	rootImportMailFolderName: string | null
 	matchImportFoldersToTutanotaFolders: boolean
+	isModifyingExistingImport: boolean
 }
 
 export class ImapImporter implements ImapImportFacade {
@@ -56,11 +57,13 @@ export class ImapImporter implements ImapImportFacade {
 		if (importImapAccountSyncState == null) {
 			this.importImapAccountSyncState = await this.importImapFacade.initializeImapImport(initializeParams)
 		} else {
-			this.importImapAccountSyncState = await this.importImapFacade.updateImapImport(initializeParams, importImapAccountSyncState)
+			if (initializeParams.isModifyingExistingImport) {
+				this.importImapAccountSyncState = await this.importImapFacade.updateImapImport(initializeParams, importImapAccountSyncState)
+			}
 		}
 
 		this.imapImportState = new ImapImportState(ImportState.PAUSED)
-		return this.imapImportState
+		return Promise.resolve(this.imapImportState)
 	}
 
 	async continueImport(): Promise<ImapImportState> {
@@ -100,13 +103,13 @@ export class ImapImporter implements ImapImportFacade {
 		await this.imapImportSystemFacade.startImport(imapSyncState)
 
 		this.imapImportState = new ImapImportState(ImportState.RUNNING)
-		return this.imapImportState
+		return Promise.resolve(this.imapImportState)
 	}
 
 	async pauseImport(): Promise<ImapImportState> {
 		await this.imapImportSystemFacade.stopImport()
 		this.imapImportState = new ImapImportState(ImportState.PAUSED)
-		return this.imapImportState
+		return Promise.resolve(this.imapImportState)
 	}
 
 	async postponeImport(postponedUntil: Date): Promise<ImapImportState> {
@@ -124,12 +127,12 @@ export class ImapImporter implements ImapImportFacade {
 
 	async deleteImport(): Promise<boolean> {
 		if (this.importImapAccountSyncState == null) {
-			return false
+			return Promise.resolve(false)
 		} else {
 			await this.importImapFacade.deleteImapImport(this.importImapAccountSyncState._id)
 			await this.imapImportSystemFacade.stopImport()
 			this.importImapAccountSyncState = null
-			return true
+			return Promise.resolve(true)
 		}
 	}
 
@@ -138,11 +141,11 @@ export class ImapImporter implements ImapImportFacade {
 			return Promise.resolve(null)
 		}
 
-		return this.importImapFacade.getRootImportFolder(this.importImapAccountSyncState?.rootImportMailFolder)
+		return Promise.resolve(this.importImapFacade.getRootImportFolder(this.importImapAccountSyncState?.rootImportMailFolder))
 	}
 
 	async loadImportImapAccountSyncState(): Promise<tutanotaTypeRefs.ImportImapAccountSyncState | null> {
-		return this.importImapFacade.getImportImapAccountSyncState()
+		return Promise.resolve(this.importImapFacade.getImportImapAccountSyncState())
 	}
 
 	loadImapImportState(): Promise<ImapImportState> {

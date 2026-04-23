@@ -9,13 +9,14 @@ import { UserFacade } from "../UserFacade.js"
 import { MailFacade } from "./MailFacade.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { tutanotaTypeRefs, tutanotaServices, isFolder } from "@tutao/typerefs"
+import { isFolder, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { GroupType, MailSetKind } from "@tutao/app-env"
 import { InitializeImapImportParams } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
 import { KeyLoaderFacade } from "../KeyLoaderFacade"
 import { assertNotNull, getFirstOrThrow, isEmpty } from "@tutao/utils"
 import { FolderSystem } from "../../../common/mail/FolderSystem"
+import { CacheMode } from "../../rest/EntityRestClient"
 
 export class ImportImapFacade {
 	constructor(
@@ -29,7 +30,7 @@ export class ImportImapFacade {
 	async initializeImapImport(initializeParams: InitializeImapImportParams): Promise<tutanotaTypeRefs.ImportImapAccountSyncState> {
 		const mailGroupId = this.userFacade.getGroupId(GroupType.Mail)
 
-		if (initializeParams.rootImportMailFolderName == null && !initializeParams.matchImportFoldersToTutanotaFolders) {
+		if (initializeParams.rootImportMailFolderName === "" && !initializeParams.matchImportFoldersToTutanotaFolders) {
 			throw new Error("Either rootImportMailFolderName or matchImportFoldersToTutanotaFolders must be set")
 		}
 		let rootImportMailFolderId: IdTuple | null = null
@@ -80,7 +81,7 @@ export class ImportImapFacade {
 		importImapAccountSyncState.imapAccount.password = initializeParams.password
 
 		await this.entityClient.update(importImapAccountSyncState)
-		return this.entityClient.load(tutanotaTypeRefs.ImportImapAccountSyncStateTypeRef, importImapAccountSyncState._id)
+		return await this.entityClient.load(tutanotaTypeRefs.ImportImapAccountSyncStateTypeRef, importImapAccountSyncState._id)
 	}
 
 	async postponeImapImport(postponedUntil: Date, importImapAccountSyncStateId: IdTuple): Promise<tutanotaTypeRefs.ImportImapAccountSyncState> {

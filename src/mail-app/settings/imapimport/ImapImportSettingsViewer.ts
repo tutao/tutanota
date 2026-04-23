@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { ImapImportModel, ImapImportModelConfig, showAddImapImportWizard } from "./AddImapImportWizard.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
-import { tutanotaTypeRefs, entityUpdateUtils } from "@tutao/typerefs"
+import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
 import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton"
@@ -34,6 +34,11 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		this.stars = ""
 		this.matchImportFoldersToTutanotaFolders = false
 		this.imapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
+	}
+
+	async oninit() {
+		await this.requestImapImportAccountSyncState()
+		await this.updateImapImportState()
 	}
 
 	view(): Children {
@@ -92,6 +97,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private getImapImportModel() {
 		// FIXME:Delete these default credentials
+		const state = this.imapImportState.state
 		const imapImportModelConfig: ImapImportModelConfig = {
 			imapAccountHost: this.importImapAccount?.host ?? "localhost",
 			imapAccountPort: Number.parseInt(this.importImapAccount?.port ?? "143"),
@@ -99,6 +105,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			imapAccountPassword: this.importImapAccount?.password ?? "password",
 			rootImportMailFolderName: this.rootImportMailFolderName ?? "",
 			matchImportFoldersToTutanotaFolders: this.matchImportFoldersToTutanotaFolders,
+			isModifyingExistingImport: false,
 		}
 
 		return new ImapImportModel(imapImportModelConfig)
@@ -108,7 +115,17 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		const imapImportModel = this.getImapImportModel()
 		const setUpImapImportIconButtonAttrs: IconButtonAttrs = {
 			title: "setUpImapImport_label",
-			click: () => showAddImapImportWizard(this.imapImporter(), imapImportModel),
+			click: () => showAddImapImportWizard(this.imapImporter(), imapImportModel).then(() => m.redraw()),
+			icon: Icons.PenFilled,
+			size: ButtonSize.Normal,
+		}
+
+		const modifyImapImportIconButtonAttrs: IconButtonAttrs = {
+			title: "modifyImapImport_label",
+			click: () => {
+				imapImportModel.isModifyingExistingImport = true
+				showAddImapImportWizard(this.imapImporter(), imapImportModel).then(() => m.redraw())
+			},
 			icon: Icons.PenFilled,
 			size: ButtonSize.Normal,
 		}
@@ -133,7 +150,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			click: () => this.deleteImapImport(),
 			size: ButtonSize.Normal,
 		}
-
+		const state = this.imapImportState.state
 		return m(
 			".border-radius-16",
 			{
@@ -154,12 +171,13 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					),
 				]),
 				m("center", [
-					this.imapImportState.state === ImportState.NOT_INITIALIZED ? m(IconButton, setUpImapImportIconButtonAttrs) : null,
-					this.imapImportState.state === ImportState.PAUSED ? m(IconButton, continueImapImportIconButtonAttrs) : null,
-					this.imapImportState.state === ImportState.RUNNING || this.imapImportState.state === ImportState.POSTPONED
-						? m(IconButton, pauseImapImportIconButtonAttrs)
+					state === ImportState.NOT_INITIALIZED ? m(IconButton, setUpImapImportIconButtonAttrs) : null,
+					state === ImportState.PAUSED ? m(IconButton, continueImapImportIconButtonAttrs) : null,
+					state === ImportState.RUNNING || state === ImportState.POSTPONED || state === ImportState.PAUSED
+						? m(IconButton, modifyImapImportIconButtonAttrs)
 						: null,
-					this.imapImportState.state !== ImportState.NOT_INITIALIZED ? m(IconButton, deleteImapImportIconButtonAttrs) : null,
+					state === ImportState.RUNNING || state === ImportState.POSTPONED ? m(IconButton, pauseImapImportIconButtonAttrs) : null,
+					state !== ImportState.NOT_INITIALIZED ? m(IconButton, deleteImapImportIconButtonAttrs) : null,
 				]),
 			],
 		)
@@ -182,10 +200,12 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private async continueImapImport() {
 		this.imapImportState = await this.imapImporter().continueImport()
+		m.redraw()
 	}
 
 	private async pauseImapImport() {
 		this.imapImportState = await this.imapImporter().pauseImport()
+		m.redraw()
 	}
 
 	private async deleteImapImport() {
@@ -193,6 +213,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		if (isDeleteSuccessful) {
 			this.imapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
 		}
+		m.redraw()
 	}
 
 	private async requestImapImportAccountSyncState() {
@@ -206,7 +227,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		this.imapAccountPort = Number.parseInt(this.importImapAccount?.port ?? "")
 		this.imapAccountUsername = this.importImapAccount?.userName ?? ""
 		this.stars = this.importImapAccount?.password ? "***" : ""
-
+		this.matchImportFoldersToTutanotaFolders = rootImportMailFolder == null
 		m.redraw()
 	}
 
