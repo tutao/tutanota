@@ -19,7 +19,7 @@ import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { px, size } from "../gui/size"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { LoginTextField } from "../gui/base/LoginTextField"
+import { TextField } from "../gui/base/TextField"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
 import { LegacyTextFieldType } from "../gui/base/LegacyTextField"
@@ -248,7 +248,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						m(
 							".flex-grow",
 							{ style: { "min-width": "fit-content" } },
-							m(LoginTextField, {
+							m(TextField, {
 								label: "paymentDataPayPalConnected_msg",
 								value: ctx.viewModel.accountingInfo!.paymentMethodInfo!,
 								isReadOnly: true,
@@ -333,7 +333,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		return m(".full-width", [
 			m(
 				"",
-				m(LoginTextField, {
+				m(TextField, {
 					label: "invoiceAddress_label",
 					value: ctx.viewModel.invoiceData.invoiceAddress,
 					oninput: (value) => {
@@ -347,7 +347,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				m(".small", lang.getTranslationText("invoiceAddressInfoBusiness_msg")),
 			),
 			this.isVatIdFieldVisible(ctx) &&
-				m(LoginTextField, {
+				m(TextField, {
 					label: "invoiceVatIdNo_label",
 					value: ctx.viewModel.invoiceData.vatNumber,
 					oninput: (value) => {

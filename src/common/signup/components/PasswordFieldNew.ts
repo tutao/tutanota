@@ -5,14 +5,14 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { Autocomplete, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/utils"
-import { LoginTextField, LoginTextFieldAttrs } from "../../gui/base/LoginTextField"
+import { TextField, TextFieldAttrs } from "../../gui/base/TextField"
 import { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { isMediumInsecurePassword, isSecurePassword, passwordStrengthToColor } from "../../misc/passwords/PasswordUtils"
 import { theme } from "../../gui/theme"
 
 type StatusSetting = Status | "auto"
 
-export interface PasswordFieldAttrs extends Omit<LoginTextFieldAttrs, "label" | "type"> {
+export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
 	label?: MaybeTranslation
 	passwordStrength?: number
 	status?: StatusSetting
@@ -25,7 +25,7 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 		const attrs = vnode.attrs
 		// Separate and pass the generic `TextFieldAttrs` attributes so the user can still use all of `TextFields` properties
 		const { passwordStrength, status, label, ...textFieldAttrs } = attrs
-		return m(LoginTextField, {
+		return m(TextField, {
 			...textFieldAttrs,
 			leadingIcon: {
 				icon: Icons.GenericLockFilled,

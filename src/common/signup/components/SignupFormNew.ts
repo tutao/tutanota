@@ -17,7 +17,7 @@ import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData } from "../../subscription/UpgradeSubscriptionWizard"
 import { runPowChallenge } from "../../subscription/captcha/Captcha"
 import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../subscription/TermsAndConditions"
-import { LoginTextField } from "../../gui/base/LoginTextField"
+import { TextField } from "../../gui/base/TextField"
 import { SelectMailAddressFormAttrs, SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
 import { styles } from "../../gui/styles"
@@ -236,7 +236,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-start",
 			m(`.flex.flex-column.max-width-l.pb-16.full-width${styles.isMobileLayout() ? ".gap-8" : ".gap-16"}`, [
 				this.readonly
-					? m(LoginTextField, {
+					? m(TextField, {
 							class: "",
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
@@ -249,7 +249,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 								model: this.passwordModel,
 							}),
 							getWhitelabelRegistrationDomains().length > 0
-								? m(LoginTextField, {
+								? m(TextField, {
 										value: this._code(),
 										oninput: this._code,
 										label: "whitelabelRegistrationCode_label",
