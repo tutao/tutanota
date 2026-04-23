@@ -24,7 +24,7 @@ import {
 	promiseMap,
 	Require,
 	stringToUtf8Uint8Array,
-	uint8arrayToCustomId,
+	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
@@ -501,7 +501,7 @@ export class CalendarFacade {
 
 				const indexEntry = await entityClient.load<tutanotaTypeRefs.CalendarEventUidIndex>(tutanotaTypeRefs.CalendarEventUidIndexTypeRef, [
 					groupRoot.index.list,
-					uint8arrayToCustomId(hashUid(uid)),
+					uint8arrayToBase64UrlCustomId(hashUid(uid)),
 				])
 
 				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(entityClient, indexEntry)

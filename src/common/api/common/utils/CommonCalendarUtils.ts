@@ -1,9 +1,8 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { stringToCustomId } from "@tutao/utils"
-import { StrippedEntity } from "@tutao/typerefs"
+import { StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 import { DAY_IN_MILLIS } from "@tutao/app-env"
+import { stringToBase64UrlCustomId } from "@tutao/utils"
 
 export type CalendarEventTimes = Pick<tutanotaTypeRefs.CalendarEvent, "startTime" | "endTime">
 
@@ -70,7 +69,7 @@ export function generateEventElementId(timestamp: number): string {
  */
 export function generateLocalEventElementId(timestamp: number, identifier: string): string {
 	// We don't have to shift the days because the event never leaves the client
-	return stringToCustomId(`${timestamp}${identifier}`)
+	return stringToBase64UrlCustomId(`${timestamp}${identifier}`)
 }
 
 /**
@@ -84,7 +83,7 @@ export function generateLocalEventElementId(timestamp: number, identifier: strin
  * @param shiftDays
  */
 export function createEventElementId(timestamp: number, shiftDays: number): string {
-	return stringToCustomId(String(timestamp + shiftDays))
+	return stringToBase64UrlCustomId(String(timestamp + shiftDays))
 }
 
 /**

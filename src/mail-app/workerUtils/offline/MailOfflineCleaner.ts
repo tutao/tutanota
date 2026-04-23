@@ -2,7 +2,7 @@ import { assertNotNull, groupByAndMap } from "@tutao/utils"
 import {
 	constructMailSetEntryId,
 	elementIdPart,
-	firstBiggerThanSecondCustomId,
+	firstBiggerThanSecondBase64Url,
 	GENERATED_MAX_ID,
 	getElementId,
 	getOfflineStorageDefaultTimeRangeDays,
@@ -64,7 +64,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			const mailSetEntriesToDelete: IdTuple[] = []
 			const mailSetEntries = await offlineStorage.getWholeList(tutanotaTypeRefs.MailSetEntryTypeRef, entriesListId)
 			for (let mailSetEntry of mailSetEntries) {
-				if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
+				if (firstBiggerThanSecondBase64Url(cutoffId, getElementId(mailSetEntry))) {
 					mailSetEntriesToDelete.push(mailSetEntry._id)
 					mailIdsToDelete.push(mailSetEntry.mail)
 				}
