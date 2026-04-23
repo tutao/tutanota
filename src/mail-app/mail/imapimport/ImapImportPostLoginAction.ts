@@ -56,18 +56,18 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 									accessToken: null,
 									maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
 									rootImportMailFolderName: rootImportMailFolderName,
-									matchImportFoldersToTutanotaFolders: rootImportMailFolderName.length > 0,
+									matchImportFoldersToTutanotaFolders: rootImportMailFolderName.length === 0,
 									isModifyingExistingImport: false,
 								}
-								await this.imapImporter
-									.initializeImport(initializeImapImportParams)
-									.then(() => this.imapImporter.continueImport())
-									.catch((e) =>
-										console.log(
-											`failed to continue imap import for group: ${ownerGroup.group}, imapAccountSyncState: ${imapAccountSyncState._id}`,
-											e,
-										),
+								try {
+									await this.imapImporter.initializeImport(initializeImapImportParams)
+									await this.imapImporter.continueImport()
+								} catch (e) {
+									console.log(
+										`failed to continue imap import for group: ${ownerGroup.group}, imapAccountSyncState: ${imapAccountSyncState._id}`,
+										e,
 									)
+								}
 							},
 							priority: SyncDonePriority.LOW,
 						})

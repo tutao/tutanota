@@ -19,6 +19,7 @@ import { IconButton } from "../base/IconButton.js"
 import { locator } from "../../api/main/CommonLocator"
 import { FeatureType, UpgradePromptType } from "@tutao/app-env"
 import { isIOSApp, Mode } from "@tutao/app-env"
+import { mailLocator } from "../../../mail-app/mailLocator"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -139,7 +140,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				m(IconButton, {
 					icon: Icons.Logout,
 					title: "switchAccount_action",
-					click: () => m.route.set(LogoutUrl),
+					click: () => mailLocator.imapImporter.pauseImport().then(() => m.route.set(LogoutUrl)),
 					colors: ButtonColor.DrawerNav,
 				}),
 			],
