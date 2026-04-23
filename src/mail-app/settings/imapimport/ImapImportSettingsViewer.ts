@@ -87,7 +87,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				m(".h4", lang.get("mailImportSettings_label")),
 				m(IconButton, {
 					title: "setUpImapImport_label",
-					click: () => showAddImapImportWizard(this.imapImporter(), imapImportModel),
+					click: () => showAddImapImportWizard(this.imapImporter(), imapImportModel).then(() => m.redraw()),
 					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
 				}),

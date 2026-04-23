@@ -13,7 +13,7 @@ import { ImapImportModel } from "./AddImapImportWizard"
 
 assertMainOrNode()
 
-const DEFAULT_IMAP_IMPORT_MAX_QUOTA = "2500000000"
+export const DEFAULT_IMAP_IMPORT_MAX_QUOTA = "2500000000"
 
 export class ConfigureImapImportPage implements WizardPageN<ImapImportModel> {
 	private dom: HTMLElement | null = null

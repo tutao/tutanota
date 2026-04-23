@@ -24,7 +24,7 @@ import { ImportImapFacade } from "../../../common/api/worker/facades/lazy/Import
 
 const DEFAULT_TUTANOTA_SERVER_POSTPONE_TIME = 120 * 1000 // 120 seconds
 
-export interface InitializeImapImportParams {
+export type InitializeImapImportParams = {
 	/** hostname of the imap server to import mail from */
 	host: string
 	/** imap port of the host */
