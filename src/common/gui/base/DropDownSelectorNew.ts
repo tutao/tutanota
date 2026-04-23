@@ -7,7 +7,7 @@ import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "@tutao/app-env"
 import { IconButton } from "./IconButton"
 import { ButtonSize } from "./ButtonSize"
-import { LoginTextField, LoginTextFieldAttrs } from "./LoginTextField"
+import { TextField, TextFieldAttrs } from "./TextField"
 import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
@@ -33,7 +33,7 @@ export interface DropDownSelectorNewAttrs<T> {
 	selectionChangedHandler?: ((newValue: T) => unknown) | null
 	helpLabel?: lazy<Children>
 	dropdownWidth?: number
-	icon?: LoginTextFieldAttrs["leadingIcon"]
+	icon?: TextFieldAttrs["leadingIcon"]
 	disabled?: boolean
 	class?: string
 	style?: Record<string, any> // Temporary, do not use
@@ -47,7 +47,7 @@ export class DropDownSelectorNew<T> implements ClassComponent<DropDownSelectorNe
 		const text = this.valueToText(a, a.selectedValue) || ""
 		const labelText = lang.getTranslationText(a.label)
 
-		return m(LoginTextField, {
+		return m(TextField, {
 			label: a.label,
 			value: text,
 			helpLabel: a.helpLabel,

@@ -16,7 +16,7 @@ import { DialogHeaderBar } from "../../../common/gui/base/DialogHeaderBar"
 import { ButtonType } from "../../../common/gui/base/Button"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
-import { LoginTextField } from "../../../common/gui/base/LoginTextField"
+import { TextField } from "../../../common/gui/base/TextField"
 import { styles } from "../../../common/gui/styles"
 import { component_size, size } from "../../../common/gui/size"
 
@@ -217,7 +217,7 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 				},
 			},
 			[
-				m(LoginTextField, {
+				m(TextField, {
 					class: "flex-grow",
 					label: "folderName_label",
 					value: newFolderName,
