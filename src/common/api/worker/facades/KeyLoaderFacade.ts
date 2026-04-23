@@ -11,7 +11,7 @@ import {
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { customIdToString, KeyVersion, lazyAsync, promiseMap, stringToCustomId, Versioned } from "@tutao/utils"
+import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "./UserFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typerefs"
@@ -21,11 +21,11 @@ import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
-	return cryptoUtils.parseKeyVersion(customIdToString(customId))
+	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
 }
 
 function convertKeyVersionToCustomId(version: KeyVersion): Id {
-	return stringToCustomId(String(version))
+	return stringToBase64UrlCustomId(String(version))
 }
 
 /**
@@ -299,7 +299,7 @@ export class KeyLoaderFacade {
 	}
 
 	private decodeGroupKeyVersion(id: Id): KeyVersion {
-		return cryptoUtils.parseKeyVersion(customIdToString(id))
+		return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(id))
 	}
 
 	private validateAndDecryptKeyPair(keyPair: sysTypeRefs.KeyPair | null, groupId: Id, groupKey: VersionedKey) {
