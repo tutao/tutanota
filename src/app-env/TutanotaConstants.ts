@@ -86,6 +86,7 @@ export const enum ReplyType {
 	REPLY_FORWARD = "3",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactAddressType {
 	PRIVATE = "0",
 	WORK = "1",
@@ -93,6 +94,7 @@ export const enum ContactAddressType {
 	CUSTOM = "3",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactPhoneNumberType {
 	PRIVATE = "0",
 	WORK = "1",
@@ -107,12 +109,13 @@ export enum ContactSocialType {
 	FACEBOOK = "1",
 	XING = "2",
 	LINKED_IN = "3",
-	BLUESKY = "4",
-	FEDIVERSE = "5",
-	OTHER = "6",
-	CUSTOM = "7",
+	OTHER = "4",
+	CUSTOM = "5",
+	BLUESKY = "6",
+	FEDIVERSE = "7",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactRelationshipType {
 	PARENT = "0",
 	BROTHER = "1",
@@ -128,16 +131,18 @@ export const enum ContactRelationshipType {
 	CUSTOM = "11",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactMessengerHandleType {
 	SIGNAL = "0",
 	WHATSAPP = "1",
 	TELEGRAM = "2",
 	DISCORD = "3",
-	MATRIX = "4",
-	OTHER = "5",
-	CUSTOM = "6",
+	OTHER = "4",
+	CUSTOM = "5",
+	MATRIX = "6",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactWebsiteType {
 	PRIVATE = "0",
 	WORK = "1",
@@ -145,6 +150,7 @@ export const enum ContactWebsiteType {
 	CUSTOM = "3",
 }
 
+/** Mirrored in ContactEnums.kt and StructuredContactTypes.swift (must be kept in sync) */
 export const enum ContactCustomDateType {
 	ANNIVERSARY = "0",
 	OTHER = "1",
