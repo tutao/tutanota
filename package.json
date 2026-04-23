@@ -10,8 +10,8 @@
 	"scripts": {
 		"start": "./start-desktop.sh",
 		"build-packages": "echo '>>>> You no longer need to execute this <<<<<'",
-		"test-ci": "npm run test:types && cd test && node test --ci",
-		"test": "npm run test:types && cd test && node --enable-source-maps test",
+		"test-ci": "cd test && node test --ci",
+		"test": "cd test && node --enable-source-maps test",
 		"mail:types": "tsc --build --incremental true tsconfig.json",
 		"calendar:types": "tsc --build --incremental true tsconfig-calendar-app.json",
 		"test:types": "tsc --build --incremental true test/tsconfig.json",
