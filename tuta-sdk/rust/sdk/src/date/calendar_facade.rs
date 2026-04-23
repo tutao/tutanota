@@ -156,8 +156,7 @@ impl CalendarFacade {
 			Some(membership) => *membership,
 			_ => {
 				return Err(ApiCallError::internal(format!(
-					"Missing membership for id {}",
-					calendar_id
+					"Missing membership for id {calendar_id}"
 				)))
 			},
 		};
@@ -607,8 +606,7 @@ impl CalendarFacade {
 			let month_and_day: Vec<&str> = iso_birthday.as_str()[2..].split("-").collect();
 			if month_and_day.len() != 2 {
 				return Err(ApiCallError::internal(format!(
-					"Invalid birthday without year {}",
-					iso_birthday
+					"Invalid birthday without year {iso_birthday}"
 				)));
 			}
 
@@ -621,8 +619,7 @@ impl CalendarFacade {
 			let birthday_parts: Vec<&str> = iso_birthday.split("-").collect();
 			if birthday_parts.len() != 3 || birthday_parts[0].len() != 4 {
 				return Err(ApiCallError::internal(format!(
-					"Invalid birthday {}",
-					iso_birthday
+					"Invalid birthday {iso_birthday}"
 				)));
 			}
 
@@ -635,8 +632,7 @@ impl CalendarFacade {
 
 		if !self.birthday_has_valid_range(&valid_birthday_parts) {
 			return Err(ApiCallError::internal(format!(
-				"Birthday outside acceptable range {}",
-				iso_birthday
+				"Birthday outside acceptable range {iso_birthday}"
 			)));
 		}
 
@@ -687,7 +683,7 @@ impl CalendarFacade {
 		{
 			Ok(ev) => ev,
 			Err(e) => {
-				log::error!("Failed to create birthday event: {}", e);
+				log::error!("Failed to create birthday event: {e}");
 				return None;
 			},
 		};
@@ -710,7 +706,7 @@ impl CalendarFacade {
 		let calendars_data = match self.fetch_calendars_data(&user_settings_group_root).await {
 			Ok(cal_data) => cal_data,
 			Err(e) => {
-				log::error!("Failed to fetch calendars data: {}", e);
+				log::error!("Failed to fetch calendars data: {e}");
 				return Ok(HashMap::new());
 			},
 		};
