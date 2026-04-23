@@ -16,7 +16,7 @@ import {
 	repeat,
 	TypeRef,
 	uint8ArrayToBase64,
-	uint8arrayToCustomId,
+	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
@@ -125,7 +125,7 @@ export const enum EntityIdEncoding {
  */
 export function firstBiggerThanSecond(firstId: Id, secondId: Id, encoding: EntityIdEncoding): boolean {
 	if (encoding === EntityIdEncoding.Base64URL) {
-		return firstBiggerThanSecondCustomId(firstId, secondId)
+		return firstBiggerThanSecondBase64Url(firstId, secondId)
 	} else if (encoding === EntityIdEncoding.Base64Ext) {
 		return firstBiggerThanSecondBase64Ext(firstId, secondId)
 	} else {
@@ -133,8 +133,8 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id, encoding: Entit
 	}
 }
 
-export function firstBiggerThanSecondCustomId(firstId: Id, secondId: Id): boolean {
-	return compare(customIdToUint8array(firstId), customIdToUint8array(secondId)) === 1
+export function firstBiggerThanSecondBase64Url(firstId: Id, secondId: Id): boolean {
+	return compare(base64UrlIdToUint8array(firstId), base64UrlIdToUint8array(secondId)) === 1
 }
 
 export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boolean {
@@ -154,7 +154,7 @@ export function get_IdValue(typeModel?: TypeModel): ModelValue | undefined {
 	}
 }
 
-export function customIdToUint8array(id: Id): Uint8Array {
+export function base64UrlIdToUint8array(id: Id): Uint8Array {
 	if (id === "") {
 		return new Uint8Array()
 	}
@@ -484,11 +484,11 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 		buffer.setUint8(i + 4, mailIdBytes[i])
 	}
 
-	return uint8arrayToCustomId(new Uint8Array(buffer.buffer))
+	return uint8arrayToBase64UrlCustomId(new Uint8Array(buffer.buffer))
 }
 
 export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: Id } {
-	const buffer = customIdToUint8array(id)
+	const buffer = base64UrlIdToUint8array(id)
 	const timestampBytes = buffer.slice(0, 4)
 	const generatedIdBytes = buffer.slice(4)
 
@@ -542,7 +542,7 @@ export function getServerIdEncodingForType(typeModel: TypeModel): EntityIdEncodi
  * @param elementId The element id as it is stored on the server (base64ext for generatedIds, base64url for customIds).
  * @return base64ext encoded id
  */
-export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
+export function serverToLocalIdEncoding(typeModel: TypeModel, elementId: Id): Id {
 	if (isCustomIdType(typeModel)) {
 		return base64UrlToBase64Ext(elementId)
 	}
@@ -557,7 +557,7 @@ export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
  * @param elementId The element id as it is stored locally (must be encoded as base64ext).
  * @return base64url encoded id for element with customId, base64ext encoded id otherwise.
  */
-export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
+export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id {
 	if (isCustomIdType(typeModel)) {
 		return base64ExtToBase64Url(elementId)
 	}

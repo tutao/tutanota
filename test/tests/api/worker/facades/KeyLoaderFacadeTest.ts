@@ -18,7 +18,7 @@ import {
 	rsaPublicKeyToHex,
 	VersionedKey,
 } from "@tutao/crypto"
-import { freshVersioned, hexToUint8Array, KeyVersion, stringToCustomId } from "@tutao/utils"
+import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId } from "@tutao/utils"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { matchers, object, reset, verify, when } from "testdouble"
@@ -76,7 +76,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 
 		for (let i = formerKeysDecrypted.length - 1; i >= 0; i--) {
 			const key: sysTypeRefs.GroupKey = createTestEntity(sysTypeRefs.GroupKeyTypeRef)
-			key._id = ["list", stringToCustomId(i.toString())]
+			key._id = ["list", stringToBase64UrlCustomId(i.toString())]
 			key.ownerEncGKey = encryptKey(lastKey, formerKeysDecrypted[i])
 			const pqKeyPair = formerKeyPairsDecrypted[i]
 
@@ -128,7 +128,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				entityClient.loadRange(
 					sysTypeRefs.GroupKeyTypeRef,
 					group.formerGroupKeys!.list,
-					stringToCustomId(String(currentGroupKeyVersion)),
+					stringToBase64UrlCustomId(String(currentGroupKeyVersion)),
 					FORMER_KEYS_LENGTH - i,
 					true,
 				),
@@ -205,7 +205,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 
 		o("load key pair when group is updated in cache but key cache still has the old sym key", async function () {
 			const requestedVersion = cryptoUtils.checkKeyVersionConstraints(currentGroupKeyVersion - 1)
-			when(entityClient.load(sysTypeRefs.GroupKeyTypeRef, [group.formerGroupKeys.list, stringToCustomId(String(requestedVersion))])).thenResolve(
+			when(entityClient.load(sysTypeRefs.GroupKeyTypeRef, [group.formerGroupKeys.list, stringToBase64UrlCustomId(String(requestedVersion))])).thenResolve(
 				formerKeys[requestedVersion],
 			)
 			await keyCache.getCurrentGroupKey(group._id, () =>
@@ -322,7 +322,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				entityClient.loadRange(
 					sysTypeRefs.GroupKeyTypeRef,
 					group.formerGroupKeys.list,
-					stringToCustomId(groupKey.version.toString()),
+					stringToBase64UrlCustomId(groupKey.version.toString()),
 					groupKey.version - requestedVersion,
 					true,
 				),
@@ -331,7 +331,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 			const result = await keyLoaderFacade.loadSymGroupKey(group._id, requestedVersion, groupKey)
 
 			o(result).deepEquals(formerKeysDecrypted[0])
-			verify(entityClient.loadMultiple(sysTypeRefs.GroupKeyTypeRef, group.formerGroupKeys.list, [stringToCustomId(requestedVersion.toString())]))
+			verify(entityClient.loadMultiple(sysTypeRefs.GroupKeyTypeRef, group.formerGroupKeys.list, [stringToBase64UrlCustomId(requestedVersion.toString())]))
 		})
 	})
 

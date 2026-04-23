@@ -79,7 +79,7 @@ import {
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
-	stringToCustomId,
+	stringToBase64UrlCustomId,
 } from "@tutao/utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
@@ -852,7 +852,7 @@ export class MailFacade {
 	): Promise<{ currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }> {
 		const groupRoot = await this.entityClient.loadRoot(sysTypeRefs.GroupRootTypeRef, this.userFacade.getUserGroupId())
 		const cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
-		const mailAddressId = stringToCustomId(cleanedMailAddress)
+		const mailAddressId = stringToBase64UrlCustomId(cleanedMailAddress)
 
 		let externalUserReference: sysTypeRefs.ExternalUserReference
 		try {

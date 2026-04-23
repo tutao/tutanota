@@ -5,7 +5,7 @@ import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSq
 import { assertNotNull, getTypeString, typedValues } from "@tutao/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { ClientModelInfo, ensureBase64Ext, getElementId, getListId, ListElementEntity, tutanotaTypeRefs } from "@tutao/typerefs"
+import { ClientModelInfo, getElementId, getListId, ListElementEntity, serverToLocalIdEncoding, tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
 import { object } from "testdouble"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
@@ -418,7 +418,7 @@ async function fakeStoreListElementEntityInOfflineDb(sqlCipherFacade: SqlCipherF
 
 async function getElementIdB64ExtEnsured(l: ListElementEntity) {
 	const typeModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(l._type)
-	return ensureBase64Ext(typeModel, getElementId(l))
+	return serverToLocalIdEncoding(typeModel, getElementId(l))
 }
 
 async function prepareIndexedGroups(sqlCipherFacade: SqlCipherFacade) {
