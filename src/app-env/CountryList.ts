@@ -180,7 +180,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 0,
 	},
 	{
-		n: "Bonaire",
+		n: "Bonaire, Sint Eustatius and Saba",
 		a: "BQ",
 		t: 2,
 		d: 2,
@@ -372,7 +372,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 0,
 	},
 	{
-		n: "Czech Republic",
+		n: "Czechia",
 		a: "CZ",
 		t: 1,
 		d: 0,
@@ -436,6 +436,12 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		a: "EE",
 		t: 1,
 		d: 0,
+	},
+	{
+		n: "Eswatini",
+		a: "SZ",
+		t: 2,
+		d: 2,
 	},
 	{
 		n: "Ethiopia",
@@ -804,12 +810,6 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
-		n: "Macedonia",
-		a: "MK",
-		t: 2,
-		d: 0,
-	},
-	{
 		n: "Madagascar",
 		a: "MG",
 		t: 2,
@@ -1002,6 +1002,12 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
+		n: "North Macedonia",
+		a: "MK",
+		t: 2,
+		d: 0,
+	},
+	{
 		n: "Northern Mariana Islands",
 		a: "MP",
 		t: 2,
@@ -1038,7 +1044,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
-		n: "Palestine",
+		n: "Palestine (State of)",
 		a: "PS",
 		t: 2,
 		d: 1,
@@ -1134,7 +1140,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
-		n: "Saint Helena",
+		n: "Saint Helena, Ascension and Tristan da Cunha",
 		a: "SH",
 		t: 2,
 		d: 2,
@@ -1302,12 +1308,6 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
-		n: "Swaziland",
-		a: "SZ",
-		t: 2,
-		d: 2,
-	},
-	{
 		n: "Sweden",
 		a: "SE",
 		t: 1,
@@ -1338,7 +1338,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 2,
 	},
 	{
-		n: "Tanzania",
+		n: "Tanzania (United Republic of)",
 		a: "TZ",
 		t: 2,
 		d: 1,
@@ -1386,7 +1386,7 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 0,
 	},
 	{
-		n: "Turkey",
+		n: "Türkiye",
 		a: "TR",
 		t: 2,
 		d: 0,
