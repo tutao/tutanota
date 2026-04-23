@@ -439,17 +439,17 @@ function readShort(array: Uint8Array, index: number): number {
 /**
  * Converts a string to a base64url encoded custom id. Attention: the custom id must be intended to be derived from a string.
  */
-export function stringToCustomId(string: string): string {
-	return uint8arrayToCustomId(stringToUtf8Uint8Array(string))
+export function stringToBase64UrlCustomId(string: string): string {
+	return uint8arrayToBase64UrlCustomId(stringToUtf8Uint8Array(string))
 }
 
-export function uint8arrayToCustomId(array: Uint8Array): string {
+export function uint8arrayToBase64UrlCustomId(array: Uint8Array): string {
 	return base64ToBase64Url(uint8ArrayToBase64(array))
 }
 
 /**
  * Converts a base64url encoded custom id to a string. Attention: the custom id must be intended to be derived from a string.
  */
-export function customIdToString(customId: string): string {
+export function base64UrlCustomIdToString(customId: string): string {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)))
 }

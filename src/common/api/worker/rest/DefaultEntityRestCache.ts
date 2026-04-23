@@ -71,10 +71,10 @@ const IGNORED_TYPES = [
 
 /**
  * List of types containing a customId that we want to explicitly enable caching for.
- * CustomId types are not cached by default because their id is using base64UrlEncoding while GeneratedUId types are using base64Ext encoding.
+ * CustomId types are not cached by default because their id is using base64Url encoding while GeneratedUId types are using base64Ext encoding.
  * base64Url encoding results in a different sort order of elements that we have on the server, this is problematic for caching LET and their ranges.
  * When enabling caching for customId types we convert the id that we store in cache from base64Url to base64Ext so we have the same sort order. (see function
- * OfflineStorage.ensureBase64Ext). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
+ * EntityUtils.serverToLocalId). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
 const CACHEABLE_CUSTOMID_TYPES = [tutanotaTypeRefs.MailSetEntryTypeRef, sysTypeRefs.GroupKeyTypeRef] as const
