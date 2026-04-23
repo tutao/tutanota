@@ -8,7 +8,7 @@ import { Icon } from "../gui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { font_size, px } from "../gui/size.js"
-import { Autocapitalize, Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Autocapitalize, Autocomplete, LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -78,7 +78,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			}
 		}
 
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "mailAddress_label",
 			value: this.username,
 			alignRight: true,

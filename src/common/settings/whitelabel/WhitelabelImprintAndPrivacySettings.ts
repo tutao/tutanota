@@ -1,7 +1,7 @@
 import { Dialog } from "../../gui/base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
@@ -23,7 +23,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 	}
 
 	private renderPrivacyPolicySetting(privacyStatementUrl: string, onPrivacyStatementUrlChanged: ((arg0: string) => unknown) | null): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "privacyPolicyUrl_label",
 			value: privacyStatementUrl,
 			isReadOnly: true,
@@ -44,10 +44,10 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			title: "privacyLink_label",
 			child: {
 				view: () =>
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "privacyPolicyUrl_label",
 						value: privacyStatementUrl,
-						type: TextFieldType.Url,
+						type: LegacyTextFieldType.Url,
 						oninput: (value) => (privacyStatementUrl = value.trim()),
 					}),
 			},
@@ -63,7 +63,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 	}
 
 	private renderWhitelabelImprintSetting(imprintUrl: string, onImprintUrlChanged: ((imprintUrl: string) => unknown) | null): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "imprintUrl_label",
 			value: imprintUrl,
 			isReadOnly: true,
@@ -84,10 +84,10 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			title: "imprintUrl_label",
 			child: {
 				view: () =>
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "imprintUrl_label",
 						value: imprintUrl,
-						type: TextFieldType.Url,
+						type: LegacyTextFieldType.Url,
 						oninput: (value) => (imprintUrl = value.trim()),
 					}),
 			},

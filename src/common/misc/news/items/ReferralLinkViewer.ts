@@ -3,7 +3,7 @@ import { locator } from "../../../api/main/CommonLocator.js"
 import { copyToClipboard } from "../../ClipboardUtils.js"
 import { showInfoSnackbar } from "../../../gui/base/SnackBar.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { TextField, TextFieldAttrs } from "../../../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../../gui/base/LegacyTextField.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../gui/base/IconButton.js"
 import { ButtonSize } from "../../../gui/base/ButtonSize.js"
@@ -25,11 +25,11 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 		return m(".scroll", [
 			m(".h4", lang.get("referralSettings_label")),
 			m("", lang.get("referralLinkLong_msg")),
-			m(TextField, this.getReferralLinkTextFieldAttrs(vnode.attrs.referralLink)),
+			m(LegacyTextField, this.getReferralLinkTextFieldAttrs(vnode.attrs.referralLink)),
 		])
 	}
 
-	getReferralLinkTextFieldAttrs(referralLink: string): TextFieldAttrs {
+	getReferralLinkTextFieldAttrs(referralLink: string): LegacyTextFieldAttrs {
 		return {
 			isReadOnly: true,
 			label: "referralLink_label",

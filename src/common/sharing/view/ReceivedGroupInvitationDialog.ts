@@ -1,7 +1,7 @@
 import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { downcast, noOp, ofClass } from "@tutao/utils"
@@ -77,22 +77,22 @@ export function showGroupInvitationDialog(invitation: sysTypeRefs.ReceivedGroupI
 				m(".flex.col", [
 					m(".mb-16", [
 						m(".pt-16.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
-						m(TextField, {
+						m(LegacyTextField, {
 							value: nameStream(),
 							oninput: nameStream,
 							label: texts.groupNameLabel,
 						}),
-						m(TextField, {
+						m(LegacyTextField, {
 							value: getMailAddressDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
 							label: "sender_label",
 							isReadOnly: true,
 						}),
-						m(TextField, {
+						m(LegacyTextField, {
 							value: invitation.inviteeMailAddress,
 							label: "to_label",
 							isReadOnly: true,
 						}),
-						m(TextField, {
+						m(LegacyTextField, {
 							value: getCapabilityText(downcast(invitation.capability)),
 							label: "permissions_label",
 							isReadOnly: true,

@@ -5,7 +5,7 @@ import { styles } from "../styles.js"
 import { TabIndex } from "@tutao/app-env"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
-import { TextFieldType } from "./TextField.js"
+import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { Icon, IconAttrs, IconSize } from "./Icon.js"
 import { theme } from "../theme.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
@@ -107,7 +107,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 			tabindex: TabIndex.Default,
 			role: "combobox",
 			placeholder: attrs.placeholder,
-			type: TextFieldType.Text,
+			type: LegacyTextFieldType.Text,
 			value: attrs.text,
 			disabled: attrs.disabled,
 			oncreate: (vnode) => {

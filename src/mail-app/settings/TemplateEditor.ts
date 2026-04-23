@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import type { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog"
@@ -87,18 +87,18 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	view(): Children {
 		return m("", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "title_placeholder",
 				value: this.model.title(),
 				oninput: this.model.title,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "shortcut_label",
 				autocapitalize: Autocapitalize.none,
 				value: this.model.tag(),
 				oninput: this.model.tag,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "language_label",
 				value: this.model.selectedContent() ? lang.getTranslationText(getLanguageName(this.model.selectedContent())) : "",
 				injectionsRight: () =>

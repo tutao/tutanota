@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { client } from "../misc/ClientDetector.js"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
@@ -69,11 +69,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 			[
 				m(
 					"",
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "mailAddress_label" as TranslationKey,
 						value: a.mailAddress(),
 						oninput: a.mailAddress,
-						type: TextFieldType.Email,
+						type: LegacyTextFieldType.Email,
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
 							this.mailAddressTextField = dom

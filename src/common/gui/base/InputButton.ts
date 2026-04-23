@@ -2,7 +2,7 @@ import m, { ClassComponent, Component, Vnode } from "mithril"
 import { theme } from "../theme.js"
 import { SingleLineTextField } from "./SingleLineTextField.js"
 import { px, size } from "../size.js"
-import { TextFieldType } from "./TextField.js"
+import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { TabIndex } from "@tutao/app-env"
 
 export enum InputButtonVariant {
@@ -23,7 +23,7 @@ export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
 	onblur?: (...args: unknown[]) => unknown
 	onfocus?: (...args: unknown[]) => unknown
 	onkeydown?: (...args: unknown[]) => unknown
-	type?: TextFieldType
+	type?: LegacyTextFieldType
 	tabIndex?: number
 }
 
@@ -113,7 +113,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						style: {
 							padding: `${px(size.spacing_8)} 0`,
 						},
-						type: TextFieldType.Text,
+						type: LegacyTextFieldType.Text,
 					}),
 				]),
 				m(

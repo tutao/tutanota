@@ -6,7 +6,7 @@ import { PasswordField, PasswordFieldAttrs } from "./PasswordField.js"
 import { MaybeTranslation, TranslationKey } from "../LanguageViewModel.js"
 import { Dialog, INPUT } from "../../gui/base/Dialog.js"
 import m from "mithril"
-import { Autocomplete } from "../../gui/base/TextField.js"
+import { Autocomplete } from "../../gui/base/LegacyTextField.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons"
 

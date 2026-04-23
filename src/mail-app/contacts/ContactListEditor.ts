@@ -4,7 +4,7 @@ import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { component_size, px, size } from "../../common/gui/size.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
@@ -127,7 +127,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 
 		return m("", [
 			this.showNameInput
-				? m(TextField, {
+				? m(LegacyTextField, {
 						label: "name_label",
 						class: "big-input pt-16 flex-grow",
 						value: this.model.name,

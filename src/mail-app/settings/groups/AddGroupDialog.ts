@@ -11,7 +11,7 @@ import * as restError from "@tutao/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { getFirstOrThrow, ofClass } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -51,7 +51,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 						selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
 					})
 				: null,
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "name_label",
 				value: vnode.attrs.name,
 				oninput: vnode.attrs.onGroupNameChanged,

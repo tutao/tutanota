@@ -24,7 +24,7 @@ import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
-import { TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { SectionButton } from "../../../../common/gui/base/buttons/SectionButton.js"
@@ -209,7 +209,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: {
 					fontSize: px(font_size.base * 1.25), // Overriding the component style
 				},
-				type: TextFieldType.Text,
+				type: LegacyTextFieldType.Text,
 			}),
 		)
 	}
@@ -416,7 +416,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 						icon: Icons.PlaceFilled,
 						color: getColors(ButtonColor.Content).button,
 					},
-					type: TextFieldType.Text,
+					type: LegacyTextFieldType.Text,
 				}),
 			),
 		)

@@ -1,7 +1,7 @@
 import { elementIdPart, isFolderReadOnly, isSameId, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { DropDownSelector, SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import m from "mithril"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import * as restError from "@tutao/rest-client/error"
@@ -41,7 +41,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]
 	let selectedParentFolder = parentFolder
 	let form = () => [
-		m(TextField, {
+		m(LegacyTextField, {
 			label: editedFolder ? "rename_action" : "folderName_label",
 			value: folderNameValue,
 			oninput: (newInput) => {

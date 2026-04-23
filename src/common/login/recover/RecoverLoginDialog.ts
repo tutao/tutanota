@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
-import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../gui/base/icons/Icons"
@@ -62,11 +62,11 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		child: {
 			view: () => {
 				return [
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
 						autocompleteAs: Autocomplete.email,
-						type: TextFieldType.Email,
+						type: LegacyTextFieldType.Email,
 						oninput: emailAddressStream,
 					}),
 					m(recoverCodeInput, {
@@ -76,7 +76,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 							}
 						},
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,

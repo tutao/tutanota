@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SingleLineTextField } from "./base/SingleLineTextField.js"
-import { TextFieldType } from "./base/TextField.js"
+import { LegacyTextFieldType } from "./base/LegacyTextField.js"
 import { IconButton } from "./base/IconButton.js"
 import { ButtonSize } from "./base/ButtonSize.js"
 import { Icons } from "./base/icons/Icons.js"
@@ -38,7 +38,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 			m(SingleLineTextField, {
 				classes: ["flex-grow"],
 				ariaLabel: vnode.attrs.ariaLabel,
-				type: this.showPassword ? TextFieldType.Text : TextFieldType.Password,
+				type: this.showPassword ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 				value: vnode.attrs.password,
 				oninput: vnode.attrs.oninput,
 				style: {

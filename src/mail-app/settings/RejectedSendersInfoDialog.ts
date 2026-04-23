@@ -1,5 +1,5 @@
 import m from "mithril"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { sysTypeRefs } from "@tutao/typerefs"
 
@@ -24,22 +24,22 @@ export function showRejectedSendersInfoDialog(rejectedSender: sysTypeRefs.Reject
 		child: {
 			view: () => {
 				return [
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "emailSender_label",
 						value: rejectedSender.senderMailAddress,
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "mailServer_label",
 						value: `${rejectedSender.senderHostname} (${rejectedSender.senderIp})`,
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "emailRecipient_label",
 						value: rejectedSender.recipientMailAddress,
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "rejectReason_label",
 						value: rejectedSender.reason,
 						isReadOnly: true,

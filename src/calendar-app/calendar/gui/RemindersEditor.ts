@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldAttrs, TextFieldType } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldAttrs, LegacyTextFieldType } from "../../../common/gui/base/LegacyTextField.js"
 import { createAlarmIntervalItems, createCustomRepeatRuleUnitValues, humanDescriptionForAlarmInterval } from "./CalendarGuiUtils.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
@@ -45,7 +45,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		addNewAlarm: (newAlarm: AlarmInterval) => void,
 		vnode: Vnode<RemindersEditorAttrs>,
 	) {
-		const textFieldAttrs: Array<TextFieldAttrs> = alarms.map((a) => ({
+		const textFieldAttrs: Array<LegacyTextFieldAttrs> = alarms.map((a) => ({
 			value: humanDescriptionForAlarmInterval(a, lang.languageTag),
 			label: "emptyString_msg",
 			isReadOnly: true,
@@ -94,7 +94,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 
 		return m(
 			".flex.col.flex-half.pl-4",
-			textFieldAttrs.map((a) => m(TextField, a)),
+			textFieldAttrs.map((a) => m(LegacyTextField, a)),
 		)
 	}
 
@@ -202,8 +202,8 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 				view: () => {
 					const unitItems = createCustomRepeatRuleUnitValues() ?? []
 					return m(".flex full-width pt-8", [
-						m(TextField, {
-							type: TextFieldType.Number,
+						m(LegacyTextField, {
+							type: LegacyTextFieldType.Number,
 							min: 0,
 							label: "calendarReminderIntervalValue_label",
 							value: timeReminderValue.toString(),

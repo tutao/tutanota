@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../gui/base/TextField"
+import { LegacyTextField } from "../../gui/base/LegacyTextField"
 import { GroupNameData } from "../model/GroupSettingsModel"
 
 interface GroupSettingNameInputFieldsAttrs {
@@ -14,7 +14,7 @@ export class GroupSettingNameInputFields implements Component<GroupSettingNameIn
 		const newFinalData = groupNameData
 		if (newFinalData.kind === "shared") {
 			return [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "name_label",
 					value: newFinalData.name,
 					oninput: (newInput) => {
@@ -22,7 +22,7 @@ export class GroupSettingNameInputFields implements Component<GroupSettingNameIn
 					},
 					isReadOnly: !newFinalData.editableName,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "customNameGeneric_label",
 					value: newFinalData.customName ?? "",
 					oninput: (newInput) => {
@@ -31,7 +31,7 @@ export class GroupSettingNameInputFields implements Component<GroupSettingNameIn
 				}),
 			]
 		} else {
-			return m(TextField, {
+			return m(LegacyTextField, {
 				label: "name_label",
 				value: newFinalData.name,
 				oninput: (newInput) => {

@@ -7,7 +7,7 @@ import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import m from "mithril"
 import type { SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/utils"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
@@ -133,7 +133,7 @@ export function show(existingTemplate: sysTypeRefs.NotificationMailTemplate | nu
 	const editTabContent = () => [
 		m(".small.mt-8", lang.get("templateHelp_msg")),
 		existingTemplate
-			? m(TextField, {
+			? m(LegacyTextField, {
 					label: "notificationMailLanguage_label",
 					isReadOnly: true,
 					value: selectedLanguage.name,
@@ -145,7 +145,7 @@ export function show(existingTemplate: sysTypeRefs.NotificationMailTemplate | nu
 					selectionChangedHandler: selectedLanguageStream,
 					dropdownWidth: 250,
 				}),
-		m(TextField, {
+		m(LegacyTextField, {
 			label: "subject_label",
 			value: subject(),
 			oninput: subject,
@@ -167,7 +167,7 @@ export function show(existingTemplate: sysTypeRefs.NotificationMailTemplate | nu
 	})
 
 	const previewTabContent = () => [
-		m(TextField, {
+		m(LegacyTextField, {
 			label: "subject_label",
 			value: subject().replace(/{sender}/g, senderName),
 			isReadOnly: true,

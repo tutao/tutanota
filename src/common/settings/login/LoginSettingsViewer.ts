@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import type { TextFieldAttrs } from "../../gui/base/TextField.js"
-import { TextField } from "../../gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { elementIdPart, entityUpdateUtils, getElementId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
@@ -70,7 +70,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const mailAddressAttrs: TextFieldAttrs = {
+		const mailAddressAttrs: LegacyTextFieldAttrs = {
 			label: "mailAddress_label",
 			value: this._mailAddress(),
 			oninput: this._mailAddress,
@@ -82,7 +82,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
-		const passwordAttrs: TextFieldAttrs = {
+		const passwordAttrs: LegacyTextFieldAttrs = {
 			id: "password",
 			label: "password_label",
 			value: this._stars(),
@@ -110,7 +110,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			],
 			showDropdown: () => true,
 		})
-		const recoveryCodeFieldAttrs: TextFieldAttrs = {
+		const recoveryCodeFieldAttrs: LegacyTextFieldAttrs = {
 			id: "recoverycode",
 			label: "recoveryCode_label",
 			helpLabel: () => {
@@ -161,9 +161,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				m("#user-settings.fill-absolute.scroll.plr-24.pb-48", [
 					m("#logincredentials.h4.mt-32", lang.get("loginCredentials_label")),
 					this.renderName(user),
-					m(TextField, mailAddressAttrs),
-					m(TextField, passwordAttrs),
-					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
+					m(LegacyTextField, mailAddressAttrs),
+					m(LegacyTextField, passwordAttrs),
+					user.isGlobalAdmin() ? m(LegacyTextField, recoveryCodeFieldAttrs) : null,
 					this.renderAppLockField(),
 					m("#2fa", m(this._secondFactorsForm)),
 					m("#activesessions.h4.mt-32", lang.get("activeSessions_label")),
@@ -201,7 +201,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const groupInfo = user.userGroupInfo
 		const isAdmin = user.isGlobalAdmin()
 
-		return m(TextField, {
+		return m(LegacyTextField, {
 			id: "name",
 			label: "name_label",
 			value: groupInfo.name,
@@ -244,7 +244,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				await showAppLockMethodDialog(mobileSystemFacade)
 				await this.updateAppLockData()
 			}
-			return m(TextField, {
+			return m(LegacyTextField, {
 				id: "unlockmethod",
 				label: "credentialsEncryptionMode_label",
 				value: this.appLockMethodName(this.appLockMethod ?? AppLockMethod.None),
@@ -259,7 +259,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		} else if (isDesktop()) {
 			const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
 
-			return m(TextField, {
+			return m(LegacyTextField, {
 				id: "unlockmethod",
 				label: "credentialsEncryptionMode_label",
 				value: this.credentialsEncryptionModeName(usedMode),
@@ -325,17 +325,17 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			child: {
 				view: () => {
 					return [
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "client_label",
 							value: isThisSession ? lang.get("thisClient_label") : session.clientIdentifier,
 							isReadOnly: true,
 						}),
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "lastAccess_label",
 							value: `${formatDateTimeFromYesterdayOn(session.lastAccessTime)}`,
 							isReadOnly: true,
 						}),
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "IpAddress_label",
 							value: session.loginIpAddress ? session.loginIpAddress : "",
 							isReadOnly: true,

@@ -19,7 +19,7 @@ import { AriaRole } from "../AriaUtils.js"
 import { BaseButton } from "./buttons/BaseButton"
 import { client } from "../../misc/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
-import { TextFieldType } from "./TextField"
+import { LegacyTextFieldType } from "./LegacyTextField"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -144,7 +144,7 @@ export class Dropdown implements ModalComponent {
 			return this.isFilterable
 				? m(SingleLineTextField, {
 						placeholder: lang.get("typeToFilter_label"),
-						oncreate: (vnode: VnodeDOM<InputAttrs<TextFieldType.Text>>) => {
+						oncreate: (vnode: VnodeDOM<InputAttrs<LegacyTextFieldType.Text>>) => {
 							this.domInput = downcast<HTMLInputElement>(vnode.dom)
 							this.domInput.value = this.filterString
 						},
@@ -153,8 +153,8 @@ export class Dropdown implements ModalComponent {
 						},
 						value: this.filterString,
 						ariaLabel: "filter",
-						type: TextFieldType.Text,
-					} satisfies InputAttrs<TextFieldType.Text>)
+						type: LegacyTextFieldType.Text,
+					} satisfies InputAttrs<LegacyTextFieldType.Text>)
 				: null
 		}
 

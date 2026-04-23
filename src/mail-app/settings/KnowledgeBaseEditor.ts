@@ -3,7 +3,7 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ButtonColor, ButtonType } from "../../common/gui/base/Button.js"
 import { KnowledgeBaseEditorModel } from "./KnowledgeBaseEditorModel"
 import { noOp, ofClass } from "@tutao/utils"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { lang } from "../../common/misc/LanguageViewModel"
@@ -113,12 +113,12 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 	view(vnode: Vnode<KnowledgeBaseEditorModel>): Children {
 		const model = vnode.attrs
 		return m("", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "title_placeholder",
 				value: model.title(),
 				oninput: model.title,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "keywords_label",
 				value: model.keywords(),
 				oninput: model.keywords,

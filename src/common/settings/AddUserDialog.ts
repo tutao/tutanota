@@ -8,7 +8,7 @@ import { assertNotNull, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import * as restError from "@tutao/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
@@ -32,7 +32,7 @@ export async function show(): Promise<void> {
 	let form = {
 		view: () => {
 			return [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "name_label",
 					helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
 					value: userName,

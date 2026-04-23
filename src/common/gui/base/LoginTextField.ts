@@ -10,7 +10,7 @@ import { Keys, TabIndex } from "@tutao/app-env"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 import { AllIcons, Icon, IconSize } from "./Icon"
-import { Autocapitalize, Autocomplete, TextFieldType } from "./TextField"
+import { Autocapitalize, Autocomplete, LegacyTextFieldType } from "./LegacyTextField"
 
 export type LoginTextFieldAttrs = {
 	id?: string
@@ -18,7 +18,7 @@ export type LoginTextFieldAttrs = {
 	value: string
 	autocompleteAs?: Autocomplete
 	autocapitalize?: Autocapitalize
-	type?: TextFieldType
+	type?: LegacyTextFieldType
 	hasPopup?: AriaPopupType
 	helpLabel?: lazy<Children> | null
 	alignRight?: boolean
@@ -78,7 +78,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 	view(vnode: CVnode<LoginTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
-		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft && a.type !== TextFieldType.Area
+		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft && a.type !== LegacyTextFieldType.Area
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3
@@ -167,7 +167,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
 								},
 								[
-									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+									a.type !== LegacyTextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
 									a.injectionsRight
 										? m(
 												".flex-end.items-center",
@@ -230,7 +230,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: LegacyTextFieldType.Text,
 							}),
 							m("input.abs", {
 								style: {
@@ -238,7 +238,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Password,
+								type: LegacyTextFieldType.Password,
 							}),
 							m("input.abs", {
 								style: {
@@ -246,7 +246,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: LegacyTextFieldType.Text,
 							}),
 						]
 					: []
@@ -266,7 +266,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 							this.domInput = vnode.dom as HTMLInputElement
 							a.onDomInputCreated?.(this.domInput)
 							this.domInput.value = a.value
-							if (a.type !== TextFieldType.Area) {
+							if (a.type !== LegacyTextFieldType.Area) {
 								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {
 										this._didAutofill = true

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
 import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
 
@@ -209,7 +209,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-center",
 			m(".flex-grow-shrink-auto.max-width-m.pt-16.pb-16.plr-24", [
 				this.readonly
-					? m(TextField, {
+					? m(LegacyTextField, {
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
 							autocompleteAs: Autocomplete.newPassword,
@@ -227,7 +227,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 								passwordInfoKey: "passwordImportance_msg",
 							}),
 							getWhitelabelRegistrationDomains().length > 0
-								? m(TextField, {
+								? m(LegacyTextField, {
 										value: this._code(),
 										oninput: this._code,
 										label: "whitelabelRegistrationCode_label",

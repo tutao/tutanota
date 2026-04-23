@@ -13,7 +13,7 @@ import { HabReminderImage, Icons } from "./icons/Icons"
 import { windowFacade } from "../../misc/WindowFacade"
 import { Button, ButtonAttrs, ButtonColor, ButtonType } from "./Button.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "./DialogHeaderBar"
-import { TextField, TextFieldType } from "./TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "./LegacyTextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
 import { DEFAULT_ERROR, Keys, TabIndex } from "@tutao/app-env"
@@ -72,7 +72,7 @@ export interface TextInputDialogParams {
 	inputValidator?: stringValidator
 
 	/** Text field type to display (determines what keyboard to display on mobile devices) */
-	textFieldType?: TextFieldType
+	textFieldType?: LegacyTextFieldType
 
 	/** For pre-selecting a range of text when the input field is displayed */
 	selectionRange?: [number, number]
@@ -959,7 +959,7 @@ export class Dialog implements ModalComponent {
 	 * Shows a dialog with a text field input and ok/cancel buttons. In contrast to {@link showTextInputDialog} the entered text is not returned but processed in the okAction.
 	 */
 	static showProcessTextInputDialog(props: TextInputDialogParams, okAction: (action: string) => Promise<unknown>) {
-		let textFieldType = props.textFieldType ?? TextFieldType.Text
+		let textFieldType = props.textFieldType ?? LegacyTextFieldType.Text
 
 		let result = props.defaultValue ?? ""
 		let dialog: Dialog
@@ -1020,12 +1020,12 @@ export class Dialog implements ModalComponent {
 				title: titleId,
 				child: {
 					view: () =>
-						m(TextField, {
+						m(LegacyTextField, {
 							label: labelIdOrLabelFunction,
 							helpLabel: () => (infoMsgId ? lang.get(infoMsgId) : ""),
 							value: result,
 							oninput: (newValue) => (result = newValue),
-							type: TextFieldType.Area,
+							type: LegacyTextFieldType.Area,
 						}),
 				},
 				okAction: (dialog: Dialog) => {

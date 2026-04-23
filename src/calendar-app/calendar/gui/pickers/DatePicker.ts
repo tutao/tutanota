@@ -9,7 +9,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "@tutao/utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { TextField, TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
@@ -89,7 +89,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			isApp()
 				? m("input.fill-absolute.invisible.tutaui-button-outline", {
 						disabled,
-						type: TextFieldType.Date,
+						type: LegacyTextFieldType.Date,
 						style: {
 							zIndex: 1,
 							border: `2px solid ${theme.outline}`,
@@ -113,7 +113,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				display: date ? formatDateWithWeekdayAndYear(date) : nullSelectionText ? lang.getTranslationText(nullSelectionText) : NBSP,
 				variant: InputButtonVariant.OUTLINE,
 				disabled,
-				type: TextFieldType.Text,
+				type: LegacyTextFieldType.Text,
 				onclick: () => {
 					if (!disabled) {
 						this.showingDropdown = true
@@ -159,7 +159,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 				},
 			},
-			m(TextField, {
+			m(LegacyTextField, {
 				value: this.inputText,
 				label,
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
@@ -287,7 +287,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private renderMobileDateInput({ date, onDateSelected, disabled }: DatePickerAttrs): Children {
 		return m("input.fill-absolute.z1", {
 			disabled: disabled,
-			type: TextFieldType.Date,
+			type: LegacyTextFieldType.Date,
 			style: {
 				opacity: 0,
 				// This overrides platform-specific width setting, we want to cover the whole field

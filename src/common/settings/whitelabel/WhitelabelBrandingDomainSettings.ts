@@ -1,4 +1,4 @@
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/utils"
@@ -29,7 +29,7 @@ const FAILURE_CONTACT_FORM_ACTIVE = "domain.contact_form_active"
 export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBrandingDomainSettingsAttrs> {
 	view(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>): Children {
 		const { customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled } = vnode.attrs
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "whitelabelDomain_label",
 			value: whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label"),
 			helpLabel: this.renderWhitelabelInfo(certificateInfo),

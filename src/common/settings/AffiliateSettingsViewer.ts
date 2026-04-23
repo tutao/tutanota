@@ -3,7 +3,7 @@ import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { IconButton } from "../gui/base/IconButton.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { formatPrice } from "../subscription/utils/PriceUtils.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
@@ -50,7 +50,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 				m(
 					"section.fill-absolute.scroll.plr-24",
 					m("h4.mt-32", lang.get("affiliateSettings_label")),
-					m(TextField, {
+					m(LegacyTextField, {
 						isReadOnly: true,
 						label: "referralLink_label",
 						value: shareUrl,
@@ -62,13 +62,13 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 								size: ButtonSize.Compact,
 							}),
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						isReadOnly: true,
 						label: "affiliateSettingsAccumulated_label",
 						helpLabel: () => lang.get("affiliateSettingsAccumulated_msg"),
 						value: formatPrice(Number(avm!.data!.accumulatedCommission), true),
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						isReadOnly: true,
 						label: "affiliateSettingsCredited_label",
 						helpLabel: () => lang.get("affiliateSettingsCredited_msg"),

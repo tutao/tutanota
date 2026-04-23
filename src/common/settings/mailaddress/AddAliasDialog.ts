@@ -8,7 +8,7 @@ import { filterInt, getFirstOrThrow, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import * as restError from "@tutao/rest-client/error"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
-import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 
@@ -94,7 +94,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 							},
 							m(".pt-16", lang.get("permanentAliasWarning_msg")),
 						),
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "mailName_label",
 							value: senderName,
 							autocompleteAs: Autocomplete.username,

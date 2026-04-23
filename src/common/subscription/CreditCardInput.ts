@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete } from "../gui/base/TextField.js"
+import { Autocomplete } from "../gui/base/LegacyTextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { LoginTextField, LoginTextFieldAttrs } from "../gui/base/LoginTextField"

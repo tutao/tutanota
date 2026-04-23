@@ -4,7 +4,7 @@ import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { isDomainName } from "../misc/FormatValidator.js"
 import stream from "mithril/stream"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "@tutao/app-env"
@@ -61,7 +61,7 @@ export function show(customerInfo: sysTypeRefs.CustomerInfo): void {
 	const domain = whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream("")
 	let form = {
 		view: () => {
-			return m(TextField, {
+			return m(LegacyTextField, {
 				label: "whitelabelDomain_label",
 				value: domain(),
 				oninput: domain,

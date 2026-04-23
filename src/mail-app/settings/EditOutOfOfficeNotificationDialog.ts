@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { Keys, UpgradePromptType } from "@tutao/app-env"
 import { Checkbox } from "../../common/gui/base/Checkbox.js"
@@ -140,7 +140,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
 		return [
 			m(".h4.text-center.mt-32", getDefaultNotificationLabel(organizationEnabled)),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "subject_label",
 				value: model.defaultSubject(),
 				oninput: model.defaultSubject,
@@ -163,7 +163,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 	private renderOrganizations(model: EditOutOfOfficeNotificationDialogModel, organizationMessageEditor: HtmlEditor) {
 		return [
 			m(".h4.text-center.mt-32", lang.get("outOfOfficeInternal_msg")),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "subject_label",
 				value: model.organizationSubject(),
 				oninput: model.organizationSubject,

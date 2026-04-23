@@ -5,7 +5,7 @@ import { sysServices } from "@tutao/typerefs"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
 import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import m, { Children } from "mithril"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { px } from "../../gui/size"
 import { sysTypeRefs } from "@tutao/typerefs"
@@ -228,7 +228,7 @@ function renderDialogContent(actionBarAttrs: DialogHeaderBarAttrs, viewModel: Ca
 			m(".flex.col.justify-start#captcha_content", [
 				viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? renderVisualCaptcha(viewModel) : renderAudioCaptcha(viewModel),
 
-				m(TextField, {
+				m(LegacyTextField, {
 					label: lang.makeTranslation("captcha_input", lang.get("captchaInput_label")),
 					helpLabel: () => lang.get("captchaInputInfo_msg"),
 					value: viewModel.currentInput,

@@ -11,7 +11,7 @@ import { HtmlEditor, HtmlEditorMode } from "../../../common/gui/editor/HtmlEdito
 import { ButtonType } from "../../../common/gui/base/Button.js"
 import { getContactSocialType, tutanotaTypeRefs } from "@tutao/typerefs"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { TextDisplayArea } from "../../../common/gui/base/TextDisplayArea"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
@@ -69,7 +69,7 @@ export class ContactMergeView {
 		const { mailAddresses: mailAddresses2, phones: phones2, addresses: addresses2, socials: socials2 } = this._createContactFields(this.contact2)
 
 		//empty.. placeholders are used if one contact has an attribute while the other does not have it, so an empty one is shown for comparison
-		let emptyFieldPlaceholder = m(TextField, {
+		let emptyFieldPlaceholder = m(LegacyTextField, {
 			label: "emptyString_msg",
 			value: "",
 			isReadOnly: true,
@@ -220,14 +220,14 @@ export class ContactMergeView {
 		socials: ChildArray
 	} {
 		const mailAddresses = contact.mailAddresses.map((element) => {
-			return m(TextField, {
+			return m(LegacyTextField, {
 				label: getContactAddressTypeLabel(element.type as any, element.customTypeName),
 				value: element.address,
 				isReadOnly: true,
 			})
 		})
 		const phones = contact.phoneNumbers.map((element) => {
-			return m(TextField, {
+			return m(LegacyTextField, {
 				label: getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
 				value: element.number,
 				isReadOnly: true,
@@ -241,7 +241,7 @@ export class ContactMergeView {
 			})
 		})
 		const socials = contact.socialIds.map((element) => {
-			return m(TextField, {
+			return m(LegacyTextField, {
 				label: getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
 				value: element.socialId,
 				isReadOnly: true,
@@ -258,12 +258,12 @@ export class ContactMergeView {
 	_createTextFields(value1: string | null, value2: string | null, labelTextId: TranslationKey): Children {
 		if (value1 || value2) {
 			return [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: labelTextId,
 					value: value1 || "",
 					isReadOnly: true,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: labelTextId,
 					value: value2 || "",
 					isReadOnly: true,

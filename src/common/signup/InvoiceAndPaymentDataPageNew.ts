@@ -22,7 +22,7 @@ import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { LoginTextField } from "../gui/base/LoginTextField"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../gui/styles"
-import { TextFieldType } from "../gui/base/TextField"
+import { LegacyTextFieldType } from "../gui/base/LegacyTextField"
 import { Icons } from "../gui/base/icons/Icons"
 import { PaymentMethodType } from "@tutao/app-env"
 
@@ -340,7 +340,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						ctx.viewModel.invoiceData = { ...ctx.viewModel.invoiceData, invoiceAddress: value }
 						ctx.viewModel.accountingInfo!.paypalBillingAgreement = null
 					},
-					type: TextFieldType.Area,
+					type: LegacyTextFieldType.Area,
 					minLineCount: 5,
 					class: "",
 				}),
