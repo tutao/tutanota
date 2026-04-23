@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@tutao/utils"
-import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { assertMainOrNode, BookingItemFeatureType, FeatureType } from "@tutao/app-env"
@@ -95,23 +95,23 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 		const chargeDate = incrementDate(priceChangeModel.periodEndDate(), 1)
 
 		return m("", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "bookingOrder_label",
 				value: lang.get(attrs.bookingText, {
 					"{1}": Math.abs(count),
 				}),
-				type: TextFieldType.Area,
+				type: LegacyTextFieldType.Area,
 				isReadOnly: true,
 			}),
 			priceChangeModel.isBuy()
-				? m(TextField, {
+				? m(LegacyTextField, {
 						label: "subscription_label",
 						helpLabel: () => lang.get("nextChargeOn_label", { "{chargeDate}": formatDate(chargeDate) }),
 						value: this.getSubscriptionText(priceChangeModel),
 						isReadOnly: true,
 					})
 				: null,
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "price_label",
 				helpLabel: () => this.getPriceInfoText(priceChangeModel),
 				value: this.getPriceText(priceChangeModel),

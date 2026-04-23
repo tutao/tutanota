@@ -5,7 +5,7 @@ import { Icon, IconSize, progressIcon } from "../../gui/base/Icon"
 import { Icons, SecondFactorImage } from "../../gui/base/icons/Icons"
 import { theme } from "../../gui/theme"
 import type { Thunk } from "@tutao/utils"
-import { Autocomplete, TextField } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
@@ -54,7 +54,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 
 		return m(
 			".left.mb-16",
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "totpCode_label",
 				value: otp.codeFieldValue,
 				autocompleteAs: Autocomplete.oneTimeCode,

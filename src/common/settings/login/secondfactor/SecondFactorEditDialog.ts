@@ -3,8 +3,8 @@ import { isApp, SecondFactorType } from "@tutao/app-env"
 import type { DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
-import type { TextFieldAttrs } from "../../../gui/base/TextField.js"
-import { Autocomplete, TextField } from "../../../gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../../gui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField } from "../../../gui/base/LegacyTextField.js"
 import m, { Children } from "mithril"
 import { copyToClipboard } from "../../../misc/ClipboardUtils.js"
 import { Icons } from "../../../gui/base/icons/Icons.js"
@@ -107,13 +107,13 @@ export class SecondFactorEditDialog {
 			items: optionsItems,
 			dropdownWidth: 300,
 		}
-		const nameFieldAttrs: TextFieldAttrs = {
+		const nameFieldAttrs: LegacyTextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => this.renderHelpLabel(),
 			value: this.model.name,
 			oninput: (value) => this.model.onNameChange(value),
 		}
-		return [m(DropDownSelector, typeDropdownAttrs), m(TextField, nameFieldAttrs), this.renderTypeSpecificFields()]
+		return [m(DropDownSelector, typeDropdownAttrs), m(LegacyTextField, nameFieldAttrs), this.renderTypeSpecificFields()]
 	}
 
 	private renderHelpLabel(): Children {
@@ -149,7 +149,7 @@ export class SecondFactorEditDialog {
 			size: ButtonSize.Compact,
 		}
 		return m(".mb-16", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "totpSecret_label",
 				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
 				value: this.model.totpKeys.readableKey,
@@ -165,7 +165,7 @@ export class SecondFactorEditDialog {
 						}),
 					)
 				: this.renderOtpQrCode(),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "totpCode_label",
 				value: this.model.totpCode,
 				helpLabel: () => this.statusMessage(),

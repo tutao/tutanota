@@ -21,7 +21,7 @@ import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/Login
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
 import { HabReminderImage } from "../../gui/base/icons/Icons"
 import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../api/common/SessionType.js"
 import * as restError from "@tutao/rest-client/error"
@@ -484,22 +484,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-24", [
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "subscription_label",
 						value: "Revolutionary",
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "paymentInterval_label",
 						value: lang.get("pricing.yearly_label"),
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "price_label",
 						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
 						isReadOnly: true,
 					}),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "paymentMethod_label",
 						value: getPaymentMethodName(model.paymentMethod),
 						isReadOnly: true,

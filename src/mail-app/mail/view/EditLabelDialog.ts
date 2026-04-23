@@ -1,5 +1,5 @@
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../../common/gui/base/LegacyTextField"
 import m from "mithril"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
@@ -46,13 +46,13 @@ export async function showEditLabelDialog(mailbox: tutanotaTypeRefs.MailBox | nu
 		},
 		child: () =>
 			m(".flex.col.gap-16", [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "name_label",
 					value: name,
 					oninput: (newName) => {
 						name = newName
 					},
-				} satisfies TextFieldAttrs),
+				} satisfies LegacyTextFieldAttrs),
 				m(ColorPickerView, {
 					value: color,
 					onselect: (newColor: string) => {

@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "../misc/LanguageViewModel"
 import * as restError from "@tutao/rest-client/error"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
@@ -22,10 +22,10 @@ export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | nul
 			view: () =>
 				m("#delete-account-dialog", [
 					!(isIOSApp() && client.isCalendarApp())
-						? m(TextField, {
+						? m(LegacyTextField, {
 								label: "targetAddress_label",
 								value: takeover,
-								type: TextFieldType.Email,
+								type: LegacyTextFieldType.Email,
 								oninput: (value) => (takeover = value),
 								helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 							})

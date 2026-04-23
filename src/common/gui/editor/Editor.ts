@@ -5,7 +5,7 @@ import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { TabIndex } from "@tutao/app-env"
-import { TextFieldType } from "../base/TextField.js"
+import { LegacyTextFieldType } from "../base/LegacyTextField.js"
 import { HTML_EDITOR_LINE_HEIGHT } from "./HtmlEditor.js"
 import type { ImageHandler } from "../../mailFunctionality/SharedMailUtils.js"
 
@@ -282,7 +282,7 @@ export class Editor implements ImageHandler, Component {
 		Dialog.showTextInputDialog({
 			title: "makeLink_action",
 			label: "url_label",
-			textFieldType: TextFieldType.Url,
+			textFieldType: LegacyTextFieldType.Url,
 		}).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url

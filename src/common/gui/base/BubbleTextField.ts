@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { Autocomplete, TextField, TextFieldType } from "./TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "./LegacyTextField.js"
 import { MaybeTranslation, Translation } from "../../misc/LanguageViewModel"
 import { Keys } from "@tutao/app-env"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
@@ -37,13 +37,13 @@ export class BubbleTextField<T> implements ClassComponent<BubbleTextFieldAttrs<T
 
 	view({ attrs }: Vnode<BubbleTextFieldAttrs<T>>) {
 		return m(".bubble-text-field", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: attrs.label,
 				disabled: attrs.disabled,
 				value: attrs.text,
 				oninput: attrs.onInput,
 				helpLabel: attrs.helpLabel,
-				type: TextFieldType.Email,
+				type: LegacyTextFieldType.Email,
 				autocompleteAs: Autocomplete.off,
 				injectionsLeft: () => {
 					return attrs.items.map((item, idx, items) => {

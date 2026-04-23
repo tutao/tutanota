@@ -4,8 +4,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { Icons } from "../../common/gui/base/icons/Icons"
-import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
-import { TextField } from "../../common/gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../common/gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { attachDropdown } from "../../common/gui/base/Dropdown.js"
 import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
@@ -137,7 +137,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
-		const spellcheckLanguageAttrs: TextFieldAttrs = {
+		const spellcheckLanguageAttrs: LegacyTextFieldAttrs = {
 			label: "checkSpelling_action",
 			value: this.spellCheckLang(),
 			oninput: this.spellCheckLang,
@@ -231,7 +231,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			showDropdown: () => !this.isPathDialogOpen,
 			width: 200,
 		})
-		const defaultDownloadPathAttrs: TextFieldAttrs = {
+		const defaultDownloadPathAttrs: LegacyTextFieldAttrs = {
 			label: "defaultDownloadPath_label",
 			value: this.defaultDownloadPath(),
 			oninput: this.defaultDownloadPath,
@@ -243,13 +243,13 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			m("#user-settings.fill-absolute.scroll.plr-24.pb-48", [
 				m(".h4.mt-32", lang.get("desktopSettings_label")),
 				// spell check is done via OS on mac
-				env.platformId === "darwin" ? null : m("#spelling", m(TextField, spellcheckLanguageAttrs)),
+				env.platformId === "darwin" ? null : m("#spelling", m(LegacyTextField, spellcheckLanguageAttrs)),
 				// setting protocol handler via Electron does not work on Linux
 				env.platformId === "linux" ? null : m("#defaultmailto", m(DropDownSelector, setDefaultMailtoHandlerAttrs)),
 				// mac doesn't really have run in background, you can just close a window
 				env.platformId === "darwin" ? null : m("#background", m(DropDownSelector, setRunInBackgroundAttrs)),
 				m("#runonstartup", m(DropDownSelector, setRunOnStartupAttrs)),
-				m("#defaultdownloadpath", m(TextField, defaultDownloadPathAttrs)),
+				m("#defaultdownloadpath", m(LegacyTextField, defaultDownloadPathAttrs)),
 				m("#mailexportmode", m(DropDownSelector, setMailExportModeAttrs)),
 				// AppImage is kind of a portable install so we optionally add desktop icons etc
 				env.platformId === "linux" ? m("#desktopintegration", m(DropDownSelector, setDesktopIntegrationAttrs)) : null,

@@ -39,7 +39,7 @@ import {
 	queryAppStoreSubscriptionOwnership,
 	SubscriptionApp,
 } from "./utils/SubscriptionUtils"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { ColumnWidth, Table } from "../gui/base/Table.js"
 import { showPurchaseGiftCardDialog } from "./giftcards/PurchaseGiftCardDialog"
@@ -119,7 +119,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.view = (): Children => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-24", [
 				m(".h4.mt-32", lang.get("currentlyBooked_label")),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "subscription_label",
 					value: this._subscriptionFieldValue(),
 					oninput: this._subscriptionFieldValue,
@@ -144,7 +144,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this.showOrderAgreement() ? this.renderAgreement() : null,
 				this.showPriceData() ? this.renderIntervals() : null,
 				this.showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
-					? m(TextField, {
+					? m(LegacyTextField, {
 							label: lang.getTranslation("priceFrom_label", {
 								"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
 							}),
@@ -169,43 +169,43 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				LegacyPlans.includes(this.currentPlanType)
 					? [
 							m(".h4.mt-32", lang.get("adminPremiumFeatures_action")),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "storageCapacity_label",
 								value: this._storageFieldValue(),
 								oninput: this._storageFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "mailAddressAliases_label",
 								value: this._emailAliasFieldValue(),
 								oninput: this._emailAliasFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "pricing.comparisonSharingCalendar_msg",
 								value: this._sharingFieldValue(),
 								oninput: this._sharingFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "pricing.comparisonEventInvites_msg",
 								value: this._eventInvitesFieldValue(),
 								oninput: this._eventInvitesFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "pricing.comparisonOutOfOffice_msg",
 								value: this._autoResponderFieldValue(),
 								oninput: this._autoResponderFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "whitelabel.login_title",
 								value: this._whitelabelFieldValue(),
 								oninput: this._whitelabelFieldValue,
 								isReadOnly: true,
 							}),
-							m(TextField, {
+							m(LegacyTextField, {
 								label: "whitelabel.custom_title",
 								value: this._whitelabelFieldValue(),
 								oninput: this._whitelabelFieldValue,
@@ -693,12 +693,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}),
 			bonusMonths === 0
 				? null
-				: m(TextField, {
+				: m(LegacyTextField, {
 						label: "bonus_label",
 						value: lang.get("bonusMonth_msg", { "{months}": bonusMonths }),
 						isReadOnly: true,
 					}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label:
 					this._nextPeriodPriceVisible && this._periodEndDate
 						? lang.getTranslation("priceTill_label", {
@@ -714,7 +714,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderAgreement() {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "orderProcessingAgreement_label",
 			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
 			value: this._orderAgreementFieldValue(),

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { Keys, TabIndex, TimeFormat } from "@tutao/app-env"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
@@ -127,7 +127,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 	private renderTextFieldNativeTimePicker(displayTime: string | undefined, attrs: TimePickerAttrs) {
 		return m(".rel.full-width", [
-			m(TextField, {
+			m(LegacyTextField, {
 				class: "time-picker pt-16",
 				label: attrs.ariaLabel,
 				value: this.value,
@@ -244,7 +244,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderTextFieldCustomTextPicker(attrs: TimePickerAttrs): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			style: {
 				width: "100%",
 			},

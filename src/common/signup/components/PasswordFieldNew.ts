@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { Autocomplete, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/utils"
 import { LoginTextField, LoginTextFieldAttrs } from "../../gui/base/LoginTextField"
@@ -33,7 +33,7 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 			},
 			label: label === undefined ? "password_label" : label,
 			autocompleteAs: attrs.autocompleteAs ? attrs.autocompleteAs : Autocomplete.currentPassword,
-			type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
+			type: this.isPasswordRevealed ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 			helpLabel: textFieldAttrs.helpLabel
 				? () => PasswordFieldNew.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel)
 				: null,

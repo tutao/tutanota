@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
-import { TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "@tutao/app-env"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
@@ -391,7 +391,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						},
 						max: 256,
 						min: 1,
-						type: TextFieldType.Number,
+						type: LegacyTextFieldType.Number,
 					}),
 				renderOption: (option) =>
 					m(

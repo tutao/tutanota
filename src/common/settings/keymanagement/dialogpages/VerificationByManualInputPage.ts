@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextFieldType } from "../../../gui/base/TextField"
+import { LegacyTextFieldType } from "../../../gui/base/LegacyTextField"
 import { lang } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -52,7 +52,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						color: getColors(ButtonColor.Content).button,
 					},
 					value: model.mailAddressInput,
-					type: TextFieldType.Text,
+					type: LegacyTextFieldType.Text,
 
 					oninput: async (newValue) => {
 						model.mailAddressInput = newValue

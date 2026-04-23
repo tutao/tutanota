@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../gui/size"
-import { TextField } from "../../gui/base/TextField"
+import { LegacyTextField } from "../../gui/base/LegacyTextField"
 import { modal } from "../../gui/base/Modal"
 import { isKeyPressed, Shortcut } from "../KeyManager"
 import { lastIndex } from "@tutao/utils"
@@ -46,7 +46,7 @@ class QuickActionBar implements Component<Attrs> {
 				},
 			},
 			[
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "action_label",
 					value: this.query,
 					class: "flex-no-grow-no-shrink-auto",

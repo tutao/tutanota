@@ -4,7 +4,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { countryList } from "@tutao/app-env"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import type { InvoiceData } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -55,7 +55,7 @@ export class InvoiceDataInput implements Component {
 				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
 			}),
 			this.isVatIdFieldVisible()
-				? m(TextField, {
+				? m(LegacyTextField, {
 						label: "invoiceVatIdNo_label",
 						value: this.vatNumber,
 						oninput: (value) => (this.vatNumber = value),

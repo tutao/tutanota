@@ -17,7 +17,7 @@ import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "./login/ChangePasswordDialogs.js"
@@ -112,17 +112,17 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [
 			m(".h4.mt-32", lang.get("userSettings_label")),
 			m("", [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "mailAddress_label",
 					value: this.userGroupInfo.mailAddress ?? "",
 					isReadOnly: true,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "created_label",
 					value: formatDateWithMonth(this.userGroupInfo.created),
 					isReadOnly: true,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "storageCapacityUsed_label",
 					value: this.usedStorage ? formatStorageSize(this.usedStorage) : lang.get("loading_msg"),
 					isReadOnly: true,
@@ -130,7 +130,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			]),
 			m("", [
 				this.renderName(),
-				m(TextField, passwordFieldAttrs),
+				m(LegacyTextField, passwordFieldAttrs),
 				locator.logins.getUserController().isGlobalAdmin() ? this.renderAdminStatusSelector() : null,
 				this.renderUserStatusSelector(),
 			]),
@@ -149,7 +149,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 	private renderName(): Children {
 		const name = this.userGroupInfo.name
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "name_label",
 			value: name,
 			isReadOnly: true,

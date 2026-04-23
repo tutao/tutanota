@@ -7,7 +7,7 @@ import type { TableAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { assertMainOrNode, GroupType } from "@tutao/app-env"
@@ -44,7 +44,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderCreatedTextField(): Children {
-		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), isReadOnly: true })
+		return m(LegacyTextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), isReadOnly: true })
 	}
 
 	/**
@@ -54,12 +54,12 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	private renderMailGroupInfo(): ChildArray {
 		return [
 			this.renderUsedStorage(),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "mailAddress_label",
 				value: this.model.getGroupMailAddress(),
 				isReadOnly: true,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "mailName_label",
 				value: this.model.getGroupSenderName(),
 				isReadOnly: true,
@@ -103,7 +103,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderNameField(): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "name_label",
 			value: this.model.getGroupName(),
 			isReadOnly: true,
@@ -144,7 +144,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		const usedStorage = this.model.getUsedStorage()
 		const formattedStorage = usedStorage ? formatStorageSize(usedStorage) : lang.get("loading_msg")
 
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "storageCapacityUsed_label",
 			value: formattedStorage,
 			isReadOnly: true,

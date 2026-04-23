@@ -25,8 +25,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
-import { TextField } from "../../common/gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../common/gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import type { TableAttrs, TableLineAttrs } from "../../common/gui/base/Table.js"
 import { ColumnWidth, createRowActions, Table } from "../../common/gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
@@ -174,7 +174,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
-		const signatureAttrs: TextFieldAttrs = {
+		const signatureAttrs: LegacyTextFieldAttrs = {
 			label: "userEmailSignature_label",
 			value: this._signature(),
 			oninput: this._signature,
@@ -191,7 +191,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			size: ButtonSize.Compact,
 		}
 
-		const outOfOfficeAttrs: TextFieldAttrs = {
+		const outOfOfficeAttrs: LegacyTextFieldAttrs = {
 			label: "outOfOfficeNotification_title",
 			value: this._outOfOfficeStatus(),
 			oninput: this._outOfOfficeStatus,
@@ -357,7 +357,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
 						? [
 								m("#storagecapacity.h4.mt-32", lang.get("storageCapacity_label")),
-								m(TextField, {
+								m(LegacyTextField, {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
 									oninput: this._storageFieldValue,
@@ -372,11 +372,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
-					m("#signature", m(TextField, signatureAttrs)),
+					m("#signature", m(LegacyTextField, signatureAttrs)),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
 					m("#spamreports", m(DropDownSelector, reportMovedMailsAttrs)),
-					m("#outofoffice", m(TextField, outOfOfficeAttrs)),
+					m("#outofoffice", m(LegacyTextField, outOfOfficeAttrs)),
 					m("#undoSend", m(DropDownSelector, this.makeUndoSendMailsDropdownAttrs())),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel
@@ -430,7 +430,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			: lang.get("storedDataDate_label", { "{date}": formatDate(this.offlineStorageSettings.getTimeRange()) })
 		return [
 			m(".h4.mt-32#localdata", lang.get("localDataSection_label")),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
 				class: "mt-negative-8",

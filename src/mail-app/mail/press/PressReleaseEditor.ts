@@ -12,7 +12,7 @@ import { progressIcon } from "../../../common/gui/base/Icon"
 import { Editor } from "../../../common/gui/editor/Editor"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { replaceInlineImagesWithCids } from "../view/MailGuiUtils"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -248,7 +248,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 				oninput: (e: InputEvent) => recipientsJson((e.target as HTMLTextAreaElement).value),
 				value: recipientsJson(),
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "subject_label",
 				value: subject(),
 				oninput: subject,

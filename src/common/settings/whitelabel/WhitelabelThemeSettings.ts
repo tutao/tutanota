@@ -4,7 +4,7 @@ import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayTo
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "@tutao/app-env"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
@@ -32,7 +32,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	}
 
 	private renderCustomColorsField(data: WhitelabelData | null): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "customColors_label",
 			value: this.areCustomColorsDefined(data?.customTheme ?? null) ? lang.get("activated_label") : lang.get("deactivated_label"),
 			isReadOnly: true,
@@ -77,14 +77,14 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	}
 
 	private renderCustomLogoField(data: WhitelabelData | null): Children {
-		const customLogoTextfieldAttrs: TextFieldAttrs = {
+		const customLogoTextfieldAttrs: LegacyTextFieldAttrs = {
 			label: "customLogo_label",
 			helpLabel: () => lang.get("customLogoInfo_msg"),
 			value: lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label"),
 			isReadOnly: true,
 			injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
 		}
-		return m(TextField, customLogoTextfieldAttrs)
+		return m(LegacyTextField, customLogoTextfieldAttrs)
 	}
 
 	private renderCustomLogoFieldButtons(whitelabelData: WhitelabelData): Children {

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete, TextField } from "../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { sysTypeRefs } from "@tutao/typerefs"
@@ -39,7 +39,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 		let { viewModel } = vnode.attrs
 
 		return [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "creditCardNumber_label",
 				helpLabel: () => this.renderCcNumberHelpLabel(viewModel),
 				value: viewModel.creditCardNumber,
@@ -51,7 +51,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				autocompleteAs: Autocomplete.ccNumber,
 				onDomInputCreated: (dom) => (this.ccNumberDom = dom),
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "creditCardExpirationDateWithFormat_label",
 				value: viewModel.expirationDate,
 				// we only show the hint if the field is not empty and not selected to avoid showing errors while the user is typing.
@@ -64,7 +64,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				onDomInputCreated: (dom) => (this.expDateDom = dom),
 				autocompleteAs: Autocomplete.ccExp,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: lang.makeTranslation("cvv", viewModel.getCvvLabel()),
 				value: viewModel.cvv,
 				helpLabel: () => this.renderCvvNumberHelpLabel(viewModel),

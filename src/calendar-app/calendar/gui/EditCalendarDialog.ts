@@ -2,7 +2,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../../common/gui/base/LegacyTextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { clone, deepEqual, isNotNull } from "@tutao/utils"
@@ -52,7 +52,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 	let helperMessage = ""
 	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics - webcals://example.com/calendar.ics"
 	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
-	return m(TextField, {
+	return m(LegacyTextField, {
 		class: `pt-16 pb-16 ${helperMessage.length ? "" : "mb-small-line-height"}`,
 		value: urlStream(),
 		oninput: (url: string, inputElement: HTMLInputElement) => {
@@ -65,7 +65,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 			errorMessageStream(lang.get(assertionResult))
 		},
 		label: "url_label",
-		type: TextFieldType.Url,
+		type: LegacyTextFieldType.Url,
 		helpLabel: () => m("small.block.content-fg", helperMessage),
 	})
 }
@@ -231,7 +231,7 @@ export function showEditBirthdayCalendarDialog(editBirthdayCalendarAttrs: EditBi
 		child: {
 			view: () =>
 				m(".flex.col", [
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "name_label",
 						value: lang.get("birthdayCalendar_label"),
 						isReadOnly: true,

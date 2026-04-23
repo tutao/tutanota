@@ -1,4 +1,4 @@
-import { TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
@@ -15,7 +15,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 	view(vnode: Vnode<WhitelabelCustomMetaTagsSettingsAttrs>): Children {
 		const { metaTags, onMetaTagsChanged } = vnode.attrs
 		const customMetaTagsDefined = metaTags.length > 0
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "customMetaTags_label",
 			value: customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"),
 			isReadOnly: true,
@@ -36,10 +36,10 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 			title: "customMetaTags_label",
 			child: {
 				view: () =>
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "customMetaTags_label",
 						value: metaTags,
-						type: TextFieldType.Area,
+						type: LegacyTextFieldType.Area,
 						oninput: (value: string) => {
 							metaTags = value
 						},

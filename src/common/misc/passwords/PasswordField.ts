@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { Autocomplete, TextField, TextFieldAttrs, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldAttrs, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "./PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
@@ -11,7 +11,7 @@ import type { MaybeTranslation } from "../LanguageViewModel.js"
 
 type StatusSetting = Status | "auto"
 
-export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
+export interface PasswordFieldAttrs extends Omit<LegacyTextFieldAttrs, "label" | "type"> {
 	label?: MaybeTranslation
 	passwordStrength?: number
 	status?: StatusSetting
@@ -24,11 +24,11 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 		const attrs = vnode.attrs
 		// Separate and pass the generic `TextFieldAttrs` attributes so the user can still use all of `TextFields` properties
 		const { passwordStrength, status, label, ...textFieldAttrs } = attrs
-		return m(TextField, {
+		return m(LegacyTextField, {
 			...textFieldAttrs,
 			label: label === undefined ? "password_label" : label,
 			autocompleteAs: attrs.autocompleteAs ? attrs.autocompleteAs : Autocomplete.currentPassword,
-			type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
+			type: this.isPasswordRevealed ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 			helpLabel: textFieldAttrs.helpLabel
 				? () => PasswordField.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel)
 				: null,

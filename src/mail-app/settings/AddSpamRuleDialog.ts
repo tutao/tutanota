@@ -8,7 +8,7 @@ import { Dialog } from "../../common/gui/base/Dialog"
 import stream from "mithril/stream"
 import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode, SpamRuleType } from "@tutao/app-env"
 import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
@@ -34,7 +34,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: sysTypeRefs.Em
 			selectedValue: selectedField(),
 			selectionChangedHandler: selectedField,
 		}),
-		m(TextField, {
+		m(LegacyTextField, {
 			label: "emailSenderPlaceholder_label",
 			autocapitalize: Autocapitalize.none,
 			value: valueFieldValue(),
