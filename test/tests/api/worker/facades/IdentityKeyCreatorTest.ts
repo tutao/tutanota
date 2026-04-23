@@ -9,14 +9,14 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
+import { KeyAuthenticationFacade } from "@tutao/crypto"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { Versioned } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
-import { GroupType } from "../../../../../src/app-env"
+import { GroupType } from "@tutao/app-env"
 
 const { anything, argThat, captor } = matchers
 

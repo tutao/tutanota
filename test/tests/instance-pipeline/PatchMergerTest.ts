@@ -34,7 +34,7 @@ import { EphemeralCacheStorage } from "../../../src/common/api/worker/rest/Ephem
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "@tutao/app-env"
 import { PublicEncryptionKeyProvider } from "../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../src/common/api/worker/facades/InstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "../../../src/crypto/app-support/InstanceSessionKeysCache"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

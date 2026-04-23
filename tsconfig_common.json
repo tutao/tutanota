@@ -27,6 +27,7 @@
 		"types": ["node"],
 		"incremental": true,
 		"paths": {
+			"tutanota-3:/*": ["../client/*"],
 			"@tutao/utils": ["./src/utils"],
 			"@tutao/crypto-primitives": ["./src/crypto-primitives/crypto_primitives"],
 			"@tutao/crypto": ["./src/crypto"],
@@ -40,7 +41,6 @@
 			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
 			"@tutao/app-env": ["./src/app-env"],
 			"@tutao/typerefs": ["./src/typerefs"],
-			"@tutao/typerefs/types": ["./src/typerefs/types.d.ts"],
 			"@tutao/instance-pipeline": ["./src/instance-pipeline"]
 		}
 	}

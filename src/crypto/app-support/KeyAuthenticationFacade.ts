@@ -1,7 +1,11 @@
 import { concat, KeyVersion } from "@tutao/utils"
-import { Aes256Key, AesKey, CryptoWrapper, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/crypto"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { Aes256Key, AesKey, keyToUint8Array } from "../encryption/symmetric/SymmetricCipherUtils"
+import { PQPublicKeys } from "../encryption/PQKeyPairs"
+import { Ed25519PublicKey, ed25519PublicKeyToBytes } from "../encryption/Ed25519"
+import { CryptoWrapper } from "../CryptoWrapper"
+import { MacTag } from "../misc/Constants"
 
 assertWorkerOrNode()
 
