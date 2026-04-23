@@ -2,7 +2,7 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import * as restError from "./error.js"
-import { HttpMethod, MediaType, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
+import { HttpMethod, MediaType, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
 
 assertWorkerOrNode()
 

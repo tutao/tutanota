@@ -71,7 +71,7 @@ import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worke
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { EntityAdapter } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
-import { InstanceSessionKeysCache } from "../../../../../src/common/api/worker/facades/InstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "@tutao/crypto"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 const { anything, argThat } = matchers

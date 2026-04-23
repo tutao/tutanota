@@ -3,7 +3,7 @@ import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
-import { KeyCache } from "./KeyCache.js"
+import { KeyCache } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 
 export interface AuthDataProvider {
