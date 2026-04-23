@@ -36,7 +36,6 @@
 		{
 			"path": "tsconfig.typerefs.json"
 		},
-
 		{
 			"path": "tsconfig.instance-pipeline.json"
 		}

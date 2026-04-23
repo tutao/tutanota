@@ -49,6 +49,13 @@
 	"references": [
 		{
 			"path": "tsconfig.otest.json"
+		},
+		{
+			"path": "../src/tsconfig.combined-apps.json"
+		},
+
+		{
+			"path": "../src/tsconfig.wasm.json"
 		}
 	]
 }
