@@ -27,7 +27,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
 import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { DialogHeaderBar } from "../gui/base/DialogHeaderBar"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
 import { locator } from "../api/main/CommonLocator"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
@@ -104,7 +104,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			? getPaymentMethodName(getPaymentMethodType(neverNull(this.accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this.accountingInfo))
 			: lang.get("loading_msg")
 
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "paymentMethod_label",
 			value: paymentMethod,
 			helpLabel: paymentMethodHelpLabel,
@@ -499,7 +499,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			]),
 			m(this.invoiceAddressField),
 			this.accountingInfo && this.accountingInfo.invoiceVatIdNo.trim().length > 0
-				? m(TextField, {
+				? m(LegacyTextField, {
 						label: "invoiceVatIdNo_label",
 						value: this.accountingInfo ? this.accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
 						isReadOnly: true,
@@ -542,7 +542,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 					".plr-24.pb-16",
 					m("", [
 						m(".pt-16", lang.get("invoicePayConfirm_msg")),
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "price_label",
 							value: formatPrice(-price, true),
 							isReadOnly: true,

@@ -1,4 +1,4 @@
-import { Autocapitalize, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../common/misc/LanguageViewModel"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Icons } from "../../common/gui/base/icons/Icons"
@@ -14,7 +14,7 @@ export type AggregateEditorAttrs<AggregateType> = {
 	animateCreate?: boolean
 	animateCancel?: boolean
 	allowCancel?: boolean
-	fieldType: TextFieldType
+	fieldType: LegacyTextFieldType
 	onUpdate: (newValue: string) => unknown
 	label: MaybeTranslation
 	helpLabel: MaybeTranslation
@@ -36,7 +36,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 	view(vnode: Vnode<AggregateEditorAttrs<any>>): Children {
 		const attrs = vnode.attrs
 		return m(".flex.items-center.child-grow", [
-			m(TextField, {
+			m(LegacyTextField, {
 				value: attrs.value,
 				label: attrs.label,
 				type: attrs.fieldType,

@@ -8,7 +8,7 @@ import Stream from "mithril/stream"
 import { KnowledgeBaseEntryView } from "./KnowledgeBaseEntryView.js"
 import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { TextField } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { makeListSelectionChangedScrollHandler } from "../../../common/gui/base/GuiUtils.js"
 import { ofClass } from "@tutao/utils"
 
@@ -62,7 +62,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 					readonly: model.isReadOnly(selectedEntry),
 				})
 			: [
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "filter_label",
 						value: this.filterValue,
 						oninput: (value) => {

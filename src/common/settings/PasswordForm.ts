@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete } from "../gui/base/TextField.js"
+import { Autocomplete } from "../gui/base/LegacyTextField.js"
 import { getPasswordStrength, isSecurePassword } from "../misc/passwords/PasswordUtils.js"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"

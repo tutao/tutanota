@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { TextFieldType } from "./TextField.js"
+import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
 import { filterInt } from "@tutao/utils"
@@ -10,7 +10,7 @@ export enum InputMode {
 	TEXT = "text",
 }
 
-export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<Component, "oncreate"> {
+export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends Pick<Component, "oncreate"> {
 	value: string | number
 	ariaLabel: string
 	disabled?: boolean
@@ -41,12 +41,12 @@ export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<
 	readonly?: boolean
 }
 
-export interface SingleLineNumberFieldAttrs<T extends TextFieldType> extends SingleLineTextFieldAttrs<T> {
+export interface SingleLineNumberFieldAttrs<T extends LegacyTextFieldType> extends SingleLineTextFieldAttrs<T> {
 	max?: number
 	min?: number
 }
 
-export type InputAttrs<T extends TextFieldType> = T extends TextFieldType.Number ? SingleLineNumberFieldAttrs<T> : SingleLineTextFieldAttrs<T>
+export type InputAttrs<T extends LegacyTextFieldType> = T extends LegacyTextFieldType.Number ? SingleLineNumberFieldAttrs<T> : SingleLineTextFieldAttrs<T>
 
 /**
  * Simple single line input field component
@@ -66,7 +66,7 @@ export type InputAttrs<T extends TextFieldType> = T extends TextFieldType.Number
  *     }
  * }),
  */
-export class SingleLineTextField<T extends TextFieldType> implements ClassComponent<InputAttrs<T>> {
+export class SingleLineTextField<T extends LegacyTextFieldType> implements ClassComponent<InputAttrs<T>> {
 	domInput!: HTMLInputElement
 
 	view({ attrs }: Vnode<InputAttrs<T>, this>): Children | void | null {
@@ -144,9 +144,9 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 		})
 	}
 
-	private getInputProperties(attrs: InputAttrs<T>): Pick<SingleLineNumberFieldAttrs<TextFieldType.Number>, "min" | "max"> | undefined {
-		if (attrs.type === TextFieldType.Number) {
-			const numberAttrs = attrs as SingleLineNumberFieldAttrs<TextFieldType.Number>
+	private getInputProperties(attrs: InputAttrs<T>): Pick<SingleLineNumberFieldAttrs<LegacyTextFieldType.Number>, "min" | "max"> | undefined {
+		if (attrs.type === LegacyTextFieldType.Number) {
+			const numberAttrs = attrs as SingleLineNumberFieldAttrs<LegacyTextFieldType.Number>
 			return { min: numberAttrs.min, max: numberAttrs.max }
 		}
 

@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Dialog } from "../../gui/base/Dialog"
-import { Autocomplete } from "../../gui/base/TextField.js"
+import { Autocomplete } from "../../gui/base/LegacyTextField.js"
 import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
 
 import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"

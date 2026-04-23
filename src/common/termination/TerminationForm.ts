@@ -2,7 +2,7 @@ import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { client } from "../misc/ClientDetector.js"
 import { assertNotNull } from "@tutao/utils"
-import { Autocomplete, TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TerminationPeriodOptions } from "@tutao/app-env"
 import { DatePicker } from "../../calendar-app/calendar/gui/pickers/DatePicker.js"
@@ -26,8 +26,8 @@ export interface TerminationFormAttrs {
 }
 
 export class TerminationForm implements Component<TerminationFormAttrs> {
-	mailAddressTextField!: TextField
-	passwordTextField!: TextField
+	mailAddressTextField!: LegacyTextField
+	passwordTextField!: LegacyTextField
 	surveyResult: LeavingUserSurveyData | null = null
 
 	onremove(vnode: Vnode<TerminationFormAttrs>) {
@@ -53,11 +53,11 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					{
 						oncreate: (vnode) => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextField>
+							const child = childArray[0] as Vnode<unknown, LegacyTextField>
 							this.mailAddressTextField = child.state
 						},
 					},
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "mailAddress_label",
 						value: a.mailAddress,
 						autocompleteAs: Autocomplete.email,
@@ -65,7 +65,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 							this.handleAutofill(a)
 							a.onMailAddressChanged(value)
 						},
-						type: TextFieldType.Email,
+						type: LegacyTextFieldType.Email,
 						onDomInputCreated: (dom) => {
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)

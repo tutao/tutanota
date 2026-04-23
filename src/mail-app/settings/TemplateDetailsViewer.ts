@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import type { lazy } from "@tutao/utils"
 import { assertNotNull } from "@tutao/utils"
-import { TextField } from "../../common/gui/base/TextField.js"
+import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
@@ -63,7 +63,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 
 	private renderContent(): Children {
 		return m("", [
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "shortcut_label",
 				value: TEMPLATE_SHORTCUT_PREFIX + assertNotNull(this.template.tag, "template without tag!"),
 				isReadOnly: true,

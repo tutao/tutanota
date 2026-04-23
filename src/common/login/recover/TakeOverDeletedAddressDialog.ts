@@ -4,7 +4,7 @@ import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { Autocomplete, TextField, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import { locator } from "../../api/main/CommonLocator"
 import { assertMainOrNode } from "@tutao/app-env"
@@ -24,11 +24,11 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 				return [
 					m(".mt-16", lang.get("takeOverUnusedAddress_msg")),
 					m(MoreInfoLink, { link: InfoLink.InactiveAccounts }),
-					m(TextField, {
+					m(LegacyTextField, {
 						label: "targetAddress_label",
 						value: targetAccountAddress(),
 						autocompleteAs: Autocomplete.email,
-						type: TextFieldType.Email,
+						type: LegacyTextFieldType.Email,
 						oninput: targetAccountAddress,
 					}),
 					m(recoverCodeInput),

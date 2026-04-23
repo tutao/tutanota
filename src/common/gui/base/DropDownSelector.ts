@@ -6,7 +6,7 @@ import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "@tutao/app-env"
 import { IconButton } from "./IconButton"
-import { TextField } from "./TextField"
+import { LegacyTextField } from "./LegacyTextField"
 import { ButtonSize } from "./ButtonSize"
 import { Icons } from "./icons/Icons"
 
@@ -46,7 +46,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 		const text = this.valueToText(a, a.selectedValue) || ""
 		const labelText = lang.getTranslationText(a.label)
 
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: a.label,
 			value: text,
 			helpLabel: a.helpLabel,

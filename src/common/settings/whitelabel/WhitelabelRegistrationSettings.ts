@@ -3,7 +3,7 @@ import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { Dialog } from "../../gui/base/Dialog"
 import { Icons } from "../../gui/base/icons/Icons"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
@@ -45,7 +45,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 	}
 
 	_renderWhitelabelCodeField(whitelabelCode: string, onWhitelabelCodeChanged: ((arg0: string) => unknown) | null): Children {
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "whitelabelRegistrationCode_label",
 			value: whitelabelCode,
 			isReadOnly: true,

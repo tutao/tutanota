@@ -1,5 +1,5 @@
 import stream from "mithril/stream"
-import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { lang } from "./LanguageViewModel"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
@@ -129,11 +129,11 @@ function showReportDialog(
 	const dialogContent = {
 		view: () => {
 			return [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "yourMessage_label",
 					helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
 					value: userMessage,
-					type: TextFieldType.Area,
+					type: LegacyTextFieldType.Area,
 					oninput: (value) => (userMessage = value),
 				}),
 				m(

@@ -10,13 +10,13 @@ import { Keys, TabIndex } from "@tutao/app-env"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 
-export type TextFieldAttrs = {
+export type LegacyTextFieldAttrs = {
 	id?: string
 	label: MaybeTranslation
 	value: string
 	autocompleteAs?: Autocomplete
 	autocapitalize?: Autocapitalize
-	type?: TextFieldType
+	type?: LegacyTextFieldType
 	hasPopup?: AriaPopupType
 	helpLabel?: lazy<Children> | null
 	alignRight?: boolean
@@ -45,7 +45,7 @@ export type TextFieldAttrs = {
 	onReturnKeyPressed?: () => unknown
 }
 
-export const enum TextFieldType {
+export const enum LegacyTextFieldType {
 	Text = "text",
 	Email = "email",
 	/** @deprecated Prefer the `PasswordField` component over using this type with `TextField` */
@@ -86,7 +86,7 @@ const baseLabelPosition = 21
 // 24px line-height + 12px label + some space between them = 36 + ?
 const minInputHeight = 46
 
-export class TextField implements ClassComponent<TextFieldAttrs> {
+export class LegacyTextField implements ClassComponent<LegacyTextFieldAttrs> {
 	active: boolean
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
@@ -99,7 +99,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		this.active = false
 	}
 
-	view(vnode: CVnode<TextFieldAttrs>): Children {
+	view(vnode: CVnode<LegacyTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
 		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
@@ -165,7 +165,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
 								},
 								[
-									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+									a.type !== LegacyTextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
 									a.injectionsRight
 										? m(
 												".flex-end.items-center",
@@ -195,7 +195,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		)
 	}
 
-	_getInputField(a: TextFieldAttrs): Children {
+	_getInputField(a: LegacyTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-break.selectable",
@@ -224,7 +224,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: LegacyTextFieldType.Text,
 							}),
 							m("input.abs", {
 								"aria-hidden": "true",
@@ -233,7 +233,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Password,
+								type: LegacyTextFieldType.Password,
 							}),
 							m("input.abs", {
 								"aria-hidden": "true",
@@ -242,7 +242,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 									height: "0",
 								},
 								tabIndex: TabIndex.Programmatic,
-								type: TextFieldType.Text,
+								type: LegacyTextFieldType.Text,
 							}),
 						]
 					: []
@@ -262,7 +262,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							this.domInput = vnode.dom as HTMLInputElement
 							this.domInput.value = a.value
 							a.onDomInputCreated?.(this.domInput)
-							if (a.type !== TextFieldType.Area) {
+							if (a.type !== LegacyTextFieldType.Area) {
 								;(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {
 										this._didAutofill = true
@@ -319,7 +319,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	_getTextArea(a: TextFieldAttrs): Children {
+	_getTextArea(a: LegacyTextFieldAttrs): Children {
 		if (a.isReadOnly) {
 			return m(
 				".text-prewrap.text-break.selectable",
@@ -366,7 +366,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	focus(e: Event, a: TextFieldAttrs) {
+	focus(e: Event, a: LegacyTextFieldAttrs) {
 		if (!this.active && !a.disabled && !a.isReadOnly) {
 			this.active = true
 			this.domInput.focus()
@@ -375,7 +375,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		}
 	}
 
-	blur(e: Event, a: TextFieldAttrs) {
+	blur(e: Event, a: LegacyTextFieldAttrs) {
 		this._domWrapper.classList.remove("active")
 		this.active = false
 		if (a.onblur instanceof Function) a.onblur(e)

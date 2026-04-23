@@ -11,7 +11,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { GroupType, ShareCapability, UpgradePromptType } from "@tutao/app-env"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import * as restError from "@tutao/rest-client/error"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { getCapabilityText, getMemberCapability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
 import { GroupSharingModel } from "../model/GroupSharingModel"
@@ -242,7 +242,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				selectionChangedHandler: capability,
 				dropdownWidth: 300,
 			}),
-			m(TextField, {
+			m(LegacyTextField, {
 				value: realGroupName,
 				label: texts.groupNameLabel,
 				isReadOnly: true,

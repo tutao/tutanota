@@ -38,8 +38,8 @@ import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
-import type { TextFieldAttrs } from "../../../common/gui/base/TextField.js"
-import { Autocomplete, TextField } from "../../../common/gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../../common/gui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
 import { ExpanderPanel } from "../../../common/gui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -535,7 +535,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					})
 				: null
 
-		const subjectFieldAttrs: TextFieldAttrs = {
+		const subjectFieldAttrs: LegacyTextFieldAttrs = {
 			label: "subject_label",
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: model.getSubject(),
@@ -755,7 +755,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							],
 						)
 					: null,
-				m(".row", m(TextField, subjectFieldAttrs)),
+				m(".row", m(LegacyTextField, subjectFieldAttrs)),
 				// Toolbar icons, ordered: confidential, light theme toggle, knowledgebase, schedule, text toolbar, attach
 				// schedule, text toolbar, attach are always there and should not move around when the others appear
 				m(".row.flex-end.mb-4.mt-8.ml-between-4.items-center", [

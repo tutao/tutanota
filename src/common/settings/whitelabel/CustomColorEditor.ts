@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import type { TextFieldAttrs } from "../../gui/base/TextField.js"
-import { TextField } from "../../gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
@@ -29,7 +29,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 	}
 
 	view(vnode: Vnode<SimpleCustomColorEditorAttrs>): Children {
-		const simpleColorPickerAttrs: TextFieldAttrs = {
+		const simpleColorPickerAttrs: LegacyTextFieldAttrs = {
 			label: "sourceColor_label",
 			value: vnode.attrs.model.sourceColor,
 			injectionsRight: () =>
@@ -43,7 +43,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 		return m("", [
 			m("", [
 				m(".flex", [
-					m(".flex-grow", m(TextField, simpleColorPickerAttrs)),
+					m(".flex-grow", m(LegacyTextField, simpleColorPickerAttrs)),
 					m(
 						".ml-8.flex-grow",
 						m(DropDownSelector, {

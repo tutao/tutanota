@@ -40,8 +40,8 @@ import {
 	getContactSocialTypeLabel,
 } from "./view/ContactGuiUtils"
 import { parseBirthday } from "../../common/misc/DateParser"
-import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
-import { Autocapitalize, Autocomplete, TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import type { LegacyTextFieldAttrs } from "../../common/gui/base/LegacyTextField.js"
+import { Autocapitalize, Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
@@ -374,7 +374,7 @@ export class ContactEditor {
 		const typeLabels: Array<[ContactCustomDateType, TranslationKey]> = typedEntries(ContactCustomDateTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: date.date,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactCustomDateTypeToLabel(downcast(date.type), date.customTypeName),
 			helpLabel: dateHelpText(),
 			cancelAction: () => {
@@ -420,7 +420,7 @@ export class ContactEditor {
 		const typeLabels: Array<[ContactAddressType, TranslationKey]> = typedEntries(ContactMailAddressTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: mailAddress.address,
-			fieldType: TextFieldType.Email,
+			fieldType: LegacyTextFieldType.Email,
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
 			cancelAction: () => {
@@ -442,7 +442,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactPhoneNumberTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: phoneNumber.number,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactPhoneNumberTypeLabel(downcast(phoneNumber.type), phoneNumber.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
@@ -464,7 +464,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactMailAddressTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: address.address,
-			fieldType: TextFieldType.Area,
+			fieldType: LegacyTextFieldType.Area,
 			label: getContactAddressTypeLabel(downcast(address.type), address.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
@@ -486,7 +486,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactSocialTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: socialId.socialId,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactSocialTypeLabel(downcast<ContactSocialType>(socialId.type), socialId.customTypeName),
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
@@ -509,7 +509,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactCustomWebsiteTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: website.url,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactCustomWebsiteTypeToLabel(downcast<ContactWebsiteType>(website.type), website.customTypeName),
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
@@ -532,7 +532,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactRelationshipTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: relationship.person,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactRelationshipTypeToLabel(downcast<ContactRelationshipType>(relationship.type), relationship.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
@@ -554,7 +554,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries(ContactMessengerHandleTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: messengerHandle.handle,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: getContactMessengerHandleTypeToLabel(downcast<ContactMessengerHandleType>(messengerHandle.type), messengerHandle.customTypeName),
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
@@ -577,7 +577,7 @@ export class ContactEditor {
 		const typeLabels = typedEntries({ "0": "language_label" } as Record<string, TranslationKey>)
 		return m(ContactAggregateEditor, {
 			value: pronouns.pronouns,
-			fieldType: TextFieldType.Text,
+			fieldType: LegacyTextFieldType.Text,
 			label: lang.makeTranslation("lang", pronouns.language),
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
@@ -601,7 +601,7 @@ export class ContactEditor {
 			label: "comment_label",
 			value: this.contact.comment,
 			oninput: (value) => (this.contact.comment = value),
-			type: TextFieldType.Area,
+			type: LegacyTextFieldType.Area,
 		})
 	}
 
@@ -624,7 +624,7 @@ export class ContactEditor {
 					this.contact[fieldName] = downcast(value)
 				}
 			},
-		} satisfies TextFieldAttrs)
+		} satisfies LegacyTextFieldAttrs)
 	}
 
 	private renderLastNameField(): Children {
@@ -877,8 +877,8 @@ export class ContactEditor {
 }
 
 /** Renders TextField with wrapper and padding element to align them all. */
-class StandaloneField implements Component<TextFieldAttrs> {
-	view({ attrs }: Vnode<TextFieldAttrs>): Children {
-		return m(".flex.child-grow", [m(TextField, attrs), m(".icon-button")])
+class StandaloneField implements Component<LegacyTextFieldAttrs> {
+	view({ attrs }: Vnode<LegacyTextFieldAttrs>): Children {
+		return m(".flex.child-grow", [m(LegacyTextField, attrs), m(".icon-button")])
 	}
 }

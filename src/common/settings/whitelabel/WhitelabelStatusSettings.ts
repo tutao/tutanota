@@ -2,7 +2,7 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { TextField } from "../../gui/base/TextField.js"
+import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
@@ -15,7 +15,7 @@ export type WhitelabelStatusSettingsAttrs = {
 export class WhitelabelStatusSettings implements Component<WhitelabelStatusSettingsAttrs> {
 	view({ attrs }: Vnode<WhitelabelStatusSettingsAttrs>): Children {
 		const { isWhitelabelActive } = attrs
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: "state_label",
 			value: isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"),
 			isReadOnly: true,

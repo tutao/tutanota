@@ -15,7 +15,7 @@ import {
 } from "./utils/SubscriptionUtils"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
@@ -151,12 +151,12 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		return [
 			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
 			m(".pt-16.pb-16.plr-24", [
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "subscription_label",
 					value: getDisplayNameOfPlanType(attrs.data.targetPlanType),
 					isReadOnly: true,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "paymentInterval_label",
 					value: subscription,
 					isReadOnly: true,
@@ -164,14 +164,14 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				!isAppStorePayment &&
 					m.fragment({}, [
 						isFirstMonthForFree &&
-							m(TextField, {
+							m(LegacyTextField, {
 								label: lang.getTranslation("priceTill_label", {
 									"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 								}),
 								value: formatPrice(0, true),
 								isReadOnly: true,
 							}),
-						m(TextField, {
+						m(LegacyTextField, {
 							label: this.buildPriceLabel(isYearly, attrs),
 							value: buildPriceString(attrs.data.price?.displayPrice ?? "0", attrs.data.options),
 							isReadOnly: true,
@@ -179,7 +179,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 						this.renderPriceNextYear(attrs),
 					]),
 
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "paymentMethod_label",
 					value: getPaymentMethodName(attrs.data.paymentData.paymentMethod),
 					isReadOnly: true,
@@ -204,7 +204,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private renderPriceNextYear(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		return attrs.data.nextYearPrice
-			? m(TextField, {
+			? m(LegacyTextField, {
 					label: "priceForNextYear_label",
 					value: buildPriceString(attrs.data.nextYearPrice.displayPrice, attrs.data.options),
 					isReadOnly: true,

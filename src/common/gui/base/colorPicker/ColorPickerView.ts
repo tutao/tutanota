@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../size.js"
 import { ExpanderButton, ExpanderPanel } from "../Expander.js"
-import { TextField } from "../TextField.js"
+import { LegacyTextField } from "../LegacyTextField.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { hexToHSL, hslToHex, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color.js"
 import { ColorPickerModel } from "./ColorPickerModel.js"
@@ -139,7 +139,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	private renderCustomColorContainer(attrs: ColorPickerViewAttrs) {
 		return m(".custom-color-container.flex.items-start.gap-12", [
 			m("", [
-				m(TextField, {
+				m(LegacyTextField, {
 					value: this.customColorHex.replace("#", ""),
 					label: "hexCode_label",
 					oninput: (v) => this.handleCustomHexInput(v, attrs),

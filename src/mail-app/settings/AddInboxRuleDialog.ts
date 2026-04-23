@@ -8,7 +8,7 @@ import { elementIdPart, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { Autocapitalize, TextField } from "../../common/gui/base/TextField.js"
+import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -58,7 +58,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					selectedValue: inboxRuleType(),
 					selectionChangedHandler: inboxRuleType,
 				}),
-				m(TextField, {
+				m(LegacyTextField, {
 					label: "inboxRuleValue_label",
 					autocapitalize: Autocapitalize.none,
 					value: inboxRuleValue(),

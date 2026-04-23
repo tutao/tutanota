@@ -2,7 +2,7 @@ import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDia
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import { lang, type TranslationKey } from "../../common/misc/LanguageViewModel.js"
 import m from "mithril"
-import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
 import { assertNotNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
 import { PushServiceType, UpgradePromptType } from "@tutao/app-env"
@@ -28,10 +28,10 @@ export class AddNotificationEmailDialog {
 				title: "notificationSettings_action",
 				child: {
 					view: () => [
-						m(TextField, {
+						m(LegacyTextField, {
 							label: "mailAddress_label",
 							value: mailAddress,
-							type: TextFieldType.Email,
+							type: LegacyTextFieldType.Email,
 							oninput: (newValue) => (mailAddress = newValue),
 						}),
 						m(".small.mt-8", lang.get("emailPushNotification_msg")),

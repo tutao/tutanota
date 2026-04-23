@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../../common/gui/base/LegacyTextField.js"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/utils"
 import {
@@ -256,14 +256,14 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 	private renderCustomDatesAndRelationships(contact: tutanotaTypeRefs.Contact): Children {
 		const dates = contact.customDate.map((element) =>
-			m(TextField, {
+			m(LegacyTextField, {
 				label: getContactCustomDateTypeToLabel(getCustomDateType(element), element.customTypeName),
 				value: formatContactDate(element.dateIso),
 				isReadOnly: true,
 			}),
 		)
 		const relationships = contact.relationships.map((element) =>
-			m(TextField, {
+			m(LegacyTextField, {
 				label: getContactRelationshipTypeToLabel(getRelationshipType(element), element.customTypeName),
 				value: element.person,
 				isReadOnly: true,
@@ -306,7 +306,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		const socialUrl = getSocialUrl(contactSocialId)
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
 			value: contactSocialId.socialId,
 			isReadOnly: true,
@@ -321,7 +321,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.ChevronRight,
 			size: ButtonSize.Compact,
 		})
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactCustomWebsiteTypeToLabel(downcast(website.type), website.customTypeName),
 			value: website.url,
 			isReadOnly: true,
@@ -337,7 +337,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			size: ButtonSize.Compact,
 		})
 		const messengerUrl = getMessengerHandleUrl(messengerHandle)
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactMessengerHandleTypeToLabel(downcast(messengerHandle.type), messengerHandle.customTypeName),
 			value: messengerHandle.handle,
 			isReadOnly: true,
@@ -361,7 +361,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.Write,
 			size: ButtonSize.Compact,
 		})
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactAddressTypeLabel(address.type as any, address.customTypeName),
 			value: address.address,
 			isReadOnly: true,
@@ -376,7 +376,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.PhoneFilled,
 			size: ButtonSize.Compact,
 		})
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
 			value: phone.number,
 			isReadOnly: true,
@@ -399,11 +399,11 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.PlaceFilled,
 			size: ButtonSize.Compact,
 		})
-		return m(TextField, {
+		return m(LegacyTextField, {
 			label: getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
 			value: address.address,
 			isReadOnly: true,
-			type: TextFieldType.Area,
+			type: LegacyTextFieldType.Area,
 			injectionsRight: () => m("a", { href: `https://www.openstreetmap.org/search?query=${prepAddress}`, target: "_blank" }, showButton),
 		})
 	}

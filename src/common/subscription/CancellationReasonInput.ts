@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
-import { TextField } from "../gui/base/TextField.js"
+import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 
 export type CancellationReasonInputAttrs = {
 	category: NumberString | null
@@ -73,7 +73,7 @@ export class CancellationReasonInput {
 				selectionChangedHandler: vnode.attrs.categoryHandler,
 				dropdownWidth: 350,
 			} satisfies DropDownSelectorAttrs<NumberString | null>),
-			m(TextField, {
+			m(LegacyTextField, {
 				label: "enterDetails_msg",
 				value: vnode.attrs.reason,
 				oninput: vnode.attrs.reasonHandler,
