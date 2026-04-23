@@ -15,7 +15,7 @@ import { customIdToString, KeyVersion, lazyAsync, promiseMap, stringToCustomId, 
 import { UserFacade } from "./UserFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typerefs"
-import { KeyCache } from "./KeyCache.js"
+import { KeyCache } from "@tutao/crypto"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"

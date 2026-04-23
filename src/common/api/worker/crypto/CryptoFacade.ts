@@ -78,7 +78,7 @@ import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvi
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { OwnerKeyProvider, typeModelToRestPath } from "../rest/EntityRestClient"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
-import { InstanceSessionKeysCache } from "../facades/InstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "@tutao/crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils"
 import { NotFoundError } from "@tutao/rest-client/error"
 

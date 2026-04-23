@@ -16,6 +16,9 @@
 			"path": "tsconfig.app-env.json"
 		},
 		{
+			"path": "tsconfig.typerefs.json"
+		},
+		{
 			"path": "tsconfig.crypto-primitives.json"
 		}
 	]
