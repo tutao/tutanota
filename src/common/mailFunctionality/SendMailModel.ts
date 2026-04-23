@@ -30,7 +30,7 @@ import {
 	ofClass,
 	promiseMap,
 	remove,
-	stringToCustomId,
+	stringToBase64UrlCustomId,
 	typedValues,
 } from "@tutao/utils"
 import Stream from "mithril/stream"
@@ -1241,7 +1241,7 @@ export class SendMailModel {
 	private sendApprovalMail(body: string): Promise<unknown> {
 		const listId = "---------c--"
 		const m = monitorTypeRefs.createApprovalMail({
-			_id: [listId, stringToCustomId(this.senderAddress)],
+			_id: [listId, stringToBase64UrlCustomId(this.senderAddress)],
 			_ownerGroup: this.user().user.userGroup.group,
 			text: `Subject: ${this.getSubject()}<br>${body}`,
 			date: null,
