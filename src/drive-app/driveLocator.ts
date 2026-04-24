@@ -807,6 +807,7 @@ class DriveLocator implements CommonLocator {
 			this.serviceExecutor,
 			this.logins,
 			this.progressTracker,
+			this.operationProgressTracker,
 			this.entityClient,
 			this.mailboxModel,
 			this.calendarFacade,

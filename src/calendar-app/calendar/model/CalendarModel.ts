@@ -87,7 +87,7 @@ import { ExternalCalendarFacade } from "../../../common/native/common/generatedi
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
-	EventAlarmsTuple,
+	EventAlarmInfoTemplatesTuple,
 	eventHasSameFields,
 	EventImportRejectionReason,
 	IcsCalendarEvent,
@@ -108,6 +108,7 @@ import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { formatNotificationForDisplay } from "../../../common/misc/Formatter"
+import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 
 type CalendarEvent = tutanotaTypeRefs.CalendarEvent
 type CalendarGroupRoot = tutanotaTypeRefs.CalendarGroupRoot
@@ -209,6 +210,7 @@ export class CalendarModel {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly logins: LoginController,
 		private readonly progressTracker: ProgressTracker,
+		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly entityClient: EntityClient,
 		private readonly mailboxModel: MailboxModel,
 		private readonly calendarFacade: CalendarFacade,
@@ -612,7 +614,7 @@ export class CalendarModel {
 		eventsToUpdate: CalendarEvent[],
 		existingEventList: Array<CalendarEvent>,
 		duplicatesCount: number,
-		eventsForCreation: Array<EventAlarmsTuple>,
+		eventsForCreation: Array<EventAlarmInfoTemplatesTuple>,
 		currentCalendarGroupRoot: CalendarGroupRoot,
 		wipeCalendar: boolean,
 	) {
@@ -684,7 +686,9 @@ export class CalendarModel {
 			operationsLog.created++
 		}
 		if (isNotEmpty(eventsForCreation)) {
-			await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+			let eventCreationOperation = this.operationProgressTracker.startNewOperation()
+			await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
+			eventCreationOperation.done()
 		}
 		console.log(TAG, `${operationsLog.created} events created`)
 	}

@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs, Stripped, StrippedEntity, sysTypeRefs } from "@tutao/typerefs"
+import { Stripped, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/utils"
@@ -13,9 +13,10 @@ export enum EventImportRejectionReason {
 	Duplicate,
 }
 
-export type EventAlarmsTuple = {
+// CalendarEventWithAlarm
+export type EventAlarmInfoTemplatesTuple = {
 	event: tutanotaTypeRefs.CalendarEvent
-	alarms: ReadonlyArray<AlarmInfoTemplate>
+	alarmInfoTemplates: ReadonlyArray<AlarmInfoTemplate>
 }
 
 /**
@@ -128,7 +129,7 @@ export function sortOutParsedEvents(
 	zone: string,
 ): {
 	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventAlarmsTuple>
+	eventsForCreation: Array<EventAlarmInfoTemplatesTuple>
 } {
 	const instanceIdentifierToEventMap = new Map()
 
@@ -150,10 +151,10 @@ export function sortOutParsedEvents(
 	}
 
 	const rejectedEvents: RejectedEvents = new Map()
-	const eventsForCreation: Array<{ event: tutanotaTypeRefs.CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
+	const eventsForCreation: Array<EventAlarmInfoTemplatesTuple> = []
 	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.icsCalendarEvent.uid)) {
-		let progenitor: { event: tutanotaTypeRefs.CalendarEvent; alarms: Array<AlarmInfoTemplate> } | null = null
-		let alteredInstances: Array<{ event: tutanotaTypeRefs.CalendarEvent; alarms: Array<AlarmInfoTemplate> }> = []
+		let progenitor: EventAlarmInfoTemplatesTuple | null = null
+		let alteredInstances: Array<EventAlarmInfoTemplatesTuple> = []
 
 		for (const { icsCalendarEvent, alarms } of flatParsedEvents) {
 			if (flatParsedEvents.length > 1) console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry")
@@ -171,7 +172,7 @@ export function sortOutParsedEvents(
 					() => true,
 				)
 				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
-					alteredInstances.push({ event: calendarEvent, alarms })
+					alteredInstances.push({ event: calendarEvent, alarmInfoTemplates: alarms })
 				}
 			} else if (calendarEvent.recurrenceId != null) {
 				treatProgenitorExcludedDates(
@@ -180,7 +181,7 @@ export function sortOutParsedEvents(
 				)
 
 				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
-					alteredInstances.push({ event: calendarEvent, alarms })
+					alteredInstances.push({ event: calendarEvent, alarmInfoTemplates: alarms })
 				}
 			}
 
@@ -202,7 +203,7 @@ export function sortOutParsedEvents(
 			if (calendarEvent.recurrenceId == null) {
 				// the progenitor must be null here since we would have
 				// rejected the second uid-progenitor event in shouldBeSkipped.
-				progenitor = { event: calendarEvent, alarms }
+				progenitor = { event: calendarEvent, alarmInfoTemplates: alarms }
 			}
 		}
 		if (progenitor != null) eventsForCreation.push(progenitor)
