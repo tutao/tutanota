@@ -1,11 +1,11 @@
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { AppType } from "../../../../misc/ClientConstants"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { sql } from "../Sql"
 import { assertNotNull } from "@tutao/utils"
-import { untagSqlValue } from "../SqlValue"
+import { untagSqlValue } from "../../../../../typerefs/SqlValue"
 
 /**
  * Empties search index since it could have been inconsistent.

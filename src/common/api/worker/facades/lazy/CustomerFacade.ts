@@ -13,7 +13,7 @@ import {
 	SpamRuleFieldType,
 	SpamRuleType,
 } from "@tutao/app-env"
-import { PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { DataFile, PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, Hex, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
@@ -22,7 +22,6 @@ import { CounterFacade } from "./CounterFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { DataFile } from "../../../common/DataFile.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { BookingFacade } from "./BookingFacade.js"
 import { UserFacade } from "../UserFacade.js"

@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { Result } from "electron"
+export type { Result } from "electron"

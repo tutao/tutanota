@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { MailBundle } from "@tutao/typerefs"
+export type { MailBundle } from "@tutao/typerefs"

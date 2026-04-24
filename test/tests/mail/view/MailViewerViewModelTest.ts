@@ -27,7 +27,7 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
-import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
+import { CommonSystemFacade } from "@tutao/native-bridge"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
 

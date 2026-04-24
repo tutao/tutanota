@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { DataFile } from "@tutao/typerefs"
+export type { DataFile } from "@tutao/typerefs"

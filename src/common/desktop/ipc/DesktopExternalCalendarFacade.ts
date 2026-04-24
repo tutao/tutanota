@@ -1,4 +1,4 @@
-import { ExternalCalendarFacade } from "../../native/common/generatedipc/ExternalCalendarFacade.js"
+import { ExternalCalendarFacade } from "@tutao/native-bridge"
 
 /**
  * this receives inter window events and dispatches them to all other windows

@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { CredentialType } from "@tutao/app-env"
+export type { CredentialType } from "@tutao/app-env"

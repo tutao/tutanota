@@ -1,7 +1,7 @@
 import type { Theme, ThemeId, ThemePreference } from "../gui/theme"
 import { DesktopConfig } from "./config/DesktopConfig"
-import { DesktopConfigKey } from "./config/ConfigKeys"
-import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
+import { DesktopConfigKey } from "../../app-env/ConfigKeys"
+import { ThemeFacade } from "@tutao/native-bridge"
 import { WindowManager } from "./DesktopWindowManager"
 import electron from "electron"
 

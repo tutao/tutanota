@@ -1,6 +1,6 @@
 import m from "mithril"
 import { LoginController } from "../../api/main/LoginController.js"
-import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
+import { CalendarOpenAction } from "@tutao/native-bridge"
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { formatJSDate } from "../../api/common/utils/CommonCalendarUtils.js"
 

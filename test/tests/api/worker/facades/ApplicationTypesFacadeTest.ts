@@ -2,12 +2,12 @@ import o from "@tutao/otest"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { matchers, object, verify, when } from "testdouble"
 import {
+	ApplicationTypesGetOut,
 	AppName,
 	AppNameEnum,
 	AssociationType,
 	baseModelInfo,
 	baseServices,
-	baseTypes,
 	Cardinality,
 	getServiceRestPath,
 	ModelAssociation,
@@ -18,7 +18,7 @@ import {
 	Type,
 } from "@tutao/typerefs"
 import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
-import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
+import { FileFacade } from "@tutao/native-bridge"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { compressString, decompressString } from "@tutao/instance-pipeline"
@@ -145,7 +145,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	})
 
 	function createApplicationTypesGetOutFromResponse(applicationTypesGetOut: Uint8Array) {
-		return JSON.parse(decompressString(applicationTypesGetOut)) as baseTypes.ApplicationTypesGetOut
+		return JSON.parse(decompressString(applicationTypesGetOut)) as ApplicationTypesGetOut
 	}
 
 	o("should attempt to write file but not propagate write error", async () => {

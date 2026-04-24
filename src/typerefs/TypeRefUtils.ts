@@ -362,3 +362,28 @@ export function clone<T>(instance: T): T {
 		return instance
 	}
 }
+
+export type MailboxExportState =
+	| {
+			type: "running"
+			userId: Id
+			mailboxId: Id
+			exportDirectoryPath: string
+			mailBagId: Id
+			mailId: Id
+			exportedMails: number
+			failedCount: number
+			failedMailIds: IdTuple[]
+	  }
+	| {
+			type: "finished"
+			userId: Id
+			mailboxId: Id
+			exportDirectoryPath: string
+			failedCount: number
+			failedMailIds: IdTuple[]
+	  }
+	| {
+			type: "locked"
+			userId: Id
+	  }

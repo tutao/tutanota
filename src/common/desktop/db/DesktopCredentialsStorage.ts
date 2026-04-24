@@ -3,11 +3,10 @@ import { Database } from "@signalapp/sqlcipher"
 import fs from "node:fs"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { SqlValue } from "../../api/worker/offline/SqlValue.js"
-import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { SqlValue } from "@tutao/typerefs"
+import { CredentialEncryptionMode, CredentialType } from "@tutao/app-env"
 import { UntaggedQuery, usql } from "../../api/worker/offline/Sql.js"
-import { CredentialType } from "../../misc/credentials/CredentialType.js"
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
+import { PersistedCredentials } from "@tutao/native-bridge"
 
 const TableDefinitions = Object.freeze({
 	meta: "key TEXT NOT NULL, value",

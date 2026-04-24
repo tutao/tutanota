@@ -1,6 +1,5 @@
 import { Base64, Base64Url } from "@tutao/utils"
-import { CredentialType } from "./CredentialType.js"
-import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
+import { CredentialType, UnencryptedCredentials } from "@tutao/native-bridge"
 import { ProgrammingError } from "@tutao/app-env"
 
 /** Data obtained after logging in. */

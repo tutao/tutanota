@@ -12,7 +12,7 @@ export function napiPlugin({ modulePath, platform, architecture }) {
 		name: "napiPlugin",
 		async writeBundle(opts) {
 			const moduleName = removeNpmNamespacePrefix(modulePath)
-			modulePath = path.join(path.resolve(modulePath), "/dist")
+			modulePath = path.join(path.resolve(modulePath), "/napi-out")
 			for (let arch of resolveArch(architecture)) {
 				const targetTuple = getTargetTupleWithLibc(platform, arch)
 				const fileName = `${moduleName}.${targetTuple}.node`
