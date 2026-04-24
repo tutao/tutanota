@@ -12,13 +12,13 @@ import { parseUrlOrNull } from "./PathUtils"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { CancelledError } from "../api/common/error/CancelledError"
-import { DesktopFacade } from "../native/common/generatedipc/DesktopFacade.js"
-import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade.js"
+import { DesktopFacade } from "@tutao/native-bridge"
+import { CommonNativeFacade } from "@tutao/native-bridge"
 import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
-import { InterWindowEventFacadeSendDispatcher } from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
-import { CalendarOpenAction } from "../native/common/generatedipc/CalendarOpenAction.js"
+import { CalendarOpenAction } from "@tutao/native-bridge"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {

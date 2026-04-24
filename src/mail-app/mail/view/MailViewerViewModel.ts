@@ -74,7 +74,7 @@ import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUti
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
-import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
+import { CommonSystemFacade } from "@tutao/native-bridge"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
 

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
-import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
+import { createDataFile } from "@tutao/typerefs"
 import { MailBundle } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { _formatSmtpDateTime, mailToEml } from "../../../../src/mail-app/mail/export/emlUtils.js"
 

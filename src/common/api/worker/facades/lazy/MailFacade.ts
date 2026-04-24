@@ -1,6 +1,7 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	containsId,
+	DataFile,
 	elementIdPart,
 	Entity,
 	entityUpdateUtils,
@@ -87,7 +88,6 @@ import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEn
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
-import { DataFile } from "../../../common/DataFile.js"
 import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"

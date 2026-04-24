@@ -1,12 +1,13 @@
-import type { CredentialEncryptionMode } from "./CredentialEncryptionMode.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
-import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
-import { CredentialType } from "./CredentialType.js"
-import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
-import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
-import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
-import { isBrowser, Mode } from "@tutao/app-env"
+import {
+	CredentialEncryptionMode,
+	CredentialsInfo,
+	InterWindowEventFacadeSendDispatcher,
+	NativeCredentialsFacade,
+	PersistedCredentials,
+	SqlCipherFacade,
+	UnencryptedCredentials,
+} from "@tutao/native-bridge"
+import { CredentialType, isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.

@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { TaggedSqlValue } from "@tutao/typerefs"
+export type { TaggedSqlValue } from "@tutao/typerefs"

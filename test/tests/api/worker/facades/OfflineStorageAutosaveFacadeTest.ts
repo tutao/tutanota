@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { AutosaveDraftsTableDefinitions, OfflineStorageAutosaveFacade } from "../../../../../src/common/api/worker/facades/lazy/OfflineStorageAutosaveFacade"
 import { LocalAutosavedDraftData } from "../../../../../src/common/api/worker/facades/lazy/AutosaveFacade"

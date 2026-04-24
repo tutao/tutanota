@@ -38,6 +38,9 @@
 		},
 		{
 			"path": "tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "tsconfig.native-bridge.json"
 		}
 	]
 }

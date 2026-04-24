@@ -1,5 +1,5 @@
 import { MailBundle, MailBundleRecipient, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { createDataFile, DataFile, getCleanedMimeType } from "../../../common/api/common/DataFile.js"
+import { createDataFile, DataFile, getCleanedMimeType } from "@tutao/typerefs"
 import { assertNotNull, formatSortableDateTime, pad, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { sanitizeFilename } from "../../../common/api/common/utils/FileUtils.js"
 

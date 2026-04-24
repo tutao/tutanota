@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { DesktopExportFacade } from "../../../../src/common/desktop/export/DesktopExportFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { ElectronExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
-import { MailboxExportPersistence, MailboxExportState } from "../../../../src/common/desktop/export/MailboxExportPersistence.js"
+import { MailboxExportPersistence } from "../../../../src/common/desktop/export/MailboxExportPersistence.js"
 import { CancelledError } from "../../../../src/common/api/common/error/CancelledError.js"
 import { ProgrammingError } from "@tutao/app-env"
 import type * as FsModule from "node:fs"
@@ -12,7 +12,7 @@ import path from "node:path"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { ExportError } from "../../../../src/common/api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "../../../../src/common/desktop/export/DesktopExportLock"
-import { elementIdPart } from "@tutao/typerefs"
+import { elementIdPart, MailboxExportState } from "@tutao/typerefs"
 
 function enoentError() {
 	const err = new Error()

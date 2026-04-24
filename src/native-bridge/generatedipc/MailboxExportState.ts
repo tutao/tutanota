@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { MailboxExportState } from "@tutao/typerefs"
+export type { MailboxExportState } from "@tutao/typerefs"

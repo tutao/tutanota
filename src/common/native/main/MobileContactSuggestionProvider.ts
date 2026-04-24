@@ -1,6 +1,6 @@
 import { PermissionError } from "../../api/common/error/PermissionError"
-import { MobileContactsFacade } from "../common/generatedipc/MobileContactsFacade"
-import { ContactSuggestion } from "../common/generatedipc/ContactSuggestion"
+import { MobileContactsFacade } from "@tutao/native-bridge"
+import { ContactSuggestion } from "@tutao/native-bridge"
 import { ContactSuggestionProvider } from "../../misc/RecipientsSearchModel"
 
 export class MobileContactSuggestionProvider implements ContactSuggestionProvider {

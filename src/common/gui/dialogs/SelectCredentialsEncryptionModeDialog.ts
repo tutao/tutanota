@@ -1,4 +1,3 @@
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { Dialog, DialogType } from "../base/Dialog"
 import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import m, { Children, Component, Vnode } from "mithril"
@@ -14,7 +13,7 @@ import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
 import { windowFacade } from "../../misc/WindowFacade"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
-import { Keys } from "@tutao/app-env"
+import { CredentialEncryptionMode, Keys } from "@tutao/app-env"
 import { BaseButton } from "../base/buttons/BaseButton.js"
 import { type RadioSelectorOption } from "../base/RadioSelectorItem"
 

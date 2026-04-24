@@ -1,11 +1,10 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { GENERATED_MAX_ID, getElementId, isSameId } from "@tutao/typerefs"
+import { GENERATED_MAX_ID, getElementId, isSameId, MailboxExportState, storageTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "@tutao/utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
-import { ExportFacade } from "../../../common/native/common/generatedipc/ExportFacade.js"
+import { ExportFacade } from "@tutao/native-bridge"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
@@ -14,10 +13,8 @@ import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailEx
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
-import { storageTypeRefs } from "@tutao/typerefs"
 import { assertMainOrNode } from "@tutao/app-env"
 import { MailModel } from "../../mail/model/MailModel"
-import { MailboxExportState } from "../../../common/desktop/export/MailboxExportPersistence"
 
 assertMainOrNode()
 

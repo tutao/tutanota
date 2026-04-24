@@ -5,7 +5,7 @@ import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConf
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
-import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
+import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "@tutao/typerefs"

@@ -1,5 +1,5 @@
 import { defer, DeferredObject, delay } from "@tutao/utils"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { log } from "../DesktopLog.js"
 import { OfflineDbFactory } from "./PerWindowSqlCipherFacade.js"
 import { ProgrammingError } from "@tutao/app-env"

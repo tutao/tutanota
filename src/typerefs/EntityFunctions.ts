@@ -23,7 +23,7 @@ import { default as sysModelInfo } from "./entities/sys/ModelInfo.js"
 import { default as sysTypeModels } from "./entities/sys/TypeModels.js"
 
 import { isTest, ProgrammingError } from "@tutao/app-env"
-import { ApplicationTypesGetOut } from "./baseTypes"
+import { ApplicationTypesGetOut } from "./customTypes"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number

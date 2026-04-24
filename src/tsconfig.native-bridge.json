@@ -1,0 +1,19 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["native-bridge", "../types/", "types.d.ts"],
+	"exclude": ["native-bridge/dist"],
+	"compilerOptions": {
+		"rootDir": "native-bridge",
+		"outDir": "native-bridge/dist",
+		"tsBuildInfoFile": "native-bridge/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.typerefs.json"
+		},
+		{
+			"path": "tsconfig.app-env.json"
+		}
+	]
+}

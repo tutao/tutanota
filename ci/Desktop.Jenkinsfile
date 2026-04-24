@@ -117,7 +117,7 @@ pipeline {
 								bat "node buildSrc\\getNodeGypLibrary.js @indutny/simple-windows-notifications -e node --copy-target simple-windows-notifications --force-rebuild --root-dir ${WORKSPACE}"
 								// napi-rs rollup plugin expects .node for the package to be next to the entry point
 								// so we stash and unstash it as-is
-								stash includes: 'native-cache/**/*,src/mimimi/dist/*.node', name: 'native_modules'
+								stash includes: 'native-cache/**/*,src/mimimi/napi-out/*.node', name: 'native_modules'
 							}
 						}
 				    	stage("Client") {

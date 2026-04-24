@@ -1,4 +1,4 @@
-import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue } from "./SqlValue.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue } from "../../../../typerefs/SqlValue.js"
 
 /**
  * this tagged template function exists because android doesn't allow us to define SQL functions, so we have made a way to inline

@@ -17,7 +17,7 @@ import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } f
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
+import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge"
 import { DialogType } from "../gui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { styles } from "../gui/styles.js"

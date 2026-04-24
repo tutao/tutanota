@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
 import { errorToString, stringToUtf8Uint8Array } from "@tutao/utils"
-import { DataFile } from "./DataFile"
+import { DataFile } from "@tutao/typerefs"
 
 export const LOG_SIZE = 1000
 

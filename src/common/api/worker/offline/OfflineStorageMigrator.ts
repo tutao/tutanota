@@ -1,6 +1,6 @@
 import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
 import { assertNotNull, last } from "@tutao/utils"
-import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { offline5 } from "./migrations/offline-v5"
 import { offline6 } from "./migrations/offline-v6"

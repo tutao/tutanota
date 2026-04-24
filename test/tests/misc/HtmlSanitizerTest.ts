@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { getCssValueUrls, HtmlSanitizer, parseSrcsetUrls } from "../../../src/common/misc/HtmlSanitizer.js"
-import { createDataFile } from "../../../src/common/api/common/DataFile.js"
+import { createDataFile } from "@tutao/typerefs"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { textIncludes } from "../TestUtils"
 

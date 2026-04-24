@@ -6,7 +6,7 @@ import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import type { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
-import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
+import { BuildConfigKey, DesktopConfigKey } from "../../app-env/ConfigKeys"
 import { FsExports } from "./ElectronExportTypes.js"
 
 /**

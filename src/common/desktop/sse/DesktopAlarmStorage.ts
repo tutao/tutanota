@@ -8,7 +8,7 @@ import {
 	ServerModelUntypedInstance,
 	UntypedInstance,
 } from "@tutao/typerefs"
-import { DesktopConfigKey } from "../config/ConfigKeys"
+import { DesktopConfigKey } from "../../../app-env/ConfigKeys"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
 import { log } from "../DesktopLog"

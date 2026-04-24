@@ -5,7 +5,7 @@ import { SetupPageLayout } from "./SetupPageLayout.js"
 import { NativeContactsSyncManager } from "../../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporter.js"
 import { Dialog } from "../../../../gui/base/Dialog.js"
-import { MobileSystemFacade } from "../../../common/generatedipc/MobileSystemFacade.js"
+import { MobileSystemFacade } from "@tutao/native-bridge"
 import { renderSettingsBannerButton } from "../../../../settings/SettingsBannerButton.js"
 import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../../../subscription/TermsAndConditions"
 

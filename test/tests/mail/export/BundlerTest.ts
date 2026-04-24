@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { downloadMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
-import { DataFile } from "../../../../src/common/api/common/DataFile.js"
+import { DataFile, tutanotaTypeRefs } from "@tutao/typerefs"
 import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
@@ -8,8 +8,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { MailState } from "../../../../src/app-env"
+import { MailState } from "@tutao/app-env"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient

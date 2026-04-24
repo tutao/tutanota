@@ -1,13 +1,12 @@
 import o from "@tutao/otest"
-import { ArchiveDataType, BlobAccessTokenKind } from "../../../../../src/app-env"
+import { ArchiveDataType, BlobAccessTokenKind } from "@tutao/app-env"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, getEtId, getListId, storageTypeRefs, storageServices, tutanotaTypeRefs, sysTypeRefs } from "@tutao/typerefs"
+import { BlobReferencingInstance, getElementId, getEtId, getListId, storageServices, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 
 const { anything, captor } = matchers
 

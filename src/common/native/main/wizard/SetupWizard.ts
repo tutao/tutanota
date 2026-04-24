@@ -10,10 +10,10 @@ import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockP
 import { SystemPermissionHandler } from "../SystemPermissionHandler.js"
 import { WebMobileFacade } from "../WebMobileFacade.js"
 import { ContactImporter } from "../../../../mail-app/contacts/ContactImporter.js"
-import { MobileSystemFacade } from "../../common/generatedipc/MobileSystemFacade.js"
+import { MobileSystemFacade } from "@tutao/native-bridge"
 import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { locator } from "../../../api/main/CommonLocator.js"
-import { PermissionType } from "../../common/generatedipc/PermissionType.js"
+import { PermissionType } from "@tutao/native-bridge"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
 
 export async function showSetupWizard(
