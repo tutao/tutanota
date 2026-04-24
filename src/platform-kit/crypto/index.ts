@@ -1,13 +1,4 @@
 export {
-	aesEncrypt,
-	aesEncryptConfigurationDatabaseItem,
-	aesDecrypt,
-	asyncDecryptBytes,
-	aes256EncryptSearchIndexEntry,
-	aesDecryptUnauthenticated,
-	aes256EncryptSearchIndexEntryWithIV,
-} from "./encryption/Aes.js"
-export {
 	type X25519PrivateKey,
 	type X25519PublicKey,
 	type X25519KeyPair,
@@ -79,23 +70,6 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export {
-	type AbstractEncryptedKeyPair,
-	type EncryptedKeyPairs,
-	type EncryptedPqKeyPairs,
-	type EncryptedRsaKeyPairs,
-	type EncryptedRsaX25519KeyPairs,
-	isEncryptedPqKeyPairs,
-	encryptKey,
-	decryptKey,
-	encryptRsaKey,
-	decryptRsaKey,
-	decryptKeyPair,
-	encryptX25519Key,
-	encryptKyberKey,
-	aes256DecryptWithRecoveryKey,
-	decryptKeyUnauthenticatedWithDeviceKeyChain,
-} from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export {
 	encode,
@@ -154,28 +128,39 @@ export {
 	type AesKey,
 	type Aes128Key,
 	type Aes256Key,
-	IV_BYTE_LENGTH,
-	FIXED_IV,
-	generateIV,
+	INITIALIZATION_VECTOR_LENGTH_BYTES,
+	FIXED_INITIALIZATION_VECTOR,
+	type InitializationVector,
+	type KdfNonce,
+	generateInitializationVector,
+	generateKdfNonce,
+	validateInitializationVectorLength,
+	validateKdfNonceLength,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { AeadFacade, PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
-export * from "./CryptoWrapper.js"
-export { SymmetricKeyDeriver, type SymmetricSubKeys, type AeadSubKeys } from "./encryption/symmetric/SymmetricKeyDeriver.js"
-export type {
-	SymmetricCipherVersion,
-	SymmetricAesCipherVersion,
-	SymmetricAeadCipherVersion,
-	getSymmetricCipherVersion,
-} from "./encryption/symmetric/SymmetricCipherVersion.js"
 export {
-	SymmetricCipherFacade,
-	SYMMETRIC_CIPHER_FACADE,
-	type ValueDecryptor,
-	InstanceDecryptor,
-	MissingSessionKey,
-} from "./encryption/symmetric/SymmetricCipherFacade.js"
+	SymmetricKeyDeriver,
+	type SymmetricSubKeys,
+	type AeadSubKeys,
+	type AeadWithGroupKeySubKeys,
+	type AeadWithSessionKeySubKeys,
+	type AesCbcSubKeys,
+	type AesCbcThenHmacSubKeys,
+	type UnusedReservedUnauthenticatedSubKeys,
+	type InstanceTypeId,
+} from "./encryption/symmetric/SymmetricKeyDeriver.js"
+export {
+	SymmetricCipherVersion,
+	type SymmetricAesCbcCipherVersion,
+	type SymmetricAeadCipherVersion,
+	getSymmetricCipherVersion,
+	type SymmetricCipherVersionAeadWithGroupKey,
+	type SymmetricCipherVersionAeadWithSessionKey,
+	type SymmetricAeadCipherVersionMaybeWithGroupKeyVersion,
+} from "./encryption/symmetric/SymmetricCipherVersion.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
 export * from "./CryptoTypes.js"
+export * from "./encryption/symmetric/ParsedCiphertext.js"

@@ -18,18 +18,15 @@ import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	Aes256Key,
-	aesEncrypt,
 	AesKey,
 	cryptoUtils,
-	CryptoWrapper,
-	decryptKey,
-	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
 	PublicKey,
 	PublicKeyIdentifierType,
 	sha256Hash,
+	validateKdfNonceLength,
 	VersionedEncryptedKey,
 	VersionedKey,
 	X25519PublicKey,
@@ -75,6 +72,9 @@ import {
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
 } from "@tutao/entities/tutanota"
+import { decryptKey, encryptKey } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
+import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 
@@ -91,7 +91,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 		serviceExecutor: IServiceExecutor,
 		instancePipeline: InstancePipeline,
 		private readonly cache: () => Promise<CacheManagementInterface> | null,
-		keyLoaderFacade: KeyLoaderFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly instanceSessionKeysCache: InstanceSessionKeysCache,
@@ -109,9 +109,13 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 	}
 
 	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+		const ownerKey = await ownerKeyProvider?.(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
+	}
+
+	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
-			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+			if (ownerKey && migratedEntity._ownerEncSessionKey) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this.resolveSessionKey(migratedEntity)
@@ -437,7 +441,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 				await this.typeModelResolver.resolveServerTypeReference(instance._type),
 				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
-				instance._kdfNonce ?? null,
+				validateKdfNonceLength(instance._kdfNonce ?? null),
 				instance._ownerGroup ?? null,
 			)
 			decryptedInstance = await this.instancePipeline.modelMapper.mapToInstance(instance._type, parsedInstance)
@@ -744,6 +748,10 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {
 		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
 		await this.serviceExecutor.post(UpdateSessionKeysService, input)
+	}
+
+	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
+		return await this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 	}
 
 	/*************************** Migrations **********************************/

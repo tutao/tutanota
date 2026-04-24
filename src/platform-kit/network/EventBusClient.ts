@@ -38,6 +38,7 @@ import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef
 import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
+import { validateKdfNonceLength } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -418,7 +419,7 @@ export class EventBusClient {
 					serverTypeModel,
 					encryptedParsedInstance,
 					sessionKey,
-					entityAdapter._kdfNonce,
+					validateKdfNonceLength(entityAdapter._kdfNonce),
 					entityAdapter._ownerGroup,
 				)
 
@@ -437,7 +438,7 @@ export class EventBusClient {
 							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobEncryptedParsedInstance,
 							sessionKey,
-							entityAdapter._kdfNonce,
+							validateKdfNonceLength(entityAdapter._kdfNonce),
 							entityAdapter._ownerGroup,
 						)
 						return { parsedInstance, parsedBlobInstance }

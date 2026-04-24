@@ -1,20 +1,24 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import {
-	AesKey,
-	bitArrayToUint8Array,
-	FIXED_IV,
-	IV_BYTE_LENGTH,
-	SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
-	SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
-	uint8ArrayToBitArray,
-} from "./SymmetricCipherUtils"
+import { AesKey, bitArrayToUint8Array, FIXED_INITIALIZATION_VECTOR, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver"
+import { SymmetricSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
+import { ProgrammingError } from "@tutao/app-env"
+import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
+
+export enum AuthenticationEnforcement {
+	Strict,
+	Relaxed,
+}
+
+export enum PaddingStandard {
+	None,
+	Pkcs5,
+}
 
 /**
  * This facade provides the implementation for both encryption and decryption of AES in CBC mode. Supports 128 and 256-bit keys.
@@ -22,32 +26,37 @@ import { MacTag } from "../../CryptoTypes"
  * SymmetricCipherFacade is responsible for handling parameters for encryption/decryption.
  */
 export class AesCbcFacade {
-	constructor(private readonly symmetricKeyDeriver: SymmetricKeyDeriver) {}
+	constructor() {}
 
 	/**
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	encrypt(
-		key: AesKey,
+		subKeys: SymmetricSubKeys,
 		plainText: Uint8Array,
-		mustPrependIv: boolean,
-		iv: Uint8Array,
-		padding: boolean,
+		initializationVector: InitializationVectorSource,
+		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
-		skipAuthenticationEnforcement: boolean = false,
+		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
-		const cipherText = bitArrayToUint8Array(
-			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], padding),
+		this.tryToEnforceAuthentication(subKeys, cipherVersion, authenticationEnforcement)
+		const usePadding = paddingStandard === PaddingStandard.Pkcs5
+		const ciphertext = bitArrayToUint8Array(
+			sjcl.mode.cbc.encrypt(
+				new sjcl.cipher.aes(subKeys.encryptionKey),
+				uint8ArrayToBitArray(plainText),
+				uint8ArrayToBitArray(initializationVector === InitializationVectorVariant.Fixed ? FIXED_INITIALIZATION_VECTOR : initializationVector),
+				[],
+				usePadding,
+			),
 		)
 
 		let unauthenticatedCiphertext
-		if (mustPrependIv) {
-			//version byte is not included into authentication tag for legacy reasons
-			unauthenticatedCiphertext = concat(iv, cipherText)
+		if (initializationVector === InitializationVectorVariant.Fixed) {
+			unauthenticatedCiphertext = ciphertext
 		} else {
-			unauthenticatedCiphertext = cipherText
+			//version byte is not included into authentication tag for legacy reasons
+			unauthenticatedCiphertext = concat(initializationVector, ciphertext)
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -67,37 +76,20 @@ export class AesCbcFacade {
 	 */
 	decrypt(
 		subKeys: SymmetricSubKeys,
-		cipherText: Uint8Array,
-		ivIsPrepended: boolean,
-		padding: boolean,
-		cipherVersion: SymmetricCipherVersion,
-		skipAuthenticationEnforcement: boolean = false,
+		parsedCiphertext: ParsedCiphertextAesCbc,
+		paddingStandard: PaddingStandard,
+		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
-		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
-		let cipherTextWithoutMacAndVersionByte: Uint8Array
-		switch (cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				cipherTextWithoutMacAndVersionByte = cipherText
-				break
-			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const authenticationKey = assertNotNull(subKeys.authenticationKey)
-				let providedMacBytes
-				;({ cipherTextWithoutMacAndVersionByte, providedMacBytes } = this.extractMacAndCipherText(cipherText))
-				verifyHmacSha256(authenticationKey, cipherTextWithoutMacAndVersionByte, providedMacBytes as MacTag)
-				break
-			}
-			default:
-				throw new Error("unexpected cipher version " + cipherVersion)
-		}
-		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
+		this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256)
+		const usePadding = paddingStandard === PaddingStandard.Pkcs5
 		try {
 			return bitArrayToUint8Array(
 				sjcl.mode.cbc.decrypt(
 					new sjcl.cipher.aes(subKeys.encryptionKey),
-					uint8ArrayToBitArray(aesCbcCiphertext),
-					uint8ArrayToBitArray(iv),
+					uint8ArrayToBitArray(parsedCiphertext.ciphertext),
+					uint8ArrayToBitArray(parsedCiphertext.initializationVector),
 					[],
-					padding,
+					usePadding,
 				),
 			)
 		} catch (e) {
@@ -107,67 +99,48 @@ export class AesCbcFacade {
 
 	async decryptAsync(
 		subKeys: SymmetricSubKeys,
-		cipherText: Uint8Array,
-		ivIsPrepended: boolean,
-		cipherVersion: SymmetricCipherVersion,
-		skipAuthenticationEnforcement: boolean = false,
+		parsedCiphertext: ParsedCiphertextAesCbc,
+		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Promise<Uint8Array> {
-		const subtle = crypto.subtle
-
-		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
-		let cipherTextWithoutMacAndVersionByte: Uint8Array
-		switch (cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				cipherTextWithoutMacAndVersionByte = cipherText
-				break
-			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const authenticationKey = assertNotNull(subKeys.authenticationKey)
-				let providedMacBytes
-				;({ cipherTextWithoutMacAndVersionByte, providedMacBytes } = this.extractMacAndCipherText(cipherText))
-				await verifyHmacSha256Async(authenticationKey, cipherTextWithoutMacAndVersionByte, providedMacBytes)
-				break
-			}
-			default:
-				throw new Error("unexpected cipher version " + cipherVersion)
-		}
-		let { iv, aesCbcCiphertext } = this.getIvAndCipherText(ivIsPrepended, cipherTextWithoutMacAndVersionByte)
+		await this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256Async)
 		try {
-			const encryptionKey = await subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
-			return new Uint8Array(await subtle.decrypt({ name: "AES-CBC", iv }, encryptionKey, aesCbcCiphertext))
+			const encryptionKey = await crypto.subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			return new Uint8Array(
+				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector }, encryptionKey, parsedCiphertext.ciphertext),
+			)
 		} catch (e) {
 			throw new CryptoError("aes decryption failed", e as Error)
 		}
 	}
 
-	private extractMacAndCipherText(cipherText: Uint8Array): {
-		cipherTextWithoutMacAndVersionByte: Uint8Array
-		providedMacBytes: MacTag
-	} {
-		const cipherTextWithoutMacAndVersionByte = cipherText.subarray(
-			SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
-			cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
-		)
-		const providedMacBytes = cipherText.subarray(cipherText.length - SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, cipherText.length) as MacTag
-		return { cipherTextWithoutMacAndVersionByte, providedMacBytes }
-	}
-
-	private getIvAndCipherText(ivIsPrepended: boolean, cipherTextWithoutMacAndVersionByte: Uint8Array) {
-		let iv: Uint8Array
-		let aesCbcCiphertext: Uint8Array
-		if (ivIsPrepended) {
-			iv = cipherTextWithoutMacAndVersionByte.subarray(0, IV_BYTE_LENGTH)
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte.subarray(IV_BYTE_LENGTH, cipherTextWithoutMacAndVersionByte.length)
-		} else {
-			iv = FIXED_IV
-			aesCbcCiphertext = cipherTextWithoutMacAndVersionByte
+	private authenticate<T>(
+		subKeys: SymmetricSubKeys,
+		parsedCiphertext: ParsedCiphertextAesCbc,
+		authenticationEnforcement: AuthenticationEnforcement,
+		verifyHmac: (key: AesKey, data: Uint8Array, tag: MacTag) => T,
+	): T | undefined {
+		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
+		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
+			const verifiableCiphertext = this.assembleVerifiableCiphertext(parsedCiphertext)
+			return verifyHmac(subKeys.authenticationKey, verifiableCiphertext, parsedCiphertext.macTag)
+		} else if (parsedCiphertext.cipherVersion !== subKeys.cipherVersion) {
+			throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
 		}
-		return { iv, aesCbcCiphertext }
+		return undefined
 	}
 
-	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, skipAuthenticationEnforcement: boolean) {
+	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {
+		if (parsedCiphertext.initializationVectorVariant === InitializationVectorVariant.Random) {
+			return concat(parsedCiphertext.initializationVector, parsedCiphertext.ciphertext)
+		} else {
+			return parsedCiphertext.ciphertext
+		}
+	}
+
+	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
-			if (skipAuthenticationEnforcement) {
+			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {
 				// we accept unauthenticated decryption for exceptions such as the search index
 				return
 			} else {
@@ -186,4 +159,4 @@ export class AesCbcFacade {
 	}
 }
 
-export const AES_CBC_FACADE = new AesCbcFacade(SYMMETRIC_KEY_DERIVER)
+export const AES_CBC_FACADE = new AesCbcFacade()

@@ -90,6 +90,8 @@ import { SystemKeysReturnTypeRef } from "./TypeRefs.js"
 import { TakeOverDeletedAddressDataTypeRef } from "./TypeRefs.js"
 import { TimelockCaptchaGetInTypeRef } from "./TypeRefs.js"
 import { TimelockCaptchaGetOutTypeRef } from "./TypeRefs.js"
+import { UpdateKdfNoncePostInTypeRef } from "./TypeRefs.js"
+import { UpdateKdfNoncePostOutTypeRef } from "./TypeRefs.js"
 import { UpdatePermissionKeyDataTypeRef } from "./TypeRefs.js"
 import { UpdateSessionKeysPostInTypeRef } from "./TypeRefs.js"
 import { UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
@@ -538,6 +540,15 @@ export const TimelockCaptchaService = Object.freeze({
 	name: "TimelockCaptchaService",
 	get: { data: TimelockCaptchaGetInTypeRef, return: TimelockCaptchaGetOutTypeRef },
 	post: null,
+	put: null,
+	delete: null,
+} as const)
+
+export const UpdateKdfNonceService = Object.freeze({
+	app: "sys",
+	name: "UpdateKdfNonceService",
+	get: null,
+	post: { data: UpdateKdfNoncePostInTypeRef, return: UpdateKdfNoncePostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)

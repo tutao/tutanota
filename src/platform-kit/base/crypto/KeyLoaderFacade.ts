@@ -3,11 +3,7 @@ import {
 	AesKey,
 	AsymmetricKeyPair,
 	cryptoUtils,
-	CryptoWrapper,
-	decryptKey,
-	decryptKeyPair,
 	Ed25519PrivateKey,
-	EncryptedKeyPairs,
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -23,6 +19,8 @@ import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/
 import { GroupType } from "../../../entities/sys/Utils"
 import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
+import { decryptKey, decryptKeyPair, EncryptedKeyPairs } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))

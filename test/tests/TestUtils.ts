@@ -4,7 +4,7 @@ import { DbFacade, DbTransaction } from "../../src/applications/common/api/worke
 import { assertNotNull, deepEqual, defer, isNotNull, Thunk, typedEntries } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import { Aes256Key, aes256RandomKey, FIXED_IV, SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../src/platform-kit/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
@@ -34,6 +34,7 @@ import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/sea
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
+import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -54,7 +55,7 @@ export function makeCore(
 	const { transaction } = safeArgs
 	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
 	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
-	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), iv: FIXED_IV })
+	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR })
 	const { db, browserData } = {
 		...{ db: defaultDb, browserData: browserDataStub },
 		...safeArgs,

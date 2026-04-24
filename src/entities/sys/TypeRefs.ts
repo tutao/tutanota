@@ -4269,3 +4269,47 @@ export type RenewalPreferenceServicePostIn = {
 	isEnabled: boolean;
 	customerId: Id;
 }
+export const InstanceKdfNonceTypeRef: TypeRef<InstanceKdfNonce> = new TypeRef("sys", 2746)
+
+export function createInstanceKdfNonce(values: StrippedEntity<InstanceKdfNonce>): InstanceKdfNonce {
+    return Object.assign(create(typeModels[InstanceKdfNonceTypeRef.typeId], InstanceKdfNonceTypeRef), values)
+}
+
+export type InstanceKdfNonce = {
+	_type: TypeRef<InstanceKdfNonce>;
+	_original?: InstanceKdfNonce
+
+	_id: Id;
+	instanceList: null | Id;
+	instanceId: Id;
+	kdfNonce: Uint8Array;
+
+	typeInfo: TypeInfo;
+}
+export const UpdateKdfNoncePostInTypeRef: TypeRef<UpdateKdfNoncePostIn> = new TypeRef("sys", 2752)
+
+export function createUpdateKdfNoncePostIn(values: StrippedEntity<UpdateKdfNoncePostIn>): UpdateKdfNoncePostIn {
+    return Object.assign(create(typeModels[UpdateKdfNoncePostInTypeRef.typeId], UpdateKdfNoncePostInTypeRef), values)
+}
+
+export type UpdateKdfNoncePostIn = {
+	_type: TypeRef<UpdateKdfNoncePostIn>;
+	_original?: UpdateKdfNoncePostIn
+
+	_format: NumberString;
+
+	instanceKdfNonce: InstanceKdfNonce;
+}
+export const UpdateKdfNoncePostOutTypeRef: TypeRef<UpdateKdfNoncePostOut> = new TypeRef("sys", 2755)
+
+export function createUpdateKdfNoncePostOut(values: StrippedEntity<UpdateKdfNoncePostOut>): UpdateKdfNoncePostOut {
+    return Object.assign(create(typeModels[UpdateKdfNoncePostOutTypeRef.typeId], UpdateKdfNoncePostOutTypeRef), values)
+}
+
+export type UpdateKdfNoncePostOut = {
+	_type: TypeRef<UpdateKdfNoncePostOut>;
+	_original?: UpdateKdfNoncePostOut
+
+	_format: NumberString;
+	kdfNonce: Uint8Array;
+}

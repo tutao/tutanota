@@ -734,6 +734,7 @@ export enum RolloutType {
 	AdminOrUserGroupKeyRotation = "2",
 	OtherGroupKeyRotation = "3",
 	GroupKeyUpdatePending = "4",
+	EncryptionOfAttributesViaAead = "5",
 }
 
 export enum DeactivationReason {

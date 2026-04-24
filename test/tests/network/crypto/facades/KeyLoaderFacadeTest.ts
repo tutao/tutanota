@@ -4,13 +4,8 @@ import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.j
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
 import {
 	aes256RandomKey,
-	aesEncrypt,
 	AesKey,
 	cryptoUtils,
-	CryptoWrapper,
-	encryptKey,
-	encryptRsaKey,
-	encryptX25519Key,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
@@ -43,6 +38,9 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { encryptKey, encryptRsaKey, encryptX25519Key } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

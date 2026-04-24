@@ -233,6 +233,10 @@ import "./utils/LazyLoadedTest.js"
 import "./utils/CsvTest.js"
 import "./utils/TokenizerTest.js"
 import "./app-env/TimeConstants.js"
+import "./crypto/InstanceDecryptorTest.js"
+import "./crypto/ParsedCiphertextTest.js"
+import "./crypto/ValueDecryptorTest.js"
+import "./crypto/SubKeyProviderTest.js"
 
 import * as td from "testdouble"
 import { Mode } from "../../src/platform-kit/app-env"
@@ -262,7 +266,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	}
 
 	if (typeof process !== "undefined") {
-		// setup the Entropy for all testcases
+		// set up the Entropy for all testcases
 
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")

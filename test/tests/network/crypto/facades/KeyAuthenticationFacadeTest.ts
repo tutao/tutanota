@@ -11,7 +11,6 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	cryptoUtils,
-	CryptoWrapper,
 	Ed25519PublicKey,
 	KeyPairType,
 	KyberPublicKey,
@@ -19,6 +18,7 @@ import {
 } from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible

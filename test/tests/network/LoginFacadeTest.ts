@@ -4,12 +4,10 @@ import td, { instance, matchers, object, when } from "testdouble"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
-	_encryptString,
 	aes256RandomKey,
 	AesKey,
 	AesKeyLength,
 	createAuthVerifier,
-	encryptKey,
 	getKeyLengthInBytes,
 	keyToUint8Array,
 	sha256Hash,
@@ -54,6 +52,8 @@ import {
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/crypto/Constants.js"
 import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
+import { encryptKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { _encryptString } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 

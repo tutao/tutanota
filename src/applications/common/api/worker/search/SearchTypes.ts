@@ -1,6 +1,6 @@
 import type { TypeInfo } from "../../common/utils/IndexUtils"
 import { TypeRef } from "@tutao/meta"
-import { Aes256Key } from "@tutao/crypto"
+import { Aes256Key, InitializationVector } from "@tutao/crypto"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { GroupType } from "../../../../../entities/sys/Utils"
 // db types
@@ -11,7 +11,7 @@ import { GroupType } from "../../../../../entities/sys/Utils"
 export type EncryptedSearchIndexEntry = Uint8Array
 
 /**
- * Binary encoded EncryptedSearchIndexEntries SearchIndexEncoding).
+ * Binary encoded EncryptedSearchIndexEntries SearchIndexEncoding.
  */
 export type SearchIndexDbRow = Uint8Array
 export type SearchIndexMetaDataDbRow = {
@@ -98,7 +98,7 @@ export type IndexUpdate = {
 
 export interface DbEncryptionData {
 	key: Aes256Key
-	iv: Uint8Array
+	initializationVector: InitializationVector
 }
 
 export type SearchIndexMetaDataRow = {

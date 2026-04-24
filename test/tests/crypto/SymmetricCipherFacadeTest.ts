@@ -1,7 +1,6 @@
-import o, { assertThrows } from "@tutao/otest"
-import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
+import o from "@tutao/otest"
+import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
-import { MissingSessionKey, SymmetricCipherFacade, ValueDecryptor } from "@tutao/crypto/symmetric-cipher-facade"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	AeadFacade,
@@ -9,30 +8,35 @@ import {
 	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
-	FIXED_IV,
-	IV_BYTE_LENGTH,
+	AesCbcThenHmacSubKeys,
+	FIXED_INITIALIZATION_VECTOR,
+	InitializationVector,
 	keyToUint8Array,
+	MacTag,
 	SymmetricKeyDeriver,
-	SymmetricSubKeys,
+	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
-import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { concat } from "../../../src/platform-kit/utils"
+import { InitializationVectorVariant, ParsedCiphertextAesCbc } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
+import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
 
-o.spec("SymmetricCipherFacade", function () {
-	const customIv = object<Uint8Array>()
+o.spec("SymmetricCipherFacadeTest", function () {
+	const customInitializationVector = object<InitializationVector>()
 
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
 	let aeadFacade: AeadFacade
 	let symmetricKeyDeriver: SymmetricKeyDeriver
 	let aes256Key: Aes256Key
-	let plainText: Uint8Array
+	let plaintext: Uint8Array
 	let aes128Key: Aes128Key
 	let keyToEncrypt_128: Aes128Key
 	let keyToEncrypt_256: Aes256Key
-	let aes128SubKeys: SymmetricSubKeys
-	let aes256SubKeys: SymmetricSubKeys
+	let aes128SubKeys: AesCbcThenHmacSubKeys
+	let aes256SubKeys: AesCbcThenHmacSubKeys
+	let macTag: MacTag
+	let initializationVector: InitializationVector
 	o.beforeEach(function () {
 		aesCbcFacade = object()
 		aeadFacade = object()
@@ -40,54 +44,148 @@ o.spec("SymmetricCipherFacade", function () {
 		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver)
 		aes256Key = aes256RandomKey()
 		aes128Key = _aes128RandomKey()
-		aes128SubKeys = { encryptionKey: _aes128RandomKey(), authenticationKey: _aes128RandomKey() }
-		aes256SubKeys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+		aes128SubKeys = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, encryptionKey: _aes128RandomKey(), authenticationKey: _aes128RandomKey() }
+		aes256SubKeys = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
 		when(symmetricKeyDeriver.deriveSubKeys(aes128Key, matchers.anything())).thenReturn(aes128SubKeys)
 		when(symmetricKeyDeriver.deriveSubKeys(aes256Key, matchers.anything())).thenReturn(aes256SubKeys)
-		plainText = keyToUint8Array(aes256RandomKey()) // just 32 random bytes
+		plaintext = keyToUint8Array(aes256RandomKey()) // just 32 random bytes
 		keyToEncrypt_128 = _aes128RandomKey()
 		keyToEncrypt_256 = aes256RandomKey()
+		macTag = new Uint8Array(32) as MacTag
+		initializationVector = validateInitializationVectorLength(new Uint8Array(16))
 	})
 	o.spec("Encrypt/decrypt bytes", function () {
 		o("encryptBytes", function () {
-			symmetricCipherFacade.encryptBytes(aes256Key, plainText)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, matchers.anything(), true, SymmetricCipherVersion.AesCbcThenHmac, false))
+			symmetricCipherFacade.encryptBytes(aes256Key, plaintext)
+			verify(
+				aesCbcFacade.encrypt(
+					aes256SubKeys,
+					plaintext,
+					matchers.argThat((arg) => arg instanceof Uint8Array),
+					PaddingStandard.Pkcs5,
+					SymmetricCipherVersion.AesCbcThenHmac,
+					AuthenticationEnforcement.Strict,
+				),
+			)
+		})
+		o("encryptBytes with sub-keys", function () {
+			symmetricCipherFacade.encryptBytes(aes256SubKeys, plaintext)
+			verify(
+				aesCbcFacade.encrypt(
+					aes256SubKeys,
+					plaintext,
+					matchers.argThat((arg) => arg instanceof Uint8Array),
+					PaddingStandard.Pkcs5,
+					SymmetricCipherVersion.AesCbcThenHmac,
+					AuthenticationEnforcement.Strict,
+				),
+			)
 		})
 		o("encryptBytesDeprecatedUnauthenticated", function () {
-			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticated(aes256Key, plainText)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, matchers.anything(), true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
+			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticated(aes256Key, plaintext)
+			verify(
+				aesCbcFacade.encrypt(
+					aes256SubKeys,
+					plaintext,
+					matchers.argThat((arg) => arg instanceof Uint8Array),
+					PaddingStandard.Pkcs5,
+					SymmetricCipherVersion.UnusedReservedUnauthenticated,
+					AuthenticationEnforcement.Relaxed,
+				),
+			)
 		})
-		o("encryptBytesDeprecatedCustomIv", function () {
-			symmetricCipherFacade.encryptBytesDeprecatedCustomIv(aes256Key, plainText, customIv)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, customIv, true, SymmetricCipherVersion.AesCbcThenHmac))
+		o("encryptBytesDeprecatedCustomInitializationVector", function () {
+			symmetricCipherFacade.encryptBytesDeprecatedCustomInitializationVector(aes256Key, plaintext, customInitializationVector)
+			verify(aesCbcFacade.encrypt(aes256SubKeys, plaintext, customInitializationVector, PaddingStandard.Pkcs5, SymmetricCipherVersion.AesCbcThenHmac))
 		})
-		o("encryptBytesDeprecatedUnauthenticatedCustomIv", function () {
-			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticatedCustomIv(aes256Key, plainText, customIv)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, customIv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
+		o("encryptBytesDeprecatedUnauthenticatedCustomInitializationVector", function () {
+			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(aes256Key, plaintext, customInitializationVector)
+			verify(
+				aesCbcFacade.encrypt(
+					aes256SubKeys,
+					plaintext,
+					customInitializationVector,
+					PaddingStandard.Pkcs5,
+					SymmetricCipherVersion.UnusedReservedUnauthenticated,
+					AuthenticationEnforcement.Relaxed,
+				),
+			)
 		})
 		o("decryptBytes 128", function () {
-			const ciphertext = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), new Uint8Array([1, 2]))
-			when(aesCbcFacade.decrypt(aes128SubKeys, ciphertext, true, true, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn(plainText)
-			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes128Key, ciphertext)
-			o(decryptedBytes).equals(plainText)
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				macTag,
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+				macTag,
+			)
+			when(aesCbcFacade.decrypt(aes128SubKeys, parsedCiphertext, PaddingStandard.Pkcs5, AuthenticationEnforcement.Strict)).thenReturn(plaintext)
+			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes128Key, versionedCiphertext)
+			o(decryptedBytes).equals(plaintext)
 		})
 		o("decryptBytes 128 no mac", function () {
-			const ciphertext = new Uint8Array([1, 2])
-			when(aesCbcFacade.decrypt(aes128SubKeys, ciphertext, true, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, false)).thenReturn(plainText)
-			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes128Key, ciphertext)
-			o(decryptedBytes).equals(plainText)
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+			)
+			when(aesCbcFacade.decrypt(aes128SubKeys, parsedCiphertext, PaddingStandard.Pkcs5, AuthenticationEnforcement.Strict)).thenReturn(plaintext)
+			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes128Key, versionedCiphertext)
+			o(decryptedBytes).equals(plaintext)
 		})
 		o("decryptBytes 256", function () {
-			const ciphertext = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), new Uint8Array([1, 2]))
-			when(aesCbcFacade.decrypt(aes256SubKeys, ciphertext, true, true, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn(plainText)
-			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes256Key, ciphertext)
-			o(decryptedBytes).equals(plainText)
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				macTag,
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+				macTag,
+			)
+			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.Pkcs5, AuthenticationEnforcement.Strict)).thenReturn(plaintext)
+			const decryptedBytes = symmetricCipherFacade.decryptBytes(aes256Key, versionedCiphertext)
+			o(decryptedBytes).equals(plaintext)
 		})
 		o("decryptBytesDeprecatedUnauthenticated 256 no mac succeeds", async function () {
-			const ciphertext = new Uint8Array([1, 2])
-			when(aesCbcFacade.decrypt(aes256SubKeys, ciphertext, true, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)).thenReturn(plainText)
-			const decryptedBytes = symmetricCipherFacade.decryptBytesDeprecatedUnauthenticated(aes256Key, ciphertext)
-			o(decryptedBytes).equals(plainText)
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+			)
+			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.Pkcs5, AuthenticationEnforcement.Relaxed)).thenReturn(plaintext)
+			const decryptedBytes = symmetricCipherFacade.decryptBytesDeprecatedUnauthenticated(aes256Key, versionedCiphertext)
+			o(decryptedBytes).equals(plaintext)
+		})
+		o("encrypt bytes with Aead", () => {
+			const subKeys: AeadSubKeys = object()
+			const associatedData = Uint8Array.from("associatedData")
+			const ciphertext = Uint8Array.from("ciphertext")
+			when(aeadFacade.encrypt(subKeys, plaintext, associatedData)).thenReturn(ciphertext)
+			const encryptedPlaintext = symmetricCipherFacade.encryptBytesWithAead(subKeys, plaintext, associatedData)
+			o.check(encryptedPlaintext).deepEquals(ciphertext)
 		})
 	})
 	o.spec("Encrypt/Decrypt key", function () {
@@ -95,152 +193,94 @@ o.spec("SymmetricCipherFacade", function () {
 			symmetricCipherFacade.encryptKey(aes128Key, keyToEncrypt_128)
 			verify(
 				aesCbcFacade.encrypt(
-					aes128Key,
+					aes128SubKeys,
 					keyToUint8Array(keyToEncrypt_128),
-					false,
-					Uint8Array.from(FIXED_IV),
-					false,
+					InitializationVectorVariant.Fixed,
+					PaddingStandard.None,
 					SymmetricCipherVersion.UnusedReservedUnauthenticated,
-					false,
+					AuthenticationEnforcement.Strict,
 				),
 			)
 		})
 		o("decryptKey 128", function () {
 			// we never encrypted keys with aes 128-bit keys as encryption key with a mac. so no additional test needed
-			const ciphertext = new Uint8Array([1, 2])
-			when(aesCbcFacade.decrypt(aes128SubKeys, ciphertext, false, false, SymmetricCipherVersion.UnusedReservedUnauthenticated, false)).thenReturn(
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				initializationVector: FIXED_INITIALIZATION_VECTOR,
+				ciphertext: new Uint8Array([1, 2]),
+				initializationVectorVariant: InitializationVectorVariant.Fixed,
+			}
+			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), parsedCiphertext.ciphertext)
+			when(aesCbcFacade.decrypt(aes128SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Strict)).thenReturn(
 				keyToUint8Array(keyToEncrypt_128),
 			)
-			const decryptedKey = symmetricCipherFacade.decryptKey(aes128Key, ciphertext)
+			const decryptedKey = symmetricCipherFacade.decryptKey(aes128Key, versionedCiphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_128)
 		})
 		o("encryptKey 256", function () {
 			symmetricCipherFacade.encryptKey(aes256Key, keyToEncrypt_256)
 			verify(
 				aesCbcFacade.encrypt(
-					aes256Key,
+					aes256SubKeys,
 					keyToUint8Array(keyToEncrypt_256),
-					true,
-					matchers.anything(),
-					false,
+					matchers.argThat((arg) => arg instanceof Uint8Array),
+					PaddingStandard.None,
 					SymmetricCipherVersion.AesCbcThenHmac,
-					false,
+					AuthenticationEnforcement.Strict,
 				),
 			)
 		})
 		o("decryptKey 256", function () {
-			const ciphertext = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), new Uint8Array([1, 2]))
-			when(aesCbcFacade.decrypt(aes256SubKeys, ciphertext, true, false, SymmetricCipherVersion.AesCbcThenHmac, false)).thenReturn(
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				macTag,
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+				macTag,
+			)
+			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Strict)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
-			const decryptedKey = symmetricCipherFacade.decryptKey(aes256Key, ciphertext)
+			const decryptedKey = symmetricCipherFacade.decryptKey(aes256Key, versionedCiphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_256)
 		})
 		o("decryptKeyDeprecatedUnauthenticated 256 no mac succeeds", function () {
-			const ciphertext = new Uint8Array([1, 2])
-			when(aesCbcFacade.decrypt(aes256SubKeys, ciphertext, true, false, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)).thenReturn(
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				initializationVector,
+				ciphertext: new Uint8Array([1, 2]),
+				initializationVectorVariant: InitializationVectorVariant.Random,
+			}
+			const versionedCiphertext = concat(
+				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+				initializationVector,
+				parsedCiphertext.ciphertext,
+			)
+
+			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Relaxed)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
-			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticated(aes256Key, ciphertext)
+			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticated(aes256Key, versionedCiphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_256)
 		})
-		o("decryptKeyDeprecatedUnauthenticatedFixedIv 256 no mac and no iv (fixed) succeeds", function () {
-			const ciphertext = new Uint8Array([1, 2])
-			when(aesCbcFacade.decrypt(aes256SubKeys, ciphertext, false, false, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)).thenReturn(
+		o("decryptKeyDeprecatedUnauthenticatedFixedInitializationVector 256 no mac and no initialization vector (fixed) succeeds", function () {
+			const parsedCiphertext: ParsedCiphertextAesCbc = {
+				cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				initializationVector: FIXED_INITIALIZATION_VECTOR,
+				ciphertext: new Uint8Array([1, 2]),
+				initializationVectorVariant: InitializationVectorVariant.Fixed,
+			}
+			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Relaxed)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
-			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticatedFixedIv(aes256Key, ciphertext)
+			const decryptedKey = symmetricCipherFacade.decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(aes256Key, parsedCiphertext.ciphertext)
 			o(decryptedKey).deepEquals(keyToEncrypt_256)
-		})
-	})
-	o.spec("ValueDecryptor", () => {
-		o.test("AesCbc with session key present", () => {
-			for (const cipherVersion of [SymmetricCipherVersion.UnusedReservedUnauthenticated, SymmetricCipherVersion.AesCbcThenHmac]) {
-				const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, "")
-				const ciphertext = Uint8Array.of(cipherVersion)
-				const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-				o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")
-				valueDecryptor.getValue(null)
-				const plaintext = stringToUtf8Uint8Array("AesCbc with session key present plaintext")
-				when(aesCbcFacade.decrypt(matchers.anything(), ciphertext, true, true, cipherVersion)).thenReturn(plaintext)
-				o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
-			}
-		})
-		o.test("AesCbc with session key missing", () => {
-			for (const cipherVersion of [SymmetricCipherVersion.UnusedReservedUnauthenticated, SymmetricCipherVersion.AesCbcThenHmac]) {
-				const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, "")
-				const ciphertext = Uint8Array.of(cipherVersion)
-				const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "")
-				o.check(valueDecryptor).equals(MissingSessionKey)
-			}
-		})
-		o.test("AeadWithGroupKey", async () => {
-			const kdfNonce = new Uint8Array(IV_BYTE_LENGTH)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, "")
-			const keyVersionLengthByte = 0
-			const groupKeyVersion = 0
-			const ciphertext = Uint8Array.of(SymmetricCipherVersion.AeadWithGroupKey, keyVersionLengthByte, groupKeyVersion)
-			const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			o.check(valueDecryptor.requiredGroupKeyVersion).equals(groupKeyVersion)
-			await assertThrows(CryptoError, async () => valueDecryptor.getValue(null))
-			const plaintext = stringToUtf8Uint8Array("AeadWithGroupKey plaintext")
-			when(aeadFacade.decrypt(matchers.anything(), ciphertext, matchers.anything())).thenReturn(plaintext)
-			o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
-		})
-		o.test("AeadWithSessionKey with session key present", () => {
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, "")
-			const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
-			const ciphertext = Uint8Array.of(cipherVersion)
-			const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")
-			valueDecryptor.getValue(null)
-			const plaintext = stringToUtf8Uint8Array("AeadWithSessionKey with session key present plaintext")
-			when(aeadFacade.decrypt(matchers.anything(), ciphertext, matchers.anything())).thenReturn(plaintext)
-			o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
-		})
-		o.test("AeadWithSessionKey with session key missing", () => {
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, "")
-			const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
-			const ciphertext = Uint8Array.of(cipherVersion)
-			const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "")
-			o.check(valueDecryptor).equals(MissingSessionKey)
-		})
-	})
-	o.spec("InstanceDecryptor", () => {
-		o.test("Aes sub-keys get cached", () => {
-			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-			const differentAes256Key = aes256RandomKey()
-			when(symmetricKeyDeriver.deriveSubKeys(differentAes256Key, cipherVersion)).thenReturn(aes256SubKeys)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(differentAes256Key, null, "")
-			const ciphertext = Uint8Array.of(cipherVersion)
-			const firstValueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			verify(symmetricKeyDeriver.deriveSubKeys(differentAes256Key, cipherVersion), { times: 0 })
-			firstValueDecryptor.getValue(differentAes256Key)
-			verify(symmetricKeyDeriver.deriveSubKeys(differentAes256Key, cipherVersion), { times: 1 })
-			o.check(instanceDecryptor["instanceAesSubKeyCache"].get({ cipherVersion: cipherVersion, aesKey: differentAes256Key })).equals(aes256SubKeys)
-			const secondValueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			secondValueDecryptor.getValue(differentAes256Key)
-			verify(symmetricKeyDeriver.deriveSubKeys(differentAes256Key, cipherVersion), { times: 1 })
-		})
-		o.test("Aead sub-keys get cached", () => {
-			const differentAes256Key = aes256RandomKey()
-			const kdfNonce = new Uint8Array(IV_BYTE_LENGTH)
-			when(symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(differentAes256Key, kdfNonce, matchers.anything())).thenReturn(aes256SubKeys as AeadSubKeys)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, "")
-			const keyVersionLengthByte = 0
-			const groupKeyVersion = 42
-			const cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
-			const ciphertext = Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion)
-			const firstValueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			verify(symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(differentAes256Key, kdfNonce, matchers.anything()), { times: 0 })
-			firstValueDecryptor.getValue(differentAes256Key)
-			verify(symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(differentAes256Key, kdfNonce, matchers.anything()), { times: 1 })
-			o.check(instanceDecryptor["instanceAeadSubKeyCache"].get({ cipherVersion: cipherVersion, aesKey: differentAes256Key })).equals(
-				aes256SubKeys as AeadSubKeys,
-			)
-			const secondValueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-			secondValueDecryptor.getValue(differentAes256Key)
-			verify(symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(differentAes256Key, kdfNonce, matchers.anything()), { times: 1 })
 		})
 	})
 })

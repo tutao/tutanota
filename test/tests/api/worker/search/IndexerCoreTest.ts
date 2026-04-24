@@ -20,7 +20,7 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXED_IV } from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, InitializationVector } from "../../../../../src/platform-kit/crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -39,17 +39,23 @@ import {
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
 } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
+import { aesDecryptUnauthenticated, aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 
-function makeEntries(key: Aes256Key, iv: Uint8Array, n: number, baseTimestamp: number = 0): Array<EncSearchIndexEntryWithTimestamp> {
+function makeEntries(
+	key: Aes256Key,
+	initializationVector: InitializationVector,
+	n: number,
+	baseTimestamp: number = 0,
+): Array<EncSearchIndexEntryWithTimestamp> {
 	const newEntries: EncSearchIndexEntryWithTimestamp[] = []
 
 	for (let i = 0; i < n; i++) {
 		const timestamp = baseTimestamp + i
 		const instanceIdB64 = timestampToGeneratedId(timestamp)
-		const encId = encryptIndexKeyUint8Array(key, instanceIdB64, iv)
+		const encId = encryptIndexKeyUint8Array(key, instanceIdB64, initializationVector)
 		newEntries.push({
 			entry: concat(encId, new Uint8Array(0)),
 			timestamp,
@@ -65,13 +71,13 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 
 o.spec("IndexerCore", () => {
 	let key: Aes256Key
-	let iv: Uint8Array
+	let initializationVector: InitializationVector
 	let encryptionData: DbEncryptionData
 
 	o.beforeEach(function () {
 		key = aes256RandomKey()
-		iv = FIXED_IV
-		encryptionData = { key, iv }
+		initializationVector = FIXED_INITIALIZATION_VECTOR
+		encryptionData = { key, initializationVector }
 	})
 
 	o.test("createIndexEntriesForAttributes", async function () {
@@ -166,28 +172,28 @@ o.spec("IndexerCore", () => {
 
 		await core.encryptSearchIndexEntries(instanceId, ownerGroupId, keyToIndexEntries, indexUpdate)
 		o.check(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-		const encIdB64 = encryptIndexKeyBase64(key, elementIdPart(instanceId), iv)
+		const encIdB64 = encryptIndexKeyBase64(key, elementIdPart(instanceId), initializationVector)
 		let elementData: ElementDataSurrogate = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encIdB64))
 		const { listId, encWordsB64, ownerGroup } = elementData
 		o.check(listId).equals(listIdPart(instanceId))
-		const wordB = decryptIndexKey(key, base64ToUint8Array(encWordsB64[1]), iv)
+		const wordB = decryptIndexKey(key, base64ToUint8Array(encWordsB64[1]), initializationVector)
 		o.check(wordB).equals("b")
 		o.check(ownerGroupId).equals(ownerGroup)
 		o.check(indexUpdate.create.indexMap.size).equals(2)
-		const aKey = encryptIndexKeyBase64(key, "a", iv)
+		const aKey = encryptIndexKeyBase64(key, "a", initializationVector)
 		let encEntriesA: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(aKey))
 		o.check(encEntriesA.length).equals(1)
-		let entry: any = decryptSearchIndexEntry(key, encEntriesA[0].entry, iv)
+		let entry: any = decryptSearchIndexEntry(key, encEntriesA[0].entry, initializationVector)
 		delete entry.encId
 		o.check(entry).deepEquals({
 			id: elementIdPart(instanceId),
 			attribute: 5,
 			positions: [0],
 		})
-		const bKey = encryptIndexKeyBase64(key, "b", iv)
+		const bKey = encryptIndexKeyBase64(key, "b", initializationVector)
 		const encEntriesB: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(bKey))
 		o.check(encEntriesB.length).equals(1)
-		let entry2: any = decryptSearchIndexEntry(key, encEntriesB[0].entry, iv)
+		let entry2: any = decryptSearchIndexEntry(key, encEntriesB[0].entry, initializationVector)
 		delete entry2.encId
 		o.check(entry2).deepEquals({
 			id: elementIdPart(instanceId),
@@ -210,23 +216,23 @@ o.spec("IndexerCore", () => {
 		])
 		await core.encryptSearchIndexEntries(id2, ownerGroupId, keyToIndexEntries2, indexUpdate)
 		o.check(indexUpdate.create.encInstanceIdToElementData.size).equals(2)
-		const yKey = encryptIndexKeyBase64(key, elementIdPart(id2), iv)
+		const yKey = encryptIndexKeyBase64(key, elementIdPart(id2), initializationVector)
 		let elementData2: ElementDataSurrogate = neverNull(indexUpdate.create.encInstanceIdToElementData.get(yKey))
 		let listId2 = elementData2.listId
 		o.check(listId2).equals(id2[0])
-		let words2 = decryptIndexKey(key, base64ToUint8Array(elementData2.encWordsB64[0]), iv)
+		let words2 = decryptIndexKey(key, base64ToUint8Array(elementData2.encWordsB64[0]), initializationVector)
 		o.check(words2).equals("a")
 		o.check(ownerGroupId).equals(elementData2.ownerGroup)
-		encEntriesA = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(key, "a", iv)))
+		encEntriesA = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(key, "a", initializationVector)))
 		o.check(encEntriesA.length).equals(2)
-		entry = downcast(decryptSearchIndexEntry(key, encEntriesA[0].entry, iv))
+		entry = downcast(decryptSearchIndexEntry(key, encEntriesA[0].entry, initializationVector))
 		delete entry.encId
 		o.check(entry).deepEquals({
 			id: elementIdPart(instanceId),
 			attribute: 5,
 			positions: [0],
 		})
-		const newEntry: any = decryptSearchIndexEntry(key, encEntriesA[1].entry, iv)
+		const newEntry: any = decryptSearchIndexEntry(key, encEntriesA[1].entry, initializationVector)
 		delete newEntry.encId
 		o.check(newEntry).deepEquals({
 			id: elementIdPart(id2),
@@ -361,7 +367,7 @@ o.spec("IndexerCore", () => {
 				},
 			],
 		})
-		// Reminder: you cannot match on encrypted data, IV is random!
+		// Reminder: you cannot match on encrypted data, the initialization vector is random!
 		const metaPutInvocation = transaction.put.invocations[1]
 		o.check(JSON.stringify([metaPutInvocation[0], metaPutInvocation[1], decryptMetaData(key, metaPutInvocation[2])])).equals(
 			JSON.stringify([SearchIndexMetaDataOS, null, expectedMeta]),
@@ -570,7 +576,7 @@ o.spec("IndexerCore", () => {
 		})
 		o.test("add older entities to a new row", async function () {
 			// 50 entries go to the existing row, everything else goes to the new row
-			const newEntries: Array<EncSearchIndexEntryWithTimestamp> = makeEntries(key, iv, 200)
+			const newEntries: Array<EncSearchIndexEntryWithTimestamp> = makeEntries(key, initializationVector, 200)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -592,7 +598,7 @@ o.spec("IndexerCore", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 800, 150).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, initializationVector, 800, 150).map((e) => e.entry))
 			await transaction.put(SearchIndexOS, 1, existingRow)
 			await transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			const newKey = 3
@@ -621,7 +627,7 @@ o.spec("IndexerCore", () => {
 			o.check(decryptedMeta).deepEquals(searchIndexMeta)
 		})
 		o.test("add newer entities to the end", async function () {
-			const newEntries = makeEntries(key, iv, 200, 201)
+			const newEntries = makeEntries(key, initializationVector, 200, 201)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -643,7 +649,7 @@ o.spec("IndexerCore", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 600, 100).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, initializationVector, 600, 100).map((e) => e.entry))
 			transaction.put(SearchIndexOS, 1, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
@@ -659,7 +665,7 @@ o.spec("IndexerCore", () => {
 			o.check(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
 		})
 		o.test("add newer entities to the existing row in the beginning", async function () {
-			const newEntries = makeEntries(key, iv, 200, 201)
+			const newEntries = makeEntries(key, initializationVector, 200, 201)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -681,7 +687,7 @@ o.spec("IndexerCore", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 600, 100).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, initializationVector, 600, 100).map((e) => e.entry))
 			transaction.put(SearchIndexOS, 1, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
@@ -699,7 +705,7 @@ o.spec("IndexerCore", () => {
 		})
 		o.test("split row", async function () {
 			// Split the row.
-			const newEntries = makeEntries(key, iv, 250, 2001)
+			const newEntries = makeEntries(key, initializationVector, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -735,7 +741,7 @@ o.spec("IndexerCore", () => {
 					},
 				],
 			}
-			const existingEntries = makeEntries(key, iv, 800, 2000)
+			const existingEntries = makeEntries(key, initializationVector, 800, 2000)
 			const existingRow = appendBinaryBlocks(existingEntries.map((e) => e.entry).reverse())
 			transaction.put(SearchIndexOS, 3, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
@@ -787,7 +793,7 @@ o.spec("IndexerCore", () => {
 		})
 		o.test("split last row", async function () {
 			// Split the row.
-			const newEntries = makeEntries(key, iv, 250, 2001)
+			const newEntries = makeEntries(key, initializationVector, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -816,7 +822,7 @@ o.spec("IndexerCore", () => {
 					},
 				],
 			}
-			const existingEntries = makeEntries(key, iv, 800, 2000)
+			const existingEntries = makeEntries(key, initializationVector, 800, 2000)
 			const existingRow = appendBinaryBlocks(existingEntries.map((e) => e.entry).reverse())
 			transaction.put(SearchIndexOS, 3, existingRow)
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
@@ -860,7 +866,7 @@ o.spec("IndexerCore", () => {
 			o.check(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 		o.test("split for big new row", async function () {
-			const newEntries = makeEntries(key, iv, 2500, 2001)
+			const newEntries = makeEntries(key, initializationVector, 2500, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -1017,7 +1023,7 @@ o.spec("IndexerCore", () => {
 			transaction,
 			encryptionData,
 		})
-		const encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
+		const encInstanceId = encryptIndexKeyBase64(key, instanceId, initializationVector)
 		const listId = "list-id"
 		const elementData: ElementDataDbRow = [listId, aesEncrypt(key, new Uint8Array([metaRowId, anotherMetaRowId])), groupId]
 		const otherId = new Uint8Array(16).fill(88)
@@ -1069,7 +1075,7 @@ o.spec("IndexerCore", () => {
 			encryptionData,
 			transaction,
 		})
-		let encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
+		let encInstanceId = encryptIndexKeyBase64(key, instanceId, initializationVector)
 		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o.check(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o.check(indexUpdate.delete.encInstanceIds.length).equals(0)
@@ -1083,7 +1089,7 @@ o.spec("IndexerCore", () => {
 		const core = makeCore({
 			encryptionData: {
 				key: aes256RandomKey(),
-				iv: FIXED_IV,
+				initializationVector: FIXED_INITIALIZATION_VECTOR,
 			},
 			transaction: {
 				createTransaction: () => deferred.promise,

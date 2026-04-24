@@ -341,12 +341,12 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	private async findIndexEntries(searchResult: SearchResult, maxResults: number | null | undefined): Promise<KeyToEncryptedIndexEntries[]> {
 		const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 		const firstSearchTokenInfo = searchResult.lastReadSearchIndexRow[0]
-		const { key, iv } = await this.db.encryptionData()
+		const { key, initializationVector } = await this.db.encryptionData()
 		// First read all metadata to narrow time range we search in.
 		return this.db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS]).then((transaction) => {
 			return this.promiseMapCompat(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
 				const [searchToken] = tokenInfo
-				let indexKey = encryptIndexKeyBase64(key, searchToken, iv)
+				let indexKey = encryptIndexKeyBase64(key, searchToken, initializationVector)
 				return transaction.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
 					if (!metaData) {
 						tokenInfo[1] = 0 // "we've read all" (because we don't have anything
@@ -524,11 +524,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	}
 
 	private async decryptSearchResult(results: KeyToEncryptedIndexEntries[]): Promise<KeyToIndexEntries[]> {
-		const { key, iv } = await this.db.encryptionData()
+		const { key, initializationVector } = await this.db.encryptionData()
 		return results.map((searchResult) => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map((entry) => decryptSearchIndexEntry(key, entry.encEntry, iv)),
+				indexEntries: searchResult.indexEntries.map((entry) => decryptSearchIndexEntry(key, entry.encEntry, initializationVector)),
 			}
 		})
 	}

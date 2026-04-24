@@ -24,15 +24,9 @@ import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.
 import {
 	Aes256Key,
 	aes256RandomKey,
-	aesDecrypt,
-	aesEncrypt,
 	AesKey,
 	bitArrayToUint8Array,
 	cryptoUtils,
-	CryptoWrapper,
-	decryptKey,
-	encryptKey,
-	encryptRsaKey,
 	generateX25519KeyPair,
 	KeyPairType,
 	keyToUint8Array,
@@ -107,6 +101,9 @@ import {
 import { InstanceSessionKeysCache } from "../../../../src/app-kit/local-store/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
+import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesDecrypt, aesEncrypt } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { CryptoWrapper } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 

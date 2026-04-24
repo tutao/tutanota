@@ -6454,3 +6454,65 @@ impl Entity for RenewalPreferenceServicePostIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKdfNonce {
+	#[serde(rename = "2747")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2749")]
+	pub instanceList: Option<GeneratedId>,
+	#[serde(rename = "2750")]
+	pub instanceId: GeneratedId,
+	#[serde(rename = "2751")]
+	#[serde(with = "serde_bytes")]
+	pub kdfNonce: Vec<u8>,
+	#[serde(rename = "2748")]
+	pub typeInfo: TypeInfo,
+}
+
+impl Entity for InstanceKdfNonce {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2746),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UpdateKdfNoncePostIn {
+	#[serde(rename = "2753")]
+	pub _format: i64,
+	#[serde(rename = "2754")]
+	pub instanceKdfNonce: InstanceKdfNonce,
+}
+
+impl Entity for UpdateKdfNoncePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2752),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UpdateKdfNoncePostOut {
+	#[serde(rename = "2756")]
+	pub _format: i64,
+	#[serde(rename = "2757")]
+	#[serde(with = "serde_bytes")]
+	pub kdfNonce: Vec<u8>,
+}
+
+impl Entity for UpdateKdfNoncePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2755),
+		}
+	}
+}

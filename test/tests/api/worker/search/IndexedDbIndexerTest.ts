@@ -8,7 +8,7 @@ import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUti
 import { EventQueue, QueuedBatch } from "../../../../../src/platform-kit/network/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/applications/common/api/common/error/MembershipRemovedError.js"
 import { defer, downcast, freshVersioned, promiseMap } from "../../../../../src/platform-kit/utils"
-import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, InitializationVector, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
@@ -27,6 +27,8 @@ import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instanc
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { decryptKey, encryptKey } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {
@@ -60,7 +62,7 @@ o.spec("IndexedDbIndexer", () => {
 	let core: IndexerCore
 	let entityClient: EntityClient
 	let key: Aes256Key
-	let iv: Uint8Array
+	let initializationVector: InitializationVector
 	let infoMessageHandler: InfoMessageHandler
 	let clientTypeModelResolver: ClientTypeModelResolver
 	let indexerTemplate: IndexedDbIndexer
@@ -68,7 +70,7 @@ o.spec("IndexedDbIndexer", () => {
 	o.beforeEach(function () {
 		clientTypeModelResolver = makePopulatedClientModelInfo()
 		key = aes256RandomKey()
-		iv = FIXED_IV
+		initializationVector = FIXED_INITIALIZATION_VECTOR
 		mailIndexer = object()
 		;(mailIndexer as Writeable<MailIndexer>).mailIndexingEnabled = false
 
@@ -176,7 +178,7 @@ o.spec("IndexedDbIndexer", () => {
 		o.test("init existing db no errors", async function () {
 			let userGroupKey = freshVersioned(aes256RandomKey())
 			let dbKey = aes256RandomKey()
-			let encDbIv = aesEncrypt(dbKey, FIXED_IV)
+			let encDbIv = aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR)
 			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
 
@@ -215,7 +217,7 @@ o.spec("IndexedDbIndexer", () => {
 			let dbKey = aes256RandomKey()
 			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
-			let encDbIv = aesEncrypt(dbKey, FIXED_IV)
+			let encDbIv = aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR)
 			const t = await idbStub.createTransaction()
 			t.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey)
 			t.put(MetaDataOS, Metadata.userGroupKeyVersion, userGroupKeyVersion)
@@ -560,7 +562,7 @@ o.spec("IndexedDbIndexer", () => {
 				}),
 			})
 
-			dbWithStub.init({ key, iv })
+			dbWithStub.init({ key, initializationVector })
 			const indexer = mock(indexerTemplate, (indexerMock) => {
 				indexerMock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
 				indexerMock._initParams = {
@@ -605,7 +607,7 @@ o.spec("IndexedDbIndexer", () => {
 			const transaction = await idbStub.createTransaction()
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
-			dbWithStub.init({ key, iv })
+			dbWithStub.init({ key, initializationVector })
 			let indexer = indexerTemplate
 
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
@@ -641,7 +643,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			const processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
 
-			dbWithStub.init({ key, iv })
+			dbWithStub.init({ key, initializationVector })
 			let indexer = mock(indexerTemplate, (mock) => {
 				mock._processEntityEvents = processEntityEvents
 			})
@@ -660,7 +662,7 @@ o.spec("IndexedDbIndexer", () => {
 				],
 			})
 
-			dbWithStub.init({ key, iv })
+			dbWithStub.init({ key, initializationVector })
 			const indexer = mock(indexerTemplate, (mock) => {
 				mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
 				mock._initParams = {

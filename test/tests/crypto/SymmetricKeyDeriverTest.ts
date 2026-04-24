@@ -1,16 +1,34 @@
 import o from "@tutao/otest"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
-import { aes256RandomKey, AesKeyLength, getKeyLengthInBytes, keyToUint8Array, sha256Hash, sha512Hash, uint8ArrayToKey } from "../../../src/platform-kit/crypto"
+import {
+	Aes128Key,
+	Aes256Key,
+	aes256RandomKey,
+	AesKeyLength,
+	getKeyLengthInBytes,
+	keyToUint8Array,
+	sha256Hash,
+	sha512Hash,
+	uint8ArrayToKey,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { _aes128RandomKey } from "./AesTest.js"
+import { generateKdfNonce, KdfNonce } from "@tutao/crypto/symmetric-cipher-utils"
+import { freshVersioned } from "../../../src/platform-kit/utils"
+import { AppNameEnum } from "../../../src/platform-kit/meta"
 
 o.spec("SymmetricKeyDeriverTest", function () {
 	const symmetricKeyDeriver: SymmetricKeyDeriver = new SymmetricKeyDeriver()
-	let aes256Key
-	let aes128Key
+	let aes256Key: Aes256Key
+	let aes128Key: Aes128Key
+	let versionedAes256Key: VersionedKey
+	let versionedAes128Key: VersionedKey
 	o.before(function () {
 		aes256Key = aes256RandomKey()
 		aes128Key = _aes128RandomKey()
+		versionedAes256Key = freshVersioned(aes256Key)
+		versionedAes128Key = freshVersioned(aes128Key)
 	})
 	o.spec("unusedReservedUnauthenticated", function () {
 		o("aes 128", function () {
@@ -48,35 +66,38 @@ o.spec("SymmetricKeyDeriverTest", function () {
 	})
 
 	o.spec("AEAD", function () {
-		const globalMailTypeId = "tutanota/97"
-		let kdfNonce: Uint8Array
+		const instanceTypeId = {
+			applicationName: AppNameEnum.Tutanota,
+			typeId: 97,
+		}
+		let kdfNonce: KdfNonce
 		o.beforeEach(function () {
-			kdfNonce = keyToUint8Array(aes256RandomKey()) //get 32 random bytes
+			kdfNonce = generateKdfNonce()
 		})
 
 		o.test("derive from group key and nonce is reproducible", function () {
-			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
-			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedAes256Key, kdfNonce, instanceTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedAes256Key, kdfNonce, instanceTypeId)
 			o.check(derivedKeys).deepEquals(derivedKeysSecond)
 		})
 
 		o.test("derive from group key and nonce is reproducible for legacy 128bit group key", function () {
-			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes128Key, kdfNonce, globalMailTypeId)
-			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes128Key, kdfNonce, globalMailTypeId)
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedAes128Key, kdfNonce, instanceTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedAes128Key, kdfNonce, instanceTypeId)
 			o.check(derivedKeys).deepEquals(derivedKeysSecond)
 		})
 
 		o.test("derive from session key is reproducible", function () {
-			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
-			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
+			const derivedKeys = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, instanceTypeId)
+			const derivedKeysSecond = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, instanceTypeId)
 			o.check(derivedKeys).deepEquals(derivedKeysSecond)
 		})
 
 		o.test("domain separation between key derivations", function () {
-			const derivedKeysGroupKey = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(aes256Key, kdfNonce, globalMailTypeId)
-			const derivedKeysSessionkey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, globalMailTypeId)
-			o.check(derivedKeysGroupKey.encryptionKey).notDeepEquals(derivedKeysSessionkey.encryptionKey)
-			o.check(derivedKeysGroupKey.authenticationKey).notDeepEquals(derivedKeysSessionkey.authenticationKey)
+			const derivedKeysGroupKey = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedAes256Key, kdfNonce, instanceTypeId)
+			const derivedKeysSessionKey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(aes256Key, instanceTypeId)
+			o.check(derivedKeysGroupKey.encryptionKey).notDeepEquals(derivedKeysSessionKey.encryptionKey)
+			o.check(derivedKeysGroupKey.authenticationKey).notDeepEquals(derivedKeysSessionKey.authenticationKey)
 		})
 	})
 })

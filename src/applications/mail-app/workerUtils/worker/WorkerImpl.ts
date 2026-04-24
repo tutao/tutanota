@@ -16,7 +16,7 @@ import { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { CryptoWrapper, random } from "../../../../platform-kit/crypto"
+import {  random } from "../../../../platform-kit/crypto"
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Commands, Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
@@ -51,7 +51,7 @@ import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { NamedClientModel } from "@tutao/instance-pipeline"
+import { CryptoWrapper, NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()

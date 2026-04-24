@@ -83,7 +83,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 						await identityKeyCreator.createIdentityKeyPairForExistingUsers()
 					} catch (error) {
 						console.log("error when creating user identity key pair", error)
-						this.sendError(error)
+						void this.sendError(error)
 					}
 				},
 			}
@@ -98,7 +98,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 						await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroups)
 					} catch (error) {
 						console.log(`error when creating shared mailbox identity key pairs`, error)
-						this.sendError(error)
+						void this.sendError(error)
 					}
 				},
 			}
@@ -112,7 +112,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 						await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
 					} catch (error) {
 						console.log("error when processing a pending group key update", error)
-						this.sendError(error)
+						void this.sendError(error)
 					}
 				},
 			}
@@ -124,6 +124,14 @@ export class EventBusEventCoordinator implements EventBusListener {
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
 		}
+
+		const useAead = {
+			execute: async () => {
+				this.userFacade.useAeadEncryption()
+			},
+		}
+		await this.rolloutFacade.configureRollout(RolloutType.EncryptionOfAttributesViaAead, useAead)
+		await this.rolloutFacade.processRollout(RolloutType.EncryptionOfAttributesViaAead)
 	}
 
 	onOperationStatusUpdate(update: OperationStatusUpdate) {

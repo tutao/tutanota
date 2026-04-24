@@ -1,14 +1,14 @@
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
 import { assertNotNull, hexToUint8Array, uint8ArrayToHex } from "@tutao/utils"
-import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa.js"
-import type { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "./RsaKeyPair.js"
-import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "./Liboqs/KyberKeyPair.js"
-import { X25519PrivateKey } from "./X25519.js"
-import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
-import type { PQKeyPairs } from "./PQKeyPairs.js"
-import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils.js"
-import { AesKeyLength, getKeyLengthInBytes } from "./symmetric/AesKeyLength.js"
-import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
+import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "../../crypto/encryption/Rsa.js"
+import type { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "../../crypto/encryption/RsaKeyPair.js"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "../../crypto/encryption/Liboqs/KyberKeyPair.js"
+import { X25519PrivateKey } from "../../crypto/encryption/X25519.js"
+import { AsymmetricKeyPair, KeyPairType } from "../../crypto/encryption/AsymmetricKeyPair.js"
+import type { PQKeyPairs } from "../../crypto/encryption/PQKeyPairs.js"
+import { Aes256Key, AesKey } from "../../crypto/encryption/symmetric/SymmetricCipherUtils.js"
+import { AesKeyLength, getKeyLengthInBytes } from "../../crypto/encryption/symmetric/AesKeyLength.js"
+import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
 
@@ -79,9 +79,9 @@ export function decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encr
 }
 
 export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
-	// legacy case: recovery code with fixed IV and without mac
+	// legacy case: recovery code with fixed initialization vector and without mac
 	if (keyToBeDecrypted.length === getKeyLengthInBytes(AesKeyLength.Aes128)) {
-		return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticatedFixedIv(encryptionKey, keyToBeDecrypted)
+		return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(encryptionKey, keyToBeDecrypted)
 	} else {
 		return decryptKey(encryptionKey, keyToBeDecrypted)
 	}
@@ -92,11 +92,11 @@ export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey):
 }
 
 export function encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
-	return aesEncrypt(encryptionKey, privateKey) // passing IV as undefined here is fine, as it will generate a new one for each encryption
+	return aesEncrypt(encryptionKey, privateKey) // passing the initialization vector as undefined here is fine, as it will generate a new one for each encryption
 }
 
 export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
-	return aesEncrypt(encryptionKey, kyberPrivateKeyToBytes(privateKey)) // passing IV as undefined here is fine, as it will generate a new one for each encryption
+	return aesEncrypt(encryptionKey, kyberPrivateKeyToBytes(privateKey)) // passing the initialization vector as undefined here is fine, as it will generate a new one for each encryption
 }
 
 export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8Array): RsaPrivateKey {

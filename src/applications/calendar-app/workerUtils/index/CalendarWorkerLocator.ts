@@ -54,7 +54,6 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../../../../platform-kit/crypto"
 import { DateProvider, lazyAsync, lazyMemoized, noOp } from "../../../../platform-kit/utils"
 import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
@@ -75,10 +74,12 @@ import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/crypto/AsymmetricCryptoFacade.js"
 import {
 	ApplicationTypesFacade,
+	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
+	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -114,6 +115,7 @@ import { Challenge, UserTypeRef } from "@tutao/entities/sys"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { random } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -560,7 +562,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.cryptoWrapper,
 		)
 	})
-	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher, random)
+	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(

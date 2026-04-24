@@ -1,17 +1,11 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, concat } from "../../../src/platform-kit/utils"
 import {
-	aes256DecryptWithRecoveryKey,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
 	bitArrayToUint8Array,
-	decryptKey,
-	decryptKeyUnauthenticatedWithDeviceKeyChain,
-	decryptRsaKey,
-	encryptKey,
-	encryptRsaKey,
-	FIXED_IV,
+	FIXED_INITIALIZATION_VECTOR,
 	hexToRsaPrivateKey,
 	keyToUint8Array,
 	uint8ArrayToBitArray,
@@ -20,6 +14,14 @@ import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
 import sjcl from "@tutao/crypto/sjcl"
+import {
+	aes256DecryptWithRecoveryKey,
+	decryptKey,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
+	decryptRsaKey,
+	encryptKey,
+	encryptRsaKey,
+} from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =
@@ -37,7 +39,7 @@ o.spec("key encryption", function () {
 	o("encrypt / decrypt private rsa key with aes128", function () {
 		const gk = [3957386659, 354339016, 3786337319, 3366334248]
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
-		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
+		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
 		o(encryptedPrivateKey.length % 2).equals(1) // make sure a mac is present
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
@@ -46,7 +48,7 @@ o.spec("key encryption", function () {
 	o("encrypt / decrypt private rsa key with aes256", function () {
 		const gk = aes256RandomKey()
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
-		const iv = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
+		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
 		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
@@ -62,7 +64,7 @@ o.spec("key encryption", function () {
 		o(key).deepEquals(decryptedKey)("The round trip works")
 	})
 
-	o("encrypt / decrypt legacy recovery code with fixed iv aes256", function () {
+	o("encrypt / decrypt legacy recovery code with fixed initialization vector aes256", function () {
 		const key = _aes128RandomKey()
 		const encryptionKey = aes256RandomKey()
 
@@ -72,14 +74,14 @@ o.spec("key encryption", function () {
 		o(key).deepEquals(decryptedKey)("decrypting legacy recovery code")
 	})
 
-	o("encrypt / decrypt legacy recovery code without fixed iv aes256", function () {
+	o("encrypt / decrypt legacy recovery code without fixed initialization vector aes256", function () {
 		const key = _aes128RandomKey()
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = encryptKey(encryptionKey, key)
 		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
-		o(key).deepEquals(decryptedKey)("decrypting recovery code (with random IV and mac, but no padding)")
+		o(key).deepEquals(decryptedKey)("decrypting recovery code (with random initialization vector and mac, but no padding)")
 	})
 
 	o("encrypt / decrypt key with device / key chain key", function () {
@@ -104,19 +106,19 @@ o.spec("key encryption", function () {
 })
 
 function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
-	const iv = _aes128RandomKey()
-	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey), keyToBeEncrypted, iv, [], false)
-	return concat(bitArrayToUint8Array(iv), bitArrayToUint8Array(encryptedBits))
+	const initializationVector = _aes128RandomKey()
+	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey), keyToBeEncrypted, initializationVector, [], false)
+	return concat(bitArrayToUint8Array(initializationVector), bitArrayToUint8Array(encryptedBits))
 }
 
 //Do not use outside this test!!!
-//No padding, no mac, fixed IV
+//No padding, no mac, fixed initialization vector
 function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
 	const subKeys = new SymmetricKeyDeriver().deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
 	const encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey),
 		uint8ArrayToBitArray(bytes),
-		uint8ArrayToBitArray(FIXED_IV),
+		uint8ArrayToBitArray(FIXED_INITIALIZATION_VECTOR),
 		[],
 		false,
 	)

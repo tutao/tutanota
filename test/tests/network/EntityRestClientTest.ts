@@ -1,4 +1,4 @@
-import o, { assertThrows } from "@tutao/otest"
+import o, { assertThrows, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
@@ -8,6 +8,7 @@ import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
+	arrayEquals,
 	assertNotNull,
 	base64ToUint8Array,
 	deepEqual,
@@ -24,7 +25,14 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, CryptoWrapper, decryptKey, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	generateKdfNonce,
+	KdfNonce,
+	SymmetricCipherVersion,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade"
@@ -47,10 +55,24 @@ import {
 } from "@tutao/entities/tutanota"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "@tutao/entities/storage"
 import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
-import { AccountingInfoTypeRef, createPatchList, CustomerTypeRef, GroupMemberTypeRef, PatchListTypeRef, sysModelInfo } from "@tutao/entities/sys"
+import {
+	AccountingInfoTypeRef,
+	createPatchList,
+	CustomerTypeRef,
+	GroupMemberTypeRef,
+	PatchListTypeRef,
+	sysModelInfo,
+	UpdateKdfNoncePostIn,
+	UpdateKdfNoncePostOutTypeRef,
+	UpdateKdfNonceService,
+} from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+import { SubKeyInfo } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/encryption/SubKeyProvider"
+import { SymmetricEncryptionScheme } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { decryptKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
-const { anything, argThat, captor } = matchers
+const { anything, argThat } = matchers
 
 const accessToken = "My cool access token"
 const authHeader = {
@@ -82,6 +104,8 @@ function groupMembers(count) {
 	return createArrayOf(count, groupMemberFactory)
 }
 
+type TestLoggedInUserProvider = LoggedInUserProvider & { encryptionScheme: SymmetricEncryptionScheme }
+
 o.spec("EntityRestClient", function () {
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
@@ -97,6 +121,8 @@ o.spec("EntityRestClient", function () {
 	let currentDebuggingStatus
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
+	let loggedInUserProvider: TestLoggedInUserProvider
+	let serviceExecutor: ServiceExecutor
 
 	async function typeRefToRestPath(typeRef: TypeRef<unknown>): Promise<string> {
 		return typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
@@ -118,11 +144,12 @@ o.spec("EntityRestClient", function () {
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, 0)).thenResolve(ownerGroupKey.object)
 
 		fullyLoggedIn = true
+		serviceExecutor = instance(ServiceExecutor)
 		cryptoFacadePartialStub = new CryptoFacade(
 			instance(UserFacade),
 			instance(EntityClient),
 			instance(RestClient),
-			instance(ServiceExecutor),
+			serviceExecutor,
 			instancePipeline,
 			async () => object<CacheManagementInterface>(),
 			keyLoaderFacadeMock,
@@ -136,21 +163,25 @@ o.spec("EntityRestClient", function () {
 				noOp()
 			},
 		)
-		cryptoFacadePartialStub.resolveSessionKey = async (instance: Entity): Promise<Nullable<AesKey>> => {
+		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk
 		}
 
-		const authDataProvider: LoggedInUserProvider = downcast({
+		loggedInUserProvider = downcast({
+			encryptionScheme: SymmetricEncryptionScheme.AesCbc,
 			createAuthHeaders(): Dict {
 				return authHeader
 			},
 			isFullyLoggedIn(): boolean {
 				return fullyLoggedIn
 			},
+			getDefaultSymmetricEncryptionScheme(): SymmetricEncryptionScheme {
+				return this.encryptionScheme
+			},
 		})
 
 		entityRestClient = new EntityRestClient(
-			authDataProvider,
+			loggedInUserProvider,
 			restClient,
 			() => cryptoFacadePartialStub,
 			instancePipeline,
@@ -831,6 +862,87 @@ o.spec("EntityRestClient", function () {
 			o(result).equals(resultId)
 		})
 
+		o("Setup generates a random KDF nonce if encrypting with AeadWithGroupKey", async function () {
+			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const newCalendar = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
+				PersistenceResourcePostReturnTypeRef,
+				persistentPostReturn,
+				null,
+			)
+			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
+				JSON.stringify(untypedPersistentPostReturn),
+			)
+
+			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+
+			o.check(newCalendar._kdfNonce).equals(null)
+			await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+			o.check(newCalendar._kdfNonce).notEquals(null)
+
+			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
+			const subKeyInfo: SubKeyInfo = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+				throw new Error()
+			}
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
+		})
+
+		o("Setup overwrites KDF nonce with a random one if encrypting with AeadWithGroupKey", async function () {
+			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const newCalendar = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
+				PersistenceResourcePostReturnTypeRef,
+				persistentPostReturn,
+				null,
+			)
+			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
+				JSON.stringify(untypedPersistentPostReturn),
+			)
+
+			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+
+			const originalKdfNonce = new Uint8Array(33) as KdfNonce // not length 32 so that it's not equal to the randomly generated one
+			newCalendar._kdfNonce = originalKdfNonce
+
+			await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+
+			o.check(arrayEquals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
+
+			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
+			const subKeyInfo: SubKeyInfo = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+				throw new Error()
+			}
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
+		})
+
 		o("Setup list entity throws when no listid is passed", async function () {
 			const newContact = createTestEntity(ContactTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact))
@@ -905,7 +1017,7 @@ o.spec("EntityRestClient", function () {
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const typeModel = await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef)
-			const { version, dependsOnVersion } = typeModel
+			const { version } = typeModel
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
 				_id: "id1",
@@ -1066,10 +1178,6 @@ o.spec("EntityRestClient", function () {
 		o("Post multiple: An error is encountered for part of the request, only failed entities are returned in the result", async function () {
 			const newGroupMembers = groupMembers(400)
 			const resultIds = countFrom(0, 400).map(String)
-			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
-			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
-				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
-			})
 
 			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
 				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
@@ -1222,12 +1330,7 @@ o.spec("EntityRestClient", function () {
 			newAccountingInfo._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 
 			when(restClient.request(anything(), anything(), anything())).thenResolve(null)
-			await entityRestClient.update(newAccountingInfo, {
-				ownerKeyProvider: async (version: KeyVersion) => {
-					o(version).equals(ownerGroupKey.version)
-					return ownerGroupKey.object
-				},
-			})
+			await entityRestClient.update(newAccountingInfo, { ownerKey: ownerGroupKey })
 
 			verify(
 				restClient.request(
@@ -1256,6 +1359,164 @@ o.spec("EntityRestClient", function () {
 					}),
 				),
 			)
+		})
+
+		o("Update creates new KDF nonce when it is missing and required", async function () {
+			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			calendarEvent._kdfNonce = null
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
+				PersistenceResourcePostReturnTypeRef,
+				persistentPostReturn,
+				null,
+			)
+			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
+				JSON.stringify(untypedPersistentPostReturn),
+			)
+
+			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
+
+			calendarEvent._original = structuredClone(calendarEvent)
+			calendarEvent.summary = "totally different"
+			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
+
+			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenDo((_: any, postIn: UpdateKdfNoncePostIn) =>
+				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: postIn.instanceKdfNonce.kdfNonce }),
+			)
+
+			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+
+			o.check(calendarEvent._kdfNonce).notEquals(null)
+
+			let clientTypeModel = await typeModelResolver.resolveClientTypeReference(calendarEvent._type)
+
+			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
+			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
+			o.check(clientTypeModel).deepEquals(invocation[0])
+			const subKeyInfo: SubKeyInfo = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+				throw new Error()
+			}
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
+		})
+
+		o("Update accepts KDF nonce from the server when trying to create a new one", async function () {
+			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			calendarEvent._kdfNonce = null
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
+				PersistenceResourcePostReturnTypeRef,
+				persistentPostReturn,
+				null,
+			)
+			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
+				JSON.stringify(untypedPersistentPostReturn),
+			)
+
+			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
+
+			calendarEvent._original = structuredClone(calendarEvent)
+			calendarEvent.summary = "totally different"
+			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
+
+			let kdfNonce = generateKdfNonce()
+
+			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenResolve(
+				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
+			)
+
+			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+
+			o.check(calendarEvent._kdfNonce).notEquals(null)
+
+			let clientTypeModel = await typeModelResolver.resolveClientTypeReference(calendarEvent._type)
+
+			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
+			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
+			o.check(clientTypeModel).deepEquals(invocation[0])
+			const subKeyInfo: SubKeyInfo = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+				throw new Error()
+			}
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, kdfNonce)).equals(true)
+		})
+
+		o("Update does not overwrite KDF nonce", async function () {
+			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const originalKdfNonce = generateKdfNonce()
+			calendarEvent._kdfNonce = originalKdfNonce
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
+				PersistenceResourcePostReturnTypeRef,
+				persistentPostReturn,
+				null,
+			)
+			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
+				JSON.stringify(untypedPersistentPostReturn),
+			)
+
+			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
+
+			calendarEvent._original = structuredClone(calendarEvent)
+			calendarEvent.summary = "totally different"
+			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
+
+			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+
+			verify(serviceExecutor.post(UpdateKdfNonceService, matchers.anything()), { times: 0 })
+
+			o.check(arrayEquals(calendarEvent._kdfNonce, originalKdfNonce)).equals(true)
+
+			let clientTypeModel = await typeModelResolver.resolveClientTypeReference(calendarEvent._type)
+
+			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
+			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
+			o.check(clientTypeModel).deepEquals(invocation[0])
+			const subKeyInfo: SubKeyInfo = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+				throw new Error()
+			}
+			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
 		})
 	})
 
@@ -1356,7 +1617,7 @@ o.spec("EntityRestClient", function () {
 				evictCacheCallCount += 1
 			}
 			await doBlobRequestWithRetry(doBlobRequest, evictCache).catch(
-				ofClass(restError.NotAuthorizedError, (e) => {
+				ofClass(restError.NotAuthorizedError, (_) => {
 					errorThrown += 1 // must be thrown
 				}),
 			)

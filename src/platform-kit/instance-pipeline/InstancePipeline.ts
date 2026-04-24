@@ -3,14 +3,19 @@ import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, lazy, Nullable } from "@tutao/utils"
-import { AesKey, SymmetricCipherFacade } from "@tutao/crypto"
+import { AesKey, SymmetricCipherVersion, validateKdfNonceLength } from "@tutao/crypto"
 import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
+import { SubKeyInfo } from "./instance-pipeline-crypto/encryption/SubKeyProvider"
+import { SymmetricCipherFacade } from "./instance-pipeline-crypto/SymmetricCipherFacade"
 
 assertWorkerOrNode()
 
+function isSubKeyInfo(sessionKeyOrSubKeyInfo: Promise<Nullable<AesKey>> | Nullable<AesKey> | SubKeyInfo): sessionKeyOrSubKeyInfo is SubKeyInfo {
+	return sessionKeyOrSubKeyInfo != null && (sessionKeyOrSubKeyInfo as SubKeyInfo)?.cipherVersion !== undefined
+}
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper
 	readonly cryptoMapper: CryptoMapper
@@ -39,14 +44,25 @@ export class InstancePipeline {
 	async mapAndEncrypt<T extends Entity>(
 		typeRef: TypeRef<T>,
 		instance: T,
-		sk: Promise<Nullable<AesKey>> | Nullable<AesKey>,
+		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
+	): Promise<ClientModelUntypedInstance>
+	async mapAndEncrypt<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance>
+	async mapAndEncrypt<T extends Entity>(
+		typeRef: TypeRef<T>,
+		instance: T,
+		sessionKeyOrSubKeyInfo: Promise<Nullable<AesKey>> | Nullable<AesKey> | SubKeyInfo,
 	): Promise<ClientModelUntypedInstance> {
 		const typeModel = await this.clientTypeReferenceResolver(typeRef)
 		const parsedInstance: ClientModelParsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
-		const sessionKey = sk instanceof Promise ? await sk : sk
-
-		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, sessionKey)
+		let subKeyInfo: SubKeyInfo
+		if (isSubKeyInfo(sessionKeyOrSubKeyInfo)) {
+			subKeyInfo = sessionKeyOrSubKeyInfo
+		} else {
+			const sessionKey: Nullable<AesKey> = await sessionKeyOrSubKeyInfo
+			subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
+		}
+		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, subKeyInfo)
 		return await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 	}
 
@@ -65,7 +81,7 @@ export class InstancePipeline {
 			serverTypeModel,
 			encryptedParsedInstance,
 			sk,
-			entityAdapter._kdfNonce,
+			validateKdfNonceLength(entityAdapter._kdfNonce),
 			entityAdapter._ownerGroup,
 		)
 		return await this.modelMapper.mapToInstance(typeRef, parsedInstance)

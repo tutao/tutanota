@@ -1,9 +1,9 @@
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { TypeRef } from "../../../../platform-kit/meta"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 
 export type SuggestionsType = Record<string, string[]>
 

@@ -14,6 +14,7 @@ import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/ent
 
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+import { SymmetricEncryptionScheme } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
 
 const { anything } = matchers
 
@@ -36,6 +37,9 @@ o.spec("ServiceExecutor", function () {
 		},
 		isFullyLoggedIn(): boolean {
 			return fullyLoggedIn
+		},
+		getDefaultSymmetricEncryptionScheme(): SymmetricEncryptionScheme {
+			return SymmetricEncryptionScheme.AesCbc
 		},
 	})
 

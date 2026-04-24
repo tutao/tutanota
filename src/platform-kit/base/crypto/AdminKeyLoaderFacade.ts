@@ -4,10 +4,11 @@ import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, cryptoUtils, PublicKeyIdentifierType, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
 import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
+import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

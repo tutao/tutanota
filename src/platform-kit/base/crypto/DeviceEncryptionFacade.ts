@@ -1,4 +1,5 @@
-import { aes256RandomKey, aesDecrypt, aesEncrypt, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import { aesDecrypt, aesEncrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
 
 export class DeviceEncryptionFacade {
 	/**

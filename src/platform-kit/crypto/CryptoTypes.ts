@@ -1,3 +1,6 @@
+import { KeyVersion, Versioned } from "@tutao/utils"
+import { AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
+
 export type HkdfKeyDerivationDomains =
 	| "userGroupKeyDistributionKey"
 	| "newAdminPubKeyAuthKeyForUserGroupKeyRotation"
@@ -29,4 +32,17 @@ export enum PublicKeyIdentifierType {
 export type PublicKeyIdentifier = {
 	identifier: string
 	identifierType: PublicKeyIdentifierType
+}
+
+/**
+ * An AesKey (usually a group key) and its version.
+ */
+export type VersionedKey = Versioned<AesKey>
+
+/**
+ * A key that is encrypted with a given version of some other key.
+ */
+export type VersionedEncryptedKey = {
+	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
+	key: Uint8Array // encrypted key
 }

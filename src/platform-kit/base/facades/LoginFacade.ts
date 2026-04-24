@@ -20,17 +20,13 @@ import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
-	_encryptString,
 	Aes128Key,
-	aes256DecryptWithRecoveryKey,
 	Aes256Key,
 	aes256RandomKey,
-	aesDecrypt,
 	AesKey,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
-	encryptKey,
 	generateKeyFromPassphraseBcrypt,
 	generateRandomSalt,
 	KeyLength,
@@ -47,7 +43,7 @@ import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
 import { DatabaseKeyFactory } from "../crypto/DatabaseKeyFactory.js"
-import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, typeModelToRestPath } from "@tutao/instance-pipeline"
+import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, SymmetricEncryptionScheme, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
 import { CacheStorageLateInitializer, SessionTypeProvider } from "../../../app-kit/local-store/Types.js"
@@ -104,6 +100,9 @@ import {
 	NotFoundError,
 	SessionExpiredError,
 } from "@tutao/rest-client/error"
+import { aes256DecryptWithRecoveryKey, encryptKey } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesDecrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
+import { _encryptString } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 
@@ -219,7 +218,7 @@ export class LoginFacade implements SessionTypeProvider {
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
 		 *  Only needed so that we can initialize the offline storage after login.
-		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
+		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to log in
 		 *  Once the credential handling has been changed to *always* save in desktop, then this should become obsolete
 		 */
 		private readonly cacheInitializer: CacheStorageLateInitializer,
@@ -248,9 +247,9 @@ export class LoginFacade implements SessionTypeProvider {
 	}
 
 	/**
-	 * Create session and log in. Changes internal state to refer to the logged in user.
+	 * Create session and log in. Changes internal state to refer to the logged-in user.
 	 * if createSessionOnly == true, the app will not continue to initialize app-specific state
-	 * aftrer the session is created + stored and will also not create a persistent offline DB,
+	 * after the session is created + stored and will also not create a persistent offline DB,
 	 * but still store the database key with the credentials so the offline DB can be created when the
 	 * credentials are first used.
 	 */
@@ -543,7 +542,7 @@ export class LoginFacade implements SessionTypeProvider {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 				this.userFacade.setUser(user)
 
-				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
+				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterward.
 				// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
 				let userGroupInfo: GroupInfo
 				try {
@@ -735,6 +734,11 @@ export class LoginFacade implements SessionTypeProvider {
 			setLeaderStatus(data: WebsocketLeaderStatus): void {
 				throw new Error("No loggedInUser to update leader status")
 			}
+
+			getDefaultSymmetricEncryptionScheme(): SymmetricEncryptionScheme {
+				throw new Error("No loggedInUser to have an encryption scheme")
+			}
+
 		})()
 		const lazyCrypto = () => this.cryptoFacade
 		const eventRestClient = new EntityRestClient(
@@ -1156,11 +1160,13 @@ export class LoginFacade implements SessionTypeProvider {
 	 * We do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out.
 	 *
 	 * @param user Should be up-to-date, i.e., not loaded from cache, but fresh from the server, otherwise an outdated verifier will cause a logout.
+	 * @param accessToken
+	 * @param userPassphraseKey
 	 */
 	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
 		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
 			console.log("Auth verifier has changed")
-			// delete the obsolete session to make sure it can not be used any more
+			// delete the obsolete session to make sure it can not be used anymore
 			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
 			await this.resetSession()
 			throw new NotAuthenticatedError("Auth verifier has changed")
@@ -1214,7 +1220,7 @@ export class LoginFacade implements SessionTypeProvider {
 			})
 			.then(async (instance) => {
 				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(instance))
-				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
+				// Intentionally passing an UntypedInstance to AttributeModel to circumvent session key resolution during login.
 				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
 				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
 				return {

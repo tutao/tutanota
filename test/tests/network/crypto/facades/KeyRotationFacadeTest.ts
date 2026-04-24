@@ -9,16 +9,13 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
-	AbstractEncryptedKeyPair,
 	Aes256Key,
 	AesKey,
 	AesKeyLength,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	cryptoUtils,
-	CryptoWrapper,
 	Ed25519PrivateKey,
-	EncryptedPqKeyPairs,
 	getKeyLengthInBytes,
 	KeyPairType,
 	KyberPrivateKey,
@@ -106,6 +103,8 @@ import {
 import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/crypto/Constants.js"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
+import { AbstractEncryptedKeyPair, EncryptedPqKeyPairs } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

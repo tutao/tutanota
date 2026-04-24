@@ -23,9 +23,7 @@ import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/cry
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
 import {
-	_encryptKeyWithVersionedKey,
 	cryptoUtils,
-	CryptoWrapper,
 	hexToRsaPublicKey,
 	keyToUint8Array,
 	PQKeyPairs,
@@ -64,6 +62,7 @@ import {
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import { getByAbbreviation } from "../../../../gui/CountryList"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
+import { _encryptKeyWithVersionedKey, CryptoWrapper } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 

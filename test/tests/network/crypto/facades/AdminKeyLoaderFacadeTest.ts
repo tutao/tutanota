@@ -8,7 +8,6 @@ import { matchers, object, verify, when } from "testdouble"
 import {
 	AesKey,
 	cryptoUtils,
-	CryptoWrapper,
 	MacTag,
 	PQKeyPairs,
 	PublicKeyIdentifierType,
@@ -23,6 +22,7 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypt
 import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyMac, KeyMacTypeRef, PubEncKeyDataTypeRef } from "@tutao/entities/sys"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat, captor } = matchers
 

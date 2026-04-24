@@ -17,14 +17,10 @@ import { MembershipRemovedError } from "../../../common/api/common/error/Members
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import {
-	_encryptKeyWithVersionedKey,
-	aes256EncryptSearchIndexEntry,
 	aes256RandomKey,
-	aesDecryptUnauthenticated,
 	AesKey,
-	decryptKey,
-	IV_BYTE_LENGTH,
-	random,
+	generateInitializationVector,
+	validateInitializationVectorLength,
 	VersionedKey,
 } from "../../../../platform-kit/crypto"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
@@ -48,8 +44,10 @@ import { OutOfSyncError } from "../../../../platform-kit/app-env/OutOfSyncError"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembership, User, UserTypeRef } from "@tutao/entities/sys"
 import { getMembershipGroupType, GroupType } from "../../../../entities/sys/Utils"
-import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
+import { _encryptKeyWithVersionedKey, ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { decryptKey } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 export type InitParams = {
 	user: User
@@ -325,14 +323,14 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
 		const key = aes256RandomKey()
-		const iv = random.generateRandomData(IV_BYTE_LENGTH)
-		this.db.init({ key, iv })
+		const initializationVector = generateInitializationVector()
+		this.db.init({ key, initializationVector })
 		const groupBatches = await this._loadGroupData(user)
 		const userEncDbKey = _encryptKeyWithVersionedKey(userGroupKey, key)
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this.mailIndexer.mailIndexingEnabled)
-		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, iv))
+		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, initializationVector))
 		await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, userEncDbKey.encryptingKeyVersion)
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this.serverDateProvider.now())
 		await this._initGroupData(groupBatches, transaction)
@@ -341,8 +339,8 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
 		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
-		const iv = aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv))
-		this.db.init({ key, iv })
+		const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv)))
+		this.db.init({ key, initializationVector })
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
 		await this.mailIndexer.updateCurrentIndexTimestamp(user)

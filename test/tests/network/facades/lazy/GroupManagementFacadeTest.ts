@@ -12,9 +12,10 @@ import { matchers, object, verify, when } from "testdouble"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../src/platform-kit/base/crypto/IdentityKeyCreator"
 import { freshVersioned } from "../../../../../src/platform-kit/utils"
-import { AesKey, CryptoWrapper, KeyPairType, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
+import { AesKey, KeyPairType, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "@tutao/entities/sys"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything } = matchers
 

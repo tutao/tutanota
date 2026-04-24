@@ -19,7 +19,7 @@ import {
 	PatchOperationType,
 	ServerTypeReferenceResolver,
 } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import {
 	AttributeModel,
@@ -29,12 +29,12 @@ import {
 	GENERATED_MIN_ID,
 	ValueType,
 } from "../../../src/platform-kit/meta"
-
 import { createTestEntityWithDummyResolver } from "../TestUtils"
 
 import { object } from "testdouble"
 
 import { createPatch } from "@tutao/entities/sys"
+import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
 
 o.spec("computePatches", function () {
 	const dummyTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver
@@ -42,7 +42,7 @@ o.spec("computePatches", function () {
 		dummyResolver as ClientTypeReferenceResolver,
 		dummyResolver as ServerTypeReferenceResolver,
 		object(),
-		object(),
+		SYMMETRIC_CIPHER_FACADE,
 	)
 
 	o("computePatches returns empty list for equal objects", async function () {
@@ -341,10 +341,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
 		const testAssociationFirstEncryptedInstance = (
@@ -393,10 +394,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
 		const encryptedAssociationArray = AttributeModel.getAttribute(
@@ -514,10 +516,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
 		const testAssociationEncrypted = AttributeModel.getAttribute(
@@ -556,10 +559,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
 		const testAssociationEncrypted = AttributeModel.getAttribute(
@@ -600,10 +604,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
 		const testAssociationEncrypted = AttributeModel.getAttribute(
@@ -644,10 +649,11 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			sk,
+			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
 		let objectDiff = await computePatches(

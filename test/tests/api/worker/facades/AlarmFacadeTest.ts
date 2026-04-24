@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
 import { assertNotNull } from "../../../../../src/platform-kit/utils"
-import { AesKey, base64ToKey, CryptoWrapper, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { AesKey, base64ToKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -35,6 +35,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "@tutao/entities/tutanota"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("AlarmFacadeTest", function () {
 	let nativePushFacadeMock: NativePushFacade

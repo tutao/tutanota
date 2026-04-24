@@ -73,7 +73,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			object(),
 			keyRotationFacadeMock,
 			async () => cacheManagementFacade,
-			async (error: Error) => {},
+			async (_error: Error) => {},
 			(_) => {},
 			rolloutFacadeMock,
 			async () => groupManagementFacade,
@@ -174,11 +174,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			verify(identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroupIds))
 		})
 
-		o("does not execute rollouts if it is not the leader client", async function () {
+		o("does not execute rollouts, except for enabling AEAD encryption, if it is not the leader client", async function () {
 			when(userFacade.isLeader()).thenReturn(false)
 
 			await eventBusEventCoordinator.onSyncDone()
-			verify(rolloutFacadeMock.processRollout(matchers.anything()), { times: 0 })
+			verify(rolloutFacadeMock.processRollout(matchers.anything()), { times: 1 })
+			verify(rolloutFacadeMock.processRollout(RolloutType.EncryptionOfAttributesViaAead))
 		})
 	})
 

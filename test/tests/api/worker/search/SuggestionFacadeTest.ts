@@ -4,7 +4,7 @@
 import o, { spy } from "@tutao/otest"
 import { SuggestionFacade } from "../../../../../src/applications/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "../../../../../src/platform-kit/utils"
-import { aes256RandomKey, FIXED_IV } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../../../../src/platform-kit/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { DbEncryptionData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
@@ -24,7 +24,7 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(async function () {
 		db = new EncryptedDbWrapper(object())
 
-		encryptionData = { key: aes256RandomKey(), iv: FIXED_IV }
+		encryptionData = { key: aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR }
 		db.init(encryptionData)
 		clientModelResolver = makePopulatedClientModelInfo()
 		contactTypeModel = await clientModelResolver.resolveClientTypeReference(ContactTypeRef)

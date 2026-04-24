@@ -1,4 +1,7 @@
-import { aes256EncryptSearchIndexEntry, aes256EncryptSearchIndexEntryWithIV, Aes256Key, aesDecryptUnauthenticated } from "@tutao/crypto"
+import {
+	Aes256Key,
+	InitializationVector,
+} from "@tutao/crypto"
 import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
@@ -10,17 +13,24 @@ import type {
 } from "./SearchTypes"
 import { calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers } from "./SearchIndexEncoding"
 import { getIdFromEncSearchIndexEntry } from "../../common/utils/IndexUtils"
+import {
+	aes256EncryptSearchIndexEntry,
+	aes256EncryptSearchIndexEntryWithInitializationVector,
+	aesDecryptUnauthenticated,
+} from "../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 
-export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
-	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
+export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Base64 {
+	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbInitializationVector))
 }
 
-export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
-	return aes256EncryptSearchIndexEntryWithIV(key, stringToUtf8Uint8Array(indexKey), dbIv).slice(dbIv.length)
+export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Uint8Array {
+	return aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array(indexKey), dbInitializationVector).slice(
+		dbInitializationVector.length,
+	)
 }
 
-export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIv: Uint8Array): string {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbIv, encIndexKey)))
+export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbInitializationVector: InitializationVector): string {
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbInitializationVector, encIndexKey)))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
@@ -35,9 +45,13 @@ export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry,
 	return resultArray
 }
 
-export function decryptSearchIndexEntry(key: Aes256Key, entry: EncryptedSearchIndexEntry, dbIv: Uint8Array): DecryptedSearchIndexEntry {
+export function decryptSearchIndexEntry(
+	key: Aes256Key,
+	entry: EncryptedSearchIndexEntry,
+	dbInitializationVector: InitializationVector,
+): DecryptedSearchIndexEntry {
 	const encId = getIdFromEncSearchIndexEntry(entry)
-	let id = decryptIndexKey(key, encId, dbIv)
+	let id = decryptIndexKey(key, encId, dbInitializationVector)
 	const data = aesDecryptUnauthenticated(key, entry.subarray(16))
 	let offset = 0
 	const attribute = decodeNumberBlock(data, offset)
@@ -77,7 +91,7 @@ export function encryptMetaData(key: Aes256Key, metaData: SearchIndexMetaDataRow
 }
 
 export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDataDbRow): SearchIndexMetaDataRow {
-	// Initially we write empty data block there. In this case we can't get IV from it and decrypt it
+	// Initially we write empty data block there. In this case we can't get the initialization vector from it and decrypt it
 	if (encryptedMeta.rows.length === 0) {
 		return {
 			id: encryptedMeta.id,

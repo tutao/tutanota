@@ -23,12 +23,12 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
-import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
+import {  AesKey, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
 import { BlobAccessTokenFacade, BlobLoadOptions } from "../../../../../../platform-kit/network/BlobAccessTokenFacade.js"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+import { _encryptBytes, InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
@@ -44,6 +44,7 @@ import {
 } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
+import { aesDecrypt, asyncDecryptBytes } from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`

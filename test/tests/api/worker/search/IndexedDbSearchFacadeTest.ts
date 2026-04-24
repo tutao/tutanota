@@ -22,7 +22,7 @@ import { appendBinaryBlocks } from "../../../../../src/applications/common/api/w
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { aes256RandomKey, FIXED_IV } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../../../../src/platform-kit/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
@@ -66,7 +66,7 @@ o.spec("IndexedDbSearchFacade", () => {
 			createTransaction: () => Promise.resolve(transaction),
 		} as Partial<DbFacade> as DbFacade
 		const db = new EncryptedDbWrapper(dbFacade)
-		db.init({ key: dbKey, iv: FIXED_IV })
+		db.init({ key: dbKey, initializationVector: FIXED_INITIALIZATION_VECTOR })
 		return new IndexedDbSearchFacade(
 			{
 				getLoggedInUser: () => user,
@@ -112,14 +112,14 @@ o.spec("IndexedDbSearchFacade", () => {
 						oldestElementTimestamp: generatedIdToTimestamp(chunk[0].id),
 					})
 					const encSearchIndexRow = appendBinaryBlocks(
-						chunk.map((entry) => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, FIXED_IV))),
+						chunk.map((entry) => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, FIXED_INITIALIZATION_VECTOR))),
 					)
 					transaction.put(SearchIndexOS, counter, encSearchIndexRow)
 				}
 			}
 			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(dbKey, metaDataRow))
 			for (const id of fullIds) {
-				let encId = encryptIndexKeyBase64(dbKey, elementIdPart(id), FIXED_IV)
+				let encId = encryptIndexKeyBase64(dbKey, elementIdPart(id), FIXED_INITIALIZATION_VECTOR)
 				const elementDataEntry: ElementDataDbRow = [listIdPart(id), new Uint8Array(0), ""] // rows not needed for search
 
 				transaction.put(ElementDataOS, encId, elementDataEntry)
@@ -129,7 +129,7 @@ o.spec("IndexedDbSearchFacade", () => {
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntryWithType[]): KeyToIndexEntriesWithType => {
 		return {
-			indexKey: encryptIndexKeyBase64(dbKey, word, FIXED_IV),
+			indexKey: encryptIndexKeyBase64(dbKey, word, FIXED_INITIALIZATION_VECTOR),
 			indexEntries: entries,
 		}
 	}

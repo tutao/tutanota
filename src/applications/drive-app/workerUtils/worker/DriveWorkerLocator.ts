@@ -19,7 +19,6 @@ import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../../../../platform-kit/crypto"
 import { DateProvider, lazyAsync, lazyMemoized, noOp } from "../../../../platform-kit/utils"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
@@ -28,10 +27,12 @@ import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import {
 	ApplicationTypesFacade,
+	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
+	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -108,6 +109,7 @@ import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { random } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -546,7 +548,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.cryptoWrapper,
 		)
 	})
-	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher, random)
+	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(

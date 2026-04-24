@@ -1,19 +1,14 @@
 import { DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import {
-	_encryptKeyWithVersionedKey,
 	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
-	aesDecrypt,
-	aesDecryptUnauthenticated,
-	aesEncrypt,
-	aesEncryptConfigurationDatabaseItem,
 	AesKey,
 	cryptoUtils,
-	decryptKey,
-	IV_BYTE_LENGTH,
-	random,
+	generateInitializationVector,
+	InitializationVector,
+	validateInitializationVectorLength,
 	sha256Hash,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -35,6 +30,9 @@ import { ExternalImageRule, NewsletterBannerRule } from "../../../../../../entit
 import { User, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
+import { aesDecrypt, aesDecryptUnauthenticated, aesEncrypt, aesEncryptConfigurationDatabaseItem } from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { decryptKey } from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { _encryptKeyWithVersionedKey } from "@tutao/instance-pipeline"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -44,7 +42,7 @@ const NewsletterBannerListOS: ObjectStoreName = "NewsletterBannerListOS"
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
 	readonly key: Aes128Key
-	readonly iv: Uint8Array
+	readonly initializationVector: InitializationVector
 }
 type ConfigDb = {
 	readonly db: DbFacade
@@ -52,12 +50,12 @@ type ConfigDb = {
 }
 
 /** @PublicForTesting */
-export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
-	return aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), iv)
+export async function encryptItem(item: string, key: Aes256Key, initializationVector: InitializationVector): Promise<Uint8Array> {
+	return aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), initializationVector)
 }
 
-export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(iv, encryptedAddress)))
+export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, initializationVector: InitializationVector): Promise<string> {
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(initializationVector, encryptedAddress)))
 }
 
 /**
@@ -246,7 +244,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			return
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.initializationVector)
 		return addAddressToImageList(db, encryptedAddress, rule)
 	}
 
@@ -256,7 +254,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			return ExternalImageRule.None
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.initializationVector)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
 		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)
 		let rule = ExternalImageRule.None
@@ -280,7 +278,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			return
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.initializationVector)
 		return addAddressToNewsletterBannerList(db, encryptedAddress, rule)
 	}
 
@@ -290,7 +288,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			return NewsletterBannerRule.Allow
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await encryptItem(address, metaData.key, metaData.iv)
+		const encryptedAddress = await encryptItem(address, metaData.key, metaData.initializationVector)
 		const transaction = await db.createTransaction(true, [NewsletterBannerListOS])
 		const entry = await transaction.get(NewsletterBannerListOS, encryptedAddress)
 		let rule = NewsletterBannerRule.Allow
@@ -333,12 +331,12 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			const metaData = await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)
 
 			if (event.oldVersion === 1 && metaData) {
-				// migrate from plain, mac-and-static-iv aes256 to aes256 with mac
+				// migrate from plain, mac-and-static-initialization-vector aes256 to aes256 with mac
 				const transaction = await dbFacade.createTransaction(true, [ExternalImageListOS])
 				const entries = await transaction.getAll(ExternalImageListOS)
-				const { key, iv } = metaData
+				const { key, initializationVector } = metaData
 				for (const entry of entries) {
-					const address = await decryptLegacyItem(new Uint8Array(downcast(entry.key)), key, iv)
+					const address = await decryptLegacyItem(new Uint8Array(downcast(entry.key)), key, initializationVector)
 					await this.addExternalImageRule(address, entry.value.rule)
 					const deleteTransaction = await dbFacade.createTransaction(false, [ExternalImageListOS])
 					await deleteTransaction.delete(ExternalImageListOS, entry.key)
@@ -385,16 +383,16 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
 	const key = decryptKey(userGroupKey, metaData.userEncDbKey)
-	const iv = aesDecryptUnauthenticated(key, metaData.encDbIv)
+	const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, metaData.encDbIv))
 	return {
 		key,
-		iv,
+		initializationVector,
 	}
 }
 
 /**
- * Load the encryption key and iv from the db
- * @return { key, iv } or null if one or both don't exist
+ * Load the encryption key and initialization vector from the db
+ * @return { key, initializationVector } or null if one or both don't exist
  * @VisibleForTesting
  */
 export async function loadEncryptionMetadata(
@@ -413,7 +411,7 @@ export async function loadEncryptionMetadata(
 }
 
 /**
- * Reencrypt the DB key and IV if there is a new userGroupKey
+ * Reencrypt the DB key and initialization vector if there is a new userGroupKey
  * @VisibleForTesting
  */
 export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: KeyLoaderFacade, objectStoreName: ObjectStoreName): Promise<void> {
@@ -424,8 +422,8 @@ export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: Ke
 
 	const encryptionMetadata = await decryptMetaData(keyLoaderFacade, metaData)
 	if (encryptionMetadata == null) return
-	const { key, iv } = encryptionMetadata
-	await encryptAndSaveDbKey(currentUserGroupKey, key, iv, db, objectStoreName)
+	const { key, initializationVector } = encryptionMetadata
+	await encryptAndSaveDbKey(currentUserGroupKey, key, initializationVector, db, objectStoreName)
 }
 
 /**
@@ -485,20 +483,20 @@ async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, db
 }
 
 /**
- * @caution This will clear any existing data in the database, because they key and IV will be regenerated
- * @return the newly generated key and iv for the database contents
+ * @caution This will clear any existing data in the database, because they key and initialization vector will be regenerated
+ * @return the newly generated key and initialization vector for the database contents
  * @VisibleForTesting
  *
  */
 export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: KeyLoaderFacade, objectStoreName: ObjectStoreName): Promise<EncryptionMetadata> {
 	await db.deleteDatabase(id).then(() => db.open(id))
 	const key = aes256RandomKey()
-	const iv = random.generateRandomData(IV_BYTE_LENGTH)
+	const initializationVector = generateInitializationVector()
 	const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
-	await encryptAndSaveDbKey(userGroupKey, key, iv, db, objectStoreName)
+	await encryptAndSaveDbKey(userGroupKey, key, initializationVector, db, objectStoreName)
 	return {
 		key,
-		iv,
+		initializationVector,
 	}
 }
 

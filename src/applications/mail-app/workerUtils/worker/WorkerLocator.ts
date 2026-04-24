@@ -54,7 +54,6 @@ import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { InstanceSessionKeysCache } from "../../../../app-kit/local-store/InstanceSessionKeysCache.js"
 import { KeyCache } from "../../../../app-kit/local-store/KeyCache.js"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../../../../platform-kit/crypto"
 import { assertNotNull, DateProvider, delay, lazy, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
@@ -70,10 +69,12 @@ import { KeyLoaderFacade } from "../../../../platform-kit/base/crypto/KeyLoaderF
 import { KeyRotationFacade } from "../../../../platform-kit/base/crypto/KeyRotationFacade.js"
 import {
 	ApplicationTypesFacade,
+	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
+	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -130,6 +131,7 @@ import { EntityRestInterface } from "../../../../platform-kit/network/EntityRest
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
+import { random } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -784,7 +786,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.cryptoWrapper,
 		)
 	})
-	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
+	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker))
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(

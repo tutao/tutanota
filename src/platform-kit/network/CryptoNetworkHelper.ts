@@ -1,6 +1,6 @@
 import { AttributeModel, elementIdPart, isSameTypeRef, TypeRef } from "../meta"
-import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
+import { aes256RandomKey, AesKey, cryptoUtils, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { decryptKey, EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { HttpMethod, RestClientInterface } from "../rest-client/types"
@@ -11,16 +11,21 @@ import { ClientTypeModel, Entity } from "../meta/EntityTypes"
 import {
 	createPatch,
 	createPatchList,
+	createUpdateKdfNoncePostIn,
 	GroupInfoTypeRef,
 	GroupMembership,
+	InstanceKdfNonce,
 	PatchListTypeRef,
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
+	UpdateKdfNoncePostOut,
+	UpdateKdfNonceService,
 } from "@tutao/entities/sys"
 import { GroupType } from "../../entities/sys/Utils"
 import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { PatchOperationType } from "../instance-pipeline/PatchGenerator"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
+import { CryptoWrapper } from "../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 export class CryptoNetworkHelper {
 	constructor(
@@ -33,6 +38,10 @@ export class CryptoNetworkHelper {
 		protected readonly instancePipeline: InstancePipeline,
 		protected readonly restClient: RestClientInterface,
 	) {}
+
+	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
+		return await this.symGroupKeyLoader.getCurrentSymGroupKey(groupId)
+	}
 
 	/**
 	 * Creates a new _ownerEncSessionKey and assigns it to the provided entity
@@ -130,6 +139,10 @@ export class CryptoNetworkHelper {
 		return instance
 	}
 
+	async postUpdateKdfNonceService(instanceKdfNonce: InstanceKdfNonce): Promise<UpdateKdfNoncePostOut> {
+		const input = createUpdateKdfNoncePostIn({ instanceKdfNonce: instanceKdfNonce })
+		return await this.serviceExecutor.post(UpdateKdfNonceService, input)
+	}
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
 		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)

@@ -6,7 +6,6 @@ import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/Key
 import {
 	AsymmetricKeyPair,
 	cryptoUtils,
-	CryptoWrapper,
 	Ed25519KeyPair,
 	KeyPairType,
 	MacTag,
@@ -28,6 +27,7 @@ import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { Group, GroupMembershipTypeRef, GroupTypeRef, IdentityKeyPostIn, IdentityKeyService, PublicKeySignature, User, UserTypeRef } from "@tutao/entities/sys"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat, captor } = matchers
 

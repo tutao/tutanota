@@ -4,13 +4,9 @@ import type { GroupManagementFacade } from "../../../../../../platform-kit/base/
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
 import {
-	_encryptBytes,
-	_encryptKeyWithVersionedKey,
-	_encryptString,
 	aes256RandomKey,
 	AesKey,
 	createAuthVerifier,
-	encryptKey,
 	generateRandomSalt,
 	random,
 	VersionedKey,
@@ -28,6 +24,7 @@ import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService, 
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/crypto/Constants"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, encryptKey } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 

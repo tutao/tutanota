@@ -8,8 +8,6 @@ import {
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	cryptoUtils,
-	decryptKey,
-	encryptKey,
 	keyToUint8Array,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -18,6 +16,7 @@ import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../crypto/KeyLoaderFacade.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys"
 import { asKdfType } from "../../crypto/Constants"
+import { decryptKey, encryptKey } from "../../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 assertWorkerOrNode()
 

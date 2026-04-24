@@ -61,6 +61,11 @@ export type ModelValue = {
 }
 
 /**
+ * encrypted scalar fields on types in the model
+ */
+export type EncryptedModelValue = ModelValue & { encrypted: true }
+
+/**
  * metamodel representation of an association between types in the model.
  *
  * these are also fields on types in the model like ModelValue, but

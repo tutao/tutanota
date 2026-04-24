@@ -6,7 +6,6 @@ import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/cr
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
 	bytesToKyberPublicKey,
-	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
 	KeyPairType,
 	PQPublicKeys,
@@ -35,6 +34,7 @@ import {
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { InvalidDataError } from "../../../../../src/platform-kit/rest-client/error"
+import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

@@ -14,7 +14,7 @@ import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platfo
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { AesKey, CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
+import { AesKey, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
 import { RecipientsNotFoundError } from "../../../../../src/platform-kit/network/error/RecipientsNotFoundError"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { SpamClassifier } from "../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
@@ -50,6 +50,7 @@ import { elementIdPart, getElementId } from "../../../../../src/platform-kit/met
 import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } from "../../../../../src/entities/tutanota/Utils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
+import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

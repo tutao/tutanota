@@ -11,6 +11,7 @@ import { IPCEd25519KeyPair } from "../types/IPCEd25519KeyPair"
 import { IPCEd25519PrivateKey } from "../types/IPCEd25519PrivateKey"
 import { IPCEd25519Signature } from "../types/IPCEd25519Signature"
 import { IPCEd25519PublicKey } from "../types/IPCEd25519PublicKey"
+import { InitializationVector } from "@tutao/crypto"
 
 export interface NativeCryptoFacade {
 	rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array>
@@ -20,7 +21,7 @@ export interface NativeCryptoFacade {
 	/**
 	 * Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.
 	 */
-	aesEncryptFile(key: Uint8Array, fileUri: string, iv: Uint8Array): Promise<EncryptedFileInfo>
+	aesEncryptFile(key: Uint8Array, fileUri: string, initializationVector: InitializationVector): Promise<EncryptedFileInfo>
 
 	/**
 	 * Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.

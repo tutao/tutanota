@@ -9,10 +9,11 @@ import { DesktopConfigKey } from "../../../../src/platform-kit/app-env/ConfigKey
 import { assertNotNull, uint8ArrayToBase64 } from "../../../../src/platform-kit/utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
-import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
+import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
 import { hasError } from "../../../../src/platform-kit/meta"
 
 import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
+import { encryptKey } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade

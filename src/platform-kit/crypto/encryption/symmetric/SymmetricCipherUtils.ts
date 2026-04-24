@@ -1,19 +1,16 @@
 import { random } from "../../random/Randomizer.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
+import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
 import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
 
-export const FIXED_IV = hexToUint8Array("88888888888888888888888888888888")
+export const FIXED_INITIALIZATION_VECTOR = hexToUint8Array("88888888888888888888888888888888") as InitializationVector
 export const BLOCK_SIZE_BYTES = 16
-export const IV_BYTE_LENGTH = BLOCK_SIZE_BYTES
+export const INITIALIZATION_VECTOR_LENGTH_BYTES = BLOCK_SIZE_BYTES
+export const KDF_NONCE_LENGTH_BYTES = 32
 export const SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES = 1
 export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
-/**
- * Does not account for padding or the IV, but only the version byte and the authentication tag.
- */
-export const SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES = SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES + SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES
 
 export type BitArray = number[]
 export type Aes256Key = BitArray
@@ -88,6 +85,38 @@ export function aes256RandomKey(): Aes256Key {
 	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256)))
 }
 
-export function generateIV(): Uint8Array {
-	return random.generateRandomData(IV_BYTE_LENGTH)
+export type InitializationVector = Uint8Array & { __brand: "InitializationVector" }
+
+export type KdfNonce = Uint8Array & { __brand: "KdfNonce" }
+
+export function generateInitializationVector(): InitializationVector {
+	return random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES) as InitializationVector
+}
+
+export function generateKdfNonce(): KdfNonce {
+	return random.generateRandomData(KDF_NONCE_LENGTH_BYTES) as KdfNonce
+}
+
+export function validateInitializationVectorLength(initializationVector: Uint8Array): InitializationVector
+export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array>): Nullable<InitializationVector>
+export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array>): Nullable<InitializationVector> {
+	if (initializationVector === null) {
+		return null
+	}
+	if (initializationVector.length !== INITIALIZATION_VECTOR_LENGTH_BYTES) {
+		throw new CryptoError(`invalid initialization vector length: ${initializationVector.length} bytes`)
+	}
+	return initializationVector as InitializationVector
+}
+
+export function validateKdfNonceLength(kdfNonce: Uint8Array): KdfNonce
+export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array>): Nullable<KdfNonce>
+export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array>): Nullable<KdfNonce> {
+	if (kdfNonce === null) {
+		return null
+	}
+	if (kdfNonce.length !== KDF_NONCE_LENGTH_BYTES) {
+		throw new CryptoError(`invalid KDF nonce length: ${kdfNonce.length} bytes`)
+	}
+	return kdfNonce as KdfNonce
 }
