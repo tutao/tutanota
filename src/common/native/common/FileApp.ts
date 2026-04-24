@@ -1,12 +1,8 @@
 import { promiseMap } from "@tutao/utils"
 import { FileReference } from "../../api/common/utils/FileUtils"
-import { DataFile } from "../../api/common/DataFile"
+import { DataFile } from "@tutao/typerefs"
 import { HttpMethod } from "@tutao/rest-client/types"
-import { FileFacade } from "./generatedipc/FileFacade.js"
-import { ExportFacade } from "./generatedipc/ExportFacade.js"
-import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse"
-import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse"
-import { MailBundle } from "../../mailFunctionality/SharedMailUtils.js"
+import { DownloadTaskResponse, ExportFacade, FileFacade, MailBundle, UploadTaskResponse } from "@tutao/native-bridge"
 
 export type FileUri = string
 

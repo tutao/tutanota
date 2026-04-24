@@ -4,7 +4,7 @@ import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
 import { SessionType } from "../common/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials } from "../../misc/credentials/Credentials.js"
-import { PersistedCredentials } from "../../native/common/generatedipc/PersistedCredentials.js"
+import { PersistedCredentials } from "@tutao/native-bridge"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 export const enum LoginFailReason {

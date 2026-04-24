@@ -1,6 +1,6 @@
-import { SearchTextInAppFacade } from "../native/common/generatedipc/SearchTextInAppFacade.js"
+import { SearchTextInAppFacade } from "@tutao/native-bridge"
 import { ApplicationWindow } from "./ApplicationWindow.js"
-import { Result } from "../native/common/generatedipc/Result.js"
+import { Result } from "@tutao/native-bridge"
 
 export class DesktopSearchTextInAppFacade implements SearchTextInAppFacade {
 	constructor(private readonly window: ApplicationWindow) {}

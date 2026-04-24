@@ -1,5 +1,5 @@
-import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
-import { PermissionType } from "../common/generatedipc/PermissionType.js"
+import { MobileSystemFacade } from "@tutao/native-bridge"
+import { PermissionType } from "@tutao/native-bridge"
 import { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { PermissionError } from "../../api/common/error/PermissionError.js"
 import { Dialog } from "../../gui/base/Dialog.js"

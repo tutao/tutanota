@@ -10,8 +10,8 @@ import { defer } from "@tutao/utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Keys } from "@tutao/app-env"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
-import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
-import { AppLockMethod } from "../common/generatedipc/AppLockMethod.js"
+import { MobileSystemFacade } from "@tutao/native-bridge"
+import { AppLockMethod } from "@tutao/native-bridge"
 import { type RadioSelectorOption } from "../../gui/base/RadioSelectorItem"
 
 export async function showAppLockMethodDialog(mobileSystemFacade: MobileSystemFacade): Promise<void> {

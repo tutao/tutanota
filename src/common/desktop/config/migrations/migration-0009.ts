@@ -1,5 +1,5 @@
 import type { Config, ConfigMigration } from "../ConfigCommon"
-import { DesktopConfigKey } from "../ConfigKeys.js"
+import { DesktopConfigKey } from "@tutao/app-env"
 
 export const migrateClient: ConfigMigration = async function (oldConfig: Config): Promise<void> {
 	Object.assign(oldConfig, {

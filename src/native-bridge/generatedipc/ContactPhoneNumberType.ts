@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { ContactPhoneNumberType } from "@tutao/app-env"
+export type { ContactPhoneNumberType } from "@tutao/app-env"

@@ -7,7 +7,7 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationFacade, TrustedIdentity } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
-import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
+import { MobileSystemFacade } from "@tutao/native-bridge"
 import { UsageTestController } from "@tutao/usagetests"
 import { TitleSection } from "../../gui/TitleSection"
 import { Card } from "../../gui/base/Card"
@@ -25,7 +25,7 @@ import { showInfoSnackbar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
 import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import { DesktopSystemFacade } from "@tutao/native-bridge"
 
 /**
  * Our own identity key, which is not stored on the trust DB.

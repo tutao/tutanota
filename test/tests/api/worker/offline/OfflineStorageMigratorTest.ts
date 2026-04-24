@@ -10,7 +10,7 @@ import { OfflineStorage } from "../../../../../src/common/api/worker/offline/Off
 import { func, instance, matchers, object, when } from "testdouble"
 import { verify } from "@tutao/otest"
 import { ProgrammingError } from "@tutao/app-env"
-import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { maxBy } from "@tutao/utils"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 

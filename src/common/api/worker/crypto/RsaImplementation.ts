@@ -1,7 +1,7 @@
 import type { NativeInterface } from "../../../native/common/NativeInterface"
 import type { RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
 import { random, rsaDecrypt, rsaEncrypt } from "@tutao/crypto"
-import { NativeCryptoFacadeSendDispatcher } from "../../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
+import { NativeCryptoFacadeSendDispatcher } from "@tutao/native-bridge"
 import { isApp } from "@tutao/app-env"
 
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {

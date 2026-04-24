@@ -31,12 +31,12 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../common/api/common/ServiceRequest.js"
 import { CryptoFacade } from "../common/api/worker/crypto/CryptoFacade.js"
-import { SearchTextInAppFacade } from "../common/native/common/generatedipc/SearchTextInAppFacade.js"
-import { SettingsFacade } from "../common/native/common/generatedipc/SettingsFacade.js"
-import { DesktopSystemFacade } from "../common/native/common/generatedipc/DesktopSystemFacade.js"
+import { SearchTextInAppFacade } from "@tutao/native-bridge"
+import { SettingsFacade } from "@tutao/native-bridge"
+import { DesktopSystemFacade } from "@tutao/native-bridge"
 import { WebMobileFacade } from "../common/native/main/WebMobileFacade.js"
 import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler.js"
-import { InterWindowEventFacadeSendDispatcher } from "../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
@@ -45,7 +45,7 @@ import { OperationProgressTracker } from "../common/api/main/OperationProgressTr
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
-import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
@@ -68,11 +68,11 @@ import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
 import { NativeFileApp } from "../common/native/common/FileApp.js"
 import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
-import { CommonSystemFacade } from "../common/native/common/generatedipc/CommonSystemFacade.js"
-import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js"
-import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
-import { MobileContactsFacade } from "../common/native/common/generatedipc/MobileContactsFacade.js"
-import { NativeCredentialsFacade } from "../common/native/common/generatedipc/NativeCredentialsFacade.js"
+import { CommonSystemFacade } from "@tutao/native-bridge"
+import { ThemeFacade } from "@tutao/native-bridge"
+import { MobileSystemFacade } from "@tutao/native-bridge"
+import { MobileContactsFacade } from "@tutao/native-bridge"
+import { NativeCredentialsFacade } from "@tutao/native-bridge"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -93,7 +93,7 @@ import type { CalendarEventPreviewViewModel } from "./calendar/gui/eventpopup/Ca
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
-import { MobilePaymentsFacade } from "../common/native/common/generatedipc/MobilePaymentsFacade.js"
+import { MobilePaymentsFacade } from "@tutao/native-bridge"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
 import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
@@ -101,10 +101,10 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { ExternalCalendarFacade } from "@tutao/native-bridge"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
+import { ContactSuggestion } from "@tutao/native-bridge"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
@@ -667,7 +667,7 @@ class CalendarLocator implements CommonLocator {
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
 			const { WebCommonNativeFacade } = await import("../common/native/main/WebCommonNativeFacade.js")
 			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
-			const { WebAuthnFacadeSendDispatcher } = await import("../common/native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
+			const { WebAuthnFacadeSendDispatcher } = await import("@tutao/native-bridge")
 			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
 			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {

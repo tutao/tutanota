@@ -1,5 +1,5 @@
 import type { WindowManager } from "../DesktopWindowManager"
-import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
+import { ExtendedNotificationMode, NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-bridge"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
 import {
@@ -13,8 +13,7 @@ import {
 	tutanotaTypeRefs,
 	TypeModel,
 } from "@tutao/typerefs"
-import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
-import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
+import { CredentialEncryptionMode } from "@tutao/app-env"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
@@ -23,7 +22,6 @@ import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
 import * as restError from "@tutao/rest-client/error"
 
 const TAG = "[notifications]"

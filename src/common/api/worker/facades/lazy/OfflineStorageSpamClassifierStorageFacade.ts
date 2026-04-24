@@ -1,6 +1,6 @@
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { sql } from "../../offline/Sql"
-import { untagSqlObject } from "../../offline/SqlValue"
+import { untagSqlObject } from "../../../../../typerefs/SqlValue"
 import type { OfflineStorageTable } from "../../offline/OfflineStorage"
 import type { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/utils"

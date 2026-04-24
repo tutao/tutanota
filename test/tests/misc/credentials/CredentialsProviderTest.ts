@@ -1,16 +1,17 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { CredentialsProvider } from "../../../../src/common/misc/credentials/CredentialsProvider.js"
 import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/utils"
-import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { object, when } from "testdouble"
-import { verify } from "@tutao/otest"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { SqlCipherFacade } from "../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { PersistedCredentials } from "../../../../src/common/native/common/generatedipc/PersistedCredentials.js"
-import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
+import {
+	CredentialEncryptionMode,
+	CredentialsInfo,
+	InterWindowEventFacadeSendDispatcher,
+	NativeCredentialsFacade,
+	PersistedCredentials,
+	SqlCipherFacade,
+	UnencryptedCredentials,
+} from "@tutao/native-bridge"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { NativeCredentialsFacade } from "../../../../src/common/native/common/generatedipc/NativeCredentialsFacade.js"
-import { CredentialsInfo } from "../../../../src/common/native/common/generatedipc/CredentialsInfo.js"
 
 o.spec("CredentialsProvider", function () {
 	let credentialsProvider: CredentialsProvider

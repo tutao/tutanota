@@ -1,5 +1,5 @@
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
-import { TaggedSqlValue } from "../../api/worker/offline/SqlValue.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
+import { TaggedSqlValue } from "../../../typerefs/SqlValue.js"
 import { Worker } from "node:worker_threads"
 import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
 import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"

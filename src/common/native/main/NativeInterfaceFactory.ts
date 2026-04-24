@@ -1,46 +1,47 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { DesktopFacade } from "../common/generatedipc/DesktopFacade.js"
-import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
+import { isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
+import {
+	CommonNativeFacade,
+	CommonSystemFacade,
+	CommonSystemFacadeSendDispatcher,
+	DesktopFacade,
+	DesktopSystemFacade,
+	DesktopSystemFacadeSendDispatcher,
+	ExportFacade,
+	ExportFacadeSendDispatcher,
+	ExternalCalendarFacade,
+	ExternalCalendarFacadeSendDispatcher,
+	FileFacadeSendDispatcher,
+	InterWindowEventFacade,
+	InterWindowEventFacadeSendDispatcher,
+	MobileContactsFacade,
+	MobileContactsFacadeSendDispatcher,
+	MobilePaymentsFacade,
+	MobilePaymentsFacadeSendDispatcher,
+	MobileSystemFacade,
+	MobileSystemFacadeSendDispatcher,
+	NativeCredentialsFacade,
+	NativeCredentialsFacadeSendDispatcher,
+	NativeMailImportFacade,
+	NativeMailImportFacadeSendDispatcher,
+	NativePushFacadeSendDispatcher,
+	SearchTextInAppFacade,
+	SearchTextInAppFacadeSendDispatcher,
+	SettingsFacadeSendDispatcher,
+	ThemeFacade,
+	ThemeFacadeSendDispatcher,
+	WebGlobalDispatcher,
+} from "@tutao/native-bridge"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
-import { CommonSystemFacade } from "../common/generatedipc/CommonSystemFacade.js"
-import { ThemeFacade } from "../common/generatedipc/ThemeFacade.js"
-import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.js"
-import { NativePushFacadeSendDispatcher } from "../common/generatedipc/NativePushFacadeSendDispatcher.js"
-import { FileFacadeSendDispatcher } from "../common/generatedipc/FileFacadeSendDispatcher.js"
-import { ExportFacadeSendDispatcher } from "../common/generatedipc/ExportFacadeSendDispatcher.js"
-import { CommonSystemFacadeSendDispatcher } from "../common/generatedipc/CommonSystemFacadeSendDispatcher.js"
-import { MobileSystemFacadeSendDispatcher } from "../common/generatedipc/MobileSystemFacadeSendDispatcher.js"
-import { ThemeFacadeSendDispatcher } from "../common/generatedipc/ThemeFacadeSendDispatcher.js"
-import { SearchTextInAppFacadeSendDispatcher } from "../common/generatedipc/SearchTextInAppFacadeSendDispatcher.js"
-import { SettingsFacadeSendDispatcher } from "../common/generatedipc/SettingsFacadeSendDispatcher.js"
-import { DesktopSystemFacadeSendDispatcher } from "../common/generatedipc/DesktopSystemFacadeSendDispatcher.js"
-import { SearchTextInAppFacade } from "../common/generatedipc/SearchTextInAppFacade.js"
-import { DesktopSystemFacade } from "../common/generatedipc/DesktopSystemFacade.js"
-import { InterWindowEventFacade } from "../common/generatedipc/InterWindowEventFacade.js"
-import { InterWindowEventFacadeSendDispatcher } from "../common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { MobileContactsFacade } from "../common/generatedipc/MobileContactsFacade.js"
-import { MobileContactsFacadeSendDispatcher } from "../common/generatedipc/MobileContactsFacadeSendDispatcher.js"
 import { WebMobileFacade } from "./WebMobileFacade.js"
-import { NativeCredentialsFacade } from "../common/generatedipc/NativeCredentialsFacade.js"
-import { NativeCredentialsFacadeSendDispatcher } from "../common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
-import { MobilePaymentsFacade } from "../common/generatedipc/MobilePaymentsFacade.js"
-import { MobilePaymentsFacadeSendDispatcher } from "../common/generatedipc/MobilePaymentsFacadeSendDispatcher.js"
 
 import { AppType } from "../../misc/ClientConstants.js"
-import { ExternalCalendarFacade } from "../common/generatedipc/ExternalCalendarFacade.js"
-import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/ExternalCalendarFacadeSendDispatcher.js"
-import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
-import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
-import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
-import { isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain

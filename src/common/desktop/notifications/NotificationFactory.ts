@@ -1,7 +1,7 @@
 import type { NativeImage } from "electron"
 import { type App } from "electron"
 import { DesktopConfig } from "../config/DesktopConfig"
-import { BuildConfigKey } from "../config/ConfigKeys"
+import { BuildConfigKey } from "../../../app-env/ConfigKeys"
 import { ElectronNotificationFactory } from "./ElectronNotificationFactory"
 import { WindowsNotificationFactory } from "./WindowsNotificationFactory"
 

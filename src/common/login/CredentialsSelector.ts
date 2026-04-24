@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { CredentialsInfo } from "../native/common/generatedipc/CredentialsInfo.js"
+import { CredentialsInfo } from "@tutao/native-bridge"
 import { lang } from "../misc/LanguageViewModel.js"
 
 export type CredentialsSelectorAttrs = {

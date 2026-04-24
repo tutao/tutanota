@@ -4,7 +4,7 @@ import { DesktopConfigMigrator } from "../../../../src/common/desktop/config/mig
 import { noOp } from "@tutao/utils"
 import { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
+import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/common/desktop/config/ConfigFile.js"
 import { function as fn, matchers, object, verify, when } from "testdouble"
 

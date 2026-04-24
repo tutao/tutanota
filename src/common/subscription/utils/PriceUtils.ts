@@ -6,7 +6,7 @@ import { PlanTypeToName, reverse, sysServices, sysTypeRefs } from "@tutao/typere
 import { IServiceExecutor } from "../../api/common/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../../api/main/UserError.js"
-import { MobilePlanPrice } from "../../native/common/generatedipc/MobilePlanPrice"
+import { MobilePlanPrice } from "@tutao/native-bridge"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
 import { SignupViewModel } from "../../signup/SignupView"

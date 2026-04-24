@@ -1,5 +1,5 @@
 import { Dialog } from "../gui/base/Dialog.js"
-import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
+import { convertToDataFile, createDataFile, createReferencingInstance, DataFile, DownloadableFileEntity } from "@tutao/typerefs"
 import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -14,7 +14,6 @@ import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { createReferencingInstance, DownloadableFileEntity } from "../api/common/utils/BlobUtils.js"
 import { TransferId } from "../api/common/drive/DriveTypes"
 
 assertMainOrNode()

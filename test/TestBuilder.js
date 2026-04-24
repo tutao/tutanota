@@ -31,6 +31,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 		await runStep("Clean", async () => {
 			fs.rmSync(buildDir, { recursive: true, force: true })
 			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			fs.rmSync("src/mimimi/napi-out", { recursive: true, force: true })
 			spawnSync("cargo", ["clean"])
 			spawnSync("npx", ["tsc", "--build", "--clean"])
 		})

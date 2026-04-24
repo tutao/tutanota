@@ -11,12 +11,11 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { FileReference, isDataFile, isFileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
-import { DataFile } from "../../../common/api/common/DataFile"
+import { DataFile } from "@tutao/typerefs"
 import { showFileChooser } from "../../../common/file/FileController.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import { showDownloadProgressDialog } from "../view/MailGuiUtils"
-import { Mode } from "@tutao/app-env"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,

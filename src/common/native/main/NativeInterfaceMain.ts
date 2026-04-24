@@ -8,7 +8,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { IosNativeTransport } from "./IosNativeTransport.js"
 import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
 import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
-import { WebGlobalDispatcher } from "../common/generatedipc/WebGlobalDispatcher.js"
+import { WebGlobalDispatcher } from "@tutao/native-bridge"
 import { isAndroidApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNode()

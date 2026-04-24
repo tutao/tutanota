@@ -5,7 +5,7 @@ import { AuthDataProvider } from "./UserFacade.js"
 import { deduplicate, first, isEmpty, lazyMemoized } from "@tutao/utils"
 import { storageServices, storageTypeRefs, TypeModelResolver, TypeRef } from "@tutao/typerefs"
 import { BlobLoadOptions } from "./lazy/BlobFacade.js"
-import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
+import { BlobReferencingInstance } from "@tutao/typerefs"
 
 assertWorkerOrNode()
 

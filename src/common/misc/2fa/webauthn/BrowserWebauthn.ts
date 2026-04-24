@@ -1,13 +1,13 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
+import { WebAuthnFacade } from "@tutao/native-bridge"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { CancelledError } from "../../../api/common/error/CancelledError.js"
 import { WebauthnError } from "../../../api/common/error/WebauthnError.js"
-import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
-import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
-import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
+import { WebAuthnRegistrationChallenge } from "@tutao/native-bridge"
+import { WebAuthnRegistrationResult } from "@tutao/native-bridge"
+import { WebAuthnSignChallenge } from "@tutao/native-bridge"
+import { WebAuthnSignResult } from "@tutao/native-bridge"
 import { isApp } from "@tutao/app-env"
 
 const WEBAUTHN_TIMEOUT_MS = 60000

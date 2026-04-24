@@ -4,12 +4,10 @@ import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/Deskto
 import { object, verify, when } from "testdouble"
 import { DesktopCredentialsStorage } from "../../../../src/common/desktop/db/DesktopCredentialsStorage.js"
 import { KeychainEncryption } from "../../../../src/common/desktop/credentials/KeychainEncryption.js"
-import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
-import { PersistedCredentials } from "../../../../src/common/native/common/generatedipc/PersistedCredentials.js"
+import { CredentialEncryptionMode, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
 import { aes256RandomKey } from "@tutao/crypto"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()

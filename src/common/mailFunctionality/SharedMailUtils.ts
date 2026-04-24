@@ -1,8 +1,19 @@
-import { assertMainOrNode, ContactAddressType, ConversationType, GroupType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	assertMainOrNode,
+	ContactAddressType,
+	ConversationType,
+	EncryptionAuthStatus,
+	GroupType,
+	MailState,
+	MAX_ATTACHMENT_SIZE,
+	MAX_BASE64_IMAGE_SIZE,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+	TUTA_MAIL_ADDRESS_DOMAINS,
+} from "@tutao/app-env"
+import { DataFile, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
-import { ALLOWED_IMAGE_FORMATS, EncryptionAuthStatus, MAX_ATTACHMENT_SIZE, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -11,7 +22,6 @@ import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { Attachment } from "./SendMailModel.js"
 import { showFileChooser } from "../file/FileController.js"
-import { DataFile } from "../api/common/DataFile.js"
 import { Dialog } from "../gui/base/Dialog.js"
 
 assertMainOrNode()

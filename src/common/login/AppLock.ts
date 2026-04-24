@@ -1,7 +1,5 @@
-import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
-import { NativeCredentialsFacade } from "../native/common/generatedipc/NativeCredentialsFacade.js"
-import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
-import { AppLockMethod } from "../native/common/generatedipc/AppLockMethod"
+import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade } from "@tutao/native-bridge"
+import { CredentialEncryptionMode } from "@tutao/app-env"
 
 /**
  * Enforces app authentication via system mechanism e.g. system password or biometrics.

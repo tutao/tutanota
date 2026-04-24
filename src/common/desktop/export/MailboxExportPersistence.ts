@@ -1,30 +1,6 @@
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { DesktopConfigKey } from "../config/ConfigKeys.js"
-
-export type MailboxExportState =
-	| {
-			type: "running"
-			userId: Id
-			mailboxId: Id
-			exportDirectoryPath: string
-			mailBagId: Id
-			mailId: Id
-			exportedMails: number
-			failedCount: number
-			failedMailIds: IdTuple[]
-	  }
-	| {
-			type: "finished"
-			userId: Id
-			mailboxId: Id
-			exportDirectoryPath: string
-			failedCount: number
-			failedMailIds: IdTuple[]
-	  }
-	| {
-			type: "locked"
-			userId: Id
-	  }
+import { DesktopConfigKey } from "@tutao/app-env"
+import { MailboxExportState } from "@tutao/typerefs"
 
 export class MailboxExportPersistence {
 	constructor(private readonly conf: DesktopConfig) {}

@@ -8,7 +8,7 @@ import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.
 import { LocalShortcutManager } from "../../../src/common/desktop/electron-localshortcut/LocalShortcut.js"
 import { matchers, object, when } from "testdouble"
 import { spy, verify } from "@tutao/otest"
-import { ThemeFacade } from "../../../src/common/native/common/generatedipc/ThemeFacade.js"
+import { ThemeFacade } from "@tutao/native-bridge"
 import { DesktopThemeFacade } from "../../../src/common/desktop/DesktopThemeFacade.js"
 import { RemoteBridge, SendingFacades } from "../../../src/common/desktop/ipc/RemoteBridge.js"
 

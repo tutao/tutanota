@@ -1,9 +1,8 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, Keys, Mode } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { DataFile, tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../api/main/CommonLocator.js"
-import { DataFile } from "../api/common/DataFile.js"
 import { client } from "../misc/ClientDetector"
 import { SupportVisibilityMask } from "./SupportVisibilityMask"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog"
@@ -18,11 +17,9 @@ import { ContactSupportPage } from "./pages/ContactSupportPage.js"
 import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
 import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
 import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
-import { Keys } from "@tutao/app-env"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
-import { Mode } from "@tutao/app-env"
 
 assertMainOrNode()
 

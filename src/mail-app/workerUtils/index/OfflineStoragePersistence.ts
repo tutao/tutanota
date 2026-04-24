@@ -1,6 +1,6 @@
-import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { sql } from "../../../common/api/worker/offline/Sql"
-import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
+import { SqlValue, untagSqlObject, untagSqlValue } from "../../../typerefs/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/typerefs"

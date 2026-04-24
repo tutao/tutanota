@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { DesktopConfigKey } from "@tutao/app-env"
+export type { DesktopConfigKey } from "@tutao/app-env"

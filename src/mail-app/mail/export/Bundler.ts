@@ -1,6 +1,5 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { DataFile, getLetId, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { getLetId } from "@tutao/typerefs"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/utils"
 import { FileController } from "../../../common/file/FileController"
@@ -9,7 +8,6 @@ import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { loadMailDetails } from "../view/MailViewerUtils.js"
 import { MailBundle } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { DataFile } from "../../../common/api/common/DataFile.js"
 import { isDraft } from "../model/MailChecks.js"
 
 export function makeMailBundle(

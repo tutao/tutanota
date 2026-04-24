@@ -4,7 +4,7 @@ import { assertNotNull } from "@tutao/utils"
 import { lang } from "../misc/LanguageViewModel.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
-import { PermissionType } from "../native/common/generatedipc/PermissionType.js"
+import { PermissionType } from "@tutao/native-bridge"
 import { isApp, isAppleDevice, isDesktop } from "@tutao/app-env"
 
 assertMainOrNode()

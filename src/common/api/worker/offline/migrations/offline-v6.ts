@@ -1,5 +1,5 @@
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { isBrowser, Mode } from "@tutao/app-env"
 

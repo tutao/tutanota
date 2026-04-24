@@ -12,13 +12,23 @@ import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../m
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, FeatureType, isApp, isDesktop, LOGIN_TITLE, Mode, SecondFactorType, UpgradePromptType } from "@tutao/app-env"
+import {
+	CloseEventBusOption,
+	Const,
+	CredentialEncryptionMode,
+	FeatureType,
+	isApp,
+	isDesktop,
+	LOGIN_TITLE,
+	Mode,
+	SecondFactorType,
+	UpgradePromptType,
+} from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
 import * as restError from "@tutao/rest-client/error"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { SessionType } from "../api/common/SessionType"
 import { StorageBehavior } from "../misc/UsageTestModel.js"

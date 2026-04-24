@@ -8,9 +8,10 @@ import {
 	MAX_ATTACHMENT_SIZE,
 	minutesToMillis,
 	OperationType,
+	ProgrammingError,
 	ReplyType,
 } from "@tutao/app-env"
-import { DataFile } from "../api/common/DataFile.js"
+import { DataFile, elementIdPart, entityUpdateUtils, getElementId, isSameId, monitorTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { FileReference } from "../api/common/utils/FileUtils.js"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
@@ -34,7 +35,6 @@ import {
 } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { elementIdPart, entityUpdateUtils, getElementId, isSameId, monitorTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isAliasEnabledWithUser, isUserEmail, RecipientField } from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient } from "../api/main/RecipientsModel.js"
@@ -49,7 +49,6 @@ import { UserController } from "../api/main/UserController.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResolvedError.js"

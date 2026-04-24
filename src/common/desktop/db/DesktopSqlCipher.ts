@@ -1,10 +1,10 @@
 import { Database } from "@signalapp/sqlcipher"
 import { mapNullable, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { TaggedSqlValue, tagSqlObject, untagSqlValue } from "../../api/worker/offline/SqlValue.js"
+import { TaggedSqlValue, tagSqlObject, untagSqlValue } from "../../../typerefs/SqlValue.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {
 	private _db: Database | null = null

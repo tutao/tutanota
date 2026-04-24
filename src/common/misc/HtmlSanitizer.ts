@@ -1,6 +1,6 @@
 import { ReplacementImage } from "../gui/base/icons/Icons"
 import { isEmpty, isNotNull, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
-import { DataFile } from "../api/common/DataFile"
+import { DataFile } from "@tutao/typerefs"
 import DOMPurify, { Config } from "dompurify"
 import { SearchToken, splitTextForHighlighting } from "../api/common/utils/QueryTokenUtils"
 import {

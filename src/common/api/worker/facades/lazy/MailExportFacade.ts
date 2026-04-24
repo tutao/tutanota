@@ -1,10 +1,16 @@
-import { elementIdPart, storageTypeRefs as storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import {
+	convertToDataFile,
+	createReferencingInstance,
+	DataFile,
+	elementIdPart,
+	storageTypeRefs as storageTypeRefs,
+	sysTypeRefs,
+	tutanotaTypeRefs,
+} from "@tutao/typerefs"
 import { ArchiveDataType, assertWorkerOrNode } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
-import { convertToDataFile, DataFile } from "../../../common/DataFile.js"
 import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { createReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"

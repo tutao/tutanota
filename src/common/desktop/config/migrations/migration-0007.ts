@@ -1,5 +1,5 @@
 import type { Config } from "../ConfigCommon"
-import { DesktopConfigKey } from "../ConfigKeys.js"
+import { DesktopConfigKey } from "@tutao/app-env"
 import { WindowBounds } from "../../DesktopWindowManager.js"
 
 const newDefault = {

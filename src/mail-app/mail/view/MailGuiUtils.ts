@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
+import { DataFile, elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
@@ -12,11 +12,11 @@ import {
 	MailAuthenticationStatus,
 	MailReportType,
 	MailSetKind,
+	ProgrammingError,
 	secondsToMillis,
 	SystemFolderType,
 } from "@tutao/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
-import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
@@ -38,7 +38,6 @@ import {
 	SimpleMoveTargets,
 } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"

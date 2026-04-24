@@ -6,9 +6,9 @@ import { progressIcon } from "../gui/base/Icon.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { ButtonType } from "../gui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import { WebAuthnSignChallenge } from "../native/common/generatedipc/WebAuthnSignChallenge.js"
+import { WebAuthnSignChallenge } from "@tutao/native-bridge"
 import { stringToBase64 } from "@tutao/utils"
-import { WebAuthnRegistrationChallenge } from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import { WebAuthnRegistrationChallenge } from "@tutao/native-bridge"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {

@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { ContactMessengerHandleType } from "@tutao/app-env"
+export type { ContactMessengerHandleType } from "@tutao/app-env"

@@ -1,8 +1,8 @@
 {
 	"name": "@tutao/node-mimimi",
 	"version": "345.260421.2",
-	"main": "./dist/binding.js",
-	"types": "./dist/binding.d.ts",
+	"main": "./napi-out/binding.js",
+	"types": "./napi-out/binding.d.ts",
 	"napi": {
 		"binaryName": "mimimi",
 		"targets": [
@@ -29,6 +29,6 @@
 		"version": "napi version"
 	},
 	"sideEffects": [
-		"./dist/*.node"
+		"./napi-out/*.node"
 	]
 }
