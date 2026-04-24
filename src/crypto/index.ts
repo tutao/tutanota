@@ -164,12 +164,22 @@ export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blak
 export { AeadFacade, PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
 export * from "./CryptoWrapper.js"
-export { SymmetricKeyDeriver, SymmetricSubKeys, AeadSubKeys } from "./encryption/symmetric/SymmetricKeyDeriver.js"
+export {
+	SymmetricKeyDeriver,
+	SymmetricSubKeys,
+	AeadSubKeys,
+	AesSubKeys,
+	AesCbcThenHmacSubKeys,
+	UnusedReservedUnauthenticatedSubKeys,
+} from "./encryption/symmetric/SymmetricKeyDeriver.js"
 export {
 	SymmetricCipherVersion,
 	SymmetricAesCipherVersion,
 	SymmetricAeadCipherVersion,
 	getSymmetricCipherVersion,
+	SymmetricCipherVersionAeadWithGroupKey,
+	SymmetricCipherVersionAeadWithSessionKey,
+	SymmetricAeadCipherVersionMaybeWithGroupKeyVersion,
 } from "./encryption/symmetric/SymmetricCipherVersion.js"
 export {
 	SymmetricCipherFacade,
@@ -177,5 +187,7 @@ export {
 	ValueDecryptor,
 	InstanceDecryptor,
 	MissingSessionKey,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
 } from "./encryption/symmetric/SymmetricCipherFacade.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"

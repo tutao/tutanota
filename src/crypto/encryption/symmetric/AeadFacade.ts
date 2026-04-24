@@ -52,27 +52,27 @@ export class AeadFacade {
 	/**
 	 * Encrypt with AEAD.
 	 */
-	encrypt(key: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
 		const paddedPlaintext = this.pad(plaintext)
-		return this.encryptInternal(key, paddedPlaintext, associatedData)
+		return this.encryptInternal(subKeys, paddedPlaintext, associatedData)
 	}
 
 	/**
 	 * Encrypt the plaintext with AEAD. It must already be padded.
 	 * @private
 	 */
-	encryptInternal(key: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(key)
+	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		this.validateKeyLength(subKeys)
 
 		const iv = generateIV()
 		const aesCtrCiphertext = bitArrayToUint8Array(
-			sjcl.mode.ctr.encrypt(new sjcl.cipher.aes(key.encryptionKey), uint8ArrayToBitArray(plaintext), uint8ArrayToBitArray(iv), []),
+			sjcl.mode.ctr.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plaintext), uint8ArrayToBitArray(iv), []),
 		)
 
 		const unauthenticatedCiphertext = concat(iv, aesCtrCiphertext)
 		const unauthenticatedCiphertextLength = bitArrayToUint8Array([unauthenticatedCiphertext.length])
 
-		const authenticationKey = bitArrayToUint8Array(key.authenticationKey)
+		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
 		const tag = blake3Mac(authenticationKey, concat(unauthenticatedCiphertextLength, unauthenticatedCiphertext, associatedData))
 
 		return concat(unauthenticatedCiphertext, tag)
@@ -81,21 +81,21 @@ export class AeadFacade {
 	/**
 	 * Decrypt with AEAD.
 	 */
-	decrypt(key: AeadSubKeys, ciphertext: Uint8Array, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(key)
+	decrypt(subKeys: AeadSubKeys, ciphertext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		this.validateKeyLength(subKeys)
 
 		const ciphertextWithoutMac = ciphertext.subarray(0, ciphertext.length - DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES)
 		const authenticationTag = ciphertext.subarray(ciphertext.length - DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES, ciphertext.length)
 		const ciphertextWithoutMacLength = bitArrayToUint8Array([ciphertextWithoutMac.length])
 		const authenticatedData = concat(ciphertextWithoutMacLength, ciphertextWithoutMac, associatedData)
-		const authenticationKey = bitArrayToUint8Array(key.authenticationKey)
+		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
 		blake3MacVerify(authenticationKey, authenticatedData, authenticationTag as MacTag)
 
 		const iv = ciphertextWithoutMac.subarray(0, IV_BYTE_LENGTH)
 		const aesCtrCiphertext = ciphertextWithoutMac.subarray(IV_BYTE_LENGTH, ciphertextWithoutMac.length)
 
 		const paddedPlaintext = bitArrayToUint8Array(
-			sjcl.mode.ctr.decrypt(new sjcl.cipher.aes(key.encryptionKey), uint8ArrayToBitArray(aesCtrCiphertext), uint8ArrayToBitArray(iv), []),
+			sjcl.mode.ctr.decrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(aesCtrCiphertext), uint8ArrayToBitArray(iv), []),
 		)
 		return this.unpad(paddedPlaintext)
 	}

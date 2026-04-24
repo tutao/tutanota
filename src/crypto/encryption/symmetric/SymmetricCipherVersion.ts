@@ -1,4 +1,5 @@
 import { CryptoError } from "../../error.js"
+import { KeyVersion } from "@tutao/utils"
 
 /**
  * The version of the symmetric cipher.
@@ -14,6 +15,16 @@ export const SymmetricCipherVersion = {
 export type SymmetricCipherVersion = (typeof SymmetricCipherVersion)[keyof typeof SymmetricCipherVersion]
 export type SymmetricAesCipherVersion = typeof SymmetricCipherVersion.UnusedReservedUnauthenticated | typeof SymmetricCipherVersion.AesCbcThenHmac
 export type SymmetricAeadCipherVersion = typeof SymmetricCipherVersion.AeadWithGroupKey | typeof SymmetricCipherVersion.AeadWithSessionKey
+
+export type SymmetricCipherVersionAeadWithGroupKey = {
+	cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey
+	groupKeyVersion: KeyVersion
+}
+export type SymmetricCipherVersionAeadWithSessionKey = {
+	cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey
+}
+
+export type SymmetricAeadCipherVersionMaybeWithGroupKeyVersion = SymmetricCipherVersionAeadWithGroupKey | SymmetricCipherVersionAeadWithSessionKey
 
 /**
  * Get the SymmetricCipherVersion from either the version byte or the full ciphertext

@@ -18,6 +18,7 @@ import {
 import {
 	Base64,
 	base64ToUint8Array,
+	concat,
 	KeyVersion,
 	lazy,
 	Nullable,
@@ -27,7 +28,20 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
+import {
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
+	AesKey,
+	DomainSeparator,
+	InstanceDecryptor,
+	MissingSessionKey,
+	SymmetricAeadCipherVersion,
+	SymmetricCipherFacade,
+	SymmetricCipherVersion,
+	SymmetricSubKeys,
+	UnusedReservedUnauthenticatedSubKeys,
+	VersionedKey,
+} from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter.js"
@@ -266,14 +280,42 @@ export class CryptoMapper {
 			encrypted: true
 		},
 		value: Nullable<ParsedValue>,
-		sk: AesKey,
+		subKeys: Exclude<SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys>,
+		fieldPath: string,
 	): Nullable<Base64> {
 		if (value == null) {
 			return null
 		}
 		const dbValue = convertJsToDbType(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
-		const encryptedBytes = this.symmetricCipherFacade.encryptBytes(sk, bytes)
+		let encryptedBytes
+		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
+			encryptedBytes = this.symmetricCipherFacade.encryptBytes(subKeys, bytes)
+		} else {
+			let domainSpecifier: DomainSeparator
+			if (subKeys.cipherVersion.cipherVersion === SymmetricCipherVersion.AeadWithGroupKey) {
+				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN
+			} else {
+				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN
+			}
+			const associatedData = stringToUtf8Uint8Array(domainSpecifier + fieldPath)
+			encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
+			encryptedBytes = concat(this.stuff(subKeys.cipherVersion.cipherVersion, groupKeyVersion), encryptedBytes)
+		}
 		return uint8ArrayToBase64(encryptedBytes)
+	}
+
+	private stuff(cipherVersion: SymmetricAeadCipherVersion, groupKeyVersion: Nullable<KeyVersion>): Uint8Array {
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.AeadWithSessionKey:
+				return Uint8Array.of(cipherVersion)
+			case SymmetricCipherVersion.AeadWithGroupKey: {
+				const keyVersionLengthByte = 0
+				if (groupKeyVersion == null) {
+					throw new ProgrammingError("AEAD encryption with group key requires a group key version")
+				}
+				return Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion)
+			}
+		}
 	}
 }

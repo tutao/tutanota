@@ -1,15 +1,15 @@
 import { AesKey, FIXED_IV, generateIV, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
 import { getSymmetricCipherVersion, SymmetricAeadCipherVersion, SymmetricAesCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { assert, isKeyVersion, KeyVersion, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
+import { isKeyVersion, KeyVersion, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { AEAD_FACADE, AeadFacade } from "./AeadFacade.js"
-import { AeadSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver.js"
+import { AeadSubKeys, AesSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver.js"
 import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
 import { CryptoError } from "../../error.js"
 
-const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
-const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
+export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
+export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
 
 function createCache<K, S extends string | number | boolean, V>(serialize: (key: K) => S) {
 	const map = new Map<S, V>()
@@ -107,7 +107,11 @@ class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys === undefined) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(key, this.kdfNonce, this.globalInstanceTypeId)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+				{ object: key, version: this.requiredGroupKeyVersion },
+				this.kdfNonce,
+				this.globalInstanceTypeId,
+			)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
 		return this.aeadFacade.decrypt(subKeys, this.ciphertext, this.associatedData)
@@ -247,8 +251,12 @@ export class SymmetricCipherFacade {
 	 * @param bytes The data to encrypt.
 	 * @return The encrypted bytes.
 	 */
-	encryptBytes(key: AesKey, bytes: Uint8Array): Uint8Array {
+	encryptBytes(key: AesKey | AesSubKeys, bytes: Uint8Array): Uint8Array {
 		return this.encrypt(key, bytes, true, SymmetricCipherVersion.AesCbcThenHmac)
+	}
+
+	encryptBytesWithAead(subKeys: AeadSubKeys, bytes: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		return this.encryptWithAead(subKeys, bytes, associatedData)
 	}
 
 	/**
@@ -374,27 +382,25 @@ export class SymmetricCipherFacade {
 	}
 
 	private encrypt(
-		key: AesKey,
-		plainText: Uint8Array,
+		key: AesKey | AesSubKeys,
+		plaintext: Uint8Array,
 		padding: boolean,
-		cipherVersion: SymmetricCipherVersion,
+		cipherVersion: SymmetricAesCipherVersion,
 		mustGenerateRandomIv: boolean = true,
 		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
 		const iv = mustGenerateRandomIv ? generateIV() : FIXED_IV
-		switch (cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-				return this.aesCbcFacade.encrypt(subKeys, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
-			}
-			case SymmetricCipherVersion.AeadWithGroupKey:
-			case SymmetricCipherVersion.AeadWithSessionKey: {
-				assert(mustGenerateRandomIv, "AEAD requires random IV")
-				// we can only use this once all clients support it
-				throw new Error("Not enabled")
-			}
+		let subKeys: AesSubKeys
+		if (Array.isArray(key)) {
+			subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		} else {
+			subKeys = key
 		}
+		return this.aesCbcFacade.encrypt(subKeys, plaintext, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
+	}
+
+	private encryptWithAead(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		return this.aeadFacade.encrypt(subKeys, plaintext, associatedData)
 	}
 
 	private decrypt(
