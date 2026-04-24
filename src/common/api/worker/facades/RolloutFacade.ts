@@ -64,7 +64,7 @@ export class RolloutFacade {
 	 * @throws ProgrammingError if the RolloutType was scheduled but not configured.
 	 * @returns RolloutResult that indicates whether it was executed.
 	 */
-	public async processRollout<T>(rolloutType: RolloutType): Promise<void> {
+	public async processRollout(rolloutType: RolloutType): Promise<void> {
 		const rolloutActions = await this.rolloutActions.getAsync()
 		const rollout = rolloutActions.get(rolloutType)
 		if (rollout) {
@@ -72,8 +72,8 @@ export class RolloutFacade {
 				await rollout.execute()
 			} catch (e) {
 				console.log(`error executing rollout action`, rolloutType)
-				//@ts-ignore We report the error to the user interface but do not block further execution.
-				this.sendError(e)
+				// We report the error to the user interface but do not block further execution.
+				void this.sendError(e)
 			} finally {
 				// we remove it for now to delete locally stored data (potentially sensitive)
 				// it will be scheduled again in the next login
