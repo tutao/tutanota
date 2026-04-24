@@ -33,3 +33,4 @@ import-trace.json
 src/crypto-primitives
 src/mimimi/package-lock.json
 src/licc/package-lock.json
+src/mimimi/napi-out
