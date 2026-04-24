@@ -23,8 +23,10 @@ export interface LangGenerator {
 
 	/**
 	 * generate extra type definitions needed to make the interface work
+	 * @param platform
+	 * @param generatedSymbols name of every scheme that have been generated so far
 	 */
-	generateExtraFiles(): Record<string, string>
+	generateExtraFiles(platform: Platform, generatedSymbols: Array<string>): Record<string, string>
 
 	/**
 	 * external types that don't get generated but are located somewhere else
