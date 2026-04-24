@@ -20,6 +20,10 @@ export class ConfigureImapImportPage implements WizardPageN<ImapImportModel> {
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<ImapImportModel>>) {
 		this.dom = vnode.dom as HTMLElement
+		console.log("on create... ", { vnode })
+	}
+	onremove() {
+		console.log("on being removed...")
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<ImapImportModel>>): Children {
@@ -76,6 +80,7 @@ export class ConfigureImapImportPageAttrs implements WizardPageAttrs<ImapImportM
 		imapImportData: ImapImportModel,
 	) {
 		this.data = imapImportData
+		// Add listener to ImapImporter hook
 	}
 
 	headerTitle(): MaybeTranslation {

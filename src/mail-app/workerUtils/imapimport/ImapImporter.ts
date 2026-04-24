@@ -38,12 +38,18 @@ export type InitializeImapImportParams = {
 	isModifyingExistingImport: boolean
 }
 
+type ImapErrorCallback = {
+	identifier: string
+	handler: (error: ImapError) => void
+}
+
 export class ImapImporter implements ImapImportFacade {
 	private imapImportState: ImapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
 	private importImapAccountSyncState: tutanotaTypeRefs.ImportImapAccountSyncState | null = null
 	private importImapFolderSyncStates?: tutanotaTypeRefs.ImportImapFolderSyncState[]
 	private deduplicatedImportedAttachmentHashToFileId?: Map<string, MaybePromise<IdTuple | undefined>>
 	private importedMessageIds: Set<string> = new Set()
+	private errorCallbacks = new Map<string, ImapErrorCallback>()
 
 	constructor(
 		private readonly imapImportSystemFacade: ImapImportSystemFacade,
@@ -351,6 +357,7 @@ export class ImapImporter implements ImapImportFacade {
 
 	async onPostpone(postponedUntil: number): Promise<void> {
 		await this.postponeImport(new Date(postponedUntil))
+		console.log("on opstponingingin!", postponedUntil)
 		return Promise.resolve()
 	}
 
@@ -360,6 +367,19 @@ export class ImapImporter implements ImapImportFacade {
 	}
 
 	onError(imapError: ImapError): Promise<void> {
+		this.imapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
+		for (const { identifier, handler } of this.errorCallbacks.values()) {
+			console.log("calling callback", identifier)
+			handler(imapError)
+		}
 		return Promise.resolve()
+	}
+
+	addOnErrorCallback(callback: ImapErrorCallback): void {
+		this.errorCallbacks.set(callback.identifier, callback)
+	}
+
+	removeOnerrorCallback(name: string): void {
+		this.errorCallbacks.delete(name)
 	}
 }

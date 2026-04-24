@@ -10,6 +10,7 @@ import { ImapMailbox } from "../../../api/common/utils/imapImportUtils/ImapMailb
 import { AdSyncConfig } from "./ImapAdSync.js"
 import { AdSyncSingleProcessesOptimizer } from "./optimizer/processesoptimizer/AdSyncSingleProcessesOptimizer.js"
 import { AdSyncProcessesOptimizer } from "./optimizer/processesoptimizer/AdSyncProcessesOptimizer.js"
+import { ImapError } from "./imapmail/ImapError"
 
 const DOWNLOADED_QUOTA_SAFETY_THRESHOLD: number = 50000000 // in byte
 const DEFAULT_POSTPONE_TIME: number = 24 * 60 * 60 * 1000 // 24 hours
@@ -20,6 +21,13 @@ export enum SyncSessionState {
 	PAUSED,
 	POSTPONED,
 	FINISHED,
+}
+
+export enum ShutdownSyncAction {
+	NONE,
+	POSTPONE,
+	AUTH_FAIL,
+	UNKNOWN,
 }
 
 export interface SyncSessionEventListener {
@@ -58,11 +66,11 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	async stopSyncSession(): Promise<void> {
-		await this.shutDownSyncSession(false)
+		await this.shutDownSyncSession()
 		return
 	}
 
-	private async shutDownSyncSession(isPostpone: boolean, postponeDuration: number = DEFAULT_POSTPONE_TIME) {
+	private async shutDownSyncSession(shutdownSyncAction: ShutdownSyncAction = ShutdownSyncAction.NONE, postponeDuration: number = DEFAULT_POSTPONE_TIME) {
 		this.state = SyncSessionState.PAUSED
 
 		this.adSyncOptimizer?.stopAdSyncOptimizer()
@@ -71,9 +79,14 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 		this.runningSyncSessionProcesses.clear()
 
-		if (isPostpone) {
+		console.log("on shutdownsync session got..", shutdownSyncAction)
+		if (shutdownSyncAction === ShutdownSyncAction.POSTPONE) {
 			this.state = SyncSessionState.POSTPONED
+			console.log("on shutdown sync we set the postponed to be further...", Date.now() + postponeDuration)
 			this.adSyncEventListener.onPostpone(Date.now() + postponeDuration)
+		} else if (shutdownSyncAction === ShutdownSyncAction.AUTH_FAIL) {
+			console.log("Failed Authentication... inform listener...")
+			this.adSyncEventListener.onError(new ImapError("Authentication failed, please check your password"))
 		}
 	}
 
@@ -127,7 +140,14 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			})
 			return this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
 		} catch (error) {
-			await this.shutDownSyncSession(true, ERROR_POSTPONE_TIME)
+			console.log("caught an error during setup sync", error)
+			let syncAction = ShutdownSyncAction.UNKNOWN
+			if (error?.serverResponseCode === "AUTHENTICATIONFAILED") {
+				syncAction = ShutdownSyncAction.AUTH_FAIL
+			} else {
+				syncAction = ShutdownSyncAction.POSTPONE
+			}
+			await this.shutDownSyncSession(syncAction, ERROR_POSTPONE_TIME)
 			return null
 		}
 	}
@@ -237,7 +257,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		let downloadedQuotaTotal = this.downloadedQuotas.reduce((quotaSum, quota) => quotaSum + quota, 0)
 		if (downloadedQuotaTotal > this.imapSyncState.maxQuota - DOWNLOADED_QUOTA_SAFETY_THRESHOLD) {
-			this.shutDownSyncSession(true)
+			this.shutDownSyncSession(ShutdownSyncAction.POSTPONE)
 		}
 	}
 
@@ -245,7 +265,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		console.log("onAllMailboxesFinish")
 		if (this.state !== SyncSessionState.FINISHED) {
 			this.state = SyncSessionState.FINISHED
-			await this.shutDownSyncSession(false)
+			await this.shutDownSyncSession()
 
 			let downloadedQuotaTotal = this.downloadedQuotas.reduce((quotaSum, quota) => quotaSum + quota, 0)
 			this.adSyncEventListener.onFinish(downloadedQuotaTotal)

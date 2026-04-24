@@ -164,6 +164,7 @@ export function showAddImapImportWizard(imapImporter: ImapImporter, imapImportMo
 		wizardPageWrapper(ConfigureImapImportPage, new ConfigureImapImportPageAttrs(imapImporter, imapImportModel)),
 		wizardPageWrapper(ImapImportStartedPage, new ImapImportStartedPageAttrs(imapImporter, imapImportModel)),
 	]
+	//Could perhaps add the using / dispose here.
 	return new Promise((resolve) => {
 		const wizardBuilder = createWizardDialog({
 			data: imapImportModel,
