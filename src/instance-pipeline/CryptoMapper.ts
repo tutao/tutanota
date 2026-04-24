@@ -27,31 +27,13 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
+import { AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter.js"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
-}
-
-// Exported for testing
-export function encryptValue(
-	valueType: ModelValue & {
-		encrypted: true
-	},
-	value: Nullable<ParsedValue>,
-	sk: AesKey,
-): Nullable<Base64> {
-	if (value == null) {
-		return null
-	} else {
-		const dbValue = convertJsToDbType(valueType.type, value)!
-		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
-		const encryptedBytes = aesEncrypt(sk, bytes)
-		return uint8ArrayToBase64(encryptedBytes)
-	}
 }
 
 export class CryptoMapper {
@@ -208,7 +190,7 @@ export class CryptoMapper {
 			} else if (sk != null) {
 				// the value is actually Uint8Array | null | undefined. null means we need to check that the default value wasn't changed,
 				// which happened above - so it's okay to roll null into undefined.
-				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk)
+				encryptedValue = this.encryptValue(valueType as ModelValue & { encrypted: true }, value, sk)
 			} else {
 				throw new CryptoError(`Encrypting ${clientTypeModel.app}/${clientTypeModel.name}.${valueName} requires a session key!`)
 			}
@@ -261,22 +243,37 @@ export class CryptoMapper {
 		} else if (valueType.cardinality === Cardinality.One && value === "") {
 			// Migration for values added after the Type has been defined initially
 			return valueToDefault(valueType.type)
-		} else {
-			const ciphertext = base64ToUint8Array(value)
-			const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
-			if (valueDecryptor === MissingSessionKey) {
-				throw new SessionKeyNotFoundError("")
-			}
-			const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, groupId)
-			const decryptedBytes = valueDecryptor.getValue(inputKey)
-
-			if (valueType.type === ValueType.Bytes) {
-				return decryptedBytes
-			} else if (valueType.type === ValueType.CompressedString) {
-				return decompressString(decryptedBytes)
-			} else {
-				return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
-			}
 		}
+		const ciphertext = base64ToUint8Array(value)
+		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
+		if (valueDecryptor === MissingSessionKey) {
+			throw new SessionKeyNotFoundError("")
+		}
+		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, groupId)
+		const decryptedBytes = valueDecryptor.getValue(inputKey)
+
+		if (valueType.type === ValueType.Bytes) {
+			return decryptedBytes
+		} else if (valueType.type === ValueType.CompressedString) {
+			return decompressString(decryptedBytes)
+		} else {
+			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
+		}
+	}
+
+	encryptValue(
+		valueType: ModelValue & {
+			encrypted: true
+		},
+		value: Nullable<ParsedValue>,
+		sk: AesKey,
+	): Nullable<Base64> {
+		if (value == null) {
+			return null
+		}
+		const dbValue = convertJsToDbType(valueType.type, value)!
+		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
+		const encryptedBytes = this.symmetricCipherFacade.encryptBytes(sk, bytes)
+		return uint8ArrayToBase64(encryptedBytes)
 	}
 }

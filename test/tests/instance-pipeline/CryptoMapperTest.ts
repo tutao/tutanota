@@ -16,14 +16,14 @@ import {
 	ClientModelParsedInstance,
 	ClientTypeModel,
 	ClientTypeReferenceResolver,
-	ServerTypeReferenceResolver,
 	ModelValue,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
+	ServerTypeReferenceResolver,
 	ValueType,
 } from "@tutao/typerefs"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, encryptValue, ModelMapper, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
+import { CryptoMapper, ModelMapper, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 
@@ -160,7 +160,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.String, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = "this is a string value"
-			const encryptedValue = neverNull(encryptValue(valueType, value, sk))
+			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, sk))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, "")
 			o.check(await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")).equals(value)
 		})
@@ -168,18 +168,18 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Boolean, Cardinality.One)
 			const sk = aes256RandomKey()
 			let value = false
-			let encryptedValue = neverNull(encryptValue(valueType, value, sk))
+			let encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, sk))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, "")
 			o.check(await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")).equals(false)
 			value = true
-			encryptedValue = neverNull(encryptValue(valueType, value, sk))
+			encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, sk))
 			o.check(await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")).equals(true)
 		})
 		o.test("encrypt date value", async () => {
 			const valueType = createEncryptedValueType(ValueType.Date, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = new Date()
-			const encryptedValue = neverNull(encryptValue(valueType, value, sk))
+			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, sk))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, "")
 			o.check(await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")).deepEquals(value)
 		})
@@ -187,18 +187,18 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = random.generateRandomData(5)
-			const encryptedValue = neverNull(encryptValue(valueType, value, sk))
+			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, sk))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, "")
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
 			o.check(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
 		})
 		o.test("do not encrypt null values", () => {
 			const sk = aes256RandomKey()
-			o.check(encryptValue(createEncryptedValueType(ValueType.String, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o.check(encryptValue(createEncryptedValueType(ValueType.Date, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o.check(encryptValue(createEncryptedValueType(ValueType.Bytes, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o.check(encryptValue(createEncryptedValueType(ValueType.Boolean, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o.check(encryptValue(createEncryptedValueType(ValueType.Number, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.String, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.Date, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.Bytes, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.Boolean, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.Number, Cardinality.ZeroOrOne), null, sk)).equals(null)
 		})
 	})
 
