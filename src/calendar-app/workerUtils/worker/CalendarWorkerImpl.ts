@@ -1,15 +1,17 @@
-import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
-import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { Commands, Request } from "../../../native-bridge/shared/MessageTypes"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import * as restError from "@tutao/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"
-import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
-import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
+import type { NativeInterface } from "@tutao/native-bridge/common"
+import { WebWorkerTransport } from "../../../common/api/common/threading/WebTransport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "@tutao/crypto/error"
+import { errorToObj } from "@tutao/utils"
+import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -21,7 +23,7 @@ export class CalendarWorkerImpl implements NativeInterface {
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
-		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
 	}
 
 	async init(browserData: BrowserData): Promise<void> {

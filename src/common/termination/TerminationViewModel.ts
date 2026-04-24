@@ -1,4 +1,4 @@
-import { SessionType } from "../api/common/SessionType.js"
+import { SessionType } from "../../app-env/SessionType.js"
 import { LoginState } from "../login/LoginViewModel.js"
 import { InfoLink, lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"

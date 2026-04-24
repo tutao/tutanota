@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
-import { SessionType } from "../../src/common/api/common/SessionType.js"
+import { SessionType } from "../../src/app-env/SessionType.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { GroupType } from "../../src/app-env"
 

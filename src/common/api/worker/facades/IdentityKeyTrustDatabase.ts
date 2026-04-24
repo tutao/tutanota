@@ -1,13 +1,13 @@
 import { IdentityKeySourceOfTrust, isBrowser } from "@tutao/app-env"
-import { TaggedSqlValue } from "../../../../typerefs/SqlValue"
+import { TaggedSqlValue } from "@tutao/typerefs"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { ProgrammingError } from "@tutao/app-env"
 import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes } from "@tutao/crypto"
 import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "../offline/Sql"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import type { OfflineStorageTable } from "../offline/OfflineStorage"
-import { SessionType } from "../../common/SessionType"
+import { SessionType } from "@tutao/app-env"
 import { LoginFacade } from "./LoginFacade"
 
 /**

@@ -1,4 +1,4 @@
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../typerefs/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"

@@ -16,7 +16,7 @@ import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { hasError } from "@tutao/typerefs"
 import { CryptoError } from "@tutao/crypto/error"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
+import { EncryptedAlarmNotification } from "../../../native-bridge/common/EncryptedAlarmNotification"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 /**

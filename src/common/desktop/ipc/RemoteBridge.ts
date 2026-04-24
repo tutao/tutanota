@@ -1,13 +1,17 @@
-import { DesktopFacade } from "@tutao/native-bridge"
-import { CommonNativeFacade } from "@tutao/native-bridge"
+import {
+	CommonNativeFacade,
+	CommonNativeFacadeSendDispatcher,
+	DesktopFacade,
+	DesktopFacadeSendDispatcher,
+	DesktopGlobalDispatcher,
+	InterWindowEventFacadeSendDispatcher,
+} from "@tutao/native-bridge/common"
+import { Request } from "../../../native-bridge/shared/MessageTypes"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ElectronWebContentsTransport, IpcConfig } from "./ElectronWebContentsTransport.js"
-import { DesktopGlobalDispatcher } from "@tutao/native-bridge"
-import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
-import { DesktopFacadeSendDispatcher } from "@tutao/native-bridge"
-import { CommonNativeFacadeSendDispatcher } from "@tutao/native-bridge"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import { objToError } from "../../api/common/utils/ErrorUtils"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -59,6 +63,7 @@ export class RemoteBridge {
 				},
 			},
 			"node-main",
+			objToError,
 		)
 		const nativeInterface = {
 			invokeNative: async (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {

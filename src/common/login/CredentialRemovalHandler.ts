@@ -1,6 +1,6 @@
-import { NativePushServiceApp } from "../native/main/NativePushServiceApp.js"
+import { NativePushServiceApp } from "../native/NativePushServiceApp.js"
 import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase.js"
-import { CredentialsInfo } from "@tutao/native-bridge"
+import { CredentialsInfo } from "@tutao/native-bridge/common"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 
 export interface CredentialRemovalHandler {

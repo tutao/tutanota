@@ -1,7 +1,7 @@
 import type { Children, Vnode } from "mithril"
 import m from "mithril"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
-import type { WebauthnNativeBridge } from "../native/main/WebauthnNativeBridge.js"
+import type { WebauthnNativeBridge } from "../native/WebauthnNativeBridge.js"
 import { SecondFactorImage } from "../gui/base/icons/Icons.js"
 import { progressIcon } from "../gui/base/Icon.js"
 import { lang } from "../misc/LanguageViewModel.js"

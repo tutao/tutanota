@@ -9,7 +9,7 @@ import {
 	ServerModelInfo,
 	ServiceDefinition,
 } from "@tutao/typerefs"
-import { FileFacade } from "@tutao/native-bridge"
+import { FileFacade } from "@tutao/native-bridge/common"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { decompressString } from "@tutao/instance-pipeline"

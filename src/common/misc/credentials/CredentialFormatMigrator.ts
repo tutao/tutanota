@@ -1,5 +1,5 @@
 import { DeviceConfig, DeviceConfigCredentials } from "../DeviceConfig.js"
-import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade, PersistedCredentials } from "@tutao/native-bridge"
+import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade, PersistedCredentials } from "@tutao/native-bridge/common"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { base64ToUint8Array, mapNullable } from "@tutao/utils"
 import { lang } from "../LanguageViewModel.js"

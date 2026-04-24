@@ -26,7 +26,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDown
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
-import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge"
+import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/common"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { UserController } from "../../api/main/UserController"
 import { Checkbox } from "../../gui/base/Checkbox"
@@ -280,7 +280,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		// On mobile we display app lock dialog, on desktop credential encryption dialog. They are similar but different.
 		if (mobileSystemFacade) {
 			const onEdit = async () => {
-				const { showAppLockMethodDialog } = await import("../../native/main/SelectAppLockMethodDialog.js")
+				const { showAppLockMethodDialog } = await import("../../native/SelectAppLockMethodDialog.js")
 				await showAppLockMethodDialog(mobileSystemFacade)
 				await this.updateAppLockData()
 			}

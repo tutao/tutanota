@@ -1,10 +1,12 @@
-import { SqlCipherFacade } from "@tutao/native-bridge"
-import { TaggedSqlValue } from "../../../typerefs/SqlValue.js"
+import { Request } from "../../../native-bridge/shared/MessageTypes"
+import { TaggedSqlValue } from "@tutao/typerefs"
 import { Worker } from "node:worker_threads"
-import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"
 import { NodeWorkerTransport } from "../../api/common/threading/NodeWorkerTransport.js"
 import { createRequire } from "node:module"
+import { objToError } from "../../api/common/utils/ErrorUtils"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 
 const TAG = "[WorkerSqlCipher]"
 
@@ -36,6 +38,7 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 				trace: async (msg: Request<"trace">) => console.trace(`[sqlcipher-worker-${worker.threadId}]`, ...msg.args),
 			},
 			"node-nodeworker",
+			objToError,
 		)
 
 		this.worker = worker

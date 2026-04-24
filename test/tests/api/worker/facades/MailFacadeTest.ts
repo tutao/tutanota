@@ -8,7 +8,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
+import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { downcast, KeyVersion, lazyNumberRange } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"

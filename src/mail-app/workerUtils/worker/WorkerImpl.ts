@@ -1,5 +1,4 @@
-import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
-import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { RestClient, restError } from "@tutao/rest-client"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
@@ -19,7 +18,8 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { CryptoWrapper, random } from "@tutao/crypto"
-import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
+import { NativeInterface, SqlCipherFacade } from "@tutao/native-bridge/common"
+import { Commands, Request } from "../../../native-bridge/shared/MessageTypes"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
@@ -27,8 +27,7 @@ import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEnti
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
-import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
+import { WebWorkerTransport } from "../../../common/api/common/threading/WebTransport.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
@@ -48,6 +47,8 @@ import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/Pu
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { errorToObj } from "@tutao/utils"
+import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 
 assertWorkerOrNode()
@@ -106,7 +107,7 @@ export class WorkerImpl implements NativeInterface {
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
-		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
 	}
 
 	async init(browserData: BrowserData): Promise<void> {

@@ -5,6 +5,7 @@ import {
 	elementIdPart,
 	Entity,
 	entityUpdateUtils,
+	FileReference,
 	getElementId,
 	getLetId,
 	getListId,
@@ -88,11 +89,11 @@ import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEn
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
-import { FileReference, isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
+import { isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
-import { NativeFileApp } from "../../../../native/common/FileApp.js"
+import { NativeFileApp } from "@tutao/native-bridge/common"
 import { LoginFacade } from "../LoginFacade.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"

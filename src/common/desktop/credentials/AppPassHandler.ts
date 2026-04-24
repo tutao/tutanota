@@ -6,7 +6,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { CommonNativeFacade } from "@tutao/native-bridge"
+import { CommonNativeFacade } from "@tutao/native-bridge/common"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopCredentialsMode } from "./CredentialCommons.js"
 

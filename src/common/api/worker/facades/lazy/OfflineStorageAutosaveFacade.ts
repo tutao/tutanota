@@ -1,7 +1,7 @@
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import { sql } from "../../offline/Sql"
-import { untagSqlObject } from "../../../../../typerefs/SqlValue"
+import { untagSqlObject } from "@tutao/typerefs"
 import type { OfflineStorageTable } from "../../offline/OfflineStorage"
 
 export const AutosaveDraftsTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({

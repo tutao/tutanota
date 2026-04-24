@@ -2,12 +2,13 @@ import { app, BrowserWindow, WebContents } from "electron"
 import path from "node:path"
 import { defer } from "@tutao/utils"
 import { ElectronWebContentsTransport } from "./ipc/ElectronWebContentsTransport.js"
-import { NativeToWebRequest, WebToNativeRequest } from "../native/main/WebauthnNativeBridge.js"
-import { MessageDispatcher } from "../api/common/threading/MessageDispatcher.js"
+import { NativeToWebRequest, WebToNativeRequest } from "../native/WebauthnNativeBridge.js"
+import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import { exposeRemote } from "../api/common/WorkerProxy.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"
 import { register } from "./electron-localshortcut/LocalShortcut.js"
 import { ProgrammingError } from "@tutao/app-env"
+import { objToError } from "../api/common/utils/ErrorUtils"
 
 export const webauthnIpcConfig = Object.freeze({
 	renderToMainEvent: "to-main-webdialog",
@@ -149,6 +150,7 @@ export class WebDialogController {
 				},
 			},
 			"node-webauthn",
+			objToError,
 		)
 		const facade = exposeRemote<FacadeType>((req) => dispatcher.postRequest(req))
 		await deferred.promise

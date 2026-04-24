@@ -1,10 +1,10 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
-import { SessionType } from "../common/SessionType.js"
+import { SessionType } from "@tutao/app-env"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials } from "../../misc/credentials/Credentials.js"
-import { PersistedCredentials } from "@tutao/native-bridge"
+import { PersistedCredentials } from "@tutao/native-bridge/common"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 export const enum LoginFailReason {

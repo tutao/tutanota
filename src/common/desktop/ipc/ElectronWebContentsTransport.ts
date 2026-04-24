@@ -1,5 +1,4 @@
-import type { Message } from "../../api/common/threading/MessageDispatcher.js"
-import type { Transport } from "../../api/common/threading/Transport.js"
+import { Message, Transport } from "../../../native-bridge/shared/MessageTypes"
 import type { WebContents } from "electron"
 
 export interface IpcConfig<RenderToMainEvent extends string, MainToRenderEvent extends string> {

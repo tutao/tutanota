@@ -85,7 +85,7 @@ import {
 	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
-import { ExternalCalendarFacade } from "@tutao/native-bridge"
+import { ExternalCalendarFacade } from "@tutao/native-bridge/common"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
@@ -104,7 +104,7 @@ import {
 } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
-import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
+import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils"

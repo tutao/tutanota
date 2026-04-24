@@ -14,7 +14,7 @@ import {
 	WHITELABEL_CUSTOMIZATION_VERSION,
 } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
-import { ThemeFacade } from "@tutao/native-bridge"
+import { ThemeFacade } from "@tutao/native-bridge/common"
 import { AppType } from "../misc/ClientConstants.js"
 import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 import { isApp, isDesktop } from "@tutao/app-env"

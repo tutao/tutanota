@@ -21,6 +21,7 @@ import {
 	isOfflineStorageAvailable,
 	isTest,
 	ProgrammingError,
+	SessionType,
 } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -30,11 +31,17 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { DeviceEncryptionFacade } from "../../../common/api/worker/facades/DeviceEncryptionFacade.js"
-import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
-import { NativeFileApp } from "../../../common/native/common/FileApp.js"
-import { AesApp } from "../../../common/native/worker/AesApp.js"
-import type { RsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
-import { createRsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
+import type { NativeInterface } from "@tutao/native-bridge/common"
+import {
+	ExportFacadeSendDispatcher,
+	FileFacadeSendDispatcher,
+	InterWindowEventFacadeSendDispatcher,
+	NativeCryptoFacadeSendDispatcher,
+	NativeFileApp,
+	NativePushFacadeSendDispatcher,
+	SqlCipherFacade,
+	SqlCipherFacadeSendDispatcher,
+} from "@tutao/native-bridge/common"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -47,22 +54,14 @@ import type { BookingFacade } from "../../../common/api/worker/facades/lazy/Book
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import { FileFacadeSendDispatcher } from "@tutao/native-bridge"
-import { NativePushFacadeSendDispatcher } from "@tutao/native-bridge"
-import { NativeCryptoFacadeSendDispatcher } from "@tutao/native-bridge"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
-import { ExportFacadeSendDispatcher } from "@tutao/native-bridge"
+import { CryptoWrapper, InstanceSessionKeysCache, KeyAuthenticationFacade, KeyCache, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 import { assertNotNull, delay, lazyAsync, lazyMemoized } from "@tutao/utils"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
-import { SqlCipherFacadeSendDispatcher } from "@tutao/native-bridge"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
 import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"
@@ -71,7 +70,6 @@ import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
-import { KeyCache } from "@tutao/crypto"
 import { InstancePipeline, PatchMerger, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
@@ -79,7 +77,6 @@ import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { KeyAuthenticationFacade } from "@tutao/crypto"
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -108,7 +105,6 @@ import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/Autosave
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
-import { InstanceSessionKeysCache } from "@tutao/crypto"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
@@ -119,6 +115,8 @@ import {
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
 import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
+import { AesApp, createRsaImplementation, RsaImplementation } from "@tutao/native-bridge/worker"
+
 
 assertWorkerOrNode()
 
