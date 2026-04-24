@@ -51,19 +51,19 @@ o.spec("SymmetricCipherFacade", function () {
 	o.spec("Encrypt/decrypt bytes", function () {
 		o("encryptBytes", function () {
 			symmetricCipherFacade.encryptBytes(aes256Key, plainText)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, matchers.anything(), true, SymmetricCipherVersion.AesCbcThenHmac, false))
+			verify(aesCbcFacade.encrypt(aes256SubKeys, plainText, true, matchers.anything(), true, SymmetricCipherVersion.AesCbcThenHmac, false))
 		})
 		o("encryptBytesDeprecatedUnauthenticated", function () {
 			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticated(aes256Key, plainText)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, matchers.anything(), true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
+			verify(aesCbcFacade.encrypt(aes256SubKeys, plainText, true, matchers.anything(), true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
 		})
 		o("encryptBytesDeprecatedCustomIv", function () {
 			symmetricCipherFacade.encryptBytesDeprecatedCustomIv(aes256Key, plainText, customIv)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, customIv, true, SymmetricCipherVersion.AesCbcThenHmac))
+			verify(aesCbcFacade.encrypt(aes256SubKeys, plainText, true, customIv, true, SymmetricCipherVersion.AesCbcThenHmac))
 		})
 		o("encryptBytesDeprecatedUnauthenticatedCustomIv", function () {
 			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticatedCustomIv(aes256Key, plainText, customIv)
-			verify(aesCbcFacade.encrypt(aes256Key, plainText, true, customIv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
+			verify(aesCbcFacade.encrypt(aes256SubKeys, plainText, true, customIv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true))
 		})
 		o("decryptBytes 128", function () {
 			const ciphertext = concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), new Uint8Array([1, 2]))
@@ -95,7 +95,7 @@ o.spec("SymmetricCipherFacade", function () {
 			symmetricCipherFacade.encryptKey(aes128Key, keyToEncrypt_128)
 			verify(
 				aesCbcFacade.encrypt(
-					aes128Key,
+					aes128SubKeys,
 					keyToUint8Array(keyToEncrypt_128),
 					false,
 					Uint8Array.from(FIXED_IV),
@@ -118,7 +118,7 @@ o.spec("SymmetricCipherFacade", function () {
 			symmetricCipherFacade.encryptKey(aes256Key, keyToEncrypt_256)
 			verify(
 				aesCbcFacade.encrypt(
-					aes256Key,
+					aes256SubKeys,
 					keyToUint8Array(keyToEncrypt_256),
 					true,
 					matchers.anything(),

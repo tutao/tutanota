@@ -1,6 +1,5 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import {
-	AesKey,
 	bitArrayToUint8Array,
 	FIXED_IV,
 	IV_BYTE_LENGTH,
@@ -12,7 +11,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver"
+import { SymmetricSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { MacTag } from "@tutao/crypto"
 
@@ -22,13 +21,13 @@ import { MacTag } from "@tutao/crypto"
  * SymmetricCipherFacade is responsible for handling parameters for encryption/decryption.
  */
 export class AesCbcFacade {
-	constructor(private readonly symmetricKeyDeriver: SymmetricKeyDeriver) {}
+	constructor() {}
 
 	/**
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	encrypt(
-		key: AesKey,
+		subKeys: SymmetricSubKeys,
 		plainText: Uint8Array,
 		mustPrependIv: boolean,
 		iv: Uint8Array,
@@ -36,7 +35,6 @@ export class AesCbcFacade {
 		cipherVersion: SymmetricCipherVersion,
 		skipAuthenticationEnforcement: boolean = false,
 	): Uint8Array {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
 		this.tryToEnforceAuthentication(subKeys, cipherVersion, skipAuthenticationEnforcement)
 		const cipherText = bitArrayToUint8Array(
 			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], padding),
@@ -186,4 +184,4 @@ export class AesCbcFacade {
 	}
 }
 
-export const AES_CBC_FACADE = new AesCbcFacade(SYMMETRIC_KEY_DERIVER)
+export const AES_CBC_FACADE = new AesCbcFacade()

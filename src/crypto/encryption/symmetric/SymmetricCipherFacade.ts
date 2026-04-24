@@ -268,7 +268,9 @@ export class SymmetricCipherFacade {
 	 * @deprecated use encryptBytes instead
 	 */
 	encryptBytesDeprecatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
-		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.AesCbcThenHmac)
+		const cipherVersion: SymmetricAesCipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+		const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		return this.aesCbcFacade.encrypt(subkeys, bytes, true, iv, true, cipherVersion)
 	}
 
 	/**
@@ -279,7 +281,9 @@ export class SymmetricCipherFacade {
 	 * @deprecated use encryptBytes instead.
 	 */
 	encryptBytesDeprecatedUnauthenticatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
-		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
+		const cipherVersion: SymmetricAesCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+		const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		return this.aesCbcFacade.encrypt(subkeys, bytes, true, iv, true, cipherVersion, true)
 	}
 
 	/**
@@ -380,13 +384,16 @@ export class SymmetricCipherFacade {
 		const iv = mustGenerateRandomIv ? generateIV() : FIXED_IV
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac:
-				return this.aesCbcFacade.encrypt(key, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+				return this.aesCbcFacade.encrypt(subkeys, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
+			}
 			case SymmetricCipherVersion.AeadWithGroupKey:
-			case SymmetricCipherVersion.AeadWithSessionKey:
+			case SymmetricCipherVersion.AeadWithSessionKey: {
 				assert(mustGenerateRandomIv, "AEAD requires random IV")
 				// we can only use this once all clients support it
 				throw new Error("Not enabled")
+			}
 		}
 	}
 
