@@ -2,8 +2,12 @@ import o, { assertThrows } from "@tutao/otest"
 import {
 	BLOB_SERVICE_REST_PATH,
 	BlobFacade,
+	FileData,
+	KeyedNewBlobWrapper,
+	MAX_NUMBER_OF_BLOBS_IN_BINARY,
 	parseMultipleBlobsResponse,
 	pipelineEncryptAndUpload,
+	serializeNewBlobsInBinaryChunks,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kit/rest-client"
 import { HttpMethod, RestClientOptions } from "../../../../../src/platform-kit/rest-client/types"
@@ -157,6 +161,159 @@ o.spec("BlobFacade", function () {
 			const decryptedData = aesDecrypt(sessionKey, encryptedData)
 			o(arrayEquals(decryptedData, blobData)).equals(true)
 			o(optionsCaptor.value.baseUrl).equals("w1")
+		})
+
+		o.spec("encryptAndUploadMultiple tests", function () {
+			o("encryptAndUploadMultiple - multiple small attachments in single request", async function () {
+				const ownerGroup = "ownerGroupId"
+				const transferId = "t1" as TransferId
+
+				const fileData: FileData[] = [
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
+				]
+
+				const expectedTokens = [
+					createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token" }),
+					createBlobReferenceTokenWrapper({ blobReferenceToken: "second_attachment_token" }),
+					createBlobReferenceTokenWrapper({ blobReferenceToken: "third_attachment_token" }),
+					createBlobReferenceTokenWrapper({ blobReferenceToken: "fourth_attachment_token" }),
+				]
+
+				const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					servers: [createTestEntity(BlobServerUrlTypeRef, { url: "w1.api.tuta.com" })],
+				})
+
+				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
+
+				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify({}))
+
+				when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(
+					createTestEntity(BlobPostOutTypeRef, {
+						blobReferenceTokens: expectedTokens,
+					}),
+				)
+
+				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
+				o(result).deepEquals([[expectedTokens[0]], [expectedTokens[1]], [expectedTokens[2]], [expectedTokens[3]]])
+				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 1 })
+				verify(instancePipelineMock.decryptAndMap(anything(), anything(), anything()), { times: 1 })
+				verify(blobAccessTokenFacade.requestWriteToken(anything(), anything()), { times: 1 })
+			})
+
+			o("encryptAndUploadMultiple - multiple attachments including one large", async function () {
+				const ownerGroup = "ownerGroupId"
+				const transferId = "t2" as TransferId
+
+				const fileData: FileData[] = [
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(12 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(1024 * 1024) },
+				]
+
+				const firstPartToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token1" })
+				const secondPartToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token2" })
+				const secondAttachmentToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "second_attachment_token" })
+				const thirdAttachmentToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "third_attachment_token" })
+				const fourthAttachmentToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "fourth_attachment_token" })
+
+				const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					servers: [createTestEntity(BlobServerUrlTypeRef, { url: "w1.api.tuta.com" })],
+				})
+
+				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
+
+				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify({}))
+
+				let decryptCall = 0
+				when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenDo(() => {
+					decryptCall++
+					if (decryptCall === 1) {
+						return Promise.resolve(
+							createTestEntity(BlobPostOutTypeRef, {
+								blobReferenceTokens: [firstPartToken],
+							}),
+						)
+					} else if (decryptCall === 2) {
+						return Promise.resolve(
+							createTestEntity(BlobPostOutTypeRef, {
+								blobReferenceTokens: [secondPartToken, secondAttachmentToken, thirdAttachmentToken, fourthAttachmentToken],
+							}),
+						)
+					} else {
+						// dummy mock necessary for verify calls
+						// if this was called, it would throw in BlobFacade#parseBlobPostOutResponseMultiple
+						return Promise.resolve(
+							createTestEntity(BlobPostOutTypeRef, {
+								blobReferenceTokens: [],
+							}),
+						)
+					}
+				})
+
+				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
+				o(result).deepEquals([[firstPartToken, secondPartToken], [secondAttachmentToken], [thirdAttachmentToken], [fourthAttachmentToken]])
+				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 2 })
+				verify(instancePipelineMock.decryptAndMap(anything(), anything(), anything()), { times: 2 })
+			})
+
+			o("encryptAndUploadMultiple - worst case", async function () {
+				const ownerGroup = "ownerGroupId"
+				const transferId = "t3" as TransferId
+
+				const fileData: FileData[] = [
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(14 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(9 * 1024 * 1024) },
+					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+				]
+
+				const t1 = createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token1" })
+				const t2 = createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token2" })
+				const t3 = createBlobReferenceTokenWrapper({ blobReferenceToken: "second_attachment_token" })
+				const t4 = createBlobReferenceTokenWrapper({ blobReferenceToken: "third_attachment_token" })
+
+				const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					servers: [createTestEntity(BlobServerUrlTypeRef, { url: "w1.api.tuta.com" })],
+				})
+
+				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
+
+				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify({}))
+
+				let decryptCall = 0
+				when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenDo(() => {
+					decryptCall++
+					switch (decryptCall) {
+						case 1:
+							return Promise.resolve(createTestEntity(BlobPostOutTypeRef, { blobReferenceTokens: [t1] }))
+						case 2:
+							return Promise.resolve(createTestEntity(BlobPostOutTypeRef, { blobReferenceTokens: [t2] }))
+						case 3:
+							return Promise.resolve(createTestEntity(BlobPostOutTypeRef, { blobReferenceTokens: [t3] }))
+						case 4:
+							return Promise.resolve(createTestEntity(BlobPostOutTypeRef, { blobReferenceTokens: [t4] }))
+						default:
+							// dummy mock necessary for verify calls
+							// if this was called, it would throw in BlobFacade#parseBlobPostOutResponseMultiple
+							return Promise.resolve(
+								createTestEntity(BlobPostOutTypeRef, {
+									blobReferenceTokens: [],
+								}),
+							)
+					}
+				})
+				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
+
+				o(result).deepEquals([[t1, t2], [t3], [t4]])
+				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 4 })
+				verify(instancePipelineMock.decryptAndMap(anything(), anything(), anything()), { times: 4 })
+			})
 		})
 
 		o("encryptAndUploadNative", async function () {
@@ -1074,6 +1231,71 @@ o.spec("BlobFacade", function () {
 			verify(encryptChunk(item3))
 
 			item2.resolve(2)
+		})
+	})
+	o.spec("serializeNewBlobsInChunks", function () {
+		o.test("serializeNewBlobsInBinaryChunks splits blobs by max size", function () {
+			const sessionKey1 = aes256RandomKey()
+			const firstBlob: KeyedNewBlobWrapper = {
+				sessionKey: sessionKey1,
+				newBlobWrapper: {
+					hash: new Uint8Array([1, 2, 3, 4, 5, 6]),
+					data: new Uint8Array([1, 2, 3]),
+				},
+			}
+
+			const sessionKey2 = aes256RandomKey()
+			const secondBlob: KeyedNewBlobWrapper = {
+				sessionKey: sessionKey2,
+				newBlobWrapper: {
+					hash: new Uint8Array([4, 5, 6, 2, 3, 5]),
+					data: new Uint8Array([1, 2, 3, 4, 5, 6]),
+				},
+			}
+
+			const result = serializeNewBlobsInBinaryChunks(
+				[firstBlob, secondBlob],
+				13, // force chunk size to 13 bytes
+				MAX_NUMBER_OF_BLOBS_IN_BINARY,
+			)
+
+			o(result.length).deepEquals(2)
+
+			o(result[0].sessionKeys).deepEquals([sessionKey1])
+			o(result[1].sessionKeys).deepEquals([sessionKey2])
+
+			o(result[0].binary.length > 0).equals(true)
+			o(result[1].binary.length > 0).equals(true)
+		})
+		o.test("serializeNewBlobsInBinaryChunks does not exceed max blobs per chunk", function () {
+			const sessionKey1 = aes256RandomKey()
+			const firstBlob: KeyedNewBlobWrapper = {
+				sessionKey: sessionKey1,
+				newBlobWrapper: {
+					hash: new Uint8Array([1, 2, 3, 4, 5, 6]),
+					data: new Uint8Array([1, 2, 3]),
+				},
+			}
+
+			const sessionKey2 = aes256RandomKey()
+			const secondBlob: KeyedNewBlobWrapper = {
+				sessionKey: sessionKey2,
+				newBlobWrapper: {
+					hash: new Uint8Array([4, 5, 6, 2, 3, 5]),
+					data: new Uint8Array([1, 2, 3, 4, 5, 6]),
+				},
+			}
+
+			const result = serializeNewBlobsInBinaryChunks(
+				[firstBlob, secondBlob],
+				MAX_BLOB_SIZE_BYTES,
+				1, // force single blob per chunk
+			)
+
+			o(result.length).deepEquals(2)
+
+			o(result[0].sessionKeys).deepEquals([sessionKey1])
+			o(result[1].sessionKeys).deepEquals([sessionKey2])
 		})
 	})
 })

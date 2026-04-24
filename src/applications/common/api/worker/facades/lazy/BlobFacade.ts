@@ -44,11 +44,31 @@ import {
 } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { aesDecrypt, asyncDecryptBytes } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
 export const TAG = "BlobFacade"
+
+export interface FileData {
+	data: Uint8Array
+	sessionKey: AesKey
+}
+interface NewBlobWrapper {
+	hash: Uint8Array
+	data: Uint8Array
+}
+export interface KeyedNewBlobWrapper {
+	sessionKey: AesKey
+	newBlobWrapper: NewBlobWrapper
+}
+interface SerializedBinaryWrapper {
+	sessionKeys: AesKey[]
+	binary: Uint8Array
+}
+export const MAX_NUMBER_OF_BLOBS_IN_BINARY = 200
+const MAX_UNENCRYPTED_BLOB_SIZE_BYTES = 10 * 1024 * 1024
+const NEW_BLOB_OVERHEAD_BYTES = 4 + 6
 
 interface FileDownloadState {
 	transferId: TransferId
@@ -355,6 +375,88 @@ export class BlobFacade {
 			}
 		}
 		return referenceTokens
+	}
+
+	async encryptAndUploadMultiple(
+		archiveDataType: ArchiveDataType,
+		ownerGroupId: Id,
+		fileData: FileData[],
+		transferId: TransferId,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[][]> {
+		const abortController = new AbortController()
+		this.abortControllers.set(transferId, abortController)
+
+		const sessionKeyToReferenceTokens = new Map<AesKey, BlobReferenceTokenWrapper[]>(fileData.map((f) => [f.sessionKey, []]))
+		const keyedNewBlobWrappers = encryptMultipleFileData(fileData)
+		const serializedBinaries = serializeNewBlobsInBinaryChunks(keyedNewBlobWrappers)
+		const doBlobRequest: () => Promise<BlobReferenceTokenWrapper[][]> = async () => {
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
+
+			for (const serializedBinary of serializedBinaries) {
+				const tokens = await this.uploadMultipleBlobs(serializedBinary.binary, blobServerAccessInfo, abortController.signal)
+				if (tokens.length !== serializedBinary.sessionKeys.length) {
+					throw new ProgrammingError("Mismatch between session keys and returned tokens")
+				}
+				for (let idx = 0; idx < serializedBinary.sessionKeys.length; idx++) {
+					const sessionKey = serializedBinary.sessionKeys[idx]
+					const token = tokens[idx]
+
+					if (!token) {
+						throw new ProgrammingError("Missing token for session key")
+					}
+
+					const list = assertNotNull(sessionKeyToReferenceTokens.get(sessionKey))
+					list.push(token)
+				}
+
+				onChunkUploaded?.({
+					transferId,
+					totalBytes: serializedBinaries.map((serializedBinary) => serializedBinary.binary.length).reduce((a, b) => a + b, 0),
+					uploadedBytes: serializedBinary.binary.length,
+				})
+			}
+			const referenceTokensPerFileData: BlobReferenceTokenWrapper[][] = []
+
+			for (const fileDatum of fileData) {
+				const tokens = assertNotNull(sessionKeyToReferenceTokens.get(fileDatum.sessionKey))
+				referenceTokensPerFileData.push(tokens)
+			}
+
+			return referenceTokensPerFileData
+		}
+
+		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+
+		try {
+			return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+		} finally {
+			this.abortControllers.delete(transferId)
+		}
+	}
+
+	private async uploadMultipleBlobs(
+		encryptedData: Uint8Array,
+		blobServerAccessInfo: BlobServerAccessInfo,
+		abortSignal: AbortSignal,
+	): Promise<BlobReferenceTokenWrapper[]> {
+		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
+
+		return tryServers(
+			blobServerAccessInfo.servers,
+			async (serverUrl) => {
+				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
+					queryParams,
+					body: encryptedData,
+					responseType: MediaType.Json,
+					baseUrl: serverUrl,
+					abortSignal,
+				})
+
+				return await this.parseBlobPostOutResponseMultiple(response)
+			},
+			`can't upload multiple blobs`,
+		)
 	}
 
 	/**
@@ -701,6 +803,15 @@ export class BlobFacade {
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
+	public async parseBlobPostOutResponseMultiple(jsonData: string): Promise<BlobReferenceTokenWrapper[]> {
+		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
+		const { blobReferenceTokens } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
+		if (isEmpty(blobReferenceTokens)) {
+			throw new ProgrammingError("empty blobReferenceTokens not allowed for post multiple blob")
+		}
+		return blobReferenceTokens
+	}
+
 	private async downloadAndDecryptMultipleBlobsOfArchives(
 		blobs: readonly Blob[],
 		blobServerAccessInfos: Map<Id, BlobServerAccessInfo>,
@@ -939,4 +1050,107 @@ export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id
 
 function generateFileChunkId(): string {
 	return uint8ArrayToBase64(crypto.getRandomValues(new Uint8Array(6)))
+}
+
+export function serializeNewBlobsInBinaryChunks(
+	blobs: KeyedNewBlobWrapper[],
+	maxBinaryChunkSize: number = MAX_BLOB_SIZE_BYTES,
+	maxBlobsPerChunk: number = MAX_NUMBER_OF_BLOBS_IN_BINARY,
+): SerializedBinaryWrapper[] {
+	const chunks: KeyedNewBlobWrapper[][] = []
+
+	let current: KeyedNewBlobWrapper[] = []
+	let currentSize = 0
+
+	for (const blob of blobs) {
+		const blobSize = NEW_BLOB_OVERHEAD_BYTES + blob.newBlobWrapper.data.length
+
+		const wouldOverflow = currentSize + blobSize > maxBinaryChunkSize || current.length >= maxBlobsPerChunk
+
+		if (wouldOverflow && current.length > 0) {
+			chunks.push(current)
+			current = []
+			currentSize = 0
+		}
+
+		current.push(blob)
+		currentSize += blobSize
+	}
+
+	if (current.length > 0) chunks.push(current)
+
+	return chunks.map((chunk) => ({
+		sessionKeys: chunk.map((c) => c.sessionKey),
+		binary: serializeNewBlobs(chunk.map((c) => c.newBlobWrapper)),
+	}))
+}
+
+function encryptMultipleFileData(fileData: FileData[]): KeyedNewBlobWrapper[] {
+	const result: KeyedNewBlobWrapper[] = []
+
+	for (const file of fileData) {
+		for (const chunk of chunkData(file.data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES)) {
+			const encrypted = aesEncrypt(file.sessionKey, chunk)
+
+			const hashFull = sha256Hash(encrypted)
+			const shortHash = hashFull.slice(0, 6)
+
+			result.push({
+				sessionKey: file.sessionKey,
+				newBlobWrapper: {
+					hash: shortHash,
+					data: encrypted,
+				},
+			})
+		}
+	}
+
+	return result
+}
+
+function chunkData(data: Uint8Array, size: number): Uint8Array[] {
+	if (data.length === 0) return [new Uint8Array(0)]
+
+	const out: Uint8Array[] = []
+	for (let i = 0; i < data.length; i += size) {
+		out.push(data.subarray(i, i + size))
+	}
+	return out
+}
+
+// see comment for parseMultipleBlobsResponse above and BinaryBlobSerializer in tutadb
+function serializeNewBlobs(blobs: NewBlobWrapper[]): Uint8Array {
+	let totalSize = 4 // bytes for the number of blobs
+
+	for (const blob of blobs) {
+		if (blob.hash.length !== 6) {
+			throw new Error("Invalid hash length, expected 6 bytes")
+		}
+		totalSize += 6 + 4 + blob.data.length
+	}
+
+	const buffer = new Uint8Array(totalSize)
+	const view = new DataView(buffer.buffer)
+
+	let offset = 0
+
+	// write blob count
+	view.setUint32(offset, blobs.length, false)
+	offset += 4
+
+	for (const blob of blobs) {
+		// hash (6 bytes)
+		buffer.set(blob.hash, offset)
+		offset += 6
+
+		// size (4 bytes)
+		view.setUint32(offset, blob.data.length, false)
+		offset += 4
+
+		// data
+		buffer.set(blob.data, offset)
+		offset += blob.data.length
+	}
+
+	return buffer
 }
