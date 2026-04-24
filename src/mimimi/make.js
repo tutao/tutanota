@@ -37,13 +37,14 @@ async function run(platform, { clean, release }) {
 		await rm("./build", { recursive: true, force: true })
 		await rm("./target", { recursive: true, force: true })
 		await rm("./dist", { recursive: true, force: true })
+		await rm("./napi-out", { recursive: true, force: true })
 	}
 
 	const targets = getTargets(platform)
 
 	for (const target of targets) {
 		await new NapiCli().build({
-			outputDir: "dist",
+			outputDir: "napi-out",
 			platform: true,
 			jsBinding: "binding.js",
 			esm: true,

@@ -1,9 +1,9 @@
 {
 	"extends": "./../tsconfig_common.json",
-	"include": ["./mimimi/index.ts", "./../types/"],
+	"include": ["./mimimi/napi-out", "./../types/"],
 	"exclude": ["mimimi/dist", "mimimi/make.ts"],
 	"compilerOptions": {
-		"rootDir": "mimimi",
+		"rootDir": "mimimi/napi-out",
 		"outDir": "mimimi/dist",
 		"tsBuildInfoFile": "mimimi/dist/tsbuildinfo",
 		"composite": true
