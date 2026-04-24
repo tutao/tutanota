@@ -180,4 +180,5 @@ export {
 } from "./encryption/symmetric/SymmetricCipherFacade.js"
 export * from "./app-support/InstanceSessionKeysCache.js"
 export * from "./app-support/KeyCache.js"
+export * from "./app-support/KeyAuthenticationFacade"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"

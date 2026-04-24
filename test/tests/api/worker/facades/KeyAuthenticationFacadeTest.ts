@@ -6,7 +6,7 @@ import {
 	NewAdminPubKeyAuthenticationParams,
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
-} from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
+} from "@tutao/crypto"
 import { Aes256Key, aes256RandomKey, cryptoUtils, CryptoWrapper, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVersion } from "@tutao/utils"
