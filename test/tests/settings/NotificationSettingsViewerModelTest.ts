@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
-import { NativePushServiceApp } from "../../../src/common/native/main/NativePushServiceApp"
+import { NativePushServiceApp } from "../../../src/native-bridge/main/NativePushServiceApp"
 import { sysTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { object, when } from "testdouble"

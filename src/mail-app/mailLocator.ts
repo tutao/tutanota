@@ -33,21 +33,30 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../common/api/common/ServiceRequest.js"
 import { CryptoFacade } from "../common/api/worker/crypto/CryptoFacade.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge"
-import { SettingsFacade } from "@tutao/native-bridge"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
-import { WebMobileFacade } from "../common/native/main/WebMobileFacade.js"
-import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import {
+	CommonSystemFacade,
+	ContactSuggestion,
+	DesktopSystemFacade,
+	ExportFacade,
+	ExternalCalendarFacade,
+	InterWindowEventFacadeSendDispatcher,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	NativeFileApp,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	SqlCipherFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge/common"
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
@@ -72,14 +81,6 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
-import { NativeFileApp } from "../common/native/common/FileApp.js"
-import type { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
-import { CommonSystemFacade } from "@tutao/native-bridge"
-import { ThemeFacade } from "@tutao/native-bridge"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { MobileContactsFacade } from "@tutao/native-bridge"
-import { NativeCredentialsFacade } from "@tutao/native-bridge"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -105,7 +106,6 @@ import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gu
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
-import { MobilePaymentsFacade } from "@tutao/native-bridge"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
@@ -114,15 +114,12 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
 import { isEditableDraft, isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
-import { ExternalCalendarFacade } from "@tutao/native-bridge"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { ContactSuggestion } from "@tutao/native-bridge"
 import { MailImporter } from "./mail/import/MailImporter.js"
 import type { MailExportController } from "./native/main/MailExportController.js"
-import { ExportFacade } from "@tutao/native-bridge"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
@@ -151,6 +148,11 @@ import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { WebMobileFacade } from "../common/native/WebMobileFacade"
+import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
+import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
+import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain"
+import { NativePushServiceApp } from "../common/native/NativePushServiceApp"
 import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 
 assertMainOrNode()
@@ -505,7 +507,7 @@ class MailLocator implements CommonLocator {
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
 		if (isApp()) {
-			const { MobileContactSuggestionProvider } = await import("../common/native/main/MobileContactSuggestionProvider.js")
+			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
 			return {
@@ -892,21 +894,21 @@ class MailLocator implements CommonLocator {
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 		if (!isBrowser()) {
-			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
-			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
-			const { WebCommonNativeFacade } = await import("../common/native/main/WebCommonNativeFacade.js")
-			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
-			const { WebAuthnFacadeSendDispatcher } = await import("@tutao/native-bridge")
+			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
+			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")
+			const { WebCommonNativeFacade } = await import("../common/native/WebCommonNativeFacade.js")
+			const { WebInterWindowEventFacade } = await import("../common/native/WebInterWindowEventFacade.js")
+			const { WebAuthnFacadeSendDispatcher } = await import("@tutao/native-bridge/common")
 			const { OpenMailboxHandler } = await import("./native/main/OpenMailboxHandler.js")
-			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
+			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/NativeInterfaceFactory.js")
 			const openMailboxHandler = new OpenMailboxHandler(this.logins, this.mailModel, this.mailboxModel)
-			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
+			const { OpenCalendarHandler } = await import("../common/native/OpenCalendarHandler.js")
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {
 				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
 			})
-			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
+			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
@@ -958,7 +960,7 @@ class MailLocator implements CommonLocator {
 					this.exportFacade = desktopInterfaces.exportFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
-				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
+				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
 
@@ -1239,7 +1241,7 @@ class MailLocator implements CommonLocator {
 
 	showSetupWizard = async () => {
 		if (isApp()) {
-			const { showSetupWizard } = await import("../common/native/main/wizard/SetupWizard.js")
+			const { showSetupWizard } = await import("../common/native/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
 				this.pushService,

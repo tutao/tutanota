@@ -13,9 +13,11 @@
  * */
 import { parentPort, workerData } from "node:worker_threads"
 import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
-import { Command, MessageDispatcher, Request } from "../api/common/threading/MessageDispatcher.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
+import { Command, Request } from "../../native-bridge/shared/MessageTypes"
 import { NodeWorkerTransport } from "../api/common/threading/NodeWorkerTransport.js"
+import { objToError } from "../api/common/utils/ErrorUtils"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */
 export type SqlCipherCommandNames = keyof SqlCipherFacade
@@ -44,6 +46,7 @@ if (parentPort != null) {
 			new NodeWorkerTransport<WorkerLogCommandNames, SqlCipherCommandNames>(parentPort),
 			commands,
 			"nodeworker-node",
+			objToError,
 		)
 
 		;(console as any).info = (...args: any[]) => workerTransport.postRequest(new Request("info", args))

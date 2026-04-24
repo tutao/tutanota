@@ -6,7 +6,7 @@ import {
 	PersistedCredentials,
 	SqlCipherFacade,
 	UnencryptedCredentials,
-} from "@tutao/native-bridge"
+} from "@tutao/native-bridge/common"
 import { CredentialType, isBrowser, Mode } from "@tutao/app-env"
 
 /**

@@ -3,7 +3,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
 import {
-	Attachment,
 	InitAsResponseArgs,
 	SEND_LATER_MAX_DAYS_IN_FUTURE,
 	SEND_LATER_MIN_MINUTES_IN_FUTURE,
@@ -47,7 +46,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import { createDataFile, DataFile, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { Attachment, createDataFile, DataFile, FileReference, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "@tutao/utils"
 import {
@@ -67,7 +66,7 @@ import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel
 import { styles } from "../../../common/gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { MinimizedMailEditorViewModel, SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { fileListToArray, FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
+import { fileListToArray, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { Shortcut } from "../../../common/misc/KeyManager"

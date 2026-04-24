@@ -1,5 +1,5 @@
 import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/mimimi"
-import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge"
+import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { CredentialType, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, clear, defer, DeferredObject } from "@tutao/utils"
 import { ElectronExports } from "../ElectronExportTypes.js"

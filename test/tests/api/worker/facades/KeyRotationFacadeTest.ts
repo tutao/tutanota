@@ -63,7 +63,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/f
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
-import { SessionType } from "../../../../../src/common/api/common/SessionType"
+import { SessionType } from "../../../../../src/app-env/SessionType"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

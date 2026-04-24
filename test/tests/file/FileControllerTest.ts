@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { ArchiveDataType, Mode } from "@tutao/app-env"
 import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { NativeFileApp } from "../../../src/common/native/common/FileApp.js"
+import { NativeFileApp } from "../../../src/native-bridge/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FileReference } from "../../../src/common/api/common/utils/FileUtils.js"
 import { neverNull } from "@tutao/utils"

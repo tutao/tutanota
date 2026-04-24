@@ -1,5 +1,5 @@
 import { Base64, Base64Url } from "@tutao/utils"
-import { CredentialType, UnencryptedCredentials } from "@tutao/native-bridge"
+import { CredentialType, UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { ProgrammingError } from "@tutao/app-env"
 
 /** Data obtained after logging in. */

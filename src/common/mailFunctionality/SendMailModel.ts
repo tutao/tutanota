@@ -11,8 +11,7 @@ import {
 	ProgrammingError,
 	ReplyType,
 } from "@tutao/app-env"
-import { DataFile, elementIdPart, entityUpdateUtils, getElementId, isSameId, monitorTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { FileReference } from "../api/common/utils/FileUtils.js"
+import { Attachment, elementIdPart, entityUpdateUtils, getElementId, isSameId, monitorTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
 	assertNotNull,
@@ -84,8 +83,6 @@ export const enum SendAtStatus {
 	InThePast,
 	TooFarInTheFuture,
 }
-
-export type Attachment = tutanotaTypeRefs.File | DataFile | FileReference
 
 export type InitAsResponseArgs = {
 	previousMail: tutanotaTypeRefs.Mail

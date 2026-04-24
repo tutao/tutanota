@@ -44,12 +44,12 @@ contains most of the logic for server communication, encryption, indexing etc.
 ### Communication
 
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[RemoteMessageDispatcher](../src/common/api/common/threading/MessageDispatcher.ts).
+[RemoteMessageDispatcher](../src/native-bridge/shared/MessageDispatcher.ts).
 See [WorkerClient](../src/common/api/main/WorkerClient.ts)
 and
 [WorkerImpl](../src/common/api/worker/WorkerImpl.ts) for the client and server part.
 
-Native code communicates through the [NativeInterface](../src/common/native/common/NativeInterface.ts).
+Native code communicates through the [NativeInterface](../src/native-bridge/common/NativeInterface.ts).
 
 ### UI code
 

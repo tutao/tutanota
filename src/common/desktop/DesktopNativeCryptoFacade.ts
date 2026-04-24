@@ -2,22 +2,24 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type * as FsModule from "node:fs"
 import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/crypto"
-import { FileUri } from "../native/common/FileApp.js"
+import {
+	EncryptedFileInfo,
+	FileUri,
+	IPCEd25519KeyPair,
+	IPCEd25519PrivateKey,
+	IPCEd25519PublicKey,
+	IPCEd25519Signature,
+	KyberEncapsulation,
+	KyberKeyPair,
+	KyberPrivateKey,
+	KyberPublicKey,
+	NativeCryptoFacade,
+	RsaPrivateKey,
+	RsaPublicKey,
+} from "@tutao/native-bridge/common"
 import path from "node:path"
-import { NativeCryptoFacade } from "@tutao/native-bridge"
-import { EncryptedFileInfo } from "@tutao/native-bridge"
-import { RsaPrivateKey } from "@tutao/native-bridge"
-import { RsaPublicKey } from "@tutao/native-bridge"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
-import { KyberKeyPair } from "@tutao/native-bridge"
-import { KyberPublicKey } from "@tutao/native-bridge"
-import { KyberEncapsulation } from "@tutao/native-bridge"
-import { KyberPrivateKey } from "@tutao/native-bridge"
-import { IPCEd25519KeyPair } from "@tutao/native-bridge"
-import { IPCEd25519Signature } from "@tutao/native-bridge"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge"
 
 type FsExports = typeof FsModule
 

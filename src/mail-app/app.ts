@@ -36,7 +36,7 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
-import { SessionType } from "../common/api/common/SessionType.js"
+import { SessionType } from "@tutao/app-env"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
@@ -132,7 +132,7 @@ import("./translations/en.js")
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel)
 		if (isDesktop()) {
-			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
+			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
@@ -710,7 +710,7 @@ import("./translations/en.js")
 				async () => {
 					const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
 					const { NativeWebauthnView } = await import("../common/login/NativeWebauthnView.js")
-					const { WebauthnNativeBridge } = await import("../common/native/main/WebauthnNativeBridge.js")
+					const { WebauthnNativeBridge } = await import("../common/native/WebauthnNativeBridge.js")
 					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
 					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
 					// it is the same client build.

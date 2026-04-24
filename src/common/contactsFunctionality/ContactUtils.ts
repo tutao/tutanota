@@ -12,14 +12,16 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatDate } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
-import { StructuredMailAddress } from "@tutao/native-bridge"
-import { StructuredAddress } from "@tutao/native-bridge"
-import { StructuredPhoneNumber } from "@tutao/native-bridge"
-import { StructuredCustomDate } from "@tutao/native-bridge"
-import { StructuredWebsite } from "@tutao/native-bridge"
-import { StructuredRelationship } from "@tutao/native-bridge"
-import { StructuredMessengerHandle } from "@tutao/native-bridge"
-import { StructuredContact } from "@tutao/native-bridge"
+import {
+	StructuredAddress,
+	StructuredContact,
+	StructuredCustomDate,
+	StructuredMailAddress,
+	StructuredMessengerHandle,
+	StructuredPhoneNumber,
+	StructuredRelationship,
+	StructuredWebsite,
+} from "@tutao/native-bridge/common"
 import { parseUrl } from "@tutao/utils"
 
 assertMainOrNode()

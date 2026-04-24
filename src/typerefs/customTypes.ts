@@ -1,5 +1,6 @@
 import { ApplicationTypesHash } from "./EntityFunctions.js"
 import { DownloadableFileEntity } from "./BlobUtils.js"
+import * as tutanotaTypeRefs from "./entities/tutanota/TypeRefs.js"
 
 /**
  * Do **NOT** change the names of these attributes, they need to match the record found on the
@@ -99,3 +100,16 @@ export function getCleanedMimeType(mimeType: string | null): string {
 		return mimeType.replace(/"/g, "").replace(/'/g, "")
 	}
 }
+
+/**
+ * a reference by path to a file on disk
+ */
+export interface FileReference {
+	readonly _type: "FileReference"
+	name: string
+	mimeType: string
+	location: string
+	size: number
+	cid?: string
+}
+export type Attachment = tutanotaTypeRefs.File | DataFile | FileReference

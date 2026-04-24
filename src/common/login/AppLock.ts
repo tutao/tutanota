@@ -1,4 +1,4 @@
-import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade } from "@tutao/native-bridge"
+import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade } from "@tutao/native-bridge/common"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 
 /**

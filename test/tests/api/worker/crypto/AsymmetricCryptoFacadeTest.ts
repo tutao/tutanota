@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
+import { RsaImplementation } from "../../../../../src/native-bridge/worker/RsaImplementation.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
