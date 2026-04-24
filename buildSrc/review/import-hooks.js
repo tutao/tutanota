@@ -2,9 +2,6 @@
 // run as:
 // npm run trace-imports -- <script path> [script parameters]
 // Example: npm run trace-imports -- node_modules/.bin/eslint . --cache --cache-location cache/eslint
-//
-// Important! It writes the result only upon normal process exit. If somewhere there is an explicit
-// `provess.exit()` it will not work
 
 import module from "node:module"
 import fs from "node:fs"
@@ -71,9 +68,7 @@ function printMap(rootIds, visited = new Set(), indentation = 0) {
 process.on("beforeExit", async () => {
 	const data = printMap([undefined])
 	const firstEntry = Object.keys(Object.values(data)[0])[0]
-	// this is not a good solution, this tries to guess the project location based on the entry point we have given it
-	const nodeModulesIndex = firstEntry.lastIndexOf("/") + 1
-	// + 1 to remove the slash as well
+	const nodeModulesIndex = firstEntry.indexOf("node_modules")
 	const prefix = firstEntry.slice(0, nodeModulesIndex)
 	console.log("common prefix: ", prefix)
 	const dataWithStrippedPrefix = mapObjectKeys(data, (value) => {
@@ -83,9 +78,8 @@ process.on("beforeExit", async () => {
 			return value
 		}
 	})
-	const stringified = JSON.stringify(dataWithStrippedPrefix, null, 4)
-	// using sync one as async was not fully written in some cases
-	fs.writeFileSync("import-trace.json", stringified)
+	await fs.promises.writeFile("import-trace.json", JSON.stringify(dataWithStrippedPrefix, null, 4))
+	process.exit(0)
 })
 
 function mapObjectKeys(object, mapper) {
