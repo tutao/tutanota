@@ -22,6 +22,7 @@ import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
+import { NativePushFacade } from "@tutao/native-bridge"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import {
 	addDaysForEventInstance,

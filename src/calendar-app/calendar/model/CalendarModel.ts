@@ -85,7 +85,7 @@ import {
 	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
-import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
+import { ExternalCalendarFacade } from "@tutao/native-bridge"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {

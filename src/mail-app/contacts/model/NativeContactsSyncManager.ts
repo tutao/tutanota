@@ -1,6 +1,6 @@
 import { elementIdPart, entityUpdateUtils, getElementId, StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/utils"
-import { StructuredContact } from "../../../common/native/common/generatedipc/StructuredContact.js"
+import { StructuredContact } from "@tutao/native-bridge"
 import {
 	extractStructuredAddresses,
 	extractStructuredCustomDates,
@@ -16,8 +16,8 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError.js"
-import { MobileContactsFacade } from "../../../common/native/common/generatedipc/MobileContactsFacade.js"
-import { ContactSyncResult } from "../../../common/native/common/generatedipc/ContactSyncResult.js"
+import { MobileContactsFacade } from "@tutao/native-bridge"
+import { ContactSyncResult } from "@tutao/native-bridge"
 import { assertMainOrNode, GroupType, isApp, isIOSApp, OperationType } from "@tutao/app-env"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
 import * as restError from "@tutao/rest-client/error"
@@ -25,7 +25,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { PermissionType } from "../../../common/native/common/generatedipc/PermissionType"
+import { PermissionType } from "@tutao/native-bridge"
 import { ProgrammingError } from "@tutao/app-env"
 
 assertMainOrNode()

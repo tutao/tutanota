@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { CredentialEncryptionMode } from "@tutao/app-env"
+export type { CredentialEncryptionMode } from "@tutao/app-env"

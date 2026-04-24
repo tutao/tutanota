@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { ContactCustomDateType } from "@tutao/app-env"
+export type { ContactCustomDateType } from "@tutao/app-env"

@@ -9,7 +9,7 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { EntityClient } from "../api/common/EntityClient.js"
-import { ContactSuggestion } from "../native/common/generatedipc/ContactSuggestion.js"
+import { ContactSuggestion } from "@tutao/native-bridge"
 
 const MaxNativeSuggestions = 10
 

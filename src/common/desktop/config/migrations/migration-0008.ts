@@ -1,5 +1,5 @@
 import type { Config } from "../ConfigCommon"
-import { DesktopConfigKey } from "../ConfigKeys.js"
+import { DesktopConfigKey } from "@tutao/app-env"
 
 /** add the appPin default value to the config */
 async function migrate(oldConfig: Config): Promise<void> {

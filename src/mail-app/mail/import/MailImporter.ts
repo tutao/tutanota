@@ -1,6 +1,6 @@
 import { elementIdPart, entityUpdateUtils, GENERATED_MIN_ID, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
-import { NativeMailImportFacade } from "../../../common/native/common/generatedipc/NativeMailImportFacade"
+import { NativeMailImportFacade } from "@tutao/native-bridge"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"

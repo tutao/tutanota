@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { TutaCredentials } from "@tutao/mimimi/types"
+export type { TutaCredentials } from "@tutao/mimimi/types"

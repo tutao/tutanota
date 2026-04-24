@@ -1,6 +1,6 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 
 export const offline8: OfflineMigration = {
 	version: 8,

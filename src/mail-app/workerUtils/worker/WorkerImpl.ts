@@ -27,7 +27,7 @@ import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEnti
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
+import { SqlCipherFacade } from "@tutao/native-bridge"
 import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"

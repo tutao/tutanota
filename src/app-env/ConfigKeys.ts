@@ -1,5 +1,3 @@
-// @bundleInto:common
-
 export enum DesktopConfigKey {
 	heartbeatTimeoutInSeconds = "heartbeatTimeoutInSeconds",
 	defaultDownloadPath = "defaultDownloadPath",

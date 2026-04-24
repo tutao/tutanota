@@ -1,7 +1,15 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
-import { ApplicationTypesHash, baseModelInfo, baseServices, baseTypes, getServiceRestPath, ServerModelInfo, ServiceDefinition } from "@tutao/typerefs"
-import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
+import {
+	ApplicationTypesGetOut,
+	ApplicationTypesHash,
+	baseModelInfo,
+	baseServices,
+	getServiceRestPath,
+	ServerModelInfo,
+	ServiceDefinition,
+} from "@tutao/typerefs"
+import { FileFacade } from "@tutao/native-bridge"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { decompressString } from "@tutao/instance-pipeline"
@@ -24,7 +32,7 @@ export class ApplicationTypesFacade {
 	public applicationTypesGetInTimeout = 1000
 
 	private lastInvoked = 0
-	private deferredRequests: Array<DeferredObject<baseTypes.ApplicationTypesGetOut>>
+	private deferredRequests: Array<DeferredObject<ApplicationTypesGetOut>>
 
 	private readonly APPLICATION_TYPES_PATH: string = "server_type_models.json"
 	private readonly APPLICATION_TYPES_PATH_SDK: string = "server_type_models_sdk.json"
@@ -37,7 +45,7 @@ export class ApplicationTypesFacade {
 		this.deferredRequests = []
 	}
 
-	private async requestApplicationTypes(): Promise<baseTypes.ApplicationTypesGetOut> {
+	private async requestApplicationTypes(): Promise<ApplicationTypesGetOut> {
 		const applicationTypesGetOutCompressed = await this.restClient.request(
 			getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition),
 			HttpMethod.GET,
@@ -56,8 +64,8 @@ export class ApplicationTypesFacade {
 	 * hash of that type  model. `expectedHash === null` means that we did not receive one from the server yet, which
 	 * means the one from the FS is fine to use.
 	 */
-	public async getServerApplicationTypesJson(expectedHash: string | null): Promise<baseTypes.ApplicationTypesGetOut> {
-		let deferredObject: DeferredObject<baseTypes.ApplicationTypesGetOut> = defer()
+	public async getServerApplicationTypesJson(expectedHash: string | null): Promise<ApplicationTypesGetOut> {
+		let deferredObject: DeferredObject<ApplicationTypesGetOut> = defer()
 		this.deferredRequests.push(deferredObject)
 		const fileSystemModels = await this.loadStoredTypeModels()
 
@@ -98,7 +106,7 @@ export class ApplicationTypesFacade {
 
 	// In case we fail to read the application types from the stored json file,
 	// we will request it from the server eagerly.
-	private async loadStoredTypeModels(): Promise<baseTypes.ApplicationTypesGetOut | null> {
+	private async loadStoredTypeModels(): Promise<ApplicationTypesGetOut | null> {
 		// in the web app, we do not have a persistent server model,
 		// therefore we will load it from the server
 		// when the web app is started and store it in memory
@@ -127,7 +135,7 @@ export class ApplicationTypesFacade {
 		return this.serverModelInfo.getApplicationTypesHash()
 	}
 
-	private resolvePendingRequests(typesReturn: baseTypes.ApplicationTypesGetOut) {
+	private resolvePendingRequests(typesReturn: ApplicationTypesGetOut) {
 		const deferredRequests = this.deferredRequests.slice(0, this.deferredRequests.length)
 		this.deferredRequests = []
 

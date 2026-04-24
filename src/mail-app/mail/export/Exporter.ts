@@ -1,7 +1,6 @@
 import { noOp, promiseMap, sortableTimestamp, splitInChunks } from "@tutao/utils"
-import { DataFile } from "../../../common/api/common/DataFile"
+import { DataFile, elementIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { downloadMailBundle } from "./Bundler"
-import { elementIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { FileController, zipDataFiles } from "../../../common/file/FileController"
@@ -21,7 +20,7 @@ export async function generateMailFile(bundle: MailBundle, fileName: string, mod
 
 export async function getMailExportMode(): Promise<MailExportMode> {
 	if (isDesktop()) {
-		const ConfigKeys = await import("../../../common/desktop/config/ConfigKeys")
+		const ConfigKeys = await import("../../../app-env/ConfigKeys")
 		const mailExportMode = (await locator.desktopSettingsFacade
 			.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode)
 			.catch(noOp)) as MailExportMode

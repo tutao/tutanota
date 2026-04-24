@@ -22,7 +22,7 @@ import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { LoginScreenHeader } from "../../../common/gui/LoginScreenHeader.js"
 import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
-import { UnencryptedCredentials } from "../../../common/native/common/generatedipc/UnencryptedCredentials.js"
+import { UnencryptedCredentials } from "@tutao/native-bridge"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
 

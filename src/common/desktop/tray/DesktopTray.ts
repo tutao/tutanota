@@ -6,7 +6,7 @@ import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { lang } from "../../misc/LanguageViewModel"
 import { MacTray } from "./MacTray"
 import { NonMacTray } from "./NonMacTray"
-import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys"
+import { BuildConfigKey, DesktopConfigKey } from "../../../app-env/ConfigKeys"
 import { log } from "../DesktopLog.js"
 
 export interface PlatformTray {
