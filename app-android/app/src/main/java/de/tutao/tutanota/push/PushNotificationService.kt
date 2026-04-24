@@ -5,14 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.DateProvider
+import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.SuspensionHandler
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 private enum class State {
@@ -83,14 +85,17 @@ class PushNotificationService : LifecycleJobService() {
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val dateProvider = DateProviderImpl()
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
+			SystemAlarmFacade(this, MailAlarmIntentFactory()),
+			localNotificationsFacade,
+			dateProvider,
+			TimeZone.getDefault()
 		)
 		alarmNotificationsManager.reScheduleAlarms()
-		val suspensionHandler = SuspensionHandler(DateProvider())
+		val suspensionHandler = SuspensionHandler(dateProvider)
 		sseClient = SseClient(
 			crypto,
 			sseStorage,

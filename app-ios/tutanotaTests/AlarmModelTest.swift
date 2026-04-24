@@ -16,7 +16,7 @@ struct AlarmModelTest {
 	}
 
 	/// any Sequence does not conform to Sequence so we must explicitly open it
-	private func prefix(seq: some Sequence<AlarmOccurence>, _ maxLength: Int) -> [AlarmOccurence] { Array(seq.prefix(maxLength)) }
+	private func prefix(seq: some Sequence<AlarmOccurrence>, _ maxLength: Int) -> [AlarmOccurrence] { Array(seq.prefix(maxLength)) }
 
 	private func makeAlarm(at date: Date, trigger: String, repeatRule: RepeatRule? = nil, identifier: String = "identifier") -> AlarmNotification {
 		AlarmNotification(
@@ -30,19 +30,20 @@ struct AlarmModelTest {
 		)
 	}
 
-	private func plan(alarms: [AlarmNotification]) -> [AlarmOccurence] {
+	private func plan(alarms: [AlarmNotification]) -> [AlarmOccurrence] {
 		// a hack to make array initializer work by unpacking existential
-		func wrapInArray(_ a: any BidirectionalCollection<AlarmOccurence>) -> [AlarmOccurence] { Array(a) }
+		func wrapInArray(_ a: any BidirectionalCollection<AlarmOccurrence>) -> [AlarmOccurrence] { Array(a) }
 
-		return wrapInArray(alarmModel.futureOccurrences(acrossAlarms: alarms, upToForEach: perAlarmLimit, upToOverall: overallAlarmLimit))
+		return wrapInArray(alarmModel.futureAlarmOccurrences(acrossAlarms: alarms, upToForEach: perAlarmLimit, upToOverall: overallAlarmLimit))
 	}
 
 	@Test func testPlanWhenSingleInRecentFutureItIsPlanned() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(at: start, trigger: "5M")
+		let alarmNotification = makeAlarm(at: start, trigger: "5M")
 
-		let result = plan(alarms: [alarm])
-		let expectedAlarmOccurence = AlarmOccurence(occurrenceNumber: 0, eventOccurrenceTime: start, alarm: alarm)
+		let triggerDate = AlarmModel.calculateAlarmTime(trigger: alarmNotification.alarmInfo.trigger, eventTime: start, timeZone: dateProvider.timeZone)
+		let result = plan(alarms: [alarmNotification])
+		let expectedAlarmOccurence = AlarmOccurrence(occurrenceNumber: 0, eventStartDate: start, alarmNotification: alarmNotification, triggerDate: triggerDate)
 		#expect(result == [expectedAlarmOccurence])
 	}
 
@@ -106,7 +107,7 @@ struct AlarmModelTest {
 		let result = plan(alarms: [alarm1, alarm2, alarm3])
 
 		#expect(result.count == overallAlarmLimit)
-		let identifiers = result.map { $0.alarm.identifier }
+		let identifiers = result.map { $0.alarmNotification.identifier }
 		let expectedIdentifiers = ["alarm1", "alarm2", "alarm3", "alarm1", "alarm2", "alarm3", "alarm1", "alarm2", "alarm3", "alarm1"]
 		#expect(identifiers == expectedIdentifiers)
 	}
@@ -121,7 +122,7 @@ struct AlarmModelTest {
 
 		let repeatRule = RepeatRule(frequency: .weekly, interval: 1, timeZone: timeZone, endCondition: .never, excludedDates: [], advancedRules: [])
 
-		let seq = alarmModel.futureAlarmOccurrencesSequence(
+		let seq = alarmModel.alarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -133,7 +134,7 @@ struct AlarmModelTest {
 			),
 			maxFutureOccurrences: 4
 		)
-		let occurrences = seq.map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventStartDate }
 
 		let expected = [
 			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone),
@@ -158,7 +159,7 @@ struct AlarmModelTest {
 			advancedRules: [AdvancedRule(ruleType: ByRuleType.byday, interval: "MO"), AdvancedRule(ruleType: ByRuleType.byday, interval: "TU")]
 		)
 
-		let seq = alarmModel.futureAlarmOccurrencesSequence(
+		let seq = alarmModel.alarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -170,7 +171,7 @@ struct AlarmModelTest {
 			),
 			maxFutureOccurrences: 5
 		)
-		let occurrences = seq.map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventStartDate }
 
 		let expected = [
 			date(2025, 2, 2, 12, 0, timeZone), date(2025, 2, 3, 12, 0, timeZone), date(2025, 2, 4, 12, 0, timeZone), date(2025, 2, 10, 12, 0, timeZone),
@@ -196,7 +197,7 @@ struct AlarmModelTest {
 			advancedRules: []
 		)
 
-		let seq = alarmModel.futureAlarmOccurrencesSequence(
+		let seq = alarmModel.alarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -208,7 +209,7 @@ struct AlarmModelTest {
 			),
 			maxFutureOccurrences: 4
 		)
-		let occurrences = seq.map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventStartDate }
 
 		let expected = [
 			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone), date(2019, 6, 30, 12, 0, timeZone),
@@ -234,7 +235,7 @@ struct AlarmModelTest {
 			advancedRules: []
 		)
 
-		let seq: any Sequence<AlarmOccurence> = alarmModel.futureAlarmOccurrencesSequence(
+		let seq: any Sequence<AlarmOccurrence> = alarmModel.alarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -247,7 +248,7 @@ struct AlarmModelTest {
 			maxFutureOccurrences: 4
 		)
 
-		let occurrences = seq.map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventStartDate }
 
 		let expected = [date(2019, 5, 1, 0, 0, timeZone), date(2019, 5, 2, 0, 0, timeZone)]
 		#expect(occurrences == expected)
@@ -273,7 +274,7 @@ struct AlarmModelTest {
 			]
 		)
 
-		let seq = alarmModel.futureAlarmOccurrencesSequence(
+		let seq = alarmModel.alarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "Old Event",
@@ -285,7 +286,7 @@ struct AlarmModelTest {
 			),
 			maxFutureOccurrences: 5
 		)
-		let occurrences = seq.map { $0.eventOccurrenceTime }
+		let occurrences = seq.map { $0.eventStartDate }
 
 		let expected = [
 			date(2025, 7, 1, 12, 0, timeZone), date(2025, 7, 2, 12, 0, timeZone), date(2025, 7, 7, 12, 0, timeZone), date(2025, 7, 8, 12, 0, timeZone),

@@ -9,14 +9,14 @@ public struct ScheduledAlarmInfo: Equatable {
 }
 
 public protocol AlarmScheduler {
-	func schedule(info: ScheduledAlarmInfo)
+	func schedule(info: ScheduledAlarmInfo, isAllDayevent: Bool)
 	func unscheduleAll(occurrenceIds: [String])
 }
 
 public class SystemAlarmScheduler: AlarmScheduler {
 	public init() {}
-	public func schedule(info: ScheduledAlarmInfo) {
-		let formattedTime = DateFormatter.localizedString(from: info.eventDate, dateStyle: .short, timeStyle: .short)
+	public func schedule(info: ScheduledAlarmInfo, isAllDayevent: Bool = false) {
+		let formattedTime = DateFormatter.localizedString(from: info.eventDate, dateStyle: .short, timeStyle: isAllDayevent ? .none : .short)
 		let notificationText = "\(formattedTime): \(info.summary)"
 
 		let cal = Calendar.current

@@ -32,6 +32,7 @@ import de.tutao.tutanota.R
 import de.tutao.tutanota.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.isSameDay
+import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
 import java.util.Date
@@ -50,7 +51,8 @@ private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
-class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) {
+class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
+	LocalErrorNotificationsFacade {
 	companion object {
 		private const val TAG = "LocalNotifications"
 	}
@@ -232,7 +234,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.notify(abs(SUMMARY_NOTIFICATION_ID + notificationInfo.userId.hashCode()), notification)
 	}
 
-	fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
+	override fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
 		val intent = Intent(context, MainActivity::class.java)
 			.setAction(Intent.ACTION_SEND)
 			.setType("text/plain")
@@ -366,12 +368,21 @@ fun notificationDismissedIntent(
 	return deleteIntent
 }
 
-fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
+fun showAlarmNotification(context: Context, timestamp: Long, summary: String, isAllDayEvent: Boolean, intent: Intent) {
 	val contentText = when {
-		isSameDay(timestamp, Date().time) -> String.format("%tR %s", timestamp, summary)
+		isAllDayEvent -> String.format("%1\$ta %1\$td %1\$tb %2\$s", timestamp, summary)
+
+		isSameDay(timestamp, Date().time) -> String.format(
+			"%tR %s",
+			timestamp,
+			summary
+		)
+
 		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
 	}
+
 	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
 	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 	notificationManager.notify(
 		System.currentTimeMillis().toInt(),

@@ -1,31 +1,25 @@
-package de.tutao.calendar.alarms
+package de.tutao.tutashared.alarms
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import de.tutao.calendar.BuildConfig
 import java.util.Date
 
-
-class SystemAlarmFacade(private val context: Context) {
+class SystemAlarmFacade(private val context: Context, private val alarmIntentFactory: AlarmIntentFactory) {
 	fun scheduleAlarmOccurrenceWithSystem(
 		alarmTime: Date,
 		occurrence: Int,
 		identifier: String,
 		summary: String,
 		eventDate: Date,
-		user: String
+		user: String,
+		isAllDayEvent: Boolean
 	) {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "Scheduled notification $identifier at $alarmTime")
-		} else {
-			Log.d(TAG, "Scheduled notification $identifier")
-		}
-
+		Log.d(TAG, "Scheduled notification $identifier at $alarmTime")
 		val alarmManager = alarmManager
-		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user)
+		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user, isAllDayEvent)
 		alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)
 	}
 
@@ -44,10 +38,19 @@ class SystemAlarmFacade(private val context: Context) {
 		identifier: String,
 		summary: String,
 		eventDate: Date,
-		user: String?
+		user: String?,
+		isAllDayEvent: Boolean = false
 	): PendingIntent {
 		val intent: Intent =
-			AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
+			this.alarmIntentFactory.makeAlarmIntent(
+				context,
+				occurrence,
+				identifier,
+				summary,
+				eventDate,
+				isAllDayEvent,
+				user
+			)
 		return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_IMMUTABLE)
 	}
 

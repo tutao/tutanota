@@ -58,7 +58,7 @@ fun EventRow(
 				maxLines = 1,
 			)
 			Text(
-				event.startTime + " - " + event.endTime,
+				event.formattedStartTime + " - " + event.formattedEndTime,
 
 				style = TextStyle(
 					color = GlanceTheme.colors.onSurface,
@@ -84,8 +84,7 @@ fun EventRowTodayPreview() {
 			"Hello Widget",
 			"08:00",
 			"17:00",
-			isAllDay = false,
-			startTimestamp = startOfToday
+			isDisplayedAsAllDay = false,
 		),
 		actionRunCallback<ActionCallback>(),
 	)
@@ -106,8 +105,7 @@ fun EventRowTomorrowPreview() {
 			"Hello Widget",
 			"08:00",
 			"17:00",
-			isAllDay = false,
-			startTimestamp = startOfTomorrow.toEpochMilli()
+			isDisplayedAsAllDay = false,
 		),
 		actionRunCallback<ActionCallback>(),
 	)

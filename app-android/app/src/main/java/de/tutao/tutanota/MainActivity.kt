@@ -46,8 +46,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.tutanota.alarms.AlarmNotificationsManager
-import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
@@ -56,7 +55,10 @@ import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
+import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -84,6 +86,7 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
+import java.util.TimeZone
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -155,8 +158,10 @@ class MainActivity : FragmentActivity() {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
+			SystemAlarmFacade(this, MailAlarmIntentFactory()),
+			localNotificationsFacade,
+			DateProviderImpl(),
+			TimeZone.getDefault()
 		)
 		val nativePushFacade = AndroidNativePushFacade(
 			this,

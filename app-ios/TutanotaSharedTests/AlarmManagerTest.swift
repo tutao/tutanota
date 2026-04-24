@@ -25,7 +25,7 @@ struct AlarmManagerTest {
 		alarmManager = AlarmManager(alarmPersistor: persistor, alarmCryptor: cryptor, alarmScheduler: scheduler, alarmCalculator: alarmModel)
 	}
 
-	private func makeAlarm(at date: Date, trigger: String, repeatRule: RepeatRule? = nil, identifier: String = "identifier") -> AlarmNotification {
+	private func makeAlarm(eventStartAt date: Date, trigger: String, repeatRule: RepeatRule? = nil, identifier: String = "identifier") -> AlarmNotification {
 		AlarmNotification(
 			operation: .Create,
 			summary: "summary",
@@ -50,7 +50,7 @@ struct AlarmManagerTest {
 		)
 	}
 
-	private func add(alarm: AlarmNotification) {
+	private func addToFakePersistence(alarm: AlarmNotification) {
 		let encryptedAlarm = encryptAlarm(alarm: alarm)
 		persistor.add(alarm: encryptedAlarm)
 		cryptor.alarms[alarm.identifier] = alarm
@@ -58,7 +58,7 @@ struct AlarmManagerTest {
 
 	@Test func testProcessNewAlarmsSchedulesAndSavedNewAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(at: start, trigger: "5M")
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
 		// processNewAlarms will add alarm to the persister but who would think about the poor cryptor?
 		cryptor.alarms[alarm.identifier] = alarm
 
@@ -70,8 +70,10 @@ struct AlarmManagerTest {
 
 	@Test func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(at: start, trigger: "5M")
-		add(alarm: alarm)
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+
+		addToFakePersistence(alarm: alarm)
+
 		let deleteAlarm = EncryptedAlarmNotification(
 			operation: .Delete,
 			summary: "",
@@ -91,8 +93,8 @@ struct AlarmManagerTest {
 
 	@Test func testUnscheduleAllAlarms() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(at: start, trigger: "5M")
-		add(alarm: alarm)
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+		addToFakePersistence(alarm: alarm)
 
 		alarmManager.unscheduleAllAlarms(userId: userID)
 
@@ -101,10 +103,11 @@ struct AlarmManagerTest {
 
 	@Test func testRescheduleAlarmsReschedulesAlarms() {
 		let start1 = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm1 = makeAlarm(at: start1, trigger: "5M", identifier: "alarm1")
+		let alarm1 = makeAlarm(eventStartAt: start1, trigger: "5M", identifier: "alarm1")
+
 		let start2 = dateProvider.now.advanced(by: 30, .minutes)
 		let alarm2 = makeAlarm(
-			at: start2,
+			eventStartAt: start2,
 			trigger: "10M",
 			repeatRule: RepeatRule(
 				frequency: .daily,
@@ -116,8 +119,9 @@ struct AlarmManagerTest {
 			),
 			identifier: "alarm2"
 		)
-		add(alarm: alarm1)
-		add(alarm: alarm2)
+
+		addToFakePersistence(alarm: alarm1)
+		addToFakePersistence(alarm: alarm2)
 
 		alarmManager.rescheduleAlarms()
 
@@ -145,6 +149,67 @@ struct AlarmManagerTest {
 					eventDate: alarm1.eventStart
 				),
 			]
+		)
+	}
+
+	@Test func testAllDayEvent_OneDayBeforeAlarm_ScheduledAtLocalMidnight() {
+		// Mar 08 2023 00:00:00 GMT0
+		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)
+		let eventEndUTC = eventStartUTC.advanced(by: 24, .hours)
+
+		let alarmNotification = makeAlarm(eventStartAt: eventStartUTC, trigger: "1D")
+		addToFakePersistence(alarm: alarmNotification)
+
+		let eventStartLocalMidnight = allDayLocalDate(fromUTCDate: eventStartUTC, inZone: dateProvider.timeZone)
+		let expectedAlarmTime = eventStartLocalMidnight.advanced(by: -24, .hours)  // Mar 07 2023 00:00:00 GMT+1
+
+		let expectedScheduledAlarmInfo = ScheduledAlarmInfo(
+			alarmTime: expectedAlarmTime,
+			occurrence: 0,
+			identifier: ocurrenceIdentifier(alarmIdentifier: alarmNotification.identifier, occurrence: 0),
+			summary: alarmNotification.summary,
+			eventDate: eventStartLocalMidnight
+		)
+
+		try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarmNotification)], nil)
+
+		#expect(scheduler.scheduled.count == 1)
+		#expect(
+			scheduler.scheduled == [expectedScheduledAlarmInfo],
+			"It should schedule an alarm at exactly 1 day at local time before event start (24hr + timezoneOffset)"
+		)
+	}
+
+	@Test func testRepeatingAllDayEvent_OneDayBeforeAlarm_ScheduledAtLocalMidnight() {
+		// Mar 08 2023 00:00:00 GMT0
+		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)
+		let eventEndUTC = eventStartUTC.advanced(by: 24, .hours)
+
+		let alarmNotification = makeAlarm(
+			eventStartAt: eventStartUTC,
+			trigger: "1D",
+			repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .never, excludedDates: [], advancedRules: []),
+		)
+		addToFakePersistence(alarm: alarmNotification)
+
+		let firstOccurrenceLocalMidnight = allDayLocalDate(fromUTCDate: eventStartUTC, inZone: dateProvider.timeZone)
+		let expectedAlarmTime = firstOccurrenceLocalMidnight.advanced(by: -24, .hours)  // Mar 07 2023 00:00:00 GMT+1
+		let expectedScheduledAlarmOccurrence = ScheduledAlarmInfo(
+			alarmTime: expectedAlarmTime,
+			occurrence: 1,  // Repeating events counts occurrences starting at one
+			identifier: ocurrenceIdentifier(alarmIdentifier: alarmNotification.identifier, occurrence: 1),
+			summary: alarmNotification.summary,
+			eventDate: firstOccurrenceLocalMidnight
+		)
+
+		try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarmNotification)], nil)
+
+		#expect(scheduler.scheduled.count == EVENTS_SCHEDULED_AHEAD)
+
+		// Scheduling is descending -> last = earliest occurrence
+		#expect(
+			scheduler.scheduled.last == expectedScheduledAlarmOccurrence,
+			"It should schedule an alarm at exactly 1 day at local time before event start (24hr + timezoneOffset)"
 		)
 	}
 }
@@ -182,7 +247,7 @@ class AlarmSchedulerStub: AlarmScheduler {
 	var scheduled: [ScheduledAlarmInfo] = []
 	var unscheduled: [String] = []
 
-	func schedule(info: ScheduledAlarmInfo) { self.scheduled.append(info) }
+	func schedule(info: ScheduledAlarmInfo, isAllDayevent: Bool = false) { self.scheduled.append(info) }
 
 	func unscheduleAll(occurrenceIds: [String]) { self.unscheduled += occurrenceIds }
 }

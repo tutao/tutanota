@@ -7,7 +7,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.widget.style.Dimensions
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -18,7 +18,7 @@ fun TodayWithWeekday() {
 			fontSize = Dimensions.FontSize.font_20.sp,
 			color = GlanceTheme.colors.secondary
 		),
-		text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd EEEE")),
+		text = LocalDate.now().format(DateTimeFormatter.ofPattern("dd EEEE")),
 		maxLines = 1,
 	)
 }
