@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, EntityIdEncoding, isSameId, sortCompareById, tutanotaTypeRefs } from "@tutao/typerefs"
 import m from "mithril"
 import { List, ListAttrs, ListState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
 import { component_size, px } from "../../../common/gui/size.js"
@@ -12,7 +12,6 @@ import { theme } from "../../../common/gui/theme"
 import { Card } from "../../../common/gui/base/Card"
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { ListModel, selectionAttrsForList } from "../../../common/misc/ListModel"
-import { elementIdPart, isSameId, sortCompareById } from "@tutao/typerefs"
 import { noOp } from "@tutao/utils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import Stream from "mithril/stream"
@@ -170,7 +169,7 @@ class ContactSelectionDialogViewModel {
 			},
 
 			sortCompare: (item1, item2) => {
-				return sortCompareById(item1, item2)
+				return sortCompareById(item1, item2, EntityIdEncoding.Base64Ext)
 			},
 
 			getItemId: (item) => elementIdPart(item._id),

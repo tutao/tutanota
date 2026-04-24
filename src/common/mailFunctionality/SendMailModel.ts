@@ -8,6 +8,7 @@ import {
 	MAX_ATTACHMENT_SIZE,
 	minutesToMillis,
 	OperationType,
+	ProgrammingError,
 	ReplyType,
 } from "@tutao/app-env"
 import { DataFile } from "../api/common/DataFile.js"
@@ -29,7 +30,7 @@ import {
 	ofClass,
 	promiseMap,
 	remove,
-	stringToCustomId,
+	stringToBase64UrlCustomId,
 	typedValues,
 } from "@tutao/utils"
 import Stream from "mithril/stream"
@@ -49,7 +50,6 @@ import { UserController } from "../api/main/UserController.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResolvedError.js"
@@ -1235,7 +1235,7 @@ export class SendMailModel {
 	private sendApprovalMail(body: string): Promise<unknown> {
 		const listId = "---------c--"
 		const m = monitorTypeRefs.createApprovalMail({
-			_id: [listId, stringToCustomId(this.senderAddress)],
+			_id: [listId, stringToBase64UrlCustomId(this.senderAddress)],
 			_ownerGroup: this.user().user.userGroup.group,
 			text: `Subject: ${this.getSubject()}<br>${body}`,
 			date: null,

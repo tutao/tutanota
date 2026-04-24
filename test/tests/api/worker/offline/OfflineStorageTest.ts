@@ -7,13 +7,13 @@ import {
 	CUSTOM_MIN_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
-	ensureBase64Ext,
 	Entity,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
 	listIdPart,
 	ServerModelParsedInstance,
+	serverToLocalIdEncoding,
 	SomeEntity,
 	storageTypeRefs,
 	sysTypeRefs,
@@ -27,7 +27,7 @@ import { DateProvider } from "../../../../../src/common/api/common/DateProvider.
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlType, untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
-import { FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../../../src/app-env"
+import { AccountType, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, MailSetKind } from "../../../../../src/app-env"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
@@ -38,7 +38,6 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { AccountType, MailSetKind } from "../../../../../src/app-env"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -1208,7 +1207,7 @@ o.spec("OfflineStorageDb", function () {
 				const allMails = await getAllIdsForType(tutanotaTypeRefs.MailTypeRef)
 				o.check(allMails).deepEquals([elementIdPart(mailId1)])
 				const allMailSetEntries = await getAllIdsForType(tutanotaTypeRefs.MailSetEntryTypeRef)
-				o.check(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId1)])
+				o.check(allMailSetEntries).deepEquals([serverToLocalIdEncoding(mailSetEntryTypeModel, mailSetEntryElementId1)])
 				const allBlobDetails = await getAllIdsForType(tutanotaTypeRefs.MailDetailsBlobTypeRef)
 				o.check(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId1)])
 			})
@@ -1253,8 +1252,8 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
-					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
+					lower: serverToLocalIdEncoding(mailSetEntryTypeModel, cutoffMailSetEntryId),
+					upper: serverToLocalIdEncoding(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 			})
 			o.test("unmodified ranges will not be deleted or shrunk", async function () {
@@ -1298,8 +1297,8 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, lowerMailSetEntryIdForRange),
-					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
+					lower: serverToLocalIdEncoding(mailSetEntryTypeModel, lowerMailSetEntryIdForRange),
+					upper: serverToLocalIdEncoding(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 			})
 			o.test("complete ranges won't be lost if entities are all newer than cutoff", async function () {
@@ -1391,8 +1390,8 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, lowerMailSetEntryIdForRange),
-					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
+					lower: serverToLocalIdEncoding(mailSetEntryTypeModel, lowerMailSetEntryIdForRange),
+					upper: serverToLocalIdEncoding(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 
 				const allFolderIds = await getAllIdsForType(tutanotaTypeRefs.MailSetTypeRef)
@@ -1401,7 +1400,7 @@ o.spec("OfflineStorageDb", function () {
 				o.check(allMailIds).deepEquals([elementIdPart(mailId)])
 				const allMailSetEntries = await getAllIdsForType(tutanotaTypeRefs.MailSetEntryTypeRef)
 				// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-				o.check(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId)])
+				o.check(allMailSetEntries).deepEquals([serverToLocalIdEncoding(mailSetEntryTypeModel, mailSetEntryElementId)])
 				const allBlobDetails = await getAllIdsForType(tutanotaTypeRefs.MailDetailsBlobTypeRef)
 				o.check(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId)])
 			})
@@ -1492,8 +1491,8 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
-					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
+					lower: serverToLocalIdEncoding(mailSetEntryTypeModel, cutoffMailSetEntryId),
+					upper: serverToLocalIdEncoding(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 
 				const allFolderIds = await getAllIdsForType(tutanotaTypeRefs.MailSetTypeRef)
@@ -1700,14 +1699,14 @@ o.spec("OfflineStorageDb", function () {
 				// Ensure only data older than cutoff is cleared
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailTypeRef)).deepEquals([spamMailId, trashMailId, trashSubfolderMailId])
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailSetEntryTypeRef)).deepEquals([
-					ensureBase64Ext(mailSetEntryTypeModel, spamMailSetEntryElementId),
-					ensureBase64Ext(mailSetEntryTypeModel, trashMailSetEntryElementId),
-					ensureBase64Ext(mailSetEntryTypeModel, trashSubfolderMailSetEntryElementId),
+					serverToLocalIdEncoding(mailSetEntryTypeModel, spamMailSetEntryElementId),
+					serverToLocalIdEncoding(mailSetEntryTypeModel, trashMailSetEntryElementId),
+					serverToLocalIdEncoding(mailSetEntryTypeModel, trashSubfolderMailSetEntryElementId),
 				])
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailDetailsBlobTypeRef)).deepEquals([
-					ensureBase64Ext(detailsBlobTypeModel, elementIdPart(spamDetailsId)),
-					ensureBase64Ext(detailsBlobTypeModel, elementIdPart(trashDetailsId)),
-					ensureBase64Ext(detailsBlobTypeModel, elementIdPart(trashSubfolderDetailsId)),
+					serverToLocalIdEncoding(detailsBlobTypeModel, elementIdPart(spamDetailsId)),
+					serverToLocalIdEncoding(detailsBlobTypeModel, elementIdPart(trashDetailsId)),
+					serverToLocalIdEncoding(detailsBlobTypeModel, elementIdPart(trashSubfolderDetailsId)),
 				])
 
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailSetTypeRef)).deepEquals([spamFolderId, trashFolderId, trashSubfolderId])
@@ -1818,7 +1817,7 @@ o.spec("OfflineStorageDb", function () {
 
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailSetTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
 				const allMailSetEntryIds = await getAllIdsForType(tutanotaTypeRefs.MailSetEntryTypeRef)
-				o.check(allMailSetEntryIds).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, twoDaysAfterMailSetEntryElementId)])
+				o.check(allMailSetEntryIds).deepEquals([serverToLocalIdEncoding(mailSetEntryTypeModel, twoDaysAfterMailSetEntryElementId)])
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailTypeRef)).deepEquals([twoDaysAfterMailId])
 				o.check(await getAllIdsForType(tutanotaTypeRefs.MailDetailsBlobTypeRef)).deepEquals([afterMailDetailsId].map(elementIdPart))
 			})

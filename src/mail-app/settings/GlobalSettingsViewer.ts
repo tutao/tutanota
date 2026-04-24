@@ -9,6 +9,7 @@ import {
 	generatedIdToTimestamp,
 	getElementId,
 	getSpamRuleField,
+	EntityIdEncoding,
 	sortCompareByReverseId,
 	sysTypeRefs,
 	timestampToGeneratedId,
@@ -215,7 +216,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						)
 					} else {
 						// ensure that rejected senders are sorted in descending order
-						return rejectedSenders.sort(sortCompareByReverseId)
+						return rejectedSenders.sort((a, b) => sortCompareByReverseId(a, b, EntityIdEncoding.Base64Ext))
 					}
 				})
 				.then((rejectedSenders) => {

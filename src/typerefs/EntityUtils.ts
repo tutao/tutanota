@@ -1,4 +1,5 @@
 import {
+	assertNotNull,
 	base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToBase64Url,
@@ -14,10 +15,11 @@ import {
 	repeat,
 	TypeRef,
 	uint8ArrayToBase64,
-	uint8arrayToCustomId,
+	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -104,30 +106,44 @@ export type StrippedEntity<T extends Entity> =
 	  >
 	| OptionalEntity<T>
 
+export const enum EntityIdEncoding {
+	Base64Ext = "Base64Ext",
+	Base64URL = "Base64URL",
+}
+
 /**
  * Tests if one id is bigger than another.
- * For generated IDs we use base64ext which is sortable.
- * For custom IDs we use base64url which is not sortable, so we convert them to string before comparing.
- * Important: using this for custom IDs works only with custom IDs which are derived from strings.
+ * base64ext is sortable, and it's how generated IDs are stored on the server.
+ * base64url is not sortable, and it's how custom IDs are stored on the server.
+ * Important: using this for base64url encoded custom IDs works only with custom IDs which are derived from strings.
  *
  * @param firstId The element id that is tested if it is bigger.
  * @param secondId The element id that is tested against.
- * @param typeModel optional - the type the Ids belong to. this can be used to compare custom IDs.
+ * @param encoding The encoding of the elements ids to be tested
  * @return True if firstId is bigger than secondId, false otherwise.
  */
-export function firstBiggerThanSecond(firstId: Id, secondId: Id, typeModel?: TypeModel): boolean {
-	const _idValue = get_IdValue(typeModel)
-	if (_idValue && _idValue.type === ValueType.CustomId) {
-		return firstBiggerThanSecondCustomId(firstId, secondId)
+export function firstBiggerThanSecond(firstId: Id, secondId: Id, encoding: EntityIdEncoding): boolean {
+	if (encoding === EntityIdEncoding.Base64URL) {
+		return firstBiggerThanSecondBase64Url(firstId, secondId)
+	} else if (encoding === EntityIdEncoding.Base64Ext) {
+		return firstBiggerThanSecondBase64Ext(firstId, secondId)
 	} else {
-		// if the number of digits is bigger, then the id is bigger, otherwise we can use the lexicographical comparison
-		if (firstId.length > secondId.length) {
-			return true
-		} else if (secondId.length > firstId.length) {
-			return false
-		} else {
-			return firstId > secondId
-		}
+		throw new ProgrammingError(`unknown id type: ${encoding}`)
+	}
+}
+
+export function firstBiggerThanSecondBase64Url(firstId: Id, secondId: Id): boolean {
+	return compare(base64UrlIdToUint8array(firstId), base64UrlIdToUint8array(secondId)) === 1
+}
+
+export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boolean {
+	// if the number of digits is bigger, then the id is bigger, otherwise we can use the lexicographical comparison
+	if (firstId.length > secondId.length) {
+		return true
+	} else if (secondId.length > firstId.length) {
+		return false
+	} else {
+		return firstId > secondId
 	}
 }
 
@@ -137,45 +153,41 @@ export function get_IdValue(typeModel?: TypeModel): ModelValue | undefined {
 	}
 }
 
-export function firstBiggerThanSecondCustomId(firstId: Id, secondId: Id): boolean {
-	return compare(customIdToUint8array(firstId), customIdToUint8array(secondId)) === 1
-}
-
-export function customIdToUint8array(id: Id): Uint8Array {
+export function base64UrlIdToUint8array(id: Id): Uint8Array {
 	if (id === "") {
 		return new Uint8Array()
 	}
 	return base64ToUint8Array(base64UrlToBase64(id))
 }
 
-export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number {
+export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encoding: EntityIdEncoding): number {
 	let firstId = id1 instanceof Array ? id1[1] : id1
 	let secondId = id2 instanceof Array ? id2[1] : id2
 
 	if (firstId === secondId) {
 		return 0
 	} else {
-		return firstBiggerThanSecond(firstId, secondId) ? -1 : 1
+		return firstBiggerThanSecond(firstId, secondId, encoding) ? -1 : 1
 	}
 }
 
-export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple): number {
+export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encoding: EntityIdEncoding): number {
 	let firstId = id1 instanceof Array ? id1[1] : id1
 	let secondId = id2 instanceof Array ? id2[1] : id2
 
 	if (firstId === secondId) {
 		return 0
 	} else {
-		return firstBiggerThanSecond(firstId, secondId) ? 1 : -1
+		return firstBiggerThanSecond(firstId, secondId, encoding) ? 1 : -1
 	}
 }
 
-export function sortCompareByReverseId<T extends ListElement>(entity1: T, entity2: T): number {
-	return compareNewestFirst(getElementId(entity1), getElementId(entity2))
+export function sortCompareByReverseId<T extends ListElement>(entity1: T, entity2: T, encoding: EntityIdEncoding): number {
+	return compareNewestFirst(getElementId(entity1), getElementId(entity2), encoding)
 }
 
-export function sortCompareById<T extends ListElement>(entity1: T, entity2: T): number {
-	return compareOldestFirst(getElementId(entity1), getElementId(entity2))
+export function sortCompareById<T extends ListElement>(entity1: T, entity2: T, encoding: EntityIdEncoding): number {
+	return compareOldestFirst(getElementId(entity1), getElementId(entity2), encoding)
 }
 
 /**
@@ -471,11 +483,11 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 		buffer.setUint8(i + 4, mailIdBytes[i])
 	}
 
-	return uint8arrayToCustomId(new Uint8Array(buffer.buffer))
+	return uint8arrayToBase64UrlCustomId(new Uint8Array(buffer.buffer))
 }
 
 export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: Id } {
-	const buffer = customIdToUint8array(id)
+	const buffer = base64UrlIdToUint8array(id)
 	const timestampBytes = buffer.slice(0, 4)
 	const generatedIdBytes = buffer.slice(4)
 
@@ -505,16 +517,46 @@ export function isCustomIdType(typeModel: TypeModel): boolean {
 }
 
 /**
- * We store customIds as base64ext in the db to make them sortable, but we get them as base64url from the server.
+ * customIds are stored as base64url on the server and that's how we get them, but we store them locally as base64ext to make them sortable.
+ * generatedIds are stored as base64ext both on the server and locally.
  */
-export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
+export function getServerIdEncodingForType(typeModel: TypeModel): EntityIdEncoding {
+	const _idValueType = assertNotNull(get_IdValue(typeModel), `no _id found for typeModel: ${typeModel.app}/${typeModel.id} `).type
+	if (_idValueType === ValueType.CustomId) {
+		return EntityIdEncoding.Base64URL
+	} else if (_idValueType === ValueType.GeneratedId) {
+		return EntityIdEncoding.Base64Ext
+	} else {
+		throw new ProgrammingError(`unknown _id type for entity: ${typeModel.app}/${typeModel.id}`)
+	}
+}
+
+/**
+ * customIds are stored as base64url on the server and that's how we get them, but we store them locally as base64ext to make them sortable.
+ * generatedIds are stored as base64ext both on the server and locally.
+ *
+ * BEWARE: Calling this with a customId typeModel and a base64ext encoded customId will lead to unfun consequences.
+ *
+ * @param typeModel The type model for the element.
+ * @param elementId The element id as it is stored on the server (base64ext for generatedIds, base64url for customIds).
+ * @return base64ext encoded id
+ */
+export function serverToLocalIdEncoding(typeModel: TypeModel, elementId: Id): Id {
 	if (isCustomIdType(typeModel)) {
 		return base64ToBase64Ext(base64UrlToBase64(elementId))
 	}
 	return elementId
 }
 
-export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
+/**
+ * customIds are stored as base64url on the server and that's how we get them, but we store them locally as base64ext to make them sortable.
+ * generatedIds are stored as base64ext both on the server and locally.
+ *
+ * @param typeModel The type model for the element.
+ * @param elementId The element id as it is stored locally (must be encoded as base64ext).
+ * @return base64url encoded id for element with customId, base64ext encoded id otherwise.
+ */
+export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id {
 	if (isCustomIdType(typeModel)) {
 		return base64ToBase64Url(base64ExtToBase64(elementId))
 	}

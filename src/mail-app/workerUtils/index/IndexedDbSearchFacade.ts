@@ -1,13 +1,15 @@
-import type { TypeModel } from "@tutao/typerefs"
 import {
 	AssociationType,
 	Cardinality,
 	ClientTypeModelResolver,
 	compareNewestFirst,
 	elementIdPart,
-	firstBiggerThanSecond,
+	firstBiggerThanSecondBase64Ext,
+	getServerIdEncodingForType,
+	EntityIdEncoding,
 	timestampToGeneratedId,
 	tutanotaTypeRefs,
+	TypeModel,
 	ValueType,
 } from "@tutao/typerefs"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -114,6 +116,8 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			let isFirstWordSearch = searchTokens.length === 1
 			let before = getPerformanceTimestamp()
 
+			const typeModel = await this.typeModelResolver.resolveClientTypeReference(restriction.type)
+			const idEncoding = getServerIdEncodingForType(typeModel)
 			let searchPromise
 
 			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
@@ -136,7 +140,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				searchPromise = this.startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-					result.results.sort(compareNewestFirst)
+					result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
 					return this.loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
 				})
 			} else {
@@ -144,7 +148,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			}
 
 			return searchPromise.then(() => {
-				result.results.sort(compareNewestFirst)
+				result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
 				return result
 			})
 		} else {
@@ -152,20 +156,22 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		}
 	}
 
-	extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
+	async extendSearchResult(result: SearchResult, extensionEnd: number): Promise<SearchResult> {
 		const restrictionEnd = assertNotNull(result.restriction.end, "null end restriction when extending search")
 		result.restriction = {
 			...result.restriction,
 			end: extensionEnd,
 		}
 
-		return this.startOrContinueSearch(result).then(() => {
-			result.restriction.end = Math.min(restrictionEnd, extensionEnd)
-			result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
-			result.results.sort(compareNewestFirst)
+		await this.startOrContinueSearch(result)
 
-			return result
-		})
+		result.restriction.end = Math.min(restrictionEnd, extensionEnd)
+		result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
+
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(result.restriction.type)
+		result.results.sort((a, b) => compareNewestFirst(a, b, getServerIdEncodingForType(typeModel)))
+
+		return result
 	}
 
 	private async loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
@@ -569,12 +575,12 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		if (maxExcludedId) {
 			// timestampToGeneratedId provides the lowest id with the given timestamp (server id and counter set to 0),
 			// so we add one millisecond to make sure all ids of the timestamp are covered
-			if (!firstBiggerThanSecond(maxExcludedId, entry.id)) {
+			if (!firstBiggerThanSecondBase64Ext(maxExcludedId, entry.id)) {
 				return false
 			}
 		}
 
-		return !firstBiggerThanSecond(minIncludedId, entry.id)
+		return !firstBiggerThanSecondBase64Ext(minIncludedId, entry.id)
 	}
 
 	private reduceWords(results: KeyToIndexEntries[], matchWordOrder: boolean): ReadonlyArray<DecryptedSearchIndexEntry> {
@@ -625,7 +631,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		searchResult: SearchResult,
 		maxResults: number | null | undefined,
 	): Promise<void> {
-		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
+		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id, EntityIdEncoding.Base64Ext))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
 		// downcast: Array of optional elements in not subtype of non-optional elements
 		const entriesCopy: Array<MoreResultsIndexEntry | null> = downcast(indexEntries.slice())

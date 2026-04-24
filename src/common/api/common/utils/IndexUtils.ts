@@ -1,9 +1,8 @@
-import { isSameTypeRef, TypeRef } from "@tutao/utils"
+import { AppName, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/utils"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP, GroupType, isTest, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import type { TypeModel } from "@tutao/typerefs"
 import { sysTypeRefs, tutanotaTypeModels, tutanotaTypeRefs } from "@tutao/typerefs"
-import { GroupType, isTest } from "@tutao/app-env"
 
 export type TypeInfo = {
 	appId: number
@@ -13,7 +12,7 @@ export type TypeInfo = {
 
 const MailTypeId = tutanotaTypeRefs.MailTypeRef.typeId
 const ContactTypeId = tutanotaTypeRefs.ContactTypeRef.typeId
-const typeInfos: Map<string, Map<number, any>> = new Map([
+const typeInfos: Map<AppName, Map<number, TypeInfo>> = new Map([
 	[
 		"tutanota",
 		new Map([
@@ -56,6 +55,22 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	}
 
 	return typeInfo
+}
+
+export function typeInfoToTypeRef(typeInfo: TypeInfo, appName?: AppName): TypeRef<any> {
+	if (appName) {
+		if (typeInfos.get(appName)?.has(typeInfo.typeId)) {
+			return parseTypeString(`${appName}/${typeInfo.typeId}`)
+		}
+	} else {
+		for (const [app, typeInfosByTypeId] of typeInfos.entries()) {
+			if (typeInfosByTypeId.get(typeInfo.typeId)?.appId === typeInfo.appId) {
+				return parseTypeString(`${app}/${typeInfo.typeId}`)
+			}
+		}
+	}
+
+	throw new Error(`No TypeRef for TypeInfo ${typeInfo.appId}/${typeInfo.typeId}`)
 }
 
 export function userIsGlobalAdmin(user: sysTypeRefs.User): boolean {

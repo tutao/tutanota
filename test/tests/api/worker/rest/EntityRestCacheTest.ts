@@ -8,7 +8,7 @@ import {
 	elementIdPart,
 	Entity,
 	entityUpdateUtils,
-	firstBiggerThanSecond,
+	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
@@ -21,7 +21,7 @@ import {
 	tutanotaTypeRefs,
 	TypeModelResolver,
 } from "@tutao/typerefs"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, stringToCustomId, TypeRef } from "@tutao/utils"
+import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/utils"
 import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
@@ -1297,7 +1297,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("custom id range is not stored", async function () {
 			let ref = clone(createTestEntity(sysTypeRefs.ExternalUserReferenceTypeRef))
-			ref._id = ["listId1", stringToCustomId("custom")]
+			ref._id = ["listId1", stringToBase64UrlCustomId("custom")]
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
 				o(isSameTypeRef(typeRef, sysTypeRefs.ExternalUserReferenceTypeRef)).equals(true)
 				o(listId).equals("listId1")
@@ -1326,7 +1326,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: "owner-group",
 				}),
 			)
-			ref._id = ["listId1", stringToCustomId("1")]
+			ref._id = ["listId1", stringToBase64UrlCustomId("1")]
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
 				o(isSameTypeRef(typeRef, sysTypeRefs.GroupKeyTypeRef)).equals(true)
 				o(listId).equals("listId1")
@@ -1715,7 +1715,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadParsedInstancesRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
 				if (listId !== listIdToLoad) throw new restError.NotFoundError("unknown list id")
-				const startOfList = serverMails.filter((mail) => firstBiggerThanSecond(getElementId(mail), startId)).slice(0, count)
+				const startOfList = serverMails.filter((mail) => firstBiggerThanSecondBase64Ext(getElementId(mail), startId)).slice(0, count)
 				return Promise.all(startOfList.map(toStorableInstance))
 			})
 
@@ -1849,7 +1849,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 
 		o.test("when loading single ET custom id entity it is cached", async function () {
-			const id = stringToCustomId("1")
+			const id = stringToBase64UrlCustomId("1")
 			const client: EntityRestClient = mockRestClient()
 			const entity = createTestEntity(sysTypeRefs.MailAddressToGroupTypeRef, {
 				_id: id,
@@ -1870,7 +1870,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 
 		o.test("when loading single LET custom id entity it is cached", async function () {
-			const id: IdTuple = [createId("0"), stringToCustomId("1")]
+			const id: IdTuple = [createId("0"), stringToBase64UrlCustomId("1")]
 			const client: EntityRestClient = mockRestClient()
 			const entity = createTestEntity(sysTypeRefs.RootInstanceTypeRef, {
 				_id: id,
@@ -1892,7 +1892,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 
 		o.test("when loading multiple ET custom id entities are cached", async function () {
-			const ids = [stringToCustomId("1"), stringToCustomId("2")]
+			const ids = [stringToBase64UrlCustomId("1"), stringToBase64UrlCustomId("2")]
 			const client: EntityRestClient = mockRestClient()
 			const firstEntity = createTestEntity(sysTypeRefs.MailAddressToGroupTypeRef, {
 				_id: ids[0],
@@ -1927,8 +1927,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o.test("when loading multiple LET custom id entities are cached", async function () {
 			const listId = createId("0")
 			const ids: IdTuple[] = [
-				[listId, stringToCustomId("1")],
-				[listId, stringToCustomId("2")],
+				[listId, stringToBase64UrlCustomId("1")],
+				[listId, stringToBase64UrlCustomId("2")],
 			]
 			const client: EntityRestClient = mockRestClient()
 			const firstEntity = createTestEntity(sysTypeRefs.RootInstanceTypeRef, {

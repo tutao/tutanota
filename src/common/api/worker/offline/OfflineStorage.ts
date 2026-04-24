@@ -2,18 +2,20 @@ import {
 	AttributeModel,
 	BlobElementEntity,
 	CUSTOM_MIN_ID,
-	customIdToBase64Url,
 	ElementEntity,
 	elementIdPart,
-	ensureBase64Ext,
 	Entity,
 	firstBiggerThanSecond,
+	firstBiggerThanSecondBase64Ext,
 	GENERATED_MIN_ID,
 	getElementId,
+	getServerIdEncodingForType,
 	isCustomIdType,
 	ListElementEntity,
 	listIdPart,
+	localToServerIdEncoding,
 	ServerModelParsedInstance,
+	serverToLocalIdEncoding,
 	SomeEntity,
 	Type as TypeId,
 	TypeModel,
@@ -330,7 +332,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 		const taggedRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
 		const rows = taggedRows.map(untagSqlObject) as { listId?: Id; elementId: Id }[]
-		const ids = rows.map((row) => collapseId(row.listId ?? null, customIdToBase64Url(typeModel, row.elementId)))
+		const ids = rows.map((row) => collapseId(row.listId ?? null, localToServerIdEncoding(typeModel, row.elementId)))
 		await this.deleteByIds(typeRef, ids)
 	}
 
@@ -353,7 +355,7 @@ export class OfflineStorage implements CacheStorage {
 		const tm = syncMetrics?.beginMeasurement(Category.GetDb)
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const encodedElementId = ensureBase64Ext(typeModel, id)
+		const encodedElementId = serverToLocalIdEncoding(typeModel, id)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -390,7 +392,7 @@ export class OfflineStorage implements CacheStorage {
 
 		if (elementIds.length === 0) return []
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
+		const encodedElementIds = elementIds.map((elementId) => serverToLocalIdEncoding(typeModel, elementId))
 
 		const type = getTypeString(typeRef)
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(1000, encodedElementIds, (c) => {
@@ -436,7 +438,7 @@ export class OfflineStorage implements CacheStorage {
 										  OR ${firstIdBigger("elementId", range.lower)})
 										AND NOT (${firstIdBigger("elementId", range.upper)})`
 		const rows = await this.sqlCipherFacade.all(query, params)
-		return rows.map((row) => customIdToBase64Url(typeModel, row.elementId.value as string))
+		return rows.map((row) => localToServerIdEncoding(typeModel, row.elementId.value as string))
 	}
 
 	/** don't use this internally in this class, use OfflineStorage::getRange instead. OfflineStorage is
@@ -447,17 +449,17 @@ export class OfflineStorage implements CacheStorage {
 		if (range == null) return range
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		return {
-			lower: customIdToBase64Url(typeModel, range.lower),
-			upper: customIdToBase64Url(typeModel, range.upper),
+			lower: localToServerIdEncoding(typeModel, range.lower),
+			upper: localToServerIdEncoding(typeModel, range.upper),
 		}
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const encodedElementId = ensureBase64Ext(typeModel, elementId)
+		const encodedElementId = serverToLocalIdEncoding(typeModel, elementId)
 
 		const range = await this.getRange(typeRef, listId)
-		return range != null && !firstBiggerThanSecond(encodedElementId, range.upper) && !firstBiggerThanSecond(range.lower, encodedElementId)
+		return range != null && !firstBiggerThanSecondBase64Ext(encodedElementId, range.upper) && !firstBiggerThanSecondBase64Ext(range.lower, encodedElementId)
 	}
 
 	async provideFromRangeParsed<T extends ListElementEntity>(
@@ -469,7 +471,7 @@ export class OfflineStorage implements CacheStorage {
 	): Promise<ServerModelParsedInstance[]> {
 		const tm = syncMetrics?.beginMeasurement(Category.ProvideRangeDb)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const encodedStartId = ensureBase64Ext(typeModel, start)
+		const encodedStartId = serverToLocalIdEncoding(typeModel, start)
 		const type = getTypeString(typeRef)
 		let formattedQuery
 		if (reverse) {
@@ -607,7 +609,7 @@ export class OfflineStorage implements CacheStorage {
 					rowId: null,
 					listId,
 					elementId,
-					encodedElementId: ensureBase64Ext(typeModel, elementId),
+					encodedElementId: serverToLocalIdEncoding(typeModel, elementId),
 					ownerGroup,
 					serializedInstance,
 					instance,
@@ -664,7 +666,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
 		let typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		lowerId = ensureBase64Ext(typeModel, lowerId)
+		lowerId = serverToLocalIdEncoding(typeModel, lowerId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
 									  SET lower = ${lowerId}
@@ -674,7 +676,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
-		upperId = ensureBase64Ext(await this.typeModelResolver.resolveClientTypeReference(typeRef), upperId)
+		upperId = serverToLocalIdEncoding(await this.typeModelResolver.resolveClientTypeReference(typeRef), upperId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
 									  SET upper = ${upperId}
@@ -685,8 +687,8 @@ export class OfflineStorage implements CacheStorage {
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		lower = ensureBase64Ext(typeModel, lower)
-		upper = ensureBase64Ext(typeModel, upper)
+		lower = serverToLocalIdEncoding(typeModel, lower)
+		upper = serverToLocalIdEncoding(typeModel, upper)
 
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`INSERT
@@ -920,7 +922,7 @@ export class OfflineStorage implements CacheStorage {
 			case TypeId.Element:
 				await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
-					(ids as Id[]).map((id) => ensureBase64Ext(typeModel, id)),
+					(ids as Id[]).map((id) => serverToLocalIdEncoding(typeModel, id)),
 					(c) => sql`DELETE
 							   FROM element_entities
 							   WHERE type = ${type}
@@ -929,7 +931,7 @@ export class OfflineStorage implements CacheStorage {
 				break
 			case TypeId.ListElement:
 				{
-					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
 					for (const [listId, elementIds] of byListId) {
 						await this.runChunked(
 							MAX_SAFE_SQL_VARS - 2,
@@ -945,7 +947,7 @@ export class OfflineStorage implements CacheStorage {
 				break
 			case TypeId.BlobElement:
 				{
-					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
 					for (const [listId, elementIds] of byListId) {
 						await this.runChunked(
 							MAX_SAFE_SQL_VARS - 2,
@@ -978,7 +980,7 @@ export class OfflineStorage implements CacheStorage {
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
-		const encodedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
+		const encodedCutoffId = serverToLocalIdEncoding(typeModel, rawCutoffId)
 
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
@@ -998,17 +1000,17 @@ export class OfflineStorage implements CacheStorage {
 			// !!however ids for entities with a customId used to QUERY the offline database
 			// MUST always be base64Ext encoded
 			// Therefore, we need to compare against the rawCutoffId here!
-			const rangeWontBeModified = id != null && (firstBiggerThanSecond(id, rawCutoffId) || id === rawCutoffId)
+			const rangeWontBeModified = id != null && (id === rawCutoffId || firstBiggerThanSecond(id, rawCutoffId, getServerIdEncodingForType(typeModel)))
 			if (rangeWontBeModified) {
 				return
 			}
 		}
 
-		if (firstBiggerThanSecond(encodedCutoffId, range.lower)) {
+		if (firstBiggerThanSecondBase64Ext(encodedCutoffId, range.lower)) {
 			// If the upper id of the range is below the cutoff, then the entire range will be deleted from the storage
 			// so we just delete the range as well
 			// Otherwise, we only want to modify
-			if (firstBiggerThanSecond(encodedCutoffId, range.upper)) {
+			if (firstBiggerThanSecondBase64Ext(encodedCutoffId, range.upper)) {
 				await this.deleteRange(typeRef, listId)
 			} else {
 				await this.setLowerRangeForList(typeRef, listId, rawCutoffId)

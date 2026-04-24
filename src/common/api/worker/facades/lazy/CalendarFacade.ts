@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, TutanotaError } from "@tutao/app-env"
+import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, ProgrammingError, TutanotaError } from "@tutao/app-env"
 import {
 	AttributeModel,
 	ClientModelUntypedInstance,
@@ -24,7 +24,7 @@ import {
 	promiseMap,
 	Require,
 	stringToUtf8Uint8Array,
-	uint8arrayToCustomId,
+	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
@@ -39,7 +39,6 @@ import { UserFacade } from "../UserFacade.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
-import { ProgrammingError } from "@tutao/app-env"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
@@ -502,7 +501,7 @@ export class CalendarFacade {
 
 				const indexEntry = await entityClient.load<tutanotaTypeRefs.CalendarEventUidIndex>(tutanotaTypeRefs.CalendarEventUidIndexTypeRef, [
 					groupRoot.index.list,
-					uint8arrayToCustomId(hashUid(uid)),
+					uint8arrayToBase64UrlCustomId(hashUid(uid)),
 				])
 
 				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(entityClient, indexEntry)
