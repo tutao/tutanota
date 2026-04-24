@@ -17,7 +17,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/utils"
-import { ArchiveDataType, assertWorkerOrNode, CANCEL_UPLOAD_EVENT, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { ArchiveDataType, assertWorkerOrNode, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { AttributeModel, ServerModelUntypedInstance, SomeEntity, storageServices, storageTypeModels, storageTypeRefs, sysTypeRefs } from "@tutao/typerefs"
 import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
@@ -55,6 +55,69 @@ interface FileUploadState {
 	/** Map from blob id to the total downloaded bytes for that blob. */
 	readonly bytesUploadedPerBlob: Map<Id, number>
 	readonly totalSize: number
+}
+
+type EncryptedChunk = Uint8Array & { readonly __brand: unique symbol }
+
+interface NativeChunk {
+	chunkUri: string
+	chunkId: string
+}
+
+type EncryptedNativeChunk = NativeChunk & { readonly __brand: unique symbol }
+
+/**
+ * Encrypts and uploads a series of chunks while pipelining both operations to save time.
+ *
+ * {@example
+ * enc(blob1) ->  up(blob1)
+ *               enc(blob2) ->  up(blob2)
+ *                             enc(blob3) -> ...
+ * TIME --------------------------------------->
+ * }
+ *
+ * @param fetchNextChunk callback supplying the next chunk to the pipeline
+ * @param encrypt callback to receive an unencrypted chunk and return an encrypted form of it
+ * @param upload callback to receive an encrypted chunk and upload it
+ * @param abortSignal signal to stop execution of the pipeline
+ */
+export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
+	fetchNextChunk: () => Unencrypted | null,
+	encrypt: (chunk: Unencrypted) => Promise<Encrypted>,
+	upload: (encryptedChunk: Encrypted) => Promise<sysTypeRefs.BlobReferenceTokenWrapper>,
+	abortSignal: AbortSignal,
+): AsyncGenerator<[Encrypted, sysTypeRefs.BlobReferenceTokenWrapper], void, void> {
+	const encryptNextChunk = async (chunk: Unencrypted | null): Promise<Encrypted | null> => {
+		if (chunk == null) {
+			return null
+		} else {
+			return encrypt(chunk)
+		}
+	}
+
+	const firstChunk = fetchNextChunk()
+	if (firstChunk == null) {
+		return
+	}
+
+	let chunkToBeUploaded: Encrypted | null = await encrypt(firstChunk)
+
+	while (chunkToBeUploaded != null) {
+		if (abortSignal.aborted) {
+			throw new CancelledError("upload aborted")
+		}
+
+		const nextChunk = fetchNextChunk()
+
+		const uploadAndEncrypt: Promise<[sysTypeRefs.BlobReferenceTokenWrapper, Encrypted | null]> = Promise.all([
+			upload(chunkToBeUploaded),
+			encryptNextChunk(nextChunk),
+		])
+		const [response, freshEncryptedChunk] = await uploadAndEncrypt
+		const uploadedChunk = chunkToBeUploaded
+		chunkToBeUploaded = freshEncryptedChunk
+		yield [uploadedChunk, response]
+	}
 }
 
 /**
@@ -124,7 +187,8 @@ export class BlobFacade {
 
 			for (const chunk of chunks) {
 				abortController.signal.throwIfAborted()
-				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, abortController.signal)
+				const encryptedChunk = await this.encryptChunk(sessionKey, chunk)
+				const blobReferenceTokenWrapper = await this.uploadEncryptedChunk(encryptedChunk, blobServerAccessInfo, abortController.signal)
 				onChunkUploaded?.({ transferId, totalBytes: blobData.length, uploadedBytes: chunk.length })
 				receivedTokens.push(blobReferenceTokenWrapper)
 			}
@@ -139,6 +203,14 @@ export class BlobFacade {
 		} finally {
 			this.abortControllers.delete(transferId)
 		}
+	}
+
+	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array<ArrayBufferLike>): Promise<EncryptedChunk> {
+		return (await _encryptBytes(sessionKey, chunk)) as EncryptedChunk
+	}
+	private async encryptChunkNative(sessionKey: AesKey, fileUri: FileUri): Promise<string> {
+		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
+		return encryptedFileInfo.uri
 	}
 
 	/**
@@ -162,38 +234,48 @@ export class BlobFacade {
 		void,
 		void
 	> {
+		const abortController = new AbortController()
+		this.abortControllers.set(transferId, abortController)
 		const fileSize = file.size
 
 		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
 		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
 		let bytesUploadedSoFar = 0
 
-		const doBlobRequest = async (chunk: Uint8Array) => {
+		const chunkGenerator = splitFileIntoChunks(chunkSizeBytes, file)
+
+		const doBlobRequest = async (chunk: EncryptedChunk) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey, abortController.signal, (bytes) => {
-				this.progressDispatcher.onChunkUploaded({
-					transferId,
-					uploadedBytes: bytesUploadedSoFar + bytes,
-					totalBytes: file.size,
-				})
+			return await this.uploadEncryptedChunk(chunk, blobServerAccessInfo, abortController.signal, (bytes) => {
+				this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
 			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-		const abortController = new AbortController()
-		this.abortControllers.set(transferId, abortController)
 
-		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
-			const chunkData = await chunkBlob.arrayBuffer()
-			// Process the chunkData here (e.g., upload it to a server)
-			const tokenWrapper = await doBlobRequestWithRetry(async () => {
+		const fetchNextChunk = () => chunkGenerator.next().value ?? null
+
+		const encryptChunk = async (chunk: globalThis.Blob) => {
+			return await this.encryptChunk(sessionKey, new Uint8Array(await chunk.arrayBuffer()))
+		}
+
+		const uploadEncryptedChunk = (encryptedChunk: EncryptedChunk) => {
+			return doBlobRequestWithRetry(async () => {
 				if (abortController.signal.aborted) {
 					throw new CancelledError("Upload aborted")
 				}
-				const response = await doBlobRequest(new Uint8Array(chunkData))
-				bytesUploadedSoFar += chunkData.byteLength
+				const response = await doBlobRequest(encryptedChunk)
+				bytesUploadedSoFar += encryptedChunk.byteLength
 				return response
 			}, doEvictToken)
-			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength, referenceTokenWrapper: tokenWrapper }
+		}
+
+		for await (const [encryptedChunk, referenceTokens] of pipelineEncryptAndUpload(
+			fetchNextChunk,
+			encryptChunk,
+			uploadEncryptedChunk,
+			abortController.signal,
+		)) {
+			yield { totalBytes: fileSize, uploadedBytes: encryptedChunk.byteLength, referenceTokenWrapper: referenceTokens }
 		}
 	}
 
@@ -217,6 +299,7 @@ export class BlobFacade {
 		const chunkUrisWithIds = chunkUris.map((chunkUri) => {
 			return { chunkUri, chunkId: generateFileChunkId() }
 		})
+		const uploadedChunkIds: string[] = []
 		const [fileMeta] = await this.fileApp.getFilesMetaData([fileUri])
 		const uploadState: FileUploadState = {
 			transferId,
@@ -228,28 +311,44 @@ export class BlobFacade {
 		}
 		const abortController = new AbortController()
 		this.abortControllers.set(transferId, abortController)
-		try {
-			const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-			const doBlobRequest = async () => {
-				if (abortController.signal.aborted) {
-					throw new CancelledError("Upload canceled")
-				}
-				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-				return promiseMap(chunkUrisWithIds, ({ chunkId, chunkUri }) => {
-					if (abortController.signal.aborted) {
-						throw new CancelledError("Upload canceled")
-					}
-					return this.encryptAndUploadNativeChunk(chunkUri, blobServerAccessInfo, sessionKey, chunkId)
-				})
+		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+
+		const doBlobRequest = async (encryptedChunk: NativeChunk): Promise<sysTypeRefs.BlobReferenceTokenWrapper> => {
+			if (abortController.signal.aborted) {
+				throw new CancelledError("Upload canceled")
 			}
-			// important to await this one so that finally() does the cleanup at the right moment below
-			return await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
+			return this.uploadNativeEncryptedChunk(encryptedChunk.chunkUri, blobServerAccessInfo, encryptedChunk.chunkId)
+		}
+		const referenceTokens: sysTypeRefs.BlobReferenceTokenWrapper[] = []
+
+		const fetchNextChunk = () => chunkUrisWithIds.shift() ?? null
+
+		const encryptChunk = async (chunk: NativeChunk) => {
+			return { chunkUri: await this.encryptChunkNative(sessionKey, chunk.chunkUri), chunkId: chunk.chunkId } as EncryptedNativeChunk
+		}
+
+		const uploadEncryptedChunk = (encryptedChunk: EncryptedNativeChunk) => {
+			return doBlobRequestWithRetry(async () => doBlobRequest(encryptedChunk), doEvictToken)
+		}
+
+		try {
+			for await (const [encryptedChunk, uploadedReferenceTokens] of pipelineEncryptAndUpload(
+				fetchNextChunk,
+				encryptChunk,
+				uploadEncryptedChunk,
+				abortController.signal,
+			)) {
+				referenceTokens.push(uploadedReferenceTokens)
+				uploadedChunkIds.push(encryptedChunk.chunkId)
+			}
 		} finally {
 			this.abortControllers.delete(transferId)
-			for (const { chunkId } of chunkUrisWithIds) {
+			for (const chunkId of uploadedChunkIds) {
 				this.nativeUploadProgressState.delete(chunkId)
 			}
 		}
+		return referenceTokens
 	}
 
 	/**
@@ -493,14 +592,12 @@ export class BlobFacade {
 		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
 
-	private async encryptAndUploadChunk(
-		chunk: Uint8Array,
+	private async uploadEncryptedChunk(
+		encryptedData: EncryptedChunk,
 		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
-		sessionKey: AesKey,
 		abortSignal: AbortSignal,
 		onProgress?: (bytes: number) => unknown,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper> {
-		const encryptedData = _encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, storageTypeRefs.BlobGetInTypeRef)
 
@@ -530,20 +627,17 @@ export class BlobFacade {
 		)
 	}
 
-	private async encryptAndUploadNativeChunk(
-		fileUri: FileUri,
+	private async uploadNativeEncryptedChunk(
+		encryptedUri: string,
 		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
-		sessionKey: AesKey,
 		chunkId: string,
 	): Promise<sysTypeRefs.BlobReferenceTokenWrapper> {
-		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
-		const encryptedChunkUri = encryptedFileInfo.uri
-		const blobHash = await this.fileApp.hashFile(encryptedChunkUri)
+		const blobHash = await this.fileApp.hashFile(encryptedUri)
 
 		return tryServers(
 			blobServerAccessInfo.servers,
 			async (serverUrl) => {
-				return await this.uploadNative(encryptedChunkUri, blobServerAccessInfo, serverUrl, blobHash, chunkId)
+				return await this.uploadNative(encryptedUri, blobServerAccessInfo, serverUrl, blobHash, chunkId)
 			},
 			`can't upload to server from native`,
 		)
