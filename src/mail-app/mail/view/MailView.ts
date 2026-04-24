@@ -708,20 +708,39 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return getFirstOrThrow(mails).unread
 	}
 
+	/**
+	 * Set unread state action acts differently depending on conversation list grouping and target unread state
+	 *
+	 * 	When conversation list grouping is off, the action only acts on selected mails regardless of target
+	 * 	unread state.
+	 *
+	 *  When conversation list grouping is on, marking as read act on selected conversations, but marking as
+	 * 	unread only acts on selected primary mails.
+	 */
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
 		const actionableMails = this.mailViewModel.getActionableMails()
 		if (isEmpty(actionableMails)) {
 			return null
-		} else {
-			return async (unread: boolean) => {
-				const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
-				actionableMails.map((mail) => {
-					if (resolvedMails.some((id) => isSameId(id, mail._id))) {
-						mail.unread = unread
-					}
-				})
-				await mailLocator.mailModel.markMails(resolvedMails, unread)
+		}
+
+		return async (unread: boolean) => {
+			let mailsToMark: readonly IdTuple[]
+			if (unread) {
+				mailsToMark = this.conversationViewModel
+					? [this.conversationViewModel.primaryMail._id]
+					: actionableMails.map((mail) => {
+							return mail._id
+						})
+			} else {
+				mailsToMark = await this.mailViewModel.getResolvedMails(actionableMails)
 			}
+
+			for (const mail of actionableMails) {
+				if (mailsToMark.some((id) => isSameId(id, mail._id))) {
+					mail.unread = unread
+				}
+			}
+			await mailLocator.mailModel.markMails(mailsToMark, unread)
 		}
 	}
 
