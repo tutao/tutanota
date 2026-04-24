@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { MailboxExportState } from "../../../desktop/export/MailboxExportPersistence.js"
+export { MailboxExportState } from "@tutao/typerefs"

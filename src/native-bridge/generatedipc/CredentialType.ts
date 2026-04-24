@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { CredentialType } from "../../../misc/credentials/CredentialType.js"
+export { CredentialType } from "@tutao/app-env"
