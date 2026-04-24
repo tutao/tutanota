@@ -3,6 +3,7 @@ import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
 	assertNotNull,
+	base64ToBase64Ext,
 	concat,
 	filterInt,
 	getFirstOrThrow,
@@ -29,7 +30,6 @@ import { CryptoError } from "@tutao/crypto/error"
 import { TransferId, UploadProgressInfo } from "../../../common/drive/DriveTypes"
 import { CancelledError } from "../../../common/error/CancelledError"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
-import { encryptMultipleFileData, FileData, parseMultipleBlobsResponse, serializeNewBlobsInBinaryChunks } from "../../utils/BlobUtils"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${storageServices.BlobService.app}/${storageServices.BlobService.name.toLowerCase()}`
@@ -212,89 +212,6 @@ export class BlobFacade {
 			})
 		}
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-	}
-
-	async encryptAndUploadMultiple(
-		archiveDataType: ArchiveDataType,
-		ownerGroupId: Id,
-		fileData: FileData[],
-		transferId: TransferId,
-		onChunkUploaded?: (info: UploadProgressInfo) => void,
-	): Promise<sysTypeRefs.BlobReferenceTokenWrapper[][]> {
-		const sessionKeyToReferenceTokens = new Map<AesKey, sysTypeRefs.BlobReferenceTokenWrapper[]>(fileData.map((f) => [f.sessionKey, []]))
-		const keyedNewBlobWrappers = encryptMultipleFileData(fileData)
-		const serializedBinaries = serializeNewBlobsInBinaryChunks(keyedNewBlobWrappers)
-		const doBlobRequest: () => Promise<sysTypeRefs.BlobReferenceTokenWrapper[][]> = async () => {
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-
-			for (const serializedBinary of serializedBinaries) {
-				const tokens = await this.uploadMultipleBlobs(serializedBinary.binary, blobServerAccessInfo)
-				if (tokens.length !== serializedBinary.sessionKeys.length) {
-					throw new Error("Mismatch between session keys and returned tokens")
-				}
-				for (let idx = 0; idx < serializedBinary.sessionKeys.length; idx++) {
-					const sessionKey = serializedBinary.sessionKeys[idx]
-					const token = tokens[idx]
-
-					if (!token) {
-						throw new Error("Missing token for session key")
-					}
-
-					const list = sessionKeyToReferenceTokens.get(sessionKey)
-
-					if (!list) {
-						throw new Error("file session key is missing")
-					}
-
-					list.push(token)
-				}
-
-				onChunkUploaded?.({
-					transferId,
-					totalBytes: serializedBinaries.map((serializedBinary) => serializedBinary.binary.length).reduce((a, b) => a + b, 0),
-					uploadedBytes: serializedBinary.binary.length,
-				})
-			}
-			const referenceTokensPerFileData: sysTypeRefs.BlobReferenceTokenWrapper[][] = []
-
-			for (const fileDatum of fileData) {
-				const tokens = sessionKeyToReferenceTokens.get(fileDatum.sessionKey)
-
-				if (!tokens) {
-					throw new Error("file session key is missing when sorting reference tokens")
-				}
-
-				referenceTokensPerFileData.push(tokens)
-			}
-
-			return referenceTokensPerFileData
-		}
-
-		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
-
-		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
-	}
-
-	private async uploadMultipleBlobs(
-		encryptedData: Uint8Array,
-		blobServerAccessInfo: storageTypeRefs.BlobServerAccessInfo,
-	): Promise<sysTypeRefs.BlobReferenceTokenWrapper[]> {
-		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, storageTypeRefs.BlobGetInTypeRef)
-
-		return tryServers(
-			blobServerAccessInfo.servers,
-			async (serverUrl) => {
-				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
-					queryParams,
-					body: encryptedData,
-					responseType: MediaType.Json,
-					baseUrl: serverUrl,
-				})
-
-				return await this.parseBlobPostOutResponseMultiple(response)
-			},
-			`can't upload multiple blobs`,
-		)
 	}
 
 	/**
@@ -613,15 +530,6 @@ export class BlobFacade {
 		return sysTypeRefs.createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
-	public async parseBlobPostOutResponseMultiple(jsonData: string): Promise<sysTypeRefs.BlobReferenceTokenWrapper[]> {
-		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
-		const { blobReferenceTokens } = await this.instancePipeline.decryptAndMap(storageTypeRefs.BlobPostOutTypeRef, instance, null)
-		if (isEmpty(blobReferenceTokens)) {
-			throw new ProgrammingError("empty blobReferenceTokens not allowed for post multiple blob")
-		}
-		return blobReferenceTokens
-	}
-
 	private async downloadAndDecryptMultipleBlobsOfArchives(
 		blobs: readonly sysTypeRefs.Blob[],
 		blobServerAccessInfos: Map<Id, storageTypeRefs.BlobServerAccessInfo>,
@@ -813,4 +721,41 @@ export class BlobFacade {
 			downloadedBytes: downloadedBytes,
 		})
 	}
+}
+
+/**
+ * Deserializes a list of BlobWrappers that are in the following binary format
+ * element [ #blobs ] [ blobId ] [ blobHash ] [blobSize] [blob]     [ . . . ]    [ blobNId ] [ blobNHash ] [blobNSize] [blobN]
+ * bytes     4          9          6           4          blobSize                  9          6            4           blobSize
+ *
+ * @return a map from blobId to the binary data
+ */
+export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id, Uint8Array> {
+	const dataView = new DataView(concatBinaryData.buffer)
+	const result = new Map<Id, Uint8Array>()
+	const blobCount = dataView.getInt32(0)
+	if (blobCount === 0) {
+		return result
+	}
+	if (blobCount < 0) {
+		throw new Error(`Invalid blob count: ${blobCount}`)
+	}
+	let offset = 4
+	while (offset < concatBinaryData.length) {
+		const blobIdBytes = concatBinaryData.slice(offset, offset + 9)
+		const blobId = base64ToBase64Ext(uint8ArrayToBase64(blobIdBytes))
+
+		const blobSize = dataView.getInt32(offset + 15)
+		const dataStartOffset = offset + 19
+		if (blobSize < 0 || dataStartOffset + blobSize > concatBinaryData.length) {
+			throw new Error(`Invalid blob size: ${blobSize}. Remaining length: ${concatBinaryData.length - dataStartOffset}`)
+		}
+		const contents = concatBinaryData.slice(dataStartOffset, dataStartOffset + blobSize)
+		result.set(blobId, contents)
+		offset = dataStartOffset + blobSize
+	}
+	if (blobCount !== result.size) {
+		throw new Error(`Parsed wrong number of blobs: ${blobCount}. Expected: ${result.size}`)
+	}
+	return result
 }
