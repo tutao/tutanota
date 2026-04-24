@@ -269,8 +269,8 @@ export class SymmetricCipherFacade {
 	 */
 	encryptBytesDeprecatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 		const cipherVersion: SymmetricAesCipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-		const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-		return this.aesCbcFacade.encrypt(subkeys, bytes, true, iv, true, cipherVersion)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		return this.aesCbcFacade.encrypt(subKeys, bytes, true, iv, true, cipherVersion)
 	}
 
 	/**
@@ -282,8 +282,8 @@ export class SymmetricCipherFacade {
 	 */
 	encryptBytesDeprecatedUnauthenticatedCustomIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 		const cipherVersion: SymmetricAesCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-		const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-		return this.aesCbcFacade.encrypt(subkeys, bytes, true, iv, true, cipherVersion, true)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		return this.aesCbcFacade.encrypt(subKeys, bytes, true, iv, true, cipherVersion, true)
 	}
 
 	/**
@@ -385,8 +385,8 @@ export class SymmetricCipherFacade {
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const subkeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-				return this.aesCbcFacade.encrypt(subkeys, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
+				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+				return this.aesCbcFacade.encrypt(subKeys, plainText, mustGenerateRandomIv, iv, padding, cipherVersion, skipAuthenticationEnforcement)
 			}
 			case SymmetricCipherVersion.AeadWithGroupKey:
 			case SymmetricCipherVersion.AeadWithSessionKey: {
