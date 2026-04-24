@@ -35,13 +35,15 @@
 			"@tutao/wasm-loader": ["./src/wasm-loader"],
 			"@tutao/usagetests": ["./src/usagetests"],
 			"@tutao/mimimi": ["./src/mimimi"],
+			"@tutao/mimimi/types": ["./src/mimimi/napi-out/binding.d.ts"],
 			"@tutao/otest": ["./test/otest"],
 			"@tutao/rest-client": ["./src/rest-client"],
 			"@tutao/rest-client/types": ["./src/rest-client/types.d.ts"],
 			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
 			"@tutao/app-env": ["./src/app-env"],
 			"@tutao/typerefs": ["./src/typerefs"],
-			"@tutao/instance-pipeline": ["./src/instance-pipeline"]
+			"@tutao/instance-pipeline": ["./src/instance-pipeline"],
+			"@tutao/native-bridge": ["./src/native-bridge"]
 		}
 	}
 }
