@@ -1,6 +1,5 @@
-import { AttributeModel, ClientTypeModelResolver, ServerModelUntypedInstance, TypeModel } from "@tutao/typerefs"
+import { AttributeModel, ClientTypeModelResolver, ServerModelUntypedInstance, sysTypeRefs, TypeModel } from "@tutao/typerefs"
 import { Base64, base64ToUint8Array, Nullable } from "@tutao/utils"
-import { sysTypeRefs } from "@tutao/typerefs"
 
 export class EncryptedMissedNotification {
 	private constructor(

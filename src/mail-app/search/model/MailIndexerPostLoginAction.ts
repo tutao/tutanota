@@ -1,8 +1,9 @@
-import { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
+import { PostLoginAction } from "../../../common/api/main/LoginController"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { Indexer } from "../../workerUtils/index/Indexer"
-import { SessionType } from "../../../common/api/common/SessionType"
+import { SessionType } from "@tutao/app-env"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
+import { LoggedInEvent } from "@tutao/native-bridge"
 
 /**
  * The search range is tied to the offline storage settings.

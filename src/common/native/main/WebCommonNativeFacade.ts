@@ -10,7 +10,7 @@ import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestD
 import { LoginController } from "../../api/main/LoginController.js"
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { UsageTestController } from "@tutao/usagetests"
-import { NativeFileApp } from "../common/FileApp.js"
+import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { AppType } from "../../misc/ClientConstants.js"

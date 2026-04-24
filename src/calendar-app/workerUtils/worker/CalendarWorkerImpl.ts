@@ -1,16 +1,16 @@
-import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
-import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { Commands, Request } from "@tutao/native-bridge"
+import { MessageDispatcher } from "../../../common/api/common/threading/MessageDispatcher.js"
 import * as restError from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
-import { assertWorkerOrNode, isMainOrNode } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"
-import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
-import { WebWorkerTransport } from "../../../common/api/common/threading/Transport.js"
+import type { NativeInterface } from "@tutao/native-bridge"
+import { WebWorkerTransport } from "../../../common/api/common/threading/WebTransport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "@tutao/crypto/error"
+import { errorToObj } from "@tutao/utils"
 
 assertWorkerOrNode()
 

@@ -1,12 +1,12 @@
-import type { NativeInterface } from "../../../native/common/NativeInterface"
+import type { NativeInterface } from "../common/NativeInterface.js"
+import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
 import type { RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
 import { random, rsaDecrypt, rsaEncrypt } from "@tutao/crypto"
-import { NativeCryptoFacadeSendDispatcher } from "@tutao/native-bridge"
 import { isApp } from "@tutao/app-env"
 
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
 	if (isApp()) {
-		const { RsaApp } = await import("../../../native/worker/RsaApp")
+		const { RsaApp } = await import("./RsaApp.js")
 		return new RsaApp(new NativeCryptoFacadeSendDispatcher(native), random)
 	} else {
 		return new RsaWeb()

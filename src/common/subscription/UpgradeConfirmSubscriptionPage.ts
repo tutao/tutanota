@@ -23,7 +23,7 @@ import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./Feature
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "@tutao/native-bridge"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import { SessionType } from "../api/common/SessionType"
+import { SessionType } from "../../app-env/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"

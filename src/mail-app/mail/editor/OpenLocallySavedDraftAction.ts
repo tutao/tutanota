@@ -1,4 +1,4 @@
-import type { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
+import type { PostLoginAction } from "../../../common/api/main/LoginController"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import type { Dialog } from "../../../common/gui/base/Dialog"
@@ -8,7 +8,8 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
-import { SessionType } from "../../../common/api/common/SessionType"
+import { SessionType } from "@tutao/app-env"
+import { LoggedInEvent } from "@tutao/native-bridge"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>

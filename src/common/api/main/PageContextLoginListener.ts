@@ -1,7 +1,7 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
-import { SessionType } from "../common/SessionType.js"
+import { SessionType } from "../../../app-env/SessionType.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { Credentials } from "../../misc/credentials/Credentials.js"
 import { PersistedCredentials } from "@tutao/native-bridge"

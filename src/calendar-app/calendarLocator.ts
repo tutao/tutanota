@@ -1,4 +1,17 @@
-import { assertMainOrNode, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, KdfType, Mode } from "@tutao/app-env"
+import {
+	assertMainOrNode,
+	Const,
+	FeatureType,
+	GroupType,
+	isAndroidApp,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	KdfType,
+	Mode,
+	ProgrammingError,
+} from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -31,12 +44,22 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../common/api/common/ServiceRequest.js"
 import { CryptoFacade } from "../common/api/worker/crypto/CryptoFacade.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge"
-import { SettingsFacade } from "@tutao/native-bridge"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
-import { WebMobileFacade } from "../common/native/main/WebMobileFacade.js"
-import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import {
+	CommonSystemFacade,
+	ContactSuggestion,
+	DesktopSystemFacade,
+	ExternalCalendarFacade,
+	InterWindowEventFacadeSendDispatcher,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	NativeFileApp,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	SqlCipherFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge"
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
@@ -45,7 +68,6 @@ import { OperationProgressTracker } from "../common/api/main/OperationProgressTr
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
@@ -57,7 +79,6 @@ import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType } from "@tutao/app-env"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -66,19 +87,12 @@ import { CalendarEventsRepository } from "../common/calendar/date/CalendarEvents
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
-import { NativeFileApp } from "../common/native/common/FileApp.js"
 import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
-import { CommonSystemFacade } from "@tutao/native-bridge"
-import { ThemeFacade } from "@tutao/native-bridge"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { MobileContactsFacade } from "@tutao/native-bridge"
-import { NativeCredentialsFacade } from "@tutao/native-bridge"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { EntropyCollector } from "../common/api/main/EntropyCollector.js"
 import { notifications } from "../common/gui/Notifications.js"
 import { windowFacade } from "../common/misc/WindowFacade.js"
@@ -93,7 +107,6 @@ import type { CalendarEventPreviewViewModel } from "./calendar/gui/eventpopup/Ca
 import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/CustomerUtils.js"
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
-import { MobilePaymentsFacade } from "@tutao/native-bridge"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gui/ThemeController.js"
 import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
@@ -101,10 +114,8 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import { ExternalCalendarFacade } from "@tutao/native-bridge"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
-import { ContactSuggestion } from "@tutao/native-bridge"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
@@ -121,6 +132,8 @@ import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "./calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { WebMobileFacade } from "../common/native/main/WebMobileFacade"
+import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler"
 
 assertMainOrNode()
 

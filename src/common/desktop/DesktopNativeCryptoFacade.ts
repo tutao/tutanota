@@ -2,7 +2,7 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type * as FsModule from "node:fs"
 import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/crypto"
-import { FileUri } from "../native/common/FileApp.js"
+import { FileUri } from "../../native-bridge/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "@tutao/native-bridge"
 import { EncryptedFileInfo } from "@tutao/native-bridge"

@@ -222,3 +222,4 @@ export { tokenize } from "./Tokenizer.js"
 export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from "./memoized.js"
 
 export { parseUrl, getUrlDomain } from "./URLUtils.js"
+export * from "./ErrorUtils.js"

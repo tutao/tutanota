@@ -1,9 +1,8 @@
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { sysTypeRefs } from "@tutao/typerefs"
 import { AppType } from "../../common/misc/ClientConstants"
-import { assertMainOrNode, isBrowser } from "@tutao/app-env"
-import type { NativePushServiceApp } from "../../common/native/main/NativePushServiceApp"
+import { assertMainOrNode } from "@tutao/app-env"
 import { EntityClient } from "../../common/api/common/EntityClient"
-import { tensor_util } from "@tensorflow/tfjs-core"
+import { NativePushServiceApp } from "../../common/native/main/NativePushServiceApp"
 
 assertMainOrNode()
 

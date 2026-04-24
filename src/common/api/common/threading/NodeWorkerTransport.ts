@@ -1,6 +1,6 @@
-import { Message } from "./MessageDispatcher.js"
-import { isMainThread, parentPort, Worker as NodeWorker } from "node:worker_threads"
-import { Transport } from "./Transport.js"
+import { parentPort, Worker as NodeWorker } from "node:worker_threads"
+import { Transport } from "@tutao/native-bridge"
+import { Message } from "@tutao/native-bridge"
 
 /** transport impl for the node main thread */
 export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {

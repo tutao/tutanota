@@ -2,8 +2,8 @@ import o, { assertThrows } from "@tutao/otest"
 import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
 import { HttpMethod, RestClientOptions } from "@tutao/rest-client/types"
-import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
-import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
+import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
+import { AesApp } from "../../../../../src/native-bridge/worker/AesApp.js"
 import { ArchiveDataType, Mode, ProgrammingError } from "@tutao/app-env"
 import {
 	BlobReferencingInstance,

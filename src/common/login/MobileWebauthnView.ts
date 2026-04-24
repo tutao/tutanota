@@ -85,7 +85,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 	}
 
 	private async sendResultObject(result: object, cbUrlTemplate: string) {
-		const { encodeValueForNative } = await import("../native/common/NativeLineProtocol.js")
+		const { encodeValueForNative } = await import("../../native-bridge/common/NativeLineProtocol.js")
 		const serializedResult = encodeValueForNative(result)
 		const base64Result = stringToBase64(serializedResult)
 		const cbUrl = cbUrlTemplate.replace("{result}", base64Result)
@@ -95,7 +95,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 	async authenticate(attrs: MobileWebauthnAttrs) {
 		const { challenge, cbUrlTemplate } = await this.getParams(attrs)
 		try {
-			const { decodeValueFromNative } = await import("../native/common/NativeLineProtocol.js")
+			const { decodeValueFromNative } = await import("../../native-bridge/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnSignChallenge
 			const signResult = await attrs.browserWebauthn.sign({
 				challenge: rawChallengeObj.challenge,
@@ -112,7 +112,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 		const { challenge, cbUrlTemplate } = await this.getParams(attrs)
 
 		try {
-			const { decodeValueFromNative } = await import("../native/common/NativeLineProtocol.js")
+			const { decodeValueFromNative } = await import("../../native-bridge/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnRegistrationChallenge
 			const registrationResult = await attrs.browserWebauthn.register({
 				challenge: rawChallengeObj.challenge,

@@ -1,6 +1,5 @@
 import { assertNotNull, downcast, intersection, toLowerCase } from "@tutao/utils"
-import { DataFile, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
-import type { Attachment } from "../../../mailFunctionality/SendMailModel.js"
+import { Attachment, DataFile, FileReference, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
 
 type StringPredicate = (arg0: string) => boolean
 

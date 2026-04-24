@@ -23,6 +23,7 @@ import { ArchiveDataType, assertWorkerOrNode, CANCEL_UPLOAD_EVENT, isApp, isDesk
 import {
 	AttributeModel,
 	BlobReferencingInstance,
+	FileReference,
 	ServerModelUntypedInstance,
 	SomeEntity,
 	storageServices,
@@ -31,9 +32,9 @@ import {
 	sysTypeRefs,
 } from "@tutao/typerefs"
 import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
-import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
-import type { AesApp } from "../../../../native/worker/AesApp.js"
-import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
+import type { FileUri, NativeFileApp } from "@tutao/native-bridge"
+import type { AesApp } from "@tutao/native-bridge"
+import { splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"

@@ -16,7 +16,7 @@ import { Credentials, credentialsToUnencrypted } from "./credentials/Credentials
 import { showErrorDialogNotLoggedIn, showErrorNotification } from "./ErrorReporter"
 import { CancelledError } from "../api/common/error/CancelledError"
 
-import { SessionType } from "../api/common/SessionType.js"
+import { SessionType } from "../../app-env/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"

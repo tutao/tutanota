@@ -3,11 +3,11 @@ import { CommonNativeFacade } from "@tutao/native-bridge"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ElectronWebContentsTransport, IpcConfig } from "./ElectronWebContentsTransport.js"
 import { DesktopGlobalDispatcher } from "@tutao/native-bridge"
-import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
+import { MessageDispatcher } from "../../api/common/threading/MessageDispatcher.js"
 import { DesktopFacadeSendDispatcher } from "@tutao/native-bridge"
 import { CommonNativeFacadeSendDispatcher } from "@tutao/native-bridge"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import { InterWindowEventFacadeSendDispatcher, Request } from "@tutao/native-bridge"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade

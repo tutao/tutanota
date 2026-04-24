@@ -37,7 +37,7 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
-import { SessionType } from "../common/api/common/SessionType.js"
+import { SessionType } from "@tutao/app-env"
 import { UndoModel } from "./UndoModel"
 import { FeatureType } from "@tutao/app-env"
 import { CommonLocator } from "../common/api/main/CommonLocator"

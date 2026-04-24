@@ -59,7 +59,7 @@ import {
 } from "@tutao/crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import { SessionType } from "../../common/SessionType"
+import { SessionType } from "../../../../app-env/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { LoginFailReason } from "../../main/PageContextLoginListener.js"

@@ -11,7 +11,7 @@ import { bytesToEd25519PublicKey } from "@tutao/crypto"
 import { withOverriddenEnv } from "../../../TestUtils"
 import { ProgrammingError } from "@tutao/app-env"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade"
-import { SessionType } from "../../../../../src/common/api/common/SessionType"
+import { SessionType } from "../../../../../src/app-env/SessionType"
 import { IdentityKeySourceOfTrust, Mode } from "../../../../../src/app-env"
 
 const { anything } = matchers

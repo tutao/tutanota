@@ -1,15 +1,11 @@
-import { assertMainOrNode } from "@tutao/app-env"
-import type { Transport } from "../../api/common/threading/Transport.js"
-import { MessageDispatcher, Request } from "../../api/common/threading/MessageDispatcher.js"
+import { assertMainOrNode, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { MessageDispatcher } from "../../api/common/threading/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import type { NativeInterface } from "../common/NativeInterface"
-import { ProgrammingError } from "@tutao/app-env"
-import { IosNativeTransport } from "./IosNativeTransport.js"
-import { AndroidNativeTransport } from "./AndroidNativeTransport.js"
-import { DesktopNativeTransport } from "./DesktopNativeTransport.js"
-import { WebGlobalDispatcher } from "@tutao/native-bridge"
-import { isAndroidApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
+import { NativeInterface, Request, Transport, WebGlobalDispatcher } from "@tutao/native-bridge"
+import { IosNativeTransport } from "../../../native-bridge/main/IosNativeTransport.js"
+import { AndroidNativeTransport } from "../../../native-bridge/main/AndroidNativeTransport.js"
+import { DesktopNativeTransport } from "../../../native-bridge/main/DesktopNativeTransport.js"
 
 assertMainOrNode()
 

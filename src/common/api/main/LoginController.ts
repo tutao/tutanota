@@ -1,6 +1,6 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 import { assertNotNull, defer } from "@tutao/utils"
-import { assertMainOrNodeBoot, FeatureType, InvalidModelError, KdfType, Mode } from "@tutao/app-env"
+import { assertMainOrNodeBoot, FeatureType, InvalidModelError, KdfType, Mode, SessionType } from "@tutao/app-env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import * as restError from "@tutao/rest-client/error"
@@ -8,9 +8,8 @@ import { client } from "../../misc/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
 import type { Credentials } from "../../misc/credentials/Credentials"
-import { SessionType } from "../common/SessionType"
 import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
-import { UnencryptedCredentials } from "@tutao/native-bridge"
+import { LoggedInEvent, UnencryptedCredentials } from "@tutao/native-bridge"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
@@ -23,11 +22,6 @@ export interface PostLoginAction {
 
 	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
 	onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
-}
-
-export type LoggedInEvent = {
-	readonly sessionType: SessionType
-	readonly userId: Id
 }
 
 export type ResumeSessionResult = { type: "success" } | { type: "error"; reason: ResumeSessionErrorReason }

@@ -24,7 +24,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/utils"
 import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../../../../src/app-env"
-import { SessionType } from "../../../../../src/common/api/common/SessionType"
+import { SessionType } from "../../../../../src/app-env/SessionType"
 import { ConnectMode, EventBusClient } from "../../../../../src/common/api/worker/EventBusClient"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/common/api/worker/facades/EntropyFacade.js"

@@ -1,4 +1,4 @@
-import { PostLoginAction } from "../../api/main/LoginController"
+import { PostLoginAction } from "./PostLoginAction.js"
 
 export interface NativeInterface {
 	invokeNative(requestType: NativeRequestType, args: ReadonlyArray<unknown>): Promise<any>

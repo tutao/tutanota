@@ -4,7 +4,7 @@ import * as restError from "@tutao/rest-client/error"
 import { Request } from "../../../../src/common/api/common/threading/MessageDispatcher.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
-import { SessionType } from "../../../../src/common/api/common/SessionType.js"
+import { SessionType } from "../../../../src/app-env/SessionType.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { mailLocator } from "../../../../src/mail-app/mailLocator.js"
 

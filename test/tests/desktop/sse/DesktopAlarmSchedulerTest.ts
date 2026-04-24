@@ -12,7 +12,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { ServerModelUntypedInstance } from "@tutao/typerefs"
 import { AlarmScheduler } from "../../../../src/common/calendar/date/AlarmScheduler.js"
 import { createTestEntity } from "../../TestUtils"
-import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
+import { EncryptedAlarmNotification } from "../../../../src/native-bridge/common/EncryptedAlarmNotification"
 import { ClientModelInfo } from "@tutao/typerefs"
 import { sysTypeRefs } from "@tutao/typerefs"
 

@@ -5,7 +5,7 @@ import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX,
 import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
-import { SessionType } from "../api/common/SessionType"
+import { SessionType } from "../../app-env/SessionType"
 import { isDriveEnabled } from "../api/common/drive/DriveUtils"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {

@@ -1,7 +1,7 @@
 import { SearchFacade } from "./SearchFacade"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../common/api/worker/offline/Sql"
-import { untagSqlValue } from "../../../typerefs/SqlValue"
+import { untagSqlValue } from "@tutao/typerefs"
 import { SqlCipherFacade } from "@tutao/native-bridge"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"

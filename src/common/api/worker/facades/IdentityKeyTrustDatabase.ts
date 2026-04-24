@@ -7,7 +7,7 @@ import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "../offline/Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge"
 import type { OfflineStorageTable } from "../offline/OfflineStorage"
-import { SessionType } from "../../common/SessionType"
+import { SessionType } from "../../../../app-env/SessionType"
 import { LoginFacade } from "./LoginFacade"
 
 /**

@@ -5,58 +5,9 @@
  * </ul>
  */
 import { isWorker } from "@tutao/app-env"
-import { Transport } from "./Transport.js"
 import { objToError } from "../utils/ErrorUtils.js"
 import { newPromise } from "@tutao/utils"
-
-export type Command<T> = (msg: Request<T>) => Promise<any>
-export type Commands<T extends string> = Record<T, Command<T>>
-export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
-
-export class Request<T> {
-	readonly type: "request"
-	readonly requestType: T
-	/** should be selected and assigned by the message dispatcher or on deserialization only. */
-	id: string | null = null
-
-	readonly args: any[]
-
-	constructor(type: T, args: ReadonlyArray<unknown>) {
-		this.type = "request"
-		this.requestType = type
-		this.id = null
-		this.args = args.slice()
-	}
-}
-
-export class Response<T> {
-	readonly type: "response"
-	readonly id: string
-	readonly value: any
-
-	constructor(id: string, value: any) {
-		this.type = "response"
-		this.id = id
-		this.value = value
-	}
-}
-
-export class RequestError<T> {
-	readonly type: "requestError"
-	readonly id: string
-	readonly error: Record<string, any>
-
-	constructor(id: string, error: Error) {
-		this.type = "requestError"
-		this.id = id
-		this.error = errorToObj(error) // the structured clone algorithm is not able to clone errors
-	}
-}
-
-type MessageCallbacks = {
-	resolve: (value: any) => void
-	reject: (error: Error) => void
-}
+import { Commands, Message, MessageCallbacks, Request, RequestError, Transport, Response } from "@tutao/native-bridge"
 
 /**
  * Handles remote invocations (e.g. worker or native calls).
@@ -156,21 +107,5 @@ export function makeRequestIdGenerator(prefix: string): () => string {
 			requestId = 0
 		}
 		return prefix + requestId++
-	}
-}
-
-// Serialize error stack traces, when they are sent via the websocket.
-export function errorToObj(error: Error): {
-	data: any
-	message: any
-	name: any
-	stack: any
-} {
-	const errorErased = error as any
-	return {
-		name: errorErased.name,
-		message: errorErased.message,
-		stack: errorErased.stack,
-		data: errorErased.data,
 	}
 }

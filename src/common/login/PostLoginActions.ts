@@ -1,5 +1,5 @@
 import m, { Component } from "mithril"
-import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
+import type { PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import { windowFacade } from "../misc/WindowFacade.js"
@@ -30,7 +30,7 @@ import * as restError from "@tutao/rest-client/error"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
-import { SessionType } from "../api/common/SessionType"
+import { SessionType } from "@tutao/app-env"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { DateProvider } from "../api/common/DateProvider.js"
@@ -44,6 +44,7 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
+import { LoggedInEvent } from "@tutao/native-bridge"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.

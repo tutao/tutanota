@@ -14,6 +14,12 @@
 		},
 		{
 			"path": "tsconfig.app-env.json"
+		},
+		{
+			"path": "tsconfig.crypto.json"
+		},
+		{
+			"path": "tsconfig.utils.json"
 		}
 	]
 }

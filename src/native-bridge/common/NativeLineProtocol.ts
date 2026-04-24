@@ -20,7 +20,7 @@
  *  ...
  *  [n] 		request		<argx>				json-encoded last argument
  */
-import { Message, Request, RequestError, Response } from "../../api/common/threading/MessageDispatcher.js"
+import { Message, Request, RequestError, Response } from "./MessageTypes.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 

@@ -1,11 +1,11 @@
 import { Dialog } from "../gui/base/Dialog.js"
-import { convertToDataFile, createDataFile, createReferencingInstance, DataFile, DownloadableFileEntity } from "@tutao/typerefs"
+import { convertToDataFile, createDataFile, createReferencingInstance, DataFile, DownloadableFileEntity, FileReference } from "@tutao/typerefs"
 import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"
-import { deduplicateFilenames, FileReference, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
+import { deduplicateFilenames, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import * as restError from "@tutao/rest-client/error"

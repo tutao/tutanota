@@ -21,7 +21,7 @@ import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
-import { EncryptedMissedNotification } from "../../../../src/common/native/common/EncryptedMissedNotification"
+import { EncryptedMissedNotification } from "../../../../src/native-bridge/common/EncryptedMissedNotification"
 import { CryptoError } from "@tutao/crypto/error"
 import { OperationType } from "../../../../src/app-env"
 

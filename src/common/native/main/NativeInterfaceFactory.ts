@@ -1,6 +1,6 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
-import { NativeFileApp } from "../common/FileApp.js"
+import { NativeFileApp } from "@tutao/native-bridge"
 import { isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import {
 	CommonNativeFacade,

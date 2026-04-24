@@ -11,7 +11,7 @@ import { CredentialAuthenticationError } from "../api/common/error/CredentialAut
 import { first, noOp } from "@tutao/utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
 import { assertMainOrNode } from "@tutao/app-env"
-import { SessionType } from "../api/common/SessionType"
+import { SessionType } from "@tutao/app-env"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"
 import { CancelledError } from "../api/common/error/CancelledError.js"

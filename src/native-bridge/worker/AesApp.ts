@@ -1,7 +1,7 @@
 import { AesKey, IV_BYTE_LENGTH, keyToUint8Array, Randomizer } from "@tutao/crypto"
-import { FileUri } from "../common/FileApp"
-import { NativeCryptoFacade } from "@tutao/native-bridge"
-import { EncryptedFileInfo } from "@tutao/native-bridge"
+import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade.js"
+import { FileUri } from "../common/FileApp.js"
+import { EncryptedFileInfo } from "../common/generatedipc/EncryptedFileInfo.js"
 
 export class AesApp {
 	constructor(

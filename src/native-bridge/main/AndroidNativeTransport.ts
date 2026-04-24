@@ -1,7 +1,7 @@
-import { Transport } from "../../api/common/threading/Transport.js"
-import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 import { defer, DeferredObject } from "@tutao/utils"
 import { assertMainOrNode } from "@tutao/app-env"
+import { Transport } from "../common/Transport.js"
+import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 
 assertMainOrNode()
 
@@ -43,7 +43,9 @@ export class AndroidNativeTransport implements Transport<NativeRequestType, JsRe
 		// window.nativeApp is defined in Native.java using WebView.addJavaScriptInterface
 		// The native side needs to initialize the WebMessagePorts
 		// We have to tell it when we are ready, otherwise it will happen too early and we won't receive the message event
-		this.window.nativeApp.startWebMessageChannel()
+		// @ts-ignore
+		const nativeApp = this.window.nativeApp as NativeApp
+		nativeApp.startWebMessageChannel()
 	}
 
 	postMessage(message: NativeMessage): void {

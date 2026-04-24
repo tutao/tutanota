@@ -13,8 +13,8 @@
  * */
 import { parentPort, workerData } from "node:worker_threads"
 import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
-import { Command, MessageDispatcher, Request } from "../api/common/threading/MessageDispatcher.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { MessageDispatcher } from "../api/common/threading/MessageDispatcher.js"
+import { Command, SqlCipherFacade, Request } from "@tutao/native-bridge"
 import { NodeWorkerTransport } from "../api/common/threading/NodeWorkerTransport.js"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */

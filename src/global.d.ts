@@ -13,17 +13,7 @@ import { WorkerLocatorType } from "./api/worker/WorkerLocator"
 import { TopLevelView } from "./TopLevelView.js"
 import { AppType } from "./common/misc/ClientConstants"
 
-interface NativeApp {
-	// In desktop, we can pass whole objects
-	// In app, we can only pass strings
-	invoke(message: any)
-
-	attach(handler: (JsMessage) => unknown)
-
-	getPathForFile(file: File): string
-
-	startWebMessageChannel() // Available in android
-}
+export { NativeApp } from "../types/globals"
 
 type Tutao = {
 	currentView: TopLevelView | null

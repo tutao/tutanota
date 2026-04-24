@@ -61,7 +61,7 @@ import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { RolloutAction } from "./RolloutFacade"
-import { SessionType } from "../../common/SessionType"
+import { SessionType } from "../../../../app-env/SessionType"
 
 assertWorkerOrNode()
 

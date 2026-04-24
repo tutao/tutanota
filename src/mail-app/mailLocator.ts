@@ -1,4 +1,4 @@
-import { assertMainOrNode, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
+import { assertMainOrNode, Const, FeatureType, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -33,21 +33,30 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../common/api/common/ServiceRequest.js"
 import { CryptoFacade } from "../common/api/worker/crypto/CryptoFacade.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge"
-import { SettingsFacade } from "@tutao/native-bridge"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
-import { WebMobileFacade } from "../common/native/main/WebMobileFacade.js"
-import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import {
+	CommonSystemFacade,
+	ContactSuggestion,
+	DesktopSystemFacade,
+	ExportFacade,
+	ExternalCalendarFacade,
+	InterWindowEventFacadeSendDispatcher,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	NativeFileApp,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	SqlCipherFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge"
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
 import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
@@ -61,7 +70,6 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType } from "@tutao/app-env"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -73,20 +81,11 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
-import { NativeFileApp } from "../common/native/common/FileApp.js"
-import type { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
-import { CommonSystemFacade } from "@tutao/native-bridge"
-import { ThemeFacade } from "@tutao/native-bridge"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { MobileContactsFacade } from "@tutao/native-bridge"
-import { NativeCredentialsFacade } from "@tutao/native-bridge"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { EntropyCollector } from "../common/api/main/EntropyCollector.js"
 import { notifications } from "../common/gui/Notifications.js"
 import { windowFacade } from "../common/misc/WindowFacade.js"
@@ -107,7 +106,6 @@ import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../common/gu
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../common/gui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
-import { MobilePaymentsFacade } from "@tutao/native-bridge"
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
@@ -116,15 +114,12 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
 import { isEditableDraft, isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
-import { ExternalCalendarFacade } from "@tutao/native-bridge"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { ContactSuggestion } from "@tutao/native-bridge"
 import { MailImporter } from "./mail/import/MailImporter.js"
 import type { MailExportController } from "./native/main/MailExportController.js"
-import { ExportFacade } from "@tutao/native-bridge"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
@@ -153,6 +148,11 @@ import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { WebMobileFacade } from "../common/native/main/WebMobileFacade"
+import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler"
+import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory"
+import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain"
+import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp"
 import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 
 assertMainOrNode()
