@@ -255,7 +255,7 @@ export class RestClient {
 						if (verbose) {
 							console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 						}
-						xhr.onerror?.(e)
+						reject(new CancelledError("upload has been aborted, path: " + path))
 					}
 				}
 
