@@ -1,6 +1,7 @@
 import { AdSyncEventListener, AdSyncEventType } from "./AdSyncEventListener.js"
 import { ImapSyncSession } from "./ImapSyncSession.js"
 import { ImapSyncState } from "./ImapSyncState.js"
+import { ImapError } from "./imapmail/ImapError"
 
 const defaultAdSyncConfig: AdSyncConfig = {
 	isEnableParallelProcessesOptimizer: true,
@@ -33,8 +34,8 @@ export class ImapAdSync {
 		this.syncSession = new ImapSyncSession(adSyncEventListener, adSyncConfig)
 	}
 
-	async startAdSync(imapSyncState: ImapSyncState): Promise<void> {
-		return this.syncSession.startSyncSession(imapSyncState)
+	async startAdSync(imapSyncState: ImapSyncState): Promise<ImapError | null> {
+		return await this.syncSession.startSyncSession(imapSyncState)
 	}
 
 	async stopAdSync(): Promise<void> {

@@ -199,7 +199,13 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async continueImapImport() {
-		this.imapImportState = await this.imapImporter().continueImport()
+		const continueImportResult = await this.imapImporter().continueImport()
+		if (continueImportResult.error) {
+			console.error("On trying to continue an import failed!", continueImportResult.error)
+		} else if (continueImportResult.state) {
+			this.imapImportState = continueImportResult.state
+		}
+		//this.imapImportState
 		m.redraw()
 	}
 

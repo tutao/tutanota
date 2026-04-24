@@ -2266,6 +2266,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"imapImportAuthFailed_msg": "Imap failed to start because credentials are incorrect, please check your credentials",
 	}
 }

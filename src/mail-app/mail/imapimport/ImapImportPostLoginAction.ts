@@ -61,6 +61,7 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 								}
 								try {
 									await this.imapImporter.initializeImport(initializeImapImportParams)
+									//FIXME: Add validation somehow for when continue here fails.
 									await this.imapImporter.continueImport()
 								} catch (e) {
 									console.log(

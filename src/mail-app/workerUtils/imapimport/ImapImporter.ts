@@ -43,6 +43,11 @@ type ImapErrorCallback = {
 	handler: (error: ImapError) => void
 }
 
+export interface ContinueImportResult {
+	state?: ImapImportState
+	error?: ImapError
+}
+
 export class ImapImporter implements ImapImportFacade {
 	private imapImportState: ImapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
 	private importImapAccountSyncState: tutanotaTypeRefs.ImportImapAccountSyncState | null = null
@@ -77,21 +82,24 @@ export class ImapImporter implements ImapImportFacade {
 		return Promise.resolve(this.imapImportState)
 	}
 
-	async continueImport(): Promise<ImapImportState> {
+	/**
+	 * Attempts to continue an import from existing state, may return errors in case of failure.
+	 */
+	async continueImport(): Promise<ContinueImportResult> {
 		if (this.imapImportState.state === ImportState.RUNNING) {
-			return this.imapImportState
+			return { state: this.imapImportState }
 		}
 
 		if (this.imapImportState.state === ImportState.POSTPONED && this.imapImportState.postponedUntil.getTime() > Date.now()) {
 			this.imapImportState.state = ImportState.POSTPONED
-			return this.imapImportState
+			return { state: this.imapImportState }
 		}
 
 		this.importImapAccountSyncState = await this.loadImportImapAccountSyncState()
 
 		if (this.importImapAccountSyncState == null) {
 			this.imapImportState = new ImapImportState(ImportState.NOT_INITIALIZED)
-			return this.imapImportState
+			return { state: this.imapImportState }
 		}
 
 		let postponedUntil = this.importImapAccountSyncState?.postponedUntil
@@ -99,11 +107,9 @@ export class ImapImporter implements ImapImportFacade {
 			this.imapImportState.postponedUntil = new Date(Number.parseInt(postponedUntil))
 		}
 
-		const datenow = Date.now()
-		console.log("second", this.imapImportState.postponedUntil.getTime() > datenow, { getTime: this.imapImportState.postponedUntil.getTime(), datenow })
-		if (this.imapImportState.postponedUntil.getTime() > datenow) {
+		if (this.imapImportState.postponedUntil.getTime() > Date.now()) {
 			this.imapImportState.state = ImportState.POSTPONED
-			return this.imapImportState
+			return { state: this.imapImportState }
 		}
 
 		let imapAccount = importImapAccountToImapAccount(this.importImapAccountSyncState.imapAccount)
@@ -113,10 +119,15 @@ export class ImapImporter implements ImapImportFacade {
 
 		this.deduplicatedImportedAttachmentHashToFileId = await this.getImportedImapAttachmentHashToIdMap()
 
-		await this.imapImportSystemFacade.startImport(imapSyncState)
+		const startImportResult = await this.imapImportSystemFacade.startImport(imapSyncState)
 
-		this.imapImportState = new ImapImportState(ImportState.RUNNING)
-		return Promise.resolve(this.imapImportState)
+		if (startImportResult !== null) {
+			this.imapImportState = new ImapImportState(ImportState.PAUSED)
+			return Promise.resolve({ error: startImportResult })
+		} else {
+			this.imapImportState = new ImapImportState(ImportState.RUNNING)
+			return Promise.resolve({ state: this.imapImportState })
+		}
 	}
 
 	async pauseImport(): Promise<ImapImportState> {

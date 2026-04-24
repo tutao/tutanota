@@ -2317,5 +2317,6 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"matchImportFoldersToTutanotaFolders_label": "Match import folders to Tutanota folders",
+		"imapImportAuthFailed_msg": "Imap failed to start because credentials are incorrect, please check your credentials",
 	}
 }

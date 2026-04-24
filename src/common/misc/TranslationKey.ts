@@ -5289,3 +5289,4 @@ export type TranslationKeyType =
 	| "deleteImapImport_action"
 	| "matchImportFoldersToTutanotaFolders_label"
 	| "modifyImapImport_label"
+	| "imapImportAuthFailed_msg"

@@ -12,12 +12,12 @@ export class DesktopImapImportSystemFacade implements ImapImportSystemFacade, Ad
 
 	private imapAdSync?: ImapAdSync
 
-	startImport(imapSyncState: ImapSyncState): Promise<void> {
+	async startImport(imapSyncState: ImapSyncState): Promise<ImapError | null> {
 		if (this.imapAdSync === undefined) {
 			this.imapAdSync = new ImapAdSync(this)
 		}
-		this.imapAdSync?.startAdSync(imapSyncState)
-		return Promise.resolve()
+		const startResult = await this.imapAdSync?.startAdSync(imapSyncState).then((result) => result)
+		return Promise.resolve(startResult)
 	}
 
 	stopImport(): Promise<void> {

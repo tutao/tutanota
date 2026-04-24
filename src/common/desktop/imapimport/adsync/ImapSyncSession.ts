@@ -10,7 +10,7 @@ import { ImapMailbox } from "../../../api/common/utils/imapImportUtils/ImapMailb
 import { AdSyncConfig } from "./ImapAdSync.js"
 import { AdSyncSingleProcessesOptimizer } from "./optimizer/processesoptimizer/AdSyncSingleProcessesOptimizer.js"
 import { AdSyncProcessesOptimizer } from "./optimizer/processesoptimizer/AdSyncProcessesOptimizer.js"
-import { ImapError } from "./imapmail/ImapError"
+import { ImapError, ImapErrorCause } from "./imapmail/ImapError"
 
 const DOWNLOADED_QUOTA_SAFETY_THRESHOLD: number = 50000000 // in byte
 const DEFAULT_POSTPONE_TIME: number = 24 * 60 * 60 * 1000 // 24 hours
@@ -54,15 +54,19 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		this.state = SyncSessionState.PAUSED
 	}
 
-	async startSyncSession(imapSyncState: ImapSyncState): Promise<void> {
+	async startSyncSession(imapSyncState: ImapSyncState): Promise<ImapError | null> {
 		if (this.state !== SyncSessionState.RUNNING) {
 			this.state = SyncSessionState.RUNNING
 			this.imapSyncState = imapSyncState
 			this.runningSyncSessionProcesses = new Map()
 			this.downloadedQuotas = []
-			this.runSyncSession()
+			const runSyncResult = await this.runSyncSession()
+			if (runSyncResult !== null) {
+				this.state = SyncSessionState.PAUSED
+				return runSyncResult
+			}
 		}
-		return
+		return null
 	}
 
 	async stopSyncSession(): Promise<void> {
@@ -79,20 +83,26 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 		this.runningSyncSessionProcesses.clear()
 
-		console.log("on shutdownsync session got..", shutdownSyncAction)
 		if (shutdownSyncAction === ShutdownSyncAction.POSTPONE) {
 			this.state = SyncSessionState.POSTPONED
-			console.log("on shutdown sync we set the postponed to be further...", Date.now() + postponeDuration)
 			this.adSyncEventListener.onPostpone(Date.now() + postponeDuration)
 		} else if (shutdownSyncAction === ShutdownSyncAction.AUTH_FAIL) {
-			console.log("Failed Authentication... inform listener...")
+			// This should only happen now in case Auth is changed on imap server *after* being
+			// configured or something expired.
 			this.adSyncEventListener.onError(new ImapError("Authentication failed, please check your password"))
+		} else {
+			this.adSyncEventListener.onError(new ImapError("An unknown error happened, " + shutdownSyncAction))
 		}
 	}
 
-	private async runSyncSession() {
-		let mailboxes = await this.setupSyncSession()
+	private async runSyncSession(): Promise<ImapError | null> {
+		let setupResult = await this.setupSyncSession()
+		if (setupResult instanceof ImapError) {
+			return setupResult as ImapError
+		}
+		let mailboxes = setupResult as ImapSyncSessionMailbox[]
 
+		// We probably want to get rid of optimizer.
 		if (mailboxes != null) {
 			if (this.adSyncConfig.isEnableParallelProcessesOptimizer) {
 				this.adSyncOptimizer = new AdSyncParallelProcessesOptimizer(
@@ -107,9 +117,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 			this.adSyncOptimizer.startAdSyncOptimizer()
 		}
+		return null
 	}
 
-	private async setupSyncSession(): Promise<ImapSyncSessionMailbox[] | null> {
+	private async setupSyncSession(): Promise<ImapSyncSessionMailbox[] | ImapError> {
 		if (!this.imapSyncState) {
 			throw new ProgrammingError("The ImapSyncState has not been set!")
 		}
@@ -140,15 +151,18 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			})
 			return this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
 		} catch (error) {
-			console.log("caught an error during setup sync", error)
+			console.log("we are getting errors still, error")
 			let syncAction = ShutdownSyncAction.UNKNOWN
 			if (error?.serverResponseCode === "AUTHENTICATIONFAILED") {
-				syncAction = ShutdownSyncAction.AUTH_FAIL
+				return new ImapError(error, ImapErrorCause.AUTH_FAILED)
 			} else {
+				// For now any other error we are postponing...
+				// TODO: Find which error cases are the valid ones for postponing.
+				console.log("The error on postpone was: ", error)
 				syncAction = ShutdownSyncAction.POSTPONE
 			}
 			await this.shutDownSyncSession(syncAction, ERROR_POSTPONE_TIME)
-			return null
+			return new ImapError(error)
 		}
 	}
 

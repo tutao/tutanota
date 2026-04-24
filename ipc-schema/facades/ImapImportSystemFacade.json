@@ -12,7 +12,7 @@
 					"imapSyncState": "ImapSyncState"
 				}
 			],
-			"ret": "void"
+			"ret": "ImapError?"
 		},
 		"stopImport": {
 			"doc": "Stop a running IMAP import.",
