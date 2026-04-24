@@ -1,7 +1,7 @@
 {
 	"__comment": "output paths are relative to this file.",
 	"android": "../app-android/tutashared/src/main/java/de/tutao/tutashared/generated_ipc",
-	"web": "../src/common/native/common/generatedipc",
-	"desktop": "../src/common/native/common/generatedipc",
+	"web": "../src/native-bridge/generatedipc",
+	"desktop": "../src/native-bridge/generatedipc",
 	"ios": "../app-ios/TutanotaSharedFramework/GeneratedIpc"
 }
