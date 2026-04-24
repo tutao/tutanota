@@ -6,6 +6,7 @@ import {
 	LangGenerator,
 	MethodDefinition,
 	minusculize,
+	Platform,
 	RenderedType,
 	StructDefinition,
 	TypeRefDefinition,
@@ -224,7 +225,7 @@ export class SwiftGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	generateExtraFiles(): Record<string, string> {
+	generateExtraFiles(_platform: Platform, _generatedSymbols: Array<string>): Record<string, string> {
 		return {
 			NativeInterface: SwiftGenerator.generateNativeInterface(),
 		}
