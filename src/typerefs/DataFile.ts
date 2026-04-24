@@ -1,4 +1,4 @@
-import { DownloadableFileEntity } from "./utils/BlobUtils"
+import { type DownloadableFileEntity } from "./BlobUtils.js"
 
 /**
  * a structure containing file content and metadata
