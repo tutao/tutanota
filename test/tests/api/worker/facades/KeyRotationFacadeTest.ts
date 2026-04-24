@@ -57,12 +57,7 @@ import { RecipientsNotFoundError } from "../../../../../src/common/api/common/er
 import * as restError from "@tutao/rest-client/error"
 import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import {
-	AdminSymKeyAuthenticationParams,
-	brandKeyMac,
-	KeyAuthenticationFacade,
-	PubDistKeyAuthenticationParams,
-} from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
+import { AdminSymKeyAuthenticationParams, brandKeyMac, KeyAuthenticationFacade, PubDistKeyAuthenticationParams } from "@tutao/crypto"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"

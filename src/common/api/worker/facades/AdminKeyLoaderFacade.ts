@@ -6,7 +6,7 @@ import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, cryptoUtils, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade } from "@tutao/crypto"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 assertWorkerOrNode()

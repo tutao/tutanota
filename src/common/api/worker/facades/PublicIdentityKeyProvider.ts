@@ -8,7 +8,7 @@ import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
-import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
+import { brandKeyMac, KeyAuthenticationFacade } from "@tutao/crypto"
 import type { PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./IdentityKeyTrustDatabase"
 
