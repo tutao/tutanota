@@ -34,7 +34,7 @@ import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
-import { AesKey, cryptoUtils, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
 import { expandId } from "./RestClientIdUtils"
@@ -167,6 +167,7 @@ export interface EntityRestInterface {
 
 	/**
 	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
+	 * ? What does the id returned in the promise array represent?  And where is it created ?
 	 */
 	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>>
 

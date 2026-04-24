@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, TutanotaError } from "@tutao/app-env"
+import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, ProgrammingError } from "@tutao/app-env"
 import {
 	AttributeModel,
 	ClientModelUntypedInstance,
@@ -39,7 +39,6 @@ import { UserFacade } from "../UserFacade.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
-import { ProgrammingError } from "@tutao/app-env"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
@@ -52,10 +51,10 @@ import {
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
-import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
-import type { EventAlarmsTuple } from "../../../../calendar/gui/ImportExportUtils.js"
+import type { EventAlarmsInfoTemplateTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { CalendarEvent } from "../../../../../typerefs/entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -77,6 +76,10 @@ export type CalendarEventUidIndexEntry = {
 	alteredInstances: Array<CalendarEventAlteredInstance>
 }
 
+type UserAlarmInfoAndNotifications = {
+	userAlarmInfo: sysTypeRefs.UserAlarmInfo
+	alarmNotification: sysTypeRefs.AlarmNotification
+}
 export class CalendarFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -94,7 +97,7 @@ export class CalendarFacade {
 		public readonly cachingEntityClient: EntityClient,
 	) {}
 
-	async saveImportedCalendarEvents(eventWrappers: Array<EventAlarmsTuple>, operationId: OperationId): Promise<void> {
+	async saveImportedCalendarEvents(eventWrappers: Array<EventAlarmsInfoTemplateTuple>, operationId: OperationId): Promise<void> {
 		// it is safe to assume that all event uids are set at this time
 		return this.saveCalendarEvents(eventWrappers, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
@@ -200,76 +203,74 @@ export class CalendarFacade {
 	 * If alarmNotifications are created for an event that will later fail to be created we ignore them.
 	 * This function does not perform any checks on the event so it should only be called internally when
 	 * we can be sure that those checks have already been performed.
-	 * @param eventsWrapper the events and alarmNotifications to be created.
+	 * @param eventAlarmTuples the events and alarmNotifications to be created.
 	 * @param onProgress
 	 */
-	private async saveCalendarEvents(eventsWrapper: Array<EventAlarmsTuple>, onProgress: (percent: number) => Promise<void>): Promise<void> {
+	private async saveCalendarEvents(eventAlarmTuples: Array<EventAlarmsInfoTemplateTuple>, onProgress: (percent: number) => Promise<void>): Promise<void> {
 		let currentProgress = 10
 		await onProgress(currentProgress)
 
-		for (const { event } of eventsWrapper) {
+		for (const { event } of eventAlarmTuples) {
 			event.hashedUid = hashUid(assertNotNull(event.uid, "tried to save calendar event without uid."))
 		}
-
-		let eventsWithAlarms = await this.setupEventAlarms(eventsWrapper)
-		currentProgress = 33
-		await onProgress(currentProgress)
-
-		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, (eventWrapper) => getListId(eventWrapper.event))
-		let collectedAlarmNotifications: sysTypeRefs.AlarmNotification[] = []
-		//we have different lists for short and long events so this is 1 or 2
-		const size = eventsWithAlarmsByEventListId.size
-		let failed = 0
-		let errors = [] as Array<TutanotaError>
-		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
-			let successfulEvents = eventsWithAlarmsOfOneList
-			await this.cachingEntityClient
-				.setupMultipleEntities(
-					listId,
-					eventsWithAlarmsOfOneList.map((e) => e.event),
-				)
-				.catch(
-					ofClass(SetupMultipleError, (e) => {
-						failed += e.failedInstances.length
-						errors = errors.concat(e.errors)
-						console.log(e.errors)
-						successfulEvents = eventsWithAlarmsOfOneList.filter(({ event }) => !e.failedInstances.includes(event))
-					}),
-				)
-			const allAlarmNotificationsOfListId = successfulEvents.map((event) => event.alarmNotifications).flat()
-			collectedAlarmNotifications = collectedAlarmNotifications.concat(allAlarmNotificationsOfListId)
-			currentProgress += Math.floor(56 / size)
-			await onProgress(currentProgress)
-		}
-
-		const pushIdentifierList = await this.cachingEntityClient.loadAll(
-			sysTypeRefs.PushIdentifierTypeRef,
-			neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
+		// Overall structure of logic
+		// 1. Group Events by listId
+		let eventAlarmsTupleByListId: Map<string, EventAlarmsInfoTemplateTuple[]> = groupBy(
+			eventAlarmTuples,
+			(eventAlarmsTuple: EventAlarmsInfoTemplateTuple) => {
+				return getListId(eventAlarmsTuple.event)
+			},
 		)
 
-		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
-			await this.sendAlarmNotifications(collectedAlarmNotifications, pushIdentifierList)
-		}
+		for (const listId in eventAlarmsTupleByListId) {
+			const eventAlarmsTuples: EventAlarmsInfoTemplateTuple[] = eventAlarmsTupleByListId.get(listId) ?? []
+			const calendarEvents: CalendarEvent[] = eventAlarmsTuples.map((e: EventAlarmsInfoTemplateTuple) => e.event)
 
-		await onProgress(100)
+			// Create the events in a list.
 
-		if (failed !== 0) {
-			if (errors.some(isOfflineError)) {
-				//In this case the user will not be informed about the number of failed events. We considered this is okay because it is not actionable anyways.
-				throw new restError.ConnectionError("Connection lost while saving events")
-			} else {
-				console.log("Could not save events. Number of failed imports: ", failed)
-				throw new ImportError(errors[0], "Could not save events.", failed)
+			let successfulEvents: CalendarEvent[] = []
+			let failedEvents: CalendarEvent[] = []
+
+			try {
+				await this.cachingEntityClient.setupMultipleEntities(listId, calendarEvents)
+				successfulEvents = calendarEvents
+			} catch (e) {
+				if (e instanceof SetupMultipleError) {
+					console.log(e.errors)
+					successfulEvents = calendarEvents.filter((event: CalendarEvent) => !e.failedInstances.includes(event))
+					failedEvents = e.failedInstances as CalendarEvent[]
+				}
 			}
+
+			const userAlarmInfosAndNotificationsPerEvent = this.prepareUserAlarmInfoAndNotifications(
+				this.userFacade.getLoggedInUser(),
+				eventAlarmsTuples.filter((tuple) => successfulEvents.includes(tuple.event)),
+			)
+
+			// create the alarms in the list, and their notifications.
+			// let successfulEventAlarmsTuples = eventAlarmsTuples.filter((tuple) => persistedEventIds.includes(tuple.event))
+			// let alarmNotificationsPerEventArray = await this.setupEventAlarms(successfulEventAlarmsTuples)
+
+			const pushIdentifierList = await this.cachingEntityClient.loadAll(
+				sysTypeRefs.PushIdentifierTypeRef,
+				neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
+			)
+
+			await this.handleUserAlarms(userAlarmInfosAndNotificationsPerEvent, pushIdentifierList)
 		}
+
+		// 		a. Iterate submit event creation request for listId
+		//  	b. If event creation is successful for listId, create Alarms and Notifications for that list.
+
+		// Repeat until done.
 	}
 
-	private async setupEventAlarms(eventsWrapper: Array<EventAlarmsTuple>) {
+	private async setupEventAlarms(eventsWrapper: Array<EventAlarmsInfoTemplateTuple>) {
 		const numEvents = eventsWrapper.length
 		let eventsWithAlarms: Array<AlarmNotificationsPerEvent> = []
 		try {
 			const user = this.userFacade.getLoggedInUser()
-			eventsWithAlarms = await this.saveMultipleAlarms(user, eventsWrapper)
+			eventsWithAlarms = await this.prepareUserAlarmInfoAndNotifications(user, eventsWrapper)
 		} catch (e) {
 			if (e instanceof SetupMultipleError) {
 				console.log("Saving alarms failed.", e)
@@ -299,7 +300,7 @@ export class CalendarFacade {
 			[
 				{
 					event,
-					alarms: alarmInfos,
+					alarmInfoTemplates: alarmInfos,
 				},
 			],
 			() => Promise.resolve(),
@@ -331,7 +332,7 @@ export class CalendarFacade {
 			[
 				{
 					event: newEvent,
-					alarms: alarmInfos,
+					alarmInfoTemplates: alarmInfos,
 				},
 			],
 			() => Promise.resolve(),
@@ -345,6 +346,8 @@ export class CalendarFacade {
 	 * @param newAlarms
 	 * @param existingEvent
 	 */
+
+	// are UserAlarmInfos ever being deleted when Alarms get removed from a calendar?
 	async updateCalendarEvent(
 		event: tutanotaTypeRefs.CalendarEvent,
 		newAlarms: ReadonlyArray<AlarmInfoTemplate>,
@@ -361,10 +364,10 @@ export class CalendarFacade {
 
 		const user = this.userFacade.getLoggedInUser()
 
-		const userAlarmIdsWithAlarmNotificationsPerEvent = await this.saveMultipleAlarms(user, [
+		const userAlarmIdsWithAlarmNotificationsPerEvent = await this.prepareUserAlarmInfoAndNotifications(user, [
 			{
 				event,
-				alarms: newAlarms,
+				alarmInfoTemplates: newAlarms,
 			},
 		])
 		const { alarmInfoIds, alarmNotifications } = userAlarmIdsWithAlarmNotificationsPerEvent[0]
@@ -379,7 +382,7 @@ export class CalendarFacade {
 				sysTypeRefs.PushIdentifierTypeRef,
 				neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
 			)
-			await this.sendAlarmNotifications(alarmNotifications, pushIdentifierList)
+			await this.handleUserAlarms(alarmNotifications, pushIdentifierList)
 		}
 	}
 
@@ -523,28 +526,31 @@ export class CalendarFacade {
 		return null
 	}
 
-	private async sendAlarmNotifications(
-		alarmNotifications: Array<sysTypeRefs.AlarmNotification>,
+	private async handleUserAlarms(
+		userAlarmInfosAndNotificationsPerEvent: Map<tutanotaTypeRefs.CalendarEvent, Array<UserAlarmInfoAndNotifications>>,
 		pushIdentifierList: Array<sysTypeRefs.PushIdentifier>,
 	): Promise<void> {
 		const notificationSessionKey = aes256RandomKey()
-		return this.encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
-			const requestEntity = sysTypeRefs.createAlarmServicePost({
-				alarmNotifications,
-			})
-			try {
-				await this.serviceExecutor.post(sysServices.AlarmService, requestEntity, { sessionKey: notificationSessionKey })
-			} catch (e) {
-				if (e instanceof restError.TooManyRequestsError) {
-					return this.infoMessageHandler.onInfoMessage({
-						translationKey: "calendarAlarmsTooBigError_msg",
-						args: {},
-					})
-				} else {
-					throw e
-				}
-			}
+		let userAlarmInfoAndNotifications = Array.from(userAlarmInfosAndNotificationsPerEvent.values()).flat()
+		const allAlarmNotifications = userAlarmInfoAndNotifications.map((userAlarmInfoAndNotifications) => userAlarmInfoAndNotifications.alarmNotification)
+
+		await this.encryptNotificationKeyForDevices(notificationSessionKey, allAlarmNotifications, pushIdentifierList)
+
+		const requestEntity = sysTypeRefs.createAlarmServicePost({
+			userAlarmInfoAndNotifications,
 		})
+		try {
+			await this.serviceExecutor.post(sysServices.AlarmService, requestEntity, { sessionKey: notificationSessionKey })
+		} catch (e) {
+			if (e instanceof restError.TooManyRequestsError) {
+				return this.infoMessageHandler.onInfoMessage({
+					translationKey: "calendarAlarmsTooBigError_msg",
+					args: {},
+				})
+			} else {
+				throw e
+			}
+		}
 	}
 
 	private async encryptNotificationKeyForDevices(
@@ -577,34 +583,21 @@ export class CalendarFacade {
 		}
 	}
 
-	private async saveMultipleAlarms(
+	private prepareUserAlarmInfoAndNotifications(
 		user: sysTypeRefs.User,
-		eventsWrapper: Array<{
-			event: tutanotaTypeRefs.CalendarEvent
-			alarms: ReadonlyArray<AlarmInfoTemplate>
-		}>,
-	): Promise<Array<AlarmNotificationsPerEvent>> {
-		const userAlarmInfosAndNotificationsPerEvent: Array<{
-			event: tutanotaTypeRefs.CalendarEvent
-			userAlarmInfoAndNotification: Array<{
-				alarm: sysTypeRefs.UserAlarmInfo
-				alarmNotification: sysTypeRefs.AlarmNotification
-			}>
-		}> = []
-		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
+		alarmInfoTemplatesByEvent: Array<EventAlarmsInfoTemplateTuple>,
+	): Map<tutanotaTypeRefs.CalendarEvent, Array<UserAlarmInfoAndNotifications>> {
+		const userAlarmInfosAndNotificationsPerEvent: Map<tutanotaTypeRefs.CalendarEvent, Array<UserAlarmInfoAndNotifications>> = new Map()
+
 		const ownerGroup = user.userGroup.group
 
-		for (const { event, alarms } of eventsWrapper) {
-			const userAlarmInfoAndNotification: Array<{
-				alarm: sysTypeRefs.UserAlarmInfo
-				alarmNotification: sysTypeRefs.AlarmNotification
-			}> = []
+		for (const { event, alarmInfoTemplates } of alarmInfoTemplatesByEvent) {
 			const calendarRef = sysTypeRefs.createCalendarEventRef({
 				listId: listIdPart(event._id),
 				elementId: elementIdPart(event._id),
 			})
 
-			for (const alarmInfo of alarms) {
+			for (const alarmInfo of alarmInfoTemplates) {
 				const userAlarmInfo = sysTypeRefs.createUserAlarmInfo({
 					_ownerGroup: ownerGroup,
 					alarmInfo: sysTypeRefs.createAlarmInfo({
@@ -615,31 +608,14 @@ export class CalendarFacade {
 				})
 
 				const alarmNotification = createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)
-				userAlarmInfoAndNotification.push({
-					alarm: userAlarmInfo,
-					alarmNotification,
-				})
-			}
 
-			userAlarmInfosAndNotificationsPerEvent.push({
-				event,
-				userAlarmInfoAndNotification,
-			})
+				let userAlarmInfosAndNotifications = userAlarmInfosAndNotificationsPerEvent.get(event) ?? []
+				userAlarmInfosAndNotifications.push({ userAlarmInfo, alarmNotification })
+				userAlarmInfosAndNotificationsPerEvent.set(event, userAlarmInfosAndNotifications)
+			}
 		}
 
-		const allAlarms = userAlarmInfosAndNotificationsPerEvent.flatMap(({ userAlarmInfoAndNotification }) =>
-			userAlarmInfoAndNotification.map(({ alarm }) => alarm),
-		)
-
-		const alarmIds: Array<Id> = await this.cachingEntityClient.setupMultipleEntities(userAlarmInfoListId, allAlarms)
-		let currentIndex = 0
-		return userAlarmInfosAndNotificationsPerEvent.map(({ event, userAlarmInfoAndNotification }) => {
-			return {
-				event,
-				alarmInfoIds: userAlarmInfoAndNotification.map(() => [userAlarmInfoListId, alarmIds[currentIndex++]]),
-				alarmNotifications: userAlarmInfoAndNotification.map(({ alarmNotification }) => alarmNotification),
-			}
-		})
+		return userAlarmInfosAndNotificationsPerEvent
 	}
 
 	private getEntityClient(cacheMode: CachingMode): EntityClient {

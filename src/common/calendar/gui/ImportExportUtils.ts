@@ -13,9 +13,9 @@ export enum EventImportRejectionReason {
 	Duplicate,
 }
 
-export type EventAlarmsTuple = {
+export type EventAlarmsInfoTemplateTuple = {
 	event: tutanotaTypeRefs.CalendarEvent
-	alarms: ReadonlyArray<AlarmInfoTemplate>
+	alarmInfoTemplates: ReadonlyArray<AlarmInfoTemplate>
 }
 
 /**
@@ -128,7 +128,7 @@ export function sortOutParsedEvents(
 	zone: string,
 ): {
 	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventAlarmsTuple>
+	eventsForCreation: Array<EventAlarmsInfoTemplateTuple>
 } {
 	const instanceIdentifierToEventMap = new Map()
 
