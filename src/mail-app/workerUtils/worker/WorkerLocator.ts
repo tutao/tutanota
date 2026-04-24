@@ -20,7 +20,6 @@ import {
 	isIOSApp,
 	isOfflineStorageAvailable,
 	isTest,
-	Mode,
 	ProgrammingError,
 } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
@@ -822,6 +821,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			mainInterface.infoMessageHandler,
 			locator.instancePipeline,
 			locator.cachingEntityClient,
+			locator.cryptoWrapper,
 		)
 	})
 

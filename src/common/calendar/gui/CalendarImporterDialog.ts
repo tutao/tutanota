@@ -12,7 +12,7 @@ import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { EventAlarmsTuple, EventImportRejectionReason, ParsedEvent, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventAlarmInfoTemplatesTuple, EventImportRejectionReason, ParsedEvent, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 import { isApp } from "@tutao/app-env"
 
@@ -95,9 +95,9 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	}
 }
 
-async function importEvents(eventsForCreation: Array<EventAlarmsTuple>): Promise<void> {
+async function importEvents(eventsForCreation: Array<EventAlarmInfoTemplatesTuple>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
-	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
+	return showProgressDialog("importCalendar_label", locator.calendarFacade.createCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(
 			ofClass(ImportError, (e) =>
 				Dialog.message(

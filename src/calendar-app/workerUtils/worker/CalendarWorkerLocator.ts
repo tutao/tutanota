@@ -594,6 +594,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			mainInterface.infoMessageHandler,
 			locator.instancePipeline,
 			locator.cachingEntityClient,
+			locator.cryptoWrapper,
 		)
 	})
 
