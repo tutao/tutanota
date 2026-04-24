@@ -45,6 +45,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 	const ext = getFileExtensionForLang(lang)
 	const generator = generatorForLang(lang)
 	const facadesToImplement: Array<string> = []
+	const generatedSymbols = new Array<string>()
 	for (const [inputPath, source] of Array.from(sources.entries())) {
 		console.log("handling ipc schema file", inputPath)
 		const definition = JSON5.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition | EnumDefinition
@@ -54,6 +55,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 		if (!("type" in definition)) {
 			throw new Error(`missing type declaration: ${inputPath}`)
 		}
+
 		switch (definition.type) {
 			case "facade": {
 				assertReturnTypesPresent(definition)
@@ -62,33 +64,42 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 				if (!isReceiving && !isSending) {
 					continue
 				}
+
 				const facadeOutput = generator.generateFacade(definition)
+				generatedSymbols.push(definition.name)
 				write(facadeOutput, outDir, definition.name + ext)
 				if (isReceiving) {
+					const receivingDispatcherSymbol = definition.name + "ReceiveDispatcher"
 					const receiveOutput = generator.generateReceiveDispatcher(definition)
-					write(receiveOutput, outDir, definition.name + "ReceiveDispatcher" + ext)
+					generatedSymbols.push(receivingDispatcherSymbol)
+					write(receiveOutput, outDir, receivingDispatcherSymbol + ext)
 					facadesToImplement.push(definition.name)
 				}
 				if (isSending) {
+					const sendingDispatcherSymbol = definition.name + "SendDispatcher"
 					const sendOutput = generator.generateSendDispatcher(definition)
-					write(sendOutput, outDir, definition.name + "SendDispatcher" + ext)
+					generatedSymbols.push(sendingDispatcherSymbol)
+					write(sendOutput, outDir, sendingDispatcherSymbol + ext)
 				}
 				break
 			}
 			case "struct": {
 				const structOutput = generator.handleStructDefinition(definition)
+				generatedSymbols.push(definition.name)
 				write(structOutput, outDir, definition.name + ext)
 				break
 			}
 			case "typeref": {
 				const refOutput = generator.generateTypeRef(outDir, inputPath, definition)
 				if (refOutput != null) {
+					generatedSymbols.push(definition.name)
 					write(refOutput, outDir, definition.name + ext)
 				}
 				break
 			}
 			case "enum": {
 				const enumOutput = generator.generateEnum(definition)
+				generatedSymbols.push(definition.name)
 				write(enumOutput, outDir, definition.name + ext)
 				break
 			}
@@ -97,14 +108,15 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 		}
 	}
 
-	const extraFiles = generator.generateExtraFiles()
+	const dispatcherName = `${capitalize(platform)}GlobalDispatcher`
+	const dispatcherCode = generator.generateGlobalDispatcher(dispatcherName, facadesToImplement)
+	generatedSymbols.push(dispatcherName)
+	write(dispatcherCode, outDir, dispatcherName + ext)
+
+	const extraFiles = generator.generateExtraFiles(platform, generatedSymbols)
 	for (let extraFilesKey in extraFiles) {
 		write(extraFiles[extraFilesKey], outDir, extraFilesKey + ext)
 	}
-
-	const dispatcherName = `${capitalize(platform)}GlobalDispatcher`
-	const dispatcherCode = generator.generateGlobalDispatcher(dispatcherName, facadesToImplement)
-	write(dispatcherCode, outDir, dispatcherName + ext)
 }
 
 function getFileExtensionForLang(lang: string): string {
