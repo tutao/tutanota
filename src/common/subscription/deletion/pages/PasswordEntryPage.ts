@@ -27,7 +27,7 @@ export class PasswordEntryPage implements Component<PasswordEntryPageProps> {
 	})
 	view({ attrs: { data } }: Vnode<PasswordEntryPageProps>): Children {
 		return m(
-			".flex.flex-column.pt-16.pb-24.plr-24",
+			".pt-16",
 			m("", [
 				m("", { style: { minHeight: "185px" } }, showTitleSection(data.primaryMailAddress, this.state, "password")),
 				m(PasswordFieldNew, {

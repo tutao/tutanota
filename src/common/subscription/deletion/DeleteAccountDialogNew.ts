@@ -32,8 +32,6 @@ export interface AccountDeletionPageState {
 	userPassword: string
 }
 
-function showContinueButton() {}
-
 export async function showAccountDeletionDialog(logins: LoginController) {
 	const data: AccountDeletionPageState = {
 		loginController: logins,
@@ -126,6 +124,7 @@ export async function showAccountDeletionDialog(logins: LoginController) {
 		}
 	}
 	function renderRightContinueButton(onclick: () => void, isDisabled: boolean = false): ButtonAttrs {
+		console.log("Called with: ", isDisabled)
 		return {
 			type: ButtonType.Secondary,
 			click: onclick,

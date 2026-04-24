@@ -2151,6 +2151,14 @@ export const typeModels = {
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2723": {
+				"final": true,
+				"name": "adAttributionCampaignId",
+				"id": 2723,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {

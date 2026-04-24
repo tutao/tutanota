@@ -13,7 +13,8 @@ type MailTakeoverPageProps = {
 
 export class MailTakeoverPage implements Component<MailTakeoverPageProps> {
 	private state: TitleState = "initial"
-	private debouncedOnInput = debounce(1000, async (mailAddress: string, data: AccountDeletionPageState) => {
+	private takeOverMail: string = ""
+	private debouncedOnInput = debounce(500, async (mailAddress: string, data: AccountDeletionPageState) => {
 		if (isMailAddress(mailAddress, false)) {
 			this.state = "sync"
 			//FIXME: Only checks if available, not if paid and existing...
@@ -26,22 +27,24 @@ export class MailTakeoverPage implements Component<MailTakeoverPageProps> {
 				this.state = "error"
 			}
 		}
-		m.redraw()
+		setTimeout(() => m.redraw(), 0)
 	})
 	view({ attrs: { data } }: Vnode<MailTakeoverPageProps>): Children {
 		return m(
-			".pt-16.pb-16",
+			".pt-16",
 			m("", [
 				m("", { style: { minHeight: "185px" } }, showTitleSection(data.primaryMailAddress, this.state, "mail")),
 				m(LoginTextField, {
 					label: "targetAddress_label",
-					value: data.takeOverMailAddress,
+					value: this.takeOverMail,
 					type: TextFieldType.Email,
 					oninput: (value) => {
 						this.state = "initial"
-						data.takeOverMailAddress = value
+						this.takeOverMail = value
 						data.canContinueTakeoverMail = false
-						this.debouncedOnInput(value, data)
+						if (value !== "") {
+							this.debouncedOnInput(value, data)
+						}
 					},
 				}),
 			]),

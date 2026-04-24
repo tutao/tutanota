@@ -441,6 +441,7 @@ export type CustomerInfo = {
 	plan: NumberString;
 	promotionId: null | string;
 	confirmedHuman: boolean;
+	adAttributionCampaignId: null | string;
 
 	customer: Id;
 	accountingInfo: Id;

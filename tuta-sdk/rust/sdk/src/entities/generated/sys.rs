@@ -728,6 +728,8 @@ pub struct CustomerInfo {
 	pub promotionId: Option<String>,
 	#[serde(rename = "2691")]
 	pub confirmedHuman: bool,
+	#[serde(rename = "2723")]
+	pub adAttributionCampaignId: Option<String>,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
