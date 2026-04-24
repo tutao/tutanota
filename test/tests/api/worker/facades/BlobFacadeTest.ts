@@ -1,13 +1,18 @@
 import o, { assertThrows } from "@tutao/otest"
-import { BLOB_SERVICE_REST_PATH, BlobFacade, parseMultipleBlobsResponse } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
+import {
+	BLOB_SERVICE_REST_PATH,
+	BlobFacade,
+	parseMultipleBlobsResponse,
+	pipelineEncryptAndUpload,
+} from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { HttpMethod, MAX_BLOB_SIZE_BYTES, RestClient, RestClientOptions, restSuspension } from "@tutao/rest-client"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, Mode, ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageTypeRefs, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { instance, matchers, object, verify, when } from "testdouble"
+import { func, instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, DeferredObject, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
@@ -977,6 +982,73 @@ o.spec("BlobFacade", function () {
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
 			o(result).deepEquals(new Map<Id, Uint8Array>())
+		})
+	})
+
+	o.spec("pipelineEncryptAndUpload", function () {
+		o.test("processes an even number of chunks completely", async function () {
+			const items = [1, 2, 3, 4]
+			const fetchNextChunk = () => items.shift()
+			const encryptChunk = async (chunk): Promise<`encrypted-${number}`> => {
+				return `encrypted-${chunk}`
+			}
+			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<sysTypeRefs.BlobReferenceTokenWrapper> => {
+				return createTestEntity(sysTypeRefs.BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
+			}
+
+			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)
+			const chunks: `encrypted-${number}`[] = []
+			const refTokens: string[] = []
+			for await (const [chunk, referenceToken] of generator) {
+				chunks.push(chunk)
+				refTokens.push(referenceToken.blobReferenceToken)
+			}
+
+			o.check(chunks).deepEquals(["encrypted-1", "encrypted-2", "encrypted-3", "encrypted-4"])
+			o.check(refTokens).deepEquals(["token for encrypted-1", "token for encrypted-2", "token for encrypted-3", "token for encrypted-4"])
+		})
+		o.test("processes an odd number of chunks completely", async function () {
+			const items = [1, 2, 3]
+			const fetchNextChunk = () => items.shift()
+			const encryptChunk = async (chunk): Promise<`encrypted-${number}`> => {
+				return `encrypted-${chunk}`
+			}
+			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<sysTypeRefs.BlobReferenceTokenWrapper> => {
+				return createTestEntity(sysTypeRefs.BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
+			}
+
+			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)
+			const chunks: `encrypted-${number}`[] = []
+			const refTokens: string[] = []
+			for await (const [chunk, referenceToken] of generator) {
+				chunks.push(chunk)
+				refTokens.push(referenceToken.blobReferenceToken)
+			}
+
+			o.check(chunks).deepEquals(["encrypted-1", "encrypted-2", "encrypted-3"])
+			o.check(refTokens).deepEquals(["token for encrypted-1", "token for encrypted-2", "token for encrypted-3"])
+		})
+		o.test("encrypts next chunk before the previous one has finished uploading", async function () {
+			const item1 = defer<number>()
+			const item2 = defer<number>()
+			const item3 = defer<number>()
+			const items = [item1, item2, item3]
+			const fetchNextChunk = () => items.shift()
+			const encryptChunk = func() as (_: DeferredObject<number>) => Promise<any>
+			when(encryptChunk(matchers.anything())).thenDo((item) => item)
+			const uploadChunk = (item) => item.promise
+
+			// resolve the first upload. The first step is kind of weird and will get stuck otherwise
+			item1.resolve(1)
+			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadChunk, new AbortController().signal)
+			// the first step will encrypt the first chunk and then encrypt the second chunk and uploading the first chunk
+			await generator.next()
+			// the second step will encrypt the third chunk and upload the second one, except we manually postpone the upload for the second one
+			generator.next()
+			// even though we never finished the upload for item2, item 3 is already being encrypted
+			verify(encryptChunk(item3))
+
+			item2.resolve(2)
 		})
 	})
 })
