@@ -118,6 +118,7 @@ private extension StructuredMessengerHandle {
 			case .whatsapp: StructuredMessengerHandleTypeName.whatsapp.rawValue
 			case .telegram: StructuredMessengerHandleTypeName.telegram.rawValue
 			case .discord: StructuredMessengerHandleTypeName.discord.rawValue
+			case .matrix: StructuredMessengerHandleTypeName.matrix.rawValue
 			case .custom: self.customTypeName
 			case .other: CNLabelOther
 			}

@@ -29,6 +29,7 @@ public enum ContactMessengerHandleType: String, Codable {
 	case discord = "3"
 	case other = "4"
 	case custom = "5"
+	case matrix = "6"
 }
 
 public enum ContactRelationshipType: String, Codable {

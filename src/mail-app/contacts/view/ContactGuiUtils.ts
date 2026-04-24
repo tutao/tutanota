@@ -7,7 +7,7 @@ import {
 	ContactSocialType,
 	ContactWebsiteType,
 } from "../../../common/api/common/TutanotaConstants"
-import type { MaybeTranslation, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"

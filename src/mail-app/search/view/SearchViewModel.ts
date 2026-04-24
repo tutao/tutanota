@@ -29,6 +29,7 @@ import {
 	deepEqual,
 	defer,
 	downcast,
+	first,
 	getEndOfDay,
 	getStartOfDay,
 	incrementMonth,
@@ -840,24 +841,29 @@ export class SearchViewModel {
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
+		let unsetConversationViewModel = this._conversationViewModel != null
+
 		if (isSameTypeRef(this.searchedType, MailTypeRef) && !newState.inMultiselect && newState.selectedItems.size === 1) {
-			const mail = this.getSelectedMails()[0]
+			const mail = first(this.getSelectedMails())
 
 			// Sometimes a stale state is passed through, resulting in no mail
-			if (mail) {
+			if (mail != null) {
 				// displayed conversation has changed
 				if (
 					!this._conversationViewModel ||
 					!isSameId(listIdPart(this._conversationViewModel.primaryMail._id), listIdPart(mail._id)) ||
 					!isSameId(elementIdPart(this._conversationViewModel.primaryMail._id), elementIdPart(mail._id))
 				) {
+					unsetConversationViewModel = false
 					this.updateDisplayedConversation(mail)
+					this.updateSearchUrl()
 				}
-			} else {
-				this._conversationViewModel = null
 			}
-		} else {
+		}
+
+		if (unsetConversationViewModel) {
 			this._conversationViewModel = null
+			this.updateSearchUrl()
 		}
 
 		this.updateUi()
