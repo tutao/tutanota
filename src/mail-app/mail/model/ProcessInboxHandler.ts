@@ -1,5 +1,5 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
-import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
+import { InboxRuleHandler } from "./InboxRuleHandler"
 import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
@@ -91,25 +91,23 @@ export class ProcessInboxHandler {
 		let moveToFolder: MailSet = sourceFolder
 
 		// We process rules which are excluded from spam list first and if none apply then we run spam prediction.
-		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
-		if (result) {
-			const { targetFolder, processInboxDatum } = result
-			finalProcessInboxDatum = processInboxDatum
-			moveToFolder = targetFolder
-		} else {
+		const matchingInboxRule = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder)
+		if (!matchingInboxRule || (matchingInboxRule && !matchingInboxRule.excludeFromSpamFilter)) {
 			const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
-			moveToFolder = targetFolder
-			finalProcessInboxDatum = processInboxDatum
 
-			// apply regular inbox rules only if the mail is classified as ham by the spam classifier
-			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, moveToFolder)
-				if (result) {
-					const { targetFolder, processInboxDatum } = result
-					finalProcessInboxDatum = processInboxDatum
-					moveToFolder = targetFolder
-				}
+			if (targetFolder.folderType === MailSetKind.INBOX && matchingInboxRule) {
+				// The mail has been classified as HAM and inbox rule (if there is one) should be applied
+				moveToFolder = matchingInboxRule.targetFolder
+				finalProcessInboxDatum = matchingInboxRule.processInboxDatum
+			} else {
+				moveToFolder = targetFolder
+				finalProcessInboxDatum = processInboxDatum
 			}
+		} else {
+			// In this case there is a matching inbox rule and it is excluded from the spam, so we take the inbox rule
+			const { targetFolder, processInboxDatum } = matchingInboxRule
+			finalProcessInboxDatum = processInboxDatum
+			moveToFolder = targetFolder
 		}
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
@@ -154,7 +152,7 @@ export class ProcessInboxHandler {
 		let moveToFolder: MailSet = sourceFolder
 
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, sourceFolder, InboxRulesApplicationType.All, true)
+		const result = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, true)
 		if (result) {
 			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
