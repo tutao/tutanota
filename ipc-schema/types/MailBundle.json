@@ -2,6 +2,6 @@
 	"name": "MailBundle",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/common/mailFunctionality/SharedMailUtils.js"
+		"typescript": "@tutao/typerefs"
 	}
 }
