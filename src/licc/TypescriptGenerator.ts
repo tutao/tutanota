@@ -1,5 +1,5 @@
 import { Accumulator } from "./Accumulator.js"
-import { EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition } from "./common.js"
+import { EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, Platform, RenderedType, StructDefinition, TypeRefDefinition } from "./common.js"
 import { ParsedType, parseType } from "./Parser.js"
 import path from "node:path"
 
@@ -151,8 +151,14 @@ export class TypescriptGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	generateExtraFiles(): Record<string, string> {
-		return {}
+	generateExtraFiles(platform: Platform, generatedSymbols: Array<string>): Record<string, string> {
+		const reexportAcc = new Accumulator()
+		for (const genSym of generatedSymbols) {
+			reexportAcc.line(`export * from "./${genSym}.js"`)
+		}
+		return {
+			["index-" + platform]: reexportAcc.finish(),
+		}
 	}
 
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
@@ -161,9 +167,9 @@ export class TypescriptGenerator implements LangGenerator {
 		if (typeof tsPath === "string") {
 			const isRelative = tsPath.startsWith(".")
 			const actualPath = isRelative ? path.relative(path.resolve(outDir), path.resolve(definitionPath, tsPath)) : tsPath
-			acc.line(`export {${definition.name}} from "${actualPath}"`)
+			acc.line(`export type {${definition.name}} from "${actualPath}"`)
 		} else if (tsPath instanceof Object) {
-			acc.line(`import {${tsPath.namespace}} from "${tsPath.package}"`)
+			acc.line(`import type {${tsPath.namespace}} from "${tsPath.package}"`)
 			acc.line(`export type ${definition.name} = ${tsPath.namespace}.${definition.name}`)
 		}
 
