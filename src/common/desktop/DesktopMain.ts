@@ -241,12 +241,6 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
-	electron.app.on("session-created", async (session) => {
-		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
-		const dictUrl = updateUrl ? updateUrl + "/dictionaries/" : "https://app.tuta.com/desktop/dictionaries/"
-		manageDownloadsForSession(session, dictUrl)
-	})
-
 	const desktopExportLock = new DesktopExportLock()
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
@@ -259,6 +253,18 @@ async function createComponents(): Promise<Components> {
 		return pushFacade.resetStoredState()
 	})
 	const webDialogController = new WebDialogController()
+
+	electron.app.on("session-created", async (session) => {
+		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
+		// FIXME bring back
+		//const dictUrl = updateUrl ? updateUrl + "/dictionaries/" : "https://app.tuta.com/desktop/dictionaries/"
+		const dictUrl = "https://app.tuta.com/desktop/dictionaries/"
+		manageDownloadsForSession(session, dictUrl, conf)
+		if (process.platform !== "darwin") {
+			const spellchecklang = await conf.getVar(DesktopConfigKey.spellcheck)
+			wm._setSpellcheckLang(spellchecklang === "fr" ? "en" : "fr")
+		}
+	})
 
 	// Insert or remove the icon when the 'run in background' setting is changed
 	conf.on(DesktopConfigKey.runAsTrayApp, async (value: boolean) => {
@@ -451,12 +457,19 @@ async function main(components: Components) {
 	await desktopUtils.handleMailto(components.wm)
 }
 
-function manageDownloadsForSession(session: Session, dictUrl: string) {
+function manageDownloadsForSession(session: Session, dictUrl: string, conf: DesktopConfig) {
 	log.debug(TAG, "getting dictionaries from:", dictUrl)
 	session.setSpellCheckerDictionaryDownloadURL(dictUrl)
 	session
 		.removeAllListeners("spellcheck-dictionary-download-failure")
-		.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+		.on("spellcheck-dictionary-initialized", (ev, lcode) => {
+			conf.getVar(DesktopConfigKey.spellcheck).then((l) => {
+				if (lcode !== l) {
+					session.setSpellCheckerLanguages([l])
+				}
+			})
+			log.debug(TAG, "spellcheck-dictionary-initialized", lcode)
+		})
 		.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
 		.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
 		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
