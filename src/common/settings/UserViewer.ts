@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, BookingItemFeatureType, GroupType, OperationType } from "@tutao/app-env"
+import { assertMainOrNode, BookingItemFeatureType, GroupType, OperationType, UnsubscribeFailureReason } from "@tutao/app-env"
 import { Dialog } from "../gui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter.js"
 import { lang } from "../misc/LanguageViewModel.js"
@@ -396,9 +396,15 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			reactivate: true,
 		})
 		if (confirmed) {
-			await locator.userManagementFacade
-				.deleteUser(await this.user.getAsync(), true)
-				.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("emailAddressInUse_msg")))
+			await locator.userManagementFacade.deleteUser(await this.user.getAsync(), true).catch(
+				ofClass(restError.PreconditionFailedError, (e) => {
+					if (e.data === UnsubscribeFailureReason.NOT_ENOUGH_CREDIT) {
+						Dialog.message("insufficientBalanceError_msg")
+					} else {
+						Dialog.message("emailAddressInUse_msg")
+					}
+				}),
+			)
 		}
 	}
 
