@@ -267,8 +267,8 @@ export async function zipDataFiles(dataFiles: Array<DataFile>, name: string): Pr
 	const zip = jsZip.default()
 	const deduplicatedMap = deduplicateFilenames(dataFiles.map((df) => sanitizeFilename(df.name)))
 	for (let file of dataFiles) {
-		const filename = assertNotNull(deduplicatedMap[file.name].shift())
-		zip.file(sanitizeFilename(filename), file.data, { binary: true })
+		const filename = assertNotNull(deduplicatedMap[sanitizeFilename(file.name)].shift())
+		zip.file(filename, file.data, { binary: true })
 	}
 	const zipData = await zip.generateAsync({ type: "uint8array" })
 	return createDataFile(name, "application/zip", zipData)
