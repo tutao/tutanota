@@ -114,19 +114,36 @@ export async function buildDesktop({
 		linux: platform === "linux" ? [] : undefined,
 		publish: "always",
 		project: distDir,
+		config: {
+			// probably has no effect but just in case
+			nativeRebuilder: null,
+			// the following combo is important!
+			// we do not actually want npm rebuild, we take care of building and copying dependencies manually. What we want is to tell electron-builder that
+			// `_nodeModulesHandledExternally` (in packager) so that it doesn't try to copy node_modules which is not necessary (we bundle manually) and is
+			// likely to fail for universal app build on macOS.
+			// To do that we need `beforeBuild` to resolve to `false`, but it is *only* invoked when `npmRebuild` is `true` (which is default but is explicit
+			// here.
+			npmRebuild: true,
+			beforeBuild: () => false,
+		},
 	})
 	console.log("Move output to ", outDir)
 	await Promise.all(
 		fs
 			.readdirSync(path.join(distDir, "/installers"))
-			.filter((file) => file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked"))
+			.filter((file) => {
+				const matches = file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked")
+				if (!matches) {
+					console.log("\tSkipping", file)
+				}
+				return matches
+			})
 			.map((file) => fs.promises.rename(path.join(distDir, "/installers/", file), path.join(outDir, file))),
 	)
 	await Promise.all([
 		fs.promises.rm(path.join(distDir, "/installers/"), { recursive: true, force: true }),
 		fs.promises.rm(path.join(distDir, "/node_modules/"), { recursive: true, force: true }),
-		fs.promises.unlink(path.join(distDir, "/package.json")),
-		fs.promises.unlink(path.join(distDir, "/package-lock.json")),
+		fs.promises.rm(path.join(distDir, "/package.json")),
 	])
 }
 
