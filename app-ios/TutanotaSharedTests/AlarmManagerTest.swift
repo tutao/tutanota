@@ -252,7 +252,7 @@ final class AlarmSchedulerStub: AlarmScheduler, @unchecked Sendable {
 	func unscheduleAll(occurrenceIds: [String]) { self.unscheduled += occurrenceIds }
 }
 
-class DateProviderStub: DateProvider, @unchecked Sendable {
+final class DateProviderStub: DateProvider, @unchecked Sendable {
 	// Mon Mar 06 2023 16:52:24 GMT+0100 (Central European Standard Time)
 	var now: Date = Date(timeIntervalSince1970: 1678117944)
 

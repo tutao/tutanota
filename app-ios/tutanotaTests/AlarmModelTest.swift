@@ -295,3 +295,10 @@ struct AlarmModelTest {
 		#expect(occurrences == expected)
 	}
 }
+
+final class DateProviderStub: DateProvider, @unchecked Sendable {
+	// Mon Mar 06 2023 16:52:24 GMT+0100 (Central European Standard Time)
+	var now: Date = Date(timeIntervalSince1970: 1678117944)
+
+	var timeZone: TimeZone = TimeZone(identifier: "Europe/Berlin")!
+}
