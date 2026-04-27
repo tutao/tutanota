@@ -27,7 +27,7 @@ export class MailTakeoverPage implements Component<MailTakeoverPageProps> {
 				this.state = "error"
 			}
 		}
-		setTimeout(() => m.redraw(), 0)
+		m.redraw()
 	})
 	view({ attrs: { data } }: Vnode<MailTakeoverPageProps>): Children {
 		return m(

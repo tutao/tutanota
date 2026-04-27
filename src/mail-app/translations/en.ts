@@ -2270,7 +2270,7 @@ export default {
 		"beginTyping_msg": "Type in your question...",
 		"whichMailShouldTakeover_msg": "Which tuta account should take over\n{mailAddress}?",
 		"reuseMailAddressQuestion_msg": "Do you want to reuse your tuta mail address with a different tuta account?",
-		"enterPasswordForAccountDeletion_msg": "Please put in your password to confirm the deletion of your account\n{mailAddress}",
+		"enterPasswordForAccountDeletion_msg": "Please put in your password to confirm the deletion of your account<b>{mailAddress}</b>",
 		"checkingPasswordCorrectness_msg": "Checking if password is correct",
 		"checkingMailCorrectness_msg": "Checking if the account is available",
 		"passwordCheckingOk_msg": "Everything looks fine",

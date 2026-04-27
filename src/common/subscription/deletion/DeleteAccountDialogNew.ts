@@ -124,7 +124,6 @@ export async function showAccountDeletionDialog(logins: LoginController) {
 		}
 	}
 	function renderRightContinueButton(onclick: () => void, isDisabled: boolean = false): ButtonAttrs {
-		console.log("Called with: ", isDisabled)
 		return {
 			type: ButtonType.Secondary,
 			click: onclick,
@@ -160,7 +159,7 @@ export function showTitleSection(primaryMailAddress: string, state: TitleState, 
 			})
 		case "initial":
 			return m(TitleSection, {
-				icon: Icons.ExclamationFilled,
+				icon: type === "mail" ? Icons.QuestionmarkFilled : Icons.ExclamationFilled,
 				title: "",
 				subTitle: m(".normal-font-size", lang.getTranslation(translations[type].enterForDeletion, { "{mailAddress}": primaryMailAddress }).text),
 			})
