@@ -10,15 +10,22 @@ public protocol AesDecryptable { static func aesDecrypt(base64: Base64, key: Key
 
 public protocol SimpleStringDecodable: AesDecryptable { init?(string: String) }
 
-private let SIMPLE_STRING_CONVERSION_ERROR = "de.tutao.tutashared.SimpleStringConversionError"
-
+private let SIMPLE_STRING_CONVERSION_ERROR_NAME = "de.tutao.tutashared.SimpleStringConversionError"
+private let SIMPLE_STRING_CONVERSION_ERROR_MESSAGE = "Cannot convert simple string value to concrete type"
 /**
  Simple error for handling for when we can't convert a decrypted SimpleStringDecodable into its intended concrete type.
  */
-public class SimpleStringConversionError: GenericTutanotaError {
-	public init() { super.init(message: "Cannot convert simple string value to concrete type", underlyingError: nil) }
+public struct SimpleStringConversionError: TutanotaError {
+	public let message: String
+	public let underlyingError: (any Error)?
+	public static let name: String = SIMPLE_STRING_CONVERSION_ERROR_NAME
 
-	public override var name: String { get { SIMPLE_STRING_CONVERSION_ERROR } }
+	private init(message: String, underlyingError: (any Error)?) {
+		self.message = message
+		self.underlyingError = underlyingError
+	}
+	public init() { self.init(message: SIMPLE_STRING_CONVERSION_ERROR_MESSAGE, underlyingError: nil) }
+
 }
 
 extension SimpleStringDecodable {
