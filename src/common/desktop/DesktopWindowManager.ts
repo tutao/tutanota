@@ -72,7 +72,6 @@ export class WindowManager {
 		this._conf = conf
 
 		if (process.platform !== "darwin") {
-			conf.getVar(DesktopConfigKey.spellcheck).then((l) => this._setSpellcheckLang(l))
 			conf.on(DesktopConfigKey.spellcheck, (l) => this._setSpellcheckLang(l))
 		}
 
