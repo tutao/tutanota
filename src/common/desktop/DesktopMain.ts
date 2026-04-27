@@ -247,12 +247,6 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
-	electron.app.on("session-created", async (session) => {
-		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
-		const dictUrl = updateUrl ? updateUrl + "/dictionaries/" : "https://app.tuta.com/desktop/dictionaries/"
-		manageDownloadsForSession(session, dictUrl)
-	})
-
 	const desktopExportLock = new DesktopExportLock()
 
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
@@ -265,6 +259,18 @@ async function createComponents(): Promise<Components> {
 		return pushFacade.resetStoredState()
 	})
 	const webDialogController = new WebDialogController()
+
+	electron.app.on("session-created", async (session) => {
+		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
+		const dictUrl = updateUrl ? updateUrl + "/dictionaries/" : "https://app.tuta.com/desktop/dictionaries/"
+		manageDownloadsForSession(session, dictUrl, conf)
+		if (process.platform !== "darwin") {
+			// This is part of a workaround due to an electron issue with spellcheck
+			// Changing the spellcheck language later causes the spellcheck to work
+			const spellchecklang = await conf.getVar(DesktopConfigKey.spellcheck)
+			wm._setSpellcheckLang(spellchecklang === "fr" ? "en" : "fr")
+		}
+	})
 
 	// Insert or remove the icon when the 'run in background' setting is changed
 	conf.on(DesktopConfigKey.runAsTrayApp, async (value: boolean) => {
@@ -460,12 +466,21 @@ async function main(components: Components) {
 	await desktopUtils.handleMailto(components.wm)
 }
 
-function manageDownloadsForSession(session: Session, dictUrl: string) {
+function manageDownloadsForSession(session: Session, dictUrl: string, conf: DesktopConfig) {
 	log.debug(TAG, "getting dictionaries from:", dictUrl)
 	session.setSpellCheckerDictionaryDownloadURL(dictUrl)
 	session
 		.removeAllListeners("spellcheck-dictionary-download-failure")
-		.on("spellcheck-dictionary-initialized", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+		.on("spellcheck-dictionary-initialized", (_ev, lcode) => {
+			// This is part of a workaround due to an electron issue with spellcheck
+			// The spellcheck language is set to a different language at startup, and then here it is switched to the correct language
+			conf.getVar(DesktopConfigKey.spellcheck).then((l) => {
+				if (lcode !== l) {
+					session.setSpellCheckerLanguages([l])
+				}
+			})
+			log.debug(TAG, "spellcheck-dictionary-initialized", lcode)
+		})
 		.on("spellcheck-dictionary-download-begin", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
 		.on("spellcheck-dictionary-download-success", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
 		.on("spellcheck-dictionary-download-failure", (_ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
