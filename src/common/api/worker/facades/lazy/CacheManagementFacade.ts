@@ -1,8 +1,9 @@
-import { isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../../common/EntityClient.js"
+import { isSameId, SomeEntity, sysTypeRefs, TypeRef } from "@tutao/typerefs"
+import { EntityClient } from "../../../../../network/EntityClient.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { UserFacade } from "../UserFacade.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
+import { CacheManagementInterface } from "../../../../../network/crypto/entityCache/CacheManagementInterface"
 
 assertWorkerOrNode()
 
@@ -10,7 +11,7 @@ assertWorkerOrNode()
  * This facade is responsible for handling cases where we need to manually update an entity in the rest cache.
  * It is also suitable to manually ensure consistency between the rest cache and the key cache.
  */
-export class CacheManagementFacade {
+export class CacheManagementFacade implements CacheManagementInterface {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly cachingEntityClient: EntityClient,
@@ -71,5 +72,12 @@ export class CacheManagementFacade {
 			// in such case we should have set the correct user group key already during the regular login
 			console.log("Could not update user group key", e)
 		}
+	}
+
+	/**
+	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
+	 */
+	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+		return this.entityRestCache.deleteFromCacheIfExists(typeRef, listId, elementId)
 	}
 }

@@ -1,0 +1,445 @@
+import o, { assertThrows } from "@tutao/otest"
+import { AsymmetricCryptoFacade } from "../../../../src/network/crypto/facades/AsymmetricCryptoFacade.js"
+import { RsaImplementation } from "../../../../src/native-bridge/worker/RsaImplementation.js"
+import { PQFacade } from "../../../../src/network/crypto/facades/PQFacade.js"
+import { matchers, object, verify, when } from "testdouble"
+import {
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	EncryptionKeyVerificationState,
+	PresentableKeyVerificationState,
+	ProgrammingError,
+	PublicKeyIdentifierType,
+} from "@tutao/app-env"
+import { CryptoError } from "@tutao/crypto/error"
+import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
+import {
+	aes256RandomKey,
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	KeyPairType,
+	keyToUint8Array,
+	KyberPublicKey,
+	PQKeyPairs,
+	PQPublicKeys,
+	RsaKeyPair,
+	RsaPublicKey,
+	RsaX25519PublicKey,
+	uint8ArrayToBitArray,
+	X25519KeyPair,
+} from "@tutao/crypto"
+import { KeyLoaderFacade } from "../../../../src/network/crypto/facades/KeyLoaderFacade.js"
+import { IServiceExecutor } from "../../../../src/network/ServiceRequest.js"
+import { KeyVersion, Versioned } from "@tutao/utils"
+import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import { createTestEntity } from "../../TestUtils.js"
+import { VerifiedPublicEncryptionKey } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
+import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
+import { AdminKeyLoaderFacade } from "../../../../src/network/crypto/facades/AdminKeyLoaderFacade"
+
+o.spec("AsymmetricCryptoFacadeTest", function () {
+	let rsa: RsaImplementation
+	let pqFacade: PQFacade
+	let keyLoaderFacade: KeyLoaderFacade
+	let cryptoWrapper: CryptoWrapper
+	let serviceExecutor: IServiceExecutor
+	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	let adminKeyLoaderFacade: AdminKeyLoaderFacade
+
+	let asymmetricCryptoFacade: AsymmetricCryptoFacade
+
+	o.beforeEach(function () {
+		rsa = object()
+		pqFacade = object()
+		keyLoaderFacade = object()
+		cryptoWrapper = object()
+		serviceExecutor = object()
+		publicEncryptionKeyProvider = object()
+		adminKeyLoaderFacade = object()
+		asymmetricCryptoFacade = new AsymmetricCryptoFacade(
+			rsa,
+			pqFacade,
+			keyLoaderFacade,
+			cryptoWrapper,
+			serviceExecutor,
+			publicEncryptionKeyProvider,
+			() => adminKeyLoaderFacade,
+		)
+	})
+
+	o.spec("authenticateSender", function () {
+		let identifier: string
+		let identifierType: PublicKeyIdentifierType
+		let senderIdentityPubKey: Uint8Array
+		let senderKeyVersion: KeyVersion
+		let pubKeyIdentifier: PublicKeyIdentifier
+
+		o.beforeEach(() => {
+			identifier = object<string>()
+			identifierType = object<PublicKeyIdentifierType>()
+			senderIdentityPubKey = new Uint8Array([1, 2, 3])
+			senderKeyVersion = 0
+			pubKeyIdentifier = {
+				identifier,
+				identifierType,
+			}
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
+				version: 0,
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_X25519,
+					publicEccKey: senderIdentityPubKey,
+				},
+			}
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
+
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.NONE,
+			})
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
+			const versionedRsaPublicKey: Versioned<RsaPublicKey> = {
+				version: 0,
+				object: {
+					keyPairType: KeyPairType.RSA,
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+				},
+			}
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
+
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			})
+		})
+
+		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
+				version: 0,
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_X25519,
+					publicEccKey: new Uint8Array([4, 5, 6]),
+				},
+			}
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
+
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			})
+		})
+	})
+
+	o.spec("decryptSymKeyWithKeyPairAndAuthenticate", function () {
+		o("should throw CryptoError if authentication fails", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const symKey = new Uint8Array([1, 2, 3, 4])
+			const keyPair = object<PQKeyPairs>()
+			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+
+			const senderKeyVersion = "1"
+			const senderIdentifier = object<string>()
+			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
+			const recipientIdentifier = object<string>()
+			const recipientIdentifierType = PublicKeyIdentifierType.MAIL_ADDRESS
+			const pubEncKeyData: sysTypeRefs.PubEncKeyData = createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+				pubEncSymKey,
+				protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+				senderKeyVersion,
+				recipientIdentifier,
+				recipientIdentifierType,
+			})
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
+				version: 0,
+				object: {
+					keyLength: 0,
+					modulus: "",
+					publicExponent: 0,
+					version: 0,
+					keyPairType: KeyPairType.RSA_AND_X25519,
+					publicEccKey: new Uint8Array([4, 5, 6]),
+				},
+			}
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
+				decryptedSymKeyBytes: symKey,
+				senderIdentityPubKey: object(),
+			})
+			when(
+				publicEncryptionKeyProvider.loadPublicEncryptionKey(
+					{
+						identifierType: senderIdentifierType,
+						identifier: senderIdentifier,
+					},
+					cryptoUtils.parseKeyVersion(senderKeyVersion),
+				),
+			).thenResolve(loadedPublicKey)
+
+			await assertThrows(CryptoError, () =>
+				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData, {
+					identifier: senderIdentifier,
+					identifierType: senderIdentifierType,
+				}),
+			)
+		})
+
+		o("should not try authentication when protocol is not TutaCrypt", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const pubEncKeyData: sysTypeRefs.PubEncKeyData = createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+				pubEncSymKey,
+				protocolVersion: CryptoProtocolVersion.RSA,
+				senderKeyVersion: null,
+			})
+
+			const senderIdentifier = object<string>()
+			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
+
+			const symKey = keyToUint8Array(aes256RandomKey())
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(symKey)
+
+			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData, {
+				identifier: senderIdentifier,
+				identifierType: senderIdentifierType,
+			})
+
+			verify(publicEncryptionKeyProvider, { times: 0 })
+			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })
+		})
+	})
+
+	o.spec("decryptSymKeyWithKeyPair", function () {
+		o("should raise a CryptoError when the protocol version is unknown", async function () {
+			await assertThrows(CryptoError, async function () {
+				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(object(), "unknown" as CryptoProtocolVersion, object())
+			})
+		})
+
+		o("should call RSA decryption when the protocol version is set to RSA", async function () {
+			const pubEncSymKey: Uint8Array = object()
+
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(aes256RandomKey()))
+
+			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(RSA_TEST_KEYPAIR, CryptoProtocolVersion.RSA, pubEncSymKey)
+
+			verify(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey), { times: 1 })
+		})
+
+		o("should raise a Crypto Error when trying to decypher a RSA that is not an RSA KeyPair", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const keyPair = object<PQKeyPairs>()
+			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+			await assertThrows(CryptoError, async function () {
+				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.RSA, pubEncSymKey)
+			})
+		})
+
+		o("should call tuta crypt decryption when the protocol version is set to TUTA_CRYPT", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const keyPair = object<PQKeyPairs>()
+			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+
+			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
+				decryptedSymKeyBytes: keyToUint8Array(aes256RandomKey()),
+				senderIdentityPubKey: object(),
+			})
+
+			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
+
+			verify(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair), { times: 1 })
+		})
+
+		o("should raise a Crypto Error when trying to decypher a TutaCrypt that is not an TutaCrypt KeyPair", async function () {
+			const pubEncSymKey: Uint8Array = object()
+			const keyPair = object<RsaKeyPair>()
+			keyPair.keyPairType = KeyPairType.RSA
+			await assertThrows(CryptoError, async function () {
+				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
+			})
+		})
+	})
+
+	o.spec("encryptPubSymKey", function () {
+		const recipientKeyVersion = 1
+		const senderKeyVersion = 2
+		const senderGroupId = "senderGroupId"
+		let symKey: AesKey
+		let pubEncSymKeyBytes: Uint8Array
+		let recipientKyberPublicKey: KyberPublicKey
+		let senderPqKeyPair: Versioned<PQKeyPairs>
+		let ephemeralKeyPair: X25519KeyPair
+
+		o.beforeEach(function () {
+			recipientKyberPublicKey = object<KyberPublicKey>()
+			symKey = [1, 2, 3, 4]
+			pubEncSymKeyBytes = object<Uint8Array>()
+			senderPqKeyPair = {
+				object: { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair: object(), kyberKeyPair: object() },
+				version: senderKeyVersion,
+			}
+			ephemeralKeyPair = object()
+			when(cryptoWrapper.generateEccKeyPair()).thenReturn(ephemeralKeyPair)
+			when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderPqKeyPair)
+		})
+
+		o("should raise a CryptoError when the key pair type is unknown", async function () {
+			await assertThrows(CryptoError, async function () {
+				await asymmetricCryptoFacade.asymEncryptSymKey(symKey, object(), senderGroupId)
+			})
+		})
+
+		o("should encrypt the sym key with the recipient PQ public key", async function () {
+			const recipientPublicKeys: Versioned<PQPublicKeys> = object()
+			recipientPublicKeys.version = recipientKeyVersion
+			recipientPublicKeys.object.keyPairType = KeyPairType.TUTA_CRYPT
+
+			when(
+				pqFacade.encapsulateAndEncode(senderPqKeyPair.object.x25519KeyPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything()),
+			).thenResolve(pubEncSymKeyBytes)
+
+			const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
+
+			o(pubEncSymKey).deepEquals({
+				pubEncSymKeyBytes,
+				recipientKeyVersion,
+				senderKeyVersion,
+				cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+			})
+		})
+
+		o(
+			"should encrypt the sym key with the recipient PQ public key and generate new sender ecc identity key pair (sender has only RSA key pair)",
+			async function () {
+				const newIdentityEccPair: X25519KeyPair = { publicKey: object(), privateKey: object() }
+				when(cryptoWrapper.generateEccKeyPair()).thenReturn(newIdentityEccPair, ephemeralKeyPair)
+				const senderRsaKeyPair: Versioned<RsaKeyPair> = { object: RSA_TEST_KEYPAIR, version: senderKeyVersion }
+				when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderRsaKeyPair)
+
+				const recipientPublicKeys: Versioned<PQPublicKeys> = object()
+				recipientPublicKeys.version = recipientKeyVersion
+				recipientPublicKeys.object.keyPairType = KeyPairType.TUTA_CRYPT
+
+				when(pqFacade.encapsulateAndEncode(newIdentityEccPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything())).thenResolve(
+					pubEncSymKeyBytes,
+				)
+				const senderUserGroupKey = object<AesKey>()
+				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(senderGroupId)).thenResolve({
+					object: senderUserGroupKey,
+					version: senderKeyVersion,
+				})
+				const encryptedEccSenderPrivateKey = object<Uint8Array>()
+				when(cryptoWrapper.encryptX25519Key(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
+
+				const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
+
+				o(pubEncSymKey).deepEquals({
+					pubEncSymKeyBytes,
+					recipientKeyVersion,
+					senderKeyVersion,
+					cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+				})
+				verify(
+					serviceExecutor.put(
+						sysServices.PublicKeyService,
+						matchers.argThat((arg: sysTypeRefs.PublicKeyPutIn) => {
+							return (
+								arg.pubEccKey === newIdentityEccPair.publicKey &&
+								arg.symEncPrivEccKey === encryptedEccSenderPrivateKey &&
+								arg.keyGroup === senderGroupId
+							)
+						}),
+					),
+				)
+			},
+		)
+
+		o("should encrypt the sym key with the recipient RSA public key", async function () {
+			const recipientPublicKeys: Versioned<RsaPublicKey> = object()
+			recipientPublicKeys.object.keyPairType = KeyPairType.RSA
+			recipientPublicKeys.version = recipientKeyVersion
+
+			when(
+				rsa.encrypt(
+					matchers.argThat((arg) => arg.keyPairType === KeyPairType.RSA),
+					keyToUint8Array(symKey),
+				),
+			).thenResolve(pubEncSymKeyBytes)
+
+			const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
+
+			o(pubEncSymKey).deepEquals({
+				pubEncSymKeyBytes,
+				recipientKeyVersion,
+				senderKeyVersion: null,
+				cryptoProtocolVersion: CryptoProtocolVersion.RSA,
+			})
+		})
+
+		o("raise a ProgrammingError when passing an RSA public key", async function () {
+			const versionedRsaPublicKey: Versioned<RsaPublicKey> = object()
+			versionedRsaPublicKey.object.keyPairType = KeyPairType.RSA
+			versionedRsaPublicKey.version = recipientKeyVersion
+
+			await assertThrows(ProgrammingError, async function () {
+				await asymmetricCryptoFacade.tutaCryptEncryptSymKey(object(), versionedRsaPublicKey, object())
+			})
+		})
+	})
+})

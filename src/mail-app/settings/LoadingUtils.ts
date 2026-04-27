@@ -1,5 +1,5 @@
 import { neverNull, promiseMap } from "@tutao/utils"
-import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../common/api/common/utils/GroupUtils"
+import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../network/GroupUtils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { sysTypeRefs } from "@tutao/typerefs"
 import { GroupType } from "@tutao/app-env"

@@ -2,8 +2,8 @@ import { OperationType } from "@tutao/app-env"
 import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "./EntityTypes.js"
 import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
 import { Nullable } from "@tutao/utils"
-import { type AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/typerefs"
-import { isSameId } from "./EntityUtils"
+import { isSameId } from "./EntityUtils.js"
+import { AppName, getTypeString, isSameTypeRef, TypeRef } from "./TypeRef.js"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.

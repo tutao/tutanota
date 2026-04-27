@@ -1365,3 +1365,7 @@ export const enum CredentialType {
 	Internal = "internal",
 	External = "external",
 }
+export type ExternalUserKeyDeriver = {
+	kdfType: KdfType
+	salt: Uint8Array
+}

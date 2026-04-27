@@ -18,13 +18,14 @@ import {
 	TypeModel,
 	TypeRef,
 } from "@tutao/typerefs"
-import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
 import { assertNotNull, filterNull, getFromMap,  Nullable, remove } from "@tutao/utils"
-import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "../../../../network/offline/CustomCacheHandler.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { expandId } from "./RestClientIdUtils"
+import { expandId } from "@tutao/network"
 import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { CacheStorage, LastUpdateTime } from "../../../../network/offline/CacheStorage"
+import { EphemeralStorageInitArgs } from "../../../../network/offline/CacheStorageInitializer"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -46,10 +47,6 @@ type BlobElementCache = {
 
 /** Map from list id to list cache. */
 type BlobElementTypeCache = Map<Id, BlobElementCache>
-
-export interface EphemeralStorageInitArgs {
-	userId: Id
-}
 
 export class EphemeralCacheStorage implements CacheStorage {
 	/** Path to id to entity map. */

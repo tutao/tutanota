@@ -3,7 +3,7 @@ import { Aes256Key, AesKeyLength, Argon2IDExports, generateKeyFromPassphraseArgo
 import { base64ToUint8Array, newPromise, Thunk, uint8ArrayToBase64 } from "@tutao/utils"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { CommonNativeFacade } from "@tutao/native-bridge/common"

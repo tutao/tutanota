@@ -7,8 +7,8 @@ import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
 import { spy, verify } from "@tutao/otest"
 import { Theme } from "../../../src/common/gui/theme.js"
-import { AppType } from "../../../src/common/misc/ClientConstants.js"
 import { WhitelabelThemeGenerator } from "../../../src/common/gui/WhitelabelThemeGenerator"
+import { AppType } from "../../../types/globals"
 
 o.spec("ThemeController", () => {
 	let themeManager: ThemeController

@@ -6,9 +6,9 @@ import { ofClass } from "@tutao/utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
+import { LoginIncompleteError } from "../../network/error/LoginIncompleteError.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { ContactSuggestion } from "@tutao/native-bridge/common"
 
 const MaxNativeSuggestions = 10

@@ -4,7 +4,7 @@ import { CalendarEventUpdateCoordinator } from "../../../src/calendar-app/calend
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { EventController } from "../../../src/common/api/main/EventController"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { elementIdPart, entityUpdateUtils, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createTestEntity } from "../TestUtils"

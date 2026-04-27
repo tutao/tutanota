@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
 import { LoginController } from "../../../src/common/api/main/LoginController"

@@ -7,7 +7,7 @@ import { CredentialAuthenticationError } from "../api/common/error/CredentialAut
 import { liveDataAttrs } from "../gui/AriaUtils.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import { CancelledError } from "../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { Keys } from "@tutao/app-env"
 import { BaseButton } from "../gui/base/buttons/BaseButton.js"
 import { MobileSystemFacade } from "@tutao/native-bridge/common"

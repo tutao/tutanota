@@ -3,7 +3,7 @@ import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTe
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/utils"
 import { ClientModelInfo, entityUpdateUtils, getElementId, getListId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../src/network/EntityClient.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"

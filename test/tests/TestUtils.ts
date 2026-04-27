@@ -1,4 +1,4 @@
-import type { BrowserData } from "../../src/common/misc/ClientConstants.js"
+import type { BrowserData } from "../../src/app-env/boot/ClientConstants.js"
 import { DbEncryptionData } from "../../src/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
@@ -28,8 +28,8 @@ import { type fetch as undiciFetch, type Response } from "undici"
 import { InstancePipeline, ModelMapper } from "@tutao/instance-pipeline"
 import { dummyResolver } from "./instance-pipeline/InstancePipelineTestUtils"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
-import { ClientPlatform } from "../../src/common/misc/ClientDetector"
-import { KeyLoaderFacade } from "../../src/common/api/worker/facades/KeyLoaderFacade"
+import { ClientPlatform } from "../../src/app-env/boot/ClientDetector"
+import { KeyLoaderFacade } from "../../src/network/crypto/facades/KeyLoaderFacade"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,

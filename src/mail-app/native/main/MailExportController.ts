@@ -6,15 +6,15 @@ import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "@tutao/ut
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "@tutao/native-bridge/common"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { ExportError, ExportErrorReason } from "../../../common/api/common/error/ExportError"
 import { assertMainOrNode } from "@tutao/app-env"
 import { MailModel } from "../../mail/model/MailModel"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 assertMainOrNode()
 

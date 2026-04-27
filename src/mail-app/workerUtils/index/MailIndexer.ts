@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
+import { CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, ImportStatus, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "@tutao/app-env"
 import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
 import {
 	deconstructMailSetEntryId,
@@ -16,9 +16,8 @@ import {
 import * as restError from "@tutao/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
-import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"

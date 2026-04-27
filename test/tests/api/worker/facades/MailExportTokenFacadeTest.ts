@@ -3,7 +3,7 @@ import { func, matchers, object, when } from "testdouble"
 import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
 import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
-import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
+import { ServiceExecutor } from "@tutao/network"
 
 o.spec("MailExportTokenFacade", () => {
 	let facade!: MailExportTokenFacade

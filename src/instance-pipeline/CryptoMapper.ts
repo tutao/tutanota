@@ -16,7 +16,7 @@ import {
 	TypeRef,
 	ValueType,
 } from "@tutao/typerefs"
-import { Base64, base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import { base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"

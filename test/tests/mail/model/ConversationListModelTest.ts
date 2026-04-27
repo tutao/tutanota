@@ -16,9 +16,8 @@ import {
 } from "@tutao/typerefs"
 import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
-import { EntityClient } from "../../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../../src/network/EntityClient"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
-import { ExposedCacheStorage } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
@@ -35,6 +34,7 @@ import { WebsocketConnectivityModel } from "../../../../src/common/misc/Websocke
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 import { MailSetKind, OperationType } from "../../../../src/app-env"
+import { ExposedCacheStorage } from "../../../../src/network/offline/CacheStorage"
 
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel

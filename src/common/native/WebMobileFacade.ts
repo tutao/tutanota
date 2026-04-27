@@ -1,5 +1,5 @@
 import m from "mithril"
-import { CancelledError } from "../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
 import { modal } from "../gui/base/Modal"

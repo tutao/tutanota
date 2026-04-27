@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { OfflineStorageIndexer } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageIndexer"
-import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
+import { UserFacade } from "../../../../../src/network/UserFacade"
 import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler"

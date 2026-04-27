@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../src/common/gui/ScopedRouter"
 import { TransferProgressDispatcher } from "../../../src/common/api/main/TransferProgressDispatcher"

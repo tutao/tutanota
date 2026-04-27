@@ -3,7 +3,7 @@ import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../sr
 import { SchedulerMock } from "../../../TestUtils.js"
 import { func, object, verify, when } from "testdouble"
 import { assertNotNull } from "@tutao/utils"
-import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
+import { DateProvider } from "../../../../../src/utils/DateProvider.js"
 
 o.spec("SleepDetector", function () {
 	let scheduler: SchedulerMock

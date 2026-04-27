@@ -1,5 +1,5 @@
 import { matchers, object, when } from "testdouble"
-import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
 import { sysServices } from "@tutao/typerefs"
 import { createTestEntity } from "../TestUtils.js"
 import { sysTypeRefs } from "@tutao/typerefs"

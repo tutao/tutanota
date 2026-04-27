@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
-import { DataFile, PlanTypeToName } from "@tutao/typerefs"
+import { DataFile } from "@tutao/typerefs"
 import { Thunk } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator.js"
 import { lang } from "../../misc/LanguageViewModel.js"

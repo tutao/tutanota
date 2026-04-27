@@ -15,9 +15,8 @@ import {
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import Stream from "mithril/stream"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { MailModel } from "./MailModel"
-import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import {
 	assertNotNull,
 	findAllAndRemove,
@@ -31,10 +30,11 @@ import {
 	memoizedWithHiddenArgument,
 } from "@tutao/utils"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { OperationType } from "@tutao/app-env"
+import { isExpectedErrorForSynchronization, isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
 
 type Mail = tutanotaTypeRefs.Mail
 /**

@@ -71,9 +71,9 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
 	appendBinaryBlocks,

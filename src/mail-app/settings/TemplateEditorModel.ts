@@ -4,7 +4,7 @@ import { clone, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs
 import { difference, downcast, getFirstOrThrow, remove } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { EntityClient } from "../../common/api/common/EntityClient"
+import type { EntityClient } from "../../network/EntityClient"
 import { UserError } from "../../common/api/main/UserError"
 
 export class TemplateEditorModel {

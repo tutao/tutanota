@@ -5,10 +5,10 @@ import { liveDataAttrs } from "../gui/AriaUtils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { client } from "../misc/ClientDetector.js"
+import { client } from "../../app-env/boot/ClientDetector.js"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { Keys } from "@tutao/app-env"
+import { isAdminClient, Keys } from "@tutao/app-env"
 import { useKeyHandler } from "../misc/KeyManager.js"
 import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
@@ -121,7 +121,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 										? lang.makeTranslation(
 												"onlyPrivateComputer_msg",
 												lang.get("onlyPrivateComputer_msg") +
-													(!isBrowser() && !(env.mode === Mode.Admin) ? "\n" + lang.get("dataWillBeStored_msg") : ""),
+													(!isBrowser() && !isAdminClient() ? "\n" + lang.get("dataWillBeStored_msg") : ""),
 											)
 										: "functionNotSupported_msg",
 									disabled: !canSaveCredentials,

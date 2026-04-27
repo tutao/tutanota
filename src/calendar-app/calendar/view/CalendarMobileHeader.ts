@@ -18,7 +18,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { client } from "../../../common/misc/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 import { isApp } from "@tutao/app-env"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {

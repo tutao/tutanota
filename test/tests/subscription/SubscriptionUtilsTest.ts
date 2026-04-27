@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 
 import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"

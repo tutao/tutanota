@@ -19,15 +19,15 @@ import {
 	SearchRestriction,
 	SearchResult,
 } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import { AppNameEnum, Base64, groupBy, numberRange, splitInChunks } from "@tutao/utils"
+import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import type { BrowserData } from "../../../../../src/common/misc/ClientConstants.js"
+import type { BrowserData } from "../../../../../src/app-env/boot/ClientConstants.js"
 import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"

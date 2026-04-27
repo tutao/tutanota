@@ -1,10 +1,12 @@
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { DROPDOWN_MARGIN } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 import { component_size, px } from "../../../common/gui/size"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown

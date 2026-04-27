@@ -4,7 +4,7 @@ import { isNotNull } from "@tutao/utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"
-import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { isAdminClient, isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [
@@ -141,7 +141,7 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			description: `${emailSettingsLabel} ${lang.getTranslationText("undoSend_label")}`,
 			exec: () => routeToFolderSection(router, folder, "undoSend"),
 		},
-		!isBrowser() && !(env.mode === Mode.Admin)
+		!isBrowser() && !isAdminClient()
 			? {
 					description: `${emailSettingsLabel} ${lang.getTranslationText("localDataSection_label")}`,
 					exec: () => routeToFolderSection(router, folder, "localdata"),

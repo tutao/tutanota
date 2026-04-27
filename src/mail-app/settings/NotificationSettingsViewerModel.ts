@@ -1,8 +1,8 @@
 import { sysTypeRefs } from "@tutao/typerefs"
-import { AppType } from "../../common/misc/ClientConstants"
 import { assertMainOrNode } from "@tutao/app-env"
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
+import { AppType } from "@tutao/app-env"
 
 assertMainOrNode()
 

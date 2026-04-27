@@ -93,7 +93,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await buildArgon2(resolvedBuildDir)
 	await buildLibOqs(resolvedBuildDir)
 
-	const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },

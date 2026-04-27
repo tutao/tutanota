@@ -1,9 +1,9 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { createReferencingInstance, DataFile, FileReference, tutanotaTypeRefs } from "@tutao/typerefs"
-import { ArchiveDataType, assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { ArchiveDataType, assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { assertOnlyFileReferences } from "../api/common/utils/FileUtils"
-import { CancelledError } from "../api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import type { NativeFileApp } from "@tutao/native-bridge/common"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
@@ -19,7 +19,7 @@ export class FileControllerNative extends FileController {
 		blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
 	) {
-		assert(isDesktop() || env.mode === Mode.Admin || isApp() || env.mode === Mode.Test, "Don't make native file controller when not in native")
+		assert(isDesktop() || isAdminClient() || isApp() || env.mode === Mode.Test, "Don't make native file controller when not in native")
 		super(blobFacade)
 	}
 

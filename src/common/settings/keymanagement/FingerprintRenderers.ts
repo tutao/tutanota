@@ -1,7 +1,6 @@
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 import QRCode from "qrcode-svg"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
-import { Hex } from "@tutao/utils"
 
 export function renderFingerprintAsQrCode(selfMailAddress: string, fingerprint: Hex): string {
 	const payload: KeyVerificationQrPayload = { mailAddress: selfMailAddress, fingerprint }

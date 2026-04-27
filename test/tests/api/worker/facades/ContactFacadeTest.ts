@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ContactFacade } from "../../../../../src/common/api/worker/facades/lazy/ContactFacade.js"
 import { object, verify } from "testdouble"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { createFilledContact } from "../../../contacts/VCardExporterTest.js"
 
 o.spec("ContactFacadeTest", function () {

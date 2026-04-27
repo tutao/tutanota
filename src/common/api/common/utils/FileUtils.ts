@@ -1,5 +1,5 @@
 import { assertNotNull, downcast, intersection, toLowerCase } from "@tutao/utils"
-import { Attachment, DataFile, FileReference, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
+import { Attachment, DataFile, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
 
 type StringPredicate = (arg0: string) => boolean
 

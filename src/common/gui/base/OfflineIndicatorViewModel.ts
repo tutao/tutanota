@@ -1,13 +1,14 @@
 import { PROGRESS_DONE } from "./ProgressBar.js"
 import Stream from "mithril/stream"
-import { WsConnectionState } from "../../api/main/WorkerClient.js"
-import { ExposedCacheStorage } from "../../api/worker/rest/DefaultEntityRestCache.js"
 import { PageContextLoginListener } from "../../api/main/PageContextLoginListener.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
 import { styles } from "../styles.js"
+import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+
+import { WsConnectionState } from "@tutao/network"
 
 /**
  * the offline indicator must take into account information

@@ -4,7 +4,7 @@ import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
 import { ClickHandler, DropData } from "./GuiUtils"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { assertNotNull } from "@tutao/utils"
-import { client } from "../../misc/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { theme } from "../theme"
 

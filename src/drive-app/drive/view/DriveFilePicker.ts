@@ -1,8 +1,8 @@
-import { PosRect } from "../../../common/gui/base/Dropdown"
 import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { NativeFileApp } from "../../../common/native/common/FileApp"
+import { NativeFileApp } from "@tutao/native-bridge/common"
 import { isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { PosRect } from "@tutao/native-bridge/shared"
 
 /**
  * Wrapper for a browser or app file picker.

@@ -8,7 +8,7 @@ import { EventController } from "../../../src/common/api/main/EventController.js
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
-import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../src/network/EntityClient.js"
 import {
 	CachingMode,
 	CalendarEventAlteredInstance,
@@ -27,7 +27,7 @@ import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../src/native-bridge/main/NativePushServiceApp"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
-import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
+import { IServiceExecutor } from "../../../src/network/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"

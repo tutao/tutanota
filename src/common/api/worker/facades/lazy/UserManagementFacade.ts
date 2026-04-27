@@ -1,9 +1,9 @@
 import { assertWorkerOrNode, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "@tutao/app-env"
 import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
-import type { GroupManagementFacade } from "./GroupManagementFacade.js"
-import { LoginFacade } from "../LoginFacade.js"
-import { CounterFacade } from "./CounterFacade.js"
+import type { GroupManagementFacade } from "../../../../../network/facades/lazy/GroupManagementFacade.js"
+import { LoginFacade } from "../../../../../network/LoginFacade.js"
+import { CounterFacade } from "../../../../../network/facades/CounterFacade.js"
 import {
 	_encryptBytes,
 	_encryptKeyWithVersionedKey,
@@ -16,14 +16,14 @@ import {
 	random,
 	VersionedKey,
 } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { UserFacade } from "../UserFacade.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
-import { PQFacade } from "../PQFacade.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
-import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "./IdentityKeyCreator"
+import { PQFacade } from "../../../../../network/crypto/facades/PQFacade.js"
+import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
+import { RecoverCodeFacade, RecoverData } from "../../../../../network/facades/lazy/RecoverCodeFacade.js"
+import { AdminKeyLoaderFacade } from "../../../../../network/crypto/facades/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../../../network/facades/lazy/IdentityKeyCreator"
 
 assertWorkerOrNode()
 

@@ -30,7 +30,7 @@ import {
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { readLocalFiles } from "../../../common/file/FileController.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
@@ -70,7 +70,7 @@ import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilter
 import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
-import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
+import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
@@ -83,6 +83,8 @@ import * as restError from "@tutao/rest-client/error"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 assertMainOrNode()
 

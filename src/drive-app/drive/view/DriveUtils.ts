@@ -1,4 +1,4 @@
-import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
+import { EntityClient, loadMultipleFromLists } from "../../../network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
 import { driveTypeRefs, getElementId } from "@tutao/typerefs"

@@ -6,14 +6,14 @@ import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUt
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object, replace } from "testdouble"
-import { sql } from "../../../../../src/common/api/worker/offline/Sql"
+import { sql } from "../../../../../src/network/offline/Sql"
 import { assertNotNull, typedValues } from "@tutao/utils"
 import { getElementId, getListId, getTypeString } from "@tutao/typerefs"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { CacheStorage } from "../../../../../src/network/offline/CacheStorage"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

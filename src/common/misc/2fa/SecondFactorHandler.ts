@@ -6,10 +6,10 @@ import { lang } from "../LanguageViewModel"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController"
-import type { EntityClient } from "../../api/common/EntityClient"
+import type { EntityClient } from "../../../network/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
-import type { LoginFacade } from "../../api/worker/facades/LoginFacade"
+import type { LoginFacade } from "../../../network/LoginFacade"
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
 assertMainOrNode()

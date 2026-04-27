@@ -1,10 +1,10 @@
 import { Cat, log, timer } from "../misc/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, Mode } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isAdminClient } from "@tutao/app-env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { client } from "../misc/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
 
 assertMainOrNodeBoot()
@@ -93,7 +93,7 @@ class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !(env.mode === Mode.Admin) && (client.isMobileDevice() || !this.isDesktopLayout())
+		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	isAppUsingBottomNav(): boolean {

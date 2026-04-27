@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
 import { NewsItemStorage, NewsModel } from "../../../src/common/misc/news/NewsModel.js"
 import { tutanotaServices } from "@tutao/typerefs"

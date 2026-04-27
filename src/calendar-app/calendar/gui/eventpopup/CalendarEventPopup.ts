@@ -6,7 +6,7 @@ import type { ModalComponent } from "../../../../common/gui/base/Modal.js"
 import { modal } from "../../../../common/gui/base/Modal.js"
 import { EventPreviewView, EventPreviewViewAttrs } from "./EventPreviewView.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { createAsyncDropdown, DROPDOWN_MARGIN, PosRect, showDropdown } from "../../../../common/gui/base/Dropdown.js"
+import { createAsyncDropdown, DROPDOWN_MARGIN, showDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { Keys } from "@tutao/app-env"
 import type { HtmlSanitizer } from "../../../../common/misc/HtmlSanitizer.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
@@ -14,6 +14,8 @@ import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
 import { showDeletePopup } from "../CalendarGuiUtils.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+
+import { PosRect } from "../../../../native-bridge/shared/PosRect"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the

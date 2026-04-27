@@ -1,13 +1,13 @@
 import { Commands, Request, Transport } from "../../../native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../common/threading/WebTransport.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { client } from "../../misc/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "@tutao/rest-client"
-import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
+import { EntropyDataChunk } from "../../../network/crypto/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
@@ -17,12 +17,6 @@ assertMainOrNode()
 
 type ProgressUpdater = (progress: number) => unknown
 type MainRequest = Request<MainRequestType>
-
-export const enum WsConnectionState {
-	connecting,
-	connected,
-	terminated,
-}
 
 export class WorkerClient {
 	private _deferredInitialized: DeferredObject<void> = defer()

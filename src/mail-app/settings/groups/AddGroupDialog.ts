@@ -13,7 +13,7 @@ import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/G
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
 import { getFirstOrThrow, ofClass } from "@tutao/utils"
-import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
+import type { GroupManagementFacade } from "../../../network/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"

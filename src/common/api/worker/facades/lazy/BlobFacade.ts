@@ -1,7 +1,7 @@
 import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
 import * as restError from "@tutao/rest-client/error"
-import { HttpMethod, MediaType, SuspensionBehavior } from "@tutao/rest-client/types"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
 import {
 	assertNonNull,
 	assertNotNull,
@@ -35,24 +35,17 @@ import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from
 import type { FileUri, NativeFileApp } from "@tutao/native-bridge/common"
 import type { AesApp } from "@tutao/native-bridge/worker"
 import { splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
-import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
-import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
+import { doBlobRequestWithRetry, tryServers } from "@tutao/network"
+import { BlobAccessTokenFacade, BlobLoadOptions } from "../../../../../network/facades/BlobAccessTokenFacade.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferId, UploadProgressInfo } from "../../../common/drive/DriveTypes"
-import { CancelledError } from "../../../common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${storageServices.BlobService.app}/${storageServices.BlobService.name.toLowerCase()}`
 export const TAG = "BlobFacade"
-
-export interface BlobLoadOptions {
-	extraHeaders?: Dict
-	suspensionBehavior?: SuspensionBehavior
-	/** override origin for the request */
-	baseUrl?: string
-}
 
 interface FileDownloadState {
 	transferId: TransferId

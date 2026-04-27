@@ -11,9 +11,8 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
 import { Keys, UpgradePromptType } from "@tutao/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { client } from "../../../../common/misc/ClientDetector.js"
+import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/utils"
-import { PosRect } from "../../../../common/gui/base/Dropdown.js"
 import type { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView, EditorPages } from "./CalendarEventEditView.js"
@@ -30,6 +29,8 @@ import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { newPromise } from "@tutao/utils"
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
+
+import { PosRect } from "../../../../native-bridge/shared/PosRect"
 
 const enum ConfirmationResult {
 	Cancel,

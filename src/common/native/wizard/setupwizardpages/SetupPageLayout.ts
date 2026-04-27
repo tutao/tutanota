@@ -2,7 +2,7 @@ import { emitWizardEvent, WizardEventType } from "../../../gui/base/WizardDialog
 import m, { Children, Component, Vnode } from "mithril"
 import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
 import { TranslationKey } from "../../../misc/LanguageViewModel.js"
-import { DynamicColorSvg } from "../../../../gui/base/DynamicColorSvg.js"
+import { DynamicColorSvg } from "../../../gui/base/DynamicColorSvg.js"
 
 interface SetupPageLayoutAttrs {
 	image: string

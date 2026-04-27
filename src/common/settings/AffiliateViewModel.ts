@@ -1,4 +1,4 @@
-import { IServiceExecutor } from "../api/common/ServiceRequest.js"
+import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { sysServices } from "@tutao/typerefs"
 import { sysTypeRefs } from "@tutao/typerefs"

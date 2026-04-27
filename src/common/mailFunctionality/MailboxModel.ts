@@ -2,7 +2,7 @@ import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tut
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"

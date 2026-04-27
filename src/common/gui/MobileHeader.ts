@@ -13,7 +13,7 @@ import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
-import { client } from "../misc/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { Icons } from "./base/icons/Icons"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {

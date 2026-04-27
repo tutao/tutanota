@@ -1,7 +1,7 @@
 import type { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import type { LoginController } from "./LoginController.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
-import type { EntityClient } from "../common/EntityClient.js"
+import type { EntityClient } from "../../../network/EntityClient.js"
 import { getContactDisplayName } from "../../contactsFunctionality/ContactUtils.js"
 import { PartialRecipient, Recipient, RecipientType } from "../common/recipients/Recipient.js"
 import { BoundedExecutor, LazyLoaded } from "@tutao/utils"
@@ -9,8 +9,8 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
-import { KeyVerificationMismatchError } from "../common/error/KeyVerificationMismatchError"
-import { VerifiedPublicEncryptionKey } from "../worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../../network/crypto/error/KeyVerificationMismatchError"
+import { VerifiedPublicEncryptionKey } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type

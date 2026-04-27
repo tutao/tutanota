@@ -2,15 +2,15 @@ import { LoginController, PostLoginAction } from "../api/main/LoginController.js
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { CUSTOM_MIN_ID } from "@tutao/typerefs"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { ProgressTracker } from "../api/main/ProgressTracker.js"
 import { promiseMap } from "@tutao/utils"
 import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
 import { SessionType } from "@tutao/app-env"
-import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { ExposedCacheStorage } from "../../network/offline/CacheStorage"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(
