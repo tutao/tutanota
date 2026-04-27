@@ -3,7 +3,7 @@ import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStor
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SessionType } from "@tutao/app-env"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { LoggedInEvent } from "@tutao/native-bridge"
+import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 /**
  * The search range is tied to the offline storage settings.

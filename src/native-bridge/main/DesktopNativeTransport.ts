@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "@tutao/app-env"
-import { Transport } from "../common/Transport.js"
-import { Message } from "../common/MessageTypes.js"
+import { Transport } from "@tutao/native-bridge/shared"
+import { Message } from "@tutao/native-bridge/shared"
 
 assertMainOrNode()
 

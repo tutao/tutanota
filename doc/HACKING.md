@@ -44,7 +44,7 @@ contains most of the logic for server communication, encryption, indexing etc.
 ### Communication
 
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[RemoteMessageDispatcher](../src/common/api/common/threading/MessageDispatcher.ts).
+[RemoteMessageDispatcher](../src/native-bridge/common/MessageDispatcher.ts).
 See [WorkerClient](../src/common/api/main/WorkerClient.ts)
 and
 [WorkerImpl](../src/common/api/worker/WorkerImpl.ts) for the client and server part.

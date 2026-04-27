@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
-import { lang, type TranslationKey } from "../../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs } from "../../../gui/base/WizardDialog.js"
+import { lang, type TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SelectAppLockMethodView } from "../../SelectAppLockMethodDialog.js"
-import { AppLockMethod } from "@tutao/native-bridge"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { CredentialAuthenticationError } from "../../../../api/common/error/CredentialAuthenticationError.js"
-import { CancelledError } from "../../../../api/common/error/CancelledError.js"
+import { AppLockMethod } from "@tutao/native-bridge/common"
+import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { CredentialAuthenticationError } from "../../../api/common/error/CredentialAuthenticationError.js"
+import { CancelledError } from "../../../api/common/error/CancelledError.js"
 
 export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {

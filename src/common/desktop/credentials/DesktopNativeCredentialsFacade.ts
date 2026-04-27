@@ -1,6 +1,6 @@
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
-import { NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge"
+import { NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 import { AesKey, BitArray } from "@tutao/crypto"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"

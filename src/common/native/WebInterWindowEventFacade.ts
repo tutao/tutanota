@@ -1,7 +1,7 @@
-import { InterWindowEventFacade } from "@tutao/native-bridge"
-import { LoginController } from "../../api/main/LoginController.js"
-import { WindowFacade } from "../../misc/WindowFacade.js"
-import { DeviceConfig } from "../../misc/DeviceConfig.js"
+import { InterWindowEventFacade } from "@tutao/native-bridge/common"
+import { LoginController } from "../api/main/LoginController.js"
+import { WindowFacade } from "../misc/WindowFacade.js"
+import { DeviceConfig } from "../misc/DeviceConfig.js"
 
 /**
  * receiving side of the InterWindowEventBus

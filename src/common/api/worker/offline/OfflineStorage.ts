@@ -8,6 +8,7 @@ import {
 	ensureBase64Ext,
 	Entity,
 	firstBiggerThanSecond,
+	FormattedQuery,
 	GENERATED_MIN_ID,
 	getElementId,
 	getTypeString,
@@ -17,10 +18,15 @@ import {
 	parseTypeString,
 	ServerModelParsedInstance,
 	SomeEntity,
+	SqlValue,
+	TaggedSqlValue,
+	tagSqlValue,
 	Type as TypeId,
 	TypeModel,
 	TypeModelResolver,
 	TypeRef,
+	untagSqlObject,
+	untagSqlValue,
 } from "@tutao/typerefs"
 import type { CacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
@@ -43,9 +49,7 @@ import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
-import { SqlCipherFacade } from "@tutao/native-bridge"
-import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject, untagSqlValue } from "../../../../typerefs/SqlValue.js"
+import { InterWindowEventFacadeSendDispatcher, SqlCipherFacade } from "@tutao/native-bridge/common"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "@tutao/instance-pipeline"

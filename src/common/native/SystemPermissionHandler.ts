@@ -1,8 +1,8 @@
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { PermissionType } from "@tutao/native-bridge"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
-import { PermissionError } from "../../api/common/error/PermissionError.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { PermissionType } from "@tutao/native-bridge/common"
+import { TranslationKey } from "../misc/LanguageViewModel.js"
+import { PermissionError } from "../api/common/error/PermissionError.js"
+import { Dialog } from "../gui/base/Dialog.js"
 import { isIOSApp } from "@tutao/app-env"
 
 export class SystemPermissionHandler {

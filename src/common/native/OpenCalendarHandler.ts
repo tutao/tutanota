@@ -1,8 +1,8 @@
 import m from "mithril"
-import { LoginController } from "../../api/main/LoginController.js"
-import { CalendarOpenAction } from "@tutao/native-bridge"
-import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { formatJSDate } from "../../api/common/utils/CommonCalendarUtils.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { CalendarOpenAction } from "@tutao/native-bridge/common"
+import { CalendarEventModel, CalendarOperation } from "../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { formatJSDate } from "../api/common/utils/CommonCalendarUtils.js"
 
 /**
  * Handles requests for opening calendar paths from native.
@@ -46,7 +46,7 @@ export class OpenCalendarHandler {
 
 	async openCalendarEventEditor(date: string): Promise<void> {
 		await this.logins.waitForFullLogin()
-		const { EventEditorDialog } = await import("../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js")
+		const { EventEditorDialog } = await import("../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js")
 
 		const model = await this.eventModelFactory(CalendarOperation.Create, new Date(date))
 

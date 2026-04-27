@@ -1,22 +1,22 @@
-import { CommonNativeFacade } from "@tutao/native-bridge"
-import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel.js"
+import { CommonNativeFacade } from "@tutao/native-bridge/common"
+import { lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
-import { CancelledError } from "../../api/common/error/CancelledError.js"
-import { UserError } from "../../api/main/UserError.js"
+import { CancelledError } from "../api/common/error/CancelledError.js"
+import { UserError } from "../api/main/UserError.js"
 import m from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { AttachmentType, getAttachmentType } from "../../gui/AttachmentBubble.js"
-import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
-import { LoginController } from "../../api/main/LoginController.js"
-import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { AttachmentType, getAttachmentType } from "../gui/AttachmentBubble.js"
+import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { MailboxModel } from "../mailFunctionality/MailboxModel.js"
 import { UsageTestController } from "@tutao/usagetests"
-import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
+import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
-import { locator } from "../../api/main/CommonLocator.js"
-import { AppType } from "../../misc/ClientConstants.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { AppType } from "../misc/ClientConstants.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { CalendarOpenAction } from "@tutao/native-bridge"
-import { BlobFacade } from "../../api/worker/facades/lazy/BlobFacade"
+import { CalendarOpenAction } from "@tutao/native-bridge/common"
+import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade"
 import { isDesktop, isHighestTierPlan } from "@tutao/app-env"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
@@ -35,7 +35,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	) {}
 
 	async sendLogs(logs: string): Promise<void> {
-		const { showSendErrorDialog } = await import("../../misc/ErrorReporter.js")
+		const { showSendErrorDialog } = await import("../misc/ErrorReporter.js")
 
 		await this.logins.waitForFullLogin()
 		return await showSendErrorDialog({
@@ -47,7 +47,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 
 	async openContactEditor(contactId: string): Promise<void> {
 		await this.logins.waitForFullLogin()
-		const { ContactEditor } = await import("../../../mail-app/contacts/ContactEditor.js")
+		const { ContactEditor } = await import("../../mail-app/contacts/ContactEditor.js")
 		const decodedContactId = decodeBase64("utf-8", contactId)
 		const idParts = decodedContactId.split("/")
 		try {
@@ -78,8 +78,8 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		subject: string,
 		mailToUrlString: string,
 	): Promise<void> {
-		const { newMailEditorFromTemplate, newMailtoUrlMailEditor } = await import("../../../mail-app/mail/editor/MailEditor.js")
-		const signatureModule = await import("../../../mail-app/mail/signature/Signature")
+		const { newMailEditorFromTemplate, newMailtoUrlMailEditor } = await import("../../mail-app/mail/editor/MailEditor.js")
+		const signatureModule = await import("../../mail-app/mail/signature/Signature")
 		await this.logins.waitForPartialLogin()
 		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 
@@ -177,7 +177,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async showAlertDialog(translationKey: string): Promise<void> {
-		const { Dialog } = await import("../../gui/base/Dialog.js")
+		const { Dialog } = await import("../gui/base/Dialog.js")
 		return Dialog.message(translationKey as TranslationKey)
 	}
 
@@ -190,7 +190,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * don't support bcrypt for this one.
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
-		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../gui/base/Dialog.js"), import("../../settings/PasswordForm.js")])
+		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../gui/base/Dialog.js"), import("../settings/PasswordForm.js")])
 		const model = new PasswordModel(this.usageTestController, this.logins, {
 			checkOldPassword: false,
 			enforceStrength: false,
@@ -220,7 +220,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async promptForPassword(title: string): Promise<string> {
-		const { Dialog } = await import("../../gui/base/Dialog.js")
+		const { Dialog } = await import("../gui/base/Dialog.js")
 
 		return newPromise((resolve, reject) => {
 			const dialog = showRequestPasswordDialog({

@@ -1,16 +1,25 @@
 import { WorkerClient } from "./WorkerClient.js"
 import { FileController } from "../../file/FileController.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import {
+	CommonSystemFacade,
+	DesktopSystemFacade,
+	InterWindowEventFacadeSendDispatcher,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	NativeFileApp,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge/common"
 import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient.js"
-import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
+import { SystemPermissionHandler } from "../../native/SystemPermissionHandler.js"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
-import { SettingsFacade } from "@tutao/native-bridge"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
 import { EntityClient } from "../common/EntityClient.js"
 import type { LoginFacade } from "../worker/facades/LoginFacade.js"
 import type { CustomerFacade } from "../worker/facades/lazy/CustomerFacade.js"
@@ -40,20 +49,14 @@ import { LoginController } from "./LoginController.js"
 import { Header } from "../../gui/Header.js"
 import { UsageTestController } from "@tutao/usagetests"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
-import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
+import { WebMobileFacade } from "../../native/WebMobileFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { MailAddressTableModel, UserInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
 import { lazy } from "@tutao/utils"
 import { Router } from "../../gui/ScopedRouter.js"
-import { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain.js"
-import { CommonSystemFacade } from "@tutao/native-bridge"
-import { ThemeFacade } from "@tutao/native-bridge"
-import { NativePushServiceApp } from "../../native/main/NativePushServiceApp.js"
-import { NativeFileApp } from "@tutao/native-bridge"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { MobileContactsFacade } from "@tutao/native-bridge"
-import { NativeCredentialsFacade } from "@tutao/native-bridge"
+import { NativeInterfaceMain } from "../../native/NativeInterfaceMain.js"
+import { NativePushServiceApp } from "../../native/NativePushServiceApp.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
@@ -62,7 +65,6 @@ import type { CalendarEventModel, CalendarOperation } from "../../../calendar-ap
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
-import { MobilePaymentsFacade } from "@tutao/native-bridge"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"

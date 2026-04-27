@@ -1,7 +1,7 @@
 import { Base64, base64ToUint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { assertMainOrNode } from "@tutao/app-env"
-import type { Transport } from "../common/Transport.js"
-import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
+import type { Transport } from "@tutao/native-bridge/shared"
+import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "@tutao/native-bridge/common"
 
 assertMainOrNode()
 

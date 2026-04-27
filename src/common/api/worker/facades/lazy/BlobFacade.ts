@@ -32,8 +32,8 @@ import {
 	sysTypeRefs,
 } from "@tutao/typerefs"
 import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
-import type { FileUri, NativeFileApp } from "@tutao/native-bridge"
-import type { AesApp } from "@tutao/native-bridge"
+import type { FileUri, NativeFileApp } from "@tutao/native-bridge/common"
+import type { AesApp } from "@tutao/native-bridge/worker"
 import { splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"

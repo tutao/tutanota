@@ -1,4 +1,4 @@
-import { MessageDispatcher } from "../../../common/api/common/threading/MessageDispatcher.js"
+import { MessageDispatcher } from "../../../native-bridge/common/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { RestClient, restError } from "@tutao/rest-client"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
@@ -18,7 +18,8 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { CryptoWrapper, random } from "@tutao/crypto"
-import { Commands, NativeInterface, Request, SqlCipherFacade } from "@tutao/native-bridge"
+import { NativeInterface, SqlCipherFacade } from "@tutao/native-bridge/common"
+import { Commands, Request } from "@tutao/native-bridge/shared"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
@@ -47,6 +48,7 @@ import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/Autosave
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { errorToObj } from "@tutao/utils"
+import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -103,7 +105,7 @@ export class WorkerImpl implements NativeInterface {
 
 	constructor(self: DedicatedWorkerGlobalScope) {
 		this._scope = self
-		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main")
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
 	}
 
 	async init(browserData: BrowserData): Promise<void> {

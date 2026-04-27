@@ -5,7 +5,7 @@ import { assertMainOrNodeBoot, CredentialEncryptionMode, isApp, ProgrammingError
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "./ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
-import { CredentialsInfo } from "@tutao/native-bridge"
+import { CredentialsInfo } from "@tutao/native-bridge/common"
 import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 import { SyncStatus } from "../calendar/gui/ImportExportUtils.js"
 import Stream from "mithril/stream"

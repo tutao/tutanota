@@ -241,9 +241,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/common/gui/base")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
-	} else if (isIn("src/common/native/main/wizard")) {
+	} else if (isIn("src/common/native/wizard")) {
 		return "setup-wizard"
-	} else if (isIn("src/common/native/main") || isIn("src/mail-app/native/main") || moduleId.includes("SearchInPageOverlay")) {
+	} else if (isIn("src/common/native") || isIn("src/mail-app/native/main") || moduleId.includes("SearchInPageOverlay")) {
 		return "native-main"
 	} else if (
 		isIn("src/mail-app/mail/editor") ||
@@ -282,17 +282,10 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm-fallback"
 	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js")) {
 		return "spam-classifier"
-	} else if (
-		isIn("src/common/native/worker") ||
-		isIn("src/mail-app/workerUtils/worker") ||
-		isIn("src/calendar-app/worker") ||
-		isIn("src/mail-app/workerUtils/offline")
-	) {
+	} else if (isIn("src/mail-app/workerUtils/worker") || isIn("src/calendar-app/worker") || isIn("src/mail-app/workerUtils/offline")) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
 		return "pow-worker"
-	} else if (isIn("src/common/native/common")) {
-		return "native-common"
 	} else if (isIn(`src/mail-app/search`) || isIn(`src/calendar-app/calendar/search`) || isIn("src/common/search")) {
 		return "search"
 	} else if (isIn("src/calendar-app/calendar/view")) {
@@ -369,6 +362,14 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "common"
 	} else if (isIn("src/rest-client") || isIn("src/crypto") || isIn("src/instance-pipeline")) {
 		return "worker"
+	} else if (isIn("src/native-bridge/main")) {
+		return "native-main"
+	} else if (isIn("src/native-bridge/worker")) {
+		return "worker"
+	} else if (isIn("src/native-bridge/shared.ts")) {
+		return "common"
+	} else if (isIn("src/native-bridge/common")) {
+		return "native-common"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

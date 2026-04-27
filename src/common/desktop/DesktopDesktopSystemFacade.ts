@@ -1,4 +1,4 @@
-import { DesktopSystemFacade } from "@tutao/native-bridge"
+import { DesktopSystemFacade } from "@tutao/native-bridge/common"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Socketeer } from "./Socketeer.js"

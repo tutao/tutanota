@@ -1,6 +1,6 @@
-import { PermissionError } from "../../api/common/error/PermissionError"
-import { ContactSuggestion, MobileContactsFacade } from "@tutao/native-bridge"
-import { ContactSuggestionProvider } from "../../misc/RecipientsSearchModel"
+import { PermissionError } from "../api/common/error/PermissionError"
+import { ContactSuggestion, MobileContactsFacade } from "@tutao/native-bridge/common"
+import { ContactSuggestionProvider } from "../misc/RecipientsSearchModel"
 
 export class MobileContactSuggestionProvider implements ContactSuggestionProvider {
 	private gotPermissionError: boolean = false

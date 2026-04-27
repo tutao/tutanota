@@ -5,9 +5,9 @@
  * </ul>
  */
 import { isWorker } from "@tutao/app-env"
-import { objToError } from "../utils/ErrorUtils.js"
 import { newPromise } from "@tutao/utils"
-import { Commands, Message, MessageCallbacks, Request, RequestError, Transport, Response } from "@tutao/native-bridge"
+import type { Commands, Message, MessageCallbacks, Request, Transport } from "@tutao/native-bridge/shared"
+import { RequestError, Response } from "@tutao/native-bridge/shared"
 
 /**
  * Handles remote invocations (e.g. worker or native calls).
@@ -24,6 +24,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 		private readonly transport: Transport<OutgoingRequestType, IncomingRequestType>,
 		private readonly commands: Commands<IncomingRequestType>,
 		private idPrefix: string,
+		private readonly objToError: (_: Record<string, any>) => Error,
 	) {
 		this._messages = {}
 		this.nextId = makeRequestIdGenerator(idPrefix)
@@ -60,7 +61,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 		} else if (message.type === "requestError") {
 			const pendingRequest = this._messages[message.id]
 			if (pendingRequest != null) {
-				pendingRequest.reject(objToError(message.error))
+				pendingRequest.reject(this.objToError(message.error))
 				delete this._messages[message.id]
 			} else {
 				console.warn(`Unexpected error response: ${message.id} (was the page reloaded?)`)

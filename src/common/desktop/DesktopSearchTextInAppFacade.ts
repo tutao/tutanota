@@ -1,6 +1,5 @@
-import { SearchTextInAppFacade } from "@tutao/native-bridge"
+import { Result, SearchTextInAppFacade } from "@tutao/native-bridge/common"
 import { ApplicationWindow } from "./ApplicationWindow.js"
-import { Result } from "@tutao/native-bridge"
 
 export class DesktopSearchTextInAppFacade implements SearchTextInAppFacade {
 	constructor(private readonly window: ApplicationWindow) {}

@@ -44,7 +44,7 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
-import { LoggedInEvent } from "@tutao/native-bridge"
+import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.

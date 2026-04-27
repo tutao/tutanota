@@ -1,5 +1,5 @@
-import { SqlCipherFacade } from "@tutao/native-bridge"
-import { TaggedSqlValue } from "../../../typerefs/SqlValue.js"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { TaggedSqlValue } from "@tutao/typerefs"
 import { ProgrammingError } from "@tutao/app-env"
 import { log } from "../DesktopLog.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"

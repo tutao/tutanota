@@ -4,7 +4,7 @@ import { ArchiveDataType, assertMainOrNode, isAndroidApp, isApp, isDesktop, isIO
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { assertOnlyFileReferences } from "../api/common/utils/FileUtils"
 import { CancelledError } from "../api/common/error/CancelledError"
-import type { NativeFileApp } from "@tutao/native-bridge"
+import type { NativeFileApp } from "@tutao/native-bridge/common"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
 import { TransferId } from "../api/common/drive/DriveTypes"

@@ -1,7 +1,7 @@
 import { Dialog } from "../../gui/base/Dialog"
 import { IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "@tutao/app-env"
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { MobileSystemFacade } from "@tutao/native-bridge"
+import { MobileSystemFacade } from "@tutao/native-bridge/common"
 import { UsageTestController } from "@tutao/usagetests"
 import { MultiPageDialog } from "../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
@@ -18,7 +18,7 @@ import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdenti
 import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 import { assertNotNull } from "@tutao/utils"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
+import { DesktopSystemFacade } from "@tutao/native-bridge/common"
 import { IdentityKeyQrVerificationResult } from "@tutao/app-env"
 
 enum KeyVerificationDialogPages {

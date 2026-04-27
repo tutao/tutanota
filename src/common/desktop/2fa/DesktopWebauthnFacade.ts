@@ -1,11 +1,13 @@
-import { WebAuthnFacade } from "@tutao/native-bridge"
+import {
+	WebAuthnFacade,
+	WebAuthnRegistrationChallenge,
+	WebAuthnRegistrationResult,
+	WebAuthnSignChallenge,
+	WebAuthnSignResult,
+} from "@tutao/native-bridge/common"
 import type { WebDialogController } from "../WebDialog.js"
 import { WebDialog } from "../WebDialog.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { WebAuthnRegistrationChallenge } from "@tutao/native-bridge"
-import { WebAuthnRegistrationResult } from "@tutao/native-bridge"
-import { WebAuthnSignChallenge } from "@tutao/native-bridge"
-import { WebAuthnSignResult } from "@tutao/native-bridge"
 
 export class DesktopWebauthnFacade implements WebAuthnFacade {
 	private currentDialog: Promise<WebDialog<{ WebAuthnFacade: WebAuthnFacade }>> | null = null

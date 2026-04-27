@@ -1,9 +1,9 @@
 import m from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
-import { ButtonType } from "../../gui/base/Button.js"
+import { lang } from "../misc/LanguageViewModel"
+import { ButtonType } from "../gui/base/Button.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { show } from "../../gui/base/NotificationOverlay"
-import { SettingsFacade } from "@tutao/native-bridge"
+import { show } from "../gui/base/NotificationOverlay"
+import { SettingsFacade } from "@tutao/native-bridge/common"
 
 assertMainOrNode()
 

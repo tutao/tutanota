@@ -1,5 +1,5 @@
 import { downcast } from "@tutao/utils"
-import { Message, Transport } from "@tutao/native-bridge"
+import { Message, Transport } from "@tutao/native-bridge/shared"
 
 /**
  * Queue transport for both WorkerClient and WorkerImpl

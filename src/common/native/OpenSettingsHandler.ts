@@ -1,5 +1,5 @@
 import m from "mithril"
-import { LoginController } from "../../api/main/LoginController.js"
+import { LoginController } from "../api/main/LoginController.js"
 
 /**
  * Handles requests for opening settings paths from native.

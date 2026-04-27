@@ -1,5 +1,5 @@
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { AppType } from "../../../../misc/ClientConstants"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"

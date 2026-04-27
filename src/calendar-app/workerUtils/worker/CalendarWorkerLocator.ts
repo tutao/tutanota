@@ -53,7 +53,7 @@ import {
 	NativePushFacadeSendDispatcher,
 	SqlCipherFacade,
 	SqlCipherFacadeSendDispatcher,
-} from "@tutao/native-bridge"
+} from "@tutao/native-bridge/common"
 import { CryptoWrapper, InstanceSessionKeysCache, KeyAuthenticationFacade, KeyCache, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 import { lazyAsync, lazyMemoized, noOp } from "@tutao/utils"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
@@ -62,7 +62,7 @@ import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEve
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { SessionType } from "../../../app-env/SessionType.js"
+import { SessionType } from "@tutao/app-env"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"

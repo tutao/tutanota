@@ -1,16 +1,16 @@
 import m from "mithril"
-import { CancelledError } from "../../api/common/error/CancelledError.js"
+import { CancelledError } from "../api/common/error/CancelledError.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { locator } from "../../api/main/CommonLocator.js"
-import { modal } from "../../gui/base/Modal"
-import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
+import { locator } from "../api/main/CommonLocator.js"
+import { modal } from "../gui/base/Modal"
+import { showUpgradeDialog } from "../gui/nav/NavFunctions.js"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../misc/RouteChange"
 import { last } from "@tutao/utils"
 import { CloseEventBusOption, SECOND_MS, UpgradePromptType } from "@tutao/app-env"
-import { MobileFacade } from "@tutao/native-bridge"
-import { styles } from "../../gui/styles"
-import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { TopLevelView } from "../../../TopLevelView.js"
+import { MobileFacade } from "@tutao/native-bridge/common"
+import { styles } from "../gui/styles"
+import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
+import { TopLevelView } from "../../TopLevelView.js"
 import stream from "mithril/stream"
 
 assertMainOrNode()
@@ -99,7 +99,7 @@ export class WebMobileFacade implements MobileFacade {
 	}
 
 	async keyboardSizeChanged(newSize: number): Promise<void> {
-		const { windowFacade } = await import("../../misc/WindowFacade.js")
+		const { windowFacade } = await import("../misc/WindowFacade.js")
 		return windowFacade.onKeyboardSizeChanged(newSize)
 	}
 

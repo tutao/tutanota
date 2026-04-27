@@ -21,6 +21,7 @@ import {
 	isOfflineStorageAvailable,
 	isTest,
 	ProgrammingError,
+	SessionType,
 } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -30,10 +31,8 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { DeviceEncryptionFacade } from "../../../common/api/worker/facades/DeviceEncryptionFacade.js"
-import type { NativeInterface, RsaImplementation } from "@tutao/native-bridge"
+import type { NativeInterface } from "@tutao/native-bridge/common"
 import {
-	AesApp,
-	createRsaImplementation,
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
@@ -42,7 +41,7 @@ import {
 	NativePushFacadeSendDispatcher,
 	SqlCipherFacade,
 	SqlCipherFacadeSendDispatcher,
-} from "@tutao/native-bridge"
+} from "@tutao/native-bridge/common"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -63,7 +62,6 @@ import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEve
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { SessionType } from "@tutao/app-env"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"
@@ -115,6 +113,7 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
+import { AesApp, createRsaImplementation, RsaImplementation } from "@tutao/native-bridge/worker"
 
 assertWorkerOrNode()
 

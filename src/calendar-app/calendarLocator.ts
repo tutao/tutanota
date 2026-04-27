@@ -59,14 +59,14 @@ import {
 	SettingsFacade,
 	SqlCipherFacade,
 	ThemeFacade,
-} from "@tutao/native-bridge"
+} from "@tutao/native-bridge/common"
 import { ExposedCacheStorage } from "../common/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
+import { NativeInterfaces } from "../common/native/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
@@ -86,8 +86,8 @@ import { CalendarEventModel, CalendarOperation } from "./calendar/gui/eventedito
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../common/gui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
-import { NativeInterfaceMain } from "../common/native/main/NativeInterfaceMain.js"
-import { NativePushServiceApp } from "../common/native/main/NativePushServiceApp.js"
+import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
+import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -132,8 +132,8 @@ import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "./calendar/model/CalendarEventUpdateCoordinator"
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
-import { WebMobileFacade } from "../common/native/main/WebMobileFacade"
-import { SystemPermissionHandler } from "../common/native/main/SystemPermissionHandler"
+import { WebMobileFacade } from "../common/native/WebMobileFacade"
+import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 
 assertMainOrNode()
 
@@ -396,7 +396,7 @@ class CalendarLocator implements CommonLocator {
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
 		if (isApp()) {
-			const { MobileContactSuggestionProvider } = await import("../common/native/main/MobileContactSuggestionProvider.js")
+			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
 			return {
@@ -676,19 +676,19 @@ class CalendarLocator implements CommonLocator {
 
 		this.Const = Const
 		if (!isBrowser()) {
-			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
-			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
-			const { WebCommonNativeFacade } = await import("../common/native/main/WebCommonNativeFacade.js")
-			const { WebInterWindowEventFacade } = await import("../common/native/main/WebInterWindowEventFacade.js")
-			const { WebAuthnFacadeSendDispatcher } = await import("@tutao/native-bridge")
-			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/main/NativeInterfaceFactory.js")
-			const { OpenCalendarHandler } = await import("../common/native/main/OpenCalendarHandler.js")
+			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
+			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")
+			const { WebCommonNativeFacade } = await import("../common/native/WebCommonNativeFacade.js")
+			const { WebInterWindowEventFacade } = await import("../common/native/WebInterWindowEventFacade.js")
+			const { WebAuthnFacadeSendDispatcher } = await import("@tutao/native-bridge/common")
+			const { createNativeInterfaces, createDesktopInterfaces } = await import("../common/native/NativeInterfaceFactory.js")
+			const { OpenCalendarHandler } = await import("../common/native/OpenCalendarHandler.js")
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {
 				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
 			})
-			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
+			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
@@ -728,7 +728,7 @@ class CalendarLocator implements CommonLocator {
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
-				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
+				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
 
@@ -979,7 +979,7 @@ class CalendarLocator implements CommonLocator {
 
 	showSetupWizard = async () => {
 		if (isApp()) {
-			const { showSetupWizard } = await import("../common/native/main/wizard/SetupWizard.js")
+			const { showSetupWizard } = await import("../common/native/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
 				this.webMobileFacade,

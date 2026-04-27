@@ -1,11 +1,11 @@
 import { assertMainOrNode, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
-import { MessageDispatcher } from "../../api/common/threading/MessageDispatcher.js"
+import { MessageDispatcher } from "../../native-bridge/common/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import { NativeInterface, Request, Transport, WebGlobalDispatcher } from "@tutao/native-bridge"
-import { IosNativeTransport } from "../../../native-bridge/main/IosNativeTransport.js"
-import { AndroidNativeTransport } from "../../../native-bridge/main/AndroidNativeTransport.js"
-import { DesktopNativeTransport } from "../../../native-bridge/main/DesktopNativeTransport.js"
+import { NativeInterface, WebGlobalDispatcher } from "@tutao/native-bridge/common"
+import { AndroidNativeTransport, DesktopNativeTransport, IosNativeTransport } from "@tutao/native-bridge/main"
+import { Request, Transport } from "@tutao/native-bridge/shared"
+import { objToError } from "../api/common/utils/ErrorUtils"
 
 assertMainOrNode()
 
@@ -38,6 +38,7 @@ export class NativeInterfaceMain implements NativeInterface {
 				ipc: (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2)),
 			},
 			"main-worker",
+			objToError,
 		)
 		await queue.postRequest(new Request("ipc", ["CommonSystemFacade", "initializeRemoteBridge"]))
 		this._dispatchDeferred.resolve(queue)

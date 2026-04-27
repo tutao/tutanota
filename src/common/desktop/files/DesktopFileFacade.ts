@@ -1,9 +1,8 @@
 import { default as stream, Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
-import { DownloadTaskResponse, FileFacade, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge"
+import { CommonNativeFacade, DownloadTaskResponse, FileFacade, FileUri, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge/common"
 import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import { DataFile } from "@tutao/typerefs"
-import { FileUri } from "../../../native-bridge/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/crypto"
@@ -26,7 +25,6 @@ import { HttpMethod } from "@tutao/rest-client/types"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
-import { CommonNativeFacade } from "@tutao/native-bridge"
 
 const TAG = "[DesktopFileFacade]"
 

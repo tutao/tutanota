@@ -9,7 +9,7 @@ import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
 import { SessionType } from "@tutao/app-env"
-import { LoggedInEvent } from "@tutao/native-bridge"
+import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>

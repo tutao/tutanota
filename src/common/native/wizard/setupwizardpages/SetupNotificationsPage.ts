@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
-import { PermissionType } from "@tutao/native-bridge"
-import { type TranslationKey } from "../../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs } from "../../../gui/base/WizardDialog.js"
+import { PermissionType } from "@tutao/native-bridge/common"
+import { type TranslationKey } from "../../../misc/LanguageViewModel.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
-import { NotificationPermissionsBody } from "../../../../settings/NotificationPermissionsDialog.js"
+import { NotificationPermissionsBody } from "../../../settings/NotificationPermissionsDialog.js"
 import { isAndroidApp } from "@tutao/app-env"
 
 export interface NotificationPermissionsData {

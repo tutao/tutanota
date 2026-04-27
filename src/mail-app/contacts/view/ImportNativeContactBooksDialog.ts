@@ -1,5 +1,5 @@
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
-import { ContactBook } from "@tutao/native-bridge"
+import { ContactBook } from "@tutao/native-bridge/common"
 import m, { Children } from "mithril"
 import { Checkbox } from "../../../common/gui/base/Checkbox.js"
 import { defer } from "@tutao/utils"

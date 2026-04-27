@@ -1,4 +1,4 @@
-import { CredentialEncryptionMode, NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge"
+import { CredentialEncryptionMode, NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { DeviceConfig, DeviceConfigCredentials } from "../DeviceConfig.js"
 import { base64ToUint8Array, mapNullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 

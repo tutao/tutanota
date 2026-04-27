@@ -25,7 +25,7 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/crypto"
-import type { RsaImplementation } from "@tutao/native-bridge"
+import type { RsaImplementation } from "@tutao/native-bridge/worker"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"

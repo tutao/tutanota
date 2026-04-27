@@ -10,7 +10,7 @@ import { SessionType } from "@tutao/app-env"
 import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
-import { LoggedInEvent } from "@tutao/native-bridge"
+import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(

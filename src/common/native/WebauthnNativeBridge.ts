@@ -1,9 +1,10 @@
-import { MessageDispatcher } from "../../api/common/threading/MessageDispatcher.js"
-import { exposeLocalDelayed } from "../../api/common/WorkerProxy"
+import { MessageDispatcher } from "../../native-bridge/common/MessageDispatcher.js"
+import { exposeLocalDelayed } from "../api/common/WorkerProxy"
 import { assertNotNull, defer, DeferredObject } from "@tutao/utils"
-import { DesktopNativeTransport } from "../../../native-bridge/main/DesktopNativeTransport.js"
-import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
-import { Commands, Request } from "@tutao/native-bridge"
+import { DesktopNativeTransport } from "@tutao/native-bridge/main"
+import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
+import { Commands, Request } from "@tutao/native-bridge/shared"
+import { objToError } from "../api/common/utils/ErrorUtils"
 
 export type WebToNativeRequest = "init"
 export type NativeToWebRequest = "facade"
@@ -26,7 +27,7 @@ export class WebauthnNativeBridge {
 				},
 			}),
 		}
-		this.dispatcher = new MessageDispatcher<WebToNativeRequest, NativeToWebRequest>(transport, commands, "webauthn-node")
+		this.dispatcher = new MessageDispatcher<WebToNativeRequest, NativeToWebRequest>(transport, commands, "webauthn-node", objToError)
 	}
 
 	async init(impl: BrowserWebauthn): Promise<void> {

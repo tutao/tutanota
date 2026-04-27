@@ -43,7 +43,10 @@
 			"@tutao/app-env": ["./src/app-env"],
 			"@tutao/typerefs": ["./src/typerefs"],
 			"@tutao/instance-pipeline": ["./src/instance-pipeline"],
-			"@tutao/native-bridge": ["./src/native-bridge"]
+			"@tutao/native-bridge/common": ["./src/native-bridge/common"],
+			"@tutao/native-bridge/worker": ["./src/native-bridge/worker"],
+			"@tutao/native-bridge/main": ["./src/native-bridge/main"],
+			"@tutao/native-bridge/shared": ["./src/native-bridge/shared"]
 		}
 	}
 }

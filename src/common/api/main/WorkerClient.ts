@@ -1,5 +1,4 @@
-import { Commands, Request, Transport } from "@tutao/native-bridge"
-import { MessageDispatcher } from "../common/threading/MessageDispatcher.js"
+import { Commands, Request, Transport } from "@tutao/native-bridge/shared"
 import { WebWorkerTransport } from "../common/threading/WebTransport.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { client } from "../../misc/ClientDetector"
@@ -12,6 +11,7 @@ import { EntropyDataChunk } from "../worker/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
+import { MessageDispatcher } from "@tutao/native-bridge/common"
 
 assertMainOrNode()
 
@@ -52,7 +52,7 @@ export class WorkerClient {
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
 			}
-			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker")
+			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker", objToError)
 			await this._dispatcher.postRequest(new Request("setup", [window.env, this.getInitialEntropy(), client.browserData()]))
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
@@ -72,6 +72,7 @@ export class WorkerClient {
 				} as Transport<WorkerRequestType, MainRequestType>,
 				this.queueCommands(locator),
 				"main-worker",
+				objToError,
 			)
 		}
 

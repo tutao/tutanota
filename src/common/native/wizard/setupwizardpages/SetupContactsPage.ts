@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { WizardPageAttrs } from "../../../../gui/base/WizardDialog.js"
-import { lang, type TranslationKey } from "../../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs } from "../../../gui/base/WizardDialog.js"
+import { lang, type TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
-import { NativeContactsSyncManager } from "../../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
-import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporter.js"
-import { Dialog } from "../../../../gui/base/Dialog.js"
-import { MobileSystemFacade } from "@tutao/native-bridge"
-import { renderSettingsBannerButton } from "../../../../settings/SettingsBannerButton.js"
-import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../../../subscription/TermsAndConditions"
+import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/NativeContactsSyncManager.js"
+import { ContactImporter } from "../../../../mail-app/contacts/ContactImporter.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
+import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { renderSettingsBannerButton } from "../../../settings/SettingsBannerButton.js"
+import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../../subscription/TermsAndConditions"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {

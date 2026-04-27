@@ -1,11 +1,11 @@
-import { DesktopFacade } from "@tutao/native-bridge"
-import { showSpellcheckLanguageDialog } from "../../gui/dialogs/SpellcheckLanguageDialog"
-import { ElectronResult } from "@tutao/native-bridge"
-import { ErrorInfo } from "@tutao/native-bridge"
-import { NativeShortcut } from "@tutao/native-bridge"
-import { Shortcut } from "../../misc/KeyManager.js"
+import { DesktopFacade } from "@tutao/native-bridge/common"
+import { showSpellcheckLanguageDialog } from "../gui/dialogs/SpellcheckLanguageDialog"
+import { ElectronResult } from "@tutao/native-bridge/common"
+import { ErrorInfo } from "@tutao/native-bridge/common"
+import { NativeShortcut } from "@tutao/native-bridge/common"
+import { Shortcut } from "../misc/KeyManager.js"
 import { Keys } from "@tutao/app-env"
-import { LoginController } from "../../api/main/LoginController.js"
+import { LoginController } from "../api/main/LoginController.js"
 import { lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 
@@ -25,19 +25,19 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async applySearchResultToOverlay(result: ElectronResult | null): Promise<void> {
-		const { searchInPageOverlay } = await import("../../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../gui/SearchInPageOverlay.js")
 		searchInPageOverlay.applyNextResult(result)
 		return Promise.resolve()
 	}
 
 	async openFindInPage(): Promise<void> {
-		const { searchInPageOverlay } = await import("../../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../gui/SearchInPageOverlay.js")
 		searchInPageOverlay.open()
 		return Promise.resolve()
 	}
 
 	async reportError(errorInfo: ErrorInfo): Promise<void> {
-		const { showErrorNotification } = await import("../../misc/ErrorReporter.js")
+		const { showErrorNotification } = await import("../misc/ErrorReporter.js")
 		await this.logins.waitForPartialLogin()
 		await showErrorNotification(errorInfo)
 	}
@@ -87,7 +87,7 @@ export class WebDesktopFacade implements DesktopFacade {
 			key: Keys.F,
 		}
 		const fixedShortcuts: Array<Shortcut> = shortcuts.map((nsc) => Object.assign({}, baseShortcut, nsc))
-		const { keyManager } = await import("../../misc/KeyManager.js")
+		const { keyManager } = await import("../misc/KeyManager.js")
 		keyManager.registerDesktopShortcuts(fixedShortcuts)
 	}
 
