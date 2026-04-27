@@ -2601,16 +2601,16 @@ function writeFileSync (file, obj, options = {}) {
   return fs.writeFileSync(file, str, options)
 }
 
-const jsonfile$1 = {
+// NOTE: do not change this export format; required for ESM compat
+// see https://github.com/jprichardson/node-jsonfile/pull/162 for details
+var jsonfile$1 = {
   readFile,
   readFileSync,
   writeFile,
   writeFileSync
 };
 
-var jsonfile_1 = jsonfile$1;
-
-const jsonFile$1 = jsonfile_1;
+const jsonFile$1 = jsonfile$1;
 
 var jsonfile = {
   // jsonfile exports
@@ -3321,7 +3321,7 @@ function requireCommon () {
 
 			const split = (typeof namespaces === 'string' ? namespaces : '')
 				.trim()
-				.replace(' ', ',')
+				.replace(/\s+/g, ',')
 				.split(',')
 				.filter(Boolean);
 
@@ -3673,7 +3673,7 @@ function requireBrowser () {
 		function load() {
 			let r;
 			try {
-				r = exports$1.storage.getItem('debug');
+				r = exports$1.storage.getItem('debug') || exports$1.storage.getItem('DEBUG') ;
 			} catch (error) {
 				// Swallow
 				// XXX (@Qix-) should we be logging these?
@@ -5205,9 +5205,13 @@ var sax$1 = {};
 	    clearBuffers(parser);
 	    parser.q = parser.c = '';
 	    parser.bufferCheckPosition = sax.MAX_BUFFER_LENGTH;
+	    parser.encoding = null;
 	    parser.opt = opt || {};
 	    parser.opt.lowercase = parser.opt.lowercase || parser.opt.lowercasetags;
 	    parser.looseCase = parser.opt.lowercase ? 'toLowerCase' : 'toUpperCase';
+	    parser.opt.maxEntityCount = parser.opt.maxEntityCount || 512;
+	    parser.opt.maxEntityDepth = parser.opt.maxEntityDepth || 4;
+	    parser.entityCount = parser.entityDepth = 0;
 	    parser.tags = [];
 	    parser.closed = parser.closedRoot = parser.sawRoot = false;
 	    parser.tag = parser.error = null;
@@ -5346,6 +5350,39 @@ var sax$1 = {};
 	    return new SAXStream(strict, opt)
 	  }
 
+	  function determineBufferEncoding(data, isEnd) {
+	    // BOM-based detection is the most reliable signal when present.
+	    if (data.length >= 2) {
+	      if (data[0] === 0xff && data[1] === 0xfe) {
+	        return 'utf-16le'
+	      }
+
+	      if (data[0] === 0xfe && data[1] === 0xff) {
+	        return 'utf-16be'
+	      }
+	    }
+
+	    if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+	      return 'utf8'
+	    }
+
+	    if (data.length >= 4) {
+	      // XML documents without a BOM still start with "<?xml", which is enough
+	      // to distinguish UTF-16LE/BE from UTF-8 by looking at the zero bytes.
+	      if (data[0] === 0x3c && data[1] === 0x00 && data[2] === 0x3f && data[3] === 0x00) {
+	        return 'utf-16le'
+	      }
+
+	      if (data[0] === 0x00 && data[1] === 0x3c && data[2] === 0x00 && data[3] === 0x3f) {
+	        return 'utf-16be'
+	      }
+
+	      return 'utf8'
+	    }
+
+	    return isEnd ? 'utf8' : null
+	  }
+
 	  function SAXStream(strict, opt) {
 	    if (!(this instanceof SAXStream)) {
 	      return new SAXStream(strict, opt)
@@ -5372,7 +5409,7 @@ var sax$1 = {};
 	    };
 
 	    this._decoder = null;
-
+	    this._decoderBuffer = null;
 	    streamWraps.forEach(function (ev) {
 	      Object.defineProperty(me, 'on' + ev, {
 	        get: function () {
@@ -5398,16 +5435,47 @@ var sax$1 = {};
 	    },
 	  });
 
+	  SAXStream.prototype._decodeBuffer = function (data, isEnd) {
+	    if (this._decoderBuffer) {
+	      // Keep incomplete leading bytes until we have enough data to infer the
+	      // stream encoding, then decode the buffered prefix together with the next chunk.
+	      data = Buffer.concat([this._decoderBuffer, data]);
+	      this._decoderBuffer = null;
+	    }
+
+	    if (!this._decoder) {
+	      var encoding = determineBufferEncoding(data, isEnd);
+	      if (!encoding) {
+	        // A very short first chunk may not contain enough bytes to detect the
+	        // encoding yet, so defer decoding until the next write/end call.
+	        this._decoderBuffer = data;
+	        return ''
+	      }
+
+	      // Store the detected transport encoding so strict mode can compare it
+	      // with the optional encoding declared in the XML prolog later on.
+	      this._parser.encoding = encoding;
+	      this._decoder = new TextDecoder(encoding);
+	    }
+
+	    return this._decoder.decode(data, { stream: !isEnd })
+	  };
+
 	  SAXStream.prototype.write = function (data) {
 	    if (
 	      typeof Buffer === 'function' &&
 	      typeof Buffer.isBuffer === 'function' &&
 	      Buffer.isBuffer(data)
 	    ) {
-	      if (!this._decoder) {
-	        this._decoder = new TextDecoder('utf8');
+	      data = this._decodeBuffer(data, false);
+	    } else if (this._decoderBuffer) {
+	      // Flush any buffered binary prefix before handling a string chunk.
+	      // This only matters if the caller mixes Buffer and string writes (used in test).
+	      var remaining = this._decodeBuffer(Buffer.alloc(0), true);
+	      if (remaining) {
+	        this._parser.write(remaining);
+	        this.emit('data', remaining);
 	      }
-	      data = this._decoder.decode(data, { stream: true });
 	    }
 
 	    this._parser.write(data.toString());
@@ -5420,7 +5488,13 @@ var sax$1 = {};
 	      this.write(chunk);
 	    }
 	    // Flush any remaining decoded data from the TextDecoder
-	    if (this._decoder) {
+	    if (this._decoderBuffer) {
+	      var finalChunk = this._decodeBuffer(Buffer.alloc(0), true);
+	      if (finalChunk) {
+	        this._parser.write(finalChunk);
+	        this.emit('data', finalChunk);
+	      }
+	    } else if (this._decoder) {
 	      var remaining = this._decoder.decode();
 	      if (remaining) {
 	        this._parser.write(remaining);
@@ -5811,6 +5885,59 @@ var sax$1 = {};
 
 	  function emit(parser, event, data) {
 	    parser[event] && parser[event](data);
+	  }
+
+	  function getDeclaredEncoding(body) {
+	    var match = body && body.match(/(?:^|\s)encoding\s*=\s*(['"])([^'"]+)\1/i);
+	    return match ? match[2] : null
+	  }
+
+	  function normalizeEncodingName(encoding) {
+	    if (!encoding) {
+	      return null
+	    }
+
+	    return encoding.toLowerCase().replace(/[^a-z0-9]/g, '')
+	  }
+
+	  function encodingsMatch(detectedEncoding, declaredEncoding) {
+	    const detected = normalizeEncodingName(detectedEncoding);
+	    const declared = normalizeEncodingName(declaredEncoding);
+
+	    if (!detected || !declared) {
+	      return true
+	    }
+
+	    if (declared === 'utf16') {
+	      return detected === 'utf16le' || detected === 'utf16be'
+	    }
+
+	    return detected === declared
+	  }
+
+	  function validateXmlDeclarationEncoding(parser, data) {
+	    if (
+	      !parser.strict ||
+	      !parser.encoding ||
+	      !data ||
+	      data.name !== 'xml'
+	    ) {
+	      return
+	    }
+
+	    var declaredEncoding = getDeclaredEncoding(data.body);
+	    if (
+	      declaredEncoding &&
+	      !encodingsMatch(parser.encoding, declaredEncoding)
+	    ) {
+	      strictFail(
+	        parser,
+	        'XML declaration encoding ' +
+	          declaredEncoding +
+	          ' does not match detected stream encoding ' +
+	          parser.encoding.toUpperCase()
+	      );
+	    }
 	  }
 
 	  function emitNode(parser, nodeType, data) {
@@ -6516,10 +6643,12 @@ var sax$1 = {};
 
 	        case S.PROC_INST_ENDING:
 	          if (c === '>') {
-	            emitNode(parser, 'onprocessinginstruction', {
+	            const procInstEndData = {
 	              name: parser.procInstName,
 	              body: parser.procInstBody,
-	            });
+	            };
+	            validateXmlDeclarationEncoding(parser, procInstEndData);
+	            emitNode(parser, 'onprocessinginstruction', procInstEndData);
 	            parser.procInstName = parser.procInstBody = '';
 	            parser.state = S.TEXT;
 	          } else {
@@ -6751,9 +6880,24 @@ var sax$1 = {};
 	              parser.opt.unparsedEntities &&
 	              !Object.values(sax.XML_ENTITIES).includes(parsedEntity)
 	            ) {
+	              if ((parser.entityCount += 1) > parser.opt.maxEntityCount) {
+	                error(
+	                  parser,
+	                  'Parsed entity count exceeds max entity count'
+	                );
+	              }
+
+	              if ((parser.entityDepth += 1) > parser.opt.maxEntityDepth) {
+	                error(
+	                  parser,
+	                  'Parsed entity depth exceeds max entity depth'
+	                );
+	              }
+
 	              parser.entity = '';
 	              parser.state = returnState;
 	              parser.write(parsedEntity);
+	              parser.entityDepth -= 1;
 	            } else {
 	              parser[buffer] += parsedEntity;
 	              parser.entity = '';
