@@ -7,7 +7,7 @@ import {
 import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { SpamDecision } from "../../../../../../src/app-env"
 import { matchers, object, verify, when } from "testdouble"
-import { EntityClient } from "../../../../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../../../../src/network/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"

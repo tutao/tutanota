@@ -13,7 +13,6 @@ import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
-import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import {
 	assertSystemFolderOfType,
@@ -24,6 +23,7 @@ import {
 } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../common/gui/base/Checkbox"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 assertMainOrNode()
 

@@ -1,10 +1,10 @@
 import { RecipientKeyVerificationRecoveryModel } from "../../../src/common/misc/RecipientKeyVerificationRecoveryModel"
-import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicIdentityKeyProvider } from "../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
+import { KeyVerificationFacade } from "../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
+import { PublicIdentityKeyProvider } from "../../../src/network/crypto/facades/PublicIdentityKeyProvider"
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel"
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { TrustDBEntry } from "../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../src/network/offline/IdentityKeyTrustDatabase"
 import { ProgrammingError } from "@tutao/app-env"
 import { IdentityKeySourceOfTrust } from "../../../src/app-env"
 

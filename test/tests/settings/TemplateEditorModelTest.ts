@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { TemplateEditorModel } from "../../../src/mail-app/settings/TemplateEditorModel.js"
-import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../src/network/EntityClient.js"
 import { downcast } from "@tutao/utils"
 import { LanguageNames, languages } from "../../../src/common/misc/LanguageViewModel.js"
 import { createTestEntity } from "../TestUtils.js"

@@ -9,9 +9,9 @@ import * as restError from "@tutao/rest-client/error"
 import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
-import { AppType } from "../../../common/misc/ClientConstants.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { AppType } from "@tutao/app-env"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null

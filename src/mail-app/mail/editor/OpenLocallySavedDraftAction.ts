@@ -3,13 +3,13 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/ap
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import type { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailViewerViewModel } from "../view/MailViewerViewModel"
-import type { EntityClient } from "../../../common/api/common/EntityClient"
+import type { EntityClient } from "../../../network/EntityClient"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
 import { SessionType } from "@tutao/app-env"
 import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>

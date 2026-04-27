@@ -3,19 +3,19 @@ import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from 
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { UsageTestMetricType } from "@tutao/app-env"
 import { SuspensionError } from "../api/common/error/SuspensionError"
-import { DateProvider } from "../api/common/DateProvider.js"
-import { IServiceExecutor } from "../api/common/ServiceRequest"
+import { DateProvider } from "../../utils/DateProvider.js"
+import { IServiceExecutor } from "../../network/ServiceRequest"
 import { lang, TranslationKey } from "./LanguageViewModel"
 import stream from "mithril/stream"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { DropDownSelector, SelectorItem } from "../gui/base/DropDownSelector"
 import m, { Children } from "mithril"
-import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 const PRESELECTED_LIKERT_VALUE = null
 

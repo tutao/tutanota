@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
 import {
 	containsId,
 	DataFile,
@@ -62,7 +62,7 @@ import {
 	sha256Hash,
 	VersionedKey,
 } from "@tutao/crypto"
-import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
+import { RecipientsNotFoundError } from "../../../../../network/crypto/error/RecipientsNotFoundError.js"
 import * as restError from "@tutao/rest-client/error"
 import {
 	addressDomain,
@@ -84,22 +84,22 @@ import {
 	stringToCustomId,
 } from "@tutao/utils"
 import { BlobFacade } from "./BlobFacade.js"
-import { EntityClient } from "../../../common/EntityClient.js"
-import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
+import { EntityClient } from "../../../../../network/EntityClient.js"
+import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../../../network/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
 import { isDataFile, isFileReference } from "../../../common/utils/FileUtils.js"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { UserFacade } from "../UserFacade.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../../common/recipients/Recipient.js"
 import { NativeFileApp } from "@tutao/native-bridge/common"
-import { LoginFacade } from "../LoginFacade.js"
-import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"
-import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
-import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
+import { LoginFacade } from "../../../../../network/LoginFacade.js"
+import { OwnerEncSessionKeyProvider } from "@tutao/network"
+import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
+import { PublicEncryptionKeyProvider } from "../../../../../network/crypto/facades/PublicEncryptionKeyProvider.js"
+import { KeyVerificationMismatchError } from "../../../../../network/crypto/error/KeyVerificationMismatchError"
+import { VerifiedPublicEncryptionKey } from "../../../../../network/crypto/facades/lazy/KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
 import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"

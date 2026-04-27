@@ -31,7 +31,7 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { ContactEditor } from "../../contacts/ContactEditor"
 import { styles } from "../../../common/gui/styles"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
-import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
+import { getGroupInfoDisplayName } from "../../../network/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { ClickHandler, getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"

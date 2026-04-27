@@ -1,5 +1,5 @@
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { entityUpdateUtils, getElementId, tutanotaTypeRefs } from "@tutao/typerefs"

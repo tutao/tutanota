@@ -10,8 +10,8 @@ import { MembershipRemovedError } from "../../../../../src/common/api/common/err
 import { defer, downcast, freshVersioned, promiseMap } from "@tutao/utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV, VersionedKey } from "@tutao/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
-import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { CacheInfo } from "../../../../../src/network/LoginFacade.js"
+import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
@@ -20,8 +20,8 @@ import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/Index
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
-import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
+import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLoaderFacade"
+import { DateProvider } from "../../../../../src/utils/DateProvider"
 import { ProgrammingError } from "@tutao/app-env"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()

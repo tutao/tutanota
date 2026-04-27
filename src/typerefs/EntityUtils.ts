@@ -6,7 +6,6 @@ import {
 	base64UrlToBase64,
 	compare,
 	downcast,
-	Hex,
 	hexToBase64,
 	pad,
 	repeat,

@@ -1,4 +1,3 @@
-import type { Hex } from "@tutao/utils"
 import { defer } from "@tutao/utils"
 import { InvoiceData, NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
 import { countryList } from "@tutao/app-env"

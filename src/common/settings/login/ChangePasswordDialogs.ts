@@ -4,7 +4,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import m from "mithril"
 import * as restError from "@tutao/rest-client/error"
 import { PasswordForm, PasswordModel } from "../PasswordForm.js"
-import { assertNonNull, assertNotNull, Base64, newPromise, ofClass } from "@tutao/utils"
+import { assertNonNull, assertNotNull, newPromise, ofClass } from "@tutao/utils"
 import { asKdfType, sysTypeRefs } from "@tutao/typerefs"
 import { DEFAULT_KDF_TYPE } from "@tutao/app-env"
 

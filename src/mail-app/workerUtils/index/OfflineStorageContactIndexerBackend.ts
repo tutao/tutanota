@@ -1,7 +1,7 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 
 export class OfflineStorageContactIndexerBackend implements ContactIndexerBackend {
 	constructor(

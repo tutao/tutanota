@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 
 import { showTemplateEditor } from "./TemplateEditor"
 import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "@tutao/app-env"

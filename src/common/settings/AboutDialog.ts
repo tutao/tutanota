@@ -10,7 +10,7 @@ import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { px, size } from "../gui/size.js"
 import { getTutaLogo } from "../gui/base/Logo.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
-import { client } from "../misc/ClientDetector"
+import { client } from "../../app-env/ClientDetector"
 import { isApp } from "@tutao/app-env"
 
 interface AboutDialogAttrs {

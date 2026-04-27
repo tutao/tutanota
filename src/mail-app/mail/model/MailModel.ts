@@ -46,14 +46,14 @@ import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
-import { isExpectedErrorForSynchronization } from "../../../common/api/common/utils/ErrorUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
-import { EntityRestClientLoadOptions } from "../../../common/api/worker/rest/EntityRestClient"
+import { EntityRestClientLoadOptions } from "@tutao/network"
+import { isExpectedErrorForSynchronization } from "../../../network/error/NetworkErrorUtils"
 
 interface MailboxSets {
 	folders: FolderSystem

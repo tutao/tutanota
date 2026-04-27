@@ -1,4 +1,12 @@
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
+import {
+	CancelledError,
+	daysToMillis,
+	ENTITY_EVENT_BATCH_TTL_DAYS,
+	GroupType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+	ProgrammingError,
+} from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import {
 	ClientTypeModelResolver,
@@ -22,10 +30,9 @@ import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { EventQueue } from "../../../common/api/worker/EventQueue.js"
-import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import {
 	_encryptKeyWithVersionedKey,
@@ -50,13 +57,13 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../network/crypto/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import { DateProvider } from "../../../common/api/common/DateProvider"
+import { DateProvider } from "../../../utils/DateProvider"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
-import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError"
+import { OutOfSyncError } from "../../../network/error/OutOfSyncError"
 
 export type InitParams = {
 	user: sysTypeRefs.User

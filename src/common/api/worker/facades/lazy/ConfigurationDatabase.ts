@@ -1,4 +1,4 @@
-import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
+import { DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { ExternalImageRule, NewsletterBannerRule, OperationType } from "@tutao/app-env"
 import {
@@ -17,7 +17,7 @@ import {
 	random,
 	VersionedKey,
 } from "@tutao/crypto"
-import { UserFacade } from "../UserFacade.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import {
 	EncryptedDbKeyBaseMetaData,
 	EncryptedIndexerMetaData,
@@ -27,11 +27,12 @@ import {
 	SpamClassificationModelOS,
 } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { b64UserIdHash } from "../../utils/DbUtils"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"

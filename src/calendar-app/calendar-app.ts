@@ -1,4 +1,4 @@
-import { client } from "../common/misc/ClientDetector.js"
+import { client } from "../app-env/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
@@ -28,9 +28,9 @@ import { CalendarSettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { AppType } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 bootFinished()

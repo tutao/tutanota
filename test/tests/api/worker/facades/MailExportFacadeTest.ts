@@ -3,12 +3,12 @@ import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/c
 import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
 import { BulkMailLoader } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/network/crypto/facades/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { createReferencingInstance, tutanotaTypeRefs } from "@tutao/typerefs"
 import { ArchiveDataType } from "@tutao/app-env"
-import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade"
+import { BlobAccessTokenFacade } from "../../../../../src/network/facades/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
 
 o.spec("MailExportFacade", () => {

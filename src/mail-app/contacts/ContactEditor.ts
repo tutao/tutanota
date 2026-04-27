@@ -43,7 +43,7 @@ import {
 import { parseBirthday } from "../../common/misc/DateParser"
 import type { LegacyTextFieldAttrs } from "../../common/gui/base/LegacyTextField.js"
 import { Autocapitalize, Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { AggregateEditorAttrs, ContactAggregateEditor } from "./ContactAggregateEditor"
 import { DefaultAnimationTime } from "../../common/gui/animation/Animations"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"

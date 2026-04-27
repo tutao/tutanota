@@ -4,7 +4,7 @@ import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { client } from "../misc/ClientDetector"
+import { client } from "../../app-env/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
 import { Mode } from "@tutao/app-env"
 

@@ -3,18 +3,18 @@ import { convertToDataFile, createDataFile, createReferencingInstance, DataFile,
 import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { BrowserType } from "../misc/ClientConstants.js"
-import { client } from "../misc/ClientDetector.js"
+import { BrowserType } from "../../app-env/ClientConstants.js"
+import { client } from "../../app-env/ClientDetector.js"
 import { deduplicateFilenames, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
-import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { TransferId } from "../api/common/drive/DriveTypes"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"

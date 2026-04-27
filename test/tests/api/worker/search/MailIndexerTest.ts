@@ -26,7 +26,7 @@ import type { DateProvider } from "../../../../../src/common/api/worker/DateProv
 import { func, matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"

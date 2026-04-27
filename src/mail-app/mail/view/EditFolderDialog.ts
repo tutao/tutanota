@@ -9,12 +9,12 @@ import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailReportType, MailSetKind } from "@tutao/app-env"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { groupByAndMap } from "@tutao/utils"
 import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 type MailSet = tutanotaTypeRefs.MailSet
 /**

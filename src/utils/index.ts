@@ -114,7 +114,6 @@ export {
 	customIdToString,
 	uint8arrayToCustomId,
 } from "./Encoding.js"
-export type { Base64, Base64Ext, Base64Url, Hex } from "./Encoding.js"
 export { LazyLoaded } from "./LazyLoaded.js"
 export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry, mapMap, takeFromMap } from "./MapUtils.js"
 export { pMap } from "./PromiseMap.js"

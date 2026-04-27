@@ -10,7 +10,7 @@ import {
 } from "@tutao/typerefs"
 import { DesktopConfigKey } from "../../../app-env/ConfigKeys"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
-import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
+import { assertNotNull, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
 import { InstancePipeline } from "@tutao/instance-pipeline"

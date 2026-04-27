@@ -23,8 +23,10 @@ import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, Maybe
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "@tutao/app-env"
-import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
+import { client } from "../../../app-env/ClientDetector"
+import { LoginTextField } from "./LoginTextField"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 import { TextField } from "./TextField"
 
 assertMainOrNode()

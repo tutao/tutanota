@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailSetListData, TimeRange } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { object, when } from "testdouble"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../../../src/network/EntityClient"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "@tutao/typerefs"
 import { createTestEntity, equalToArray } from "../../../TestUtils"

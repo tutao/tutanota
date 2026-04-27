@@ -9,7 +9,7 @@ import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../src/cale
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../../../src/app-env"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { getFirstOrThrow, getStartOfDay } from "@tutao/utils"

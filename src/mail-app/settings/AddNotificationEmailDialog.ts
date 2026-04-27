@@ -8,9 +8,9 @@ import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressPars
 import { PushServiceType, UpgradePromptType } from "@tutao/app-env"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
-import { EntityClient } from "../../common/api/common/EntityClient.js"
-import { AppType } from "../../common/misc/ClientConstants.js"
+import { EntityClient } from "@tutao/network"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { AppType } from "@tutao/app-env"
 
 export class AddNotificationEmailDialog {
 	constructor(

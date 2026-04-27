@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
+import { DateProvider } from "../../../../../src/utils/DateProvider.js"
 import { NewsModel } from "../../../../../src/common/misc/news/NewsModel.js"
 import { object, replace, when } from "testdouble"
 import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"

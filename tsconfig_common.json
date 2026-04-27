@@ -38,6 +38,7 @@
 			"@tutao/mimimi/types": ["./src/mimimi/napi-out/binding.d.ts"],
 			"@tutao/otest": ["./test/otest"],
 			"@tutao/rest-client": ["./src/rest-client"],
+			"@tutao/network": ["./src/network"],
 			"@tutao/rest-client/types": ["./src/rest-client/types.d.ts"],
 			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
 			"@tutao/app-env": ["./src/app-env"],

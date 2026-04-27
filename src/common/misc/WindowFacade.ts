@@ -1,7 +1,7 @@
 import m, { Params } from "mithril"
 import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { lang } from "./LanguageViewModel"
-import { client } from "./ClientDetector"
+import { client } from "../../app-env/ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"

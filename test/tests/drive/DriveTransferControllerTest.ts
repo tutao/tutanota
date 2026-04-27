@@ -9,7 +9,7 @@ import { createTestEntity, SchedulerMock } from "../TestUtils"
 import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
 import { driveTypeRefs } from "@tutao/typerefs"
 import { ArchiveDataType } from "@tutao/app-env"
-import { CancelledError } from "../../../src/common/api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import { WebFile } from "../../../src/common/api/common/utils/FileUtils"
 

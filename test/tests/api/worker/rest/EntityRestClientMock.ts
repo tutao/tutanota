@@ -1,4 +1,4 @@
-import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { EntityRestClient, EntityRestClientLoadOptions } from "@tutao/network"
 import {
 	_verifyType,
 	BlobElementEntity,
@@ -22,9 +22,9 @@ import {
 } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
 import { downcast } from "@tutao/utils"
-import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { AuthDataProvider } from "../../../../../src/network/UserFacade.js"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { getIds } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
+import { getIds } from "@tutao/network"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {

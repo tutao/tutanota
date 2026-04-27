@@ -45,7 +45,7 @@ import {
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
-import { client } from "../misc/ClientDetector.js"
+import { client } from "../../app-env/ClientDetector.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
@@ -53,7 +53,7 @@ import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../gui/size"
 import { Icons } from "../gui/base/icons/Icons"
-import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
+import { getUserGroupMemberships } from "../../network/GroupUtils"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.

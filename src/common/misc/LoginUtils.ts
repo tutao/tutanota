@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp, getCustomerApprovalStatus, sysTypeRefs } from "@tutao/typerefs"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
 import * as restError from "@tutao/rest-client/error"
-import { CancelledError } from "../api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -16,8 +16,8 @@ import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { deviceConfig } from "./DeviceConfig"
-import { CacheMode } from "../api/worker/rest/EntityRestClient"
-import { ApprovalStatus, AvailablePlans, AvailablePlanType, KdfType, NewBusinessPlans, SubscriptionType } from "@tutao/app-env"
+import { CacheMode } from "@tutao/network"
+import { ApprovalStatus, AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "@tutao/app-env"
 
 function getAccountAgeInMs(customer: sysTypeRefs.Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
@@ -295,9 +295,4 @@ export async function showGiftCardDialog(urlHash: string) {
 export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
 	const dialog = await import("../login/recover/RecoverLoginDialog")
 	dialog.show(mailAddress, resetAction)
-}
-
-export type ExternalUserKeyDeriver = {
-	kdfType: KdfType
-	salt: Uint8Array
 }

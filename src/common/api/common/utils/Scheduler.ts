@@ -1,6 +1,5 @@
 import type { Thunk } from "@tutao/utils"
-import { DateProvider } from "../DateProvider.js"
-import { SystemTimeout } from "../../../../../types"
+import { DateProvider } from "../../../../utils/DateProvider.js"
 
 export type ScheduledTimeoutId = TimeoutID
 export type ScheduledPeriodicId = TimeoutID

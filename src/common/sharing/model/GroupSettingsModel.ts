@@ -14,7 +14,7 @@
  *     name"
  */
 import { LoginController } from "../../api/main/LoginController"
-import { EntityClient } from "../../api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"

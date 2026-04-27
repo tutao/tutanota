@@ -10,7 +10,7 @@ import {
 	listIdPart,
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode, OperationType } from "@tutao/app-env"
 import { assertNotNull, compare, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
@@ -18,11 +18,11 @@ import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { isExpectedErrorForSynchronization, isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
-import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { isExpectedErrorForSynchronization, isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
 
 assertMainOrNode()
 

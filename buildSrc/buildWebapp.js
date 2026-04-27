@@ -94,7 +94,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		execSync("npx tsc -b tsconfig.wasm.json", { stdio: "inherit", cwd: "src" })
 	})
 
-	const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: [entryFile, workerFile, powWorkerFile],

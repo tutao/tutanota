@@ -2,18 +2,18 @@
 
 import * as restError from "@tutao/rest-client/error"
 import { SuspensionError } from "../error/SuspensionError.js"
-import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
+import { LoginIncompleteError } from "../../../../network/error/LoginIncompleteError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { SseError } from "../error/SseError.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError.js"
-import { RecipientNotResolvedError } from "../error/RecipientNotResolvedError.js"
+import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
+import { RecipientsNotFoundError } from "../../../../network/crypto/error/RecipientsNotFoundError.js"
+import { RecipientNotResolvedError } from "../../../../network/crypto/error/RecipientNotResolvedError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
-import { OutOfSyncError } from "../error/OutOfSyncError.js"
+import { OutOfSyncError } from "../../../../network/error/OutOfSyncError.js"
 import { DbError } from "../error/DbError.js"
 import { IndexingNotSupportedError } from "../error/IndexingNotSupportedError.js"
 import { QuotaExceededError } from "../error/QuotaExceededError.js"
-import { CancelledError } from "../error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { FileOpenError } from "../error/FileOpenError.js"
 import { DeviceStorageUnavailableError } from "../error/DeviceStorageUnavailableError.js"
 import { MailBodyTooLargeError } from "../error/MailBodyTooLargeError.js"
@@ -28,21 +28,12 @@ import { ContactStoreError } from "../error/ContactStoreError.js"
 import { MobilePaymentError } from "../error/MobilePaymentError"
 import { MailImportError } from "../error/MailImportError.js"
 import { ExportError } from "../error/ExportError"
-import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
-import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
+import { KeyVerificationMismatchError } from "../../../../network/crypto/error/KeyVerificationMismatchError"
+import { ServerModelsUnavailableError } from "../../../../instance-pipeline/ServerModelsUnavailableError"
 import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
-import { InvalidModelError } from "@tutao/app-env"
 import { MoveCycleError } from "../error/MoveCycleError"
 import { MoveToTrashError } from "../error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceError"
-
-//If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "<at>bundleInto:common-min"
-/**
- * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
- */
-export function isOfflineError(e: Error): boolean {
-	return e instanceof restError.ConnectionError || e instanceof LoginIncompleteError
-}
 
 // If importing fails it is a good idea to adjust the chunking to bundle the error into common
 
@@ -157,12 +148,4 @@ export function objToError(o: Record<string, any>): Error {
 	e.stack = o.stack || e.stack
 	e.data = o.data
 	return e
-}
-
-/**
- * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
- * for the instance that was already deleted. Normally this would be optimized away, but it might still happen due to timing.
- */
-export function isExpectedErrorForSynchronization(e: Error): boolean {
-	return e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError
 }

@@ -1,16 +1,11 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
-import { CacheInfo, LoginListener } from "../worker/facades/LoginFacade.js"
+import { CacheInfo, LoginFailReason, LoginListener } from "../../../network/LoginFacade.js"
 import { SessionType } from "@tutao/app-env"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { Credentials } from "../../misc/credentials/Credentials.js"
 import { PersistedCredentials } from "@tutao/native-bridge/common"
 import { sysTypeRefs } from "@tutao/typerefs"
-
-export const enum LoginFailReason {
-	SessionExpired,
-	Error,
-}
+import { Credentials } from "../../../network/Constants"
 
 /** Listener for the login events from the worker side. */
 export class PageContextLoginListener implements LoginListener {

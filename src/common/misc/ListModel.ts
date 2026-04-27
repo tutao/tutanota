@@ -21,8 +21,8 @@ import {
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
-import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 /**
  * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.

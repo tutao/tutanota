@@ -13,7 +13,7 @@ import {
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { assertNotNull, findLast, findLastIndex, groupBy, makeSingleUse, memoizedWithHiddenArgument, ofClass, settledThen } from "@tutao/utils"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"

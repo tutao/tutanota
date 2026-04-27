@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { entityUpdateUtils, getLetId, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { EventController } from "../../api/main/EventController"
 import { getInvitationGroupType, loadReceivedGroupInvitations, ShareableGroupType } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"

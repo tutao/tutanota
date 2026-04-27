@@ -15,11 +15,11 @@ import { Attachment, DataFile, sysTypeRefs, tutanotaTypeRefs } from "@tutao/type
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { UserController } from "../api/main/UserController.js"
-import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../api/common/utils/GroupUtils.js"
+import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../../network/GroupUtils.js"
 import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { showFileChooser } from "../file/FileController.js"
 import { Dialog } from "../gui/base/Dialog.js"
 

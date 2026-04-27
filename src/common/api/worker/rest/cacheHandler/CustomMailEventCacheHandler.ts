@@ -1,7 +1,7 @@
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, lazy, lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
-import { CustomCacheHandler } from "./CustomCacheHandler"
+import { CustomCacheHandler } from "../../../../../network/offline/CustomCacheHandler"
 import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 /**

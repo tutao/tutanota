@@ -14,7 +14,7 @@ import { getContactTitle } from "../../../../common/gui/base/GuiUtils.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
-import { client } from "../../../../common/misc/ClientDetector.js"
+import { client } from "../../../../app-env/ClientDetector.js"
 
 export type ContactPreviewViewAttrs = {
 	event: tutanotaTypeRefs.CalendarEvent

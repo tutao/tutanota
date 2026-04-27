@@ -1,7 +1,7 @@
 import type { Thunk } from "@tutao/utils"
 import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"
 import { calculateAlarmTime, findNextAlarmOccurrence, getEventEnd, getEventStart, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
-import { DateProvider } from "../../../common/api/common/DateProvider.js"
+import { DateProvider } from "../../../utils/DateProvider.js"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 type NotificationSender = (eventTime: Date, summary: string) => void

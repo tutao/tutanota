@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
-import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../src/network/EntityClient.js"
 import { matchers, object, when } from "testdouble"
 import { MailAddressFacade } from "../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"

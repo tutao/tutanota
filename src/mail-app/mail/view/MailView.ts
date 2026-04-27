@@ -30,7 +30,7 @@ import {
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { readLocalFiles } from "../../../common/file/FileController.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"

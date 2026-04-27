@@ -120,3 +120,13 @@ interface NativeApp {
 
 	startWebMessageChannel() // Available in android
 }
+
+// AppType is defined in @tutao/app-env
+// Do not import the enum here since this will break globals.d.ts
+
+declare const APP_TYPE: AppType
+
+declare type Base64 = string
+declare type Base64Ext = string
+declare type Base64Url = string
+declare type Hex = string

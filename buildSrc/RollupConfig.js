@@ -370,6 +370,16 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "common"
 	} else if (isIn("src/native-bridge/common")) {
 		return "native-common"
+	} else if (isIn("src/network/crypto/error") || isIn("src/network/error")) {
+		return "common-min"
+	} else if (isIn("src/network/crypto/entityCache")) {
+		return "common"
+	} else if (isIn("src/network/crypto/facades/lazy") || isIn("src/network/facades/lazy")) {
+		return "worker-lazy"
+	} else if (isIn("src/network/crypto/facades") || isIn("src/network/facades/") || isIn("src/network/offline/migrations")) {
+		return "worker"
+	} else if (isIn("src/network")) {
+		return "worker"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

@@ -3,7 +3,7 @@ import { createReferencingInstance, DataFile, FileReference, tutanotaTypeRefs } 
 import { ArchiveDataType, assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import { assertOnlyFileReferences } from "../api/common/utils/FileUtils"
-import { CancelledError } from "../api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import type { NativeFileApp } from "@tutao/native-bridge/common"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"

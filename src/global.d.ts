@@ -11,7 +11,6 @@ import { ICommonLocator } from "./api/main/CommonLocator"
 import { WhitelabelCustomizations } from "./misc/WhitelabelCustomizations"
 import { WorkerLocatorType } from "./api/worker/WorkerLocator"
 import { TopLevelView } from "./TopLevelView.js"
-import { AppType } from "./common/misc/ClientConstants"
 
 export { NativeApp } from "../types/globals"
 
@@ -46,6 +45,4 @@ declare global {
 	interface WorkerGlobalScope {
 		locator: WorkerLocatorType
 	}
-
-	const APP_TYPE: AppType
 }

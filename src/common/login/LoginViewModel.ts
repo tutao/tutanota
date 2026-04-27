@@ -14,16 +14,16 @@ import { assertMainOrNode } from "@tutao/app-env"
 import { SessionType } from "@tutao/app-env"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"
-import { CancelledError } from "../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/NativePushServiceApp.js"
 import { CredentialsInfo } from "@tutao/native-bridge/common"
 import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { AppLock } from "./AppLock.js"
-import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthenticationError"
 import { getWhitelabelRegistrationDomains } from "../misc/WhitelabelCustomizations"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 assertMainOrNode()
 

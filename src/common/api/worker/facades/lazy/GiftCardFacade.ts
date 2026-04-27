@@ -1,6 +1,5 @@
 import {
 	assertNotNull,
-	Base64,
 	base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToBase64Url,
@@ -12,12 +11,12 @@ import {
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
-import { UserFacade } from "../UserFacade.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
+import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"
-import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24

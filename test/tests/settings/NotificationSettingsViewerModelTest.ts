@@ -2,10 +2,11 @@ import o from "@tutao/otest"
 import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
 import { NativePushServiceApp } from "../../../src/native-bridge/main/NativePushServiceApp"
 import { sysTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"
-import { AppType } from "../../../src/common/misc/ClientConstants"
+
+import { AppType } from "../../../types/globals"
 
 o.spec("NotificationSettingsViewerModel", () => {
 	let model: NotificationSettingsViewerModel

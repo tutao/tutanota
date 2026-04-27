@@ -53,3 +53,8 @@ export const enum SuspensionBehavior {
 	Suspend,
 	Throw,
 }
+export interface RestClientInterface {
+	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null>
+
+	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions): void
+}

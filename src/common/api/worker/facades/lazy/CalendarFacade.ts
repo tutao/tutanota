@@ -26,16 +26,16 @@ import {
 	stringToUtf8Uint8Array,
 	uint8arrayToCustomId,
 } from "@tutao/utils"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import * as restError from "@tutao/rest-client/error"
-import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
-import { GroupManagementFacade } from "./GroupManagementFacade.js"
-import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
+import { EntityClient, loadMultipleFromLists } from "../../../../../network/EntityClient.js"
+import { GroupManagementFacade } from "../../../../../network/facades/lazy/GroupManagementFacade.js"
+import { SetupMultipleError } from "../../../../../network/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
 import { aes256RandomKey, AesKey, encryptKey, keyToBase64, sha256Hash } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { UserFacade } from "../UserFacade.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { NativePushFacade } from "@tutao/native-bridge/common"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
@@ -51,10 +51,10 @@ import {
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
-import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventAlarmsTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { isOfflineError } from "../../../../../network/error/NetworkErrorUtils"
 
 assertWorkerOrNode()
 

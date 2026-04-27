@@ -1,6 +1,5 @@
 // @ts-ignore[untyped-import]
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
-import type { Base64, Hex } from "@tutao/utils"
 import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import type { RawRsaPublicKey, RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"

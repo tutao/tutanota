@@ -1,5 +1,5 @@
-import type { KeyVerificationFacade } from "../api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicIdentityKeyProvider } from "../api/worker/facades/PublicIdentityKeyProvider"
+import type { KeyVerificationFacade } from "../../network/crypto/facades/lazy/KeyVerificationFacade"
+import { PublicIdentityKeyProvider } from "../../network/crypto/facades/PublicIdentityKeyProvider"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/app-env"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { ProgrammingError } from "@tutao/app-env"
