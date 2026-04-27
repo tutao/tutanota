@@ -64,7 +64,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	private renderAppStoreLink(url: string, onClick: VoidFunction) {
 		return m(SecondaryButton, {
 			label: "rateAppStore_action",
-			class: "flex-grow",
+			class: "flex-grow white-space smaller",
 			onclick: () => {
 				const usageTest = locator.usageTestController.getTest("support.rating")
 				const stage = usageTest.getStage(0)
@@ -82,7 +82,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	private renderGooglePlayLink(url: string, onClick: VoidFunction) {
 		return m(SecondaryButton, {
 			label: "rateGooglePlay_action",
-			class: "flex-grow",
+			class: "flex-grow white-space smaller",
 			onclick: () => {
 				const usageTest = locator.usageTestController.getTest("support.rating")
 				const stage = usageTest.getStage(0)
