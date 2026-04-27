@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, UpgradePromptType } from "@tutao/app-env"
 import { downcast, isSameTypeRef, TypeRef, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
@@ -24,8 +24,9 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { mailLocator } from "../../mailLocator"
 import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate } from "../../../common/misc/Formatter"
+import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 assertMainOrNode()
 
@@ -162,7 +163,11 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				"",
 				{
 					onclick: () => {
-						this.attrs.extendSearchResult(sixMonthsBeforeStartDate)
+						if (locator.logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
+						} else {
+							this.attrs.extendSearchResult(sixMonthsBeforeStartDate)
+						}
 					},
 				},
 				[
