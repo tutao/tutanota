@@ -3764,6 +3764,8 @@ pub struct AlarmServicePost {
 	pub _format: i64,
 	#[serde(rename = "1578")]
 	pub alarmNotifications: Vec<AlarmNotification>,
+	#[serde(rename = "2730")]
+	pub userAlarmInfoData: Vec<UserAlarmInfoData>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -6367,6 +6369,36 @@ impl Entity for OperationStatusUpdate {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2692),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserAlarmInfoData {
+	#[serde(rename = "2723")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2724")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "2725")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "2727")]
+	#[serde(with = "serde_bytes")]
+	pub encryptedTrigger: Vec<u8>,
+	#[serde(rename = "2728")]
+	pub alarmIdentifier: String,
+	#[serde(rename = "2726")]
+	pub ownerGroup: GeneratedId,
+	#[serde(rename = "2729")]
+	pub calendarEventRef: CalendarEventRef,
+}
+
+impl Entity for UserAlarmInfoData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2722),
 		}
 	}
 }

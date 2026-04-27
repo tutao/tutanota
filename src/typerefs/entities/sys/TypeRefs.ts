@@ -2466,6 +2466,7 @@ export type AlarmServicePost = {
 	_format: NumberString;
 
 	alarmNotifications: AlarmNotification[];
+	userAlarmInfoData: UserAlarmInfoData[];
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", 1581)
 
@@ -4214,4 +4215,23 @@ export type OperationStatusUpdate = {
 	status: NumberString;
 	statusCode: null | NumberString;
 	reason: null | string;
+}
+export const UserAlarmInfoDataTypeRef: TypeRef<UserAlarmInfoData> = new TypeRef("sys", 2722)
+
+export function createUserAlarmInfoData(values: StrippedEntity<UserAlarmInfoData>): UserAlarmInfoData {
+    return Object.assign(create(typeModels[UserAlarmInfoDataTypeRef.typeId], UserAlarmInfoDataTypeRef), values)
+}
+
+export type UserAlarmInfoData = {
+	_type: TypeRef<UserAlarmInfoData>;
+	_original?: UserAlarmInfoData
+
+	_id: Id;
+	ownerEncSessionKey: Uint8Array;
+	ownerKeyVersion: NumberString;
+	encryptedTrigger: Uint8Array;
+	alarmIdentifier: string;
+
+	ownerGroup: Id;
+	calendarEventRef: CalendarEventRef;
 }

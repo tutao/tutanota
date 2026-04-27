@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, TutanotaError } from "@tutao/app-env"
+import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, ProgrammingError, TutanotaError } from "@tutao/app-env"
 import {
 	AttributeModel,
 	ClientModelUntypedInstance,
@@ -39,7 +39,6 @@ import { UserFacade } from "../UserFacade.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
-import { ProgrammingError } from "@tutao/app-env"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
@@ -531,6 +530,7 @@ export class CalendarFacade {
 		return this.encryptNotificationKeyForDevices(notificationSessionKey, alarmNotifications, pushIdentifierList).then(async () => {
 			const requestEntity = sysTypeRefs.createAlarmServicePost({
 				alarmNotifications,
+				userAlarmInfoData: [],
 			})
 			try {
 				await this.serviceExecutor.post(sysServices.AlarmService, requestEntity, { sessionKey: notificationSessionKey })
