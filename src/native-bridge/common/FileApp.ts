@@ -5,7 +5,7 @@ import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse.js"
 import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse.js"
 import { FileFacade } from "./generatedipc/FileFacade.js"
 import { ExportFacade } from "./generatedipc/ExportFacade.js"
-import { PosRect } from "../../gui/base/Dropdown"
+import { PosRect } from "@tutao/native-bridge/shared"
 
 export type FileUri = string
 

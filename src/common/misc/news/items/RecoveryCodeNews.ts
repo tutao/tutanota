@@ -11,7 +11,7 @@ import { copyToClipboard } from "../../ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../gui/base/Icon.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
-import { RecoverCodeFacade } from "../../../api/worker/facades/lazy/RecoverCodeFacade.js"
+import { RecoverCodeFacade } from "../../../../network/facades/lazy/RecoverCodeFacade.js"
 import { daysToMillis, isApp } from "@tutao/app-env"
 
 /**

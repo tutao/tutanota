@@ -53,7 +53,7 @@ import { askIfShouldSendCalendarUpdatesToAttendees, getEventType, shouldDisplayE
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"

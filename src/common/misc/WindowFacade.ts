@@ -1,7 +1,7 @@
 import m, { Params } from "mithril"
-import { assertMainOrNodeBoot, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isApp, isDesktop, isIOSApp, Mode, isAdminClient } from "@tutao/app-env"
 import { lang } from "./LanguageViewModel"
-import { client } from "./ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -92,7 +92,7 @@ export class WindowFacade {
 	openLink(href: string) {
 		const tmpAnchorEl = document.createElement("a")
 		tmpAnchorEl.href = href
-		tmpAnchorEl.target = env.mode === Mode.App ? "_system" : "_blank"
+		tmpAnchorEl.target = isApp() ? "_system" : "_blank"
 		tmpAnchorEl.click()
 	}
 
@@ -107,13 +107,13 @@ export class WindowFacade {
 
 		this.connectivityModel = connectivityModel
 
-		if (env.mode === Mode.App || env.mode === Mode.Desktop || env.mode === Mode.Admin) {
+		if (isApp() || isDesktop() || isAdminClient()) {
 			this.addPageInBackgroundListener()
 		}
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if (env.mode === Mode.Desktop && client.isMacOS && window.addEventListener) {
+		if (isDesktop() && client.isMacOS && window.addEventListener) {
 			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 
@@ -243,7 +243,7 @@ export class WindowFacade {
 				stringifiedArgs[k] = String(v)
 			}
 		}
-		if (isApp() || isDesktop() || env.mode === Mode.Admin) {
+		if (isApp() || isDesktop() || isAdminClient()) {
 			const { locator } = await import("../api/main/CommonLocator")
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {

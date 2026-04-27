@@ -2,8 +2,8 @@ import { DbError } from "../../common/error/DbError"
 import { defer, DeferredObject, delay, downcast, LazyLoaded, newPromise, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupportedError"
 import { QuotaExceededError } from "../../common/error/QuotaExceededError"
-import { sha256Hash } from "@tutao/crypto"
 import { IndexName, ObjectStoreName } from "./IndexTables.js"
+import { sha256Hash } from "@tutao/crypto"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 export type DbKey = string | number | Uint8Array

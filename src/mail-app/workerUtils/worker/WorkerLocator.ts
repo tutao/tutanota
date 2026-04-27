@@ -1,14 +1,14 @@
-import { CacheInfo, LoginFacade, LoginListener } from "../../../common/api/worker/facades/LoginFacade.js"
+import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../network/LoginFacade.js"
 import type { WorkerImpl } from "./WorkerImpl.js"
-import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
+import type { EntityRestInterface } from "@tutao/network"
+import { EntityRestClient, ServiceExecutor } from "@tutao/network"
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
-import { CacheStorage, DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
+import type { GroupManagementFacade } from "../../../network/facades/lazy/GroupManagementFacade.js"
 import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
-import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
+import type { CounterFacade } from "../../../network/facades/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
 import {
 	assertWorkerOrNode,
@@ -23,14 +23,14 @@ import {
 	ProgrammingError,
 	SessionType,
 } from "@tutao/app-env"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
+import type { ShareFacade } from "../../../network/facades/lazy/ShareFacade.js"
 import { RestClient, restError, restSuspension as susHandler } from "@tutao/rest-client"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { DeviceEncryptionFacade } from "../../../common/api/worker/facades/DeviceEncryptionFacade.js"
+import { DeviceEncryptionFacade } from "../../../network/crypto/facades/DeviceEncryptionFacade.js"
 import type { NativeInterface } from "@tutao/native-bridge/common"
 import {
 	ExportFacadeSendDispatcher,
@@ -42,69 +42,66 @@ import {
 	SqlCipherFacade,
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/common"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
 import { LateInitializedCacheStorageImpl } from "../../../common/api/worker/rest/CacheStorageProxy.js"
-import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
-import { ServiceExecutor } from "../../../common/api/worker/rest/ServiceExecutor.js"
+import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
-import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import { CryptoWrapper, InstanceSessionKeysCache, KeyAuthenticationFacade, KeyCache, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
+import { UserFacade } from "../../../network/UserFacade.js"
+import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../network/offline/OfflineStorageMigrator.js"
+import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
+import { InstanceSessionKeysCache, KeyAuthenticationFacade, KeyCache } from "@tutao/network"
 import { assertNotNull, delay, lazyAsync, lazyMemoized } from "@tutao/utils"
-import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
-import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
+import { EntropyFacade } from "../../../network/crypto/facades/EntropyFacade.js"
+import { BlobAccessTokenFacade } from "../../../network/facades/BlobAccessTokenFacade.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
+import { NativeArgon2idFacade } from "../../../common/api/worker/facades/NativeArgon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"
-import { PQFacade } from "../../../common/api/worker/facades/PQFacade.js"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../network/crypto/facades/KyberFacade.js"
+import { PQFacade } from "../../../network/crypto/facades/PQFacade.js"
 import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
-import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
-import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
-import { InstancePipeline, PatchMerger, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
-import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
+import { KeyLoaderFacade } from "../../../network/crypto/facades/KeyLoaderFacade.js"
+import { KeyRotationFacade } from "../../../network/crypto/facades/KeyRotationFacade.js"
+import { ApplicationTypesFacade, InstancePipeline, PatchMerger, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
+import { RecoverCodeFacade } from "../../../network/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
-import { Credentials } from "../../../common/misc/credentials/Credentials.js"
-import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
+import { AsymmetricCryptoFacade } from "../../../network/crypto/facades/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
+import { PublicEncryptionKeyProvider } from "../../../network/crypto/facades/PublicEncryptionKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
-import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../network/crypto/facades/Ed25519Facade"
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
 import type { ContactIndexer } from "../index/ContactIndexer"
-import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../network/offline/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
-import { DateProvider } from "../../../common/api/common/DateProvider"
+import { DateProvider } from "../../../utils/DateProvider"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
-import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
-import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { type IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { RolloutFacade } from "../../../network/crypto/facades/RolloutFacade"
+import { PublicKeySignatureFacade } from "../../../network/crypto/facades/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../network/crypto/facades/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
+import { type IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../network/offline/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
+import { PublicEncryptionKeyCache } from "../../../network/crypto/facades/PublicEncryptionKeyCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
@@ -112,10 +109,13 @@ import {
 	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
-import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
+import { OfflineStorage } from "../../../network/offline/OfflineStorage"
 import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { AesApp, createRsaImplementation, RsaImplementation } from "@tutao/native-bridge/worker"
+import { CacheStorage } from "../../../network/offline/CacheStorage"
+import { Credentials } from "../../../network/Constants"
+import { Argon2idFacade, WASMArgon2idFacade } from "../../../network/crypto/facades/WasmArgon2idFacade"
 
 
 assertWorkerOrNode()
@@ -211,7 +211,7 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
-	const { IdentityKeyTrustDatabase } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase")
+	const { IdentityKeyTrustDatabase } = await import("../../../network/offline/IdentityKeyTrustDatabase")
 
 	locator._worker = worker
 	locator._browserData = browserData
@@ -518,7 +518,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.identityKeyTrustDatabase,
 	)
 	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		const { KeyVerificationFacade } = await import("../../../network/crypto/facades/lazy/KeyVerificationFacade.js")
 		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
 	})
 
@@ -552,7 +552,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		cache,
+		locator.cacheManagement,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
@@ -566,20 +566,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
-		const { RecoverCodeFacade } = await import("../../../common/api/worker/facades/lazy/RecoverCodeFacade.js")
+		const { RecoverCodeFacade } = await import("../../../network/facades/lazy/RecoverCodeFacade.js")
 		return new RecoverCodeFacade(locator.user, locator.cachingEntityClient, locator.login, locator.keyLoader)
 	})
 	locator.share = lazyMemoized(async () => {
-		const { ShareFacade } = await import("../../../common/api/worker/facades/lazy/ShareFacade.js")
+		const { ShareFacade } = await import("../../../network/facades/lazy/ShareFacade.js")
 		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
 	})
 	locator.counters = lazyMemoized(async () => {
-		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
+		const { CounterFacade } = await import("../../../network/facades/CounterFacade.js")
 		return new CounterFacade(locator.serviceExecutor)
 	})
 
 	locator.identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("../../../common/api/worker/facades/lazy/IdentityKeyCreator.js")
+		const { IdentityKeyCreator } = await import("../../../network/facades/lazy/IdentityKeyCreator.js")
 		return new IdentityKeyCreator(
 			locator.user,
 			locator.cachingEntityClient,
@@ -596,7 +596,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	locator.groupManagement = lazyMemoized(async () => {
-		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
+		const { GroupManagementFacade } = await import("../../../network/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
 			locator.user,
 			await locator.counters(),
@@ -665,7 +665,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("../../../common/misc/credentials/DatabaseKeyFactory.js")
+	const { DatabaseKeyFactory } = await import("../../../network/crypto/DatabaseKeyFactory.js")
 
 	locator.login = new LoginFacade(
 		locator.restClient,

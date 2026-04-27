@@ -3,7 +3,7 @@ import { ConversationItem, ConversationPrefProvider, ConversationViewModel } fro
 import { ClientModelInfo, entityUpdateUtils, isSameId, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
-import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../src/network/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { defer, DeferredObject, delay, noOp } from "@tutao/utils"

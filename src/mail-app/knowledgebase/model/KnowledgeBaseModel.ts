@@ -1,5 +1,5 @@
 import { entityUpdateUtils, getElementId, getEtId, getLetId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter.js"
 import type { LanguageCode } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"

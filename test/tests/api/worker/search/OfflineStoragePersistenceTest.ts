@@ -4,12 +4,12 @@ import { SqlCipherFacade } from "@tutao/native-bridge"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { assertNotNull, typedValues } from "@tutao/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/typerefs/SqlValue"
-import { sql } from "../../../../../src/common/api/worker/offline/Sql"
+import { sql } from "../../../../../src/network/offline/Sql"
 import { ClientModelInfo, getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding, tutanotaTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../../TestUtils"
 import { object } from "testdouble"
-import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { GroupType } from "@tutao/app-env"
+import { CacheStorage } from "../../../../../src/network/offline/CacheStorage"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

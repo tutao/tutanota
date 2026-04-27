@@ -1,6 +1,6 @@
 import { Thunk } from "@tutao/utils"
 import { Scheduler } from "../../common/utils/Scheduler.js"
-import { DateProvider } from "../../common/DateProvider.js"
+import { DateProvider } from "../../../../utils/DateProvider.js"
 
 // exported for testing
 /** How often do we check for sleep. */

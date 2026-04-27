@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { SpamClassifierStorageFacade } from "../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { GroupType } from "../../../../../src/app-env"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { CacheStorage } from "../../../../../src/network/offline/CacheStorage"
 
 o.spec("CustomUserCacheHandler", () => {
 	let storage: CacheStorage

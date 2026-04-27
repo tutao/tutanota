@@ -1,9 +1,9 @@
-import { CustomCacheHandler } from "./CustomCacheHandler"
+import { CustomCacheHandler } from "../../../../../network/offline/CustomCacheHandler"
 import { isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { CacheStorage } from "../DefaultEntityRestCache"
 import { difference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../../facades/lazy/SpamClassifierStorageFacade"
 import { GroupType } from "@tutao/app-env"
+import { CacheStorage } from "../../../../../network/offline/CacheStorage"
 
 /**
  * Handles tracking dropped memberships for users by clearing entities the user no longer has access to.

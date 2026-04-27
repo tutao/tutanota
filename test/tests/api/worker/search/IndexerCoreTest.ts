@@ -25,7 +25,7 @@ import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXE
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "@tutao/typerefs"
 import { ClientModelInfo } from "@tutao/typerefs"
-import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import {
 	decryptIndexKey,
 	decryptMetaData,

@@ -1,10 +1,10 @@
-import { client } from "../common/misc/ClientDetector.js"
+import { client } from "../app-env/boot/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
@@ -26,10 +26,10 @@ import { LoginController } from "../common/api/main/LoginController.js"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
+import { AppType } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -110,7 +110,7 @@ import("../mail-app/translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		if (!isBrowser() && !isAdminClient()) {
 			calendarLocator.logins.addPostLoginAction(async () => {
 				const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 				return new CachePostLoginAction(

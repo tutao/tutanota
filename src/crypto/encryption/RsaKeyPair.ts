@@ -1,4 +1,3 @@
-import type { Base64 } from "@tutao/utils"
 import { X25519PrivateKey, X25519PublicKey } from "./X25519.js"
 import { AbstractKeyPair, AbstractPublicKey } from "./AsymmetricKeyPair.js"
 

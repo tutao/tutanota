@@ -14,14 +14,15 @@ import {
 	stringToUtf8Uint8Array,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
+import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import * as restError from "@tutao/rest-client/error"
-import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
-import { GroupManagementFacade } from "./GroupManagementFacade.js"
-import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
+import { EntityClient, loadMultipleFromLists } from "../../../../../network/EntityClient.js"
+import { GroupManagementFacade } from "../../../../../network/facades/lazy/GroupManagementFacade.js"
+import { SetupMultipleError } from "../../../../../network/error/SetupMultipleError.js"
 import { sha256Hash } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { UserFacade } from "../UserFacade.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
+import { UserFacade } from "../../../../../network/UserFacade.js"
 import { NativePushFacade } from "@tutao/native-bridge/common"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import {
@@ -39,6 +40,7 @@ import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AlarmFacade } from "./AlarmFacade"
+import { isOfflineError } from "../../../../../network/error/NetworkErrorUtils"
 
 assertWorkerOrNode()
 

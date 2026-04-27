@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
@@ -25,7 +25,7 @@ export class NativeInterfaceMain implements NativeInterface {
 			transport = androidTransport
 		} else if (isIOSApp()) {
 			transport = new IosNativeTransport(window)
-		} else if (isDesktop() || env.mode === Mode.Admin) {
+		} else if (isDesktop() || isAdminClient()) {
 			transport = new DesktopNativeTransport(window.nativeApp)
 		} else {
 			throw new ProgrammingError("Tried to create a native interface in the browser")

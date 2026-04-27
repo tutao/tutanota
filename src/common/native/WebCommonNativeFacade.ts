@@ -1,7 +1,7 @@
 import { CommonNativeFacade } from "@tutao/native-bridge/common"
 import { lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
-import { CancelledError } from "../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog.js"
@@ -13,11 +13,11 @@ import { UsageTestController } from "@tutao/usagetests"
 import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { AppType } from "../misc/ClientConstants.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { CalendarOpenAction } from "@tutao/native-bridge/common"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade"
 import { isDesktop, isHighestTierPlan } from "@tutao/app-env"
+import { AppType } from "@tutao/app-env"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(

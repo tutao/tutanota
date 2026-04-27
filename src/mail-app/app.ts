@@ -1,4 +1,4 @@
-import { client } from "../common/misc/ClientDetector.js"
+import { client } from "../app-env/boot/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
@@ -9,7 +9,7 @@ import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./ApplicationPaths.js"
-import { assertMainOrNodeBoot, bootFinished, FeatureType, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNodeBoot, bootFinished, FeatureType, isApp, isBrowser, isDesktop, isIOSApp, Mode, isAdminClient, ProgrammingError, AppType } from "@tutao/app-env"
 import { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -33,9 +33,8 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
+import { CacheMode } from "@tutao/network"
 import { SessionType } from "@tutao/app-env"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
@@ -177,7 +176,7 @@ import("./translations/en.js")
 						return
 					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
-					if (!isBrowser() && !(env.mode === Mode.Admin)) {
+					if (!isBrowser() && !isAdminClient()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
@@ -252,7 +251,7 @@ import("./translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		if (!isBrowser() && !isAdminClient()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 				return new CachePostLoginAction(

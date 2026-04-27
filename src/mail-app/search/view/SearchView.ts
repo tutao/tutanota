@@ -31,7 +31,7 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { ContactEditor } from "../../contacts/ContactEditor"
 import { styles } from "../../../common/gui/styles"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
-import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
+import { getGroupInfoDisplayName } from "../../../network/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { ClickHandler, getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
@@ -96,7 +96,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
-import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown"
+import { createDropdown } from "../../../common/gui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
@@ -113,6 +113,8 @@ import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 assertMainOrNode()
 

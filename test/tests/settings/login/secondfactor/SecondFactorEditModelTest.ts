@@ -6,11 +6,11 @@ import {
 	NameValidationStatus,
 	SecondFactorEditModel,
 } from "../../../../../src/common/settings/login/secondfactor/SecondFactorEditModel.js"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
 import { TotpSecret, TotpVerifier } from "@tutao/crypto"
 import { noOp } from "@tutao/utils"
-import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
+import { LoginFacade } from "../../../../../src/network/LoginFacade.js"
 import { SecondFactorType } from "../../../../../src/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 import { sysTypeRefs } from "@tutao/typerefs"

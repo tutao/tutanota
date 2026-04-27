@@ -1,5 +1,5 @@
 import { AttributeModel, ClientTypeModelResolver, isSameId, ServerModelUntypedInstance, sysTypeRefs, TypeModel, UntypedInstance } from "@tutao/typerefs"
-import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/utils"
+import { assertNotNull, base64ToUint8Array } from "@tutao/utils"
 
 export class EncryptedAlarmNotification {
 	private constructor(

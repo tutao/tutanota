@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { client } from "../../misc/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"

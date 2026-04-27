@@ -1,5 +1,5 @@
 import m from "mithril"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient } from "@tutao/app-env"
 import { Dialog, DialogType } from "../base/Dialog"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -61,7 +61,7 @@ export async function showProgressDialog<T>(
 	})
 	progressDialog.show()
 	let start = new Date().getTime()
-	let minDialogVisibilityMillis = env.mode === Mode.Admin ? 0 : 1000
+	let minDialogVisibilityMillis = isAdminClient() ? 0 : 1000
 	try {
 		return await action
 	} finally {

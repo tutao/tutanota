@@ -1,4 +1,4 @@
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { ContactModel } from "../../common/contactsFunctionality/ContactModel"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { Router } from "../../common/gui/ScopedRouter"

@@ -1,5 +1,5 @@
 import { GroupNameData, GroupSettingsModel } from "../../../src/common/sharing/model/GroupSettingsModel"
-import { EntityClient } from "../../../src/common/api/common/EntityClient"
+import { EntityClient } from "../../../src/network/EntityClient"
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { object, when } from "testdouble"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"

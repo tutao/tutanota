@@ -34,7 +34,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { EntityClient } from "../../../../common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../network/EntityClient.js"
 
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel.js"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"

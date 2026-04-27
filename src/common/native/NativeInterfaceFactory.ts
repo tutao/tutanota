@@ -1,7 +1,5 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
-import { NativeFileApp } from "@tutao/native-bridge/common"
-import { isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import {
 	AlarmFacade,
 	CommonNativeFacade,
@@ -25,6 +23,7 @@ import {
 	MobileSystemFacadeSendDispatcher,
 	NativeCredentialsFacade,
 	NativeCredentialsFacadeSendDispatcher,
+	NativeFileApp,
 	NativeMailImportFacade,
 	NativeMailImportFacadeSendDispatcher,
 	NativePushFacadeSendDispatcher,
@@ -35,13 +34,13 @@ import {
 	ThemeFacadeSendDispatcher,
 	WebGlobalDispatcher,
 } from "@tutao/native-bridge/common"
-import { CryptoFacade } from "../api/worker/crypto/CryptoFacade.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { isAdminClient, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
+import { CryptoFacade, EntityClient } from "@tutao/network"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { WebMobileFacade } from "./WebMobileFacade.js"
-import { AppType } from "../misc/ClientConstants.js"
+import { AppType } from "@tutao/app-env"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -122,7 +121,7 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!(isDesktop() || env.mode === Mode.Admin)) {
+	if (!(isDesktop() || isAdminClient())) {
 		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {

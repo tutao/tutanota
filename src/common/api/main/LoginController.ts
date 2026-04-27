@@ -1,18 +1,17 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 import { assertNotNull, defer } from "@tutao/utils"
-import { assertMainOrNodeBoot, FeatureType, InvalidModelError, KdfType, Mode, SessionType } from "@tutao/app-env"
+import { assertMainOrNodeBoot, ExternalUserKeyDeriver, FeatureType, InvalidModelError, isAdminClient, KdfType, Mode, SessionType } from "@tutao/app-env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import * as restError from "@tutao/rest-client/error"
-import { client } from "../../misc/ClientDetector"
-import type { LoginFacade, NewSessionData } from "../worker/facades/LoginFacade"
-import { ResumeSessionErrorReason } from "../worker/facades/LoginFacade"
-import type { Credentials } from "../../misc/credentials/Credentials"
-import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
+import { client } from "../../../app-env/boot/ClientDetector"
+import type { LoginFacade, NewSessionData } from "../../../network/LoginFacade"
+import { ResumeSessionErrorReason } from "../../../network/LoginFacade"
 import { LoggedInEvent, UnencryptedCredentials } from "@tutao/native-bridge/common"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
-import { CacheMode } from "../worker/rest/EntityRestClient.js"
+import { CacheMode } from "@tutao/network"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
+import { Credentials } from "../../../network/Constants"
 
 assertMainOrNodeBoot()
 
@@ -99,7 +98,7 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		if (!(env.mode === Mode.Admin)) {
+		if (!isAdminClient()) {
 			await this.loadCustomizations()
 		}
 		await this._determineIfWhitelabel()

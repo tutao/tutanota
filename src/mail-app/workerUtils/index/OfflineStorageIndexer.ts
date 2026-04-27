@@ -1,4 +1,4 @@
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
+import { UserFacade } from "../../../network/UserFacade"
 import { MailIndexer } from "./MailIndexer"
 import { assertNotNull, difference } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"

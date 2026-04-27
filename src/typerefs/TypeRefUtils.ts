@@ -16,6 +16,7 @@ import {
 	FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS,
 	GroupKeyRotationType,
 	GroupType,
+	isAdminClient,
 	isApp,
 	isDesktop,
 	isIOSApp,
@@ -264,7 +265,7 @@ export function assertEnumKey<K extends string, V>(obj: Record<K, V>, key: strin
 }
 
 export function getClientType(): ClientType {
-	return isApp() ? ClientType.App : isDesktop() || env.mode === Mode.Admin ? ClientType.Desktop : ClientType.Browser
+	return isApp() ? ClientType.App : isDesktop() || isAdminClient() ? ClientType.Desktop : ClientType.Browser
 }
 
 export function getOfflineStorageDefaultTimeRangeDays(accountType: AccountType): number {

@@ -4,7 +4,7 @@ import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNa
 import type { SecretStorage } from "../../../src/common/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
 import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
-import { CancelledError } from "../../../src/common/api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { assertThrows } from "@tutao/otest"
 import { DeviceStorageUnavailableError } from "../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
 

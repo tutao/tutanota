@@ -8,7 +8,6 @@ import {
 	base64UrlToBase64Ext,
 	compare,
 	downcast,
-	Hex,
 	hexToBase64,
 	pad,
 	repeat,

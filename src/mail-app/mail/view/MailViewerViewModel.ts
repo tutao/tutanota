@@ -15,7 +15,7 @@ import {
 	NewsletterBannerRule,
 	OperationType,
 } from "@tutao/app-env"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -59,8 +59,7 @@ import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
@@ -77,6 +76,7 @@ import { UndoModel } from "../../UndoModel"
 import { CommonSystemFacade } from "@tutao/native-bridge/common"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

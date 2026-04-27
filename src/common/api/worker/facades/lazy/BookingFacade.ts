@@ -1,7 +1,7 @@
 import { Const } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { assertWorkerOrNode, BookingItemFeatureType } from "@tutao/app-env"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 
 assertWorkerOrNode()

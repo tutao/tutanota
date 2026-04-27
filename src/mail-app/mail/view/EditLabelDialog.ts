@@ -2,12 +2,12 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { LegacyTextField, LegacyTextFieldAttrs } from "../../../common/gui/base/LegacyTextField"
 import m from "mithril"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import * as restError from "@tutao/rest-client/error"
 import { MailViewModel } from "./MailViewModel"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { UpgradePromptType } from "@tutao/app-env"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 

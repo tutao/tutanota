@@ -12,8 +12,10 @@ import {
 import { ModelMapper } from "./ModelMapper"
 import { downcast, lazy, Nullable } from "@tutao/utils"
 import { AesKey, SymmetricCipherFacade } from "@tutao/crypto"
-import { isWebClient, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
+
+assertWorkerOrNode()
 
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper

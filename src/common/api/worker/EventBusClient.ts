@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
+import { assertWorkerOrNode, CloseEventBusOption, GroupType, isAdminClient, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import {
 	type AppName,
@@ -18,23 +18,24 @@ import {
 	TypeRef,
 } from "@tutao/typerefs"
 import { delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, assertNotNull } from "@tutao/utils"
-import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import { CancelledError } from "../common/error/CancelledError"
-import { WsConnectionState } from "../main/WorkerClient"
-import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
+import { OutOfSyncError } from "../../../network/error/OutOfSyncError"
+import { CancelledError } from "@tutao/app-env"
 import { SleepDetector } from "./utils/SleepDetector.js"
-import { UserFacade } from "./facades/UserFacade"
+import { UserFacade } from "../../../network/UserFacade"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
-import { CryptoFacade } from "./crypto/CryptoFacade"
+import { CryptoFacade, WsConnectionState } from "@tutao/network"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { isExpectedErrorForSynchronization } from "../common/utils/ErrorUtils"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "./LastProcessedEventBatchStorageFacade"
-import { DateProvider } from "../common/DateProvider"
+import { DateProvider } from "../../../utils/DateProvider"
 import { ExposedProgressTracker } from "../main/ProgressTracker"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 import { filterIndexMemberships } from "../common/utils/IndexUtils"
+import { isExpectedErrorForSynchronization } from "../../../network/error/NetworkErrorUtils"
+import { ConnectMode } from "../../../network/Constants"
+import { EntityRestCache } from "../../../network/EntityRestCacheInterface"
+import { EventBusClientInterface } from "../../../network/EventBusClientInterface"
 import { EventQueue, QueuedBatch } from "./EventQueue"
 
 assertWorkerOrNode()
@@ -73,11 +74,6 @@ const enum MessageType {
 	InitialSyncWorkEstimate = "initialSyncWorkEstimate",
 }
 
-export const enum ConnectMode {
-	Initial,
-	Reconnect,
-}
-
 export interface EventBusListener {
 	onCounterChanged(counter: sysTypeRefs.WebsocketCounterData): unknown
 
@@ -103,7 +99,7 @@ export interface EventBusListener {
 
 const PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS = 1000
 
-export class EventBusClient {
+export class EventBusClient implements EventBusClientInterface {
 	private state: EventBusState
 	private socket: WebSocket | null
 	private immediateReconnect: boolean = false // if true tries to reconnect immediately after the websocket is closed
@@ -729,7 +725,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.userFacade.getLoggedInUser()
-		if ((!isBrowser() && !(env.mode === Mode.Admin)) || env.mode === Mode.Test) {
+		if ((!isBrowser() && !isAdminClient()) || env.mode === Mode.Test) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

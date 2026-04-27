@@ -6,7 +6,7 @@ import { SelectAppLockMethodView } from "../../SelectAppLockMethodDialog.js"
 import { AppLockMethod } from "@tutao/native-bridge/common"
 import { MobileSystemFacade } from "@tutao/native-bridge/common"
 import { CredentialAuthenticationError } from "../../../api/common/error/CredentialAuthenticationError.js"
-import { CancelledError } from "../../../api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 
 export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {

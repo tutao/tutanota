@@ -6,7 +6,7 @@ import { getAttendeeStatus, tutanotaTypeRefs } from "@tutao/typerefs"
 import { difference, noOp, ofClass } from "@tutao/utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
-import { RecipientsNotFoundError } from "../../../common/api/common/error/RecipientsNotFoundError.js"
+import { RecipientsNotFoundError } from "../../../network/crypto/error/RecipientsNotFoundError.js"
 import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
 import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"

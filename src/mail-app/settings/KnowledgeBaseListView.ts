@@ -3,7 +3,7 @@ import { entityUpdateUtils, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs 
 import { lang } from "../../common/misc/LanguageViewModel"
 
 import { component_size } from "../../common/gui/size"
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { ShareCapability } from "@tutao/app-env"
 import type { LoginController } from "../../common/api/main/LoginController"

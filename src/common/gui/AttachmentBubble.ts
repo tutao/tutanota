@@ -6,7 +6,6 @@ import { formatStorageSize } from "../misc/Formatter.js"
 import { defer, DeferredObject, noOp, Thunk } from "@tutao/utils"
 import { modal, ModalComponent } from "./base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../misc/KeyManager.js"
-import { PosRect } from "./base/Dropdown.js"
 import { Keys } from "@tutao/app-env"
 import { px } from "./size.js"
 import { AllIcons, Icon } from "./base/Icon.js"
@@ -19,6 +18,8 @@ import { hasError } from "@tutao/typerefs"
 import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/buttons/BubbleButton.js"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../file/FileController.js"
 import { lang } from "../misc/LanguageViewModel.js"
+
+import { PosRect } from "../../native-bridge/shared/PosRect"
 
 export enum AttachmentType {
 	GENERIC,

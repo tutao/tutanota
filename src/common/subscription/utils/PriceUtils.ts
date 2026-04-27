@@ -3,7 +3,7 @@ import { assertTranslation, lang, TranslationKey } from "../../misc/LanguageView
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
 import { PlanTypeToName, reverse, sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { IServiceExecutor } from "../../api/common/ServiceRequest"
+import { IServiceExecutor } from "../../../network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../../api/main/UserError.js"
 import { MobilePlanPrice } from "@tutao/native-bridge/common"

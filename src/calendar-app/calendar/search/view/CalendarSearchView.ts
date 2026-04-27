@@ -40,7 +40,7 @@ import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventMode
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { calendarLocator } from "../../../calendarLocator.js"
-import { client } from "../../../../common/misc/ClientDetector.js"
+import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"

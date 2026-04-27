@@ -2,7 +2,7 @@ import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler
 import o, { spy } from "@tutao/otest"
 import { DateTime } from "luxon"
 import { EndType, RepeatPeriod } from "../../../src/app-env"
-import { DateProvider } from "../../../src/common/api/common/DateProvider.js"
+import { DateProvider } from "../../../src/utils/DateProvider.js"
 import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 import { sysTypeRefs } from "@tutao/typerefs"
 

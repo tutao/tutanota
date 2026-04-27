@@ -5,7 +5,7 @@ import { RadioSelector, RadioSelectorAttrs } from "../../../gui/base/RadioSelect
 import { themeOptions, ThemePreference } from "../../../gui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/CommonLocator.js"
-import { client } from "../../../misc/ClientDetector.js"
+import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { type RadioSelectorOption } from "../../../gui/base/RadioSelectorItem"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {

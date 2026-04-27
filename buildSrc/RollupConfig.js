@@ -29,7 +29,6 @@ export let tsImportAliases = {
 	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
 	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
 	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
-	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
 	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
 	"@tutao/rest-client": path.normalize("src/rest-client/dist/index.js"),
@@ -37,6 +36,10 @@ export let tsImportAliases = {
 	"@tutao/app-env": path.normalize("src/app-env/dist/index.js"),
 	"@tutao/typerefs": path.normalize("src/typerefs/dist/index.js"),
 	"@tutao/instance-pipeline": path.normalize("src/instance-pipeline/dist/index.js"),
+	"@tutao/native-bridge/common": path.normalize("src/native-bridge/dist/common/index.js"),
+	"@tutao/native-bridge/worker": path.normalize("src/native-bridge/dist/worker/index.js"),
+	"@tutao/native-bridge/main": path.normalize("src/native-bridge/dist/main/index.js"),
+	"@tutao/native-bridge/shared": path.normalize("src/native-bridge/dist/shared/index.js"),
 }
 
 /**
@@ -214,7 +217,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
+	if (isIn("src/app-env/boot")) {
+		return "boot"
+	} else if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -391,6 +396,18 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "common"
 	} else if (isIn("src/native-bridge/common")) {
 		return "native-common"
+	} else if (isIn("src/network/crypto/error") || isIn("src/network/error")) {
+		return "common-min"
+	} else if (isIn("src/network/crypto/entityCache")) {
+		return "common"
+	} else if (isIn("src/network/crypto/facades/lazy") || isIn("src/network/facades/lazy")) {
+		return "worker-lazy"
+	} else if (isIn("src/network/crypto/facades") || isIn("src/network/facades/") || isIn("src/network/offline/migrations")) {
+		return "worker"
+	} else if (isIn("src/network/GroupUtils.ts") || isIn("src/network/EntityClient.ts")) {
+		return "common"
+	} else if (isIn("src/network")) {
+		return "worker"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

@@ -18,7 +18,7 @@ import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.
 import { mailLocator } from "../mailLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
-import { client } from "../../common/misc/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans, MailSetKind } from "@tutao/app-env"

@@ -11,7 +11,7 @@ import { Icon } from "../../common/gui/base/Icon"
 import m, { Children, Component, Vnode } from "mithril"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
+import { companyTeamLabel } from "../../app-env/boot/ClientConstants.js"
 import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
 
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"

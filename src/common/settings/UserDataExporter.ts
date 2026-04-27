@@ -1,11 +1,11 @@
 import { LoginController } from "../api/main/LoginController.js"
 import { createDataFile, sysTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "@tutao/utils"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { FileController } from "../file/FileController.js"
-import { CounterFacade } from "../api/worker/facades/lazy/CounterFacade.js"
+import { CounterFacade } from "../../network/facades/CounterFacade.js"
 import { CounterType } from "@tutao/app-env"
-import { CancelledError } from "../api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 
 const GROUP_DOWNLOAD_SIZE = 50
 

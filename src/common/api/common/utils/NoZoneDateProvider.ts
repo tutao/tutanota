@@ -1,5 +1,5 @@
 import { ProgrammingError } from "@tutao/app-env"
-import { DateProvider } from "../DateProvider.js"
+import { DateProvider } from "../../../../utils/DateProvider.js"
 
 export class NoZoneDateProvider implements DateProvider {
 	now(): number {

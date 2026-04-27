@@ -3,7 +3,7 @@ import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatch
 import * as restError from "@tutao/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
+import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"
 import type { NativeInterface } from "@tutao/native-bridge/common"

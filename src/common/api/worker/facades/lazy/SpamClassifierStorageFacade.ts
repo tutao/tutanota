@@ -1,5 +1,5 @@
 import * as cborg from "cborg"
-import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
+import { customTypeDecoders, customTypeEncoders } from "../../../../../network/offline/OfflineStorage"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/utils"
 

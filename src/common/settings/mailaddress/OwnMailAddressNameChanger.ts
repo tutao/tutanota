@@ -1,7 +1,7 @@
 import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../api/common/EntityClient.js"
+import { EntityClient } from "../../../network/EntityClient.js"
 import { findAndRemove } from "@tutao/utils"
 
 /** Name changer for personal mailbox of the currently logged-in user. */

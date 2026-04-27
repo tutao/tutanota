@@ -56,7 +56,7 @@ import {
 	showDownloadProgressDialog,
 	showUndoMailSnackbar,
 } from "../view/MailGuiUtils"
-import { client } from "../../../common/misc/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
 import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"
@@ -68,7 +68,7 @@ import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { MinimizedMailEditorViewModel, SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
 import { fileListToArray, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import { Shortcut } from "../../../common/misc/KeyManager"
 import { Recipients, RecipientType } from "../../../common/api/common/recipients/Recipient"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -89,7 +89,6 @@ import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { BannerButtonAttrs, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils.js"
-import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import {
@@ -116,6 +115,7 @@ import { showNotAvailableForFreeDialog } from "../../../common/misc/Subscription
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 
 // Interval where we save drafts locally.
 //

@@ -11,8 +11,8 @@ import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { assertMainOrNode, SpamRuleType } from "@tutao/app-env"
-import { isOfflineError } from "../../common/api/common/utils/ErrorUtils.js"
 import { getSpamRuleField, getSpamRuleType, sysTypeRefs } from "@tutao/typerefs"
+import { isOfflineError } from "../../network/error/NetworkErrorUtils"
 
 assertMainOrNode()
 

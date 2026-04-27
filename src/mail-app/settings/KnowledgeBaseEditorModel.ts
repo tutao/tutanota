@@ -1,4 +1,4 @@
-import { EntityClient } from "../../common/api/common/EntityClient"
+import { EntityClient } from "../../network/EntityClient"
 import { deduplicate, LazyLoaded, localeCompare, noOp, ofClass } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"

@@ -10,7 +10,7 @@ import {
 import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { clone, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
+import { EntityClient } from "../../../../src/network/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
 import { identity, noOp } from "@tutao/utils"
 import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"

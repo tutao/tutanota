@@ -1,4 +1,4 @@
-import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient"
+import { EntityClient, loadMultipleFromLists } from "../../../network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { driveTypeRefs, elementIdPart, entityUpdateUtils, getElementId, isSameId, listIdPart } from "@tutao/typerefs"

@@ -20,7 +20,7 @@ import {
 	tutanotaTypeRefs,
 	TypeRef,
 } from "@tutao/typerefs"
-import { FULL_INDEXED_TIMESTAMP, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP, isAdminClient, isBrowser, MailSetKind, Mode, NOTHING_INDEXED_TIMESTAMP, OperationType, ProgrammingError } from "@tutao/app-env"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
@@ -61,7 +61,7 @@ import {
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
+import { EntityClient, loadMultipleFromLists } from "../../../network/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 
@@ -74,7 +74,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { ListFilter } from "../../../common/misc/ListModel"
-import { client } from "../../../common/misc/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
@@ -198,7 +198,7 @@ export class SearchViewModel {
 	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
 		if (searchResult == null) {
 			this.searchResultIdToIndex = null
-		} else if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		} else if (!isBrowser() && !isAdminClient()) {
 			this.searchResultIdToIndex = new Map()
 			for (let i = 0; i < searchResult.results.length; i++) {
 				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
@@ -932,7 +932,7 @@ export class SearchViewModel {
 				} else if (isSameTypeRef(o1.entry._type, tutanotaTypeRefs.CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else if (isSameTypeRef(o1.entry._type, tutanotaTypeRefs.MailTypeRef)) {
-					if (!isBrowser() && !(env.mode === Mode.Admin)) {
+					if (!isBrowser() && !isAdminClient()) {
 						if (this.searchResultIdToIndex == null) {
 							return 0
 						}
@@ -1031,7 +1031,7 @@ export class SearchViewModel {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				if (!isBrowser() && !(env.mode === Mode.Admin)) {
+				if (!isBrowser() && !isAdminClient()) {
 					// offline storage is always sorted correctly
 					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
 				} else {
@@ -1054,7 +1054,7 @@ export class SearchViewModel {
 			items = (await this.loadAndFilterInstances(searchResult.restriction.type, toLoad, searchResult, startIndex)) as Mail[]
 
 			// Restore the original sorting order
-			if (!isBrowser() && !(env.mode === Mode.Admin)) {
+			if (!isBrowser() && !isAdminClient()) {
 				const itemsMapped = collectToMap(items, getElementId)
 				items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)))
 			}

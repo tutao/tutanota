@@ -2,7 +2,6 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import type { Base64 } from "@tutao/utils"
 import {
 	Aes256Key,
 	aes256RandomKey,

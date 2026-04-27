@@ -3,7 +3,7 @@ import { createResizeObserver, debounce, memoized, numberRange } from "@tutao/ut
 import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys, TabIndex } from "@tutao/app-env"
-import { client } from "../../misc/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"

@@ -1,6 +1,5 @@
 import { ServiceUnavailableError, TooManyRequestsError } from "./error.js"
 import { defer, DeferredObject, noOp } from "@tutao/utils"
-import { SystemTimeout } from "../../types/index.js"
 
 export class SuspensionHandler {
 	_isSuspended: boolean

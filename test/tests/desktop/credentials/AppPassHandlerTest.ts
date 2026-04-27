@@ -7,7 +7,7 @@ import { function as fn, matchers, object, verify, when } from "testdouble"
 import { CommonNativeFacade, CredentialEncryptionMode } from "@tutao/native-bridge"
 import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
 import { defer, delay, stringToBase64 } from "@tutao/utils"
-import { CancelledError } from "../../../../src/common/api/common/error/CancelledError.js"
+import { CancelledError } from "@tutao/app-env"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
 
 import { loadArgon2WASM } from "../../crypto/WebAssemblyTestUtils"

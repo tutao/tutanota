@@ -4,7 +4,7 @@ import { log } from "./DesktopLog"
 import { getFromMap } from "@tutao/utils"
 import { Aes256Key, base64ToKey, keyToBase64 } from "@tutao/crypto"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
-import { CancelledError } from "../api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 
 interface NativeKeySpec {
 	/**

@@ -5,7 +5,7 @@ import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedErro
 import { CryptoError } from "@tutao/crypto/error"
 import { SqlValue } from "@tutao/typerefs"
 import { CredentialEncryptionMode, CredentialType } from "@tutao/app-env"
-import { UntaggedQuery, usql } from "../../api/worker/offline/Sql.js"
+import { UntaggedQuery, usql } from "../../../network/offline/Sql.js"
 import { PersistedCredentials } from "@tutao/native-bridge/common"
 
 const TableDefinitions = Object.freeze({

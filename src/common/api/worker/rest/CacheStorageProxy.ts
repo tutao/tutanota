@@ -1,33 +1,17 @@
-import { CacheStorage, LastUpdateTime, Range } from "./DefaultEntityRestCache.js"
+import { Range } from "@tutao/network"
 import { ProgrammingError } from "@tutao/app-env"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "@tutao/typerefs"
 import { Nullable } from "@tutao/utils"
-import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
-import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
-import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-
-export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
-	type: "ephemeral"
-}
-
-export type OfflineStorageArgs = OfflineStorageInitArgs & {
-	type: "offline"
-}
-
-export interface CacheStorageInitReturn {
-	/** If the created storage is an OfflineStorage */
-	isPersistent: boolean
-	/** If a OfflineStorage was created, whether or not the backing database was created fresh or already existed */
-	isNewOfflineDb: boolean
-}
-
-export interface CacheStorageLateInitializer {
-	initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn>
-
-	deInitialize(): Promise<void>
-}
-
-export type SomeStorage = OfflineStorage | EphemeralCacheStorage
+import { OfflineStorage } from "../../../../network/offline/OfflineStorage.js"
+import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
+import { CustomCacheHandlerMap } from "../../../../network/offline/CustomCacheHandler.js"
+import { CacheStorage, LastUpdateTime } from "../../../../network/offline/CacheStorage"
+import {
+	CacheStorageInitReturn,
+	CacheStorageLateInitializer,
+	EphemeralStorageArgs,
+	OfflineStorageArgs,
+} from "../../../../network/offline/CacheStorageInitializer"
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -41,6 +25,8 @@ export type SomeStorage = OfflineStorage | EphemeralCacheStorage
  * @param factory A factory function to get a CacheStorage implementation when initialize is called
  * @return {CacheStorageLateInitializer} The uninitialized proxy and a function to initialize it
  */
+export type SomeStorage = OfflineStorage | EphemeralCacheStorage
+
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 	constructor(

@@ -7,7 +7,7 @@ import { SseClient, SseConnectOptions } from "../../../../src/common/desktop/sse
 import { fetch as undiciFetch } from "undici"
 import { AttributeModel, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs, TypeModelResolver, UntypedInstance } from "@tutao/typerefs"
 import { assertNotNull, deepEqual, downcast, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
-import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
+import { DateProvider } from "../../../../src/utils/DateProvider.js"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,

@@ -22,9 +22,9 @@ import { styles } from "../styles"
 import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, MaybeLazy, newPromise, noOp, Thunk } from "@tutao/utils"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
-import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { TextField } from "./TextField"
+import { isOfflineError } from "../../../network/error/NetworkErrorUtils.js"
 
 assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"

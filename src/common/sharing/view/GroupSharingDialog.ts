@@ -27,7 +27,7 @@ import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/uti
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
+import { KeyVerificationMismatchError } from "../../../network/crypto/error/KeyVerificationMismatchError"
 import { sysTypeRefs } from "@tutao/typerefs"
 
 export async function showGroupSharingDialog(groupInfo: sysTypeRefs.GroupInfo, allowGroupNameOverride: boolean) {

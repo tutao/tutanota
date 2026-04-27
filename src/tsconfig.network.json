@@ -1,0 +1,34 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["network", "../types/*"],
+	"exclude": ["network/dist"],
+	"compilerOptions": {
+		"rootDir": "network",
+		"outDir": "network/dist",
+		"tsBuildInfoFile": "network/dist/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.app-env.json"
+		},
+		{
+			"path": "tsconfig.typerefs.json"
+		},
+		{
+			"path": "tsconfig.crypto.json"
+		},
+		{
+			"path": "tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "tsconfig.rest-client.json"
+		},
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.native-bridge.json"
+		}
+	]
+}

@@ -4,7 +4,7 @@ import { EventController } from "../../../common/api/main/EventController"
 
 import { elementIdPart, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
-import { EntityClient } from "../../../common/api/common/EntityClient"
+import { EntityClient } from "../../../network/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { OperationType } from "@tutao/app-env"

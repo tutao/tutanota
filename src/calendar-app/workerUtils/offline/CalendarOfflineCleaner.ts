@@ -1,4 +1,4 @@
-import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../network/offline/OfflineStorage.js"
 
 export class CalendarOfflineCleaner implements OfflineStorageCleaner {
 	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void> {

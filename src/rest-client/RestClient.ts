@@ -2,7 +2,7 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import * as restError from "./error.js"
-import { HttpMethod, MediaType, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
 import { once } from "../utils/memoized"
 
 assertWorkerOrNode()
@@ -27,7 +27,7 @@ const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
  * Uses XmlHttpRequest as there is still no support for tracking
  * upload progress with fetch (see https://stackoverflow.com/a/69400632)
  */
-export class RestClient {
+export class RestClient implements RestClientInterface {
 	private lastRequestId: number
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
@@ -326,7 +326,7 @@ export class RestClient {
 		}
 	}
 
-	private setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
+	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
 		if (options.headers == null) {
 			options.headers = {}
 		}

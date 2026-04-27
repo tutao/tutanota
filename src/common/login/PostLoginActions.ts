@@ -17,6 +17,7 @@ import {
 	Const,
 	CredentialEncryptionMode,
 	FeatureType,
+	isAdminClient,
 	isApp,
 	isDesktop,
 	LOGIN_TITLE,
@@ -33,8 +34,8 @@ import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { SessionType } from "@tutao/app-env"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
-import { DateProvider } from "../api/common/DateProvider.js"
-import { EntityClient } from "../api/common/EntityClient.js"
+import { DateProvider } from "../../utils/DateProvider.js"
+import { EntityClient } from "../../network/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
@@ -43,7 +44,7 @@ import { ThemeController } from "../gui/ThemeController.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
-import { LoginFacade } from "../api/worker/facades/LoginFacade"
+import { LoginFacade } from "../../network/LoginFacade"
 import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 /**
@@ -139,7 +140,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!(env.mode === Mode.Admin)) {
+		if (!isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 			const calendarModel = await locator.calendarModel()
@@ -153,7 +154,7 @@ export class PostLoginActions implements PostLoginAction {
 			this.handleExternalSync()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !(env.mode === Mode.Admin)) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 			const receiveInfoData = tutanotaTypeRefs.createReceiveInfoServiceData({
 				language: lang.code,
 			})

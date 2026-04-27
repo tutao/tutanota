@@ -1,9 +1,9 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { client } from "../misc/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
-import { assertMainOrNode, isAndroidApp, isApp, isDesktop, Mode } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient,isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
 import { goEuropeanBlue } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
@@ -41,7 +41,7 @@ styles.registerStyle("main", () => {
 	const lightTheme = locator.themeController.getBaseTheme("light")
 	return {
 		"#link-tt":
-			isDesktop() || env.mode === Mode.Admin
+			isDesktop() || isAdminClient()
 				? {
 						"pointer-events": "none",
 						"font-size": px(font_size.small),
@@ -62,28 +62,27 @@ styles.registerStyle("main", () => {
 					}
 				: {},
 		"#link-tt.reveal":
-			isDesktop() || env.mode === Mode.Admin
+			isDesktop() || isAdminClient()
 				? {
 						opacity: 1,
 						transition: "opacity .1s linear",
 						"z-index": 9999,
 					}
 				: {},
-		"*:not(input):not(textarea)":
-			env.mode === Mode.Admin
-				? {}
-				: {
-						"user-select": "none",
+		"*:not(input):not(textarea)": isAdminClient()
+			? {}
+			: {
+					"user-select": "none",
 
-						/* disable selection/Copy for UI elements*/
-						"-ms-user-select": "none",
-						"-webkit-user-select": "none",
-						"-moz-user-select": "none",
-						"-webkit-touch-callout": "none",
+					/* disable selection/Copy for UI elements*/
+					"-ms-user-select": "none",
+					"-webkit-user-select": "none",
+					"-moz-user-select": "none",
+					"-webkit-touch-callout": "none",
 
-						/* disable the IOS popup when long-press on a link */
-						"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-					},
+					/* disable the IOS popup when long-press on a link */
+					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+				},
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},

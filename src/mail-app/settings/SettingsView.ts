@@ -71,7 +71,7 @@ import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
 import { shouldHideBusinessPlans } from "../../common/subscription/utils/SubscriptionUtils"
 import { ButtonType } from "../../common/gui/base/Button"
-import { CancelledError } from "../../common/api/common/error/CancelledError"
+import { CancelledError } from "@tutao/app-env"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
 
