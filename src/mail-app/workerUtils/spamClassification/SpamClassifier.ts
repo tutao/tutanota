@@ -354,7 +354,9 @@ export class SpamClassifier {
 			return prediction > classifier.threshold
 		} catch (e) {
 			console.log("error during spam prediction", e)
-			throw e
+			this.classifierByMailGroup.delete(ownerGroup)
+			await this.spamClassifierStorageFacade.deleteSpamClassificationModel(ownerGroup)
+			return null
 		} finally {
 			// when using the webgl backend, we need to manually dispose @tensorflow tensors
 			xs.dispose()
