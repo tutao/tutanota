@@ -4,7 +4,7 @@ import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { Thunk, noOp, makeSingleUse } from "@tutao/utils"
+import { makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -114,7 +114,10 @@ export class SupportTopicPage implements Component<Props> {
 						".mt-16",
 						m(PrimaryButton, {
 							label: "fastTrackButtonApproval_action",
-							onclick: makeSingleUse(() => fastTrackAction()),
+							onclick: makeSingleUse(() => {
+								this.closeDialog()
+								fastTrackAction()
+							}),
 						}),
 					)
 				: null
