@@ -30,6 +30,7 @@ import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
+import { ProgrammingError } from "@tutao/app-env"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -59,8 +60,9 @@ export class DesktopFileFacade implements FileFacade {
 		return Promise.resolve()
 	}
 
-	async deleteFile(filename: string): Promise<void> {
-		return await this.fs.promises.unlink(filename)
+	async deleteFile(filePath: string): Promise<void> {
+		this.tfs.assertInTmpDir(filePath)
+		return await this.fs.promises.unlink(filePath)
 	}
 
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
@@ -124,21 +126,25 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	async getMimeType(file: string): Promise<string> {
-		return await getMimeTypeForFile(file)
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getMimeType(filePath: string): Promise<string> {
+		return await getMimeTypeForFile(filePath)
 	}
 
-	async getName(file: string): Promise<string> {
-		return path.basename(file)
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getName(filePath: string): Promise<string> {
+		return path.basename(filePath)
 	}
 
-	async getSize(fileUri: string): Promise<number> {
-		const stats = await this.fs.promises.stat(fileUri)
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getSize(filePath: string): Promise<number> {
+		const stats = await this.fs.promises.stat(filePath)
 		return stats.size
 	}
 
-	async hashFile(fileUri: string): Promise<string> {
-		const data = await this.fs.promises.readFile(fileUri)
+	async hashFile(filePath: string): Promise<string> {
+		this.tfs.assertInTmpDir(filePath)
+		const data = await this.fs.promises.readFile(filePath)
 		const checksum = sha256Hash(data).slice(0, 6)
 		return uint8ArrayToBase64(checksum)
 	}
@@ -148,23 +154,37 @@ export class DesktopFileFacade implements FileFacade {
 
 		const filesInDirectory = await this.fs.promises.readdir(downloadDirectory)
 		const newFilename = nonClobberingFilename(filesInDirectory, filename)
-		const fileUri = path.join(downloadDirectory, newFilename)
-		const outStream = this.fs.createWriteStream(fileUri, { autoClose: false })
+		const filePath = path.join(downloadDirectory, newFilename)
+		const outStream = this.fs.createWriteStream(filePath, { autoClose: false })
 
-		for (const infile of files) {
-			await newPromise<void>((resolve, reject) => {
+		try {
+			for (const infile of files) {
+				this.tfs.assertInTmpDir(infile)
 				const readStream = this.fs.createReadStream(infile)
-				readStream.on("end", resolve)
-				readStream.on("error", reject)
-				readStream.pipe(outStream, { end: false })
-			})
-			await this.deleteFile(infile)
+				try {
+					await newPromise<void>((resolve, reject) => {
+						readStream.on("end", resolve)
+						readStream.on("error", reject)
+						readStream.pipe(outStream, { end: false })
+					})
+				} finally {
+					readStream.close()
+				}
+				await this.fs.promises.unlink(infile)
+			}
+
+			await closeFileStream(outStream)
+		} catch (e) {
+			// clean up if we couldn't finish writing
+			await closeFileStream(outStream)
+			await this.fs.promises.unlink(filePath)
 		}
-		await closeFileStream(outStream)
-		return fileUri
+
+		return filePath
 	}
 
 	async open(location: string /* , mimeType: string omitted */): Promise<void> {
+		this.tfs.assertInTmpDir(location)
 		const openWithElectronShell = () =>
 			this.electron.shell
 				.openPath(location) // may resolve with "" or an error message
@@ -240,6 +260,7 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string> {
+		this.tfs.assertInTmpDir(localFileUri)
 		const savePath = await this.pickSavePath(fileNameToUse)
 		await this.fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
@@ -249,6 +270,7 @@ export class DesktopFileFacade implements FileFacade {
 		return savePath
 	}
 
+	/** can be used with arbitrary paths, is run on the selected file locations */
 	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
 		const tempDir = await this.tfs.ensureUnencrytpedDir()
 		const fullBytes = await this.fs.promises.readFile(fileUri)
@@ -269,6 +291,8 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
+		// we only upload encrypted blobs so it should be safe
+		this.tfs.assertInTmpDir(fileUri)
 		const fileStream = this.fs.createReadStream(fileUri)
 		const stat = await this.fs.promises.stat(fileUri)
 		headers["Content-Length"] = `${stat.size}`
@@ -318,22 +342,21 @@ export class DesktopFileFacade implements FileFacade {
 	// This write data to app dir and return full path
 	async writeToAppDir(fileConent: Uint8Array, fileName: string): Promise<void> {
 		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		this.assertPathWithinUserData(fullPath)
 		this.fs.writeFileSync(fullPath, fileConent)
 	}
 
-	async readFromAppDir(fileName: string): Promise<Buffer> {
+	async readFromAppDir(fileName: string): Promise<Uint8Array> {
 		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		this.assertPathWithinUserData(fullPath)
 		return this.fs.readFileSync(fullPath)
 	}
 
 	async deleteFromAppDir(fileName: string): Promise<void> {
 		const userDataDir = this.electron.app.getPath("userData")
 
-		const resolvedBase = this.path.resolve(userDataDir)
 		const resolvedTarget = this.path.resolve(userDataDir, fileName)
-		if (!resolvedTarget.startsWith(resolvedBase + this.path.sep)) {
-			return
-		}
+		this.assertPathWithinUserData(resolvedTarget)
 
 		try {
 			await this.fs.promises.unlink(resolvedTarget)
@@ -342,7 +365,7 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	// this is used to read unencrypted data from arbitrary locations
+	/** this is used to read unencrypted data from arbitrary locations */
 	async readDataFile(uriOrPath: FileUri): Promise<DataFile | null> {
 		try {
 			uriOrPath = url.fileURLToPath(uriOrPath)
@@ -351,7 +374,11 @@ export class DesktopFileFacade implements FileFacade {
 		}
 		const name = path.basename(uriOrPath)
 		try {
-			const [data, mimeType] = await Promise.all([this.fs.promises.readFile(uriOrPath), this.getMimeType(uriOrPath)])
+			const [data, mimeType] = await Promise.all([
+				this.fs.promises.readFile(uriOrPath),
+				// freestanding function doesn't have the checks
+				getMimeTypeForFile(uriOrPath),
+			])
 			if (data == null) return null
 			return {
 				_type: "DataFile",
@@ -366,8 +393,10 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	/** select a non-colliding name in the configured downloadPath, preferably with the given file name
-	 * public for testing */
+	/**
+	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
+	 * public for testing
+	 */
 	async pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
@@ -396,6 +425,14 @@ export class DesktopFileFacade implements FileFacade {
 		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
 			this.lastOpenedFileManagerAt = this.dateProvider.now()
 			this.electron.shell.showItemInFolder(savePath)
+		}
+	}
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	private assertPathWithinUserData(unresolvedPath: string): void {
+		const resolvedBase = this.electron.app.getPath("userData")
+		const resolvedTarget = path.resolve(unresolvedPath)
+		if (!resolvedTarget.startsWith(resolvedBase + this.path.sep)) {
+			throw new ProgrammingError("Invalid file path: " + unresolvedPath)
 		}
 	}
 }

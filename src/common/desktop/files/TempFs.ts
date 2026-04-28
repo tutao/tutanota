@@ -2,6 +2,7 @@ import path from "node:path"
 import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
 import { CryptoFunctions } from "../CryptoFns.js"
 import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { ProgrammingError } from "@tutao/app-env"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 
@@ -141,6 +142,13 @@ export class TempFs {
 		const downloadDirectory = this.getUnencryptedTempDir()
 		await this.fs.promises.mkdir(downloadDirectory, { recursive: true })
 		return downloadDirectory
+	}
+
+	assertInTmpDir(unresolvedPath: string) {
+		const resolvedTarget = path.resolve(unresolvedPath)
+		if (!resolvedTarget.startsWith(this.getTutanotaTempPath() + path.sep)) {
+			throw new ProgrammingError("Invalid file path: " + unresolvedPath)
+		}
 	}
 
 	private getEncryptedTempDir() {
