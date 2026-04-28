@@ -8,29 +8,32 @@ import { HttpMethod, restError } from "@tutao/rest-client"
 import type fs from "node:fs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
-import { DesktopUtils } from "../../../../src/common/desktop/DesktopUtils.js"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { TempFs } from "../../../../src/common/desktop/files/TempFs.js"
 import { BuildConfigKey, DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { FetchImpl, FetchResult } from "../../../../src/common/desktop/net/NetAgent"
 import { CommandExecutor } from "../../../../src/common/desktop/CommandExecutor"
-import { BufferEncoding } from "rollup"
 import stream from "node:stream"
-import { WriteStream } from "fs-extra"
+import nodePath from "node:path"
+import { ProgrammingError } from "@tutao/app-env"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
+const USER_DATA_PATH = "/path/to/user/data"
+
+type Writable<T> = {
+	-readonly [P in keyof T]: T[P]
+}
 
 o.spec("DesktopFileFacade", function () {
 	let win: ApplicationWindow
 	let conf: DesktopConfig
-	let du: DesktopUtils
 	let dp: DateProvider
 	let fetch: FetchImpl
-	let electron: ElectronExports
+	let electron: Writable<ElectronExports>
 	let fs: FsExports
 	let tfs: TempFs
 	let ff: DesktopFileFacade
-	let path: PathExports
+	let path: Writable<PathExports>
 	let executor: CommandExecutor
 	let process: Writeable<Partial<NodeJS.Process>>
 
@@ -46,14 +49,16 @@ o.spec("DesktopFileFacade", function () {
 		}
 		when(fs.promises.stat(matchers.anything())).thenResolve({ size: 42 })
 		electron = object()
-		// @ts-ignore read-only prop
 		electron["shell"] = object()
-		// @ts-ignore read-only prop
 		electron["dialog"] = object()
+		electron.app = object()
+		when(electron.app.getPath("userData")).thenReturn(USER_DATA_PATH)
 		process.platform = "linux"
+		path.sep = "/"
+		when(path.resolve(), { ignoreExtraArgs: true }).thenDo((...args) => nodePath.resolve(...args))
+		when(path.join(), { ignoreExtraArgs: true }).thenDo((...args) => args.join("/"))
 
 		conf = object()
-		du = object()
 		dp = object()
 		executor = object()
 
@@ -211,7 +216,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 			const error = new Error("Test! I/O error")
 			const ws = mockWriteStream({ error })
-			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws as unknown as WriteStream)
+			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws as unknown as fs.WriteStream)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
 			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
@@ -247,6 +252,7 @@ o.spec("DesktopFileFacade", function () {
 			o(uploadResult.precondition).equals(null)
 			o(uploadResult.suspensionTime).equals(null)
 			o(Array.from(uploadResult.responseBody)).deepEquals(Array.from(body))
+			verify(tfs.assertInTmpDir(fileToUploadPath))
 		})
 
 		o("when 404 is returned it returns correct result", async function () {
@@ -349,6 +355,7 @@ o.spec("DesktopFileFacade", function () {
 						},
 					}),
 				)
+				verify(tfs.assertInTmpDir("/some/folder/file"))
 			})
 			o.test("open on non ubuntu", async function () {
 				when(electron.shell.openPath("/some/folder/file")).thenReject(new Error("wrong function"))
@@ -390,6 +397,7 @@ o.spec("DesktopFileFacade", function () {
 			when(tfs.ensureUnencrytpedDir()).thenResolve("/tutanota/tmp/path/unencrypted")
 			const joinedFilePath = await ff.joinFiles("fileName.pdf", ["/file1"])
 			o(joinedFilePath).equals("/tutanota/tmp/path/unencrypted/fileName.pdf")
+			verify(tfs.assertInTmpDir("/file1"))
 		})
 	})
 
@@ -456,6 +464,7 @@ o.spec("DesktopFileFacade", function () {
 			const copiedFileUri = await ff.putFileIntoDownloadsFolder(src, filename)
 			verify(fs.promises.copyFile(src, DEFAULT_DOWNLOAD_PATH + "fileName.pdf"))
 			o(copiedFileUri).equals(DEFAULT_DOWNLOAD_PATH + "fileName.pdf")
+			verify(tfs.assertInTmpDir(src))
 		})
 	})
 
@@ -470,6 +479,7 @@ o.spec("DesktopFileFacade", function () {
 		o("hash", async function () {
 			when(fs.promises.readFile("/file1")).thenResolve(new Uint8Array([0, 1, 2, 3]) as Buffer)
 			o(await ff.hashFile("/file1")).equals("BU7ewdAh")
+			verify(tfs.assertInTmpDir("/file1"))
 		})
 	})
 
@@ -484,6 +494,42 @@ o.spec("DesktopFileFacade", function () {
 
 		o.test("given nonexisting extension it returns default fallback", async function () {
 			o.check(await getMimeTypeForFile("/tmp/picture.nonsense")).equals("application/octet-stream")
+		})
+	})
+
+	o.spec("writeToAppDir", function () {
+		o.test("writes to a correct file normally", async function () {
+			const data = new Uint8Array([1, 2, 3])
+			await ff.writeToAppDir(data, "name.dat")
+			verify(fs.writeFileSync(`${USER_DATA_PATH}/name.dat`, data))
+		})
+
+		o.test("fails if outside the app dir", async function () {
+			const data = new Uint8Array([1, 2, 3])
+			await o.check(() => ff.writeToAppDir(data, "../name.dat")).asyncThrows(ProgrammingError)
+		})
+	})
+
+	o.spec("readFromAppDir", function () {
+		o.test("reads a correct file normally", async function () {
+			const data = new Uint8Array([1, 2, 3])
+			when(fs.readFileSync(`${USER_DATA_PATH}/name.dat`)).thenReturn(Buffer.from(data))
+			o.check(await ff.readFromAppDir("name.dat")).deepEquals(data)
+		})
+
+		o.test("fails if outside the app dir", async function () {
+			await o.check(() => ff.readFromAppDir("../name.dat")).asyncThrows(ProgrammingError)
+		})
+	})
+
+	o.spec("deleteFromAppDir", function () {
+		o.test("deletes correct file normally", async function () {
+			await ff.deleteFromAppDir("name.dat")
+			o.check(fs.promises.unlink(`${USER_DATA_PATH}/name.dat`))
+		})
+
+		o.test("fails if outside the app dir", async function () {
+			await o.check(() => ff.deleteFromAppDir("../name.dat")).asyncThrows(ProgrammingError)
 		})
 	})
 })
