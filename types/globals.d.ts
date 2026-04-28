@@ -103,12 +103,6 @@ type EventRedraw<T extends Event> = T & { redraw?: boolean }
  */
 declare var LOAD_ASSERTIONS: boolean
 
-declare module "*.wasm" {
-	const loadWasm: (options?: { forceFallback?: boolean }) => Promise<WASMExports>
-
-	export { loadWasm }
-}
-
 interface NativeApp {
 	// In desktop, we can pass whole objects
 	// In app, we can only pass strings

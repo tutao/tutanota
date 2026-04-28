@@ -19,7 +19,6 @@
 			"@tutao/crypto-primitives": ["../src/crypto-primitives/crypto_primitives"],
 			"@tutao/crypto": ["../src/crypto"],
 			"@tutao/crypto/error": ["../src/crypto/error"],
-			"@tutao/wasm-loader": ["../src/wasm-loader"],
 			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/mimimi": ["../src/mimimi"],
 			"@tutao/mimimi/types": ["../src/mimimi/napi-out/binding.d.ts"],
@@ -55,10 +54,6 @@
 		},
 		{
 			"path": "../src/tsconfig.combined-apps.json"
-		},
-
-		{
-			"path": "../src/tsconfig.wasm.json"
 		}
 	]
 }

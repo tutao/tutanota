@@ -13,6 +13,7 @@ import { resolveLibs, tsImportAliases } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import { execSync } from "node:child_process"
+import { buildArgon2, buildLibOqs } from "./buildWasm.js"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -126,7 +127,9 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		// and we should not replate it with js path as it will not work for ts types
 		// which does not exists in final .js output
 		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key])
-		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
+
+		await buildArgon2(resolvedBuildDir)
+		await buildLibOqs(resolvedBuildDir)
 		const bundle = await rolldown({
 			input: { app: entry, worker: worker, "pow-worker": "src/common/api/common/pow-worker.ts" },
 			transform: {
@@ -137,25 +140,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 				},
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
-			plugins: [
-				resolveLibs(),
-				rollupWasmLoader({
-					webassemblyLibraries: [
-						{
-							name: "liboqs.wasm",
-							command: "make -f Makefile_liboqs build",
-							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, `liboqs.wasm`),
-						},
-						{
-							name: "argon2.wasm",
-							command: "make -f Makefile_argon2 build",
-							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, `argon2.wasm`),
-						},
-					],
-				}),
-			],
+			plugins: [resolveLibs()],
 		})
 		await bundle.write({
 			dir: `./${buildDir}/`,
