@@ -13,6 +13,8 @@ export interface TestResult {
 
 export interface RunResult {
 	filter?: string | undefined
+	regexp?: string | undefined
+	exclude?: string | undefined
 
 	passedTests: {
 		path: string[]

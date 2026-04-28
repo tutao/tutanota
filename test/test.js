@@ -5,24 +5,26 @@ await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local tutadb server)"))
 	.addOption(new Option("-c, --clean"))
 	.addOption(new Option("-f, --filter <query>", "Filter for tests and specs to run only matching tests"))
+	.addOption(new Option("-r, --regexp <regexp>", "Filter for tests and specs to run only matching tests"))
+	.addOption(new Option("-e, --exclude <regexp>", "Filter for tests and specs to run only non-matching tests"))
 	.addOption(new Option("--no-run", "Do not run the tests in node"))
 	.addOption(new Option("-b, --browser", "Start the web server and run the tests in browser").default(false))
 	.addOption(new Option("--ci", "use ci config for build steps").default(false))
 	.addOption(new Option("--browser-cmd <path>", "Command used to run the browser").default("xdg-open"))
-	.action(async ({ clean, integration, filter, run, browser, browserCmd, ci }) => {
+	.action(async ({ clean, integration, filter, regexp, exclude, run, browser, browserCmd, ci }) => {
 		await runTestBuild({ clean, ci })
 		console.log("build finished!")
 
 		let nodeOk
 		if (run) {
-			nodeOk = await runTestsInNode({ integration, filter })
+			nodeOk = await runTestsInNode({ integration, filter, regexp, exclude })
 		} else {
 			nodeOk = true
 		}
 
 		let browserOk
 		if (browser) {
-			browserOk = await runTestsInBrowser({ filter, browserCmd })
+			browserOk = await runTestsInBrowser({ filter, regexp, exclude, browserCmd })
 		} else {
 			browserOk = true
 		}
@@ -40,7 +42,7 @@ function resultIsOk(result) {
 }
 
 /** Function which runs tests and exits with the exit code afterwards. */
-async function runTestsInBrowser({ filter, browserCmd }) {
+async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }) {
 	const { default: express } = await import("express")
 	const app = express()
 	app.use(express.static("build"))
@@ -67,6 +69,12 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 		if (filter) {
 			url.searchParams.set("filter", filter)
 		}
+		if (regexp) {
+			url.searchParams.set("regexp", regexp)
+		}
+		if (exclude) {
+			url.searchParams.set("exclude", exclude)
+		}
 
 		const command = `${browserCmd} '${url.toString()}'`
 		console.log(`> ${command}`)
@@ -79,9 +87,9 @@ async function runTestsInBrowser({ filter, browserCmd }) {
 	return resultIsOk(result)
 }
 
-async function runTestsInNode({ integration, filter }) {
+async function runTestsInNode({ integration, filter, regexp, exclude }) {
 	const { run } = await import("./build/testInNode.js")
 	console.log("\n--------------- NODE ---------------")
-	const result = await run({ integration, filter })
+	const result = await run({ integration, filter, regexp, exclude })
 	return resultIsOk(result)
 }

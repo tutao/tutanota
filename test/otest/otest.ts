@@ -109,9 +109,11 @@ class OTest {
 
 	/**
 	 * Run the tests that were previously defined.
-	 * @param {string} filter: only run tests that match the filter string in either spec name or a test name.
+	 * @param {string, string, string} filter, regexp, exclude: only run tests that match the filter string or the
+	 * regular expression string in either spec name or a test name and don't run any tests that match the exclude
+	 * regular expression string in the test or spec name.
 	 */
-	async run({ filter }: { filter?: string } = {}): Promise<RunResult> {
+	async run({ filter, regexp, exclude }: { filter?: string; regexp?: string; exclude?: string } = {}): Promise<RunResult> {
 		const runResult: RunResult = { passedTests: [], failingTests: [], skippedTests: [] }
 
 		function processSpecResult(spec: SpecResult, path: SpecResult[]) {
@@ -131,12 +133,12 @@ class OTest {
 			}
 		}
 
-		const topSpecResult = await this.runSpec(this.currentSpec, [], filter ?? "")
+		const topSpecResult = await this.runSpec(this.currentSpec, [], filter ?? "", regexp ?? "", exclude ?? "")
 		processSpecResult(topSpecResult, [])
 		return runResult
 	}
 
-	private async runSpec(spec: Spec, path: Spec[], filter: string): Promise<SpecResult> {
+	private async runSpec(spec: Spec, path: Spec[], filter: string, regexp: string, exclude: string): Promise<SpecResult> {
 		const newPath = [...path, spec]
 		const newPathSerialized = newPath.map((s) => s.name).join(" > ")
 
@@ -154,33 +156,44 @@ class OTest {
 			}
 		}
 
-		const specMatches = filter === "" || spec.name.includes(filter)
+		const specMatches = (filter === "" && regexp === "") || (filter !== "" && spec.name.includes(filter)) || (regexp !== "" && spec.name.match(regexp))
+		const specExcluded = exclude !== "" && spec.name.match(exclude)
 
-		const result = {
-			name: spec.name,
-			specResults: await promiseMap(spec.specs, (nestedSpec) => this.runSpec(nestedSpec, newPath, specMatches ? "" : filter)),
-			testResults: await promiseMap(spec.tests, async (test) => {
-				if (specMatches || test.name.includes(filter)) {
-					printSpecOnce()
-					printSpecOnce = () => {}
-					const allBeforeEach = [...path.flatMap((s) => s.beforeEach), ...spec.beforeEach]
-					for (const beforeEach of allBeforeEach) {
-						await beforeEach()
+		let result
+		if (specExcluded) {
+			result = { name: spec.name, specResults: [], testResults: [] }
+		} else {
+			result = {
+				name: spec.name,
+				specResults: await promiseMap(spec.specs, (nestedSpec) =>
+					this.runSpec(nestedSpec, newPath, specMatches ? "" : filter, specMatches ? "" : regexp, exclude),
+				),
+				testResults: await promiseMap(spec.tests, async (test) => {
+					if (
+						(specMatches || (filter !== "" && test.name.includes(filter)) || (regexp !== "" && test.name.match(regexp))) &&
+						!(exclude !== "" && test.name.match(exclude))
+					) {
+						printSpecOnce()
+						printSpecOnce = () => {}
+						const allBeforeEach = [...path.flatMap((s) => s.beforeEach), ...spec.beforeEach]
+						for (const beforeEach of allBeforeEach) {
+							await beforeEach()
+						}
+						console.log("  ", fancy("TEST", ansiSequences.greenBg), test.name)
+
+						const testResult = await this.runTest(test)
+
+						const allAfterEach = [...path.flatMap((s) => s.afterEach), ...spec.afterEach]
+						for (const afterEach of allAfterEach) {
+							await afterEach()
+						}
+
+						return testResult
+					} else {
+						return { name: test.name, errors: [], timeout: null, skipped: true }
 					}
-					console.log("  ", fancy("TEST", ansiSequences.greenBg), test.name)
-
-					const testResult = await this.runTest(test)
-
-					const allAfterEach = [...path.flatMap((s) => s.afterEach), ...spec.afterEach]
-					for (const afterEach of allAfterEach) {
-						await afterEach()
-					}
-
-					return testResult
-				} else {
-					return { name: test.name, errors: [], timeout: null, skipped: true }
-				}
-			}),
+				}),
+			}
 		}
 
 		for (const after of spec.after) {
@@ -206,6 +219,10 @@ class OTest {
 ${fancy("TEST FINISHED", ansiSequences.bold)}
 
 ${result.filter ? `filter: "${result.filter}"` : ""}
+
+${result.regexp ? `regexp: "${result.regexp}"` : ""}
+
+${result.exclude ? `exclude: "${result.exclude}"` : ""}
 
 ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy("failing", ansiSequences.redBg)}: ${result.failingTests.length} ${fancy(
 				"skipped",
@@ -272,7 +289,7 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 
 		try {
 			// run task and timeout in parallel, if timeout counter comes first, we are timeout out
-			// the test task should set the timeout immediately or we will not pick it up.
+			// the test task should set the timeout immediately, or we will not pick it up.
 			await Promise.race([runTask(), startTimeoutTask()])
 		} catch (e) {
 			currentTestResult.errors.push({ error: wrapError(e), userMessage: null })

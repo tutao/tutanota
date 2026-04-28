@@ -237,9 +237,9 @@ import "./app-env/TimeConstants.js"
 import * as td from "testdouble"
 import { Mode } from "@tutao/app-env"
 
-export async function run({ integration, filter }: { integration?: boolean; filter?: string } = {}) {
+export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
 	await setupSuite({ integration })
-	const result = await o.run({ filter })
+	const result = await o.run({ filter, regexp, exclude })
 
 	o.printReport(result)
 
