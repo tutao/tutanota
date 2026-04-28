@@ -34,6 +34,7 @@ import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
+import { client } from "../misc/ClientDetector"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -144,7 +145,8 @@ export class PostLoginActions implements PostLoginAction {
 			// we don't want to ask for it while dialog is shown, we will ask in
 			// the dialog anyway.
 			// After dialog is finished or dismissed the setup is "complete".
-			if ((isApp() && deviceConfig.getIsSetupComplete()) || isDesktop()) {
+			//FIXME
+			if ((isApp() && deviceConfig.getIsSetupComplete() && !client.isCalendarApp()) || isDesktop()) {
 				// Await the push service registration so `storePushIdentifierLocally()` can set the extended notification mode on Android
 				// before `loadNewsIds()` runs the `isShown()` check of the `RichNotificationsNews` news item
 				await locator.pushService.register()

@@ -110,6 +110,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 									// We can assume "true" because onChange is only triggered if permission was granted
 									this.hasNotificationPermission = true
 								},
+								pushService: locator.pushService,
+								systemPermissionHandler: locator.systemPermissionHandler,
 							}),
 						)
 					: null,

@@ -6,10 +6,14 @@ import { PermissionType } from "../../common/native/common/generatedipc/Permissi
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { renderNotificationPermissionsDialog } from "../../common/settings/NotificationPermissionsDialog.js"
 import { isApp, isDesktop } from "@tutao/app-env"
+import { NativePushServiceApp } from "../../common/native/main/NativePushServiceApp"
+import { SystemPermissionHandler } from "../../common/native/main/SystemPermissionHandler"
 
 export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode
 	onChange: (value: ExtendedNotificationMode) => void
+	pushService: NativePushServiceApp | null
+	systemPermissionHandler: SystemPermissionHandler
 }
 
 export class NotificationContentSelector implements Component<NotificationContentSelectorAttrs> {
@@ -46,11 +50,11 @@ export class NotificationContentSelector implements Component<NotificationConten
 			selectionChangedHandler: async (newValue) => {
 				// Permissions only exist on mobile, so we should not check on other platforms
 				if (isApp()) {
-					const isNotificationPermissionGranted = await locator.systemPermissionHandler.hasPermission(PermissionType.Notification)
+					const isNotificationPermissionGranted = await vnode.attrs.systemPermissionHandler.hasPermission(PermissionType.Notification)
 					if (isNotificationPermissionGranted) {
 						vnode.attrs.onChange(newValue)
 					} else {
-						await renderNotificationPermissionsDialog(() => {
+						await renderNotificationPermissionsDialog(vnode.attrs.pushService, vnode.attrs.systemPermissionHandler, () => {
 							// Switch to the targeted setting regardless of whether the permission was granted
 							vnode.attrs.onChange(newValue)
 						})

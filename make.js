@@ -7,7 +7,7 @@ await program
 	.usage("[options] [test|prod|local|host <url>]")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "localSecure", "host"]).default("local").argOptional())
 	.addArgument(new Argument("host").argOptional())
-	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
+	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar", "drive"]).default("mail"))
 	.option("-c, --clean", "Clean build directory")
 	.option("-d, --start-desktop", "Assemble & start desktop client")
 	.option("--desktop-build-only", "Assemble desktop client without starting")

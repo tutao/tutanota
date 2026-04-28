@@ -100,7 +100,6 @@
 				android:exported="false"
 				android:permission="android.permission.BIND_JOB_SERVICE"
 				android:process=":pushprocess"/>
-
 		<receiver
 				android:name=".push.BootBroadcastReceiver"
 				android:exported="false">

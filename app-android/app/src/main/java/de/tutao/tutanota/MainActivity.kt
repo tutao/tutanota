@@ -55,17 +55,23 @@ import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.notificationDismissedIntent
-import de.tutao.tutanota.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
+import de.tutao.tutashared.AndroidCommonSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.AndroidThemeFacade
+import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.Theme
+import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
@@ -75,8 +81,12 @@ import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.remote.RemoteBridge
+import de.tutao.tutashared.remote.RemoteExecutionException
 import de.tutao.tutashared.toDp
 import de.tutao.tutashared.toPx
+import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.webauthn.WebauthnFlowRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -109,7 +119,7 @@ interface WebauthnHandler {
 }
 
 
-class MainActivity : FragmentActivity() {
+class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, WebauthnFlowRunner {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -148,6 +158,7 @@ class MainActivity : FragmentActivity() {
 		val fileFacade =
 			AndroidFileFacade(
 				this,
+				this,
 				localNotificationsFacade,
 				SecureRandom(),
 				NetworkUtils.defaultClient,
@@ -160,7 +171,9 @@ class MainActivity : FragmentActivity() {
 					lifecycleScope.launch {
 						commonNativeFacade.uploadProgress(fileId, bytes)
 					}
-				})
+				},
+				BuildConfig.FILE_PROVIDER_AUTHORITY
+			)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
@@ -188,7 +201,7 @@ class MainActivity : FragmentActivity() {
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
 
-		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
+		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutanota", BuildConfig.APPLICATION_ID)
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
@@ -206,7 +219,7 @@ class MainActivity : FragmentActivity() {
 		)
 		remoteBridge = RemoteBridge(
 			ipcJson,
-			this,
+			webView,
 			globalDispatcher,
 			commonSystemFacade,
 		)
@@ -419,7 +432,7 @@ class MainActivity : FragmentActivity() {
 
 
 	/** @return "result" extra value */
-	suspend fun startWebauthn(uri: Uri): String {
+	override suspend fun startWebauthn(uri: Uri): String {
 		val customIntent = CustomTabsIntent.Builder()
 			.build()
 		val intent = customIntent.intent.apply {
@@ -626,7 +639,7 @@ class MainActivity : FragmentActivity() {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
-	suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
+	override suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
 		if (hasPermission(permission)) {
 			continuation.resume(Unit)
 		} else {
@@ -650,7 +663,7 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
@@ -854,7 +867,7 @@ class MainActivity : FragmentActivity() {
 		moveTaskToBack(false)
 	}
 
-	fun reload(parameters: Map<String, String>) {
+	override fun reload(parameters: Map<String, String>) {
 		runOnUiThread { startWebApp(parameters.toMutableMap()) }
 	}
 

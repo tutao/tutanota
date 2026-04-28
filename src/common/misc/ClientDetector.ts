@@ -1,7 +1,6 @@
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
-import { isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 
@@ -421,12 +420,16 @@ export class ClientDetector {
 		return typeof CompressionStream !== "undefined"
 	}
 
-	isCalendarApp() {
+	isCalendarApp(): boolean {
 		return isApp() && this.appType === AppType.Calendar
 	}
 
-	isMailApp() {
+	isMailApp(): boolean {
 		return isApp() && this.appType === AppType.Mail
+	}
+
+	isDriveApp(): boolean {
+		return isApp() && this.appType === AppType.Drive
 	}
 
 	getClientPlatform(): ClientPlatform {

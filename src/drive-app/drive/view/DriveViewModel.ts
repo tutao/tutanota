@@ -164,6 +164,8 @@ export class DriveViewModel {
 	private readonly runningOperations: Map<Id, RunningOperation> = new Map()
 
 	public readonly operationUpdates: Stream<OperationUpdate> = stream()
+	public readonly initialized: Promise<void>
+	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -177,6 +179,9 @@ export class DriveViewModel {
 		public readonly updateUi: () => unknown,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
+		this.initialized = new Promise((resolve, reject) => {
+			this.resolveInitialized = resolve
+		})
 	}
 
 	readonly init = async () => {
@@ -184,6 +189,8 @@ export class DriveViewModel {
 		if (this.roots) {
 			return
 		}
+
+		await this.loginController.waitForFullLogin()
 
 		// do not finish init if the plan does not support it
 		if (await this.currentPlanSupportsDrive()) {
@@ -232,6 +239,11 @@ export class DriveViewModel {
 		})
 
 		this.refreshStorage()
+		this.resolveInitialized()
+	}
+
+	public waitForInit(): Promise<void> {
+		return this.initialized
 	}
 
 	public async currentPlanSupportsDrive(): Promise<boolean> {
