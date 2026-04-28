@@ -1,4 +1,5 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
+import { downcast } from "./Utils"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.
@@ -32,6 +33,14 @@ export interface WASMExports {
 	 * WebAssembly memory/heap
 	 */
 	memory: MemoryIF
+}
+
+export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath: string, baseUrl: string): Promise<T> {
+	const wasmUrl = new URL(wasmPath, baseUrl).href
+	const response = await fetch(wasmUrl)
+
+	const { instance } = await WebAssembly.instantiateStreaming(response)
+	return downcast<T>(instance.exports)
 }
 
 /**

@@ -21,9 +21,6 @@
 			"path": "./src/tsconfig.mimimi.json"
 		},
 		{
-			"path": "./src/tsconfig.wasm.json"
-		},
-		{
 			"path": "./src/tsconfig.usagetests.json"
 		},
 		{

@@ -17,6 +17,7 @@ import replace from "@rollup/plugin-replace"
 import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
+import { buildArgon2, buildLibOqs } from "./buildWasm.js"
 
 /**
  * Builds the web app for production.
@@ -93,6 +94,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		execSync(`npm run ${app ?? "mail"}:types`, { stdio: "inherit" })
 		execSync("npx tsc -b tsconfig.wasm.json", { stdio: "inherit", cwd: "src" })
 	})
+	await buildArgon2(resolvedBuildDir)
+	await buildLibOqs(resolvedBuildDir)
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
@@ -121,23 +124,6 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			nodeResolve({
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
-			}),
-			// should also not be included based on mobileApp param but currently the code imports it
-			rollupWasmLoader({
-				webassemblyLibraries: [
-					{
-						name: "liboqs.wasm",
-						command: "make -f Makefile_liboqs build",
-						workingDir: "libs/webassembly/",
-						outputPath: path.join(resolvedBuildDir, "liboqs.wasm"),
-					},
-					{
-						name: "argon2.wasm",
-						command: "make -f Makefile_argon2 build",
-						workingDir: "libs/webassembly/",
-						outputPath: path.join(resolvedBuildDir, "argon2.wasm"),
-					},
-				],
 			}),
 		],
 	})

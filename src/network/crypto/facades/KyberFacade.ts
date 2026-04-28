@@ -5,15 +5,15 @@ import {
 	decapsulateKyber,
 	encapsulateKyber,
 	generateKeyPairKyber,
-	ML_KEM_RAND_AMOUNT_OF_ENTROPY,
 	KyberEncapsulation,
 	KyberKeyPair,
 	KyberPrivateKey,
 	KyberPublicKey,
 	LibOQSExports,
+	ML_KEM_RAND_AMOUNT_OF_ENTROPY,
 	random,
 } from "@tutao/crypto"
-import { loadWasm } from "liboqs.wasm"
+import { loadWasmFromFileOrNetwork } from "../../../utils/WebAssembly"
 
 assertWorkerOrNode()
 
@@ -53,8 +53,7 @@ export class WASMKyberFacade implements KyberFacade {
 		if (this.testWASM) {
 			return this.testWASM
 		}
-
-		return await loadWasm()
+		return await loadWasmFromFileOrNetwork<LibOQSExports>("liboqs.wasm", import.meta.url)
 	})
 
 	async generateKeypair(): Promise<KyberKeyPair> {
