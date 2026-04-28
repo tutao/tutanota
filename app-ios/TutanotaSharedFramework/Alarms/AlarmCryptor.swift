@@ -1,6 +1,7 @@
 import Foundation
+public import Mockable
 
-public protocol AlarmCryptor: Sendable {
+@Mockable public protocol AlarmCryptor: Sendable {
 	func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification
 	func storeNewDeviceSessionKey(pushIdentifierId: String, sessionKey: Key) throws
 }

@@ -1,4 +1,5 @@
 import Foundation
+public import Mockable
 import tutasdk
 
 /// Identifier for when event will happen
@@ -15,7 +16,7 @@ public struct AlarmOccurrence: Equatable {
 }
 
 /// Something that can calculate when alarms should happen
-public protocol AlarmCalculator: Sendable {
+@Mockable public protocol AlarmCalculator: Sendable {
 	/// Calcuate the soonest alarm occurences up to the specified limits
 	/// note: return type would ideally not be required to be boxed but it's the easiest until proper upper bound inference is available at runtime
 	/// see https://forums.swift.org/t/inferred-result-type-requires-explicit-coercion/59602/2

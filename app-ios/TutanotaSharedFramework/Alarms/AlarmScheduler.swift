@@ -1,4 +1,5 @@
 import Foundation
+public import Mockable
 
 public struct ScheduledAlarmInfo: Equatable {
 	let alarmTime: Date
@@ -8,7 +9,7 @@ public struct ScheduledAlarmInfo: Equatable {
 	let eventDate: Date
 }
 
-public protocol AlarmScheduler: Sendable {
+@Mockable public protocol AlarmScheduler: Sendable {
 	func schedule(info: ScheduledAlarmInfo, isAllDayevent: Bool)
 	func unscheduleAll(occurrenceIds: [String])
 }

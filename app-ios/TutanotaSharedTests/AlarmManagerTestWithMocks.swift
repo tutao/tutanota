@@ -5,29 +5,25 @@
 //  Created by Tutao GmbH on 20.04.26.
 //
 import Combine
-import Mockingbird
+import Mockable
 import Testing
 import TutanotaSharedFramework
-import tutasdk
 
-struct AlarmManagerTest {
+struct AlarmManagerTestWithMocks {
 
 	let userId1 = "userId1"
 	let userId2 = "userId2"
 	let sseInfo: SSEInfo
 
-	init() {
-		initMockingbird()
-		sseInfo = SSEInfo(pushIdentifier: "pushIdentifier", sseOrigin: "sseorigin.com", userIds: [userId1, userId2])
-	}
+	init() { sseInfo = SSEInfo(pushIdentifier: "pushIdentifier", sseOrigin: "sseorigin.com", userIds: [userId1, userId2]) }
 
 	// This test case has room for improvement
 	@Test func rescheduleAlarms_deletes_alarms_that_are_encrypted_with_invalid_int_values() {
 
-		var alarmPersistorMock = mock(AlarmPersistor.self)
-		var alarmCryptorMock = mock(AlarmCryptor.self)
-		var alarmSchedulerMock = mock(AlarmScheduler.self)
-		var alarmCalculatorMock = mock(AlarmCalculator.self)
+		let alarmPersistorMock = MockAlarmPersistor()
+		let alarmCryptorMock = MockAlarmCryptor()
+		let alarmSchedulerMock = MockAlarmScheduler()
+		let alarmCalculatorMock = MockAlarmCalculator()
 
 		let validEncryptedAlarmNotification: EncryptedAlarmNotification
 		let brokenEncryptedAlarmNotification: EncryptedAlarmNotification
@@ -44,7 +40,7 @@ struct AlarmManagerTest {
 			summary: "",
 			eventStart: "",
 			eventEnd: "",
-			alarmInfo: EncryptedAlarmInfo(alarmIdentifier: "", trigger: ""),
+			alarmInfo: EncryptedAlarmInfo(alarmIdentifier: "identifier", trigger: "1D"),
 			repeatRule: nil,
 			notificationSessionKeys: [],
 			user: ""
@@ -63,15 +59,22 @@ struct AlarmManagerTest {
 
 		// given an alarm encrypted with an invalid endValue in its repeat rule
 
-		given(alarmCalculatorMock.futureAlarmOccurrences(acrossAlarms: [], upToForEach: any(), upToOverall: any())).willReturn([])
+		given(alarmCalculatorMock).futureAlarmOccurrences(acrossAlarms: .value([]), upToForEach: .any, upToOverall: .any).willReturn([])
 
 		// when decrypting the alarm
-		given(alarmPersistorMock.getAlarms()).willReturn([brokenEncryptedAlarmNotification])
-		given(alarmCryptorMock.decrypt(alarm: brokenEncryptedAlarmNotification)).willThrow(SimpleStringConversionError.init())
+		let validAlarmNotification = makeAlarm(eventStartAt: Date(), trigger: "1D", repeatRule: nil, identifier: "identifier", userID: "")
+
+		given(alarmPersistorMock).alarms.willReturn([brokenEncryptedAlarmNotification, validEncryptedAlarmNotification])
+		given(alarmPersistorMock).store(alarms: .any).willReturn()
+
+		given(alarmCryptorMock).decrypt(alarm: .value(brokenEncryptedAlarmNotification)).willThrow(SimpleStringConversionError())
+		given(alarmCryptorMock).decrypt(alarm: .value(validEncryptedAlarmNotification)).willReturn(validAlarmNotification)
+
+		given(alarmCalculatorMock).futureAlarmOccurrences(acrossAlarms: .any, upToForEach: .any, upToOverall: .any).willReturn([])
 
 		alarmManager.rescheduleAlarms()
 
 		// then the alarm will not be scheduled in the persistor
-		verify(alarmPersistorMock.store(alarms: [])).wasCalled(exactly(1))
+		verify(alarmPersistorMock).store(alarms: .value([validEncryptedAlarmNotification])).called(.once)
 	}
 }

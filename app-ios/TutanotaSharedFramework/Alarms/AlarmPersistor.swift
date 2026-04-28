@@ -1,6 +1,7 @@
 import Foundation
+public import Mockable
 
-public protocol AlarmPersistor: Sendable {
+@Mockable public protocol AlarmPersistor: Sendable {
 	var alarms: [EncryptedAlarmNotification] { get }
 
 	func clear()

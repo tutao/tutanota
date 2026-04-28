@@ -25,18 +25,6 @@ struct AlarmManagerTest {
 		alarmManager = AlarmManager(alarmPersistor: persistor, alarmCryptor: cryptor, alarmScheduler: scheduler, alarmCalculator: alarmModel)
 	}
 
-	private func makeAlarm(eventStartAt date: Date, trigger: String, repeatRule: RepeatRule? = nil, identifier: String = "identifier") -> AlarmNotification {
-		AlarmNotification(
-			operation: .Create,
-			summary: "summary",
-			eventStart: date,
-			eventEnd: date,
-			alarmInfo: AlarmInfo(alarmIdentifer: identifier, trigger: AlarmInterval(string: trigger)!),
-			repeatRule: repeatRule,
-			user: userID
-		)
-	}
-
 	private func encryptAlarm(alarm: AlarmNotification) -> EncryptedAlarmNotification {
 		EncryptedAlarmNotification(
 			operation: alarm.operation,
@@ -58,7 +46,7 @@ struct AlarmManagerTest {
 
 	@Test func testProcessNewAlarmsSchedulesAndSavedNewAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M", userID: userID)
 		// processNewAlarms will add alarm to the persister but who would think about the poor cryptor?
 		cryptor.alarms[alarm.identifier] = alarm
 
@@ -70,7 +58,7 @@ struct AlarmManagerTest {
 
 	@Test func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M", userID: userID)
 
 		addToFakePersistence(alarm: alarm)
 
@@ -93,7 +81,7 @@ struct AlarmManagerTest {
 
 	@Test func testUnscheduleAllAlarms() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm = makeAlarm(eventStartAt: start, trigger: "5M")
+		let alarm = makeAlarm(eventStartAt: start, trigger: "5M", userID: userID)
 		addToFakePersistence(alarm: alarm)
 
 		alarmManager.unscheduleAllAlarms(userId: userID)
@@ -103,7 +91,7 @@ struct AlarmManagerTest {
 
 	@Test func testRescheduleAlarmsReschedulesAlarms() {
 		let start1 = dateProvider.now.advanced(by: 10, .minutes)
-		let alarm1 = makeAlarm(eventStartAt: start1, trigger: "5M", identifier: "alarm1")
+		let alarm1 = makeAlarm(eventStartAt: start1, trigger: "5M", identifier: "alarm1", userID: userID)
 
 		let start2 = dateProvider.now.advanced(by: 30, .minutes)
 		let alarm2 = makeAlarm(
@@ -117,7 +105,8 @@ struct AlarmManagerTest {
 				excludedDates: [],
 				advancedRules: []
 			),
-			identifier: "alarm2"
+			identifier: "alarm2",
+			userID: userID
 		)
 
 		addToFakePersistence(alarm: alarm1)
@@ -157,7 +146,7 @@ struct AlarmManagerTest {
 		let eventStartUTC = allDayUTCDate(fromLocalDate: dateProvider.now.advanced(by: 48, .hours), inTimeZone: dateProvider.timeZone.identifier)
 		let eventEndUTC = eventStartUTC.advanced(by: 24, .hours)
 
-		let alarmNotification = makeAlarm(eventStartAt: eventStartUTC, trigger: "1D")
+		let alarmNotification = makeAlarm(eventStartAt: eventStartUTC, trigger: "1D", userID: userID)
 		addToFakePersistence(alarm: alarmNotification)
 
 		let eventStartLocalMidnight = allDayLocalDate(fromUTCDate: eventStartUTC, inZone: dateProvider.timeZone)
@@ -189,6 +178,7 @@ struct AlarmManagerTest {
 			eventStartAt: eventStartUTC,
 			trigger: "1D",
 			repeatRule: RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .never, excludedDates: [], advancedRules: []),
+			userID: userID
 		)
 		addToFakePersistence(alarm: alarmNotification)
 
