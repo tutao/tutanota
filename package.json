@@ -14,6 +14,7 @@
 		"test": "cd test && node --enable-source-maps test",
 		"mail:types": "tsc --build --incremental true tsconfig.json",
 		"calendar:types": "tsc --build --incremental true tsconfig-calendar-app.json",
+		"drive:types": "tsc --build --incremental true tsconfig-drive-app.json",
 		"test:types": "tsc --build --incremental true test/tsconfig.json",
 		"prebuild": "node buildSrc/prebuild.js",
 		"preinstall": "node buildSrc/preinstall.js",

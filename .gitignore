@@ -3,6 +3,7 @@ bindings
 cache
 target
 build-calendar-app
+build-drive-app
 dist
 node_modules
 .idea

@@ -57,4 +57,5 @@ export const enum AppType {
 	Integrated = "0",
 	Mail = "1",
 	Calendar = "2",
+	Drive = "3",
 }

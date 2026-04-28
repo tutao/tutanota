@@ -48,6 +48,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
@@ -67,20 +68,25 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		if (!this.driveViewModel.isDriveEnabledForCustomer()) {
-			m.route.set("/mail")
+			// FIXME
+			Dialog.message(lang.makeTranslation("test_driveNotEnabledMessage", "Drive is not enabled for this account")).then(() => {
+				windowFacade.reload({})
+			})
 			return
 		}
 
-		// /drive/folderId/listElementId
-		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
+		this.driveViewModel.waitForInit().then(() => {
+			// /drive/folderId/listElementId
+			const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 
-		if (folderListId && folderElementId) {
-			this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
-		} else {
-			// /drive
-			// No folder given, load the drive root
-			this.driveViewModel.navigateToRootFolder()
-		}
+			if (folderListId && folderElementId) {
+				this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
+			} else {
+				// /drive
+				// No folder given, load the drive root
+				this.driveViewModel.navigateToRootFolder()
+			}
+		})
 	}
 
 	private driveViewModel: DriveViewModel

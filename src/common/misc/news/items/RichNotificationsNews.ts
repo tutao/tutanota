@@ -9,6 +9,7 @@ import { Button, ButtonType } from "../../../gui/base/Button.js"
 import { lang } from "../../LanguageViewModel.js"
 import { NotificationContentSelector } from "../../../../mail-app/settings/NotificationContentSelector.js"
 import { isApp } from "@tutao/app-env"
+import { SystemPermissionHandler } from "../../../native/main/SystemPermissionHandler"
 
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null
@@ -16,6 +17,7 @@ export class RichNotificationsNews implements NewsListItem {
 	constructor(
 		private readonly newsModel: NewsModel,
 		private readonly pushApp: NativePushServiceApp | null,
+		private readonly systemPermissionHandler: SystemPermissionHandler,
 	) {}
 
 	async isShown(_newsId: tutanotaTypeRefs.NewsId): Promise<boolean> {
@@ -29,6 +31,7 @@ export class RichNotificationsNews implements NewsListItem {
 	render(newsId: tutanotaTypeRefs.NewsId): Children {
 		// if we got here then we must have it
 		const pushApp = assertNotNull(this.pushApp)
+		const systemPermissionHandler = assertNotNull(this.systemPermissionHandler)
 		return m(".full-width", [
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("richNotifications_title")),
 			m("p", lang.get("richNotificationsNewsItem_msg")),
@@ -40,6 +43,8 @@ export class RichNotificationsNews implements NewsListItem {
 						this.notificationMode = mode
 						pushApp.setExtendedNotificationMode(mode)
 					},
+					pushService: pushApp,
+					systemPermissionHandler: systemPermissionHandler,
 				}),
 			),
 			m(

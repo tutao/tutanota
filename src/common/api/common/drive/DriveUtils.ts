@@ -1,10 +1,9 @@
 import type { LoginController } from "../../main/LoginController"
-import { FeatureType } from "@tutao/app-env"
-import { Mode } from "@tutao/app-env"
+import { FeatureType, isAndroidApp, Mode } from "@tutao/app-env"
 
 export function isDriveEnabled(loginController: LoginController): boolean {
 	return (
-		(env.mode === Mode.Browser || env.mode === Mode.Desktop) &&
+		(env.mode === Mode.Browser || env.mode === Mode.Desktop || isAndroidApp()) &&
 		loginController.isInternalUserLoggedIn() &&
 		loginController.isEnabled(FeatureType.DriveInternalBeta)
 	)

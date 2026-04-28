@@ -29,7 +29,8 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
-import de.tutao.tutanota.getMimeType
+import de.tutao.tutashared.file.FileNotificationSender
+import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
@@ -52,7 +53,7 @@ private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
-	LocalErrorNotificationsFacade {
+	LocalErrorNotificationsFacade, FileNotificationSender {
 	companion object {
 		private const val TAG = "LocalNotifications"
 	}
@@ -172,7 +173,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		NOTIFICATION_EMAIL_GROUP + notificationInfo.userId
 
 	@TargetApi(Build.VERSION_CODES.Q)
-	fun sendDownloadFinishedNotification(fileName: String?) {
+	override fun sendDownloadFinishedNotification(fileName: String?) {
 		val notificationManager = NotificationManagerCompat.from(context)
 		val channel = NotificationChannel(
 			"downloads",
@@ -355,6 +356,31 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 	}
+
+	/**
+	 * create a notification that starts a new task and gives it access to the downloaded file
+	 * to view it.
+	 */
+	override fun showDownloadNotification(file: File) {
+		val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+		val uri = FileProvider.getUriForFile(context, BuildConfig.FILE_PROVIDER_AUTHORITY, file)
+		val mimeType = getMimeType(file.toUri(), context)
+		val intent = Intent(Intent.ACTION_VIEW).apply {
+			flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+			setDataAndType(uri, mimeType)
+		}
+		val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+		notificationManager.notify(
+			System.currentTimeMillis().toInt(),
+			NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
+				.setSmallIcon(R.drawable.ic_download)
+				.setContentTitle(context.getString(R.string.downloadCompleted_msg))
+				.setContentText(file.name)
+				.setContentIntent(pendingIntent)
+				.setAutoCancel(true)
+				.build()
+		)
+	}
 }
 
 fun notificationDismissedIntent(
@@ -408,30 +434,5 @@ private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIn
 		alarmIntent.data.toString().hashCode(),
 		openCalendarEventIntent,
 		PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-	)
-}
-
-/**
- * create a notification that starts a new task and gives it access to the downloaded file
- * to view it.
- */
-fun showDownloadNotification(context: Context, file: File) {
-	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-	val uri = FileProvider.getUriForFile(context, BuildConfig.FILE_PROVIDER_AUTHORITY, file)
-	val mimeType = getMimeType(file.toUri(), context)
-	val intent = Intent(Intent.ACTION_VIEW).apply {
-		flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-		setDataAndType(uri, mimeType)
-	}
-	val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-	notificationManager.notify(
-		System.currentTimeMillis().toInt(),
-		NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
-			.setSmallIcon(R.drawable.ic_download)
-			.setContentTitle(context.getString(R.string.downloadCompleted_msg))
-			.setContentText(file.name)
-			.setContentIntent(pendingIntent)
-			.setAutoCancel(true)
-			.build()
 	)
 }
