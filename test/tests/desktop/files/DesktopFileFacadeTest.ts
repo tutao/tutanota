@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
-import { DesktopFileFacade } from "../../../../src/common/desktop/files/DesktopFileFacade.js"
+import { DesktopFileFacade, getMimeTypeForFile } from "../../../../src/common/desktop/files/DesktopFileFacade.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
@@ -470,6 +470,20 @@ o.spec("DesktopFileFacade", function () {
 		o("hash", async function () {
 			when(fs.promises.readFile("/file1")).thenResolve(new Uint8Array([0, 1, 2, 3]) as Buffer)
 			o(await ff.hashFile("/file1")).equals("BU7ewdAh")
+		})
+	})
+
+	o.spec("getMimeTypeForFile", function () {
+		o.test("given lowercased four-letter extension it returns the correct mime type", async function () {
+			o.check(await getMimeTypeForFile("/tmp/picture.jpg")).equals("image/jpeg")
+		})
+
+		o.test("given uppercased four-letter extension it returns the correct mime type", async function () {
+			o.check(await getMimeTypeForFile("/tmp/picture.JPEG")).equals("image/jpeg")
+		})
+
+		o.test("given nonexisting extension it returns default fallback", async function () {
+			o.check(await getMimeTypeForFile("/tmp/picture.nonsense")).equals("application/octet-stream")
 		})
 	})
 })
