@@ -1,4 +1,4 @@
-export const mimes = {
+export const extensionToMimeType = {
 	"123": ["application/vnd.lotus-1-2-3"],
 	ez: ["application/andrew-inset"],
 	aw: ["application/applixware"],
@@ -1188,4 +1188,4 @@ export const mimes = {
 	movie: ["video/x-sgi-movie"],
 	smv: ["video/x-smv"],
 	ice: ["x-conference/x-cooltalk"],
-} as Record<string, Array<string>>
+} as Readonly<Record<string, Array<string>>>
