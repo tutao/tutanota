@@ -1619,8 +1619,6 @@ styles.registerStyle("main", () => {
 		":where(.keyboard-nav) .state-bg:focus": {
 			background: theme.state_bg_focus,
 			"transition-duration": ".3s",
-			// disable default focus indicator because we have our own for this element
-			outline: "none",
 		},
 		".state-bg:active, .state-bg[pressed=true]": {
 			background: theme.state_bg_active,
@@ -1631,8 +1629,6 @@ styles.registerStyle("main", () => {
 		".state-bg-2": {
 			// We have to position pseudoelement
 			position: "relative",
-			// disable default focus indicator because we have our own for this element
-			outline: "none",
 		},
 		".state-bg-2::before": {
 			"background-color": `var(--state-bg-color, ${theme.on_surface})`,
@@ -1885,9 +1881,6 @@ styles.registerStyle("main", () => {
 			outline: "none",
 		},
 		".nofocus:focus": {
-			outline: "none",
-		},
-		".input": {
 			outline: "none",
 		},
 		".input::placeholder": {
