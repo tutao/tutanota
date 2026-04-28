@@ -28,9 +28,8 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  */
 export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
 	const version = await getTutanotaAppVersion()
-	const isCalendarBuild = app === "calendar"
-	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const liboqsIncludeDir = "libs/webassembly/include"
+	const buildDir = buildDirForApp(app)
 
 	console.log(`Building dev client stage: ${stage} host: ${host} app: ${app}`)
 
@@ -118,11 +117,9 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @return {Promise<void>}
  */
 export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
-	const isCalendarBuild = app === "calendar"
-	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
+	const buildDir = buildDirForApp(app)
+	const { entry, worker } = entryPointsForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
-	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
-	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
 	await runStep("Web: Rolldown", async () => {
 		// In devBuild this aliases are resolved by rolldown itself,
@@ -131,13 +128,12 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key])
 		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
-			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
+			input: { app: entry, worker: worker, "pow-worker": "src/common/api/common/pow-worker.ts" },
 			transform: {
 				define: {
 					// Need it at least until inlining enums is supported
 					LOAD_ASSERTIONS: "false",
-					// see AppType in src/common/misc/ClientConstants.ts
-					APP_TYPE: JSON.stringify(app === "calendar" ? "2" : "1"),
+					APP_TYPE: appTypeForApp(app),
 				},
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
@@ -186,8 +182,8 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 }
 
 async function buildDesktopPart({ version, networkDebugging, app }) {
-	const isCalendarBuild = app === "calendar"
-	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
+	// FIXME: do we need an "app" switch for Desktop?
+	const buildDir = buildDirForApp(app)
 
 	await runStep("Desktop: Rolldown", async () => {
 		const platform = getCanonicalPlatformName(process.platform)
@@ -346,5 +342,48 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	const modes = ["Browser", "App", "Desktop"]
 	for (const mode of modes) {
 		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging }), buildDir)
+	}
+}
+
+function buildDirForApp(app) {
+	switch (app) {
+		case "mail":
+			return "build"
+		case "calendar":
+			return "build-calendar-app"
+		case "drive":
+			return "build-drive-app"
+	}
+}
+
+function entryPointsForApp(app) {
+	switch (app) {
+		case "mail":
+			return {
+				entry: "src/mail-app/app.ts",
+				worker: "src/mail-app/workerUtils/worker/mail-worker.ts",
+			}
+		case "calendar":
+			return {
+				entry: "src/calendar-app/calendar-app.ts",
+				worker: "src/calendar-app/workerUtils/worker/calendar-worker.ts",
+			}
+		case "drive":
+			return {
+				entry: "src/drive-app/drive-app.ts",
+				worker: "src/drive-app/workerUtils/worker/drive-worker.ts",
+			}
+	}
+}
+
+function appTypeForApp(app) {
+	// see ClientConstants
+	switch (app) {
+		case "mail":
+			return "1"
+		case "calendar":
+			return "2"
+		case "drive":
+			return "3"
 	}
 }
