@@ -33,12 +33,12 @@ export type SessionKeyResolver = (instance: Entity) => Promise<Nullable<AesKey>>
 
 /*
  * Note:
- * This is subset of interface `CacheStorage`.
+ * This is a subset of interface `CacheStorage`.
  *
- * In next iteration:
- * we should extract the cacheStorage and/or offlineStorage into seperate package and reuse `CacheStorage` interface
+ * In the next iteration:
+ * we should extract the cacheStorage and/or offlineStorage into a separate package and reuse the ` CacheStorage ` interface
  */
-export interface GetOrPutInstane {
+export interface GetOrPutInstance {
 	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null>
 
 	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
@@ -46,7 +46,7 @@ export interface GetOrPutInstane {
 
 export class PatchMerger {
 	constructor(
-		private readonly cacheStorage: GetOrPutInstane,
+		private readonly cacheStorage: GetOrPutInstance,
 		public readonly instancePipeline: InstancePipeline,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sessionKeyResolver: SessionKeyResolver,
