@@ -11,6 +11,7 @@ import { copyToClipboard } from "../misc/ClipboardUtils"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { assertMainOrNode } from "@tutao/app-env"
 import { px } from "../gui/size"
+import { styles } from "../gui/styles"
 
 assertMainOrNode()
 
@@ -40,8 +41,8 @@ export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 
 				m(MonospaceTextDisplay, {
 					text: recoverCode,
-					chunksPerLine: 4,
-					chunkSize: 4,
+					chunksPerLine: styles.isMobileLayout() ? 3 : 4,
+					chunkSize: styles.isMobileLayout() ? 3 : 4,
 					border: false,
 				}),
 			),
