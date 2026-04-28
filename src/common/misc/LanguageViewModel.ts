@@ -231,6 +231,7 @@ export const enum InfoLink {
 	GiftCardsTerms = "https://tuta.com/giftCardsTerms",
 	//faq
 	RecoverCode = "https://tuta.com/faq#reset",
+	RecoveryCodeFormat = "https://tuta.com/support#recovery-code",
 	SecondFactor = "https://tuta.com/faq#2fa",
 	SpamRules = "https://tuta.com/faq#spam",
 	DomainInfo = "https://tuta.com/faq#custom-domain",
