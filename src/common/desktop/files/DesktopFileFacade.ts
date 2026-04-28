@@ -400,10 +400,10 @@ export class DesktopFileFacade implements FileFacade {
 	}
 }
 
-export async function getMimeTypeForFile(file: string): Promise<string> {
-	const ext = path.extname(file).slice(1)
-	const { mimes } = await import("../flat-mimes.js")
-	const candidates = mimes[ext]
+export async function getMimeTypeForFile(filePath: string): Promise<string> {
+	const ext = path.extname(filePath).slice(1).toLowerCase() // remove the dot and normalize
+	const { extensionToMimeType } = await import("../flat-mimes.js")
+	const candidates = extensionToMimeType[ext]
 	// sometimes there are multiple options, but we'll take the first and reorder if issues arise.
 	return candidates != null ? candidates[0] : "application/octet-stream"
 }
