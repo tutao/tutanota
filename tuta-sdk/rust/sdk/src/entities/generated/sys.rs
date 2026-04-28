@@ -6432,3 +6432,23 @@ impl Entity for SubscriptionReference {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RenewalPreferenceServicePostIn {
+	#[serde(rename = "2741")]
+	pub _format: i64,
+	#[serde(rename = "2742")]
+	pub isEnabled: bool,
+	#[serde(rename = "2743")]
+	pub customerId: GeneratedId,
+}
+
+impl Entity for RenewalPreferenceServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2740),
+		}
+	}
+}

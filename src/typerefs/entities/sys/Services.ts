@@ -314,6 +314,15 @@ export const RegistrationService = Object.freeze({
 	delete: null,
 } as const)
 
+export const RenewalPreferenceService = Object.freeze({
+	app: "sys",
+	name: "RenewalPreferenceService",
+	get: null,
+	post: { data: sysTypeRefs.RenewalPreferenceServicePostInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
 export const ResetFactorsService = Object.freeze({
 	app: "sys",
 	name: "ResetFactorsService",

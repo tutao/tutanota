@@ -4254,3 +4254,17 @@ export type SubscriptionReference = {
 	foreignKey: null | string;
 	subscriptionApp: NumberString;
 }
+export const RenewalPreferenceServicePostInTypeRef: TypeRef<RenewalPreferenceServicePostIn> = new TypeRef("sys", 2740)
+
+export function createRenewalPreferenceServicePostIn(values: StrippedEntity<RenewalPreferenceServicePostIn>): RenewalPreferenceServicePostIn {
+    return Object.assign(create(typeModels[RenewalPreferenceServicePostInTypeRef.typeId], RenewalPreferenceServicePostInTypeRef), values)
+}
+
+export type RenewalPreferenceServicePostIn = {
+	_type: TypeRef<RenewalPreferenceServicePostIn>;
+	_original?: RenewalPreferenceServicePostIn
+
+	_format: NumberString;
+	isEnabled: boolean;
+	customerId: Id;
+}
