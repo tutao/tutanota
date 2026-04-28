@@ -2269,3 +2269,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "manualUpdateNeeded_msg"
 	| "setAsSenderNameForPrimaryAddress_label"
+	| "incorrectRecoveryCodeFormat_msg"

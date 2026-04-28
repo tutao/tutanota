@@ -2270,6 +2270,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"manualUpdateNeeded_msg": "Something is preventing the update.\n\nPlease download and update manually at {url}",
-		"setAsSenderNameForPrimaryAddress_label": "Set as sender name for primary email address"
+		"setAsSenderNameForPrimaryAddress_label": "Set as sender name for primary email address",
+		"incorrectRecoveryCodeFormat_msg": "The entered code is not in the correct format, please make sure you are using the correct recovery code."
 	}
 }

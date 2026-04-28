@@ -5,7 +5,7 @@ import * as restError from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../misc/FormatValidator.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../gui/base/icons/Icons"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
@@ -19,6 +19,7 @@ import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { PasswordField } from "../../misc/passwords/PasswordField.js"
 import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -159,6 +160,9 @@ function handleError(e: Error) {
 		m.redraw()
 	} else if (e instanceof restError.TooManyRequestsError) {
 		Dialog.message("tooManyAttempts_msg")
+	} else if (e.message.toLowerCase().includes("illegal key length")) {
+		// this error message comes from getAndVerifyAesKeyLength
+		Dialog.message("incorrectRecoveryCodeFormat_msg", () => m(MoreInfoLink, { link: InfoLink.RecoveryCodeFormat }))
 	} else {
 		throw e
 	}
