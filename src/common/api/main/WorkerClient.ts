@@ -1,4 +1,4 @@
-import { Commands, Request, Transport } from "@tutao/native-bridge/shared"
+import { Commands, Request, Transport } from "../../../native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../common/threading/WebTransport.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { client } from "../../../app-env/ClientDetector"
@@ -11,7 +11,7 @@ import { EntropyDataChunk } from "../../../network/crypto/facades/EntropyFacade.
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
-import { MessageDispatcher } from "@tutao/native-bridge/common"
+import { MessageDispatcher } from "@tutao/native-bridge/shared"
 
 assertMainOrNode()
 

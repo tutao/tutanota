@@ -1,10 +1,10 @@
 import { assertMainOrNode, isAdminClient, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
-import { MessageDispatcher } from "../../native-bridge/common/MessageDispatcher.js"
+import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
 import { NativeInterface, WebGlobalDispatcher } from "@tutao/native-bridge/common"
 import { AndroidNativeTransport, DesktopNativeTransport, IosNativeTransport } from "@tutao/native-bridge/main"
-import { Request, Transport } from "@tutao/native-bridge/shared"
+import { Request, Transport } from "../../native-bridge/shared/MessageTypes"
 import { objToError } from "../api/common/utils/ErrorUtils"
 
 assertMainOrNode()

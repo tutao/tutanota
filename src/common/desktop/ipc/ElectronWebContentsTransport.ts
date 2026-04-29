@@ -1,4 +1,4 @@
-import { Message, Transport } from "@tutao/native-bridge/shared"
+import { Message, Transport } from "../../../native-bridge/shared/MessageTypes"
 import type { WebContents } from "electron"
 
 export interface IpcConfig<RenderToMainEvent extends string, MainToRenderEvent extends string> {

@@ -6,8 +6,8 @@
  */
 import { isWorker } from "@tutao/app-env"
 import { newPromise } from "@tutao/utils"
-import type { Commands, Message, MessageCallbacks, Request, Transport } from "@tutao/native-bridge/shared"
-import { RequestError, Response } from "@tutao/native-bridge/shared"
+import type { Commands, Message, MessageCallbacks, Request, Transport } from "./MessageTypes.js"
+import { RequestError, Response } from "./MessageTypes.js"
 
 /**
  * Handles remote invocations (e.g. worker or native calls).

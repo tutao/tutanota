@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "@tutao/app-env"
-import { Transport } from "@tutao/native-bridge/shared"
-import { Message } from "@tutao/native-bridge/shared"
+import { Transport } from "../shared/MessageTypes"
+import { Message } from "../shared/MessageTypes"
 
 assertMainOrNode()
 

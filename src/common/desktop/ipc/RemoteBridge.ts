@@ -6,10 +6,10 @@ import {
 	DesktopGlobalDispatcher,
 	InterWindowEventFacadeSendDispatcher,
 } from "@tutao/native-bridge/common"
-import { Request } from "@tutao/native-bridge/shared"
+import { Request } from "../../../native-bridge/shared/MessageTypes"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ElectronWebContentsTransport, IpcConfig } from "./ElectronWebContentsTransport.js"
-import { MessageDispatcher } from "../../../native-bridge/common/MessageDispatcher.js"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { DesktopCommonSystemFacade } from "../DesktopCommonSystemFacade.js"
 import { objToError } from "../../api/common/utils/ErrorUtils"
 

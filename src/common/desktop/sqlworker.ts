@@ -13,8 +13,8 @@
  * */
 import { parentPort, workerData } from "node:worker_threads"
 import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
-import { MessageDispatcher } from "../../native-bridge/common/MessageDispatcher.js"
-import { Command, Request } from "@tutao/native-bridge/shared"
+import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
+import { Command, Request } from "../../native-bridge/shared/MessageTypes"
 import { NodeWorkerTransport } from "../api/common/threading/NodeWorkerTransport.js"
 import { objToError } from "../api/common/utils/ErrorUtils"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"

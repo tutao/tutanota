@@ -20,7 +20,7 @@
  *  ...
  *  [n] 		request		<argx>				json-encoded last argument
  */
-import { Message, Request, RequestError, Response } from "@tutao/native-bridge/shared"
+import { Message, Request, RequestError, Response } from "../shared/MessageTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 

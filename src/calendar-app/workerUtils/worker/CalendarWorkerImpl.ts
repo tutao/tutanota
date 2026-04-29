@@ -1,5 +1,5 @@
-import { Commands, Request } from "@tutao/native-bridge/shared"
-import { MessageDispatcher } from "../../../native-bridge/common/MessageDispatcher.js"
+import { Commands, Request } from "../../../native-bridge/shared/MessageTypes"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import * as restError from "@tutao/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"

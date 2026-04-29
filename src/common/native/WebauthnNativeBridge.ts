@@ -1,9 +1,9 @@
-import { MessageDispatcher } from "../../native-bridge/common/MessageDispatcher.js"
+import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import { exposeLocalDelayed } from "../api/common/WorkerProxy"
 import { assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { DesktopNativeTransport } from "@tutao/native-bridge/main"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import { Commands, Request } from "@tutao/native-bridge/shared"
+import { Commands, Request } from "../../native-bridge/shared/MessageTypes"
 import { objToError } from "../api/common/utils/ErrorUtils"
 
 export type WebToNativeRequest = "init"

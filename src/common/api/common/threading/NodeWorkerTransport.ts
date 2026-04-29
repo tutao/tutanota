@@ -1,5 +1,5 @@
 import { parentPort, Worker as NodeWorker } from "node:worker_threads"
-import { Message, Transport } from "@tutao/native-bridge/shared"
+import { Message, Transport } from "../../../../native-bridge/shared/MessageTypes"
 
 /** transport impl for the node main thread */
 export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {

@@ -368,7 +368,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "native-main"
 	} else if (isIn("src/native-bridge/worker")) {
 		return "worker"
-	} else if (isIn("src/native-bridge/shared.ts")) {
+	} else if (isIn("src/native-bridge/shared")) {
 		return "common"
 	} else if (isIn("src/native-bridge/common")) {
 		return "native-common"
