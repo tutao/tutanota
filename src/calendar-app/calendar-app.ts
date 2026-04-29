@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished } from "@tutao/app-env"
+import { assertMainOrNodeBoot, bootFinished, isAdminClient } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
@@ -115,7 +115,7 @@ import("../mail-app/translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		if (!isBrowser() && !isAdminClient()) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 			calendarLocator.logins.addPostLoginAction(
 				async () =>

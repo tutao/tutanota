@@ -13,6 +13,7 @@ import {
 	assertWorkerOrNode,
 	Const,
 	getWebsocketBaseUrl,
+	isAdminClient,
 	isAndroidApp,
 	isBrowser,
 	isIOSApp,
@@ -238,7 +239,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 
 	let offlineStorageProvider
-	if (!isBrowser() && !(env.mode === Mode.Admin)) {
+	if (!isBrowser() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({

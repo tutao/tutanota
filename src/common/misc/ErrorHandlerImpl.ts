@@ -1,7 +1,7 @@
 import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
-import { assertMainOrNode, InvalidModelError, isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { assertMainOrNode, CancelledError, InvalidModelError, isAdminClient, isBrowser, isDesktop } from "@tutao/app-env"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
 import { OutOfSyncError } from "../../network/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -14,8 +14,6 @@ import { showMoreStorageNeededOrderDialog } from "./SubscriptionDialogs"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { credentialsToUnencrypted } from "./credentials/Credentials"
 import { showErrorDialogNotLoggedIn, showErrorNotification } from "./ErrorReporter"
-import { CancelledError } from "@tutao/app-env"
-
 import { SessionType } from "../../app-env/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
@@ -73,8 +71,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 	} else if (e instanceof restError.SessionExpiredError) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError || e instanceof InvalidModelError) {
-		const isOffline =
-			!isBrowser() && !(env.mode === Mode.Admin) && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
+		const isOffline = !isBrowser() && !isAdminClient() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
 
 		if (e instanceof InvalidModelError) {
 			await Dialog.message("dataOutOfSync_label", lang.get(isOffline ? "dataOutOfSyncOfflineDb_msg" : "dataOutOfSync_msg"))

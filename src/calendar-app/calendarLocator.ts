@@ -3,6 +3,7 @@ import {
 	Const,
 	FeatureType,
 	GroupType,
+	isAdminClient,
 	isAndroidApp,
 	isApp,
 	isBrowser,
@@ -718,7 +719,7 @@ class CalendarLocator implements CommonLocator {
 				AppType.Calendar,
 			)
 
-			if (isDesktop() || env.mode === Mode.Admin) {
+			if (isDesktop() || isAdminClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender

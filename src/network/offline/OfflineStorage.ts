@@ -53,7 +53,7 @@ import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "@tutao/instance-pipeline"
 import { collapseId, expandId } from "@tutao/network"
 import { Category, syncMetrics } from "../../utils/SyncMetrics"
-import { isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { isAdminClient, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 
 /**
@@ -213,7 +213,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly customCacheHandler: CustomCacheHandlerMap,
 		additionalTables: Record<string, OfflineStorageTable>,
 	) {
-		assert((!isBrowser() && !(env.mode === Mode.Admin)) || env.mode === Mode.Test, "Offline storage is not available.")
+		assert((!isBrowser() && !isAdminClient()) || env.mode === Mode.Test, "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 

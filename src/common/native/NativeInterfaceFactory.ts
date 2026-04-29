@@ -33,7 +33,7 @@ import {
 	ThemeFacadeSendDispatcher,
 	WebGlobalDispatcher,
 } from "@tutao/native-bridge/common"
-import { isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
+import { isAdminClient, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import { CryptoFacade, EntityClient } from "@tutao/network"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
@@ -110,7 +110,7 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!(isDesktop() || env.mode === Mode.Admin)) {
+	if (!(isDesktop() || isAdminClient())) {
 		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {

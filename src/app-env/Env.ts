@@ -33,7 +33,7 @@ export function isIOSApp(): boolean {
 	if (isApp() && env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
-	return env.mode === Mode.App && env.platformId === "ios"
+	return isApp() && env.platformId === "ios"
 }
 
 /**
@@ -48,7 +48,7 @@ export function isAndroidApp(): boolean {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
 
-	return env.mode === Mode.App && env.platformId === "android"
+	return isApp() && env.platformId === "android"
 }
 
 export function isApp(): boolean {
@@ -103,7 +103,7 @@ export function isTest(): boolean {
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && typeof env !== "undefined" && (env.mode === Mode.Desktop || env.mode === Mode.Admin)
+	return node && typeof env !== "undefined" && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()

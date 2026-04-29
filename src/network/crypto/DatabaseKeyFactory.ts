@@ -1,7 +1,7 @@
 //@bundleInto:common
 
 import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
-import { isBrowser, Mode } from "@tutao/app-env"
+import { isAdminClient, isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * Factory for generating an offline storage database key
@@ -11,6 +11,6 @@ export class DatabaseKeyFactory {
 	constructor(private crypto: DeviceEncryptionFacade) {}
 
 	async generateKey(): Promise<Uint8Array | null> {
-		return !isBrowser() && !(env.mode === Mode.Admin) ? this.crypto.generateKey() : null
+		return !isBrowser() && !isAdminClient() ? this.crypto.generateKey() : null
 	}
 }

@@ -7,7 +7,7 @@ import {
 	SqlCipherFacade,
 	UnencryptedCredentials,
 } from "@tutao/native-bridge/common"
-import { CredentialType, isBrowser, Mode } from "@tutao/app-env"
+import { CredentialType, isAdminClient, isBrowser, Mode } from "@tutao/app-env"
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
@@ -124,5 +124,5 @@ export class CredentialsProvider {
 }
 
 export function usingKeychainAuthenticationWithOptions(): boolean {
-	return !isBrowser() && !(env.mode === Mode.Admin)
+	return !isBrowser() && !isAdminClient()
 }

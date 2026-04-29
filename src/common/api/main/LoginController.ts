@@ -1,6 +1,6 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 import { assertNotNull, defer } from "@tutao/utils"
-import { assertMainOrNodeBoot, ExternalUserKeyDeriver, FeatureType, InvalidModelError, KdfType, Mode, SessionType } from "@tutao/app-env"
+import { assertMainOrNodeBoot, ExternalUserKeyDeriver, FeatureType, InvalidModelError, isAdminClient, KdfType, Mode, SessionType } from "@tutao/app-env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import * as restError from "@tutao/rest-client/error"
@@ -98,7 +98,7 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		if (!(env.mode === Mode.Admin)) {
+		if (!isAdminClient()) {
 			await this.loadCustomizations()
 		}
 		await this._determineIfWhitelabel()

@@ -22,6 +22,7 @@ import {
 	CryptoProtocolVersion,
 	GroupKeyRotationType,
 	GroupType,
+	isAdminClient,
 	Mode,
 	PublicKeyIdentifierType,
 	RolloutType,
@@ -1378,7 +1379,7 @@ export class KeyRotationRolloutAction implements RolloutAction {
 
 	public async execute() {
 		// If we have not migrated to argon2 we postpone key rotation.
-		if (!(env.mode === Mode.Admin) && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
+		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {
 				const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null

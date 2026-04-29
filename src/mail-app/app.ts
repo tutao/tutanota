@@ -9,7 +9,7 @@ import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./ApplicationPaths.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { isAdminClient, ProgrammingError } from "@tutao/app-env"
 import { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -180,7 +180,7 @@ import("./translations/en.js")
 						return
 					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
-					if (!isBrowser() && !(env.mode === Mode.Admin)) {
+					if (!isBrowser() && !isAdminClient()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
@@ -255,7 +255,7 @@ import("./translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		if (!isBrowser() && !isAdminClient()) {
 			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
 			mailLocator.logins.addPostLoginAction(
 				async () =>

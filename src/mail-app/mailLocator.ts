@@ -1,4 +1,17 @@
-import { assertMainOrNode, Const, FeatureType, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import {
+	assertMainOrNode,
+	Const,
+	FeatureType,
+	GroupType,
+	isAdminClient,
+	isAndroidApp,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	Mode,
+	ProgrammingError,
+} from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -936,7 +949,7 @@ class MailLocator implements CommonLocator {
 			)
 
 			this.credentialsProvider = await this.createCredentialsProvider()
-			if (isDesktop() || env.mode === Mode.Admin) {
+			if (isDesktop() || isAdminClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
@@ -1302,7 +1315,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
+		if (!isBrowser() && !isAdminClient()) {
 			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
 		} else {
 			return null

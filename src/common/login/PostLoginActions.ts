@@ -17,6 +17,7 @@ import {
 	Const,
 	CredentialEncryptionMode,
 	FeatureType,
+	isAdminClient,
 	isApp,
 	isDesktop,
 	LOGIN_TITLE,
@@ -139,7 +140,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!(env.mode === Mode.Admin)) {
+		if (!isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 			const calendarModel = await locator.calendarModel()
@@ -166,7 +167,7 @@ export class PostLoginActions implements PostLoginAction {
 			this.handleExternalSync()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !(env.mode === Mode.Admin)) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 			const receiveInfoData = tutanotaTypeRefs.createReceiveInfoServiceData({
 				language: lang.code,
 			})

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CloseEventBusOption, GroupType, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
+import { assertWorkerOrNode, CloseEventBusOption, GroupType, isAdminClient, isBrowser, Mode, SECOND_MS } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import {
 	type AppName,
@@ -684,7 +684,7 @@ export class EventBusClient implements EventBusClientInterface {
 
 	private eventGroups(): Id[] {
 		const user = this.userFacade.getLoggedInUser()
-		if ((!isBrowser() && !(env.mode === Mode.Admin)) || env.mode === Mode.Test) {
+		if ((!isBrowser() && !isAdminClient()) || env.mode === Mode.Test) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)
