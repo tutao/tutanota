@@ -199,7 +199,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
+	if (isIn("src/app-env/ClientDetector.ts")) {
+		return "boot"
+	} else if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		return "common-min"
 	} else if (code.includes("@bundleInto:common")) {
@@ -378,6 +380,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-lazy"
 	} else if (isIn("src/network/crypto/facades") || isIn("src/network/facades/") || isIn("src/network/offline/migrations")) {
 		return "worker"
+	} else if (isIn("src/network/GroupUtils.ts") || isIn("src/network/EntityClient.ts")) {
+		return "common"
 	} else if (isIn("src/network")) {
 		return "worker"
 	} else {
