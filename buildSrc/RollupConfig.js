@@ -29,7 +29,6 @@ export let tsImportAliases = {
 	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
 	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
 	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
-	"@tutao/wasm-loader": path.normalize("src/wasm-loader/dist/index.js"),
 	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
 	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
 	"@tutao/rest-client": path.normalize("src/rest-client/dist/index.js"),
@@ -37,6 +36,10 @@ export let tsImportAliases = {
 	"@tutao/app-env": path.normalize("src/app-env/dist/index.js"),
 	"@tutao/typerefs": path.normalize("src/typerefs/dist/index.js"),
 	"@tutao/instance-pipeline": path.normalize("src/instance-pipeline/dist/index.js"),
+	"@tutao/native-bridge/common": path.normalize("src/native-bridge/dist/common/index.js"),
+	"@tutao/native-bridge/worker": path.normalize("src/native-bridge/dist/worker/index.js"),
+	"@tutao/native-bridge/main": path.normalize("src/native-bridge/dist/main/index.js"),
+	"@tutao/native-bridge/shared": path.normalize("src/native-bridge/dist/shared/index.js"),
 }
 
 /**

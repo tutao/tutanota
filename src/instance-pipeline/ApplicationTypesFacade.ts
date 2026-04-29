@@ -10,9 +10,9 @@ import {
 	ServiceDefinition,
 } from "@tutao/typerefs"
 import { HttpMethod, MediaType, RestClientInterface } from "@tutao/rest-client/types"
-import { decompressString } from "./index"
 import { sha256Hash } from "@tutao/crypto"
-import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError"
+import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
+import { decompressString } from "./ModelMapper.js"
 
 assertWorkerOrNode()
 
