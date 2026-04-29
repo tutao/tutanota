@@ -1,5 +1,5 @@
 import type { Randomizer, RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
-import type { RsaImplementation } from "../../api/worker/crypto/RsaImplementation"
+import type { RsaImplementation } from "../../api/worker/encryption/RsaImplementation"
 import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 
 export class RsaApp implements RsaImplementation {

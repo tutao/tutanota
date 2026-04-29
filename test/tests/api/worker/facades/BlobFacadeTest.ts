@@ -8,7 +8,7 @@ import { elementIdPart, getElementId, listIdPart, storageTypeModels, storageType
 import { instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/encryption/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"

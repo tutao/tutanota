@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../encryption/CryptoFacade.js"
 import { sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { ShareCapability } from "@tutao/app-env"
 import { assertWorkerOrNode } from "@tutao/app-env"

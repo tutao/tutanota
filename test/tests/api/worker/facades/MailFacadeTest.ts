@@ -3,7 +3,7 @@ import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from
 import { elementIdPart, getElementId, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { CryptoProtocolVersion, GroupType, MailAuthenticationStatus, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportedMailFieldType } from "../../../../../src/app-env"
 import { matchers, object, when } from "testdouble"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/encryption/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"

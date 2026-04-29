@@ -28,7 +28,7 @@ import type { UserManagementFacade } from "../worker/facades/lazy/UserManagement
 import { RecoverCodeFacade } from "../worker/facades/lazy/RecoverCodeFacade.js"
 import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 import { IServiceExecutor } from "../common/ServiceRequest.js"
-import { CryptoFacade } from "../worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../worker/encryption/CryptoFacade.js"
 import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"

@@ -7,7 +7,7 @@ import { FileController } from "../../../../src/common/file/FileController.js"
 import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/common/api/worker/encryption/CryptoFacade.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailState } from "../../../../src/app-env"
 

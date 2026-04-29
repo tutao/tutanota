@@ -3,7 +3,7 @@ import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/c
 import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
 import { BulkMailLoader } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/encryption/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"

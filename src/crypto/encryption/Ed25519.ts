@@ -12,7 +12,7 @@ import {
 export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair, Ed25519Signature }
 
 export async function initEd25519(webAssemblySrc: BufferSource | string): Promise<void> {
-	// the initialization function internally manage wether or not the wasm module has already been
+	// the initialization function internally manage whether the wasm module has already been
 	// initialized, no need for an internal state
 
 	// we assume the wasm file has been provided at this url by the build process

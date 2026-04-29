@@ -7,7 +7,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../common/api/worker/encryption/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
 
 assertMainOrNode()

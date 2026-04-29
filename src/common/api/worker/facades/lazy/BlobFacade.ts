@@ -1,5 +1,5 @@
 import { addParamsToUrl, HttpMethod, MAX_BLOB_SIZE_BYTES, MediaType, RestClient, restError, restSuspension } from "@tutao/rest-client"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../encryption/CryptoFacade.js"
 import {
 	assertNonNull,
 	assertNotNull,

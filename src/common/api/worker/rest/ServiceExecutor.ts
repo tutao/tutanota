@@ -15,7 +15,7 @@ import {
 import { HttpMethod, MediaType, RestClient } from "@tutao/rest-client"
 import { ExtraServiceParams, IServiceExecutor } from "../../common/ServiceRequest.js"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/utils"
-import { CryptoFacade } from "../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../encryption/CryptoFacade.js"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { AuthDataProvider } from "../facades/UserFacade.js"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"

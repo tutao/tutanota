@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../encryption/CryptoFacade.js"
 import {
 	containsId,
 	elementIdPart,

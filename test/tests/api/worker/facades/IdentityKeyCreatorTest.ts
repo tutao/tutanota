@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { AsymmetricKeyPair, cryptoUtils, CryptoWrapper, Ed25519KeyPair, KeyPairType, MacTag, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/encryption/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"

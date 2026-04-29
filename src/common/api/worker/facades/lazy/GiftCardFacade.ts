@@ -13,7 +13,7 @@ import {
 import { elementIdPart, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../encryption/CryptoFacade.js"
 import { UserFacade } from "../UserFacade.js"
 import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"

@@ -17,7 +17,7 @@ import {
 import { LoginFacade, LoginListener } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../../src/common/api/worker/encryption/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"

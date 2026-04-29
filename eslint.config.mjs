@@ -57,6 +57,29 @@ export default defineConfig([
 			"require-yield": "error",
 		},
 	},
+	{
+		files: ["**/*.ts"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							group: ["**src/crypto**", "../crypto**", "**/../crypto**"],
+							message:
+								"Do not import from crypto internals directly. Use the public api under @tutao/crypto such as the `SymmetricCipherFacade` instead.",
+						},
+					],
+				},
+			],
+		},
+	},
+	{
+		files: ["test/**/*.ts"],
+		rules: {
+			"no-restricted-imports": 0,
+		},
+	},
 	...typescriptEslint.configs.recommended,
 	{
 		rules: {

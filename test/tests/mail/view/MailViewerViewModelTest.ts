@@ -18,7 +18,7 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { EncryptionAuthStatus, ExternalImageRule, isBrowser, MailAuthenticationStatus, MailPhishingStatus, MailState } from "../../../../src/app-env"
-import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/common/api/worker/encryption/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"

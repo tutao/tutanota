@@ -56,7 +56,7 @@ import {
 	TotpVerifier,
 	uint8ArrayToKey,
 } from "@tutao/crypto"
-import { CryptoFacade } from "../crypto/CryptoFacade"
+import { CryptoFacade } from "../encryption/CryptoFacade"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"

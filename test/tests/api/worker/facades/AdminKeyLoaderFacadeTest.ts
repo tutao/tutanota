@@ -3,7 +3,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/encryption/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AesKey, cryptoUtils, CryptoWrapper, MacTag, PQKeyPairs, VersionedKey, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"

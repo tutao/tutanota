@@ -15,7 +15,7 @@ import { SetupMultipleError } from "../../../../../src/common/api/common/error/S
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../../src/common/api/worker/encryption/CryptoFacade"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import * as restError from "@tutao/rest-client/error"

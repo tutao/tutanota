@@ -26,7 +26,7 @@ import {
 	stringToUtf8Uint8Array,
 	uint8arrayToCustomId,
 } from "@tutao/utils"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../encryption/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import * as restError from "@tutao/rest-client/error"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"

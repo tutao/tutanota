@@ -8,7 +8,7 @@ import { FileController, zipDataFiles } from "../../../common/file/FileControlle
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { OperationId } from "../../../common/api/main/OperationProgressTracker.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../common/api/worker/encryption/CryptoFacade.js"
 import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
 import { isDesktop } from "@tutao/app-env"

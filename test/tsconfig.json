@@ -37,6 +37,7 @@
 			"@tutao/crypto/symmetric-key-deriver": ["../src/crypto/encryption/symmetric/SymmetricKeyDeriver"],
 			"@tutao/crypto/symmetric-cipher-version": ["../src/crypto/encryption/symmetric/SymmetricCipherVersion"],
 			"@tutao/crypto/aes-cbc-facade": ["../src/crypto/encryption/symmetric/AesCbcFacade"],
+			"@tutao/crypto/aead-facade": ["../src/crypto/encryption/symmetric/AeadFacade"],
 			"@tutao/crypto/sha256": ["../src/crypto/hashes/Sha256"],
 			"@tutao/crypto/blake3": ["../src/crypto/hashes/Blake3"],
 			"@tutao/crypto/sjcl": ["../src/crypto/internal/sjcl.js"],

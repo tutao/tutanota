@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import {
-	AeadFacade,
 	aes256EncryptSearchIndexEntry,
 	aesDecrypt,
 	aesEncrypt,
@@ -43,7 +42,6 @@ import {
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
-	SymmetricKeyDeriver,
 	uint8ArrayToKey,
 	verifyHmacSha256,
 	verifyHmacSha256Async,
@@ -71,6 +69,8 @@ import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 const originalRandom = random.generateRandomData
 

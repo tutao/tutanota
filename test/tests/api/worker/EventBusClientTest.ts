@@ -9,7 +9,7 @@ import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../src/common/api/worker/encryption/CryptoFacade"
 import { WebsocketConnectivityListener } from "../../../../src/common/misc/WebsocketConnectivityModel"
 import { LastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { ProgrammingError } from "@tutao/app-env"

@@ -25,8 +25,6 @@ const AEAD_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNI
 
 /**
  * Derives keys for symmetric encryption schemes.
- *
- * @deprecated DO NOT USE THIS MANUALLY - EXPORTED ONLY FOR COMPATIBILITY TESTS!
  */
 export class SymmetricKeyDeriver {
 	/**

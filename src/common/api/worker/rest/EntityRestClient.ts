@@ -1,5 +1,5 @@
 import { HttpMethod, MediaType, type RestClient, restError, type restSuspension } from "@tutao/rest-client"
-import { CryptoFacade } from "../crypto/CryptoFacade"
+import { CryptoFacade } from "../encryption/CryptoFacade"
 import type {
 	ClientModelUntypedInstance,
 	ClientTypeModel,

@@ -12,7 +12,7 @@ import { InboxRuleHandler, InboxRulesApplicationType } from "../../../src/mail-a
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
-import { CryptoFacade } from "../../../src/common/api/worker/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../src/common/api/worker/encryption/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
 
 const { captor, anything } = matchers

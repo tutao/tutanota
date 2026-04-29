@@ -31,7 +31,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const standardMocks = () => {
 		return {
 			cryptoMock: n.mock("crypto", crypto).set(),
-			instanceMapperMock: n.mock("../api/worker/crypto/InstanceMapper", instanceMapper).set(),
+			instanceMapperMock: n.mock("../api/worker/encryption/InstanceMapper", instanceMapper).set(),
 			encodingMock: n.mock("../api/common/utils/Encoding", encoding).set(),
 		}
 	}
