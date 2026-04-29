@@ -172,7 +172,9 @@ export class ServerModelInfo {
 		if (!isTest()) {
 			throw new ProgrammingError()
 		}
-		return new ServerModelInfo(clientModelInfo, fetcher)
+		const serverModelInfo = new ServerModelInfo(clientModelInfo, fetcher)
+		serverModelInfo.applicationTypesHash = "hash"
+		return serverModelInfo
 	}
 
 	private constructor(

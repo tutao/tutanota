@@ -131,6 +131,14 @@ export class EventBusClient {
 	 * We store the retry promise of connection as GENERATED_MIN_ID and for other retries of batch processing as BatchId
 	 */
 	private batchIdToServiceUnavailableRetryMap: Map<Id, Promise<void>> = new Map()
+
+	/**
+	 * The message queue is used to ensure that messages are processed in the correct order.
+	 * The messages are sent from the server in a correct order, but if they are not awaited,
+	 * they could be processed out of order.
+	 */
+	// VisibleForTesting
+	messageQueue: Promise<void> = Promise.resolve()
 	private failedConnectionAttempts: number = 0
 
 	constructor(
@@ -290,7 +298,11 @@ export class EventBusClient {
 		console.log("ws error:", error, JSON.stringify(error), "state:", this.state)
 	}
 
-	private async onMessage(message: MessageEvent<string>): Promise<void> {
+	private onMessage(message: MessageEvent<string>): void {
+		this.messageQueue = this.messageQueue.then(() => this.handleMessage(message))
+	}
+
+	private async handleMessage(message: MessageEvent<string>): Promise<void> {
 		const [type, ...values] = message.data.split(";")
 		const value = values.join(";")
 

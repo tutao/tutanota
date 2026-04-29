@@ -205,6 +205,8 @@ o.spec("EventBusClientTest", function () {
 
 		await Promise.all([p1, p2])
 
+		await ebc.messageQueue
+
 		// Is waiting for cache to process the first event
 		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
 	})
@@ -218,6 +220,8 @@ o.spec("EventBusClientTest", function () {
 			data: await createCounterMessage(counterUpdate),
 		} as MessageEvent)
 
+		await ebc.messageQueue
+
 		const updateCaptor = matchers.captor()
 		verify(listenerMock.onCounterChanged(updateCaptor.capture()))
 
@@ -229,6 +233,8 @@ o.spec("EventBusClientTest", function () {
 		await socket.onmessage?.({
 			data: await createEntityMessage(1, "newHash"),
 		} as MessageEvent<string>)
+
+		await ebc.messageQueue
 
 		o(typeModelResolver.getServerApplicationTypesModelHash()).equals("newHash")
 	})
