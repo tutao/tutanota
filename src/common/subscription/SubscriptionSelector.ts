@@ -29,16 +29,7 @@ import {
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
 import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
-import {
-	AvailablePlanType,
-	isIOSApp,
-	LegacyPlans,
-	LegacyPrivatePlans,
-	NewBusinessPlans,
-	NewPersonalPlans,
-	PaymentMethodType,
-	PlanType,
-} from "@tutao/app-env"
+import { AvailablePlanType, isIOSApp, LegacyPlans, LegacyPrivatePlans, NewBusinessPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "@tutao/app-env"
 import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [

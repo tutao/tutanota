@@ -20,7 +20,7 @@ import {
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanType,
-	CustomDomainTypeCount
+	CustomDomainTypeCount,
 } from "@tutao/app-env"
 import { CacheMode } from "../../api/worker/rest/EntityRestClient"
 

@@ -93,13 +93,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	private infoItems: InfoBoxItem[] = this.planSelectorInfoItems
 	private transitionIllustrationName: string | null = null
 	private transitionTimer: number | null = null
-	private stepIllustrations = [
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-before-click.svg",
-		"signup-key.svg",
-	]
+	private stepIllustrations = ["signup-before-click.svg", "signup-before-click.svg", "signup-before-click.svg", "signup-before-click.svg", "signup-key.svg"]
 	private readonly stepInfoBoxItems = (planType: PlanType): InfoBoxItem[][] => {
 		return [this.planSelectorInfoItems, this.formPageInfoItems[planType as AvailablePlanType], this.paymentInfoItems]
 	}
