@@ -2264,6 +2264,6 @@ export type TranslationKeyType =
 	| "rebuildSearchIndex_action"
 	| "indexingEmails_msg"
 	| "searchUntil_msg"
-	| "emptyString_msg"
 	| "waitingForAppStoreConfirmation_msg"
 	| "beginTyping_msg"
+	| "emptyString_msg"

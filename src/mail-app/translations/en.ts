@@ -161,6 +161,7 @@ export default {
 		"back_action": "Back",
 		"baseTheme_label": "Base theme",
 		"bcc_label": "Bcc",
+		"beginTyping_msg": "Type in your question…",
 		"behaviorAfterMovingEmail_label": "Behavior after moving an email",
 		"billingCountry_label": "Billing Country",
 		"birthday_alt": "Birthday",
@@ -2211,6 +2212,7 @@ export default {
 		"vitor_alt": "Black-and white high-contrast image of a man sipping from a cup of coffee, knowing his data is secure.",
 		"waitApprovalButton_action": "Wait for automatic approval",
 		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will normally be automatically approved after 48 hours. Thank you for your patience!",
+		"waitingForAppStoreConfirmation_msg": "Waiting for Apple to confirm subscription …",
 		"waitingForU2f_msg": "Waiting for security key…",
 		"wantToSendReport_msg": "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
 		"wasThisHelpful_msg": "Was this helpful?",
@@ -2267,7 +2269,5 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"waitingForAppStoreConfirmation_msg": "Waiting for Apple to confirm subscription ...",
-		"beginTyping_msg": "Type in your question..."
 	}
 }

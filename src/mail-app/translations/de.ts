@@ -161,6 +161,7 @@ export default {
 		"back_action": "Zurück",
 		"baseTheme_label": "Basisfarbschema",
 		"bcc_label": "Bcc",
+		"beginTyping_msg": "Gib deine Frage ein…",
 		"behaviorAfterMovingEmail_label": "Verhalten nach dem Verschieben einer E-Mail",
 		"billingCountry_label": "Rechnungsland",
 		"birthday_alt": "Geburtstag",
@@ -2211,6 +2212,7 @@ export default {
 		"vitor_alt": "Schwarzweißes, kontrastreiches Bild eines Mannes, der eine Tasse Kaffee trinkt und weiß, dass seine Daten sicher sind.",
 		"waitApprovalButton_action": "Auf automatische Freigabe warten",
 		"waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um eine anonyme Registrierung zu ermöglichen und gleichzeitig Massenregistrierungen zu verhindern. Dein Account wird normalerweise nach 48 Stunden automatisch freigeschaltet. Vielen Dank für deine Geduld!",
+		"waitingForAppStoreConfirmation_msg": "Warte auf Bestätigung des Abonnements von Apple …",
 		"waitingForU2f_msg": "Warten auf den Sicherheitsschlüssel…",
 		"wantToSendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Möchtest du einen Fehlerbericht senden? Du kannst eine Nachricht hinzufügen, um uns zu helfen, diesen Fehler zu beheben.",
 		"wasThisHelpful_msg": "War das hilfreich?",
@@ -2267,7 +2269,5 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"beginTyping_msg": " Gib deine Frage ein...",
-		"waitingForAppStoreConfirmation_msg": "Warte auf Bestätigung des Abonnements von Apple ..."
 	}
 }
