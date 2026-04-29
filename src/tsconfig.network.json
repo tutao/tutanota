@@ -1,12 +1,10 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["network", "../types/*"],
-	"exclude": ["network/dist"],
 	"compilerOptions": {
 		"rootDir": "network",
-		"outDir": "network/dist",
-		"tsBuildInfoFile": "network/dist/tsbuildinfo",
-		"composite": true
+		"outDir": "../build/network",
+		"tsBuildInfoFile": "../build/network/tsbuildinfo"
 	},
 	"references": [
 		{

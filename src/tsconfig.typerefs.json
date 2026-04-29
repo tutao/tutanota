@@ -1,12 +1,10 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["typerefs", "./../types/"],
-	"exclude": ["typerefs/dist"],
 	"compilerOptions": {
 		"rootDir": "typerefs",
-		"outDir": "typerefs/dist",
-		"tsBuildInfoFile": "typerefs/dist/tsbuildinfo",
-		"composite": true
+		"outDir": "../build/typerefs",
+		"tsBuildInfoFile": "../build/typerefs/tsbuildinfo"
 	},
 	"references": [
 		{
