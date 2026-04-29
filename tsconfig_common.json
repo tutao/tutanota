@@ -26,6 +26,7 @@
 		"useUnknownInCatchVariables": false,
 		"types": ["node"],
 		"incremental": true,
+		"composite": true,
 		"paths": {
 			"@tutao/utils": ["./src/utils"],
 			"@tutao/crypto-primitives": ["./src/crypto-primitives/crypto_primitives"],

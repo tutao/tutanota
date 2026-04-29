@@ -1,11 +1,10 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["instance-pipeline", "./../types/"],
-	"exclude": ["instance-pipeline/dist"],
 	"compilerOptions": {
 		"rootDir": "instance-pipeline",
-		"outDir": "instance-pipeline/dist",
-		"tsBuildInfoFile": "instance-pipeline/dist/tsbuildinfo",
+		"outDir": "../build/instance-pipeline",
+		"tsBuildInfoFile": "../build/instance-pipeline/tsbuildinfo",
 		"composite": true
 	},
 	"references": [

@@ -1,11 +1,10 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["app-env", "../types/"],
-	"exclude": ["app-env/dist"],
 	"compilerOptions": {
 		"rootDir": "app-env",
-		"outDir": "app-env/dist",
-		"tsBuildInfoFile": "app-env/dist/tsbuildinfo",
+		"outDir": "../build/app-env",
+		"tsBuildInfoFile": "../build/app-env/tsbuildinfo",
 		"composite": true
 	},
 	"references": []
