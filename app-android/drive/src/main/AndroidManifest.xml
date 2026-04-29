@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-		xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -17,7 +16,7 @@
 			android:maxSdkVersion="32"/>
 
 	<!-- We have to enable cleartext (non-HTTPS) traffic because of the external email content
-	which might still be served or HTTP. The only alternative is to proxy all of it. -->
+which might still be served or HTTP. The only alternative is to proxy all of it. -->
 
 	<!-- resizeableActivity is redundant with our target API version but it is required for Samsung DeX to work
 	correctly, see https://github.com/tutao/tutanota/issues/2167 -->
@@ -28,6 +27,8 @@
 		android:allowBackup="false" disabled backup for Android < 12
 		android:dataExtractionRules disables backup for Android >= 12
 	-->
+	<!-- FIXME: dataExtractionRules -->
+	<!-- FIXME: appCategory -->
 	<application
 			android:allowBackup="false"
 			android:icon="@mipmap/ic_logo"
@@ -51,11 +52,11 @@
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
-			<!-- handler for custom tutacalendar://app uri, used for redirecting back from other apps (ie. the browser when
+			<!-- handler for custom tutadrive://app uri, used for redirecting back from other apps (ie. the browser when
 			obtaining user payment info) -->
 			<intent-filter>
 				<data
-						android:scheme="tutacalendar"
+						android:scheme="tutadrive"
 						android:host="app"/>
 
 				<category android:name="android.intent.category.BROWSABLE"/>
@@ -65,7 +66,7 @@
 			</intent-filter>
 			<intent-filter>
 				<data
-						android:scheme="tutacalendar"
+						android:scheme="tutadrive"
 						android:host="interop"/>
 				<action android:name="android.intent.action.EDIT"/>
 
@@ -74,7 +75,7 @@
 			</intent-filter>
 			<intent-filter>
 				<data
-						android:scheme="tutacalendar"
+						android:scheme="tutadrive"
 						android:host="webauthn"/>
 
 				<category android:name="android.intent.category.BROWSABLE"/>
@@ -82,24 +83,7 @@
 
 				<action android:name="android.intent.action.VIEW"/>
 			</intent-filter>
-			<!--Handler for "open" event for a ics file-->
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW"/>
-
-				<category android:name="android.intent.category.DEFAULT"/>
-				<category android:name="android.intent.category.BROWSABLE"/>
-
-				<data android:scheme="file"/>
-				<data android:scheme="content"/>
-				<data android:mimeType="text/calendar"/>
-			</intent-filter>
 		</activity>
-		<service
-				android:name=".push.PushNotificationService"
-				android:enabled="true"
-				android:exported="false"
-				android:permission="android.permission.BIND_JOB_SERVICE"
-				android:process=":pushprocess"/>
 		<receiver
 				android:name=".push.BootBroadcastReceiver"
 				android:exported="false">
@@ -108,47 +92,15 @@
 				<action android:name="android.intent.action.QUICKBOOT_POWERON"/>
 			</intent-filter>
 		</receiver>
-		<receiver
-				android:name=".alarms.CalendarAlarmBroadcastReceiver"
-				android:exported="false">
-			<intent-filter>
-				<action android:name="de.tutao.tutanota.ALARM"/>
-				<data android:scheme="alarm"/>
-			</intent-filter>
-		</receiver>
-		<!--widget-->
-		<receiver
-				android:name=".widget.WidgetReceiver"
-				android:exported="true"
-				android:label="Agenda"
-				>
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-				<action android:name="android.appwidget.action.APPWIDGET_DISABLED"/>
-				<action android:name="android.appwidget.action.APPWIDGET_ENABLED"/>
-			</intent-filter>
-			<meta-data
-					android:name="android.appwidget.provider"
-					android:resource="@xml/agenda"/>
-		</receiver>
-
-		<activity
-				android:name=".widget.WidgetConfigActivity"
-				android:exported="true">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-			</intent-filter>
-		</activity>
-		<!--widget-->
 
 		<meta-data
 				android:name="android.webkit.WebView.MetricsOptOut"
 				android:value="true"/>
 	</application>
+
 	<queries>
 		<intent>
 			<action android:name="android.support.customtabs.action.CustomTabsService"/>
 		</intent>
 	</queries>
-
 </manifest>

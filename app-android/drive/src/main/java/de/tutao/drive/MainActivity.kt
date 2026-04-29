@@ -1,14 +1,10 @@
-package de.tutao.tutanota
+package de.tutao.drive
 
 import android.annotation.SuppressLint
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Intent
-import android.content.Intent.ACTION_EDIT
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -24,8 +20,6 @@ import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
-import android.webkit.PermissionRequest
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -40,50 +34,43 @@ import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.ViewCompat
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
-import androidx.core.view.WindowInsetsCompat.Type.displayCutout
-import androidx.core.view.WindowInsetsCompat.Type.ime
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.tutanota.alarms.MailAlarmIntentFactory
-import de.tutao.tutanota.push.AndroidNativePushFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.PushNotificationService
-import de.tutao.tutanota.push.notificationDismissedIntent
-import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
+import de.tutao.calendar.push.LocalNotificationsFacade
+import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidThemeFacade
+import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
-import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
-import de.tutao.tutashared.alarms.AlarmNotificationsManager
-import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.Theme
+import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
+import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutashared.ipc.MobileContactsFacade
 import de.tutao.tutashared.ipc.MobileFacade
 import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
-import de.tutao.tutashared.toDp
 import de.tutao.tutashared.remote.RemoteBridge
-import de.tutao.tutashared.remote.RemoteExecutionException
 import de.tutao.tutashared.toPx
+import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
+import de.tutao.tutashared.webauthn.WebauthnFlowRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -98,14 +85,11 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
-import java.util.TimeZone
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-
 
 const val SYSTEM_GESTURES_EXCLUSION_WIDTH_DP = 40
 const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allowed by the system is 200 dp
@@ -115,8 +99,7 @@ interface WebauthnHandler {
 	fun onNoResult()
 }
 
-
-class MainActivity : FragmentActivity() {
+class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, WebauthnFlowRunner {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -138,7 +121,7 @@ class MainActivity : FragmentActivity() {
 		Log.d(TAG, "App started")
 
 		// App is handling a redelivered intent, ignoring as we probably already handled it
-		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
+		if (savedInstanceState != null && (intent.action == OPEN_CALENDAR_ACTION || intent.action == OPEN_LOGS_ACTION)) {
 			intent.putExtra(ALREADY_HANDLED_INTENT, true)
 		}
 
@@ -151,11 +134,22 @@ class MainActivity : FragmentActivity() {
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
 
-		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		// FIXME
+		val fileNotificationSender = object : FileNotificationSender {
+			override fun sendDownloadFinishedNotification(fileName: String?) {
+				TODO("Not yet implemented")
+			}
+
+			override fun showDownloadNotification(file: File) {
+				TODO("Not yet implemented")
+			}
+
+		}
 		val fileFacade =
 			AndroidFileFacade(
 				this,
-				localNotificationsFacade,
+				this,
+				fileNotificationSender,
 				SecureRandom(),
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->
@@ -167,25 +161,10 @@ class MainActivity : FragmentActivity() {
 					lifecycleScope.launch {
 						commonNativeFacade.uploadProgress(fileId, bytes)
 					}
-				})
+				},
+				BuildConfig.FILE_PROVIDER_AUTHORITY)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
-
-
-		val alarmNotificationsManager = AlarmNotificationsManager(
-			sseStorage,
-			cryptoFacade,
-			SystemAlarmFacade(this, MailAlarmIntentFactory()),
-			localNotificationsFacade,
-			DateProviderImpl(),
-			TimeZone.getDefault()
-		)
-		val nativePushFacade = AndroidNativePushFacade(
-			this,
-			sseStorage,
-			alarmNotificationsManager,
-			localNotificationsFacade,
-		)
 
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
@@ -195,7 +174,9 @@ class MainActivity : FragmentActivity() {
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
 
-		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
+		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutadrive", BuildConfig.APPLICATION_ID)
+
+		val facadeStub =
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
@@ -213,7 +194,7 @@ class MainActivity : FragmentActivity() {
 		)
 		remoteBridge = RemoteBridge(
 			ipcJson,
-			this,
+			this.webView,
 			globalDispatcher,
 			commonSystemFacade,
 		)
@@ -253,35 +234,6 @@ class MainActivity : FragmentActivity() {
 
 		webView.clearCache(true)
 
-		ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
-
-			// Retrieve insets as raw pixels
-			val safeDrawingInsets = windowInsets.getInsets(
-				//we are handling keyboard separately below
-				systemBars() or displayCutout()
-			)
-			val imeHeight = windowInsets.getInsets(ime()).bottom
-			lifecycleScope.launch {
-				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
-			}
-
-			// Convert raw pixels to density independent pixels
-			val top = safeDrawingInsets.top.toDp()
-			val right = safeDrawingInsets.right.toDp()
-			val bottom = safeDrawingInsets.bottom.toDp()
-			val left = safeDrawingInsets.left.toDp()
-
-			val safeAreaJs = """
-      		document.documentElement.style.setProperty('--safe-area-inset-left', '${left}px');
-        	document.documentElement.style.setProperty('--safe-area-inset-right', '${right}px');
-        	document.documentElement.style.setProperty('--safe-area-inset-top', '${top}px');
-        	document.documentElement.style.setProperty('--safe-area-inset-bottom', '${bottom}px');
-        """.trimIndent()
-			webView.evaluateJavascript(safeAreaJs, null)
-
-			windowInsets
-		}
-
 		// Reject cookies by external content
 		CookieManager.getInstance().setAcceptCookie(false)
 		CookieManager.getInstance().removeAllCookies(null)
@@ -301,12 +253,6 @@ class MainActivity : FragmentActivity() {
 						.show()
 				}
 				return true
-			}
-
-			override fun onPageFinished(view: WebView, url: String) {
-				super.onPageFinished(webView, url)
-				// dispatch insets because insets aren't applied when the webpage first loads.
-				webView.requestApplyInsets()
 			}
 
 			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -363,17 +309,6 @@ class MainActivity : FragmentActivity() {
 			}
 		}
 
-		// When creating a video element in the WebView, we are receiving an android.webkit.resource.VIDEO_CAPTURE
-		// permission request. We accept this by default as we have to request Manifest.permission.CAMERA anyway and
-		// we are doing this before creating the video element.
-		webView.webChromeClient = object : WebChromeClient() {
-			override fun onPermissionRequest(request: PermissionRequest) {
-				if (request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
-					request.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
-				}
-			}
-		}
-
 		// Handle long click on links in the WebView
 		registerForContextMenu(webView)
 
@@ -388,7 +323,7 @@ class MainActivity : FragmentActivity() {
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
 			// mailbox later when loaded (in handleIntent())
-			if (intent != null && (OPEN_USER_MAILBOX_ACTION == intent.action || OPEN_CALENDAR_ACTION == intent.action)) {
+			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
@@ -531,22 +466,12 @@ class MainActivity : FragmentActivity() {
 		// we don't want to do any kind of intent handling
 		val data = intent.data
 
-		if (data != null && data.scheme == "tutanota" && data.host == "webauthn") {
+		if (data != null && data.scheme == "tutacalendar" && data.host == "webauthn") {
 			handleWebauthn(intent, data)
 		}
 
-		if (data != null && data.toString().startsWith("tutanota://")) {
+		if (data != null && data.toString().startsWith("tutacalendar://")) {
 			return@launch
-		}
-
-		val isInteropCall = intent.action == ACTION_EDIT && intent.getStringExtra(TUTA_INTENT_ACTION) == "interop"
-		val isTrustedCaller = callingPackage == BuildConfig.APPLICATION_ID.replace(
-			"tutanota",
-			"calendar"
-		)
-
-		if (data != null && isInteropCall && isTrustedCaller) {
-			openContactEditor(data)
 		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
@@ -555,7 +480,7 @@ class MainActivity : FragmentActivity() {
 					intent
 				)
 
-				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
+				OPEN_LOGS_ACTION -> sendLogs(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 				Intent.ACTION_VIEW -> {
 					when (intent.scheme) {
@@ -633,7 +558,7 @@ class MainActivity : FragmentActivity() {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
-	suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
+	override suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
 		if (hasPermission(permission)) {
 			continuation.resume(Unit)
 		} else {
@@ -657,7 +582,7 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
@@ -675,25 +600,6 @@ class MainActivity : FragmentActivity() {
 		} else {
 			Log.w(TAG, "No deferred for activity request$requestCode")
 		}
-	}
-
-	fun setupPushNotifications() {
-		try {
-			val serviceIntent = PushNotificationService.startIntent(
-				this,
-				"MainActivity#setupPushNotifications",
-			)
-			startService(serviceIntent)
-		} catch (e: Exception) {
-			Log.w(TAG, "Could not start push notification service", e)
-		}
-		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-		jobScheduler.schedule(
-			JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
-				.setPeriodic(TimeUnit.MINUTES.toMillis(15))
-				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-				.setPersisted(true).build()
-		)
 	}
 
 	/**
@@ -801,30 +707,6 @@ class MainActivity : FragmentActivity() {
 		return filesArray
 	}
 
-	private suspend fun openMailbox(intent: Intent) {
-		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
-		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY)
-		if (userId == null || address == null) {
-			return
-		}
-		val addresses = ArrayList<String>(1)
-		addresses.add(address)
-		startService(
-			notificationDismissedIntent(
-				this, addresses,
-				"MainActivity#openMailbox"
-			)
-		)
-
-		val requestedPath = intent.getStringExtra(OPEN_USER_MAILBOX_MAILID_KEY)?.let {
-			val parts = it.split("/")
-			val idParam = "${parts[0]},${parts[1]}"
-			if (parts.size == 2) "?mail=${URLEncoder.encode(idParam, "utf-8")}" else null
-		}
-
-		commonNativeFacade.openMailBox(userId, address, requestedPath)
-	}
-
 	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
@@ -834,10 +716,9 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 
-	private suspend fun openContactEditor(data: Uri?) {
-		val contactId = data?.getQueryParameter(OPEN_CONTACT_EDITOR_CONTACT_ID)
-			?: return commonNativeFacade.showAlertDialog("contactNotFound_msg")
-		commonNativeFacade.openContactEditor(contactId)
+	private suspend fun sendLogs(intent: Intent) {
+		val log = intent.getStringExtra(OPEN_LOGS_DATA_KEY) ?: return
+		commonNativeFacade.sendLogs(log)
 	}
 
 	private fun onBackPressedCallback() {
@@ -861,7 +742,7 @@ class MainActivity : FragmentActivity() {
 		moveTaskToBack(false)
 	}
 
-	fun reload(parameters: Map<String, String>) {
+	override fun reload(parameters: Map<String, String>) {
 		runOnUiThread { startWebApp(parameters.toMutableMap()) }
 	}
 
@@ -892,17 +773,14 @@ class MainActivity : FragmentActivity() {
 	companion object {
 		// don't remove the trailing slash because otherwise longer domains might match our asset check
 		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
-		const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
-		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
-		const val OPEN_CALENDAR_DATE_KEY = "targetDate"
-		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
-		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
+		const val OPEN_CALENDAR_ACTION = "de.tutao.calendar.OPEN_CALENDAR_ACTION"
+		const val OPEN_LOGS_ACTION = "de.tutao.calendar.OPEN_CALENDAR_LOGS"
+		const val OPEN_LOGS_DATA_KEY = "logs"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
-		const val OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
-		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
-		const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
-		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
+		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
+		const val OPEN_CALENDAR_DATE_KEY = "targetDate"
+		const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 
 		private const val TAG = "MainActivity"
 		private var requestId = 0

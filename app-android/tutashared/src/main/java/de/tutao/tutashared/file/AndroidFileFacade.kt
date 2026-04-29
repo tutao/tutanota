@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.tutashared.file
 
 import android.Manifest
 import android.app.Activity
@@ -14,8 +14,7 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.showDownloadNotification
+import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.ProgressResponseBody
@@ -66,21 +65,28 @@ import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
+interface FileNotificationSender {
+	fun sendDownloadFinishedNotification(fileName: String?)
+	fun showDownloadNotification(file: File)
+}
+
 class AndroidFileFacade(
-	private val activity: MainActivity,
-	private val localNotificationsFacade: LocalNotificationsFacade,
+	private val context: Context,
+	private val activityUtils: AsyncActivityUtils,
+	private val notificationSender: FileNotificationSender,
 	private val random: SecureRandom,
 	private val defaultClient: OkHttpClient,
 	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 	private val uploadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
+	private val providerAuthority: String,
 ) : FileFacade {
 
-	val tempDir = TempDir(activity, random)
+	val tempDir = TempDir(context, random)
 	private val activeRequests = ConcurrentHashMap<String, Call>()
 
 	@Throws(Exception::class)
 	override suspend fun deleteFile(file: String) {
-		if (file.startsWith(Uri.fromFile(activity.filesDir).toString())) {
+		if (file.startsWith(Uri.fromFile(context.filesDir).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
 			val fileInstance = File(file.toUri().path!!)
 			try {
@@ -131,7 +137,7 @@ class AndroidFileFacade(
 		}
 		val selectedFiles: MutableList<String> = mutableListOf()
 
-		val result = activity.startActivityForResult(Intent.createChooser(intent, "Select File"))
+		val result = activityUtils.startActivityForResult(Intent.createChooser(intent, "Select File"))
 
 		if (result.resultCode == Activity.RESULT_OK) {
 			val data = result.data ?: run {
@@ -172,13 +178,13 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun writeToAppDir(content: DataWrapper, name: String) {
-		val fileHandle = activity.openFileOutput(name, Context.MODE_PRIVATE);
+		val fileHandle = context.openFileOutput(name, Context.MODE_PRIVATE);
 		fileHandle.write(content.data)
 	}
 
 	@Throws(IOException::class)
 	override suspend fun readFromAppDir(name: String): DataWrapper {
-		val fileHandle = activity.openFileInput(name)
+		val fileHandle = context.openFileInput(name)
 		val data = DataWrapper(fileHandle.readBytes())
 		fileHandle.close()
 		return data
@@ -186,7 +192,7 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun deleteFromAppDir(path: String) {
-		val file = File(activity.filesDir, path)
+		val file = File(context.filesDir, path)
 		val fullPath = file.toUri().toString()
 		this.deleteFile(fullPath)
 	}
@@ -195,7 +201,7 @@ class AndroidFileFacade(
 	override suspend fun open(location: String, mimeType: String) {
 		val file = location.toUri().let { uri ->
 			if (uri.scheme == "file") {
-				FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(uri.path!!))
+				FileProvider.getUriForFile(context, providerAuthority, File(uri.path!!))
 			} else {
 				uri
 			}
@@ -206,26 +212,26 @@ class AndroidFileFacade(
 			flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 		}
 
-		activity.startActivityForResult(intent)
+		activityUtils.startActivityForResult(intent)
 	}
 
-	override suspend fun getMimeType(fileUri: String): String = getMimeType(fileUri.toUri(), activity)
+	override suspend fun getMimeType(fileUri: String): String = getMimeType(fileUri.toUri(), context)
 
 	override suspend fun putFileIntoDownloadsFolder(localFileUri: String, fileNameToUse: String): String =
 		withContext(Dispatchers.IO) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				addFileToDownloadsMediaStore(localFileUri, fileNameToUse)
 			} else {
-				activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				activityUtils.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 				addFileToDownloadsOld(localFileUri, fileNameToUse)
 			}
 		}
 
 	@RequiresApi(Build.VERSION_CODES.Q)
 	private suspend fun addFileToDownloadsMediaStore(fileUriString: String, fileNameToUse: String): String {
-		val contentResolver = activity.contentResolver
+		val contentResolver = context.contentResolver
 		val fileUri = fileUriString.toUri()
-		val fileInfo = getFileInfo(activity, fileUri)
+		val fileInfo = getFileInfo(context, fileUri)
 		val outputUri = contentResolver.insert(
 			MediaStore.Downloads.EXTERNAL_CONTENT_URI,
 			ContentValues().apply {
@@ -249,17 +255,17 @@ class AndroidFileFacade(
 			null
 		)
 		Log.d(TAG, "Updated with not pending: $updated")
-		localNotificationsFacade.sendDownloadFinishedNotification(fileNameToUse)
+		notificationSender.sendDownloadFinishedNotification(fileNameToUse)
 		return outputUri.toString()
 	}
 
 	private fun addFileToDownloadsOld(fileUri: String, fileNameToUse: String): String {
 		val downloadsDir = ensureRandomDownloadDir()
 		val file = Uri.parse(fileUri)
-		val fileInfo = getFileInfo(activity, file)
+		val fileInfo = getFileInfo(context, file)
 		val newFile = File(downloadsDir, fileNameToUse)
-		IOUtils.copyLarge(activity.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
-		showDownloadNotification(activity, newFile)
+		IOUtils.copyLarge(context.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
+		notificationSender.showDownloadNotification(newFile)
 		return Uri.fromFile(newFile).toString()
 	}
 
@@ -290,12 +296,12 @@ class AndroidFileFacade(
 
 	@Throws(FileNotFoundException::class)
 	override suspend fun getSize(file: String): Int {
-		return getFileInfo(activity, Uri.parse(file)).size.toInt()
+		return getFileInfo(context, Uri.parse(file)).size.toInt()
 	}
 
 	@Throws(FileNotFoundException::class)
 	override suspend fun getName(file: String): String {
-		return getFileInfo(activity, Uri.parse(file)).name
+		return getFileInfo(context, Uri.parse(file)).name
 	}
 
 	@OptIn(FlowPreview::class)
@@ -319,7 +325,7 @@ class AndroidFileFacade(
 
 			withContext(Dispatchers.IO) {
 				val parsedUri = Uri.parse(fileUrl)
-				val contentResolver = activity.contentResolver
+				val contentResolver = context.contentResolver
 				val contentType = contentResolver.getType(parsedUri)
 
 				try {
@@ -534,13 +540,13 @@ class AndroidFileFacade(
 		require(allowedLocation) { "Not allowed to read file at $filePath" }
 
 		val bytes = withContext(Dispatchers.IO) {
-			activity.contentResolver.openInputStream(uri)?.use { inputStream ->
+			context.contentResolver.openInputStream(uri)?.use { inputStream ->
 				inputStream.readBytes()
 			}
 		} ?: return null
 
-		val fileInfo = getFileInfo(activity, uri)
-		val mimeType = getMimeType(uri, activity)
+		val fileInfo = getFileInfo(context, uri)
+		val mimeType = getMimeType(uri, context)
 
 		return DataFile(fileInfo.name, mimeType, bytes.wrap(), fileInfo.size.toInt())
 	}
@@ -570,8 +576,8 @@ class AndroidFileFacade(
 	override suspend fun splitFile(fileUri: String, maxChunkSizeBytes: Int): List<String> =
 		withContext(Dispatchers.IO) {
 			val file = Uri.parse(fileUri)
-			val fileSize = getFileInfo(activity, file).size
-			val inputStream = activity.contentResolver.openInputStream(file)
+			val fileSize = getFileInfo(context, file).size
+			val inputStream = context.contentResolver.openInputStream(file)
 			val chunkUris: MutableList<String> = ArrayList()
 			var chunk = 0
 			while (chunk * maxChunkSizeBytes <= fileSize) {
@@ -590,7 +596,7 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class, NoSuchAlgorithmException::class)
 	override suspend fun hashFile(fileUri: String): String {
-		val inputStream = activity.contentResolver.openInputStream(Uri.parse(fileUri))!!
+		val inputStream = context.contentResolver.openInputStream(Uri.parse(fileUri))!!
 		val hashingInputStream = HashingInputStream(MessageDigest.getInstance("SHA-256"), inputStream)
 		val devNull: OutputStream = object : OutputStream() {
 			override fun write(b: Int) {}
@@ -608,7 +614,7 @@ class AndroidFileFacade(
 
 	private suspend fun getCorrectedMimeType(fileUri: Uri, storedMimeType: String?): String {
 		return if (storedMimeType == null || storedMimeType.isEmpty() || storedMimeType == "application/octet-stream") {
-			getMimeType(fileUri, activity)
+			getMimeType(fileUri, context)
 		} else {
 			storedMimeType
 		}

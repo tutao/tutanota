@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.tutashared.remote
 
 import android.net.Uri
 import android.util.Log
@@ -6,6 +6,8 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import android.webkit.WebMessagePort.WebMessageCallback
+import android.webkit.WebView
+import de.tutao.tutashared.AndroidCommonSystemFacade
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.NativeInterface
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -24,30 +26,28 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Created by mpfau on 4/8/17.
  */
-class RemoteBridge internal constructor(
+class RemoteBridge(
 	private val json: Json,
-	private val activity: MainActivity,
+	private val webView: WebView,
 	private val globalDispatcher: AndroidGlobalDispatcher,
 	private val commonSystemFacade: AndroidCommonSystemFacade,
 ) : NativeInterface {
-
 	private val requests = mutableMapOf<String, Continuation<String>>()
-
 	private var webMessagePort: WebMessagePort? = null
 
 	fun setup() {
-		activity.webView.addJavascriptInterface(this, JS_NAME)
+		webView.addJavascriptInterface(this, JS_NAME)
 	}
 
 	@JavascriptInterface
 	fun startWebMessageChannel() {
 		// WebView.post ensures that webview methods are called on the correct thread
-		activity.webView.post { initMessageChannel() }
+		webView.post { initMessageChannel() }
 	}
 
 	@OptIn(DelicateCoroutinesApi::class)
 	private fun initMessageChannel() {
-		val webView = activity.webView
+		val webView = webView
 		val channel = webView.createWebMessageChannel()
 		val outgoingPort = channel[0]
 		webMessagePort = outgoingPort
@@ -186,4 +186,4 @@ class RemoteBridge internal constructor(
 	}
 }
 
-internal class RemoteExecutionException(message: String) : Exception(message)
+class RemoteExecutionException(message: String) : Exception(message)

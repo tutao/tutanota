@@ -1,19 +1,23 @@
-package de.tutao.tutanota.webauthn
+package de.tutao.tutashared.webauthn
 
 import android.net.Uri
 import android.util.Log
-import de.tutao.tutanota.BuildConfig
-import de.tutao.tutanota.MainActivity
 import de.tutao.tutashared.base64ToString
 import de.tutao.tutashared.ipc.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+interface WebauthnFlowRunner {
+	/** @return "result" extra value */
+	suspend fun startWebauthn(uri: Uri): String
+}
+
 class AndroidWebauthnFacade(
-	private val activity: MainActivity,
-	private val json: Json
+	private val webauthnRunner: WebauthnFlowRunner,
+	private val json: Json,
+	private val uriScheme: String,
+	private val appPackage: String
 ) : WebAuthnFacade {
 	companion object {
 		private const val TAG = "Webauthn"
@@ -56,11 +60,11 @@ class AndroidWebauthnFacade(
 			.appendQueryParameter("action", action)
 			.appendQueryParameter(
 				"cbUrl",
-				"intent://webauthn/#Intent;scheme=tutanota;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
+				"intent://webauthn/#Intent;scheme=${uriScheme};package=${appPackage};S.result={result};end"
 			)
 			.appendQueryParameter("challenge", serializedChallenge)
 			.build()
-		val stringResult = activity.startWebauthn(url)
+		val stringResult = webauthnRunner.startWebauthn(url)
 		val jsonResult = stringResult.base64ToString()
 		Log.d(TAG, "got result: $jsonResult")
 		// pass deserializer manually to not register it as polymorphic

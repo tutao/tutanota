@@ -1,4 +1,4 @@
-package de.tutao.tutanota
+package de.tutao.tutashared
 
 import android.content.Intent
 

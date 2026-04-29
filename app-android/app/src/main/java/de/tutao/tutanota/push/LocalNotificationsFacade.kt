@@ -29,7 +29,7 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
-import de.tutao.tutanota.getMimeType
+import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade

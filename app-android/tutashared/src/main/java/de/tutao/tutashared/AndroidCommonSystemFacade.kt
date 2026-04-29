@@ -1,10 +1,8 @@
-package de.tutao.tutanota
+package de.tutao.tutashared
 
-import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.ipc.CommonSystemFacade
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import kotlinx.coroutines.CompletableDeferred
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -14,8 +12,12 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
+interface WebViewReloader {
+	fun reload(query: Map<String, String>)
+}
+
 class AndroidCommonSystemFacade(
-	private val activity: MainActivity,
+	private val activity: WebViewReloader,
 	private val sqlCipherFacade: SqlCipherFacade,
 	private val tempDir: TempDir,
 	private val httpClient: OkHttpClient
@@ -39,7 +41,7 @@ class AndroidCommonSystemFacade(
 
 	@Suppress("BlockingMethodInNonBlockingContext")
 	override suspend fun getLog(): String {
-		val logFile = File(tempDir.root, "log-${System.currentTimeMillis()}-${Random.nextInt()}.txt")
+		val logFile = File(tempDir.root, "log-${System.currentTimeMillis()}-${Random.Default.nextInt()}.txt")
 		logFile.delete()
 		logFile.createNewFile()
 		// -d means print and exit without blocking, -T gets last lines, -f outputs to file

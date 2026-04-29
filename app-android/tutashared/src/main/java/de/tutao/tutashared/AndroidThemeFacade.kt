@@ -1,18 +1,14 @@
-package de.tutao.tutanota
+package de.tutao.tutashared
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration.UI_MODE_NIGHT_MASK
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
 import androidx.core.view.WindowInsetsControllerCompat
-import de.tutao.tutashared.getDefaultSharedPreferences
 import de.tutao.tutashared.ipc.ThemeFacade
-import de.tutao.tutashared.isLightHexColor
-import de.tutao.tutashared.parseColor
-import de.tutao.tutashared.toMap
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.Objects
@@ -23,7 +19,7 @@ typealias ThemePreference = String
 
 class AndroidThemeFacade(
 	private val context: Context,
-	private val activity: MainActivity,
+	private val activity: ComponentActivity,
 ) : ThemeFacade {
 	companion object {
 		private const val CURRENT_THEME_KEY = "theme"
@@ -69,7 +65,7 @@ class AndroidThemeFacade(
 	override suspend fun prefersDark(): Boolean = this.prefersDarkMode
 
 	private val prefersDarkMode: Boolean
-		get() = (context.resources.configuration.uiMode and UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES
+		get() = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
 	val currentThemeWithFallback: Theme
 		get() {
