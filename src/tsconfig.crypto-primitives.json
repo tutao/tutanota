@@ -4,8 +4,8 @@
 	"exclude": ["crypto-primitives/dist"],
 	"compilerOptions": {
 		"rootDir": "crypto-primitives",
-		"outDir": "crypto-primitives/dist",
-		"tsBuildInfoFile": "crypto-primitives/dist/tsbuildinfo",
+		"outDir": "../build/crypto-primitives",
+		"tsBuildInfoFile": "../build/crypto-primitives/tsbuildinfo",
 		"composite": true
 	},
 	"references": []

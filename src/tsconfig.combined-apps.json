@@ -10,11 +10,10 @@
 		"../libs/luxon.js",
 		"../libs/tensorflow-platform-stub.js"
 	],
-	"exclude": ["common/dist"],
 	"compilerOptions": {
 		"rootDir": "..",
-		"outDir": "common/dist",
-		"tsBuildInfoFile": "common/dist/tsbuildinfo",
+		"outDir": "../build/common",
+		"tsBuildInfoFile": "../build/common/tsbuildinfo",
 		"composite": true
 	},
 	"references": [
