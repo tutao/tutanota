@@ -1,22 +1,19 @@
 import {
-	AssociationType,
-	AttributeModel,
-	Cardinality,
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	ClientModelUntypedInstance,
-	ClientTypeReferenceResolver,
 	ParsedValue,
-	sysTypeRefs,
 	TypeModel,
 	UntypedValue,
-	ValueType,
-} from "@tutao/typerefs"
-
+} from "./EntityTypes.js"
+import * as sysTypeRefs from "./entities/sys/TypeRefs.js"
 import { TypeRef } from "./TypeRef.js"
 import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, Nullable } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { IDENTITY_FIELDS, isSameId } from "./EntityUtils.js"
+import { AssociationType, Cardinality, ValueType } from "./EntityConstants.js"
+import { ClientTypeReferenceResolver } from "./EntityFunctions.js"
+import { AttributeModel } from "./AttributeModel.js"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",

@@ -4,7 +4,7 @@ import { assertMainOrNodeBoot, ExternalUserKeyDeriver, FeatureType, InvalidModel
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import * as restError from "@tutao/rest-client/error"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import type { LoginFacade, NewSessionData } from "../../../network/LoginFacade"
 import { ResumeSessionErrorReason } from "../../../network/LoginFacade"
 import { LoggedInEvent, UnencryptedCredentials } from "@tutao/native-bridge/common"

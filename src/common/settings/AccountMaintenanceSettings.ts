@@ -19,7 +19,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../gui/base/Dialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => void
 

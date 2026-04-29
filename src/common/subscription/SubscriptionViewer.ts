@@ -66,7 +66,7 @@ import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/common"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { client } from "../../app-env/ClientDetector.js"
+import { client } from "../../app-env/boot/ClientDetector.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 

@@ -1,4 +1,4 @@
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 
 import { newPromise } from "@tutao/utils"
 

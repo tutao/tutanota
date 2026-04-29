@@ -17,7 +17,7 @@ import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
 import { AriaRole } from "../AriaUtils.js"
 import { BaseButton } from "./buttons/BaseButton"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 

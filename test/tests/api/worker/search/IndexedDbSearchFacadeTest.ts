@@ -21,7 +21,7 @@ import {
 import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import type { BrowserData } from "../../../../../src/app-env/ClientConstants.js"
+import type { BrowserData } from "../../../../../src/app-env/boot/ClientConstants.js"
 import { browserDataStub, createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"

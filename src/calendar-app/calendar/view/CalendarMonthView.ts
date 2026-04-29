@@ -35,7 +35,7 @@ import {
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
 import { Time } from "../../../common/calendar/date/Time.js"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"

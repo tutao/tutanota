@@ -3,7 +3,7 @@ import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFa
 import { RestClient, restError } from "@tutao/rest-client"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
-import type { BrowserData } from "../../../app-env/ClientConstants.js"
+import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
 import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { LoginFacade } from "../../../network/LoginFacade.js"

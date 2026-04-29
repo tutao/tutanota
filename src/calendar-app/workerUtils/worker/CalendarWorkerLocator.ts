@@ -22,7 +22,7 @@ import {
 	ProgrammingError,
 	SessionType,
 } from "@tutao/app-env"
-import type { BrowserData } from "../../../app-env/ClientConstants.js"
+import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../network/facades/lazy/ShareFacade.js"
 import { RestClient, restSuspension } from "@tutao/rest-client"

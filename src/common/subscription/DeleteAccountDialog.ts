@@ -9,7 +9,7 @@ import { locator } from "../api/main/CommonLocator"
 import { getEtId, sysTypeRefs } from "@tutao/typerefs"
 import { CloseEventBusOption, isIOSApp } from "@tutao/app-env"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 
 export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | null = null) {
 	let takeover = ""

@@ -4,7 +4,7 @@ import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "@tut
 import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
-import { client } from "../../../app-env/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
 import { assertMainOrNode, KdfType, Keys } from "@tutao/app-env"
 import { progressIcon } from "../../../common/gui/base/Icon.js"

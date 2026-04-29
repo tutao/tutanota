@@ -5,7 +5,7 @@ import { entityUpdateUtils, getClientType, getPaymentMethodType, PlanTypeToName,
 import { ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/common"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
 import {

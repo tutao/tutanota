@@ -45,7 +45,7 @@ import {
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
-import { client } from "../../app-env/ClientDetector.js"
+import { client } from "../../app-env/boot/ClientDetector.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"

@@ -1,6 +1,6 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isDesktop } from "@tutao/app-env"

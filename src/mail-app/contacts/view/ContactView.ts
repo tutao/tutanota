@@ -62,7 +62,7 @@ import { CONTACTLIST_PREFIX } from "../../../common/misc/RouteChange.js"
 import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 
 assertMainOrNode()

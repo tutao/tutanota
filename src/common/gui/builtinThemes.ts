@@ -4,7 +4,7 @@
 import type { Theme, ThemeId } from "./theme"
 import { assertMainOrNodeBoot } from "@tutao/app-env"
 import { getAppLogo } from "./base/Logo.js"
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 

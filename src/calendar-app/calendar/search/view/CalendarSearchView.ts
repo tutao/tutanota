@@ -41,7 +41,7 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/ap
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { calendarLocator } from "../../../calendarLocator.js"
-import { client } from "../../../../app-env/ClientDetector.js"
+import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"

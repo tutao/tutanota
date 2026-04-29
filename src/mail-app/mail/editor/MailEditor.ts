@@ -56,7 +56,7 @@ import {
 	showDownloadProgressDialog,
 	showUndoMailSnackbar,
 } from "../view/MailGuiUtils"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
 import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"

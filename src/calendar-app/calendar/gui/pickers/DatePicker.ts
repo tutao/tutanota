@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { client } from "../../../../app-env/ClientDetector.js"
+import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
 import type { MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"

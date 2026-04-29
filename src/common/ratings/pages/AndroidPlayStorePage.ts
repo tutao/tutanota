@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { client } from "../../../app-env/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { completeRatingStage, TriggerType } from "../UserSatisfactionUtils.js"

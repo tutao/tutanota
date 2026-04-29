@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot } from "./Env"
+import { assertMainOrNodeBoot } from "../Env"
 import { ClientPlatform } from "./ClientDetector"
 
 assertMainOrNodeBoot()

@@ -11,7 +11,7 @@ import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { client } from "../../../app-env/ClientDetector.js"
+import { client } from "../../../app-env/boot/ClientDetector.js"
 
 assertMainOrNode()
 export type GestureInfo = {

@@ -3,8 +3,8 @@ import { convertToDataFile, createDataFile, createReferencingInstance, DataFile,
 import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { BrowserType } from "../../app-env/ClientConstants.js"
-import { client } from "../../app-env/ClientDetector.js"
+import { BrowserType } from "../../app-env/boot/ClientConstants.js"
+import { client } from "../../app-env/boot/ClientDetector.js"
 import { deduplicateFilenames, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"

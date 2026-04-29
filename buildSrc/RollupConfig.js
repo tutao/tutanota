@@ -202,7 +202,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (isIn("src/app-env/ClientDetector.ts")) {
+	if (isIn("src/app-env/boot")) {
 		return "boot"
 	} else if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/app-env")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.

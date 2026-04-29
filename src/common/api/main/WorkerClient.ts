@@ -1,7 +1,7 @@
 import { Commands, Request, Transport } from "../../../native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../common/threading/WebTransport.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { client } from "../../../app-env/ClientDetector"
+import { client } from "../../../app-env/boot/ClientDetector"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"

@@ -51,7 +51,7 @@ import { mailLocator } from "../mailLocator.js"
 import { getFolderName } from "../mail/model/MailUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
-import { client } from "../../app-env/ClientDetector"
+import { client } from "../../app-env/boot/ClientDetector"
 import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar"
 import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
 
