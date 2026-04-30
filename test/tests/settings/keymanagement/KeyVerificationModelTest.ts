@@ -5,16 +5,16 @@ import { MobileSystemFacade } from "@tutao/native-bridge"
 import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/keymanagement/KeyVerificationUsageTestUtils"
 import { matchers, object, verify, when } from "testdouble"
 import { PublicKeyIdentifierType } from "../../../../src/app-env"
-import { SigningPublicKey } from "../../../../src/network/crypto/facades/Ed25519Facade"
 import { Versioned } from "@tutao/utils"
 import { PermissionType } from "@tutao/native-bridge"
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/network/crypto/facades/PublicIdentityKeyProvider"
-import { TrustDBEntry } from "../../../../src/network/offline/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../../src/local-store/IdentityKeyTrustDatabase"
 import { ProgrammingError } from "@tutao/app-env"
 import { DesktopSystemFacade } from "@tutao/native-bridge"
 import { withOverriddenEnv } from "../../TestUtils"
 import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, IdentityKeySourceOfTrust, Mode } from "../../../../src/app-env"
+import { SigningPublicKey } from "../../../../src/crypto/encryption/Ed25519"
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade

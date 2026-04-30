@@ -1,4 +1,15 @@
-import { OfflineStorageInitArgs } from "./OfflineStorage"
+import { SessionType } from "@tutao/app-env"
+
+export interface SessionTypeProvider {
+	getSessionType(): Promise<SessionType | null>
+}
+
+export interface OfflineStorageInitArgs {
+	userId: Id
+	databaseKey: Uint8Array
+	timeRangeDate: Date | null
+	forceNewDatabase: boolean
+}
 
 export interface EphemeralStorageInitArgs {
 	userId: Id

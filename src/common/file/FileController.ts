@@ -92,7 +92,7 @@ export abstract class FileController {
 				}
 			}
 			if (isOffline) {
-				throw new restError.ConnectionError("currently offline")
+				throw new restError.ConnectionError("currently local-store")
 			}
 		} finally {
 			// we don't necessarily know when the user is done with the temporary file that was opened

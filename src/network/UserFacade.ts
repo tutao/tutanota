@@ -4,7 +4,7 @@ import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { LoginIncompleteError } from "./error/LoginIncompleteError"
 import { CryptoError } from "@tutao/crypto/error"
-import { KeyCache } from "./crypto/facades/KeyCache"
+import { KeyCache } from "../local-store/KeyCache"
 
 export interface AuthDataProvider {
 	/**
@@ -148,7 +148,7 @@ export class UserFacade implements AuthDataProvider {
 
 	getCurrentUserGroupKey(): VersionedKey {
 		// the userGroupKey is always written after the login to this.currentUserGroupKey
-		//if the user has only logged in offline this has not happened
+		//if the user has only logged in local-store this has not happened
 		const currentUserGroupKey = this.keyCache.getCurrentUserGroupKey()
 		if (currentUserGroupKey == null) {
 			if (this.isPartiallyLoggedIn()) {
@@ -257,8 +257,8 @@ export class UserFacade implements AuthDataProvider {
 				}
 			}
 		} catch (e) {
-			// this may happen during offline storage synchronisation when the event queue contains user group key rotation and a password change.
-			// We can ignore this error as we already have the latest user group key after connecting the offline client
+			// this may happen during local-store storage synchronisation when the event queue contains user group key rotation and a password change.
+			// We can ignore this error as we already have the latest user group key after connecting the local-store client
 			console.log(`Could not decrypt userGroupKeyUpdate`, e)
 			return
 		}

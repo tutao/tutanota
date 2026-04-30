@@ -133,7 +133,7 @@ import { CalendarEventUpdateCoordinator } from "./calendar/model/CalendarEventUp
 import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
-import { ExposedCacheStorage } from "../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { AppType } from "@tutao/app-env"
 
 assertMainOrNode()

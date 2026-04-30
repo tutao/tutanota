@@ -257,7 +257,7 @@ o.spec("LoginViewModelTest", () => {
 			verify(credentialRemovalHandler.onCredentialsRemoved(credentialsAndKey.credentialInfo))
 			verify(loginControllerMock.deleteOldSession(credentialsToUnencrypted(testCredentials, null), pushIdentifier))
 		})
-		o("deletes push identifier when offline and return warning", async function () {
+		o("deletes push identifier when local-store and return warning", async function () {
 			const viewModel = await getViewModel()
 			viewModel.displayMode = DisplayMode.DeleteCredentials
 			const credentialsAndKey = credentialsToUnencrypted(testCredentials, null)

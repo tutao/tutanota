@@ -1,7 +1,6 @@
 import { entityUpdateUtils, getTypeString, SomeEntity, sysTypeRefs, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
 import { freezeMap } from "@tutao/utils"
-
-import { ExposedCacheStorage } from "./CacheStorage"
+import { ExposedCacheStorage } from "./CacheStorage.js"
 
 /**
  * update when implementing custom cache handlers.

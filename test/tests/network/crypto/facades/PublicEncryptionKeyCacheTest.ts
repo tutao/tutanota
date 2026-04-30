@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
-import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
 import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
 import { createTestEntity } from "../../../TestUtils"
-import { PublicEncryptionKeyCache } from "../../../../../src/network/crypto/facades/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { PublicKeyIdentifier } from "../../../../../src/crypto/CryptoTypes"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

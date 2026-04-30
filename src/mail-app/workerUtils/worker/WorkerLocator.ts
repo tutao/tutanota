@@ -52,7 +52,7 @@ import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../network/UserFacade.js"
-import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../network/offline/OfflineStorageMigrator.js"
+import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../local-store/OfflineStorageMigrator.js"
 import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 import { InstanceSessionKeysCache, KeyAuthenticationFacade, KeyCache } from "@tutao/network"
 import { assertNotNull, delay, lazyAsync, lazyMemoized } from "@tutao/utils"
@@ -84,7 +84,7 @@ import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
 import type { ContactIndexer } from "../index/ContactIndexer"
-import { CustomCacheHandlerMap } from "../../../network/offline/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
@@ -97,11 +97,11 @@ import { PublicKeySignatureFacade } from "../../../network/crypto/facades/Public
 import { AdminKeyLoaderFacade } from "../../../network/crypto/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
-import { type IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../network/offline/IdentityKeyTrustDatabase"
+import { type IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../local-store/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { PublicEncryptionKeyCache } from "../../../network/crypto/facades/PublicEncryptionKeyCache"
+import { PublicEncryptionKeyCache } from "../../../local-store/PublicEncryptionKeyCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
@@ -109,11 +109,11 @@ import {
 	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
-import { OfflineStorage } from "../../../network/offline/OfflineStorage"
+import { OfflineStorage } from "../../../local-store/OfflineStorage"
 import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { AesApp, createRsaImplementation, RsaImplementation } from "@tutao/native-bridge/worker"
-import { CacheStorage } from "../../../network/offline/CacheStorage"
+import { CacheStorage } from "../../../local-store/CacheStorage"
 import { Credentials } from "../../../network/Constants"
 import { Argon2idFacade, WASMArgon2idFacade } from "../../../network/crypto/facades/WasmArgon2idFacade"
 
@@ -211,7 +211,7 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
-	const { IdentityKeyTrustDatabase } = await import("../../../network/offline/IdentityKeyTrustDatabase")
+	const { IdentityKeyTrustDatabase } = await import("../../../local-store/IdentityKeyTrustDatabase")
 
 	locator._worker = worker
 	locator._browserData = browserData
@@ -277,7 +277,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const indexerCore = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
-			throw new ProgrammingError("getting indexerCore when we should be using SQLite (offline storage)")
+			throw new ProgrammingError("getting indexerCore when we should be using SQLite (local-store storage)")
 		}
 		const { IndexerCore } = await import("../index/IndexerCore.js")
 		return new IndexerCore(await db(), browserData)
@@ -433,11 +433,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { BulkMailLoader } = await import("../index/BulkMailLoader.js")
 		const mailFacade = await locator.mail()
 		return async () => {
-			// On platforms with offline cache we just use cache as we are not bounded by memory.
+			// On platforms with local-store cache we just use cache as we are not bounded by memory.
 			if (isOfflineStorageAvailable()) {
 				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, mailFacade)
 			} else {
-				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
+				// On platforms without local-store cache we use new ephemeral cache storage for mails only and uncached storage for the rest
 				// We create empty CustomCacheHandlerMap because this cache is separate anyway and user updates don't matter.
 				return new BulkMailLoader(
 					new EntityClient(

@@ -18,7 +18,7 @@ import {
 	TypeRef,
 } from "@tutao/typerefs"
 import { delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, assertNotNull } from "@tutao/utils"
-import { OutOfSyncError } from "../../../network/error/OutOfSyncError"
+import { OutOfSyncError } from "../../../local-store/OutOfSyncError"
 import { CancelledError } from "@tutao/app-env"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import { UserFacade } from "../../../network/UserFacade"

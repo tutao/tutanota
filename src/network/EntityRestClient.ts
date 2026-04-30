@@ -37,7 +37,7 @@ import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { AesKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { isOfflineError } from "./error/NetworkErrorUtils.js"
 import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
-import { expandId } from "./RestClientIdUtils"
+import { expandId } from "@tutao/typerefs"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 
 assertWorkerOrNode()

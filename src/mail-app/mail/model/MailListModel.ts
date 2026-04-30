@@ -23,7 +23,7 @@ import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolve
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { isExpectedErrorForSynchronization, isOfflineError } from "../../../network/error/NetworkErrorUtils"
-import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 assertMainOrNode()
 
@@ -354,10 +354,10 @@ export class MailListModel implements MailSetListModel {
 	 */
 	private async loadMailsFromCache(startId: IdTuple, count: number): Promise<LoadedMail[]> {
 		// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
-		// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
+		// This is problematic for local-store where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
 		// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
 		// it will not return anything and instead will throw an error.
-		// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
+		// This is generally fine but in case of local-store we want to display everything that we have cached. For that we fetch directly from the cache,
 		// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 		// the items we have and also show that we couldn't load everything.
 		const mailSetEntries = await this.cacheStorage.provideFromRange(

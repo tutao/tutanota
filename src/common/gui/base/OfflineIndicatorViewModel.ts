@@ -6,12 +6,12 @@ import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
 import { styles } from "../styles.js"
-import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 import { WsConnectionState } from "@tutao/network"
 
 /**
- * the offline indicator must take into account information
+ * the local-store indicator must take into account information
  * from multiple different sources:
  * * ws connection state (connected, not connected) from the worker
  * * login state (logged out, partial login, full login)
@@ -111,7 +111,7 @@ export class OfflineIndicatorViewModel {
 			}
 		} else {
 			// either not fully logged in or the websocket was not connected before
-			// in cases where the indicator is visible, this is just offline login.
+			// in cases where the indicator is visible, this is just local-store login.
 			if (this.loginListener.getFullLoginFailed()) {
 				return {
 					state: OfflineIndicatorState.Offline,

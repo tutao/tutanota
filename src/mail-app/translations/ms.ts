@@ -557,7 +557,7 @@ export default {
 		send_action: "Hantar",
 		sent_action: "Dihantar",
 		serverDownForMaintenance_msg: "Server sedang diselenggara. Sila cuba sebentar lagi.",
-		serverNotReachable_msg: "Tidak dapat menghubungi server, anda sekarang offline. Sila cuba sebentar lagi.",
+		serverNotReachable_msg: "Tidak dapat menghubungi server, anda sekarang local-store. Sila cuba sebentar lagi.",
 		sessionsInfo_msg: "Alamat klien dan IP disimpan secara sulit.",
 		setCatchAllMailbox_action: "Tetapkan semua peti mel",
 		settingsView_action: "Tukar ke paparan tetapan",
@@ -626,7 +626,7 @@ export default {
 		upgradeReminderCancel_action: "Kemudian",
 		upgradeReminderTitle_msg: "Naik taraf ke Premium!",
 		upgradeSystemWebView_msg:
-			"Tidak dapat menghubungi server. Kemungkinan anda offline atau anda sedang menggunakan versi lama WebView System Android. Sila naik taraf Sistem WebView WebView kepada versi terkini:",
+			"Tidak dapat menghubungi server. Kemungkinan anda local-store atau anda sedang menggunakan versi lama WebView System Android. Sila naik taraf Sistem WebView WebView kepada versi terkini:",
 		urlPath_label: "Jalan",
 		url_label: "URL",
 		userAccountDeactivated_msg: "Akaun pengguna ini dinyahaktifkan.",

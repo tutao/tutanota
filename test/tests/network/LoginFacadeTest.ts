@@ -34,7 +34,7 @@ import { CacheManagementFacade } from "../../../src/common/api/worker/facades/la
 import { CacheMode } from "@tutao/network"
 import { RolloutFacade } from "../../../src/network/crypto/facades/RolloutFacade"
 import { ConnectMode, Credentials } from "../../../src/network/Constants"
-import { CacheStorageLateInitializer } from "../../../src/network/offline/CacheStorageInitializer"
+import { CacheStorageLateInitializer } from "../../../src/local-store/types"
 import { Argon2idFacade } from "../../../src/network/crypto/facades/WasmArgon2idFacade"
 
 const { anything, argThat } = matchers
@@ -205,7 +205,7 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(sysTypeRefs.UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(await makeUser(userId))
 			})
 
-			o.test("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
+			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, dbKey)
 				verify(
 					cacheStorageInitializerMock.initialize({
@@ -219,7 +219,7 @@ o.spec("LoginFacadeTest", function () {
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
-			o.test("When no database key is provided and session is persistent, a key is generated and we attempt offline db init", async function () {
+			o.test("When no database key is provided and session is persistent, a key is generated and we attempt local-store db init", async function () {
 				const databaseKey = Uint8Array.from([1, 2, 3, 4])
 				when(databaseKeyFactoryMock.generateKey()).thenResolve(databaseKey)
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
@@ -235,7 +235,7 @@ o.spec("LoginFacadeTest", function () {
 				verify(databaseKeyFactoryMock.generateKey(), { times: 1 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
-			o.test("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
+			o.test("When no database key is provided and session is Login, nothing is passed to the local-store storage initialzier", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Login, null)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
@@ -326,7 +326,7 @@ o.spec("LoginFacadeTest", function () {
 				).thenResolve(createSession(userId, accessKey, instancePipeline).then(JSON.stringify))
 			})
 
-			o.test("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
+			o.test("When resuming a session and there is a database key, it is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 				verify(
@@ -340,13 +340,13 @@ o.spec("LoginFacadeTest", function () {
 				)
 			})
 
-			o.test("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
+			o.test("When resuming a session and there is no database key, nothing is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, null, timeRangeDate)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 			})
 
-			o.test("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
+			o.test("when resuming a session and the local-store initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 				when(
@@ -368,7 +368,7 @@ o.spec("LoginFacadeTest", function () {
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
-			o.test("when resuming a session and the offline initialization has an existing database, we do async login", async function () {
+			o.test("when resuming a session and the local-store initialization has an existing database, we do async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
@@ -470,48 +470,48 @@ o.spec("LoginFacadeTest", function () {
 				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
-			o("When using offline as a free user and with stable connection, async login", async function () {
+			o("When using local-store as a free user and with stable connection, async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.FREE
 				await testSuccessfulAsyncLogin()
 			})
 
-			o("When using offline as a free user with unstable connection, offline is given to free users", async function () {
+			o("When using local-store as a free user with unstable connection, local-store is given to free users", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.FREE
 				await testConnectionFailingAsyncLogin()
 			})
 
-			o("When using offline as premium user with stable connection, async login", async function () {
+			o("When using local-store as premium user with stable connection, async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 				await testSuccessfulAsyncLogin()
 			})
 
-			o("When using offline as premium user with unstable connection, async login with later retry", async function () {
+			o("When using local-store as premium user with unstable connection, async login with later retry", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 				await testConnectionFailingAsyncLogin()
 			})
 
-			o("When not using offline as free user with connection, sync login", async function () {
+			o("When not using local-store as free user with connection, sync login", async function () {
 				usingOfflineStorage = false
 				user.accountType = AccountType.FREE
 				await testSuccessfulSyncLogin()
 			})
 
-			o("When not using offline as free user with unstable connection, sync login with connection error", async function () {
+			o("When not using local-store as free user with unstable connection, sync login with connection error", async function () {
 				usingOfflineStorage = false
 				user.accountType = AccountType.FREE
 				await testConnectionFailingSyncLogin()
 			})
 
-			o("When not using offline as premium user with stable connection, sync login", async function () {
+			o("When not using local-store as premium user with stable connection, sync login", async function () {
 				usingOfflineStorage = false
 				user.accountType = AccountType.PAID
 				await testSuccessfulSyncLogin()
 			})
-			o("When not using offline as premium with unstable connection, sync login with connection error", async function () {
+			o("When not using local-store as premium with unstable connection, sync login with connection error", async function () {
 				usingOfflineStorage = false
 				user.accountType = AccountType.PAID
 				await testConnectionFailingSyncLogin()

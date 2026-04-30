@@ -1,11 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import {
-	MaybeSignedPublicKey,
-	PublicEncryptionKeyProvider,
-	PublicKeyIdentifier,
-} from "../../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
 import { ServiceExecutor } from "@tutao/network"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
@@ -17,7 +13,8 @@ import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLo
 import { PublicKeyIdentifierType } from "@tutao/app-env"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
-import { PublicEncryptionKeyCache } from "../../../../../src/network/crypto/facades/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
+import { PublicKeyIdentifier } from "../../../../../src/crypto/CryptoTypes"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

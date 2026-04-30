@@ -1,14 +1,12 @@
-import { IdentityKeySourceOfTrust, isBrowser } from "@tutao/app-env"
+import { IdentityKeySourceOfTrust, isBrowser, ProgrammingError, SessionType } from "@tutao/app-env"
 import { TaggedSqlValue } from "@tutao/typerefs"
-import { SigningKeyPairType, SigningPublicKey } from "../crypto/facades/Ed25519Facade"
-import { ProgrammingError } from "@tutao/app-env"
-import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes } from "@tutao/crypto"
+import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes, SigningKeyPairType } from "@tutao/crypto"
 import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "./Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import type { OfflineStorageTable } from "./OfflineStorage"
-import { SessionType } from "@tutao/app-env"
-import { LoginFacade } from "../LoginFacade"
+import { SigningPublicKey } from "../crypto/encryption/Ed25519"
+import { SessionTypeProvider } from "@tutao/local-store/types"
 
 /**
  * Defines tables created for this interface
@@ -36,7 +34,7 @@ export type TrustDBEntry = {
 export class IdentityKeyTrustDatabase {
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly lazyLoginFacade: lazy<LoginFacade>,
+		private readonly lazyLoginFacade: lazy<SessionTypeProvider>,
 	) {}
 
 	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {

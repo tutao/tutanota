@@ -25,7 +25,7 @@ import * as restError from "@tutao/rest-client/error"
 import { downcast } from "@tutao/utils"
 import { AuthDataProvider } from "../../../../../src/network/UserFacade.js"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { getIds } from "@tutao/network"
+import { getIdOfInstance } from "@tutao/network"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {
@@ -200,7 +200,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		_verifyType(typeModel)
 
-		const ids = getIds(instance, typeModel)
+		const ids = getIdOfInstance(instance, typeModel)
 
 		this._handleDelete(ids.id, ids.listId)
 		return Promise.resolve()
@@ -215,7 +215,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		_verifyType(typeModel)
 
 		this._handleDeleteMultiple(
-			instances.map((it) => getIds(it, typeModel).id),
+			instances.map((it) => getIdOfInstance(it, typeModel).id),
 			listId,
 		)
 		return Promise.resolve()

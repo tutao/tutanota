@@ -1,5 +1,5 @@
 import * as cborg from "cborg"
-import { customTypeDecoders, customTypeEncoders } from "../../../../../network/offline/OfflineStorage"
+import { customTypeDecoders, customTypeEncoders } from "../../../../../local-store/OfflineStorage"
 
 /**
  * Version of the format

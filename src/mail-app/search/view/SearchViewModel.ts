@@ -477,7 +477,7 @@ export class SearchViewModel {
 			void this.indexerFacade.extendMailIndex(startDate.getTime())
 
 			let onIndexStateUpdate = (_: SearchIndexStateInfo) => {}
-			// separate subscription to indexState so offline range is updated even when the user navigates away from search
+			// separate subscription to indexState so local-store range is updated even when the user navigates away from search
 			const dep = this.search.indexState.map((newState) => onIndexStateUpdate(newState))
 			// when subscribing to a mithril stream, the callback is invoked immediately with the stream's current value,
 			// but we only want this to be invoked once indexing starts
@@ -490,9 +490,9 @@ export class SearchViewModel {
 					const offlineRange = this.offlineStorageSettings.getTimeRange().getTime()
 					const isIndexingDoneOrCancelled = newState.progress === 0 && newState.error == null
 
-					// update offline storage range as index extends to not lose what's already indexed if the user logs
+					// update local-store storage range as index extends to not lose what's already indexed if the user logs
 					// out before indexing is done.
-					// Update offline range when indexing is cancelled to not continue indexing on next login
+					// Update local-store range when indexing is cancelled to not continue indexing on next login
 					if (offlineRange > newState.currentMailIndexTimestamp || isIndexingDoneOrCancelled) {
 						this.offlineStorageSettings.setTimeRange(
 							new Date(
@@ -1032,7 +1032,7 @@ export class SearchViewModel {
 
 			if (startId !== GENERATED_MAX_ID) {
 				if (!isBrowser() && !isAdminClient()) {
-					// offline storage is always sorted correctly
+					// local-store storage is always sorted correctly
 					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
 				} else {
 					// this relies on the results being sorted from newest to oldest ID

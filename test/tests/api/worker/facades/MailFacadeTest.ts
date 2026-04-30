@@ -22,7 +22,7 @@ import { RecipientsNotFoundError } from "../../../../../src/network/crypto/error
 import { KeyVerificationMismatchError } from "../../../../../src/network/crypto/error/KeyVerificationMismatchError"
 import { SpamClassifier } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
-import { CacheStorage } from "../../../../../src/network/offline/CacheStorage"
+import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

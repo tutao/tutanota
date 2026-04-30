@@ -293,7 +293,7 @@ export class ListModel<ItemType, IdType> {
 			!shouldStop() &&
 			// if we are done loading, stop
 			this.rawState.loadingStatus !== ListLoadingState.Done &&
-			// if we are offline, stop
+			// if we are local-store, stop
 			this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
 		) {
 			await this.loadMore()

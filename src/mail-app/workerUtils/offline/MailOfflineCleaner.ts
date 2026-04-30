@@ -10,7 +10,7 @@ import {
 	sysTypeRefs,
 	tutanotaTypeRefs,
 } from "@tutao/typerefs"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../network/offline/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../local-store/OfflineStorage.js"
 import { AccountType, daysToMillis } from "@tutao/app-env"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {

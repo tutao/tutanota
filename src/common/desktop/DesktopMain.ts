@@ -194,7 +194,7 @@ async function createComponents(): Promise<Components> {
 		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
 		() => {
 			// Alarms are always encrypted using session keys by the client and never by the server.
-			// That is because, as they need to work offline, they cannot rely on being able to load group keys.
+			// That is because, as they need to work local-store, they cannot rely on being able to load group keys.
 			throw new ProgrammingError("trying to use group keys for alarm encryption")
 		},
 		SYMMETRIC_CIPHER_FACADE,

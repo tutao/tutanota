@@ -79,7 +79,7 @@ export class CredentialsProvider {
 	/**
 	 * Deletes stored credentials with specified userId.
 	 * No-op if credentials are not there.
-	 * @param opts.deleteOfflineDb whether to delete offline database. Will delete by default.
+	 * @param opts.deleteOfflineDb whether to delete local-store database. Will delete by default.
 	 */
 	async deleteByUserId(userId: Id, opts: { deleteOfflineDb: boolean } = { deleteOfflineDb: true }): Promise<void> {
 		await this.interWindowEventSender?.localUserDataInvalidated(userId)

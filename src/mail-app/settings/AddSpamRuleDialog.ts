@@ -87,7 +87,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: sysTypeRefs.Em
 			m.redraw()
 		},
 		(e) => {
-			// Might be an offline error, if we can't load data we should close the dialog regardless, they can try opening it again
+			// Might be an local-store error, if we can't load data we should close the dialog regardless, they can try opening it again
 			dialog.close()
 			throw e
 		},

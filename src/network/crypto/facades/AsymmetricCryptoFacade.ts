@@ -32,10 +32,11 @@ import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { asCryptoProtoocolVersion, sysServices, sysTypeRefs, TypeId } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../ServiceRequest.js"
-import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "./PublicEncryptionKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { Category, syncMetrics } from "../../../utils/SyncMetrics"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
+import { PublicKeyIdentifier } from "../../../crypto/CryptoTypes"
 
 assertWorkerOrNode()
 

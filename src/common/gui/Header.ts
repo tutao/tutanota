@@ -26,7 +26,7 @@ export interface HeaderAttrs extends AppHeaderAttrs {
 	handleBackPress?: () => boolean
 	/** search bar, only rendered when NOT using bottom navigation */
 	searchBar?: () => Children
-	/** content in the center of the search bar, where title and offline status normally are */
+	/** content in the center of the search bar, where title and local-store status normally are */
 	centerContent?: () => Children
 	/** adjusts the width of the logo display area, mostly so that the search bar is in the right place*/
 	firstColWidth?: number
@@ -41,7 +41,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 	}
 
 	/**
-	 * render the search and navigation bar in three-column layouts. if there is a navigation, also render an offline indicator.
+	 * render the search and navigation bar in three-column layouts. if there is a navigation, also render an local-store indicator.
 	 * @private
 	 */
 	private renderNavigation(attrs: HeaderAttrs): Children {

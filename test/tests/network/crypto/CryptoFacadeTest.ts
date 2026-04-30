@@ -73,7 +73,7 @@ import { KeyRotationFacade } from "../../../../src/network/crypto/facades/KeyRot
 import { EntityAdapter } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/network/crypto/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import { CacheManagementInterface } from "../../../../src/network/crypto/entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../../src/local-store/CacheManagementInterface"
 
 const { anything, argThat } = matchers
 

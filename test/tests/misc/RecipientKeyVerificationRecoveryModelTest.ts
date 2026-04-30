@@ -4,7 +4,7 @@ import { PublicIdentityKeyProvider } from "../../../src/network/crypto/facades/P
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel"
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { TrustDBEntry } from "../../../src/network/offline/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../src/local-store/IdentityKeyTrustDatabase"
 import { ProgrammingError } from "@tutao/app-env"
 import { IdentityKeySourceOfTrust } from "../../../src/app-env"
 

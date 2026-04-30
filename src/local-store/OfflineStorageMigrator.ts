@@ -1,7 +1,7 @@
 import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
 import { assertNotNull, last } from "@tutao/utils"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { OutOfSyncError } from "../error/OutOfSyncError.js"
+import { OutOfSyncError } from "./OutOfSyncError.js"
 import { offline5 } from "./migrations/offline-v5"
 import { offline6 } from "./migrations/offline-v6"
 import { offline7 } from "./migrations/offline-v7"
@@ -11,7 +11,6 @@ import { offline9 } from "./migrations/offline-v9"
 import { offline10 } from "./migrations/offline-v10"
 import { offline11 } from "./migrations/offline-v11"
 import { offline12 } from "./migrations/offline-v12"
-
 import { ApplicationTypesFacade } from "@tutao/instance-pipeline"
 
 export interface OfflineMigration {
@@ -23,18 +22,18 @@ export interface OfflineMigration {
 /**
  * List of migrations that will be run when needed. Please add your migrations to the list.
  *
- * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
+ * Normally you should only add them to the end of the list but with local-store ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
 export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5, offline6, offline7, offline8, offline9, offline10, offline11, offline12]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
-// and we create a new offline database, we still need to set the offline version to the current value.
+// and we create a new local-store database, we still need to set the local-store version to the current value.
 export const CURRENT_OFFLINE_VERSION = 12
 
 /**
- * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
- * "incompatible" change to the API model we need to update offline database somehow.
+ * Migrator for the local-store storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
+ * "incompatible" change to the API model we need to update local-store database somehow.
  *
  * Migrations are done manually but there are a few checks done:
  *  - compile time check that migration exists and is used in this file
@@ -56,14 +55,14 @@ export class OfflineStorageMigrator {
 
 		const meta = await storage.dumpMetadata()
 
-		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
+		// We did not write down the "local-store" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
 		// not. Previously we've been checking that there's something in the meta table which is a pretty decent check. Unfortunately we had multiple bugs
-		// which resulted in a state where we would re-create the offline db but not populate the meta table with the versions, the only thing that would be
+		// which resulted in a state where we would re-create the local-store db but not populate the meta table with the versions, the only thing that would be
 		// written is lastUpdateTime.
-		// {}                                                               -> new db, do not migrate offline
-		// {"base-version": 1, "lastUpdateTime": 123, "offline-version": 1} -> up-to-date db, do not migrate offline
+		// {}                                                               -> new db, do not migrate local-store
+		// {"base-version": 1, "lastUpdateTime": 123, "local-store-version": 1} -> up-to-date db, do not migrate local-store
 		// {"lastUpdateTime": 123}                                          -> broken state after the buggy recreation of db, delete the db
-		// {"base-version": 1, "lastUpdateTime": 123}                       -> some very old state where we would actually have to migrate offline
+		// {"base-version": 1, "lastUpdateTime": 123}                       -> some very old state where we would actually have to migrate local-store
 		if (Object.keys(meta).length === 1 && meta.lastUpdateTime != null) {
 			throw new OutOfSyncError("Invalid DB state, missing model versions")
 		}
@@ -117,7 +116,7 @@ export class OfflineStorageMigrator {
 
 	/**
 	 * it's possible that the user installed an older client over a newer one.
-	 * if the offline schema changed between the clients, it's likely that the old client can't even understand
+	 * if the local-store schema changed between the clients, it's likely that the old client can't even understand
 	 * the structure of the db. we're going to delete it and not migrate at all.
 	 * @private
 	 *

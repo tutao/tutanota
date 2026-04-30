@@ -15,26 +15,10 @@ import {
 	verifyEd25519Signature,
 } from "@tutao/crypto"
 import { LazyLoaded } from "@tutao/utils"
-import { NativeCryptoFacade } from "@tutao/native-bridge/common"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge/common"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge/common"
-import { IPCEd25519Signature } from "@tutao/native-bridge/common"
+import { IPCEd25519PrivateKey, IPCEd25519PublicKey, IPCEd25519Signature, NativeCryptoFacade } from "@tutao/native-bridge/common"
+import { EncodedEd25519Signature } from "../../../crypto/encryption/Ed25519"
 
 assertWorkerOrNode()
-
-export type SigningKeyPair = {
-	type: SigningKeyPairType
-	keyPair: Ed25519KeyPair
-}
-export type SigningPublicKey = {
-	type: SigningKeyPairType
-	key: Ed25519PublicKey
-}
-export type EncodedEd25519Signature = Uint8Array
-
-export enum SigningKeyPairType {
-	Ed25519,
-}
 
 export interface Ed25519Facade {
 	generateKeypair(): Promise<Ed25519KeyPair>

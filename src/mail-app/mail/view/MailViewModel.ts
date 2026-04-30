@@ -29,7 +29,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
-import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet

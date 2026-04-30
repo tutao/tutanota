@@ -32,7 +32,7 @@ import { WebsocketConnectivityModel } from "../../../../src/common/misc/Websocke
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 import { MailSetKind, OperationType } from "../../../../src/app-env"
-import { ExposedCacheStorage } from "../../../../src/network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
 
 o.spec("MailListModel", () => {
 	let model: MailListModel
@@ -181,10 +181,10 @@ o.spec("MailListModel", () => {
 
 		if (offline) {
 			when(entityClient.loadRange(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new restError.ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are local-store"),
 			)
 			when(entityClient.loadMultiple(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new restError.ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are local-store"),
 			)
 		} else {
 			when(entityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(
@@ -213,7 +213,7 @@ o.spec("MailListModel", () => {
 		})
 	})
 
-	o.test("loads PageSize items while offline and sets labels correctly", async () => {
+	o.test("loads PageSize items while local-store and sets labels correctly", async () => {
 		await setUpTestData(PageSize, labels, true)
 		await model.loadInitial()
 		o(model.items.length).equals(PageSize)

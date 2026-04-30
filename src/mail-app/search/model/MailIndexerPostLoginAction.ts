@@ -6,7 +6,7 @@ import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTrac
 import { LoggedInEvent } from "@tutao/native-bridge/common"
 
 /**
- * The search range is tied to the offline storage settings.
+ * The search range is tied to the local-store storage settings.
  * This updates the mail index on full login.
  */
 export class MailIndexerPostLoginAction implements PostLoginAction {

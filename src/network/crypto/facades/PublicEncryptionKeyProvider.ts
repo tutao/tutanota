@@ -13,25 +13,11 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import { PublicKeyIdentifierType } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "./lazy/KeyVerificationFacade"
-import { PublicEncryptionKeyCache } from "./PublicEncryptionKeyCache"
-
-export type PublicKeyIdentifier = {
-	identifier: string
-	identifierType: PublicKeyIdentifierType
-}
-
-export type PublicKeyRawData = {
-	pubKeyVersion: NumberString
-	pubEccKey: null | Uint8Array
-	pubKyberKey: null | Uint8Array
-	pubRsaKey: null | Uint8Array
-}
-
-export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: sysTypeRefs.PublicKeySignature | null }
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../local-store/PublicEncryptionKeyCache"
+import { PublicKeyIdentifier, CryptoTypes } from "../../../crypto/CryptoTypes"
 
 /**
  * Load public encryption keys.
@@ -159,7 +145,7 @@ export class PublicEncryptionKeyProvider {
 		}
 	}
 
-	private convertFromPublicKeyRawData(publicKeys: PublicKeyRawData): Versioned<PublicKey> {
+	private convertFromPublicKeyRawData(publicKeys: CryptoTypes): Versioned<PublicKey> {
 		const version = cryptoUtils.parseKeyVersion(publicKeys.pubKeyVersion)
 		// const version = Number(publicKeys.pubKeyVersion)
 		if (publicKeys.pubRsaKey) {

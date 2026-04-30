@@ -1,4 +1,4 @@
-import { CustomCacheHandler } from "../../../../../network/offline/CustomCacheHandler"
+import { CustomCacheHandler } from "../../../../../local-store/CustomCacheHandler"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { Range } from "@tutao/network"
 import { TypeModelResolver } from "@tutao/typerefs"
@@ -15,7 +15,7 @@ import {
 } from "@tutao/typerefs"
 import { ProgrammingError } from "@tutao/app-env"
 import { AttributeModel } from "@tutao/typerefs"
-import { CacheStorage } from "../../../../../network/offline/CacheStorage"
+import { CacheStorage } from "../../../../../local-store/CacheStorage"
 
 /**
  * implements range loading in JS because the custom Ids of calendar events prevent us from doing
@@ -31,7 +31,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<tutan
 		const range = await storage.getRangeForList(tutanotaTypeRefs.CalendarEventTypeRef, listId)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.CalendarEventTypeRef)
 
-		// if offline db for this list is empty load from server
+		// if local-store db for this list is empty load from server
 		let rawList: Array<ServerModelParsedInstance> = []
 		if (range == null) {
 			let chunk: Array<ServerModelParsedInstance> = []

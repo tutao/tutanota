@@ -1,7 +1,7 @@
-// read from the offline db according to the list and element id on the entityUpdate
-// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the offline db
+// read from the local-store db according to the list and element id on the entityUpdate
+// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the local-store db
 // apply patch operations using a similar logic from the server
-// update the instance in the offline db
+// update the instance in the local-store db
 
 import {
 	AssociationType,
@@ -95,7 +95,7 @@ export class PatchMerger {
 			await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			return patchAppliedInstance
 		} catch (e) {
-			// returning null leads to reloading from the server, this fixes the broken entity in the offline storage
+			// returning null leads to reloading from the server, this fixes the broken entity in the local-store storage
 			return null
 		}
 	}

@@ -71,7 +71,7 @@ async function deleteAccount(takeover: string, password: string, surveyData: sys
 
 		const ok = await Dialog.confirm(message)
 		if (!ok) return false
-		// this is necessary to prevent us from applying websocket events to an already deleted/closed offline DB
+		// this is necessary to prevent us from applying websocket events to an already deleted/closed local-store DB
 		// which is an immediate crash on ios
 		await locator.connectivityModel.close(CloseEventBusOption.Terminate)
 		try {

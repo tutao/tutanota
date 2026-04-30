@@ -1,15 +1,7 @@
-import type { TypeModel } from "@tutao/typerefs"
-import { Type } from "@tutao/typerefs"
+import { Type } from "./EntityConstants.js"
+import { TypeModel } from "./EntityTypes.js"
 
-export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
-	if (listId != null) {
-		return [listId, elementId]
-	} else {
-		return elementId
-	}
-}
-
-export function getIds(
+export function getIdOfInstance(
 	instance: any,
 	typeModel: TypeModel,
 ): {
@@ -30,6 +22,14 @@ export function getIds(
 	return {
 		listId,
 		id,
+	}
+}
+
+export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
+	if (listId != null) {
+		return [listId, elementId]
+	} else {
+		return elementId
 	}
 }
 

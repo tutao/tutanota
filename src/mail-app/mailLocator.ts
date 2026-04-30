@@ -165,7 +165,7 @@ import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp"
 import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
-import { ExposedCacheStorage } from "../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { AppType } from "@tutao/app-env"
 
 assertMainOrNode()

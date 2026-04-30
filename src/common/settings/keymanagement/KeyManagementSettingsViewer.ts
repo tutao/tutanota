@@ -20,12 +20,12 @@ import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
 import { lazy, Versioned } from "@tutao/utils"
-import { SigningPublicKey } from "../../../network/crypto/facades/Ed25519Facade"
 import { showInfoSnackbar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
 import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { DesktopSystemFacade } from "@tutao/native-bridge/common"
+import { SigningPublicKey } from "../../../crypto/encryption/Ed25519"
 
 /**
  * Our own identity key, which is not stored on the trust DB.

@@ -10,7 +10,7 @@ import { SessionType } from "@tutao/app-env"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { LoggedInEvent } from "@tutao/native-bridge/common"
-import { ExposedCacheStorage } from "../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../local-store/CacheStorage"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(
@@ -50,7 +50,7 @@ export class CachePostLoginAction implements PostLoginAction {
 				onSyncDone: async () => {
 					if (this.offlineStorageSettings !== null) {
 						await this.offlineStorageSettings.init()
-						// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
+						// Clear the excluded data (i.e. trash and spam lists, old data) in the local-store storage.
 						await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
 					}
 				},

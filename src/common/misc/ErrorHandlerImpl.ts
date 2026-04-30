@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, CancelledError, InvalidModelError, isAdminClient, isBrowser, isDesktop } from "@tutao/app-env"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
-import { OutOfSyncError } from "../../network/error/OutOfSyncError"
+import { OutOfSyncError } from "../../local-store/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import { windowFacade } from "./WindowFacade"
@@ -254,7 +254,7 @@ function handleImportError() {
 
 	showingImportError = true
 	const message =
-		"There was an error while loading part of the app. It might be that you are offline, running an outdated version, or your browser is blocking the request."
+		"There was an error while loading part of the app. It might be that you are local-store, running an outdated version, or your browser is blocking the request."
 	Dialog.choice(lang.makeTranslation("error_msg", message), [
 		{
 			text: "close_alt",

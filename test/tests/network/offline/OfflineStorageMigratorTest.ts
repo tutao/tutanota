@@ -5,8 +5,8 @@ import {
 	OFFLINE_STORAGE_MIGRATIONS,
 	OfflineMigration,
 	OfflineStorageMigrator,
-} from "../../../../src/network/offline/OfflineStorageMigrator.js"
-import { OfflineStorage } from "../../../../src/network/offline/OfflineStorage.js"
+} from "../../../../src/local-store/OfflineStorageMigrator.js"
+import { OfflineStorage } from "../../../../src/local-store/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
 import { ProgrammingError } from "@tutao/app-env"
 import { maxBy } from "@tutao/utils"

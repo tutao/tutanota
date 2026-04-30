@@ -17,12 +17,13 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { PublicKeySignatureType } from "@tutao/app-env"
-import { Ed25519Facade, EncodedEd25519Signature } from "../../../../../src/network/crypto/facades/Ed25519Facade"
+import { Ed25519Facade } from "../../../../../src/network/crypto/facades/Ed25519Facade"
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { PQFacade } from "../../../../../src/network/crypto/facades/PQFacade"
 import { WASMKyberFacade } from "../../../../../src/network/crypto/facades/KyberFacade"
 import { RSA_TEST_KEYPAIR } from "../../../api/worker/facades/RsaPqPerformanceTest"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
+import { EncodedEd25519Signature } from "../../../../../src/crypto/encryption/Ed25519"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
 	let ed25519Facade: Ed25519Facade

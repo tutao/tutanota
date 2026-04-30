@@ -9,6 +9,8 @@ import {
 	type Ed25519Signature,
 } from "@tutao/crypto-primitives"
 
+import { SigningKeyPairType } from "@tutao/crypto"
+
 export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair, Ed25519Signature }
 
 export async function initEd25519(webAssemblySrc: BufferSource | string): Promise<void> {
@@ -44,3 +46,12 @@ export function bytesToEd25519Signature(signature: Uint8Array): Ed25519Signature
 export function ed25519SignatureToBytes(signature: Ed25519Signature): Uint8Array {
 	return new Uint8Array(signature)
 }
+export type SigningKeyPair = {
+	type: SigningKeyPairType
+	keyPair: Ed25519KeyPair
+}
+export type SigningPublicKey = {
+	type: SigningKeyPairType
+	key: Ed25519PublicKey
+}
+export type EncodedEd25519Signature = Uint8Array

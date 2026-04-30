@@ -34,7 +34,7 @@ import { WebsocketConnectivityModel } from "../../../../src/common/misc/Websocke
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 import { MailSetKind, OperationType } from "../../../../src/app-env"
-import { ExposedCacheStorage } from "../../../../src/network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
 
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel
@@ -189,10 +189,10 @@ o.spec("ConversationListModel", () => {
 
 		if (offline) {
 			when(entityClient.loadRange(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new restError.ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are local-store"),
 			)
 			when(entityClient.loadMultiple(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
-				new restError.ConnectionError("sorry we are offline"),
+				new restError.ConnectionError("sorry we are local-store"),
 			)
 		} else {
 			when(entityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(
@@ -222,7 +222,7 @@ o.spec("ConversationListModel", () => {
 		})
 	})
 
-	o.test("loads PageSize items while offline and sets labels correctly", async () => {
+	o.test("loads PageSize items while local-store and sets labels correctly", async () => {
 		await setUpTestData(PageSize, labels, true, 1)
 		await model.loadInitial()
 		o.check(model.mails.length).equals(PageSize)
@@ -240,7 +240,7 @@ o.spec("ConversationListModel", () => {
 		})
 	})
 
-	o.test("loads fewer than PageSize items while offline, loadMore will fail", async () => {
+	o.test("loads fewer than PageSize items while local-store, loadMore will fail", async () => {
 		const mails = await setUpTestData(PageSize - 1, labels, true, 1)
 		await model.loadInitial()
 		o.check(model.mails.length).equals(PageSize - 1)

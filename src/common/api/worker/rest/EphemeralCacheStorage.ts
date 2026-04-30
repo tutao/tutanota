@@ -19,13 +19,13 @@ import {
 	TypeRef,
 } from "@tutao/typerefs"
 import { assertNotNull, filterNull, getFromMap,  Nullable, remove } from "@tutao/utils"
-import { CustomCacheHandlerMap } from "../../../../network/offline/CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "../../../../local-store/CustomCacheHandler.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ModelMapper } from "@tutao/instance-pipeline"
 import { expandId } from "@tutao/network"
 import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
-import { CacheStorage, LastUpdateTime } from "../../../../network/offline/CacheStorage"
-import { EphemeralStorageInitArgs } from "../../../../network/offline/CacheStorageInitializer"
+import { CacheStorage, LastUpdateTime } from "../../../../local-store/CacheStorage"
+import { EphemeralStorageInitArgs } from "../../../../local-store/types"
 
 /** Cache for a single list. */
 type ListCache = {

@@ -1,8 +1,8 @@
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { sql } from "../../../../../network/offline/Sql"
+import { sql } from "../../../../../local-store/Sql"
 import { untagSqlObject } from "@tutao/typerefs"
-import type { OfflineStorageTable } from "../../../../../network/offline/OfflineStorage"
+import type { OfflineStorageTable } from "../../../../../local-store/OfflineStorage"
 
 export const AutosaveDraftsTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	autosave_drafts: {
@@ -15,7 +15,7 @@ export const AutosaveDraftsTableDefinitions: Record<string, OfflineStorageTable>
  * Autosave facade for native SQLite
  *
  * Can function with just a partial login unlike ConfigurationDatabase which makes it useful for native clients as you
- * can view and edit drafts while being offline.
+ * can view and edit drafts while being local-store.
  */
 export class OfflineStorageAutosaveFacade implements AutosaveFacade {
 	constructor(private readonly sql: SqlCipherFacade) {}

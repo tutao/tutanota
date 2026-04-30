@@ -1,5 +1,5 @@
 /**
- * entry point to the sqlite worker threads. one is created for each user's offline database.
+ * entry point to the sqlite worker threads. one is created for each user's local-store database.
  * it's possible for multiple windows to access the same sqlite database through the same thread.
  * it must be ensured that there is never more than one thread accessing the same database.
  *
