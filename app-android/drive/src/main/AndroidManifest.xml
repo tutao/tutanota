@@ -84,14 +84,6 @@ which might still be served or HTTP. The only alternative is to proxy all of it.
 				<action android:name="android.intent.action.VIEW"/>
 			</intent-filter>
 		</activity>
-		<receiver
-				android:name=".push.BootBroadcastReceiver"
-				android:exported="false">
-			<intent-filter>
-				<action android:name="android.intent.action.BOOT_COMPLETED"/>
-				<action android:name="android.intent.action.QUICKBOOT_POWERON"/>
-			</intent-filter>
-		</receiver>
 
 		<meta-data
 				android:name="android.webkit.WebView.MetricsOptOut"

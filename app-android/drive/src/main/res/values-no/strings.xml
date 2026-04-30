@@ -1,0 +1,24 @@
+<resources>
+    <string name="reminder_label">Påminnelse</string>
+    <string name="pushNewMail_msg">Ny e-post mottatt.</string>
+    <string name="notificationSync_msg">Synkronisering av varsler</string>
+    <string name="scheduleAlarmError_msg">Kunne ikke stille inn en alarm. Oppdater applikasjonen.</string>
+    <string name="wantToSendReport_msg">En uventet feil oppstod. Vil du sende en feilmelding? Du kan legge ved en melding for å hjelpe oss løse denne feilen.</string>
+    <string name="downloadCompleted_msg">Nedlastingen er fullført</string>
+    <string name="unlockCredentials_action">Lås opp opplysninger</string>
+    <string name="delete_action">Slett</string>
+    <string name="markRead_action">Marker som lest</string>
+    <string name="sendLogs_action">Send loggene</string>
+    <string name="account_label">Bruker</string>
+    <string name="calendars_label">Kalendre</string>
+    <string name="widgetNoCredentialsInfo_msg">Ingen tilgjengelige innloggingsdetaljer</string>
+    <string name="widgetUnexpectedError_msg">Ops! Noe gikk galt.</string>
+    <string name="widgetCredentialsError_msg">Logg inn i kalender-appen</string>
+    <string name="widgetOpenApp_action">Åpne appen</string>
+    <string name="widgetNoEvents_msg">Ingen hendelser</string>
+    <string name="widgetDescription_msg">Vis dagens kommende hendelser</string>
+    <string name="birthdayCalendar_label">Fødselsdager</string>
+    <string name="birthdayEvent_title">Fødselsdag for {name}</string>
+    <string name="birthdayEventAge_title">{age} år gammel</string>
+    <string name="noTitle_label">&lt;Ingen tittel&gt;</string>
+</resources>

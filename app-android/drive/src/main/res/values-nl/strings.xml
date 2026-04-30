@@ -1,0 +1,25 @@
+<resources>
+    <string name="reminder_label">Herinnering</string>
+    <string name="pushNewMail_msg">Nieuwe e-mail ontvangen</string>
+    <string name="notificationSync_msg">Notificaties synchroniseren</string>
+    <string name="scheduleAlarmError_msg">Kon geen alarm instellen. Graag het programma updaten.</string>
+    <string name="wantToSendReport_msg">Er is onverwachts iets verkeerd gegaan. Wilt u een foutrapport verzenden? U kunt een bericht toevoegen om ons te helpen de fout te repareren.</string>
+    <string name="downloadCompleted_msg">Download voltooid</string>
+    <string name="unlockCredentials_action">Gegevens deblokkeren</string>
+    <string name="delete_action">Verwijderen</string>
+    <string name="markRead_action">Gelezen</string>
+    <string name="sendLogs_action">Verstuur de logbestanden</string>
+    <string name="account_label">Gebruiker</string>
+    <string name="calendars_label">Kalenders</string>
+    <string name="widgetNoCredentialsInfo_msg">Referenties ontbreken</string>
+    <string name="widgetUnexpectedError_msg">Oeps! Er is iets fout gegaan.</string>
+    <string name="widgetCredentialsError_msg">Log alstublieft in op de kalender-app</string>
+    <string name="widgetOpenApp_action">Open de app</string>
+    <string name="widgetNoEvents_msg">Geen evenementen</string>
+    <string name="widgetNoEventsToday_msg">Vandaag geen activiteiten</string>
+    <string name="widgetDescription_msg">Toon actuele evenementen</string>
+    <string name="birthdayCalendar_label">Verjaardagen</string>
+    <string name="birthdayEvent_title">{name}s verjaardag</string>
+    <string name="birthdayEventAge_title">{age} jaar</string>
+    <string name="noTitle_label">&lt;Geen titel&gt;</string>
+</resources>

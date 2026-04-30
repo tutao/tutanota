@@ -40,8 +40,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.push.LocalNotificationsFacade
-import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
@@ -61,13 +59,13 @@ import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
-import de.tutao.tutashared.ipc.MobileContactsFacade
 import de.tutao.tutashared.ipc.MobileFacade
 import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.remote.RemoteBridge
+import de.tutao.tutashared.remote.RemoteExecutionException
 import de.tutao.tutashared.toPx
 import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.webauthn.WebauthnFlowRunner
@@ -162,7 +160,8 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 						commonNativeFacade.uploadProgress(fileId, bytes)
 					}
 				},
-				BuildConfig.FILE_PROVIDER_AUTHORITY)
+				BuildConfig.FILE_PROVIDER_AUTHORITY
+			)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
@@ -176,18 +175,16 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutadrive", BuildConfig.APPLICATION_ID)
 
-		val facadeStub =
-
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
-			AndroidMobileContactsFacade(this),
+			AndroidMobileContactsFacadeStub,
 			AndroidMobileSystemFacade(fileFacade, this, db),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
-			nativePushFacade,
+			AndroidNativePushFacadeStub,
 			sqlCipherFacade,
 			themeFacade,
 			webauthnFacade,
@@ -208,8 +205,6 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
-
-		setupPushNotifications()
 
 		webView.setBackgroundColor(Color.TRANSPARENT)
 
@@ -361,7 +356,7 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 
 	/** @return "result" extra value */
-	suspend fun startWebauthn(uri: Uri): String {
+	override suspend fun startWebauthn(uri: Uri): String {
 		val customIntent = CustomTabsIntent.Builder()
 			.build()
 		val intent = customIntent.intent.apply {

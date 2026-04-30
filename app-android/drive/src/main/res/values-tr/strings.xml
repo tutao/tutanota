@@ -1,0 +1,24 @@
+<resources>
+    <string name="reminder_label">hatırlatıcı</string>
+    <string name="pushNewMail_msg">Yeni e-posta alındı.</string>
+    <string name="notificationSync_msg">Bildirimler senkronize ediliyor</string>
+    <string name="scheduleAlarmError_msg">Alarm kurulamadı. Lütfen uygulamayı güncelleyin.</string>
+    <string name="wantToSendReport_msg">Beklenmedik bir durumla karşı karşıyayız. Hata raporu göndermek istiyor musunuz? Kısa bir açıklama ekleyerek bu hatayı düzeltmeye yardımcı olabilirsiniz. </string>
+    <string name="downloadCompleted_msg">İndirme tamamlandı</string>
+    <string name="unlockCredentials_action">Kimlik bilgilerini çöz</string>
+    <string name="delete_action">Sil</string>
+    <string name="markRead_action">Okunmuş olarak işaretle</string>
+    <string name="sendLogs_action">Sistem Günlüklerini Gönder</string>
+    <string name="account_label">Kullanıcı</string>
+    <string name="calendars_label">Takvimler</string>
+    <string name="widgetNoCredentialsInfo_msg">Giriş bilgileri yok</string>
+    <string name="widgetUnexpectedError_msg">Hay aksi! Bir şeyler ters gitti.</string>
+    <string name="widgetCredentialsError_msg">Lütfen Takvim uygulamasında oturum açın</string>
+    <string name="widgetOpenApp_action">Uygulamayı aç</string>
+    <string name="widgetNoEvents_msg">Etkinlik yok</string>
+    <string name="widgetDescription_msg">Günün sıradaki etkinliklerini görüntüleyin</string>
+    <string name="birthdayCalendar_label">Doğum günleri</string>
+    <string name="birthdayEvent_title">{name} doğum günü</string>
+    <string name="birthdayEventAge_title">{age} yaşında</string>
+    <string name="noTitle_label">&lt;Başlık yok&gt;</string>
+</resources>
