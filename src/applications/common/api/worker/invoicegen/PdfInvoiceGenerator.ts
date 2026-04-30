@@ -57,8 +57,6 @@ export class PdfInvoiceGenerator {
 			.addLineBreak()
 			.addText(InvoiceTexts[this.languageCode].tutaPhone)
 			.addLineBreak()
-			.addText(InvoiceTexts.universal.tutaFax)
-			.addLineBreak()
 			.addText(InvoiceTexts.universal.tutaEmail)
 			.addLineBreak()
 			.addText(InvoiceTexts.universal.tutaWebsite)
