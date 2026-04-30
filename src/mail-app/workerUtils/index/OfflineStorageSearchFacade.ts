@@ -1,6 +1,6 @@
 import { SearchFacade } from "./SearchFacade"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { sql } from "../../../network/offline/Sql"
+import { sql } from "../../../local-store/Sql"
 import { untagSqlValue } from "@tutao/typerefs"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import { MailIndexer } from "./MailIndexer"

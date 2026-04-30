@@ -16,7 +16,7 @@ import { Credentials } from "../../../network/Constants"
 assertMainOrNodeBoot()
 
 export interface PostLoginAction {
-	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
+	/** Partial login is achieved with getting the user, can happen local-store. The login will wait for the returned promise. */
 	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 
 	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
@@ -67,11 +67,11 @@ export class LoginController {
 	}
 
 	/**
-	 * create a new session and set up stored credentials and offline database, if applicable.
+	 * create a new session and set up stored credentials and local-store database, if applicable.
 	 * @param username the mail address being used to log in
 	 * @param password the password given to log in
 	 * @param sessionType whether to store the credentials in local storage
-	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
+	 * @param databaseKey if given, will use this key for the local-store database. if not, will force a new database to be created and generate a key.
 	 */
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
 		const newSessionData = await this.loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
@@ -147,9 +147,9 @@ export class LoginController {
 
 	/**
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
-	 * @param unencryptedCredentials The stored credentials and optional database key for the offline db
+	 * @param unencryptedCredentials The stored credentials and optional database key for the local-store db
 	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
-	 * @param offlineTimeRangeDate the user configured time range for their offline storage, used to initialize the offline db
+	 * @param offlineTimeRangeDate the user configured time range for their local-store storage, used to initialize the local-store db
 	 */
 	async resumeSession(
 		unencryptedCredentials: UnencryptedCredentials,

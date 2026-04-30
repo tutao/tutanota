@@ -1,6 +1,6 @@
 import { IndexerCore } from "../../../mail-app/workerUtils/index/IndexerCore"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { sql } from "../../../network/offline/Sql"
+import { sql } from "../../../local-store/Sql"
 import { TaggedSqlValue } from "@tutao/typerefs"
 import { lazyAsync, noOp } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./rest/EphemeralCacheStorage"
@@ -98,7 +98,7 @@ export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastP
 				// We do nothing if we get an OfflineDbClosedError. This is a valid case when creating an account.
 				// We do not want to stop the PayPal hook and the general registration flow from working by throwing an error here.
 				// After the user has logged in, they would anyway receive updates for the applicable groups
-				// and save a correct last processed batch id for them into the offline storage.
+				// and save a correct last processed batch id for them into the local-store storage.
 			} else {
 				throw e
 			}

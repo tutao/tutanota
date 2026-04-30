@@ -1,17 +1,17 @@
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../offline/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../local-store/IdentityKeyTrustDatabase"
 import { IServiceExecutor } from "../../ServiceRequest.js"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
-import { bytesToEd25519PublicKey, cryptoUtils } from "@tutao/crypto"
+import { bytesToEd25519PublicKey, cryptoUtils, SigningKeyPairType } from "@tutao/crypto"
 import { Versioned } from "@tutao/utils"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
-import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../EntityClient"
-import type { PublicKeyIdentifier } from "./PublicEncryptionKeyProvider"
 import { KeyAuthenticationFacade } from "@tutao/network"
 import { brandKeyMac } from "./KeyAuthenticationFacade"
+import { SigningPublicKey } from "../../../crypto/encryption/Ed25519"
+import { PublicKeyIdentifier } from "../../../crypto/CryptoTypes"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString

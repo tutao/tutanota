@@ -41,7 +41,7 @@ import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { PatchMerger } from "@tutao/instance-pipeline"
 import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
 import { isExpectedErrorForSynchronization } from "../../../../network/error/NetworkErrorUtils"
-import { CacheStorage } from "../../../../network/offline/CacheStorage"
+import { CacheStorage } from "../../../../local-store/CacheStorage"
 import { EntityRestCache } from "../../../../network/EntityRestCacheInterface"
 
 assertWorkerOrNode()
@@ -173,7 +173,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	purgeStorage(): Promise<void> {
-		console.log("Purging the user's offline database")
+		console.log("Purging the user's local-store database")
 		return this.storage.purgeStorage()
 	}
 
@@ -454,7 +454,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// for example because the session key was not found. This is usually happening e.g. for attachments (file type)
 		// where the _ownerEncSessionKey has not been written to the instance yet.
 		// Since this is only a temporary error, we do not want to update the full range yet, leading the client to think the instance is already cached.
-		// Entities with permanent errors (_errors but not SessionKeyNotFoundErrors) are written to the offline storage.
+		// Entities with permanent errors (_errors but not SessionKeyNotFoundErrors) are written to the local-store storage.
 		// The corrupted fields in such cases are replace with default values and causes therefore not UI issues (See CryptoMapper.decryptParsedInstance).
 
 		let allInstances = wasReverseRequest ? receivedEntities.reverse() : receivedEntities
@@ -746,7 +746,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private async loadAndStoreInstanceFromUpdate(update: entityUpdateUtils.EntityUpdateData) {
 		const instanceOnUpdate = update.instance
 		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
-			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
+			// we do not want to put the instance in the local-store storage if there are _errors (when decrypting)
 			await this.storage.put(update.typeRef, instanceOnUpdate)
 
 			// save MailDetails blobs
@@ -759,7 +759,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)
 			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 			if (!hasError(instanceFromServer)) {
-				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
+				// we do not want to put the instance in the local-store storage if there are _errors (when decrypting)
 				await this.storage.put(update.typeRef, instanceFromServer)
 				return update
 			} else {

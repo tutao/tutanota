@@ -11,6 +11,7 @@ export * from "./EntityUtils.js"
 export * from "./BlobUtils.js"
 export * from "./SqlValue.js"
 export * from "./customTypes.js"
+export * from "./IdUtils.js"
 export * as entityUpdateUtils from "./EntityUpdateUtils.js"
 
 export * as accountingTypeRefs from "./entities/accounting/TypeRefs.js"

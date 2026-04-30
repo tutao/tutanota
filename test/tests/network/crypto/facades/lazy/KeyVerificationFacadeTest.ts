@@ -3,17 +3,18 @@ import { KeyVerificationFacade } from "../../../../../../src/network/crypto/faca
 import { matchers, object, verify, when } from "testdouble"
 import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "@tutao/app-env"
-import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash } from "@tutao/crypto"
+import { bytesToEd25519PublicKey, Ed25519PublicKey, sha256Hash, SigningKeyPairType } from "@tutao/crypto"
 import testData from "../../../../api/worker/crypto/CompatibilityTestData.json"
-import { SigningKeyPairType, SigningPublicKey } from "../../../../../../src/network/crypto/facades/Ed25519Facade"
 import { createTestEntity } from "../../../../TestUtils"
 import { KeyVerificationMismatchError } from "../../../../../../src/network/crypto/error/KeyVerificationMismatchError"
 import { PublicKeySignatureFacade } from "../../../../../../src/network/crypto/facades/PublicKeySignatureFacade"
 import { ProgrammingError } from "@tutao/app-env"
 import { PublicIdentityKeyProvider } from "../../../../../../src/network/crypto/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../../src/network/offline/IdentityKeyTrustDatabase"
-import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../../src/network/crypto/facades/PublicEncryptionKeyProvider"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../../src/local-store/IdentityKeyTrustDatabase"
 import { sysTypeRefs } from "@tutao/typerefs"
+import { SigningPublicKey } from "../../../../../../src/crypto/encryption/Ed25519"
+import { PublicKeyIdentifier } from "../../../../../../src/crypto/CryptoTypes"
+import { MaybeSignedPublicKey } from "../../../../../../src/local-store/PublicEncryptionKeyCache"
 
 const { anything } = matchers
 

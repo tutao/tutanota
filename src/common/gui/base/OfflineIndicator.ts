@@ -16,7 +16,7 @@ export type OfflineIndicatorAttrs =
 	| { state: OfflineIndicatorState.Offline; lastUpdate: Date | null; reconnectAction: () => void; isSingleColumn: boolean }
 
 /**
- * the first line of the offline indicator shows if we're offline or online and
+ * the first line of the local-store indicator shows if we're local-store or online and
  * adds action prompts (if any)
  * it's returned as a span so the consumer can decide how to layout it.
  */

@@ -2,10 +2,10 @@ import o from "@tutao/otest"
 import { func, instance, object, when } from "testdouble"
 import { verify } from "@tutao/otest"
 import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
-import { OfflineStorage } from "../../../../../src/network/offline/OfflineStorage.js"
+import { OfflineStorage } from "../../../../../src/local-store/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
-import { OfflineStorageArgs } from "../../../../../src/network/offline/CacheStorageInitializer"
+import { OfflineStorageArgs } from "../../../../../src/local-store/types"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"
@@ -34,7 +34,7 @@ o.spec("CacheStorageProxy", function () {
 	})
 
 	o.spec("initialization", function () {
-		o("should create a persistent storage when params are provided and offline storage is enabled", async function () {
+		o("should create a persistent storage when params are provided and local-store storage is enabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 
 			const { isPersistent } = await proxy.initialize({
@@ -48,7 +48,7 @@ o.spec("CacheStorageProxy", function () {
 			o(isPersistent).equals(true)
 		})
 
-		o("should create a ephemeral storage when no params are provided but offline storage is enabled", async function () {
+		o("should create a ephemeral storage when no params are provided but local-store storage is enabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 
 			const { isPersistent } = await proxy.initialize({ type: "ephemeral", userId })
@@ -56,7 +56,7 @@ o.spec("CacheStorageProxy", function () {
 			o(isPersistent).equals(false)
 		})
 
-		o("should create a ephemeral storage when params are provided but offline storage is disabled", async function () {
+		o("should create a ephemeral storage when params are provided but local-store storage is disabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(null)
 
 			const { isPersistent } = await proxy.initialize({
@@ -70,7 +70,7 @@ o.spec("CacheStorageProxy", function () {
 			o(isPersistent).equals(false)
 		})
 
-		o("should create a ephemeral storage when no params are provided and offline storage is disabled", async function () {
+		o("should create a ephemeral storage when no params are provided and local-store storage is disabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(null)
 
 			const { isPersistent } = await proxy.initialize({ type: "ephemeral", userId })
@@ -78,7 +78,7 @@ o.spec("CacheStorageProxy", function () {
 			o(isPersistent).equals(false)
 		})
 
-		o("will flag newDatabase as true when offline storage says it is", async function () {
+		o("will flag newDatabase as true when local-store storage says it is", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 			const args: OfflineStorageArgs = {
 				type: "offline",
@@ -94,7 +94,7 @@ o.spec("CacheStorageProxy", function () {
 			o(isNewOfflineDb).equals(true)
 		})
 
-		o("will flag newDatabase as false when offline storage says it is not", async function () {
+		o("will flag newDatabase as false when local-store storage says it is not", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 			const args: OfflineStorageArgs = {
 				type: "offline",

@@ -208,13 +208,13 @@ export class UserController {
 				this._userSettingsGroupRoot = await this.entityClient.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, this.user.userGroup.group)
 			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
 				if (operation === OperationType.CREATE) {
-					// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
+					// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for local-store login.
 					await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
 				}
 				// cached plan config might be outdated now
 				this.planConfig = null
 			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
-				// offline cache might still be outdated, so we're playing it safe with WriteOnly
+				// local-store cache might still be outdated, so we're playing it safe with WriteOnly
 				this.customer = await this.reloadCustomer(CacheMode.WriteOnly).catch(() => this.customer)
 			}
 		}

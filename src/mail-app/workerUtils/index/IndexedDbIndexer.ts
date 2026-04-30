@@ -63,7 +63,7 @@ import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DateProvider } from "../../../utils/DateProvider"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
-import { OutOfSyncError } from "../../../network/error/OutOfSyncError"
+import { OutOfSyncError } from "../../../local-store/OutOfSyncError"
 
 export type InitParams = {
 	user: sysTypeRefs.User
@@ -150,7 +150,7 @@ export class IndexedDbIndexer implements Indexer {
 	) {}
 
 	async partialLoginInit() {
-		// no-op: this is not intended to be used offline / partial login
+		// no-op: this is not intended to be used local-store / partial login
 	}
 
 	/**
@@ -594,7 +594,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	async resizeMailIndex(_: number) {
-		throw new ProgrammingError("resizeMailIndex can only be called with offline storage")
+		throw new ProgrammingError("resizeMailIndex can only be called with local-store storage")
 	}
 
 	async rebuildMailIndex() {

@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { DataFile, elementIdPart, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
+import { DataFile, elementIdPart, getIdOfInstance, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"

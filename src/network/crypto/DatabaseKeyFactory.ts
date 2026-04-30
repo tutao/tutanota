@@ -4,8 +4,8 @@ import type { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
 import { isAdminClient, isBrowser, Mode } from "@tutao/app-env"
 
 /**
- * Factory for generating an offline storage database key
- * Will return null whenever offline storage is not available
+ * Factory for generating an local-store storage database key
+ * Will return null whenever local-store storage is not available
  */
 export class DatabaseKeyFactory {
 	constructor(private crypto: DeviceEncryptionFacade) {}

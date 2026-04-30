@@ -694,7 +694,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			// The instance in the offline storage (written when the value was not there for the server & client models)
+			// The instance in the local-store storage (written when the value was not there for the server & client models)
 			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any

@@ -28,6 +28,9 @@
 		},
 		{
 			"path": "tsconfig.native-bridge.json"
+		},
+		{
+			"path": "tsconfig.local-store.json"
 		}
 	]
 }

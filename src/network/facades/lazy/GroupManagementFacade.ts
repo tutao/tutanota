@@ -10,7 +10,7 @@ import { KeyLoaderFacade } from "../../crypto/facades/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, AesKey, CryptoWrapper, PQKeyPairs, VersionedKey } from "@tutao/crypto"
 import { IdentityKeyCreator } from "./IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../crypto/facades/AdminKeyLoaderFacade"
-import { CacheManagementInterface } from "../../crypto/entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../local-store/CacheManagementInterface"
 
 assertWorkerOrNode()
 

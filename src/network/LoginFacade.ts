@@ -70,16 +70,15 @@ import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./crypto/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 import { DatabaseKeyFactory } from "./crypto/DatabaseKeyFactory.js"
-import { ApplicationTypesFacade } from "../instance-pipeline/ApplicationTypesFacade"
+import { ApplicationTypesFacade, InstancePipeline } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "./crypto/facades/KeyRotationFacade.js"
-import { InstancePipeline } from "@tutao/instance-pipeline"
 import { RolloutFacade } from "./crypto/facades/RolloutFacade"
 import { LoginIncompleteError } from "./error/LoginIncompleteError"
 import { ConnectMode, Credentials } from "./Constants"
 import { EventBusClientInterface } from "./EventBusClientInterface"
-import { CacheStorageLateInitializer } from "./offline/CacheStorageInitializer"
+import { CacheStorageLateInitializer, SessionTypeProvider } from "@tutao/local-store/types"
 import { Argon2idFacade } from "./crypto/facades/WasmArgon2idFacade"
-import { CacheManagementInterface } from "./crypto/entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../local-store/CacheManagementInterface"
 
 assertWorkerOrNode()
 
@@ -151,7 +150,7 @@ export const enum LoginFailReason {
 
 export interface LoginListener {
 	/**
-	 * Partial login reached (offline or online login), user can be accessed but network requests might fail.
+	 * Partial login reached (local-store or online login), user can be accessed but network requests might fail.
 	 */
 	onPartialLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void>
 
@@ -171,7 +170,7 @@ export interface LoginListener {
 	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void>
 }
 
-export class LoginFacade {
+export class LoginFacade implements SessionTypeProvider {
 	private eventBusClient!: EventBusClientInterface
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
@@ -183,7 +182,7 @@ export class LoginFacade {
 	 */
 	private loggingInPromiseWrapper: DeferredObject<void> | null = null
 
-	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
+	/** On platforms with local-store cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
 	asyncLoginState: AsyncLoginState = { state: "idle" }
 
 	/** Keep track of the session type of the last partial/full log in */
@@ -197,7 +196,7 @@ export class LoginFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
-		 *  Only needed so that we can initialize the offline storage after login.
+		 *  Only needed so that we can initialize the local-store storage after login.
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
 		 *  Once the credential handling has been changed to *always* save in desktop, then this should become obsolete
 		 */
@@ -229,8 +228,8 @@ export class LoginFacade {
 	/**
 	 * Create session and log in. Changes internal state to refer to the logged in user.
 	 * if createSessionOnly == true, the app will not continue to initialize app-specific state
-	 * aftrer the session is created + stored and will also not create a persistent offline DB,
-	 * but still store the database key with the credentials so the offline DB can be created when the
+	 * aftrer the session is created + stored and will also not create a persistent local-store DB,
+	 * but still store the database key with the credentials so the local-store DB can be created when the
 	 * credentials are first used.
 	 */
 	async createSession(
@@ -562,7 +561,7 @@ export class LoginFacade {
 	 * @param credentials the saved credentials to use
 	 * @param externalUserKeyDeriver information for deriving a key (if external user)
 	 * @param databaseKey key to unlock the local database (if enabled)
-	 * @param timeRangeDate the user configured time range for the offline database
+	 * @param timeRangeDate the user configured time range for the local-store database
 	 */
 	async resumeSession(
 		credentials: Credentials,
@@ -588,20 +587,20 @@ export class LoginFacade {
 		})
 		const sessionId = this.getSessionId(credentials)
 		try {
-			// using offline, have connection      -> async login
-			// using offline, no connection        -> async login w/ later retry
-			// no offline, have connection         -> sync login
-			// no offline, no connection           -> sync login, fail with connection error
+			// using local-store, have connection      -> async login
+			// using local-store, no connection        -> async login w/ later retry
+			// no local-store, have connection         -> sync login
+			// no local-store, no connection           -> sync login, fail with connection error
 
-			// If a user enables offline storage for the first time, after already having saved credentials
-			// then upon their next login, they won't have an offline database available, meaning we have to do
+			// If a user enables local-store storage for the first time, after already having saved credentials
+			// then upon their next login, they won't have an local-store database available, meaning we have to do
 			// synchronous login in order to load all the necessary keys and such
 			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
 				const user = await this.entityClient.load(sysTypeRefs.UserTypeRef, credentials.userId)
 				this.userFacade.setUser(user)
 
-				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
+				// Before local-store login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
 				// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
 				let userGroupInfo: sysTypeRefs.GroupInfo
 				try {
@@ -781,7 +780,7 @@ export class LoginFacade {
 			const user = await this.entityClient.load(sysTypeRefs.UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })
 			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
-			// this may be the second time we set user in case we had a partial offline login before
+			// this may be the second time we set user in case we had a partial local-store login before
 			// we do it unconditionally here, to make sure we unlock the latest user group key right below
 			this.userFacade.setUser(user)
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)

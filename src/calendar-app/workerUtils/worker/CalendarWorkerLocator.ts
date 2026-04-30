@@ -44,8 +44,8 @@ import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../network/UserFacade.js"
-import { OfflineStorage } from "../../../network/offline/OfflineStorage.js"
-import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../network/offline/OfflineStorageMigrator.js"
+import { OfflineStorage } from "../../../local-store/OfflineStorage.js"
+import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../local-store/OfflineStorageMigrator.js"
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
@@ -80,7 +80,7 @@ import { KeyVerificationFacade } from "../../../network/crypto/facades/lazy/KeyV
 import { PublicEncryptionKeyProvider } from "../../../network/crypto/facades/PublicEncryptionKeyProvider.js"
 import { ApplicationTypesFacade } from "../../../instance-pipeline/ApplicationTypesFacade"
 import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../network/crypto/facades/Ed25519Facade"
-import { CustomCacheHandlerMap } from "../../../network/offline/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
@@ -89,8 +89,8 @@ import { PublicKeySignatureFacade } from "../../../network/crypto/facades/Public
 import { AdminKeyLoaderFacade } from "../../../network/crypto/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../network/offline/IdentityKeyTrustDatabase"
-import { PublicEncryptionKeyCache } from "../../../network/crypto/facades/PublicEncryptionKeyCache"
+import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../local-store/IdentityKeyTrustDatabase"
+import { PublicEncryptionKeyCache } from "../../../local-store/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	LastProcessedEventBatchStorageFacade,
@@ -98,7 +98,7 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../../../utils/DateProvider"
-import { CacheStorage } from "../../../network/offline/CacheStorage"
+import { CacheStorage } from "../../../local-store/CacheStorage"
 import { EntityRestCache } from "../../../network/EntityRestCacheInterface"
 import { Credentials } from "../../../network/Constants"
 import { Argon2idFacade, WASMArgon2idFacade } from "../../../network/crypto/facades/WasmArgon2idFacade"

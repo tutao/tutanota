@@ -45,7 +45,9 @@
 			"@tutao/native-bridge/common": ["./src/native-bridge/common"],
 			"@tutao/native-bridge/worker": ["./src/native-bridge/worker"],
 			"@tutao/native-bridge/main": ["./src/native-bridge/main"],
-			"@tutao/native-bridge/shared": ["./src/native-bridge/shared"]
+			"@tutao/native-bridge/shared": ["./src/native-bridge/shared"],
+			"@tutao/local-store": ["./src/local-store"],
+			"@tutao/local-store/types": ["./src/local-store/types.d.ts"]
 		}
 	}
 }

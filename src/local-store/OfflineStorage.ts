@@ -1,10 +1,12 @@
 import {
 	AttributeModel,
 	BlobElementEntity,
+	collapseId,
 	CUSTOM_MIN_ID,
 	ElementEntity,
 	elementIdPart,
 	Entity,
+	expandId,
 	firstBiggerThanSecond,
 	firstBiggerThanSecondBase64Ext,
 	FormattedQuery,
@@ -45,18 +47,18 @@ import {
 	typedEntries,
 	typedValues,
 } from "@tutao/utils"
-import { DateProvider } from "../../utils/DateProvider.js"
+import { DateProvider } from "../utils/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { InterWindowEventFacadeSendDispatcher, SqlCipherFacade } from "@tutao/native-bridge/common"
-import { OutOfSyncError } from "../error/OutOfSyncError.js"
+import { OutOfSyncError } from "./OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { collapseId, expandId } from "@tutao/network"
-import { Category, syncMetrics } from "../../utils/SyncMetrics"
+import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { isAdminClient, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
+import { OfflineStorageInitArgs } from "./types"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -109,7 +111,7 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 export interface OfflineDbMeta {
 	lastUpdateTime: number
 	timeRangeDays: number
-	// offline db schema version
+	// local-store db schema version
 	"offline-version": number
 	lastTrainedTime: number
 	lastTrainedFromScratchTime: number
@@ -156,15 +158,8 @@ export const TableDefinitions = Object.freeze({
 
 export type Range = { lower: Id; upper: Id }
 
-export interface OfflineStorageInitArgs {
-	userId: Id
-	databaseKey: Uint8Array
-	timeRangeDate: Date | null
-	forceNewDatabase: boolean
-}
-
 /**
- * Describes an externally-defined table to be stored in offline storage.
+ * Describes an externally-defined table to be stored in local-store storage.
  *
  * Table definitions should be passed into the additionalTables record of OfflineStorage's constructor, setting the key
  * to the name of the table (as written in the {@link definition} statement).
@@ -185,7 +180,7 @@ export interface OfflineStorageTable {
 	 *
 	 * If true, then the table is dropped whenever purgeStorage is called, such as due to an out-of-sync error
 	 *
-	 * If false, this will only be deleted if the offline database is completely deleted, such as when credentials are
+	 * If false, this will only be deleted if the local-store database is completely deleted, such as when credentials are
 	 * deleted.
 	 */
 	purgedWithCache: boolean
@@ -877,7 +872,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	/**
-	 * Clear out unneeded data from the offline database (i.e. old data).
+	 * Clear out unneeded data from the local-store database (i.e. old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
 	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
 	 * @param userId id of the current user. default, last stored userId
@@ -1000,7 +995,7 @@ export class OfflineStorage implements CacheStorage {
 			const id = mapNullable(entities[0], getElementId)
 			// !!IMPORTANT!!
 			// Ids on entities with a customId are always base64Url encoded,
-			// !!however ids for entities with a customId used to QUERY the offline database
+			// !!however ids for entities with a customId used to QUERY the local-store database
 			// MUST always be base64Ext encoded
 			// Therefore, we need to compare against the rawCutoffId here!
 			const rangeWontBeModified = id != null && (id === rawCutoffId || firstBiggerThanSecond(id, rawCutoffId, getServerIdEncodingForType(typeModel)))

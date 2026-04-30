@@ -49,7 +49,7 @@ import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade
 import { errorToObj } from "@tutao/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
-import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 assertWorkerOrNode()
 

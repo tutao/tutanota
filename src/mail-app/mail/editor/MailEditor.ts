@@ -993,7 +993,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					await this.sendMailModel.addRecipient(field, { address, name })
 				} catch (e) {
 					if (isOfflineError(e)) {
-						// we are offline but we want to show the error dialog only when we click on send.
+						// we are local-store but we want to show the error dialog only when we click on send.
 					} else if (e instanceof restError.TooManyRequestsError) {
 						await Dialog.message("tooManyAttempts_msg")
 					} else {

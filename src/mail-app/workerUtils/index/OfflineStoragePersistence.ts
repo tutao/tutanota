@@ -1,5 +1,5 @@
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { sql } from "../../../network/offline/Sql"
+import { sql } from "../../../local-store/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../typerefs/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
@@ -7,7 +7,7 @@ import { getTypeString, TypeRef } from "@tutao/typerefs"
 import { elementIdPart, ListElementEntity, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import type { OfflineStorageTable } from "../../../network/offline/OfflineStorage"
+import type { OfflineStorageTable } from "../../../local-store/OfflineStorage"
 import { GroupType } from "@tutao/app-env"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
@@ -250,7 +250,7 @@ export class OfflineStoragePersistence {
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
-		// Find rowid from the offline storage.
+		// Find rowid from the local-store storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid
                                FROM list_entities

@@ -1,10 +1,10 @@
 import { OfflineStorage } from "../OfflineStorage.js"
 import { SqlCipherFacade } from "@tutao/native-bridge/common"
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
-import { isAdminClient, isBrowser, Mode } from "@tutao/app-env"
+import { isAdminClient, isBrowser } from "@tutao/app-env"
 
 /**
- * indexedDB index is no longer needed once migrated to offline storage index
+ * indexedDB index is no longer needed once migrated to local-store storage index
  */
 export const offline6: OfflineMigration = {
 	version: 6,

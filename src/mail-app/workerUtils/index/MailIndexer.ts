@@ -627,7 +627,7 @@ export class MailIndexer {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
-		// If this is being called from offline storage, then the mail is cached. Otherwise, this can throw (which should be handled by the caller)!
+		// If this is being called from local-store storage, then the mail is cached. Otherwise, this can throw (which should be handled by the caller)!
 		const updatedMail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, mailId)
 		if (!this.canIndexMail(updatedMail)) {
 			return

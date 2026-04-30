@@ -33,7 +33,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
 }
 
 /**
- * A component that renders a "standard" mobile header. It has menu/back button with offline indicator, title and online status, sync progress and some
+ * A component that renders a "standard" mobile header. It has menu/back button with local-store indicator, title and online status, sync progress and some
  * actions.
  *
  * It is intended to be used in both the first ("list") and the second ("viewer") columns. It will automatically figure whether it should display menu/back

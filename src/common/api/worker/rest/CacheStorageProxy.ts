@@ -2,19 +2,14 @@ import { Range } from "@tutao/network"
 import { ProgrammingError } from "@tutao/app-env"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "@tutao/typerefs"
 import { Nullable } from "@tutao/utils"
-import { OfflineStorage } from "../../../../network/offline/OfflineStorage.js"
+import { OfflineStorage } from "../../../../local-store/OfflineStorage.js"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
-import { CustomCacheHandlerMap } from "../../../../network/offline/CustomCacheHandler.js"
-import { CacheStorage, LastUpdateTime } from "../../../../network/offline/CacheStorage"
-import {
-	CacheStorageInitReturn,
-	CacheStorageLateInitializer,
-	EphemeralStorageArgs,
-	OfflineStorageArgs,
-} from "../../../../network/offline/CacheStorageInitializer"
+import { CustomCacheHandlerMap } from "../../../../local-store/CustomCacheHandler.js"
+import { CacheStorage, LastUpdateTime } from "../../../../local-store/CacheStorage"
+import { CacheStorageInitReturn, CacheStorageLateInitializer, EphemeralStorageArgs, OfflineStorageArgs } from "../../../../local-store/types"
 
 /**
- * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
+ * This is necessary so that we can release local-store storage mode without having to rewrite the credentials handling system. Since it's possible that
  * a desktop user might not use a persistent session, and we won't know until they try to log in, we can only decide what kind of cache storage to use at login
  * This implementation allows us to avoid modifying too much of the worker public API. Once we make this obsolete, all we will have to do is
  * remove the initialize parameter from the LoginFacade, and tidy up the WorkerLocator init
@@ -100,8 +95,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 					}
 				}
 			} catch (e) {
-				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
-				console.error("Error while initializing offline cache storage", e)
+				// Precaution in case something bad happens to local-store database. We want users to still be able to log in.
+				console.error("Error while initializing local-store cache storage", e)
 				this.sendError(e)
 			}
 		}

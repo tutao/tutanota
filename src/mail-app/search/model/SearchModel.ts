@@ -290,7 +290,7 @@ export class SearchModel {
 			}
 
 			// We modify the query because we need SearchFacade to not give us mails older than the current
-			// timestamp, as the offline cleaner may not have purged all emails yet.
+			// timestamp, as the local-store cleaner may not have purged all emails yet.
 			//
 			// We can only be certain about mails up to currentTimestamp.
 			const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }

@@ -10,7 +10,7 @@ import { AsymmetricKeyPair, CryptoWrapper, KeyPairType, VersionedKey } from "@tu
 import { Ed25519Facade } from "../../crypto/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../crypto/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../crypto/facades/AdminKeyLoaderFacade"
-import { CacheManagementInterface } from "../../crypto/entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../local-store/CacheManagementInterface"
 import { KeyAuthenticationFacade } from "@tutao/network"
 
 assertWorkerOrNode()

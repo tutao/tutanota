@@ -1826,7 +1826,7 @@ export default {
 		"sendUpdates_label": "Poslat aktualizaci pozvaným osobám",
 		"sendUpdates_msg": "Odeslat oznámení o aktualizaci pozvaným?",
 		"sent_action": "Odeslané",
-		"serverNotReachable_msg": "Nelze kontaktovat server, zdá se, že jste v režimu offline. Zkuste to prosím znovu později.",
+		"serverNotReachable_msg": "Nelze kontaktovat server, zdá se, že jste v režimu local-store. Zkuste to prosím znovu později.",
 		"serviceUnavailable_msg": "Na serveru došlo k dočasné chybě. Zkuste to, prosím, znovu později.",
 		"sessionsInfo_msg": "Klient a IP adresa jsou ukládány pouze v zašifrované podobě.",
 		"sessionsWillBeDeleted_msg": "Budou smazány 2 týdny po uzavření.",

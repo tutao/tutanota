@@ -3,7 +3,7 @@ import { EntityClient } from "../../../../../network/EntityClient.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { UserFacade } from "../../../../../network/UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { CacheManagementInterface } from "../../../../../network/crypto/entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../../../local-store/CacheManagementInterface"
 
 assertWorkerOrNode()
 
@@ -68,7 +68,7 @@ export class CacheManagementFacade implements CacheManagementInterface {
 			this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
 		} catch (e) {
 			// we do not want to fail here, as this update might be an outdated entity update
-			// in case we only process updates after a longer period of being offline
+			// in case we only process updates after a longer period of being local-store
 			// in such case we should have set the correct user group key already during the regular login
 			console.log("Could not update user group key", e)
 		}

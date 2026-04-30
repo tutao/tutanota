@@ -81,7 +81,7 @@ export class PostLoginActions implements PostLoginAction {
 			}
 		})
 		windowFacade.addOfflineListener(() => {
-			console.log(new Date().toISOString(), "offline - pause event bus")
+			console.log(new Date().toISOString(), "local-store - pause event bus")
 			this.connectivityModel.close(CloseEventBusOption.Pause)
 		})
 

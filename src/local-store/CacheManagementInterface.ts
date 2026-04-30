@@ -1,4 +1,4 @@
-import { SomeEntity, TypeRef, sysTypeRefs } from "@tutao/typerefs"
+import { SomeEntity, sysTypeRefs, TypeRef } from "@tutao/typerefs"
 
 export interface CacheManagementInterface {
 	/**

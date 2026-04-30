@@ -9,7 +9,7 @@ import { PermissionType } from "@tutao/native-bridge/common"
 import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
 import { ProgrammingError } from "@tutao/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
-import { TrustDBEntry } from "../../../network/offline/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../local-store/IdentityKeyTrustDatabase"
 import { DesktopSystemFacade } from "@tutao/native-bridge/common"
 import { IdentityKeyQrVerificationResult, isApp, isAppleDevice, isDesktop } from "@tutao/app-env"
 

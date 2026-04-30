@@ -6,8 +6,8 @@ import { GENERATED_ID_MIN_TIMESTAMP, isAdminClient, isBrowser, Mode } from "@tut
 import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typerefs"
 
 /**
- * A model for handling offline storage configuration
- * Accessing setters and getters will throw if you are not in a context where an offline database is available
+ * A model for handling local-store storage configuration
+ * Accessing setters and getters will throw if you are not in a context where an local-store database is available
  * Some logic is duplicated from OfflineStorage
  */
 export class OfflineStorageSettingsModel {

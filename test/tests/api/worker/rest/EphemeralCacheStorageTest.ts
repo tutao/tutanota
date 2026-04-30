@@ -3,7 +3,7 @@ import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest
 import { ServerModelParsedInstance, TypeModelResolver } from "@tutao/typerefs"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/network/offline/CustomCacheHandler"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
 import { object, when } from "testdouble"
 import { tutanotaTypeRefs, sysTypeRefs } from "@tutao/typerefs"
 

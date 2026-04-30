@@ -15,10 +15,10 @@ import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToB
 import { UserFacade } from "../../UserFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { getElementId, isSameId, sysTypeRefs, TypeId } from "@tutao/typerefs"
-import { KeyCache } from "./KeyCache.js"
+import { KeyCache } from "../../../local-store/KeyCache.js"
 import { GroupType, ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
-import { CacheManagementInterface } from "../entityCache/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../local-store/CacheManagementInterface"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))

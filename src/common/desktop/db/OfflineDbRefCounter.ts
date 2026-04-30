@@ -13,7 +13,7 @@ interface CacheEntry {
 	counter: number
 	/**
 	 * We want to lock the access to the "ranges" table when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * local-store available mail list ranges for each mail list (referenced using the listId).
 	 * We store locks with their corresponding listId in this Map.
 	 */
 	listIdLocks: Map<string, DeferredObject<void>>
@@ -49,7 +49,7 @@ export class OfflineDbRefCounter {
 	}
 
 	/*
-	 * de-reference the offline db belonging to the userId.
+	 * de-reference the local-store db belonging to the userId.
 	 * will release the db connection if this is the last reference.
 	 *
 	 * must only be called directly from PerWindowSqlCipherFacade or from within this class.
@@ -73,11 +73,11 @@ export class OfflineDbRefCounter {
 	}
 
 	/**
-	 * deletes the offline DB file from the disk, making a best-effort attempt to let all
+	 * deletes the local-store DB file from the disk, making a best-effort attempt to let all
 	 * windows close the connection before removing it.
 	 *
 	 * should be used when:
-	 * * the offline DB is out of sync
+	 * * the local-store DB is out of sync
 	 * * the credentials are deleted from the app
 	 * * the user logs in with a userId that is already stored in the app (internal and external users)
 	 * * there was an error during session creation that could cause us to have a new database but no new credentials.

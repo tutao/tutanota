@@ -5,7 +5,7 @@ import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/res
 import { SpamClassifierStorageFacade } from "../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { GroupType } from "../../../../../src/app-env"
 import { sysTypeRefs } from "@tutao/typerefs"
-import { CacheStorage } from "../../../../../src/network/offline/CacheStorage"
+import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
 
 o.spec("CustomUserCacheHandler", () => {
 	let storage: CacheStorage

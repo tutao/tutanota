@@ -157,7 +157,7 @@ const giftCardSVGGetter = new (class GiftCardSVGGetter {
 	private static giftCardSvg: string | null = null
 	private static giftCardNoQrSvg: string | null = null
 
-	// Returns a cached `gift-card.svg` or downloads it if online. Returns a placeholder if offline.
+	// Returns a cached `gift-card.svg` or downloads it if online. Returns a placeholder if local-store.
 	getWithQr(): string {
 		if (GiftCardSVGGetter.giftCardSvg == null) {
 			GiftCardSVGGetter.downloadSVG("gift-card", (rawSVG) => {
@@ -169,7 +169,7 @@ const giftCardSVGGetter = new (class GiftCardSVGGetter {
 		return GiftCardSVGGetter.giftCardSvg
 	}
 
-	// Returns a cached `gift-card-no-qr.svg` or downloads it if online. Returns a placeholder if offline.
+	// Returns a cached `gift-card-no-qr.svg` or downloads it if online. Returns a placeholder if local-store.
 	getNoQr(): string {
 		if (GiftCardSVGGetter.giftCardNoQrSvg == null) {
 			GiftCardSVGGetter.downloadSVG("gift-card-no-qr", (rawSVG) => {

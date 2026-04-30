@@ -79,8 +79,8 @@ import { OwnerKeyProvider, typeModelToRestPath } from "@tutao/network"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { isOfflineError } from "../../error/NetworkErrorUtils"
-import { CacheManagementInterface } from "../entityCache/CacheManagementInterface"
-import { InstanceSessionKeysCache } from "./InstanceSessionKeysCache.js"
+import { CacheManagementInterface } from "../../../local-store/CacheManagementInterface"
+import { InstanceSessionKeysCache } from "../../../local-store/InstanceSessionKeysCache.js"
 
 assertWorkerOrNode()
 

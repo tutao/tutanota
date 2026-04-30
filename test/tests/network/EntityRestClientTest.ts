@@ -32,8 +32,8 @@ import { KeyLoaderFacade } from "../../../src/network/crypto/facades/KeyLoaderFa
 import { AsymmetricCryptoFacade } from "../../../src/network/crypto/facades/AsymmetricCryptoFacade"
 import { PublicEncryptionKeyProvider } from "../../../src/network/crypto/facades/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../src/network/crypto/facades/KeyRotationFacade"
-import { InstanceSessionKeysCache } from "../../../src/network/crypto/facades/InstanceSessionKeysCache"
-import { CacheManagementInterface } from "../../../src/network/crypto/entityCache/CacheManagementInterface"
+import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
+import { CacheManagementInterface } from "../../../src/local-store/CacheManagementInterface"
 
 const { anything, argThat, captor } = matchers
 

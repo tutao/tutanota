@@ -35,7 +35,7 @@ import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCre
 import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
 import { DriveFacade } from "./facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../main/TransferProgressDispatcher"
-import { ExposedCacheStorage } from "../../../network/offline/CacheStorage"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 import { assertMainOrNode } from "@tutao/app-env"
 import { AlarmFacade } from "./facades/lazy/AlarmFacade"
 

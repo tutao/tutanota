@@ -195,7 +195,7 @@ o.spec("CredentialsProvider", function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.credentialInfo.userId)
 			verify(nativeCredentialFacadeMock.deleteByUserId(internalCredentials.credentialInfo.userId), { times: 1 })
 		})
-		o("Deletes offline database", async function () {
+		o("Deletes local-store database", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.credentialInfo.userId)
 			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.credentialInfo.userId))
 		})

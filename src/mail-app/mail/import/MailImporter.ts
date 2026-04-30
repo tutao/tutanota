@@ -122,7 +122,7 @@ export class MailImporter {
 		}
 
 		if (activeImportId) {
-			// we can't use the result of loadAll (see below) as that might only read from offline cache and
+			// we can't use the result of loadAll (see below) as that might only read from local-store cache and
 			// not include a new ImportMailState that was created without sending an entity event
 			const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, activeImportId)
 			const remoteStatus = parseInt(importMailState.status) as ImportStatus

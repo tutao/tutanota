@@ -327,7 +327,7 @@ export class UsageTestModel implements PingAdapter {
 				console.log("rate-limit for new assignments reached, disabling tests")
 				return []
 			} else if (isOfflineError(e)) {
-				console.log("offline, disabling tests")
+				console.log("local-store, disabling tests")
 				return []
 			}
 
@@ -457,7 +457,7 @@ export class UsageTestModel implements PingAdapter {
 				test.active = false
 				console.log(`Tried to send ping. Setting test '${test.testName}' inactive because it is misconfigured`, e)
 			} else if (isOfflineError(e)) {
-				console.log("Tried to send ping, but we are offline", e)
+				console.log("Tried to send ping, but we are local-store", e)
 			} else {
 				throw e
 			}

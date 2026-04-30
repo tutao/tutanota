@@ -29,13 +29,13 @@ import {
 	modelMapperFromTypeModelResolver,
 	removeOriginals,
 } from "../TestUtils"
-import { CustomCacheHandlerMap } from "../../../src/network/offline/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../src/local-store/CustomCacheHandler"
 import { EphemeralCacheStorage } from "../../../src/common/api/worker/rest/EphemeralCacheStorage"
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "@tutao/app-env"
 import { PublicEncryptionKeyProvider } from "../../../src/network/crypto/facades/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../src/network/crypto/facades/InstanceSessionKeysCache"
-import { CacheStorage } from "../../../src/network/offline/CacheStorage"
+import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
+import { CacheStorage } from "../../../src/local-store/CacheStorage"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

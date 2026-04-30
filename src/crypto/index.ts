@@ -179,3 +179,4 @@ export {
 	MissingSessionKey,
 } from "./encryption/symmetric/SymmetricCipherFacade.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
+export * from "./CryptoTypes"

@@ -1,7 +1,7 @@
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, lazy, lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
-import { CustomCacheHandler } from "../../../../../network/offline/CustomCacheHandler"
+import { CustomCacheHandler } from "../../../../../local-store/CustomCacheHandler"
 import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 /**
@@ -14,7 +14,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<tutanotaT
 		// New emails should be pre-cached.
 		//  - we need them to display the folder contents
 		//  - will very likely be loaded by indexer later
-		//  - we might have the instance in offline cache already because of notification process
+		//  - we might have the instance in local-store cache already because of notification process
 		// however, they are already preloaded by the EventBusClient
 		return true
 	}

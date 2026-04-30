@@ -134,10 +134,10 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	truncateAllCurrentIndexTimestamps(_newTimestamp: number): Promise<void> {
-		throw new ProgrammingError("truncateAllCurrentIndexTimestamps can only be called with offline storage")
+		throw new ProgrammingError("truncateAllCurrentIndexTimestamps can only be called with local-store storage")
 	}
 
 	async resetIndex() {
-		throw new ProgrammingError("resetIndex can only be called with offline storage")
+		throw new ProgrammingError("resetIndex can only be called with local-store storage")
 	}
 }

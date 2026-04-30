@@ -35,8 +35,9 @@ import { KeyVersion, Versioned } from "@tutao/utils"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { createTestEntity } from "../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
-import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../src/network/crypto/facades/AdminKeyLoaderFacade"
+import { PublicKeyIdentifier } from "../../../../src/crypto/CryptoTypes"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation

@@ -1,12 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
 import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { matchers, object, verify, when } from "testdouble"
-import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "@tutao/crypto"
+import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade, SigningKeyPairType } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils"
 import { Aes256Key, bytesToEd25519PublicKey, Ed25519PublicKey } from "@tutao/crypto"
-import { SigningKeyPairType } from "../../../../../src/network/crypto/facades/Ed25519Facade"
 import { arrayEquals, hexToUint8Array } from "@tutao/utils"
-import { PublicKeyIdentifier } from "../../../../../src/network/crypto/facades/PublicEncryptionKeyProvider"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
@@ -14,8 +12,9 @@ import { PublicIdentityKeyProvider } from "../../../../../src/network/crypto/fac
 import { ServiceExecutor } from "@tutao/network"
 import { EntityClient } from "../../../../../src/network/EntityClient"
 import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLoaderFacade"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/network/offline/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/local-store/IdentityKeyTrustDatabase"
 import { CryptoError } from "@tutao/crypto/error"
+import { PublicKeyIdentifier } from "../../../../../src/crypto/CryptoTypes"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
