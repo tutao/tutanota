@@ -12,31 +12,7 @@
 	"exclude": ["**/dist"],
 	"references": [
 		{
-			"path": "./src/tsconfig.crypto.json"
-		},
-		{
-			"path": "./src/tsconfig.utils.json"
-		},
-		{
-			"path": "./src/tsconfig.mimimi.json"
-		},
-		{
-			"path": "./src/tsconfig.usagetests.json"
-		},
-		{
-			"path": "./src/tsconfig.combined-apps.json"
-		},
-		{
-			"path": "./src/tsconfig.app-env.json"
-		},
-		{
-			"path": "./src/tsconfig.rest-client.json"
-		},
-		{
-			"path": "./src/tsconfig.instance-pipeline.json"
-		},
-		{
-			"path": "./src/tsconfig.typerefs.json"
+			"path": "src/tsconfig.combined-apps.json"
 		}
 	]
 }
