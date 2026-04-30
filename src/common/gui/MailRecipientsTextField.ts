@@ -259,11 +259,12 @@ interface ParsedInput {
 }
 
 /**
- * Parse a list of valid mail addresses separated by either a semicolon or a comma.
+ * Parse a list of valid mail addresses separated by either a semicolon, comma, or space.
+ * When an adress is formatted with a name (Name <name@domain.com>), ">" is used to seperate when there are no commas or semicolons
  * Invalid addresses will be returned as a separate list
  */
 export function parsePastedInput(text: string): ParsedInput {
-	const separator = text.indexOf(";") !== -1 ? ";" : ","
+	const separator = findSeparator(text)
 	const textParts = text.split(separator).map((part) => part.trim())
 
 	const result: ParsedInput = {
@@ -276,6 +277,10 @@ export function parsePastedInput(text: string): ParsedInput {
 		part = part.trim()
 
 		if (part.length !== 0) {
+			if (separator === ">") {
+				// Because > is taken out when seperating, add it again to parse the email correctly
+				part = part + ">"
+			}
 			const parsed = parseMailAddress(part)
 
 			if (!parsed) {
@@ -285,8 +290,17 @@ export function parsePastedInput(text: string): ParsedInput {
 			}
 		}
 	}
-
 	return result
+}
+export function findSeparator(searchString: string) {
+	if (searchString.indexOf(";") !== -1) {
+		return ";"
+	} else if (searchString.indexOf(",") !== -1) {
+		return ","
+	} else if (searchString.indexOf(">") !== -1) {
+		return ">"
+	}
+	return " "
 }
 
 /**
