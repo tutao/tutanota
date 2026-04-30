@@ -1,12 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { component_size, px } from "../../../common/gui/size.js"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null

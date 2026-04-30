@@ -6,12 +6,11 @@ import { component_size, px } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
-import { Keys, TabIndex } from "@tutao/app-env"
+import { assertMainOrNode, Keys, TabIndex } from "@tutao/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import { $Promisable, assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "@tutao/app-env"
 import { IconButtonAttrs } from "./IconButton.js"
 import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
@@ -20,6 +19,8 @@ import { BaseButton } from "./buttons/BaseButton"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -51,15 +52,6 @@ export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return Object.hasOwn(dropdownChild, "info") && Object.hasOwn(dropdownChild, "center") && Object.hasOwn(dropdownChild, "bold")
-}
-
-export interface PosRect {
-	readonly height: number
-	readonly width: number
-	readonly top: number
-	readonly left: number
-	readonly right: number
-	readonly bottom: number
 }
 
 // Some Android WebViews still don't support DOMRect so we polyfill that

@@ -96,7 +96,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
-import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown"
+import { createDropdown } from "../../../common/gui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
@@ -113,6 +113,8 @@ import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 assertMainOrNode()
 

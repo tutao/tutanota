@@ -2,7 +2,7 @@ import m, { Children, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyManager.js"
 import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
-import { PosRect, showDropdown } from "../../../common/gui/base/Dropdown.js"
+import { showDropdown } from "../../../common/gui/base/Dropdown.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { component_size, size } from "../../../common/gui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
@@ -16,6 +16,8 @@ import { AriaRole } from "../../../common/gui/AriaUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { noOp } from "@tutao/utils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 /**
  * Popup that displays assigned labels and allows changing them

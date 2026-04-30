@@ -19,7 +19,7 @@ import {
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
-import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
@@ -56,6 +56,8 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet

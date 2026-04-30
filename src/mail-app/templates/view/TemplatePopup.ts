@@ -18,7 +18,7 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
-import { attachDropdown, DomRectReadOnlyPolyfilled, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { attachDropdown, DomRectReadOnlyPolyfilled } from "../../../common/gui/base/Dropdown.js"
 import { debounce, downcast, neverNull } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar.js"
@@ -29,6 +29,8 @@ import { getConfirmation } from "../../../common/gui/base/GuiUtils"
 import { ScrollSelectList } from "../../../common/gui/ScrollSelectList"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH } from "./TemplateConstants.js"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 type EmailTemplate = tutanotaTypeRefs.EmailTemplate
 

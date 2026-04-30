@@ -3,10 +3,12 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/utils"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { createDropdown, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel

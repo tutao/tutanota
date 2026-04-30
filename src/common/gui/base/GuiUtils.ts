@@ -3,7 +3,7 @@ import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/Lang
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
-import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs, PosRect } from "./Dropdown.js"
+import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs } from "./Dropdown.js"
 import type { $Promisable, lazy, MaybeLazy } from "@tutao/utils"
 import { assertNotNull, lazyMemoized, resolveMaybeLazy } from "@tutao/utils"
 import { Dialog } from "./Dialog"
@@ -18,6 +18,8 @@ import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "./DropDownSelectorNew"
 import { theme } from "../theme"
 import { size } from "../size"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 export const enum DropType {
 	ExternalFile = "ExternalFile",

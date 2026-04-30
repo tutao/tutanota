@@ -4,7 +4,7 @@ import { px } from "../../../../common/gui/size.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import type { ModalComponent } from "../../../../common/gui/base/Modal.js"
 import { modal } from "../../../../common/gui/base/Modal.js"
-import { DROPDOWN_MARGIN, PosRect, showDropdown } from "../../../../common/gui/base/Dropdown.js"
+import { DROPDOWN_MARGIN, showDropdown } from "../../../../common/gui/base/Dropdown.js"
 import { Keys } from "@tutao/app-env"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { CalendarContactPreviewViewModel } from "./CalendarContactPreviewViewModel.js"
@@ -16,6 +16,8 @@ import { listIdPart } from "@tutao/typerefs"
 import { stringToBase64 } from "@tutao/utils"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
+
+import { PosRect } from "../../../../native-bridge/shared/PosRect"
 
 /**
  * small modal displaying all relevant information about a contact in a compact fashion. offers limited editing capabilities to participants in the

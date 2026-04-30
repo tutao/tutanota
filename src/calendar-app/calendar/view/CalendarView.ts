@@ -56,7 +56,7 @@ import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
@@ -95,6 +95,8 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
+
+import { PosRect } from "../../../native-bridge/shared/PosRect"
 
 export type GroupColors = Map<Id, string>
 
