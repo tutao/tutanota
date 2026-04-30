@@ -37,6 +37,7 @@ import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
 import { FileReference, isWebFile, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { DataFile } from "../../../common/api/common/DataFile"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -585,11 +586,13 @@ export class DriveViewModel {
 		}
 	}
 
-	async openFile(file: driveTypeRefs.DriveFile): Promise<void> {
-		this.transferController.download(file, "open")
+	async openFile(file: driveTypeRefs.DriveFile): Promise<FileReference | DataFile> {
+		const downloadedFile = await this.transferController.download(file)
+		return downloadedFile
 	}
 	async downloadFile(file: driveTypeRefs.DriveFile): Promise<void> {
-		this.transferController.download(file, "download")
+		// FIXME: down't actually download it right now
+		const download = await this.transferController.download(file)
 	}
 
 	// Multi-select downloading is only permitted if the selection does not contain any folders.

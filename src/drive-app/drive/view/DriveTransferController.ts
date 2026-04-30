@@ -1,15 +1,16 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { filterInt } from "@tutao/utils"
+import { defer, DeferredObject, filterInt } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { driveTypeRefs } from "@tutao/typerefs"
 import { ArchiveDataType, SECOND_IN_MILLIS } from "@tutao/app-env"
-import { FileController } from "../../../common/file/FileController"
+import { downloadAndDecryptFromArchive, FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { DataFile } from "../../../common/api/common/DataFile"
 
 type DriveTransferType = "upload" | "download"
 
@@ -30,7 +31,7 @@ type QueuedTransfer =
 			type: "download"
 			transferredSize: number // bytes
 			filename: string
-			intent: "download" | "open"
+			deferred: DeferredObject<DataFile | FileReference>
 	  }
 	| {
 			id: TransferId
@@ -127,18 +128,12 @@ export class DriveTransferController {
 				this.drainQueue("upload")
 			}
 		} else {
-			const { id, file, intent } = transfer
+			const { id, file, deferred } = transfer
 			this.startDownload(transfer.id)
 			try {
-				if (intent === "open") {
-					await (
-						await this.fileController.open(file, ArchiveDataType.DriveFile, transfer.id)
-					).promise
-				} else {
-					await (
-						await this.fileController.download(file, ArchiveDataType.DriveFile, transfer.id)
-					).promise
-				}
+				// FIXME: we should do native/direct download
+				const dataFile = downloadAndDecryptFromArchive(file, this.blobFacade, ArchiveDataType.DriveFile, transfer.id)
+				deferred.resolve(dataFile)
 				this.finishDownload(transfer.id)
 			} catch (e) {
 				if (e instanceof CancelledError) {
@@ -204,8 +199,9 @@ export class DriveTransferController {
 		}
 	}
 
-	async download(file: driveTypeRefs.DriveFile, intent: "download" | "open") {
+	async download(file: driveTypeRefs.DriveFile): Promise<DataFile | FileReference> {
 		const transferId = await this.blobFacade.generateTransferId()
+		const deferred = defer<DataFile | FileReference>()
 		this.queue.push({
 			id: transferId,
 			state: "waiting",
@@ -213,9 +209,10 @@ export class DriveTransferController {
 			type: "download",
 			transferredSize: 0,
 			filename: file.name,
-			intent: intent,
+			deferred: deferred,
 		})
 		this.drainQueue("download")
+		return await deferred.promise
 	}
 
 	private startDownload(fileId: TransferId) {

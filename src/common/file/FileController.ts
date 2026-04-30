@@ -68,12 +68,10 @@ export abstract class FileController {
 		const downloadedFiles: Array<FileReference | DataFile> = []
 		try {
 			let isOffline = false
-			let downloadFilesBytes = 0
 			for (const { file, transferId } of tutanotaFiles) {
 				try {
 					const downloadedFile = await this.downloadAndDecrypt(file, transferId, archiveType)
 					downloadedFiles.push(downloadedFile)
-					downloadFilesBytes += filterInt(file.size)
 				} catch (e) {
 					handleDownloadErrors(e, (msg) => {
 						if (msg === "couldNotAttachFile_msg") {

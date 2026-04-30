@@ -30,7 +30,7 @@ import { styles } from "../../../common/gui/styles"
 import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
-import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
+import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import Stream from "mithril/stream"
@@ -48,6 +48,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
+import { FileViewer } from "./FileViewer"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -197,6 +198,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				enabled: () => true,
 				help: "open_action",
 				exec: () => {
+					// FIXME: we need to know what we need to do already here
 					this.driveViewModel.openActiveItem()
 				},
 			},
@@ -539,11 +541,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				),
 			fileActions: {
 				onOpenItem: (item) => {
-					if (item.type === "folder") {
-						this.driveViewModel.navigateToFolder(item.folder._id)
-					} else {
-						this.driveViewModel.openFile(item.file)
-					}
+					this.onOpenItem(item)
 				},
 				onDownload: (item: FolderItem) => {
 					if (item.type === "file") {
@@ -577,6 +575,15 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			onSortColumn: (column) => this.driveViewModel.sort(column),
 			clipboard: this.driveViewModel.clipboard,
 		} satisfies DriveFolderViewAttrs)
+	}
+
+	private async onOpenItem(item: FileFolderItem | FolderFolderItem) {
+		if (item.type === "folder") {
+			this.driveViewModel.navigateToFolder(item.folder._id)
+		} else {
+			const downloadedFile = await this.driveViewModel.openFile(item.file)
+			FileViewer.show({ file: downloadedFile })
+		}
 	}
 
 	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
