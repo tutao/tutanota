@@ -320,10 +320,15 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 					onEntityUpdatesReceived: async (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => {
 						for (const update of updates) {
 							if (entityUpdateUtils.isUpdateFor(customerInfo, update)) {
-								const customerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customerInfoId, {
+								// since we're waiting for an account upgrade, the customerInfo moves between the free and the paid list.
+								// we need to load the customer to find the new location.
+								const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerInfo.customer, {
 									cacheMode: CacheMode.WriteOnly,
 								})
-								if (expectedPlan === customerInfo.plan) {
+								const newCustomerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo, {
+									cacheMode: CacheMode.WriteOnly,
+								})
+								if (expectedPlan === newCustomerInfo.plan) {
 									// plan is now correct!
 									console.log("app store upgrade listener succeeded for", customerInfoId)
 									resolve(true)
