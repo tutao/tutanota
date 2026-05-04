@@ -289,6 +289,7 @@ class MailLocator implements CommonLocator {
 			this.processInboxHandler(),
 			router,
 			await this.redraw(),
+			this.syncTracker,
 		)
 	})
 
