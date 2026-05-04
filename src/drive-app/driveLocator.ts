@@ -251,7 +251,7 @@ class DriveLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController, await this.scheduler())
 
-		const model = new DriveViewModel(
+		return new DriveViewModel(
 			this.entityClient,
 			this.driveFacade,
 			router,
@@ -262,9 +262,6 @@ class DriveLocator implements CommonLocator {
 			driveUploadStackModel,
 			redraw,
 		)
-		await model.init()
-
-		return model
 	})
 
 	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {

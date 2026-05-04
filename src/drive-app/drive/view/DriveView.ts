@@ -48,6 +48,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -66,7 +67,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		if (!this.driveViewModel.isDriveEnabledForCustomer()) {
-			m.route.set("/mail")
+			// FIXME
+			Dialog.message(lang.makeTranslation("test_driveNotEnabledMessage", "Drive is not enabled for this account")).then(() => {
+				windowFacade.reload({})
+			})
 			return
 		}
 
