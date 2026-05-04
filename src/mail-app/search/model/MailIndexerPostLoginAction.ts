@@ -3,10 +3,10 @@ import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStor
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SessionType } from "@tutao/app-env"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
 
 /**
- * The search range is tied to the local-store storage settings.
+ * The search range is tied to the offline storage settings.
  * This updates the mail index on full login.
  */
 export class MailIndexerPostLoginAction implements PostLoginAction {

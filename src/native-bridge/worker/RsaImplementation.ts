@@ -1,5 +1,5 @@
 import type { NativeInterface } from "../common/NativeInterface.js"
-import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
+import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/dispatchers/NativeCryptoFacadeSendDispatcher.js"
 import type { RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
 import { random, rsaDecrypt, rsaEncrypt } from "@tutao/crypto"
 import { isApp } from "@tutao/app-env"

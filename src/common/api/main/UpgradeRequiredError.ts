@@ -1,5 +1,6 @@
-import { assertMainOrNode, AvailablePlanType, TutanotaError } from "@tutao/app-env"
-import type { TranslationKeyType } from "../../misc/TranslationKey"
+import { assertMainOrNode, TutanotaError } from "@tutao/app-env"
+import type { TranslationKeyType } from "../../../ui/utils/TranslationKey"
+import { AvailablePlanType } from "@tutao/entities/sys"
 
 assertMainOrNode()
 

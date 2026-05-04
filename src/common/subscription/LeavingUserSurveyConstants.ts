@@ -1,4 +1,4 @@
-import { TranslationKey } from "../misc/LanguageViewModel.js"
+import { TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 
 /**
  * File containing all types, enums, maps and helper functions for the 'leaving user survey' wizard.

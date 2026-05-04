@@ -1,15 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/utils"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { getConfirmation } from "../../../common/gui/base/GuiUtils.js"
+import { getConfirmation } from "../../../ui/base/GuiUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { KnowledgeBaseEntry, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 
 type KnowledgeBaseEntryViewAttrs = {
-	entry: tutanotaTypeRefs.KnowledgeBaseEntry
+	entry: KnowledgeBaseEntry
 	onTemplateSelected: (arg0: IdTuple) => unknown
 	readonly: boolean
 }
@@ -20,7 +20,7 @@ type KnowledgeBaseEntryViewAttrs = {
 export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewAttrs> {
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
 
-	_sanitizedEntry: (arg0: tutanotaTypeRefs.KnowledgeBaseEntry) => {
+	_sanitizedEntry: (arg0: KnowledgeBaseEntry) => {
 		content: string
 	}
 
@@ -65,7 +65,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 		)
 	}
 
-	private renderRemoveButton(entry: tutanotaTypeRefs.KnowledgeBaseEntry) {
+	private renderRemoveButton(entry: KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "remove_action",
 			icon: Icons.TrashFilled,
@@ -75,13 +75,13 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 		})
 	}
 
-	private renderEditButton(entry: tutanotaTypeRefs.KnowledgeBaseEntry) {
+	private renderEditButton(entry: KnowledgeBaseEntry) {
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.PenFilled,
 			click: () => {
 				import("../../settings/KnowledgeBaseEditor.js").then(({ showKnowledgeBaseEditor }) => {
-					locator.entityClient.load(tutanotaTypeRefs.TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
+					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
 						showKnowledgeBaseEditor(entry, groupRoot)
 					})
 				})

@@ -1,15 +1,16 @@
 import m from "mithril"
-import { Dialog } from "../gui/base/Dialog.js"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { isMailAddress } from "../misc/FormatValidator.js"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { isMailAddress } from "../../utils/FormatUtils.js"
 import { contains, delay, ofClass, promiseMap } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { OperationId } from "../api/main/OperationProgressTracker.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
-import { BookingItemFeatureType } from "@tutao/app-env"
+
+import { BookingItemFeatureType } from "@tutao/entities/sys"
 
 const delayTime = 900
 type UserImportDetails = {

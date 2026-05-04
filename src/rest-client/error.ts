@@ -281,3 +281,23 @@ export class SuspensionError extends TutanotaError {
 		this.data = suspensionTime
 	}
 }
+export class LoginIncompleteError extends TutanotaError {
+	constructor(message: string) {
+		super("LoginIncompleteError", message)
+	}
+}
+
+/**
+ * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
+ */
+export function isOfflineError(e: Error): boolean {
+	return e instanceof ConnectionError || e instanceof LoginIncompleteError
+}
+
+/**
+ * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
+ * for the instance that was already deleted. Normally this would be optimized away, but it might still happen due to timing.
+ */
+export function isExpectedErrorForSynchronization(e: Error): boolean {
+	return e instanceof NotFoundError || e instanceof NotAuthorizedError
+}

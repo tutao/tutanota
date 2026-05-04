@@ -1,23 +1,31 @@
-import type { Language, LanguageCode, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { lang, languageByCode, languages } from "../../common/misc/LanguageViewModel"
-import { clone, getElementId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import type { Language, LanguageCode, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { lang, languageByCode, languages } from "../../ui/utils/LanguageViewModel"
 import { difference, downcast, getFirstOrThrow, remove } from "@tutao/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../network/EntityClient"
 import { UserError } from "../../common/api/main/UserError"
+import { clone, getElementId, isSameId } from "@tutao/meta"
+import {
+	createEmailTemplate,
+	createEmailTemplateContent,
+	EmailTemplate,
+	EmailTemplateContent,
+	EmailTemplateTypeRef,
+	TemplateGroupRoot,
+} from "@tutao/entities/tutanota"
 
 export class TemplateEditorModel {
-	template: tutanotaTypeRefs.EmailTemplate
+	template: EmailTemplate
 	title: Stream<string>
 	tag: Stream<string>
-	selectedContent: Stream<tutanotaTypeRefs.EmailTemplateContent>
-	_templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot
+	selectedContent: Stream<EmailTemplateContent>
+	_templateGroupRoot: TemplateGroupRoot
 	_entityClient: EntityClient
 	_contentProvider: (() => string) | null
 
-	constructor(template: tutanotaTypeRefs.EmailTemplate | null, templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot, entityClient: EntityClient) {
-		this.template = template ? clone(template) : tutanotaTypeRefs.createEmailTemplate({ tag: "", title: "", contents: [] })
+	constructor(template: EmailTemplate | null, templateGroupRoot: TemplateGroupRoot, entityClient: EntityClient) {
+		this.template = template ? clone(template) : createEmailTemplate({ tag: "", title: "", contents: [] })
 		this.title = stream("")
 		this.tag = stream("")
 		const contents = this.template.contents
@@ -35,8 +43,8 @@ export class TemplateEditorModel {
 		this._contentProvider = provider
 	}
 
-	createContent(languageCode: LanguageCode): tutanotaTypeRefs.EmailTemplateContent {
-		const emailTemplateContent = tutanotaTypeRefs.createEmailTemplateContent({
+	createContent(languageCode: LanguageCode): EmailTemplateContent {
+		const emailTemplateContent = createEmailTemplateContent({
 			languageCode: languageCode,
 			text: "",
 		})
@@ -75,12 +83,12 @@ export class TemplateEditorModel {
 	tagAlreadyExists(): Promise<boolean> {
 		if (this.template._id) {
 			// the current edited template should not be included in find()
-			return this._entityClient.loadAll(tutanotaTypeRefs.EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
+			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
 				const filteredTemplates = allTemplates.filter((template) => !isSameId(getElementId(this.template), getElementId(template)))
 				return filteredTemplates.some((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		} else {
-			return this._entityClient.loadAll(tutanotaTypeRefs.EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
+			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
 				return allTemplates.some((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		}
@@ -111,10 +119,10 @@ export class TemplateEditorModel {
 	}
 }
 
-export function getLanguageCode(content: tutanotaTypeRefs.EmailTemplateContent): LanguageCode {
+export function getLanguageCode(content: EmailTemplateContent): LanguageCode {
 	return downcast(content.languageCode)
 }
 
-export function getLanguageName(content: tutanotaTypeRefs.EmailTemplateContent): TranslationKey {
+export function getLanguageName(content: EmailTemplateContent): TranslationKey {
 	return languageByCode[getLanguageCode(content)].textId
 }

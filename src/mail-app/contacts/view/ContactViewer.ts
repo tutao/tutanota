@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { LegacyTextField, LegacyTextFieldType } from "../../../common/gui/base/LegacyTextField.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { assertNotNull, downcast, memoized, NBSP, noOp } from "@tutao/utils"
 import {
 	getContactAddressTypeLabel,
@@ -12,26 +12,35 @@ import {
 	getContactRelationshipTypeToLabel,
 	getContactSocialTypeLabel,
 } from "./ContactGuiUtils"
-import { formatContactDate, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { assertMainOrNode, ContactAddressType, ContactPhoneNumberType } from "@tutao/app-env"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
-import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
-import type { AllIcons } from "../../../common/gui/base/Icon.js"
+import { formatContactDate, getContactTitle, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../../../common/contactsFunctionality/ContactUtils.js"
+import { assertMainOrNode } from "@tutao/app-env"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { attachDropdown } from "../../../ui/base/Dropdown.js"
+import type { AllIcons } from "../../../ui/base/Icon.js"
 
-import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
-import { getContactSocialType, getCustomDateType, getRelationshipType, tutanotaTypeRefs } from "@tutao/typerefs"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../ui/TextHighlightViewUtils"
+import {
+	Contact,
+	ContactAddress,
+	ContactAddressType,
+	ContactMessengerHandle,
+	ContactPhoneNumber,
+	ContactPhoneNumberType,
+	ContactSocialId,
+	ContactWebsite,
+} from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../entities/tutanota/Utils"
+import { getContactSocialType, getCustomDateType, getRelationshipType } from "../ContactUtils"
 
 assertMainOrNode()
 
 export interface ContactViewerAttrs {
-	contact: tutanotaTypeRefs.Contact
+	contact: Contact
 	onWriteMail: (to: PartialRecipient) => unknown
-	editAction?: (contact: tutanotaTypeRefs.Contact) => unknown
-	deleteAction?: (contacts: tutanotaTypeRefs.Contact[]) => unknown
+	editAction?: (contact: Contact) => unknown
+	deleteAction?: (contacts: Contact[]) => unknown
 	extendedActions?: boolean
 	highlightedStrings?: readonly SearchToken[]
 }
@@ -42,7 +51,7 @@ export interface ContactViewerAttrs {
 export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private readonly contactAppellation = memoized(getContactTitle)
 
-	private readonly contactPhoneticName = memoized((contact: tutanotaTypeRefs.Contact): string | null => {
+	private readonly contactPhoneticName = memoized((contact: Contact): string | null => {
 		const firstName = contact.phoneticFirst ?? ""
 		const middleName = contact.phoneticMiddle ? ` ${contact.phoneticMiddle}` : ""
 		const lastName = contact.phoneticLast ? ` ${contact.phoneticLast}` : ""
@@ -52,11 +61,11 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return phoneticName.length > 0 ? phoneticName : null
 	})
 
-	private readonly formattedBirthday = memoized((contact: tutanotaTypeRefs.Contact) => {
+	private readonly formattedBirthday = memoized((contact: Contact) => {
 		return this.hasBirthday(contact) ? formatContactDate(contact.birthdayIso) : null
 	})
 
-	private hasBirthday(contact: tutanotaTypeRefs.Contact): boolean {
+	private hasBirthday(contact: Contact): boolean {
 		return contact.birthdayIso != null
 	}
 
@@ -92,7 +101,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		])
 	}
 
-	private renderContactName(contact: tutanotaTypeRefs.Contact, highlightedStrings: readonly SearchToken[] | undefined): Children {
+	private renderContactName(contact: Contact, highlightedStrings: readonly SearchToken[] | undefined): Children {
 		if (highlightedStrings) {
 			return highlightTextInQueryAsChildren(this.contactAppellation(contact), highlightedStrings)
 		} else {
@@ -100,11 +109,11 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		}
 	}
 
-	private renderExtendedActions(contact: tutanotaTypeRefs.Contact, attrs: ContactViewerAttrs) {
+	private renderExtendedActions(contact: Contact, attrs: ContactViewerAttrs) {
 		return m.fragment({}, [this.renderEditButton(contact, attrs), this.renderDeleteButton(contact, attrs)])
 	}
 
-	private renderEditButton(contact: tutanotaTypeRefs.Contact, attrs: ContactViewerAttrs) {
+	private renderEditButton(contact: Contact, attrs: ContactViewerAttrs) {
 		if (!attrs.editAction) {
 			return null
 		}
@@ -116,7 +125,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderDeleteButton(contact: tutanotaTypeRefs.Contact, attrs: ContactViewerAttrs) {
+	private renderDeleteButton(contact: Contact, attrs: ContactViewerAttrs) {
 		if (!attrs.deleteAction) {
 			return null
 		}
@@ -128,7 +137,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderActionsDropdown(contact: tutanotaTypeRefs.Contact, attrs: ContactViewerAttrs) {
+	private renderActionsDropdown(contact: Contact, attrs: ContactViewerAttrs) {
 		const actions: { label: TranslationKey; icon: AllIcons; click: () => void }[] = []
 
 		if (attrs.editAction) {
@@ -170,7 +179,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		)
 	}
 
-	private renderActions(contact: tutanotaTypeRefs.Contact, attrs: ContactViewerAttrs) {
+	private renderActions(contact: Contact, attrs: ContactViewerAttrs) {
 		if (!contact || !(attrs.editAction || attrs.deleteAction)) {
 			return null
 		}
@@ -182,7 +191,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return this.renderActionsDropdown(contact, attrs)
 	}
 
-	private renderJobInformation(contact: tutanotaTypeRefs.Contact): Children {
+	private renderJobInformation(contact: Contact): Children {
 		const spacerFunction = () =>
 			m(
 				"span.plr-4",
@@ -204,7 +213,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		)
 	}
 
-	private renderPronounsInfo(contact: tutanotaTypeRefs.Contact): Children {
+	private renderPronounsInfo(contact: Contact): Children {
 		const spacerFunction = () =>
 			m(
 				"span.plr-4",
@@ -229,7 +238,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		)
 	}
 
-	private renderAddressesAndSocialIds(contact: tutanotaTypeRefs.Contact): Children {
+	private renderAddressesAndSocialIds(contact: Contact): Children {
 		const addresses = contact.addresses.map((element) => this.renderAddress(element))
 		const socials = contact.socialIds.map((element) => this.renderSocialId(element))
 		return addresses.length > 0 || socials.length > 0
@@ -240,7 +249,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			: null
 	}
 
-	private renderWebsitesAndInstantMessengers(contact: tutanotaTypeRefs.Contact): Children {
+	private renderWebsitesAndInstantMessengers(contact: Contact): Children {
 		const websites = contact.websites.map((element) => this.renderWebsite(element))
 		const instantMessengers = contact.messengerHandles.map((element) => this.renderMessengerHandle(element))
 		return websites.length > 0 || instantMessengers.length > 0
@@ -254,7 +263,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			: null
 	}
 
-	private renderCustomDatesAndRelationships(contact: tutanotaTypeRefs.Contact): Children {
+	private renderCustomDatesAndRelationships(contact: Contact): Children {
 		const dates = contact.customDate.map((element) =>
 			m(LegacyTextField, {
 				label: getContactCustomDateTypeToLabel(getCustomDateType(element), element.customTypeName),
@@ -281,7 +290,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			: null
 	}
 
-	private renderMailAddressesAndPhones(contact: tutanotaTypeRefs.Contact, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
+	private renderMailAddressesAndPhones(contact: Contact, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
 		const mailAddresses = contact.mailAddresses.map((element) => this.renderMailAddress(contact, element, onWriteMail))
 		const phones = contact.phoneNumbers.map((element) => this.renderPhoneNumber(element))
 		return mailAddresses.length > 0 || phones.length > 0
@@ -292,13 +301,13 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			: null
 	}
 
-	private renderComment(contact: tutanotaTypeRefs.Contact): Children {
+	private renderComment(contact: Contact): Children {
 		return contact.comment && contact.comment.trim().length > 0
 			? [m(".h4.mt-32", lang.get("comment_label")), m("p.mt-32.text-prewrap.text-break.selectable", contact.comment)]
 			: null
 	}
 
-	private renderSocialId(contactSocialId: tutanotaTypeRefs.ContactSocialId): Children {
+	private renderSocialId(contactSocialId: ContactSocialId): Children {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
@@ -314,7 +323,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderWebsite(website: tutanotaTypeRefs.ContactWebsite): Children {
+	private renderWebsite(website: ContactWebsite): Children {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
@@ -329,7 +338,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderMessengerHandle(messengerHandle: tutanotaTypeRefs.ContactMessengerHandle): Children {
+	private renderMessengerHandle(messengerHandle: ContactMessengerHandle): Children {
 		const showButton = m(IconButton, {
 			title: "showURL_alt",
 			click: noOp,
@@ -345,11 +354,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderMailAddress(
-		contact: tutanotaTypeRefs.Contact,
-		address: tutanotaTypeRefs.ContactAddress,
-		onWriteMail: ContactViewerAttrs["onWriteMail"],
-	): Children {
+	private renderMailAddress(contact: Contact, address: ContactAddress, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
 		const newMailButton = m(IconButton, {
 			title: "sendMail_alt",
 			click: () =>
@@ -369,7 +374,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderPhoneNumber(phone: tutanotaTypeRefs.ContactPhoneNumber): Children {
+	private renderPhoneNumber(phone: ContactPhoneNumber): Children {
 		const callButton = m(IconButton, {
 			title: "callNumber_alt",
 			click: () => null,
@@ -384,7 +389,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		})
 	}
 
-	private renderAddress(address: tutanotaTypeRefs.ContactAddress): Children {
+	private renderAddress(address: ContactAddress): Children {
 		let prepAddress: string
 
 		if (address.address.indexOf("\n") !== -1) {

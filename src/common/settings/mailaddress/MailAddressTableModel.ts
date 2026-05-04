@@ -1,5 +1,4 @@
 import { EntityClient } from "../../../network/EntityClient.js"
-import { entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { MailAddressFacade } from "../../api/worker/facades/lazy/MailAddressFacade.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -10,9 +9,17 @@ import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { getAvailableMatchingPlans } from "../../subscription/utils/SubscriptionUtils.js"
-
+import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn, User } from "@tutao/entities/sys"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import { OperationType } from "@tutao/app-env"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateFor,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../instance-pipeline/EntityUpdateUtils"
+import { OperationType } from "@tutao/meta"
 
 export enum AddressStatus {
 	Primary,
@@ -39,15 +46,15 @@ export interface MailAddressNameChanger {
 }
 
 export interface UserInfo {
-	user: sysTypeRefs.User
-	userGroupInfo: sysTypeRefs.GroupInfo
+	user: User
+	userGroupInfo: GroupInfo
 }
 
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
 export class MailAddressTableModel {
 	private nameMappings: AddressToName | null = null
 	private onLegacyPlan: boolean = false
-	aliasCount: sysTypeRefs.MailAddressAliasServiceReturn | null = null
+	aliasCount: MailAddressAliasServiceReturn | null = null
 
 	init: () => Promise<void> = lazyMemoized(async () => {
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -162,19 +169,19 @@ export class MailAddressTableModel {
 		return this.userInfo.userGroupInfo.name
 	}
 
-	private entityEventsReceived: entityUpdateUtils.EntityEventsListener = {
-		onEntityUpdatesReceived: async (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => {
+	private entityEventsReceived: EntityEventsListener = {
+		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
 			for (const update of updates) {
-				if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 					await this.loadNames()
-				} else if (entityUpdateUtils.isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
-					this.userInfo.userGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.userInfo.userGroupInfo._id)
+				} else if (isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
+					this.userInfo.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userInfo.userGroupInfo._id)
 					await this.loadAliasCount()
 				}
 			}
 			this.redraw()
 		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private async loadNames() {

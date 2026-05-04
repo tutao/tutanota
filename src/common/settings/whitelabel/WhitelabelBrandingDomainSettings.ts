@@ -1,25 +1,25 @@
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { Dialog } from "../../../ui/base/Dialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
 import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog.js"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { CertificateState, CertificateType, PlanType, UpgradePromptType } from "@tutao/app-env"
-import { formatDateTime } from "../../../common/misc/Formatter"
+import { CertificateState, CertificateType, UpgradePromptType } from "@tutao/app-env"
+import { formatDateTime } from "../../../ui/utils/Formatter"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { CertificateInfo, CustomerInfo, PlanType } from "@tutao/entities/sys"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
-	customerInfo: sysTypeRefs.CustomerInfo
+	customerInfo: CustomerInfo
 	isWhitelabelFeatureEnabled: boolean
-	certificateInfo: sysTypeRefs.CertificateInfo | null
+	certificateInfo: CertificateInfo | null
 	whitelabelDomain: string
 }
 
@@ -68,11 +68,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		}
 	}
 
-	_renderEditButton(
-		customerInfo: sysTypeRefs.CustomerInfo,
-		certificateInfo: sysTypeRefs.CertificateInfo | null,
-		isWhitelabelFeatureEnabled: boolean,
-	): Children {
+	_renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
 		return m(IconButton, {
 			title: "edit_action",
 			click: () => this.edit(isWhitelabelFeatureEnabled, customerInfo),
@@ -81,7 +77,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		})
 	}
 
-	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: sysTypeRefs.CustomerInfo): Promise<void> {
+	private async edit(isWhitelabelFeatureEnabled: boolean, customerInfo: CustomerInfo): Promise<void> {
 		if (locator.logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(UpgradePromptType.WHITELABEL, [PlanType.Unlimited])
 		} else {
@@ -95,7 +91,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		}
 	}
 
-	private renderWhitelabelInfo(certificateInfo: sysTypeRefs.CertificateInfo | null): () => Children {
+	private renderWhitelabelInfo(certificateInfo: CertificateInfo | null): () => Children {
 		let components: Array<string>
 
 		if (certificateInfo) {
@@ -131,7 +127,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			)
 	}
 
-	private certificateTypeString(certificateInfo: sysTypeRefs.CertificateInfo): string {
+	private certificateTypeString(certificateInfo: CertificateInfo): string {
 		switch (certificateInfo.type) {
 			case CertificateType.LETS_ENCRYPT:
 				return lang.get("certificateTypeAutomatic_label")

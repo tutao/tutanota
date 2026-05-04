@@ -1,15 +1,17 @@
 import m from "mithril"
-import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { Dialog } from "../../gui/base/Dialog"
-import { assertMainOrNode, OperationType, SessionState } from "@tutao/app-env"
-import { lang } from "../LanguageViewModel"
+import { isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { Challenge, createSecondFactorAuthData, Session, SessionTypeRef } from "@tutao/entities/sys"
+import { Dialog } from "../../../ui/base/Dialog"
+import { assertMainOrNode, SessionState } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController"
 import type { EntityClient } from "../../../network/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
 import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
-import type { LoginFacade } from "../../../network/LoginFacade"
+import type { LoginFacade } from "../../../base/facades/LoginFacade"
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
 assertMainOrNode()
@@ -42,20 +44,20 @@ export class SecondFactorHandler {
 		this.otherLoginListenerInitialized = true
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			const sessionId: IdTuple = [neverNull(update.instanceListId), update.instanceId]
 
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.SessionTypeRef, update)) {
+			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
 					let session
 
 					try {
-						session = await this.entityClient.load(sysTypeRefs.SessionTypeRef, sessionId)
+						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
 						if (e instanceof restError.NotFoundError) {
 							console.log("Failed to load session", e)
@@ -79,7 +81,7 @@ export class SecondFactorHandler {
 					let session
 
 					try {
-						session = await this.entityClient.load(sysTypeRefs.SessionTypeRef, sessionId)
+						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
 						if (e instanceof restError.NotFoundError) {
 							console.log("Failed to load session", e)
@@ -112,7 +114,7 @@ export class SecondFactorHandler {
 		}
 	}
 
-	private showConfirmLoginDialog(session: sysTypeRefs.Session) {
+	private showConfirmLoginDialog(session: Session) {
 		let text: string
 
 		if (session.loginIpAddress) {
@@ -133,7 +135,7 @@ export class SecondFactorHandler {
 			},
 			okAction: async () => {
 				await this.loginFacade.authenticateWithSecondFactor(
-					sysTypeRefs.createSecondFactorAuthData({
+					createSecondFactorAuthData({
 						session: session._id,
 						type: null, // Marker for confirming another session
 						otpCode: null,
@@ -170,7 +172,7 @@ export class SecondFactorHandler {
 	/**
 	 * @inheritDoc
 	 */
-	async showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null) {
+	async showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null) {
 		if (this.waitingForSecondFactorDialog) {
 			return
 		}

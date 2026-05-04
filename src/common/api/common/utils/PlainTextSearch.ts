@@ -1,3 +1,5 @@
+import { escapeRegExp } from "../../../../ui/utils/QueryTokenUtils"
+
 type SearchMatch<T> = {
 	entry: T
 	// the input entry in which we searches
@@ -168,9 +170,4 @@ export function _findMatches(splittedValue: Array<string>, regExp: RegExp, markH
 			matchedQueryWords: [] as string[],
 		},
 	)
-}
-
-// see https://stackoverflow.com/a/6969486
-export function escapeRegExp(string: string): string {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") // $& means the whole matched string
 }

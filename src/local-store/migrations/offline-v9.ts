@@ -1,12 +1,15 @@
-import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { OfflineMigration } from "../OfflineMigration"
 
-export const offline9: OfflineMigration = {
-	version: 9,
-	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+const VERSION = 9
+export class offline9 extends OfflineMigration {
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {
+		super(VERSION)
+	}
+	async migrate(storage: OfflineStorage) {
 		console.log("dropping spam_classification_training_data and spam_classification_model, due to new fields")
-		await sqlCipherFacade.run(`DROP TABLE IF EXISTS spam_classification_training_data`, [])
-		await sqlCipherFacade.run(`DROP TABLE IF EXISTS spam_classification_model`, [])
-	},
+		await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS spam_classification_training_data`, [])
+		await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS spam_classification_model`, [])
+	}
 }

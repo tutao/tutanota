@@ -1,14 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { BaseButton } from "../gui/base/buttons/BaseButton"
-import { lang } from "../misc/LanguageViewModel"
-import { PayPalLogo } from "../gui/base/icons/Icons"
-import { ClickHandler } from "../gui/base/GuiUtils"
+import { BaseButton } from "../../ui/base/buttons/BaseButton"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { PayPalLogo } from "../../ui/base/icons/Icons"
+import { ClickHandler } from "../../ui/base/GuiUtils"
 import { noOp, promiseMap } from "@tutao/utils"
 
 import { locator } from "../api/main/CommonLocator"
 import stream from "mithril/stream"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 
 export interface PaypalButtonAttrs {
 	data: Pick<UpgradeSubscriptionData, "accountingInfo">
@@ -17,7 +18,7 @@ export interface PaypalButtonAttrs {
 }
 
 export class PaypalButton implements Component<PaypalButtonAttrs> {
-	private _entityEventListener: entityUpdateUtils.EntityEventsListener
+	private _entityEventListener: EntityEventsListener
 	private _isPaypalLinked = stream(false)
 
 	constructor({ attrs }: Vnode<PaypalButtonAttrs>) {
@@ -26,8 +27,8 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 		this._entityEventListener = {
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
-					if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.AccountingInfoTypeRef, update)) {
-						return locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
+					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+						return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
 							attrs.data.accountingInfo = newAccountingInfo
 							this._isPaypalLinked(newAccountingInfo.paypalBillingAgreement != null)
 							if (this._isPaypalLinked()) attrs.oncomplete?.()
@@ -36,7 +37,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 					}
 				}).then(noOp)
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 	}
 

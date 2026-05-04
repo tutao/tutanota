@@ -53,7 +53,7 @@ import {
 	tokenize,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdPart, generatedIdToTimestamp, listIdPart, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
+import { elementIdPart, generatedIdToTimestamp, listIdPart, TypeRef } from "@tutao/meta"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -73,7 +73,7 @@ import type {
 } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "@tutao/app-env"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
-import type { BrowserData } from "../../../app-env/boot/ClientConstants.js"
+import type { BrowserData } from "@tutao/app-env"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
 	appendBinaryBlocks,
@@ -102,6 +102,7 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 } from "../../../common/api/worker/search/IndexEncryptionUtils"
+import { ContactList } from "@tutao/entities/tutanota"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -944,7 +945,7 @@ export class IndexerCore {
 		}
 	}
 
-	async areContactsIndexed(contactList: tutanotaTypeRefs.ContactList): Promise<boolean> {
+	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
 		const t = await this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)

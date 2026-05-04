@@ -1,33 +1,32 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
+import { EntityClient } from "../../../network/EntityClient"
+import { ConversationPrefProvider } from "../view/ConversationViewModel"
+import { assertMainOrNode } from "@tutao/app-env"
+import { assertNotNull, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
+import { ListLoadingState, ListState } from "../../../ui/base/List"
+import Stream from "mithril/stream"
+import { MailModel } from "./MailModel"
+import { ListFetchResult } from "../../../ui/base/ListUtils"
+import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { ProcessInboxHandler } from "./ProcessInboxHandler"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
+import { isExpectedErrorForSynchronization, isOfflineError } from "@tutao/rest-client/error"
+import { Mail, MailSet, MailSetEntry, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import {
 	compareNewestFirst,
 	CUSTOM_MAX_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
-	entityUpdateUtils,
-	getElementId,
 	EntityIdEncoding,
+	getElementId,
 	isSameId,
 	listIdPart,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
-import { EntityClient } from "../../../network/EntityClient"
-import { ConversationPrefProvider } from "../view/ConversationViewModel"
-import { assertMainOrNode, OperationType } from "@tutao/app-env"
-import { assertNotNull, first, last, memoizedWithHiddenArgument } from "@tutao/utils"
-import { ListLoadingState, ListState } from "../../../common/gui/base/List"
-import Stream from "mithril/stream"
-import { MailModel } from "./MailModel"
-import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
-import { ProcessInboxHandler } from "./ProcessInboxHandler"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
-import { isExpectedErrorForSynchronization, isOfflineError } from "../../../network/error/NetworkErrorUtils"
-import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
+	OperationType,
+} from "@tutao/meta"
 
 assertMainOrNode()
-
-type Mail = tutanotaTypeRefs.Mail
 
 /**
  * Handles fetching and resolving mail set entries into mails as well as handling sorting.
@@ -40,7 +39,7 @@ export class MailListModel implements MailSetListModel {
 	private readonly mailMap: Map<Id, LoadedMail> = new Map()
 
 	constructor(
-		private readonly mailSet: tutanotaTypeRefs.MailSet,
+		private readonly mailSet: MailSet,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
 		private readonly mailModel: MailModel,
@@ -120,7 +119,7 @@ export class MailListModel implements MailSetListModel {
 		return this.getLoadedMailByMailId(mailElementId)?.mail ?? null
 	}
 
-	getLabelsForMail(mail: Mail): ReadonlyArray<tutanotaTypeRefs.MailSet> {
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailSet> {
 		return this.getLoadedMailByMailInstance(mail)?.labels ?? []
 	}
 
@@ -151,8 +150,8 @@ export class MailListModel implements MailSetListModel {
 		(mails) => mails.map(({ mail }) => mail),
 	)
 
-	async handleEntityUpdate(update: entityUpdateUtils.EntityUpdateData) {
-		if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetTypeRef, update)) {
+	async handleEntityUpdate(update: EntityUpdateData) {
+		if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 			// If a label is modified, we want to update all mails that reference it, which requires linearly iterating
 			// through all mails. There are more efficient ways we could do this, such as by keeping track of each label
 			// we've retrieved from the database and just update that, but we want to avoid adding more maps that we
@@ -173,10 +172,7 @@ export class MailListModel implements MailSetListModel {
 					this._updateSingleMail(newMailEntry)
 				}
 			}
-		} else if (
-			entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailSetEntryTypeRef, update) &&
-			isSameId(this.mailSet.entries, update.instanceListId)
-		) {
+		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
 			// Adding/removing to this list (MailSetEntry doesn't have any fields to update, so we don't need to handle this)
 			if (update.operation === OperationType.DELETE) {
 				const mail = this.getLoadedMailByMailSetId(update.instanceId)
@@ -194,12 +190,12 @@ export class MailListModel implements MailSetListModel {
 					})
 				}
 			}
-		} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this.mailMap.get(update.instanceId)
 			if (mailItem != null && (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE)) {
-				const newMailData = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, [update.instanceListId, update.instanceId])
+				const newMailData = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
 				const labels = this.mailModel.getLabelsForMail(newMailData) // in case labels were added/removed
 				const newMailItem = {
 					...mailItem,
@@ -311,13 +307,7 @@ export class MailListModel implements MailSetListModel {
 		let complete = false
 
 		try {
-			const mailSetEntries = await this.entityClient.loadRange(
-				tutanotaTypeRefs.MailSetEntryTypeRef,
-				listIdPart(startingId),
-				elementIdPart(startingId),
-				count,
-				true,
-			)
+			const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(startingId), elementIdPart(startingId), count, true)
 
 			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
 			complete = mailSetEntries.length < count
@@ -354,22 +344,14 @@ export class MailListModel implements MailSetListModel {
 	 */
 	private async loadMailsFromCache(startId: IdTuple, count: number): Promise<LoadedMail[]> {
 		// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
-		// This is problematic for local-store where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
+		// This is problematic for offline where we might not have the full page of emails loaded (e.g. we delete part as it's too old, or we move emails
 		// around). Because of that cache will try to load additional items from the server in order to return `count` items. If it fails to load them,
 		// it will not return anything and instead will throw an error.
-		// This is generally fine but in case of local-store we want to display everything that we have cached. For that we fetch directly from the cache,
+		// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
 		// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 		// the items we have and also show that we couldn't load everything.
-		const mailSetEntries = await this.cacheStorage.provideFromRange(
-			tutanotaTypeRefs.MailSetEntryTypeRef,
-			listIdPart(startId),
-			elementIdPart(startId),
-			count,
-			true,
-		)
-		return await this.resolveMailSetEntries(mailSetEntries, (list, elements) =>
-			this.cacheStorage.provideMultiple(tutanotaTypeRefs.MailTypeRef, list, elements),
-		)
+		const mailSetEntries = await this.cacheStorage.provideFromRange(MailSetEntryTypeRef, listIdPart(startId), elementIdPart(startId), count, true)
+		return await this.resolveMailSetEntries(mailSetEntries, (list, elements) => this.cacheStorage.provideMultiple(MailTypeRef, list, elements))
 	}
 
 	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
@@ -378,7 +360,7 @@ export class MailListModel implements MailSetListModel {
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail | null> {
 		try {
-			const mailSetEntry = await this.entityClient.load(tutanotaTypeRefs.MailSetEntryTypeRef, id)
+			const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 			const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
 			this.updateMailMap(loadedMails)
 			return assertNotNull(loadedMails[0])
@@ -392,7 +374,7 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	private async resolveMailSetEntries(
-		mailSetEntries: tutanotaTypeRefs.MailSetEntry[],
+		mailSetEntries: MailSetEntry[],
 		mailProvider: (listId: Id, elementIds: Id[]) => Promise<Mail[]>,
 	): Promise<LoadedMail[]> {
 		return resolveMailSetEntries(mailSetEntries, mailProvider, this.mailModel)
@@ -416,7 +398,7 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	private readonly defaultMailProvider = (listId: Id, elements: Id[]): Promise<Mail[]> => {
-		return this.entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, listId, elements)
+		return this.entityClient.loadMultiple(MailTypeRef, listId, elements)
 	}
 
 	private readonly _items = memoizedWithHiddenArgument(

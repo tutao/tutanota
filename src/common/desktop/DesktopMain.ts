@@ -9,7 +9,7 @@ import { ElectronUpdater } from "./ElectronUpdater.js"
 import { Socketeer } from "./Socketeer"
 import { DesktopAlarmStorage } from "./sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "./sse/DesktopAlarmScheduler"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel"
 import { DesktopNetworkClient } from "./net/DesktopNetworkClient.js"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { DesktopTray } from "./tray/DesktopTray"
@@ -33,7 +33,9 @@ import { WebDialogController } from "./WebDialog.js"
 import path from "node:path"
 import { DesktopContextMenu } from "./DesktopContextMenu.js"
 import { DesktopNativePushFacade } from "./sse/DesktopNativePushFacade.js"
-import { CommonNativeFacade, DesktopGlobalDispatcher, ExposedNativeInterface, NativeCredentialsFacade, SqlCipherFacade } from "@tutao/native-bridge/common"
+import { CommonNativeFacade, NativeCredentialsFacade, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopGlobalDispatcher } from "../../native-bridge/common/generatedipc/dispatchers"
+import { ExposedNativeInterface } from "../../native-bridge/common/NativeInterface.js"
 import { DispatcherFactory, FacadeHandler, RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { DesktopSettingsFacade } from "./config/DesktopSettingsFacade.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
@@ -56,7 +58,7 @@ import { makeDbPath } from "./db/DbUtils.js"
 import { DesktopCredentialsStorage } from "./db/DesktopCredentialsStorage.js"
 import { AppPassHandler } from "./credentials/AppPassHandler.js"
 import { SseClient } from "./sse/SseClient.js"
-import { TutaNotificationHandler } from "./sse/TutaNotificationHandler.js"
+import TutaNotificationHandler from "./sse/TutaNotificationHandler.js"
 import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
 import { DesktopSseDelay } from "./sse/reconnectDelay.js"
@@ -71,11 +73,11 @@ import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { ClientModelInfo } from "@tutao/typerefs"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "@tutao/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
+import { initClientModels } from "../ClientModelInfoInitializer"
 
 mp()
 
@@ -155,7 +157,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 const err: DesktopErrorHandler = new DesktopErrorHandler(desktopUtils)
 
 async function createComponents(): Promise<Components> {
-	const en = (await import("../../mail-app/translations/en.js")).default
+	const en = (await import("../../ui/translations/en.js")).default
 	lang.init(en)
 	preselectGnomeLibsecret(electron)
 	const secretStorage = new SafeStorageSecretStorage(electron, fs, path)
@@ -186,7 +188,8 @@ async function createComponents(): Promise<Components> {
 	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
 
 	const dateProvider = new DefaultDateProvider()
-	const clientModelInfo = ClientModelInfo.getInstance()
+	const clientModelInfo = initClientModels()
+
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
 	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially
 	const nativeInstancePipeline = new InstancePipeline(
@@ -194,7 +197,7 @@ async function createComponents(): Promise<Components> {
 		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
 		() => {
 			// Alarms are always encrypted using session keys by the client and never by the server.
-			// That is because, as they need to work local-store, they cannot rely on being able to load group keys.
+			// That is because, as they need to work offline, they cannot rely on being able to load group keys.
 			throw new ProgrammingError("trying to use group keys for alarm encryption")
 		},
 		SYMMETRIC_CIPHER_FACADE,

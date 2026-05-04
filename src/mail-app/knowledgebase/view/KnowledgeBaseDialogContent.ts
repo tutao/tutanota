@@ -1,19 +1,19 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { KnowledgeBaseModel } from "../model/KnowledgeBaseModel.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { KNOWLEDGEBASE_LIST_ENTRY_HEIGHT, KnowledgeBaseListEntry } from "./KnowledgeBaseListEntry.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { KnowledgeBaseEntryView } from "./KnowledgeBaseEntryView.js"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
-import { makeListSelectionChangedScrollHandler } from "../../../common/gui/base/GuiUtils.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { makeListSelectionChangedScrollHandler } from "../../../ui/base/GuiUtils.js"
 import { ofClass } from "@tutao/utils"
+import { EmailTemplate, KnowledgeBaseEntry } from "@tutao/entities/tutanota"
 
 export type KnowledgebaseDialogContentAttrs = {
-	readonly onTemplateSelect: (arg0: tutanotaTypeRefs.EmailTemplate) => void
+	readonly onTemplateSelect: (arg0: EmailTemplate) => void
 	readonly model: KnowledgeBaseModel
 }
 
@@ -111,7 +111,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		)
 	}
 
-	_renderListEntry(model: KnowledgeBaseModel, entry: tutanotaTypeRefs.KnowledgeBaseEntry): Children {
+	_renderListEntry(model: KnowledgeBaseModel, entry: KnowledgeBaseEntry): Children {
 		return m(".flex.flex-column.click.hoverable-list-item", [
 			m(
 				".flex",

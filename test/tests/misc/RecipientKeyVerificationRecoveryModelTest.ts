@@ -1,6 +1,6 @@
 import { RecipientKeyVerificationRecoveryModel } from "../../../src/common/misc/RecipientKeyVerificationRecoveryModel"
-import { KeyVerificationFacade } from "../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
-import { PublicIdentityKeyProvider } from "../../../src/network/crypto/facades/PublicIdentityKeyProvider"
+import { KeyVerificationFacade } from "../../../src/base/facades/lazy/KeyVerificationFacade"
+import { PublicIdentityKeyProvider } from "../../../src/base/crypto/PublicIdentityKeyProvider"
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel"
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"

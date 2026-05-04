@@ -1,23 +1,15 @@
 import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import {
-	AttributeModel,
-	ClientModelUntypedInstance,
-	ClientTypeModelResolver,
-	elementIdPart,
-	ServerModelUntypedInstance,
-	UntypedInstance,
-} from "@tutao/typerefs"
-import { DesktopConfigKey } from "../../../app-env/ConfigKeys"
+import { AttributeModel, ClientModelUntypedInstance, elementIdPart, hasError, ServerModelUntypedInstance, UntypedInstance } from "@tutao/meta"
+import { DesktopConfigKey } from "@tutao/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
-import { InstancePipeline } from "@tutao/instance-pipeline"
-import { hasError } from "@tutao/typerefs"
+import { ClientTypeModelResolver, InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../native-bridge/common/EncryptedAlarmNotification"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -101,9 +93,9 @@ export class DesktopAlarmStorage {
 		}
 	}
 
-	public async getNotificationSessionKey(notificationSessionKeys: Array<sysTypeRefs.NotificationSessionKey>): Promise<{
+	public async getNotificationSessionKey(notificationSessionKeys: Array<NotificationSessionKey>): Promise<{
 		sessionKey: AesKey
-		notificationSessionKey: sysTypeRefs.NotificationSessionKey
+		notificationSessionKey: NotificationSessionKey
 	} | null> {
 		for (const notificationSessionKey of notificationSessionKeys) {
 			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(notificationSessionKey.pushIdentifier)
@@ -117,7 +109,7 @@ export class DesktopAlarmStorage {
 		return null
 	}
 
-	async storeAlarm(alarm: sysTypeRefs.AlarmNotification): Promise<void> {
+	async storeAlarm(alarm: AlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
 		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === alarm.alarmInfo.alarmIdentifier)
 		const sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
@@ -169,18 +161,18 @@ export class DesktopAlarmStorage {
 		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, alarms)
 	}
 
-	async encryptAlarmNotification(an: sysTypeRefs.AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<UntypedInstance> {
+	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<UntypedInstance> {
 		let sk = newDeviceSessionKey
 		if (!newDeviceSessionKey) {
 			let notificationSessionKeyWrapper = await this.getNotificationSessionKey(an.notificationSessionKeys)
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(sysTypeRefs.AlarmNotificationTypeRef, an, sk)
+		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
 		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
 	}
 
-	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<sysTypeRefs.AlarmNotification> {
+	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
 		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance, this.typeModelResolver)
 		for (const currentNotificationSessionKey of encryptedAlarmNotification.getNotificationSessionKeys()) {
 			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(currentNotificationSessionKey.pushIdentifier)
@@ -193,8 +185,8 @@ export class DesktopAlarmStorage {
 			}
 
 			const sessionKey = decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
-			const decryptedAlarmNotification: sysTypeRefs.AlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
-				sysTypeRefs.AlarmNotificationTypeRef,
+			const decryptedAlarmNotification: AlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
+				AlarmNotificationTypeRef,
 				an as unknown as ServerModelUntypedInstance,
 				sessionKey,
 			)

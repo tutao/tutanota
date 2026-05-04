@@ -11,7 +11,7 @@ import {
 	rgbaToHex,
 	rgbToHex,
 	rgbToHSL,
-} from "../../../src/common/gui/base/Color.js"
+} from "../../../src/ui/base/Color.js"
 
 o.spec("color", () => {
 	o.test("hexToRGB 6digit", () => {

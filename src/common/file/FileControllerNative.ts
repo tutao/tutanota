@@ -1,13 +1,13 @@
-import { Dialog } from "../gui/base/Dialog.js"
-import { createReferencingInstance, DataFile, FileReference, tutanotaTypeRefs } from "@tutao/typerefs"
-import { ArchiveDataType, assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { assertMainOrNode, CancelledError, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, isTest, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
-import { assertOnlyFileReferences } from "../api/common/utils/FileUtils"
-import { CancelledError } from "@tutao/app-env"
-import type { NativeFileApp } from "@tutao/native-bridge/common"
+import type { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
-import { TransferId } from "../api/common/drive/DriveTypes"
+import { ArchiveDataType } from "@tutao/entities/sys"
+import { assertOnlyFileReferences, DataFile, File, FileReference } from "@tutao/entities/tutanota"
+import { TransferId } from "@tutao/entities/drive"
+import { createReferencingInstance } from "@tutao/entities/storage"
 
 assertMainOrNode()
 
@@ -19,7 +19,7 @@ export class FileControllerNative extends FileController {
 		blobFacade: BlobFacade,
 		private readonly fileApp: NativeFileApp,
 	) {
-		assert(isDesktop() || isAdminClient() || isApp() || env.mode === Mode.Test, "Don't make native file controller when not in native")
+		assert(isDesktop() || isAdminClient() || isApp() || isTest(), "Don't make native file controller when not in native")
 		super(blobFacade)
 	}
 
@@ -61,7 +61,7 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: tutanotaTypeRefs.File, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: File, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
 			archiveType,
 			createReferencingInstance(tutanotaFile),

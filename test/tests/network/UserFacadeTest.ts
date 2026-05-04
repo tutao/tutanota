@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { UserFacade } from "../../../src/network/UserFacade.js"
+import { UserFacade } from "../../../src/base/facades/UserFacade.js"
 import { KeyCache } from "../../../src/local-store/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
 import { aes256RandomKey, encryptKey } from "@tutao/crypto"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache
 	let facade: UserFacade
@@ -28,7 +28,7 @@ o.spec("UserFacadeTest", function () {
 
 	o("a user facade doesn't think it's logged in fully after receiving a user but no groupKeys", function () {
 		facade.setAccessToken("hello.")
-		facade.setUser({} as sysTypeRefs.User)
+		facade.setUser({} as User)
 		o(facade.isPartiallyLoggedIn()).equals(true)
 		o(facade.isFullyLoggedIn()).equals(false)
 	})
@@ -37,7 +37,7 @@ o.spec("UserFacadeTest", function () {
 		const distributionKey = aes256RandomKey()
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
-		const distributionUpdate = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, {
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: "userGroupId",
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
@@ -51,7 +51,7 @@ o.spec("UserFacadeTest", function () {
 		const distributionKey = aes256RandomKey()
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
-		const distributionUpdate = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, {
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: "userGroupId",
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
@@ -65,7 +65,7 @@ o.spec("UserFacadeTest", function () {
 		const distributionKey = aes256RandomKey()
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(newUserGroupKey, newUserGroupKey)
-		const distributionUpdate = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, {
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: "userGroupId",
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
@@ -81,7 +81,7 @@ o.spec("UserFacadeTest", function () {
 		const newUserGroupKey = aes256RandomKey()
 
 		const legacyDistributionEncUserGroupKey = encryptKey(legacyDistributionKey, newUserGroupKey)
-		const distributionUpdate = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, {
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: "userGroupId",
 			distributionEncUserGroupKey: legacyDistributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
@@ -96,7 +96,7 @@ o.spec("UserFacadeTest", function () {
 		const newUserGroupKey = aes256RandomKey()
 
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
-		const distributionUpdate = createTestEntity(sysTypeRefs.UserGroupKeyDistributionTypeRef, {
+		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: "userGroupId",
 			distributionEncUserGroupKey: distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",

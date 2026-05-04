@@ -1,11 +1,11 @@
 import type { LoginController } from "../api/main/LoginController"
-import { Dialog } from "../gui/base/Dialog"
-import { generatedIdToTimestamp, getCustomerApprovalStatus, sysTypeRefs } from "@tutao/typerefs"
-import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { generatedIdToTimestamp } from "../../meta"
+import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "../../ui/utils/LanguageViewModel"
 import * as restError from "@tutao/rest-client/error"
-import { CancelledError } from "@tutao/app-env"
+import { ApprovalStatus, CancelledError } from "@tutao/app-env"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
 import { noOp, ofClass } from "@tutao/utils"
 import { showUserError } from "./ErrorHandlerImpl"
@@ -16,10 +16,11 @@ import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { deviceConfig } from "./DeviceConfig"
-import { CacheMode } from "@tutao/network"
-import { ApprovalStatus, AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "@tutao/app-env"
+import { CacheMode } from "../../network/EntityRestClient"
+import { AvailablePlans, AvailablePlanType, Customer, NewBusinessPlans, SubscriptionType } from "@tutao/entities/sys"
+import { getCustomerApprovalStatus } from "../subscription/utils/SubscriptionUtils"
 
-function getAccountAgeInMs(customer: sysTypeRefs.Customer) {
+function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
 }
 

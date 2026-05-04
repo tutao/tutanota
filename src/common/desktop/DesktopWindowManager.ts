@@ -7,7 +7,7 @@ import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { DesktopContextMenu } from "./DesktopContextMenu"
 import { log } from "./DesktopLog"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
-import { DesktopConfigEncKey, DesktopConfigKey } from "../../app-env/ConfigKeys"
+import { DesktopConfigEncKey, DesktopConfigKey } from "@tutao/app-env"
 import { isRectContainedInRect } from "./DesktopUtils"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
 import { ElectronExports } from "./ElectronExportTypes"
@@ -16,7 +16,7 @@ import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 
 import { SseInfo } from "./sse/SseInfo.js"
 import { debounce, LazyLoaded } from "@tutao/utils"
-import { lang } from "../misc/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 
 const TAG = "[DesktopWindowManager]"
 

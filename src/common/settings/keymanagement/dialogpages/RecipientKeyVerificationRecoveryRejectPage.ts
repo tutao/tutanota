@@ -1,11 +1,11 @@
 import m, { Component, Vnode } from "mithril"
-import { lang } from "../../../misc/LanguageViewModel"
-import { TitleSection } from "../../../gui/TitleSection"
-import { Icons } from "../../../gui/base/icons/Icons"
-import { theme } from "../../../gui/theme"
-import { Card } from "../../../gui/base/Card"
-import { ExternalLink } from "../../../gui/base/ExternalLink"
-import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { TitleSection } from "../../../../ui/TitleSection"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
+import { Card } from "../../../../ui/base/Card"
+import { ExternalLink } from "../../../../ui/base/ExternalLink"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 
 type VerificationErrorRejectPageAttrs = {
 	contactMailAddress: string

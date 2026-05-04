@@ -1,14 +1,14 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import type { LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
+import type { LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { lang } from "../../misc/LanguageViewModel"
+import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import { CustomColorEditorPreview } from "./CustomColorEditorPreview"
 import { downcast } from "@tutao/utils"
-import { BaseThemeId } from "../../gui/theme"
+import { BaseThemeId } from "../../../ui/theme"
 
 export type SimpleCustomColorEditorAttrs = {
 	model: CustomColorsEditorViewModel

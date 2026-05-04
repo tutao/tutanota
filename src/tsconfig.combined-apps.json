@@ -24,7 +24,7 @@
 			"path": "tsconfig.utils.json"
 		},
 		{
-			"path": "tsconfig.crypto.json"
+			"path": "tsconfig.crypto-primitives.json"
 		},
 		{
 			"path": "tsconfig.usagetests.json"
@@ -33,10 +33,10 @@
 			"path": "tsconfig.rest-client.json"
 		},
 		{
-			"path": "tsconfig.network.json"
+			"path": "tsconfig.base.json"
 		},
 		{
-			"path": "tsconfig.typerefs.json"
+			"path": "tsconfig.meta.json"
 		},
 		{
 			"path": "tsconfig.instance-pipeline.json"
@@ -46,6 +46,9 @@
 		},
 		{
 			"path": "tsconfig.local-store.json"
+		},
+		{
+			"path": "tsconfig.ui.json"
 		}
 	]
 }

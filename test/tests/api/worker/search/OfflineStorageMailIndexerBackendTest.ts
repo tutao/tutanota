@@ -5,8 +5,9 @@ import { matchers, object, verify, when } from "testdouble"
 import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupType } from "../../../../../src/app-env"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
+import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { GroupType } from "@tutao/entities/sys"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence
@@ -113,9 +114,9 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 
 	function makeMailData(): MailWithDetailsAndAttachments {
 		return {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			mail: createTestEntity(MailTypeRef),
+			mailDetails: createTestEntity(MailDetailsTypeRef),
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 	}
 

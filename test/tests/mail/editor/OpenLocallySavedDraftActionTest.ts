@@ -4,17 +4,18 @@ import { matchers, object, verify, when } from "testdouble"
 import { MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { EntityClient } from "../../../../src/network/EntityClient"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer"
-import type { Dialog } from "../../../../src/common/gui/base/Dialog"
+import type { Dialog } from "../../../../src/ui/base/Dialog"
 import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/common/api/worker/facades/lazy/AutosaveFacade"
+import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "@tutao/app-env"
 
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction
 
-	let mail: tutanotaTypeRefs.Mail
+	let mail: Mail
 	let autosaveFacade: AutosaveFacade
 	let mailboxModel: MailboxModel
 	let entityClient: EntityClient
@@ -23,7 +24,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 	o.beforeEach(() => {
 		autosaveFacade = object()
-		mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		mail = createTestEntity(MailTypeRef, {
 			_id: ["mail list", "mail id"],
 			state: MailState.DRAFT,
 			mailDetailsDraft: ["listId", "elementId"],
@@ -103,7 +104,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		} satisfies LocalAutosavedDraftData
 
 		when(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData)).thenResolve(null)
-		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(mail)
+		when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(mail)
 		when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
 		await action._loadAutosavedDraft()
 
@@ -136,7 +137,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 		const dialog: Dialog = object()
 		when(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData)).thenResolve(dialog)
-		when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(mail)
+		when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(mail)
 		when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
 		await action._loadAutosavedDraft()
 
@@ -149,7 +150,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 	o.spec("locally saved draft with set mail id but mail is no longer editable draft", () => {
 		o.test("draft is already sent", async () => {
-			const draftQueuedForSend = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const draftQueuedForSend = createTestEntity(MailTypeRef, {
 				_id: ["mail list", "mail id"],
 				state: MailState.SENDING,
 				mailDetails: ["listId", "elementId"],
@@ -174,7 +175,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 			} satisfies LocalAutosavedDraftData
 
 			when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
+			when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
 			await action._loadAutosavedDraft()
 
 			verify(autosaveFacade.clearAutosavedDraftData())
@@ -185,7 +186,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		})
 
 		o.test("draft is queued to be sent", async () => {
-			const draftQueuedForSend = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const draftQueuedForSend = createTestEntity(MailTypeRef, {
 				_id: ["mail list", "mail id"],
 				state: MailState.SENDING,
 				mailDetailsDraft: ["listId", "elementId"],
@@ -210,7 +211,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 			} satisfies LocalAutosavedDraftData
 
 			when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
+			when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
 			await action._loadAutosavedDraft()
 
 			verify(autosaveFacade.clearAutosavedDraftData())
@@ -221,7 +222,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		})
 
 		o.test("draft is scheduled to be sent later", async () => {
-			const draftQueuedForSend = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const draftQueuedForSend = createTestEntity(MailTypeRef, {
 				_id: ["mail list", "mail id"],
 				state: MailState.DRAFT,
 				mailDetailsDraft: ["listId", "elementId"],
@@ -247,7 +248,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 			} satisfies LocalAutosavedDraftData
 
 			when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
+			when(entityClient.load(MailTypeRef, draftData.mailId!)).thenResolve(draftQueuedForSend)
 			await action._loadAutosavedDraft()
 
 			verify(autosaveFacade.clearAutosavedDraftData())

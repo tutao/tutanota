@@ -1,29 +1,29 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../gui/base/Dialog"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { Dialog } from "../../../ui/base/Dialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { locator } from "../../api/main/CommonLocator"
 import { BOX_MARGIN, BuyOptionBox } from "../BuyOptionBox"
-import { ButtonType } from "../../gui/base/Button.js"
+import { ButtonType } from "../../../ui/base/Button.js"
 import { getPreconditionFailedPaymentMsg } from "../utils/SubscriptionUtils"
 import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCardUtils"
-import type { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
-import { isIOSApp, Keys, PaymentMethodType, PlanType } from "@tutao/app-env"
-import { lang, Translation } from "../../misc/LanguageViewModel"
+import { isIOSApp, Keys } from "@tutao/app-env"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import * as restError from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/utils"
 import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { UpgradePriceType } from "../FeatureListProvider"
-import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { px } from "../../gui/size"
-import { Icon, IconSize } from "../../gui/base/Icon"
-import { Icons } from "../../gui/base/icons/Icons"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { MessageBanner } from "../../gui/base/MessageBanner"
+import { TranslationKeyType } from "../../../ui/utils/TranslationKey.js"
+import { px } from "../../../ui/size"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { MessageBanner } from "../../../ui/base/MessageBanner"
+import { GiftCard, GiftCardOption, GiftCardService, GiftCardTypeRef, PaymentMethodType, PlanType } from "@tutao/entities/sys"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -32,14 +32,14 @@ class PurchaseGiftCardModel {
 		private readonly config: {
 			purchaseLimit: number
 			purchasePeriodMonths: number
-			availablePackages: Array<sysTypeRefs.GiftCardOption>
+			availablePackages: Array<GiftCardOption>
 			selectedPackage: number
 			revolutionaryPrice: number
 			globalCampaignActive: boolean
 		},
 	) {}
 
-	get availablePackages(): ReadonlyArray<sysTypeRefs.GiftCardOption> {
+	get availablePackages(): ReadonlyArray<GiftCardOption> {
 		return this.config.availablePackages
 	}
 
@@ -67,14 +67,14 @@ class PurchaseGiftCardModel {
 		return this.config.globalCampaignActive
 	}
 
-	async purchaseGiftCard(): Promise<sysTypeRefs.GiftCard> {
+	async purchaseGiftCard(): Promise<GiftCard> {
 		if (!this.confirmed) {
 			throw new UserError("termsAcceptedNeutral_msg")
 		}
 
 		return locator.giftCardFacade
 			.generateGiftCard(this.message, this.availablePackages[this.selectedPackage].value)
-			.then((createdGiftCardId) => locator.entityClient.load(sysTypeRefs.GiftCardTypeRef, createdGiftCardId))
+			.then((createdGiftCardId) => locator.entityClient.load(GiftCardTypeRef, createdGiftCardId))
 			.catch((e) => this.handlePurchaseError(e))
 	}
 
@@ -110,7 +110,7 @@ class PurchaseGiftCardModel {
 
 interface GiftCardPurchaseViewAttrs {
 	model: PurchaseGiftCardModel
-	onGiftCardPurchased: (giftCard: sysTypeRefs.GiftCard) => void
+	onGiftCardPurchased: (giftCard: GiftCard) => void
 }
 
 class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
@@ -181,7 +181,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		]
 	}
 
-	async onBuyButtonPressed(model: PurchaseGiftCardModel, onPurchaseSuccess: (giftCard: sysTypeRefs.GiftCard) => void) {
+	async onBuyButtonPressed(model: PurchaseGiftCardModel, onPurchaseSuccess: (giftCard: GiftCard) => void) {
 		const giftCard = await showProgressDialog("loading_msg", model.purchaseGiftCard())
 		onPurchaseSuccess(giftCard)
 	}
@@ -269,12 +269,12 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 	}
 
 	const [giftCardInfo, customerInfo] = await Promise.all([
-		locator.serviceExecutor.get(sysServices.GiftCardService, null),
+		locator.serviceExecutor.get(GiftCardService, null),
 		locator.logins.getUserController().loadCustomerInfo(),
 	])
 
 	// User can't buy too many gift cards so we have to load their giftcards in order to check how many they ordered
-	const existingGiftCards = customerInfo.giftCards ? await locator.entityClient.loadAll(sysTypeRefs.GiftCardTypeRef, customerInfo.giftCards.items) : []
+	const existingGiftCards = customerInfo.giftCards ? await locator.entityClient.loadAll(GiftCardTypeRef, customerInfo.giftCards.items) : []
 
 	const sixMonthsAgo = new Date()
 	sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - parseInt(giftCardInfo.period))

@@ -1,20 +1,20 @@
 import m, { Children } from "mithril"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
-import { IconButton } from "../gui/base/IconButton.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { formatPrice } from "../subscription/utils/PriceUtils.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
-import { ListColumnWrapper } from "../gui/ListColumnWrapper.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { Button, ButtonType } from "../../ui/base/Button.js"
+import { ListColumnWrapper } from "../../ui/ListColumnWrapper.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { locator } from "../api/main/CommonLocator"
-import { copyToClipboard } from "../misc/ClipboardUtils.js"
+import { copyToClipboard } from "../../ui/utils/ClipboardUtils.js"
 import { mailLocator } from "../../mail-app/mailLocator.js"
-import { showInfoSnackbar } from "../gui/base/SnackBar.js"
+import { showInfoSnackbar } from "../../ui/base/SnackBar.js"
 import { LazyLoaded } from "@tutao/utils"
 import { AffiliateViewModel } from "./AffiliateViewModel.js"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 
 /**
  * Section in user settings to display the referral link and let users share it.
@@ -95,7 +95,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		// can be a noop because the referral code will never change once it was created
 		// we trigger creation in the constructor if there is no code yet
 	}

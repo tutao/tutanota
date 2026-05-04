@@ -1,17 +1,20 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ArchiveDataType, Mode } from "@tutao/app-env"
+import { Mode } from "@tutao/app-env"
 import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { NativeFileApp } from "../../../src/native-bridge/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
-import { FileReference } from "../../../src/common/api/common/utils/FileUtils.js"
+import { FileReference } from "@tutao/entities/tutanota"
 import { neverNull } from "@tutao/utils"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
 import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
 import * as restError from "@tutao/rest-client/error"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
-import { TransferId } from "../../../src/common/api/common/drive/DriveTypes"
+import { ArchiveDataType } from "../../../src/entities/sys"
+import { TransferId } from "../../../src/entities/drive/Utils"
+import { FileTypeRef } from "@tutao/entities/tutanota"
 
+import { BlobTypeRef } from "@tutao/entities/sys"
 const { anything, argThat } = matchers
 
 o.spec("FileControllerTest", function () {
@@ -33,8 +36,8 @@ o.spec("FileControllerTest", function () {
 
 		o("should download non-legacy file natively using the blob service", async function () {
 			const transferId = "abcd" as TransferId
-			const blobs = [createTestEntity(sysTypeRefs.BlobTypeRef)]
-			const file = createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+			const blobs = [createTestEntity(BlobTypeRef)]
+			const file = createTestEntity(FileTypeRef, {
 				blobs: blobs,
 				name: "test.txt",
 				mimeType: "plain/text",
@@ -60,8 +63,8 @@ o.spec("FileControllerTest", function () {
 		o.spec("download with connection errors", function () {
 			o("immediately no connection", async function () {
 				const testableFileController = new FileControllerNative(blobFacadeMock, fileAppMock)
-				const blobs = [createTestEntity(sysTypeRefs.BlobTypeRef)]
-				const file = createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+				const blobs = [createTestEntity(BlobTypeRef)]
+				const file = createTestEntity(FileTypeRef, {
 					blobs: blobs,
 					name: "test.txt",
 					mimeType: "plain/text",
@@ -78,14 +81,14 @@ o.spec("FileControllerTest", function () {
 			})
 			o("connection lost after 1 already downloaded attachment- already downloaded attachments are processed", async function () {
 				const testableFileController = new FileControllerNative(blobFacadeMock, fileAppMock)
-				const blobs = [createTestEntity(sysTypeRefs.BlobTypeRef)]
-				const fileWorks = createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+				const blobs = [createTestEntity(BlobTypeRef)]
+				const fileWorks = createTestEntity(FileTypeRef, {
 					blobs: blobs,
 					name: "works.txt",
 					mimeType: "plain/text",
 					_id: ["fileListId", "fileElementId"],
 				})
-				const fileNotWorks = createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+				const fileNotWorks = createTestEntity(FileTypeRef, {
 					blobs: blobs,
 					name: "broken.txt",
 					mimeType: "plain/text",
@@ -123,8 +126,8 @@ o.spec("FileControllerTest", function () {
 		})
 
 		o("should download non-legacy file non-natively using the blob service", async function () {
-			const blobs = [createTestEntity(sysTypeRefs.BlobTypeRef)]
-			const file = createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+			const blobs = [createTestEntity(BlobTypeRef)]
+			const file = createTestEntity(FileTypeRef, {
 				blobs: blobs,
 				name: "test.txt",
 				mimeType: "plain/text",

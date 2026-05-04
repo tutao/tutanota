@@ -1,8 +1,9 @@
-import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "@tutao/typerefs"
 import { Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { GetOrPutInstance } from "@tutao/instance-pipeline"
 import { Range } from "./OfflineStorage"
+import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "@tutao/meta"
+import { TypeRef } from "@tutao/meta"
 
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 

@@ -1,15 +1,22 @@
 import m from "mithril"
-import { Dialog, DialogType } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/app-env"
-import { formatDate } from "../misc/Formatter"
-import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
+import { Dialog, DialogType } from "../../ui/base/Dialog"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { assertMainOrNode, isApp } from "@tutao/app-env"
+import { formatDate } from "../../ui/utils/Formatter"
+import { HtmlEditor, HtmlEditorMode } from "../../ui/editor/HtmlEditor"
 import { neverNull } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { isApp } from "@tutao/app-env"
+import {
+	AccountingInfo,
+	createSignOrderProcessingAgreementData,
+	Customer,
+	GroupInfo,
+	OrderProcessingAgreement,
+	SignOrderProcessingAgreementService,
+} from "@tutao/entities/sys"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
@@ -34,9 +41,9 @@ const agreementTexts = {
 	},
 }
 
-export function showForSigning(customer: sysTypeRefs.Customer, accountingInfo: sysTypeRefs.AccountingInfo) {
+export function showForSigning(customer: Customer, accountingInfo: AccountingInfo) {
 	const signAction = (dialog: Dialog) => {
-		let data = sysTypeRefs.createSignOrderProcessingAgreementData({
+		let data = createSignOrderProcessingAgreementData({
 			version: version,
 			customerAddress: addressEditor.getValue(),
 		})
@@ -44,12 +51,12 @@ export function showForSigning(customer: sysTypeRefs.Customer, accountingInfo: s
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")
 		} else {
-			locator.serviceExecutor.post(sysServices.SignOrderProcessingAgreementService, data).then(() => dialog.close())
+			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data).then(() => dialog.close())
 		}
 	}
 
 	const version = "1_" + (lang.code === "de" ? "de" : "en")
-	const addressEditor = new HtmlEditor()
+	const addressEditor = new HtmlEditor(getHtmlSanitizer())
 		.setMinHeight(120)
 		.showBorders()
 		.setPlaceholderId("contractor_label")
@@ -109,7 +116,7 @@ function cleanupPrintElement() {
 		.join(" ")
 }
 
-export function showForViewing(agreement: sysTypeRefs.OrderProcessingAgreement, signerUserGroupInfo: sysTypeRefs.GroupInfo) {
+export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
 	Dialog.showActionDialog({
 		title: "orderProcessingAgreement_label",
 		okAction: !isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,

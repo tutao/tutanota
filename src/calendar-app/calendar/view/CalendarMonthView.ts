@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { layout_size, px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../ui/size"
 import { EventTextTimeOption, Keys, WeekStart } from "@tutao/app-env"
 import {
 	CalendarDay,
@@ -13,13 +13,13 @@ import {
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
 import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/utils"
-import { styles } from "../../../common/gui/styles"
+import { styles } from "../../../ui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
-import { colorForBg, getPosAndBoundsFromMouseEvent, normalizeColorHex } from "../../../common/gui/base/GuiUtils"
+import { colorForBg, getPosAndBoundsFromMouseEvent, normalizeColorHex } from "../../../ui/base/GuiUtils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import {
@@ -37,14 +37,14 @@ import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { Time } from "../../../common/calendar/date/Time.js"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { PageView } from "../../../common/gui/base/PageView.js"
+import { PageView } from "../../../ui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
+import { getSafeAreaInsetBottom } from "../../../ui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
+import { isModifierKeyPressed, Key } from "../../../ui/utils/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
-import { theme } from "../../../common/gui/theme"
+import { theme } from "../../../ui/theme"
 import { isAppleDevice, isIOSApp } from "@tutao/app-env"
 
 type CalendarMonthAttrs = {

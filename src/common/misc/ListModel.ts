@@ -1,4 +1,4 @@
-import { ListLoadingState, ListState } from "../gui/base/List.js"
+import { ListLoadingState, ListState } from "../../ui/base/List.js"
 import {
 	assertNonNull,
 	defer,
@@ -20,9 +20,10 @@ import {
 } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { ListFetchResult, PageSize } from "../gui/base/ListUtils.js"
+import { ListFetchResult, PageSize } from "../../ui/base/ListUtils.js"
 import { ListAutoSelectBehavior } from "./DeviceConfig.js"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+
+import { isOfflineError } from "@tutao/rest-client/error"
 
 /**
  * Specifies methods for retrieving items, fetching items, and comparing items for a ListModel.
@@ -293,7 +294,7 @@ export class ListModel<ItemType, IdType> {
 			!shouldStop() &&
 			// if we are done loading, stop
 			this.rawState.loadingStatus !== ListLoadingState.Done &&
-			// if we are local-store, stop
+			// if we are offline, stop
 			this.rawState.loadingStatus !== ListLoadingState.ConnectionLost
 		) {
 			await this.loadMore()

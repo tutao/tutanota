@@ -1,18 +1,25 @@
 import { locator } from "../../api/main/CommonLocator.js"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import {
+	createAdAttribution,
+	createClientPerformanceInfo,
+	createRegistrationCaptchaServiceGetData,
+	createTimelockCaptchaGetIn,
+	RegistrationCaptchaService,
+	TimelockCaptchaGetOut,
+	TimelockCaptchaService,
+} from "@tutao/entities/sys"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { defer } from "@tutao/utils"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
-import { client } from "../../../app-env/boot/ClientDetector.js"
+import { client, isIOSApp } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
-import { isIOSApp } from "@tutao/app-env"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }
@@ -70,8 +77,8 @@ export async function runCaptchaFlow({
 			}
 
 			captchaReturn = await locator.serviceExecutor.get(
-				sysServices.RegistrationCaptchaService,
-				sysTypeRefs.createRegistrationCaptchaServiceGetData({
+				RegistrationCaptchaService,
+				createRegistrationCaptchaServiceGetData({
 					campaignToken: campaignToken,
 					mailAddress,
 					signupToken: deviceConfig.getSignupToken(),
@@ -81,7 +88,7 @@ export async function runCaptchaFlow({
 					language: lang.languageTag,
 					isAutomatedBrowser: client.isAutomatedBrowser,
 					adAttribution: attributionToken
-						? sysTypeRefs.createAdAttribution({
+						? createAdAttribution({
 								attributionId: attributionToken,
 								attributionType: AdAttributionType.IOS.toString(),
 							})
@@ -140,15 +147,14 @@ export async function runCaptchaFlow({
 	})
 }
 
-export function solvePowChallengeInWorker(serviceReturn: sysTypeRefs.TimelockCaptchaGetOut) {
+export function solvePowChallengeInWorker(serviceReturn: TimelockCaptchaGetOut) {
 	const challenge: PowChallengeParameters = {
 		base: BigInt(serviceReturn.base),
 		difficulty: Number(serviceReturn.difficulty),
 		modulus: BigInt(serviceReturn.modulus),
 	}
 
-	const { prefixWithoutFile } = window.tutao.appState
-	const worker = new Worker(prefixWithoutFile + "/pow-worker.js", { type: "module" })
+	const worker = new Worker("/pow-worker.js", { type: "module" })
 	const { promise, resolve, reject } = defer<PowSolution>()
 
 	worker.onmessage = (msg) => {
@@ -169,12 +175,12 @@ export function solvePowChallengeInWorker(serviceReturn: sysTypeRefs.TimelockCap
 export async function runPowChallenge(signupToken: string): Promise<PowSolution> {
 	const powWorker = await loadPowWorker()
 
-	const data = sysTypeRefs.createTimelockCaptchaGetIn({
+	const data = createTimelockCaptchaGetIn({
 		signupToken,
-		deviceInfo: sysTypeRefs.createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
+		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
-	const ret = await locator.serviceExecutor.get(sysServices.TimelockCaptchaService, data)
+	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
 	return await powWorker.solveChallenge({
 		base: BigInt(ret.base),
 		difficulty: Number(ret.difficulty),
@@ -183,8 +189,7 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 }
 
 export async function loadPowWorker(): Promise<PowWorker> {
-	const { prefixWithoutFile } = window.tutao.appState
-	const worker = new Worker(prefixWithoutFile + "/pow-worker.js", { type: "module" })
+	const worker = new Worker("/pow-worker.js", { type: "module" })
 	const { promise, resolve, reject } = defer<PowWorker>()
 
 	worker.onmessage = (msg) => {

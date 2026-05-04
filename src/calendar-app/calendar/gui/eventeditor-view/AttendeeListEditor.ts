@@ -1,36 +1,35 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
-import { ToggleButton } from "../../../../common/gui/base/buttons/ToggleButton.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { CalendarAttendeeStatus, UpgradePromptType } from "@tutao/app-env"
+import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { UpgradePromptType } from "@tutao/app-env"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
-import { theme } from "../../../../common/gui/theme.js"
-import { IconButton } from "../../../../common/gui/base/IconButton.js"
-import { component_size, px, size } from "../../../../common/gui/size.js"
+import { theme } from "../../../../ui/theme.js"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { component_size, px, size } from "../../../../ui/size.js"
 import { CalendarEventWhoModel } from "../eventeditor-model/CalendarEventWhoModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { CalendarEventModel, CalendarOperation } from "../eventeditor-model/CalendarEventModel.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationModel.js"
-import { Dialog } from "../../../../common/gui/base/Dialog.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
 
 import { AttendingItem, calendarAttendeeStatusText, createAttendingItems } from "../CalendarGuiUtils.js"
-import { Card } from "../../../../common/gui/base/Card.js"
-import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
+import { Card } from "../../../../ui/base/Card.js"
+import { Select, SelectAttributes } from "../../../../ui/base/Select.js"
 import stream from "mithril/stream"
 import { OrganizerSelectItem } from "./CalendarEventEditView.js"
 import { GuestPicker } from "../pickers/GuestPicker.js"
-import { IconMessageBox } from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { PasswordInput } from "../../../../common/gui/PasswordInput.js"
-import { Switch } from "../../../../common/gui/base/Switch.js"
-import { Divider } from "../../../../common/gui/Divider.js"
+import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox.js"
+import { PasswordInput } from "../../../../common/misc/passwords/PasswordInput.js"
+import { Switch } from "../../../../ui/base/Switch.js"
+import { Divider } from "../../../../ui/Divider.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils"
-import { AccountType } from "@tutao/app-env"
+import { cleanMailAddress } from "@tutao/utils"
+import { CalendarAttendeeStatus, createEncryptedMailAddress, RecipientType } from "@tutao/entities/tutanota"
+import { AccountType } from "@tutao/entities/sys"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */
@@ -140,7 +139,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							} else {
 								const name = contact != null ? getContactDisplayName(contact) : ""
 								const cleanAddress = cleanMailAddress(address)
-								whoModel.addAttendee(tutanotaTypeRefs.createEncryptedMailAddress({ address: cleanAddress, name }))
+								whoModel.addAttendee(createEncryptedMailAddress({ address: cleanAddress, name }))
 							}
 						},
 						search: recipientsSearch,

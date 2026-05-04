@@ -1,56 +1,56 @@
 import m, { Children } from "mithril"
-import {
-	AccountType,
-	assertMainOrNode,
-	AvailablePlans,
-	countryList,
-	isIOSApp,
-	NewPaidPlans,
-	PaymentMethodType,
-	PostingType,
-	ProgrammingError,
-	UpgradePromptType,
-} from "@tutao/app-env"
+import { assertMainOrNode, isIOSApp, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
-import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
-import {
-	accountingServices,
-	accountingTypeRefs,
-	entityUpdateUtils,
-	GENERATED_MAX_ID,
-	getDefaultPaymentMethod,
-	getPaymentMethodType,
-	sysServices,
-	sysTypeRefs,
-} from "@tutao/typerefs"
-import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
+import { InfoLink, lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { HtmlEditor, HtmlEditorMode } from "../../ui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
-import { Icons } from "../gui/base/icons/Icons"
-import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"
-import { ButtonType } from "../gui/base/Button.js"
-import { formatDate } from "../misc/Formatter"
+import { Icons } from "../../ui/base/icons/Icons"
+import { ColumnWidth, Table, TableLineAttrs } from "../../ui/base/Table.js"
+import { ButtonType } from "../../ui/base/Button.js"
+import { formatDate } from "../../ui/utils/Formatter"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog, DialogType } from "../gui/base/Dialog"
+import { Dialog, DialogType } from "../../ui/base/Dialog"
 import * as PaymentDataDialog from "./PaymentDataDialog"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
-import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
-import { DialogHeaderBar } from "../gui/base/DialogHeaderBar"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
-import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
+import { getDefaultPaymentMethod, getPaymentMethodType, getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
+import type { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
+import { DialogHeaderBar } from "../../ui/base/DialogHeaderBar"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander"
 import { locator } from "../api/main/CommonLocator"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
-import { TranslationKeyType } from "../misc/TranslationKey"
-import { IconButton } from "../gui/base/IconButton.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { TranslationKeyType } from "../../ui/utils/TranslationKey"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { client } from "../../app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../app-env/boot/ClientConstants.js"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
-import { createDropdown } from "../gui/base/Dropdown.js"
+import { createDropdown } from "../../ui/base/Dropdown.js"
+import {
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	AccountType,
+	AvailablePlans,
+	BookingTypeRef,
+	createDebitServicePutData,
+	Customer,
+	CustomerTypeRef,
+	DebitService,
+	InvoiceInfo,
+	InvoiceInfoTypeRef,
+	NewPaidPlans,
+	PaymentMethodType,
+} from "@tutao/entities/sys"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { GENERATED_MAX_ID } from "@tutao/meta"
+import { getByAbbreviation } from "../gui/CountryList"
+import { CustomerAccountPosting } from "@tutao/entities/accounting"
+import { CustomerAccountService } from "../../entities/accounting/Services"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -59,16 +59,16 @@ assertMainOrNode()
  */
 export class PaymentViewer implements UpdatableSettingsViewer {
 	private readonly invoiceAddressField: HtmlEditor
-	private customer: sysTypeRefs.Customer | null = null
-	private accountingInfo: sysTypeRefs.AccountingInfo | null = null
-	private postings: readonly accountingTypeRefs.CustomerAccountPosting[] = []
+	private customer: Customer | null = null
+	private accountingInfo: AccountingInfo | null = null
+	private postings: readonly CustomerAccountPosting[] = []
 	private outstandingBookingsPrice: number | null = null
 	private balance: number = 0
-	private invoiceInfo: sysTypeRefs.InvoiceInfo | null = null
+	private invoiceInfo: InvoiceInfo | null = null
 	private postingsExpanded: boolean = false
 
 	constructor() {
-		this.invoiceAddressField = new HtmlEditor()
+		this.invoiceAddressField = new HtmlEditor(getHtmlSanitizer())
 			.setMinHeight(140)
 			.showBorders()
 			.setMode(HtmlEditorMode.HTML)
@@ -93,9 +93,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this.customer = await locator.logins.getUserController().reloadCustomer()
 		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-		const accountingInfo = await locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
+		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 		this.updateAccountingInfoData(accountingInfo)
-		this.invoiceInfo = await locator.entityClient.load(sysTypeRefs.InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
 		m.redraw()
 		await this.loadPostings()
 	}
@@ -128,7 +128,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private getIconForPaymentMethodSetting(accountingInfo: sysTypeRefs.AccountingInfo | null) {
+	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
 		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
 			return Icons.InfoFilled
 		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
@@ -175,13 +175,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				return showManageThroughAppStoreDialog()
 			} else {
 				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-				const bookings = await locator.entityClient.loadRange(
-					sysTypeRefs.BookingTypeRef,
-					assertNotNull(customerInfo.bookings).items,
-					GENERATED_MAX_ID,
-					1,
-					true,
-				)
+				const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 				const lastBooking = last(bookings)
 				if (lastBooking == null) {
 					console.warn("No booking but payment method is AppStore?")
@@ -211,7 +205,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	private changeInvoiceData() {
 		if (this.accountingInfo) {
 			const accountingInfo = neverNull(this.accountingInfo)
-			const invoiceCountry = accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null
+			const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
 			InvoiceDataDialog.show(
 				neverNull(neverNull(this.customer).businessUse),
 				{
@@ -314,7 +308,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 						columnAlignments: [false, true, false],
 						showActionButtonColumn: true,
-						lines: this.postings.map((posting: accountingTypeRefs.CustomerAccountPosting) => this.postingLineAttrs(posting)),
+						lines: this.postings.map((posting: CustomerAccountPosting) => this.postingLineAttrs(posting)),
 					}),
 				),
 				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
@@ -322,7 +316,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private postingLineAttrs(posting: accountingTypeRefs.CustomerAccountPosting): TableLineAttrs {
+	private postingLineAttrs(posting: CustomerAccountPosting): TableLineAttrs {
 		return {
 			cells: () => [
 				{
@@ -363,7 +357,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async doPdfInvoiceDownload(posting: accountingTypeRefs.CustomerAccountPosting): Promise<unknown> {
+	private async doPdfInvoiceDownload(posting: CustomerAccountPosting): Promise<unknown> {
 		if (client.compressionStreamSupported()) {
 			return showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then((pdfInvoice) =>
 				locator.fileController.saveDataFile(pdfInvoice),
@@ -391,14 +385,14 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async doXrechnungInvoiceDownload(posting: accountingTypeRefs.CustomerAccountPosting) {
+	private async doXrechnungInvoiceDownload(posting: CustomerAccountPosting) {
 		return showProgressDialog(
 			"pleaseWait_msg",
 			locator.customerFacade.generateXRechnungInvoice(neverNull(posting.invoiceNumber)).then((xInvoice) => locator.fileController.saveDataFile(xInvoice)),
 		)
 	}
 
-	private updateAccountingInfoData(accountingInfo: sysTypeRefs.AccountingInfo) {
+	private updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this.accountingInfo = accountingInfo
 
 		this.invoiceAddressField.setValue(
@@ -429,7 +423,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private loadPostings(): Promise<void> {
-		return locator.serviceExecutor.get(accountingServices.CustomerAccountService, null).then((result) => {
+		return locator.serviceExecutor.get(CustomerAccountService, null).then((result) => {
 			this.postings = result.postings
 			this.outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
 			this.balance = Number(result.balance)
@@ -437,23 +431,23 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			await this.processEntityUpdate(update)
 		}
 	}
 
-	private async processEntityUpdate(update: entityUpdateUtils.EntityUpdateData): Promise<void> {
+	private async processEntityUpdate(update: EntityUpdateData): Promise<void> {
 		const { instanceId } = update
 
-		if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.AccountingInfoTypeRef, update)) {
-			const accountingInfo = await locator.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, instanceId)
+		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
 			this.updateAccountingInfoData(accountingInfo)
-		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 			this.customer = await locator.logins.getUserController().reloadCustomer()
 			m.redraw()
-		} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.InvoiceInfoTypeRef, update)) {
-			this.invoiceInfo = await locator.entityClient.load(sysTypeRefs.InvoiceInfoTypeRef, instanceId)
+		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
+			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, instanceId)
 			m.redraw()
 		}
 	}
@@ -473,7 +467,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return showProgressDialog(
 						"pleaseWait_msg",
 						locator.serviceExecutor
-							.put(sysServices.DebitService, sysTypeRefs.createDebitServicePutData({}))
+							.put(DebitService, createDebitServicePutData({}))
 							.catch(ofClass(restError.LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(ofClass(restError.PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
 							.catch(ofClass(restError.TooManyRequestsError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
@@ -565,7 +559,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 	})
 }
 
-function getPostingTypeText(posting: accountingTypeRefs.CustomerAccountPosting): string {
+function getPostingTypeText(posting: CustomerAccountPosting): string {
 	switch (posting.type) {
 		case PostingType.UsageFee:
 			return lang.get("invoice_label")

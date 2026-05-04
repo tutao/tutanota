@@ -1,13 +1,14 @@
-import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../ui/base/WizardDialog.js"
 import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import m, { Vnode, VnodeDOM } from "mithril"
-import { DropDownSelector, type DropDownSelectorAttrs, SelectorItem, SelectorItemList } from "../gui/base/DropDownSelector.js"
-import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor.js"
-import { theme } from "../gui/theme.js"
+import { DropDownSelector, type DropDownSelectorAttrs, SelectorItem, SelectorItemList } from "../../ui/base/DropDownSelector.js"
+import { HtmlEditor, HtmlEditorMode } from "../../ui/editor/HtmlEditor.js"
+import { theme } from "../../ui/theme.js"
 import { CATEGORY_TO_IMAGE, CATEGORY_TO_REASON, getCategoryType } from "./LeavingUserSurveyConstants.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { styles } from "../gui/styles.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { styles } from "../../ui/styles.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
 
 export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurveyData> {
 	private _dom: HTMLElement | null = null
@@ -16,7 +17,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 
 	constructor() {
 		let NUMBER_OF_EDITOR_LINES = styles.isDesktopLayout() ? 5 : 1
-		this.customReasonEditor = new HtmlEditor()
+		this.customReasonEditor = new HtmlEditor(getHtmlSanitizer())
 			.setStaticNumberOfLines(NUMBER_OF_EDITOR_LINES)
 			.showBorders()
 			.setPlaceholderId("enterDetails_msg")

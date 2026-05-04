@@ -1,14 +1,18 @@
-import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { OfflineMigration } from "../OfflineMigration"
 
-export const offline8: OfflineMigration = {
-	version: 8,
-	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+const VERSION = 8
+export class offline8 extends OfflineMigration {
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {
+		super(VERSION)
+	}
+
+	async migrate(storage: OfflineStorage) {
 		const { KeyVerificationTableDefinitions } = await import("../IdentityKeyTrustDatabase.js")
 
 		console.log("migrating from trusted_identities to identity_store")
-		await sqlCipherFacade.run(`DROP TABLE IF EXISTS trusted_identities`, [])
-		await sqlCipherFacade.run(KeyVerificationTableDefinitions.identity_store.definition, [])
-	},
+		await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS trusted_identities`, [])
+		await this.sqlCipherFacade.run(KeyVerificationTableDefinitions.identity_store.definition, [])
+	}
 }

@@ -1,27 +1,21 @@
-import {
-	ALLOWED_IMAGE_FORMATS,
-	assertMainOrNode,
-	ContactAddressType,
-	ConversationType,
-	EncryptionAuthStatus,
-	GroupType,
-	MailState,
-	MAX_ATTACHMENT_SIZE,
-	MAX_BASE64_IMAGE_SIZE,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-	TUTA_MAIL_ADDRESS_DOMAINS,
-} from "@tutao/app-env"
-import { Attachment, DataFile, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { ALLOWED_IMAGE_FORMATS, assertMainOrNode, EncryptionAuthStatus, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../../network/GroupUtils.js"
-import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, Language, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../../network/EntityClient.js"
 import { showFileChooser } from "../file/FileController.js"
-import { Dialog } from "../gui/base/Dialog.js"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { ImageHandler } from "../../ui/editor/Editor"
+import { CustomerPropertiesTypeRef, GroupInfo, User } from "../../entities/sys/TypeRefs"
+import { Contact, createContact, createContactMailAddress, Mail } from "../../entities/tutanota/TypeRefs"
+import { ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "@tutao/entities/tutanota"
+import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/entities/sys"
+import { DataFile } from "../../entities/tutanota/MailBundle"
+import { Attachment } from "../../entities/tutanota/Utils"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -32,11 +26,11 @@ export const LINE_BREAK = "<br>"
  * @param name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
  * @return The contact.
  */
-export function createNewContact(user: sysTypeRefs.User, mailAddress: string, name: string): tutanotaTypeRefs.Contact {
+export function createNewContact(user: User, mailAddress: string, name: string): Contact {
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
-	let contact = tutanotaTypeRefs.createContact({
+	let contact = createContact({
 		_ownerGroup: assertNotNull(
 			user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"called createNewContact as user without contact group mship",
@@ -44,7 +38,7 @@ export function createNewContact(user: sysTypeRefs.User, mailAddress: string, na
 		firstName: firstAndLastName.firstName,
 		lastName: firstAndLastName.lastName,
 		mailAddresses: [
-			tutanotaTypeRefs.createContactMailAddress({
+			createContactMailAddress({
 				address: mailAddress,
 				type: ContactAddressType.OTHER,
 				customTypeName: "",
@@ -88,7 +82,7 @@ export function getMailAddressDisplayText(name: string | null, mailAddress: stri
 	}
 }
 
-export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: sysTypeRefs.GroupInfo): Array<string> {
+export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
 	if (isUserMailbox(mailboxDetail)) {
 		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
 	} else {
@@ -96,7 +90,7 @@ export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, us
 	}
 }
 
-export function isAliasEnabledWithUser(mailboxDetail: MailboxDetail, userGroupInfo: sysTypeRefs.GroupInfo, aliasAddress: string): boolean {
+export function isAliasEnabledWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo, aliasAddress: string): boolean {
 	if (isUserMailbox(mailboxDetail)) {
 		return isAliasEnabledForGroupInfo(userGroupInfo, aliasAddress)
 	} else {
@@ -153,10 +147,6 @@ export function getMailboxName(logins: LoginController, mailboxDetails: MailboxD
 	}
 }
 
-export interface ImageHandler {
-	insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement
-}
-
 export function getTemplateLanguages(sortedLanguages: Array<Language>, entityClient: EntityClient, loginController: LoginController): Promise<Array<Language>> {
 	// External users do not have templates
 	if (!loginController.isInternalUserLoggedIn()) {
@@ -166,7 +156,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 	return loginController
 		.getUserController()
 		.reloadCustomer()
-		.then((customer) => entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 		.then((customerProperties) => {
 			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
 		})
@@ -233,7 +223,7 @@ export function isTutaMailAddress(mailAddress: string): boolean {
 	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
-export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: tutanotaTypeRefs.Mail): boolean {
+export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
 	switch (encryptionAuthStatus) {
 		// emails before tuta-crypt had no encryptionAuthStatus
 		case null:
@@ -261,7 +251,7 @@ export function isTutanotaTeamAddress(address: string): boolean {
 /**
  * Is this a tutao team member email or a system notification
  */
-export function isTutaTeamMail(mail: tutanotaTypeRefs.Mail): boolean {
+export function isTutaTeamMail(mail: Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		confidential &&
@@ -274,7 +264,7 @@ export function isTutaTeamMail(mail: tutanotaTypeRefs.Mail): boolean {
 /**
  * Is this a system notification?
  */
-export function isSystemNotification(mail: tutanotaTypeRefs.Mail): boolean {
+export function isSystemNotification(mail: Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		state === MailState.RECEIVED &&

@@ -1,16 +1,16 @@
-import { ClientModelInfo, ClientTypeModelResolver, entityUpdateUtils, sysTypeRefs, timestampToGeneratedId, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
+import { timestampToGeneratedId, TypeRef } from "../../../../../src/meta"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/app-env"
+import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
 import * as restError from "@tutao/rest-client/error"
 import o, { mock } from "@tutao/otest"
-import { createTestEntity } from "../../../TestUtils.js"
-import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
+import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { EventQueue, QueuedBatch } from "../../../../../src/network/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
 import { defer, downcast, freshVersioned, promiseMap } from "@tutao/utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV, VersionedKey } from "@tutao/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
-import { CacheInfo } from "../../../../../src/network/LoginFacade.js"
+import { CacheInfo } from "../../../../../src/base/facades/LoginFacade.js"
 import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
@@ -20,9 +20,13 @@ import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/Index
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLoaderFacade"
+import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade"
 import { DateProvider } from "../../../../../src/utils/DateProvider"
 import { ProgrammingError } from "@tutao/app-env"
+import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ClientTypeModelResolver, entityUpdateToUpdateData, EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
+import { OperationType } from "@tutao/meta"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {
@@ -33,7 +37,7 @@ const serverDateProvider: DateProvider = {
 		throw new ProgrammingError("not supported")
 	},
 }
-let contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
+let contactList = createTestEntity(ContactListTypeRef)
 contactList._ownerGroup = "ownerGroupId"
 contactList.contacts = "contactListId"
 
@@ -42,7 +46,7 @@ contactList.contacts = "contactListId"
 o.spec("IndexedDbIndexer", () => {
 	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
 
-	const noPatchesAndInstance: Pick<entityUpdateUtils.EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
+	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 		instance: null,
 		patches: null,
 		blobInstance: null,
@@ -62,7 +66,7 @@ o.spec("IndexedDbIndexer", () => {
 	let indexerTemplate: IndexedDbIndexer
 
 	o.beforeEach(function () {
-		clientTypeModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
+		clientTypeModelResolver = makePopulatedClientModelInfo()
 		key = aes256RandomKey()
 		iv = FIXED_IV
 		mailIndexer = object()
@@ -130,8 +134,8 @@ o.spec("IndexedDbIndexer", () => {
 			newGroups: [],
 		}
 
-		const user = createTestEntity(sysTypeRefs.UserTypeRef, {
-			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+		const user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: "user-group-id",
 			}),
 		})
@@ -145,7 +149,7 @@ o.spec("IndexedDbIndexer", () => {
 			when(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything())).thenResolve()
 			when(contactIndexer.indexFullContactList()).thenResolve()
 			when(contactIndexer.areContactsIndexed()).thenResolve(false)
-			when(entityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, matchers.anything())).thenResolve(contactList)
+			when(entityClient.loadRoot(ContactListTypeRef, matchers.anything())).thenResolve(contactList)
 
 			when(loadGroupData(user)).thenResolve(groupBatches)
 
@@ -186,7 +190,7 @@ o.spec("IndexedDbIndexer", () => {
 			t.put(GroupDataOS, "group-id", "some-data")
 
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
-			when(entityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, matchers.anything())).thenResolve(contactList)
+			when(entityClient.loadRoot(ContactListTypeRef, matchers.anything())).thenResolve(contactList)
 
 			when(loadGroupDiff(user)).thenResolve(groupDiff)
 
@@ -222,7 +226,7 @@ o.spec("IndexedDbIndexer", () => {
 			t.put(GroupDataOS, "group-id", "some-data")
 
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
-			when(entityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, matchers.anything())).thenResolve(contactList)
+			when(entityClient.loadRoot(ContactListTypeRef, matchers.anything())).thenResolve(contactList)
 
 			when(loadGroupDiff(user)).thenResolve(groupDiff)
 
@@ -249,19 +253,19 @@ o.spec("IndexedDbIndexer", () => {
 		const contactGroupId = "constant-group-id"
 		const deletedGroupId = "deleted-group-id"
 
-		const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const user = createTestEntity(UserTypeRef, {
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
 					group: mailGroupId,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Contact,
 					group: contactGroupId,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef),
+				createTestEntity(GroupMembershipTypeRef),
 			],
-			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				groupType: GroupType.User,
 				group: "user-group-id",
 			}),
@@ -301,7 +305,7 @@ o.spec("IndexedDbIndexer", () => {
 			let indexer = mock(indexerTemplate, (mock) => {
 				mock.disableMailIndexing = func()
 			})
-			let user = createTestEntity(sysTypeRefs.UserTypeRef)
+			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
 					{
@@ -318,7 +322,7 @@ o.spec("IndexedDbIndexer", () => {
 			let indexer = mock(indexerTemplate, (mock) => {
 				mock.disableMailIndexing = func()
 			})
-			let user = createTestEntity(sysTypeRefs.UserTypeRef)
+			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
 					{
@@ -335,7 +339,7 @@ o.spec("IndexedDbIndexer", () => {
 			let indexer = mock(indexerTemplate, (mock) => {
 				mock.disableMailIndexing = func()
 			})
-			let user = createTestEntity(sysTypeRefs.UserTypeRef)
+			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
 					{
@@ -350,7 +354,7 @@ o.spec("IndexedDbIndexer", () => {
 		})
 
 		o.test("do not index new mail groups", async function () {
-			let user = createTestEntity(sysTypeRefs.UserTypeRef)
+			let user = createTestEntity(UserTypeRef)
 			let groupBatches = []
 
 			const loadGroupData = func<IndexedDbIndexer["_loadGroupData"]>()
@@ -380,7 +384,7 @@ o.spec("IndexedDbIndexer", () => {
 
 		o.test("only init group data for non mail groups (do not index)", async function () {
 			let groupBatches = []
-			let user = createTestEntity(sysTypeRefs.UserTypeRef)
+			let user = createTestEntity(UserTypeRef)
 
 			const loadGroupData = func<IndexedDbIndexer["_loadGroupData"]>()
 			const initGroupData = func<IndexedDbIndexer["_initGroupData"]>()
@@ -410,26 +414,26 @@ o.spec("IndexedDbIndexer", () => {
 
 	o.spec("_loadGroupData", function () {
 		o.test("_loadGroup initializes with GeneratedId from recent timestamp when there is no entry", async function () {
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			const user = createTestEntity(UserTypeRef, {
 				memberships: [
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Mail,
 						group: "group-mail",
 					}),
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.MailingList,
 						group: "group-team",
 					}),
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Contact,
 						group: "group-contact",
 					}),
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Customer,
 						group: "group-customer",
 					}),
 				],
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.User,
 					group: "group-user",
 				}),
@@ -515,21 +519,21 @@ o.spec("IndexedDbIndexer", () => {
 			lastBatchId: lastCustomerBatch,
 		})
 
-		let user = createTestEntity(sysTypeRefs.UserTypeRef, {
+		let user = createTestEntity(UserTypeRef, {
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
 					group: mailGroupId,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.MailingList,
 					group: "group-team",
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Contact,
 					group: contactGroupId,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Customer,
 					group: customerGroupId,
 				}),
@@ -543,14 +547,14 @@ o.spec("IndexedDbIndexer", () => {
 		o.test("dispatches events to indexers and writes the timestamp", async function () {
 			const groupId = "group-id"
 			const batchId = "batch-id"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			const user = createTestEntity(UserTypeRef, {
 				memberships: [
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Mail,
 						group: groupId,
 					}),
 				],
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.User,
 					group: "user-group-id",
 				}),
@@ -569,10 +573,10 @@ o.spec("IndexedDbIndexer", () => {
 			function newUpdate<T>(typeRef: TypeRef<T>) {
 				return {
 					typeRef,
-				} as Partial<entityUpdateUtils.EntityUpdateData> as entityUpdateUtils.EntityUpdateData
+				} as Partial<EntityUpdateData> as EntityUpdateData
 			}
 
-			let events = [newUpdate(tutanotaTypeRefs.MailTypeRef), newUpdate(tutanotaTypeRefs.ContactTypeRef), newUpdate(sysTypeRefs.UserTypeRef)]
+			let events = [newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(UserTypeRef)]
 			const batch = {
 				events,
 				groupId,
@@ -590,14 +594,14 @@ o.spec("IndexedDbIndexer", () => {
 
 			const groupId = "group-mail"
 			const events = [
-				createTestEntity(sysTypeRefs.EntityUpdateTypeRef, {
-					typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+				createTestEntity(EntityUpdateTypeRef, {
+					typeId: MailTypeRef.typeId.toString(),
 				}),
-				createTestEntity(sysTypeRefs.EntityUpdateTypeRef, {
-					typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+				createTestEntity(EntityUpdateTypeRef, {
+					typeId: MailTypeRef.typeId.toString(),
 				}),
 			]
-			const entityUpdateData = await promiseMap(events, async (e) => await entityUpdateUtils.entityUpdateToUpdateData(e, null, null))
+			const entityUpdateData = await promiseMap(events, async (e) => await entityUpdateToUpdateData(e, null, null))
 			const transaction = await idbStub.createTransaction()
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
@@ -647,9 +651,9 @@ o.spec("IndexedDbIndexer", () => {
 
 		o.test("when receiving multiple events it dispatches both and records the batch twice", async function () {
 			const groupId = "group-id"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			const user = createTestEntity(UserTypeRef, {
 				memberships: [
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Mail,
 						group: groupId,
 					}),
@@ -666,9 +670,9 @@ o.spec("IndexedDbIndexer", () => {
 				mock.initDeferred.resolve()
 			})
 
-			const events1: entityUpdateUtils.EntityUpdateData[] = [
+			const events1: EntityUpdateData[] = [
 				{
-					typeRef: tutanotaTypeRefs.MailTypeRef,
+					typeRef: MailTypeRef,
 					operation: OperationType.CREATE,
 					instanceId: "id-1",
 					instanceListId: "list-id",
@@ -684,9 +688,9 @@ o.spec("IndexedDbIndexer", () => {
 				isInitialSyncDone: true,
 			}
 
-			const events2: entityUpdateUtils.EntityUpdateData[] = [
+			const events2: EntityUpdateData[] = [
 				{
-					typeRef: tutanotaTypeRefs.MailTypeRef,
+					typeRef: MailTypeRef,
 					operation: OperationType.CREATE,
 					instanceId: "id-2",
 					instanceListId: "list-id",
@@ -723,21 +727,21 @@ o.spec("IndexedDbIndexer", () => {
 			const testBatch: QueuedBatch = {
 				events: [
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.CREATE,
 						instanceId: "id-1",
 						instanceListId: "create",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.ContactTypeRef,
+						typeRef: ContactTypeRef,
 						operation: OperationType.CREATE,
 						instanceId: "id-2",
 						instanceListId: "create",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.CREATE,
 						instanceId: "id-3",
 						instanceListId: "create",
@@ -745,21 +749,21 @@ o.spec("IndexedDbIndexer", () => {
 					},
 
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.UPDATE,
 						instanceId: "id-4",
 						instanceListId: "update",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.ContactTypeRef,
+						typeRef: ContactTypeRef,
 						operation: OperationType.UPDATE,
 						instanceId: "id-5",
 						instanceListId: "update",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.UPDATE,
 						instanceId: "id-6",
 						instanceListId: "update",
@@ -767,21 +771,21 @@ o.spec("IndexedDbIndexer", () => {
 					},
 
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.DELETE,
 						instanceId: "id-7",
 						instanceListId: "delete",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.ContactTypeRef,
+						typeRef: ContactTypeRef,
 						operation: OperationType.DELETE,
 						instanceId: "id-8",
 						instanceListId: "delete",
 						...noPatchesAndInstance,
 					},
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						operation: OperationType.DELETE,
 						instanceId: "id-9",
 						instanceListId: "delete",
@@ -868,8 +872,8 @@ o.spec("IndexedDbIndexer", () => {
 
 	o.spec("init", function () {
 		let indexer: IndexedDbIndexer
-		let user = createTestEntity(sysTypeRefs.UserTypeRef, {
-			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+		let user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: "user-group-id",
 			}),
 		})
@@ -880,7 +884,7 @@ o.spec("IndexedDbIndexer", () => {
 			const transactionDouble = await idbStub.createTransaction()
 			transactionDouble.put(GroupDataOS, "key", "value")
 
-			when(entityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, user.userGroup.group)).thenResolve(contactList)
+			when(entityClient.loadRoot(ContactListTypeRef, user.userGroup.group)).thenResolve(contactList)
 
 			indexer = indexerTemplate
 		})
@@ -914,7 +918,7 @@ o.spec("IndexedDbIndexer", () => {
 			await indexer.fullLoginInit({ user })
 
 			verify(contactIndexer.indexFullContactList())
-			verify(entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts), { times: 0 })
+			verify(entityClient.loadAll(ContactTypeRef, contactList.contacts), { times: 0 })
 		})
 
 		o.test("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
@@ -934,8 +938,8 @@ o.spec("IndexedDbIndexer", () => {
 	o.spec("enable/disable mailIndexing", function () {
 		let indexer: IndexedDbIndexer
 		const userGroupId = "user-group-id"
-		let user = createTestEntity(sysTypeRefs.UserTypeRef, {
-			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+		let user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: userGroupId,
 				groupType: GroupType.User,
 			}),
@@ -980,9 +984,9 @@ o.spec("IndexedDbIndexer", () => {
 
 				// do wait until process will be called on mail indexer
 				const processDeferred = defer<void>()
-				const updates: entityUpdateUtils.EntityUpdateData[] = [
+				const updates: EntityUpdateData[] = [
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						instanceId: "instanceId",
 						instanceListId: "instanceListId",
 						operation: OperationType.CREATE,
@@ -1020,9 +1024,9 @@ o.spec("IndexedDbIndexer", () => {
 
 				// do wait until process will be called on extending mail indexer
 				const processDeferred = defer<void>()
-				const updates: entityUpdateUtils.EntityUpdateData[] = [
+				const updates: EntityUpdateData[] = [
 					{
-						typeRef: tutanotaTypeRefs.MailTypeRef,
+						typeRef: MailTypeRef,
 						instanceId: "instanceId",
 						instanceListId: "instanceListId",
 						operation: OperationType.CREATE,

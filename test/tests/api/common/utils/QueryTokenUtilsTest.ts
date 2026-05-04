@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { splitTextForHighlighting, splitQuery } from "../../../../../src/common/api/common/utils/QueryTokenUtils"
+import { splitTextForHighlighting, splitQuery } from "../../../../../src/ui/utils/QueryTokenUtils"
 
 o.spec("QueryTokenUtils", () => {
 	o.spec("splitQuery", () => {

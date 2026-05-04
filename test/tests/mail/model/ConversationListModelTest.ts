@@ -5,59 +5,71 @@ import {
 	CUSTOM_MIN_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
-	entityUpdateUtils,
 	GENERATED_MAX_ID,
 	getElementId,
 	getListId,
 	isSameId,
 	listIdPart,
-	sysTypeRefs,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
+} from "../../../../src/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
 import { EntityClient } from "../../../../src/network/EntityClient"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
-import { PageSize } from "../../../../src/common/gui/base/ListUtils"
+import { PageSize } from "../../../../src/ui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import * as restError from "@tutao/rest-client/error"
 import { assertNotNull, clamp, lastThrow, pad } from "@tutao/utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
-import { theme } from "../../../../src/common/gui/theme.js"
-import { ListLoadingState } from "../../../../src/common/gui/base/List"
+import { theme } from "../../../../src/ui/theme.js"
+import { ListLoadingState } from "../../../../src/ui/base/List"
 import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { ProcessInboxHandler } from "../../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem"
 import { WebsocketConnectivityModel } from "../../../../src/common/misc/WebsocketConnectivityModel"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
-import { MailSetKind, OperationType } from "../../../../src/app-env"
-import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
 
+import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
+import { MailSetKind } from "../../../../src/entities/tutanota"
+import {
+	Mail,
+	MailBoxTypeRef,
+	MailSet,
+	MailSetEntry,
+	MailSetEntryTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+	MailboxGroupRootTypeRef,
+	createMailSetEntry,
+} from "@tutao/entities/tutanota"
+import { OperationType } from "@tutao/meta"
+
+import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel
 
 	const mailboxDetail: MailboxDetail = {
-		mailbox: createTestEntity(tutanotaTypeRefs.MailBoxTypeRef),
-		mailGroupInfo: createTestEntity(sysTypeRefs.GroupInfoTypeRef),
-		mailGroup: createTestEntity(sysTypeRefs.GroupTypeRef),
-		mailboxGroupRoot: createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef),
+		mailbox: createTestEntity(MailBoxTypeRef),
+		mailGroupInfo: createTestEntity(GroupInfoTypeRef),
+		mailGroup: createTestEntity(GroupTypeRef),
+		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 	}
 
 	const mailSetEntriesListId = "entries"
 	const _ownerGroup = "me"
 
-	const labels: tutanotaTypeRefs.MailSet[] = [
-		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+	const labels: MailSet[] = [
+		createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "tutaPrimary"],
 			color: theme.primary,
 			folderType: MailSetKind.LABEL,
 			name: "Tuta Primary Label",
 			parentFolder: null,
 		}),
-		createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+		createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "tutaSecondary"],
 			color: theme.secondary,
 			folderType: MailSetKind.LABEL,
@@ -66,7 +78,7 @@ o.spec("ConversationListModel", () => {
 		}),
 	]
 
-	let mailSet: tutanotaTypeRefs.MailSet
+	let mailSet: MailSet
 	let conversationPrefProvider: ConversationPrefProvider
 	let entityClient: EntityClient
 	let mailModel: MailModel
@@ -75,7 +87,7 @@ o.spec("ConversationListModel", () => {
 	let connectivityModel: WebsocketConnectivityModel
 
 	o.beforeEach(() => {
-		mailSet = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+		mailSet = createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "mailFolderId"],
 			folderType: MailSetKind.CUSTOM,
 			name: "My Folder",
@@ -112,22 +124,17 @@ o.spec("ConversationListModel", () => {
 	}
 
 	// Creates a totalMails number of mails, grouping into a number of conversations equal to totalMails/mailsPerConversation
-	async function setUpTestData(
-		totalMails: number,
-		initialLabels: tutanotaTypeRefs.MailSet[],
-		offline: boolean,
-		mailsPerConversation: number,
-	): Promise<tutanotaTypeRefs.Mail[]> {
-		const mailSetEntries: tutanotaTypeRefs.MailSetEntry[] = []
-		const mails: tutanotaTypeRefs.Mail[][] = [[], [], [], [], [], [], [], [], [], []]
-		const allMails: tutanotaTypeRefs.Mail[] = []
+	async function setUpTestData(totalMails: number, initialLabels: MailSet[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
+		const mailSetEntries: MailSetEntry[] = []
+		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
+		const allMails: Mail[] = []
 
 		for (let i = 0; i < totalMails; i++) {
 			const mailBag = i % 10
 			const mailId: IdTuple = makeMailId(i)
 			const conversationId = "" + Math.floor(i / mailsPerConversation)
 
-			const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const mail = createTestEntity(MailTypeRef, {
 				_id: mailId,
 				sets: [mailSet._id, ...initialLabels.map((l) => l._id)],
 				conversationEntry: [conversationId, elementIdPart(mailId)],
@@ -137,7 +144,7 @@ o.spec("ConversationListModel", () => {
 			allMails.push(mail)
 
 			mailSetEntries.push(
-				tutanotaTypeRefs.createMailSetEntry({
+				createMailSetEntry({
 					_id: [mailSetEntriesListId, makeMailSetElementId(i)],
 					_ownerGroup,
 					_permissions: "1234",
@@ -146,8 +153,8 @@ o.spec("ConversationListModel", () => {
 			)
 		}
 
-		when(mailModel.getLabelsForMail(matchers.anything())).thenDo((mail: tutanotaTypeRefs.Mail) => {
-			const sets: tutanotaTypeRefs.MailSet[] = []
+		when(mailModel.getLabelsForMail(matchers.anything())).thenDo((mail: Mail) => {
+			const sets: MailSet[] = []
 			for (const set of mail.sets) {
 				const setToAdd = labels.find((label) => isSameId(label._id, set))
 				if (setToAdd) {
@@ -158,13 +165,7 @@ o.spec("ConversationListModel", () => {
 		})
 
 		// Ensures elements are loaded from the array in reverse order
-		async function getMailSetEntryMock(
-			_mailSetEntry: any,
-			_listId: Id,
-			startingId: Id,
-			count: number,
-			_reverse: boolean,
-		): Promise<tutanotaTypeRefs.MailSetEntry[]> {
+		async function getMailSetEntryMock(_mailSetEntry: any, _listId: Id, startingId: Id, count: number, _reverse: boolean): Promise<MailSetEntry[]> {
 			let endingIndex: number
 			if (startingId === CUSTOM_MAX_ID) {
 				endingIndex = mailSetEntries.length
@@ -177,15 +178,15 @@ o.spec("ConversationListModel", () => {
 			return mailSetEntries.slice(startingIndex, endingIndex).reverse()
 		}
 
-		async function getMailsMock(_mailTypeRef: any, mailBag: string, elements: Id[]): Promise<tutanotaTypeRefs.Mail[]> {
+		async function getMailsMock(_mailTypeRef: any, mailBag: string, elements: Id[]): Promise<Mail[]> {
 			const mailsInMailBag = mails[Number(mailBag)] ?? []
 			return mailsInMailBag.filter((mail) => elements.includes(getElementId(mail)))
 		}
 
-		when(cacheStorage.provideFromRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(
+		when(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(
 			getMailSetEntryMock,
 		)
-		when(cacheStorage.provideMultiple(tutanotaTypeRefs.MailTypeRef, matchers.anything(), matchers.anything())).thenDo(getMailsMock)
+		when(cacheStorage.provideMultiple(MailTypeRef, matchers.anything(), matchers.anything())).thenDo(getMailsMock)
 
 		if (offline) {
 			when(entityClient.loadRange(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReject(
@@ -195,10 +196,8 @@ o.spec("ConversationListModel", () => {
 				new restError.ConnectionError("sorry we are local-store"),
 			)
 		} else {
-			when(entityClient.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(
-				getMailSetEntryMock,
-			)
-			when(entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, matchers.anything(), matchers.anything())).thenDo(getMailsMock)
+			when(entityClient.loadRange(MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(getMailSetEntryMock)
+			when(entityClient.loadMultiple(MailTypeRef, matchers.anything(), matchers.anything())).thenDo(getMailsMock)
 		}
 
 		return allMails.reverse()
@@ -211,7 +210,7 @@ o.spec("ConversationListModel", () => {
 		for (const mail of model.mails) {
 			o.check(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
-		verify(cacheStorage.provideFromRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
+		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
 			times: 0,
 		})
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
@@ -229,7 +228,7 @@ o.spec("ConversationListModel", () => {
 		for (const mail of model.mails) {
 			o.check(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
-		verify(cacheStorage.provideFromRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
+		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
 			times: 1,
 		})
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
@@ -248,7 +247,7 @@ o.spec("ConversationListModel", () => {
 		for (const mail of model.mails) {
 			o.check(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
-		verify(cacheStorage.provideFromRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
+		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
 			times: 1,
 		})
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
@@ -271,7 +270,7 @@ o.spec("ConversationListModel", () => {
 		// make one item have a rule
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: tutanotaTypeRefs.Mail) => isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
@@ -281,7 +280,7 @@ o.spec("ConversationListModel", () => {
 
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: tutanotaTypeRefs.Mail) => !isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => !isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
@@ -297,7 +296,7 @@ o.spec("ConversationListModel", () => {
 		for (const mail of model.mails) {
 			o.check(model.getLabelsForMail(mail)).deepEquals(labels)
 		}
-		verify(cacheStorage.provideFromRange(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
+		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
 			times: 0,
 		})
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
@@ -390,16 +389,16 @@ o.spec("ConversationListModel", () => {
 
 		// the loaded mails are in reverse order, so we take the 0th element to get the last
 		const mailSetEntryId: IdTuple = [mailSetEntriesListId, makeMailSetElementId(0)]
-		const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-			typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+		const entityUpdateData: EntityUpdateData = {
+			typeRef: MailSetEntryTypeRef,
 			instanceListId: listIdPart(mailSetEntryId) as NonEmptyString,
 			instanceId: elementIdPart(mailSetEntryId),
 			operation: OperationType.CREATE,
 			...noPatchesAndInstance,
 		}
 
-		when(entityClient.load(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntryId)).thenResolve(
-			createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef, {
+		when(entityClient.load(MailSetEntryTypeRef, mailSetEntryId)).thenResolve(
+			createTestEntity(MailSetEntryTypeRef, {
 				_id: mailSetEntryId,
 				mail: mail._id,
 			}),
@@ -433,8 +432,8 @@ o.spec("ConversationListModel", () => {
 
 			o.check(model.getLabelsForMail(someMail.mail)[1]).notDeepEquals(labels[1])
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetTypeRef,
 				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -460,8 +459,8 @@ o.spec("ConversationListModel", () => {
 			await setUpTestData(PageSize, [labels[0]], false, 1)
 			await model.loadInitial()
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetTypeRef,
 				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -486,8 +485,8 @@ o.spec("ConversationListModel", () => {
 			const someIndex = 22 // a random number
 			const someMail: LoadedMail = model._getLoadedMail(elementIdPart(makeMailId(someIndex)))!
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
 				instanceListId: listIdPart(someMail.mailSetEntryId) as NonEmptyString,
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
@@ -508,32 +507,32 @@ o.spec("ConversationListModel", () => {
 			mailSetEntryId: IdTuple,
 			conversationId: Id,
 		): {
-			mail: tutanotaTypeRefs.Mail
-			mailSetEntry: tutanotaTypeRefs.MailSetEntry
-			entityUpdateData: entityUpdateUtils.EntityUpdateData
-			mailLabels: tutanotaTypeRefs.MailSet[]
+			mail: Mail
+			mailSetEntry: MailSetEntry
+			entityUpdateData: EntityUpdateData
+			mailLabels: MailSet[]
 		} {
-			const newMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const newMail = createTestEntity(MailTypeRef, {
 				_id: ["new mail!!!", deconstructMailSetEntryId(elementIdPart(mailSetEntryId)).mailId],
 				sets: [mailSet._id, labels[1]._id],
 				conversationEntry: [conversationId, "yay!"],
 			})
 
-			const newEntry = tutanotaTypeRefs.createMailSetEntry({
+			const newEntry = createMailSetEntry({
 				_id: mailSetEntryId,
 				mail: newMail._id,
 			})
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
 				instanceListId: getListId(newEntry) as NonEmptyString,
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
 			}
 
-			when(entityClient.load(tutanotaTypeRefs.MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
-			when(entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, getListId(newMail), [getElementId(newMail)])).thenResolve([newMail])
+			when(entityClient.load(MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
+			when(entityClient.loadMultiple(MailTypeRef, getListId(newMail), [getElementId(newMail)])).thenResolve([newMail])
 
 			return {
 				mail: newMail,
@@ -608,8 +607,8 @@ o.spec("ConversationListModel", () => {
 			const oldItems = model.items
 			const newItems = [...oldItems]
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(0),
 				operation: OperationType.DELETE,
@@ -634,8 +633,8 @@ o.spec("ConversationListModel", () => {
 			const oldItems = model.items
 			const newItems = [oldMails[1]]
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(2),
 				operation: OperationType.DELETE,
@@ -660,8 +659,8 @@ o.spec("ConversationListModel", () => {
 			const oldItems = model.items
 			const newItems = [oldMails[1]]
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailSetEntryTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
 				instanceListId: mailSetEntriesListId,
 				instanceId: makeMailSetElementId(1),
 				operation: OperationType.DELETE,
@@ -697,14 +696,14 @@ o.spec("ConversationListModel", () => {
 			mail.subject = "hey it's a subject"
 			mail.sets = [mailSet._id] // remove all labels
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
 				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			}
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, mail._id)).thenResolve(mail)
+			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
 			entityUpdateData.operation = OperationType.UPDATE
 
@@ -725,14 +724,14 @@ o.spec("ConversationListModel", () => {
 			await setUpTestData(PageSize, labels, false, 1)
 			await model.loadInitial()
 			const mail = { ...model.mails[2] }
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
 				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			}
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, mail._id)).thenResolve(mail)
+			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 			entityUpdateData.operation = OperationType.DELETE
 
 			await model.handleEntityUpdate(entityUpdateData)
@@ -750,14 +749,14 @@ o.spec("ConversationListModel", () => {
 			const unreadMail = allMails[0]
 			unreadMail.unread = true
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
 				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			}
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
 
 			entityUpdateData.operation = OperationType.UPDATE
 
@@ -781,14 +780,14 @@ o.spec("ConversationListModel", () => {
 			const unreadMail = allMails[0]
 			unreadMail.unread = true
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
 				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			}
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
 
 			entityUpdateData.operation = OperationType.UPDATE
 
@@ -810,14 +809,14 @@ o.spec("ConversationListModel", () => {
 			const unreadMail = allMails[2]
 			unreadMail.unread = true
 
-			const entityUpdateData: entityUpdateUtils.EntityUpdateData = {
-				typeRef: tutanotaTypeRefs.MailTypeRef,
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
 				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
 			}
-			when(entityClient.load(tutanotaTypeRefs.MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
 
 			entityUpdateData.operation = OperationType.UPDATE
 

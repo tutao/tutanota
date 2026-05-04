@@ -1,11 +1,11 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { EntityIdEncoding, isFolderReadOnly, isSameId, MOVE_SYSTEM_FOLDERS, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailModel } from "./MailModel.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { MailSetKind, ReplyType, SystemFolderType } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { Header, InboxRule, Mail, MailDetails, MailSet, MailSetKind, ReplyType, SystemFolderType, TutanotaProperties } from "@tutao/entities/tutanota"
+import { EntityIdEncoding, isSameId, sortCompareByReverseId } from "@tutao/meta"
+import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
 
-type MailSet = tutanotaTypeRefs.MailSet
 export type FolderInfo = { level: number; folder: MailSet }
 
 export const enum MoveService {
@@ -71,7 +71,7 @@ export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }
 
-export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly tutanotaTypeRefs.Mail[]): Promise<MoveTargets> {
+export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<MoveTargets> {
 	const regularMoveTargets = (folders: readonly FolderInfo[]): RegularMoveTargets => ({
 		moveService: MoveService.RegularMove,
 		folders,
@@ -155,25 +155,25 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailSe
 	return folderPath.map(getFolderName).join(" · ")
 }
 
-export function getMailHeaders(headers: tutanotaTypeRefs.Header): string {
+export function getMailHeaders(headers: Header): string {
 	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export function loadMailHeaders(mailDetails: tutanotaTypeRefs.MailDetails): string | null {
+export function loadMailHeaders(mailDetails: MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
-export function getExistingRuleForType(props: tutanotaTypeRefs.TutanotaProperties, cleanValue: string, type: string): tutanotaTypeRefs.InboxRule | null {
+export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
 	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
 }
 
-export function allInSameMailbox(mails: readonly tutanotaTypeRefs.Mail[]): boolean {
+export function allInSameMailbox(mails: readonly Mail[]): boolean {
 	const mailGroups = mails.map((m) => m._ownerGroup)
 	return mailGroups.every((mg) => mg === mailGroups[0])
 	// returns true if mails is empty
 }
 
-export function mailInFolder(mail: tutanotaTypeRefs.Mail, folderId: IdTuple): boolean {
+export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
 	return mail.sets.some((s) => isSameId(s, folderId))
 }
 
@@ -183,7 +183,7 @@ export function mailInFolder(mail: tutanotaTypeRefs.Mail, folderId: IdTuple): bo
  * @param mail2
  * @return 0 if same received date and ID, >0 if mail2 is newer, <0 if mail2 is older
  */
-export function compareMails(mail1: tutanotaTypeRefs.Mail, mail2: tutanotaTypeRefs.Mail): number {
+export function compareMails(mail1: Mail, mail2: Mail): number {
 	const dateDifference = mail2.receivedDate.getTime() - mail1.receivedDate.getTime()
 	if (dateDifference === 0) {
 		return sortCompareByReverseId(mail1, mail2, EntityIdEncoding.Base64Ext)
@@ -196,6 +196,6 @@ export function compareMails(mail1: tutanotaTypeRefs.Mail, mail2: tutanotaTypeRe
  * @returns {boolean} true if the given mail was already replied to. Otherwise false.
  * Note that it also returns true if the mail was replied to AND forwarded.
  */
-export function isRepliedTo(mail: tutanotaTypeRefs.Mail): boolean {
+export function isRepliedTo(mail: Mail): boolean {
 	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
 }

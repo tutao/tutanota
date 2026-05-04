@@ -1,14 +1,27 @@
 import o from "@tutao/otest"
 import { downloadMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
-import { DataFile, tutanotaTypeRefs } from "@tutao/typerefs"
-import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
+
+import { HtmlSanitizer } from "../../../../src/common/gui/utils/HtmlSanitizer.js"
 import { EntityClient } from "../../../../src/network/EntityClient.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { CryptoFacade } from "../../../../src/network/crypto/facades/CryptoFacade.js"
-import { MailState } from "@tutao/app-env"
+import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
+
+import { MailState } from "../../../../src/entities/tutanota"
+import {
+	BodyTypeRef,
+	DataFile,
+	FileTypeRef,
+	HeaderTypeRef,
+	Mail,
+	MailAddressTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+} from "@tutao/entities/tutanota"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient
@@ -46,7 +59,7 @@ o.spec("Bundler", function () {
 		})
 
 		const bodyText = "This is the body text of the body of the email"
-		const body = createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: bodyText })
+		const body = createTestEntity(BodyTypeRef, { text: bodyText })
 		const toValues = {
 			address: "to@mycoolsite.co.uk",
 			name: "the to",
@@ -59,30 +72,30 @@ o.spec("Bundler", function () {
 			address: "bcc@mycoolsite.co.uk",
 			name: "the bcc",
 		}
-		const recipients = createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
-			toRecipients: [createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, toValues)],
-			ccRecipients: [createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, ccValues)],
-			bccRecipients: [createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, bccValues)],
+		const recipients = createTestEntity(RecipientsTypeRef, {
+			toRecipients: [createTestEntity(MailAddressTypeRef, toValues)],
+			ccRecipients: [createTestEntity(MailAddressTypeRef, ccValues)],
+			bccRecipients: [createTestEntity(MailAddressTypeRef, bccValues)],
 		})
 		const headersText = "this is the headers"
 		const replyToValues = {
 			address: "replyto@mycoolsite.co.uk",
 			name: "the replyto",
 		}
-		const mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+		const mailDetails = createTestEntity(MailDetailsTypeRef, {
 			_id: "detailsId",
-			headers: createTestEntity(tutanotaTypeRefs.HeaderTypeRef, { headers: headersText }),
+			headers: createTestEntity(HeaderTypeRef, { headers: headersText }),
 			body: body,
 			recipients,
 			sentDate: new Date(sentOn),
-			replyTos: [createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, replyToValues)],
+			replyTos: [createTestEntity(MailAddressTypeRef, replyToValues)],
 		})
-		const mailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, { _id: ["archiveId", mailDetails._id], details: mailDetails })
+		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, { _id: ["archiveId", mailDetails._id], details: mailDetails })
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_id: mailId,
 			subject,
-			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, sender),
+			sender: createTestEntity(MailAddressTypeRef, sender),
 			state: MailState.RECEIVED,
 			unread: false,
 			receivedDate: new Date(receivedOn),
@@ -94,7 +107,7 @@ o.spec("Bundler", function () {
 
 		for (const attachment of attachments) {
 			// the file is only needed to pass to the fileController and is not kept, so we mock it as a string for convenience
-			when(entityClientMock.load(tutanotaTypeRefs.FileTypeRef, [attachmentListId, attachment.name])).thenResolve(`file ${attachment.name}` as any)
+			when(entityClientMock.load(FileTypeRef, [attachmentListId, attachment.name])).thenResolve(`file ${attachment.name}` as any)
 			when(fileControllerMock.getAsDataFile(`file ${attachment.name}` as any)).thenResolve(attachment)
 		}
 
@@ -107,7 +120,7 @@ o.spec("Bundler", function () {
 		).thenReturn({ html: sanitizedBodyText })
 
 		const attachmentsCaptor = matchers.captor()
-		when(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachmentsCaptor.capture())).thenDo((mail: tutanotaTypeRefs.Mail, attachments: File) =>
+		when(cryptoMock.enforceSessionKeyUpdateIfNeeded(mail, attachmentsCaptor.capture())).thenDo((mail: Mail, attachments: File) =>
 			Promise.resolve(attachments),
 		)
 

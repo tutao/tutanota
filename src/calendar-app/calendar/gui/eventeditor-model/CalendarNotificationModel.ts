@@ -1,12 +1,14 @@
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
-import { AccountType, CalendarAttendeeStatus, ProgrammingError } from "@tutao/app-env"
+import { clone } from "../../../../meta"
+import { ProgrammingError } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { getNonOrganizerAttendees } from "./CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
+import { CalendarAttendeeStatus, CalendarEvent } from "@tutao/entities/tutanota"
+import { AccountType } from "@tutao/entities/sys"
 
 /** all the people that may be interested in changes to an event get stored in these models.
  * if one of them is null, it's because there is no one that needs that kind of update.
@@ -33,10 +35,10 @@ export class CalendarNotificationModel {
 	 * will modify the attendee list of newEvent if invites/cancellations are sent.
 	 */
 	async send(
-		event: tutanotaTypeRefs.CalendarEvent,
+		event: CalendarEvent,
 		recurrenceIds: Array<Date>,
 		sendModels: CalendarNotificationSendModels,
-		oldEvent?: tutanotaTypeRefs.CalendarEvent,
+		oldEvent?: CalendarEvent,
 		comment?: string,
 	): Promise<void> {
 		if (sendModels.updateModel == null && sendModels.cancelModel == null && sendModels.inviteModel == null && sendModels.responseModel == null) {
@@ -82,7 +84,7 @@ export class CalendarNotificationModel {
 	 * @param inviteModel
 	 * @private
 	 */
-	private async sendInvites(event: tutanotaTypeRefs.CalendarEvent, inviteModel: SendMailModel): Promise<void> {
+	private async sendInvites(event: CalendarEvent, inviteModel: SendMailModel): Promise<void> {
 		if (event.organizer == null || inviteModel?.allRecipients().length === 0) {
 			throw new ProgrammingError("event has no organizer or no invitable attendees, can't send invites.")
 		}
@@ -99,7 +101,7 @@ export class CalendarNotificationModel {
 		}
 	}
 
-	private async sendCancellation(event: tutanotaTypeRefs.CalendarEvent, cancelModel: SendMailModel): Promise<void> {
+	private async sendCancellation(event: CalendarEvent, cancelModel: SendMailModel): Promise<void> {
 		const updatedEvent = clone(event)
 
 		try {
@@ -116,7 +118,7 @@ export class CalendarNotificationModel {
 		}
 	}
 
-	private async sendUpdates(event: tutanotaTypeRefs.CalendarEvent, updateModel: SendMailModel, oldEvent?: tutanotaTypeRefs.CalendarEvent): Promise<void> {
+	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel, oldEvent?: CalendarEvent): Promise<void> {
 		if (!oldEvent) {
 			throw new Error("Trying to send update invitation for an event without its old instance")
 		}
@@ -136,7 +138,7 @@ export class CalendarNotificationModel {
 	 * @param comment
 	 * @private
 	 */
-	private async respondToOrganizer(newEvent: tutanotaTypeRefs.CalendarEvent, responseModel: SendMailModel, comment?: string): Promise<void> {
+	private async respondToOrganizer(newEvent: CalendarEvent, responseModel: SendMailModel, comment?: string): Promise<void> {
 		await responseModel.waitForResolvedRecipients()
 		if (newEvent.invitedConfidentially != null) {
 			responseModel.setConfidential(newEvent.invitedConfidentially)

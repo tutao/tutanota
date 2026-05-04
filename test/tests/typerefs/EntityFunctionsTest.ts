@@ -1,13 +1,15 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ClientModelInfo, ServerModelInfo, ServerModels } from "@tutao/typerefs"
+
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { Cardinality, Type, ValueType } from "@tutao/typerefs"
+import { Cardinality, Type, ValueType } from "../../../src/meta"
 import { ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesFacade } from "../../../src/instance-pipeline/ApplicationTypesFacade"
 import { object } from "testdouble"
-import { TypeModel } from "@tutao/typerefs"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { clientModelAsServerModel } from "../TestUtils"
+import { TypeModel } from "../../../src/meta"
+
+import { clientModelAsServerModel, makePopulatedClientModelInfo } from "../TestUtils"
+import { MailTypeRef } from "@tutao/entities/tutanota"
+import { ClientModelInfo, ServerModelInfo, ServerModels } from "@tutao/instance-pipeline"
 
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo
@@ -15,7 +17,7 @@ o.spec("EntityFunctionsTest", function () {
 	let applicationTypesFacade: ApplicationTypesFacade
 
 	o.beforeEach(async () => {
-		clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
+		clientModelInfo = makePopulatedClientModelInfo()
 		serverModelInfo = clientModelAsServerModel(clientModelInfo)
 		applicationTypesFacade = new ApplicationTypesFacade(object(), object(), serverModelInfo)
 	})
@@ -90,7 +92,7 @@ o.spec("EntityFunctionsTest", function () {
 				applicationTypesJson,
 			}))
 
-			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef))
+			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.resolveServerTypeReference(MailTypeRef))
 			o(e.message).equals("Trying to parse encrypted value as unencrypted for: base:0:1")
 		})
 
@@ -98,7 +100,7 @@ o.spec("EntityFunctionsTest", function () {
 			const serverModel = Object.assign({}, serverModelInfo.typeModels, partialServerModel)
 			const applicationTypesJson = JSON.stringify(serverModel)
 			const applicationTypesHash = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(applicationTypesJson))
-			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
+			clientModelInfo = makePopulatedClientModelInfo()
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, {
 				base: {
 					"0": {
@@ -129,7 +131,7 @@ o.spec("EntityFunctionsTest", function () {
 				applicationTypesHash,
 				applicationTypesJson,
 			}))
-			await serverModelInfo.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef)
+			await serverModelInfo.resolveServerTypeReference(MailTypeRef)
 		})
 	})
 })

@@ -1,15 +1,22 @@
 import { IndexerCore } from "./IndexerCore"
 import { assertNotNull } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { elementIdPart, getElementId, LEGACY_BCC_RECIPIENTS_ID, LEGACY_BODY_ID, LEGACY_CC_RECIPIENTS_ID, LEGACY_TO_RECIPIENTS_ID } from "@tutao/typerefs"
+import {
+	AttributeModel,
+	elementIdPart,
+	getElementId,
+	LEGACY_BCC_RECIPIENTS_ID,
+	LEGACY_BODY_ID,
+	LEGACY_CC_RECIPIENTS_ID,
+	LEGACY_TO_RECIPIENTS_ID,
+} from "@tutao/meta"
 import { Metadata } from "../../../common/api/worker/search/IndexTables"
 import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { ClientTypeModelResolver } from "@tutao/typerefs"
-import { AttributeModel } from "@tutao/typerefs"
 import { ProgrammingError } from "@tutao/app-env"
+import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { File, Mail, MailDetails, MailTypeRef } from "@tutao/entities/tutanota"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(
@@ -46,19 +53,19 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 
 	async onMailUpdated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
 		const indexUpdate = this.createIndexUpdate()
-		await this.core._processDeleted(tutanotaTypeRefs.MailTypeRef, getElementId(mail), indexUpdate)
+		await this.core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate)
 		const indexEntries = await this.createMailIndexEntries(mail, mailDetails, attachments)
 		await this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 
-	async onPartialMailUpdated(mail: tutanotaTypeRefs.Mail): Promise<void> {
+	async onPartialMailUpdated(mail: Mail): Promise<void> {
 		// no-op - set filtering is done inside of IndexedDbSearchFacade using mail entities
 	}
 
 	async onMailDeleted(mailId: IdTuple): Promise<void> {
 		const indexUpdate = this.createIndexUpdate()
-		await this.core._processDeleted(tutanotaTypeRefs.MailTypeRef, elementIdPart(mailId), indexUpdate)
+		await this.core._processDeleted(MailTypeRef, elementIdPart(mailId), indexUpdate)
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 
@@ -76,15 +83,11 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	private createIndexUpdate(): IndexUpdate {
-		return _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef))
+		return _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 	}
 
 	/** @private visibleForTesting */
-	async createMailIndexEntries(
-		mail: tutanotaTypeRefs.Mail,
-		mailDetails: tutanotaTypeRefs.MailDetails,
-		files: readonly tutanotaTypeRefs.File[],
-	): Promise<Map<string, SearchIndexEntry[]>> {
+	async createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: readonly File[]): Promise<Map<string, SearchIndexEntry[]>> {
 		let startTimeIndex = getPerformanceTimestamp()
 
 		// avoid caching system@tutanota.de since the user wouldn't be searching for this
@@ -93,7 +96,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		const hasSender = mail.sender != null
 		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
-		const MailModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+		const MailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
 		const keyToIndexEntries = this.core.createIndexEntriesForAttributes(mail, [
 			{
 				// assertNotNull(AttributeModel.getAttributeId(ContactModel, "firstName")),

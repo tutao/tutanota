@@ -14,11 +14,7 @@ window.node = () => () => {}
 globalThis.isBrowser = true
 
 // @ts-ignore
-window.tutao = {
-	appState: {
-		prefixWithoutFile: "./",
-	},
-}
+window.tutao = {}
 
 report("/status", { status: "loaded" })
 

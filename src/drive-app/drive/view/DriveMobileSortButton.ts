@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SortColumn, SortingPreference } from "./DriveViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown"
-import { IconButton } from "../../../common/gui/base/IconButton"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown"
+import { IconButton } from "../../../ui/base/IconButton"
 
 export interface DriveMobileSortButtonAttrs {
 	readonly currentSort: SortingPreference

@@ -1,28 +1,29 @@
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { LazyLoaded, memoized, noOp } from "@tutao/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
-import { Icon } from "../../../common/gui/base/Icon.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { Icon } from "../../../ui/base/Icon.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper.js"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper.js"
 import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
-import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../common/gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../ui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
-import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size } from "../../../common/gui/size.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../ui/base/List.js"
+import { component_size } from "../../../ui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../network/GroupUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../common/gui/base/ListUtils.js"
-import { keyManager } from "../../../common/misc/KeyManager.js"
-import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../ui/base/ListUtils.js"
+import { keyManager } from "../../../ui/utils/KeyManager.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 
@@ -31,8 +32,8 @@ const className = "group-list"
 
 export class GroupListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private listModel: ListElementListModel<sysTypeRefs.GroupInfo>
-	private readonly renderConfig: RenderConfig<sysTypeRefs.GroupInfo, GroupRow> = {
+	private listModel: ListElementListModel<GroupInfo>
+	private readonly renderConfig: RenderConfig<GroupInfo, GroupRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
@@ -112,13 +113,13 @@ export class GroupListView implements UpdatableSettingsViewer {
 						onLoadMore: () => this.listModel.loadMore(),
 						onRetryLoading: () => this.listModel.retryLoading(),
 						onStopLoading: () => this.listModel.stopLoading(),
-						onSingleSelection: (item: sysTypeRefs.GroupInfo) => {
+						onSingleSelection: (item: GroupInfo) => {
 							this.listModel.onSingleSelection(item)
 							this.focusDetailsViewer()
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-					} satisfies ListAttrs<sysTypeRefs.GroupInfo, GroupRow>),
+					} satisfies ListAttrs<GroupInfo, GroupRow>),
 		)
 	}
 
@@ -138,11 +139,11 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupMemberTypeRef, update)) {
+			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 				this.listModel.reapplyFilter()
 			}
 
@@ -150,20 +151,20 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	private makeListModel(): ListElementListModel<sysTypeRefs.GroupInfo> {
-		const listModel = new ListElementListModel<sysTypeRefs.GroupInfo>({
+	private makeListModel(): ListElementListModel<GroupInfo> {
+		const listModel = new ListElementListModel<GroupInfo>({
 			sortCompare: compareGroupInfos,
 			fetch: async (_lastFetchedEntity, _count) => {
 				// load all entries at once to apply custom sort order
 				const listId = await this.listId.getAsync()
-				const allGroupInfos = await locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, listId)
+				const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 
 				return { items: allGroupInfos, complete: true }
 			},
 			loadSingle: async (_listId: Id, elementId: Id) => {
 				const listId = await this.listId.getAsync()
 				try {
-					return await locator.entityClient.load<sysTypeRefs.GroupInfo>(sysTypeRefs.GroupInfoTypeRef, [listId, elementId])
+					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
 					if (e instanceof restError.NotFoundError) {
 						// we return null if the GroupInfo does not exist
@@ -176,7 +177,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 
-		listModel.setFilter((item: sysTypeRefs.GroupInfo) => this.groupFilter() && this.queryFilter(item))
+		listModel.setFilter((item: GroupInfo) => this.groupFilter() && this.queryFilter(item))
 
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = listModel.stateStream.map((state) => {
@@ -187,7 +188,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		return listModel
 	}
 
-	private readonly onSelectionChanged = memoized((item: sysTypeRefs.GroupInfo | null) => {
+	private readonly onSelectionChanged = memoized((item: GroupInfo | null) => {
 		if (item) {
 			const newSelectionModel = new GroupDetailsModel(item, locator.entityClient, m.redraw)
 			const detailsViewer = item == null ? null : new GroupDetailsView(newSelectionModel)
@@ -195,7 +196,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 	})
 
-	private queryFilter(gi: sysTypeRefs.GroupInfo) {
+	private queryFilter(gi: GroupInfo) {
 		const lowercaseSearch = this.searchQuery.toLowerCase()
 		return gi.name.toLowerCase().includes(lowercaseSearch) || (!!gi.mailAddress && gi.mailAddress?.toLowerCase().includes(lowercaseSearch))
 	}
@@ -210,10 +211,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 }
 
-export class GroupRow implements VirtualRow<sysTypeRefs.GroupInfo> {
+export class GroupRow implements VirtualRow<GroupInfo> {
 	top: number = 0
 	domElement: HTMLElement | null = null // set from List
-	entity: sysTypeRefs.GroupInfo | null = null
+	entity: GroupInfo | null = null
 	private nameDom!: HTMLElement
 	private addressDom!: HTMLElement
 	private deletedIconDom!: HTMLElement
@@ -223,7 +224,7 @@ export class GroupRow implements VirtualRow<sysTypeRefs.GroupInfo> {
 
 	constructor() {}
 
-	update(groupInfo: sysTypeRefs.GroupInfo, selected: boolean): void {
+	update(groupInfo: GroupInfo, selected: boolean): void {
 		this.entity = groupInfo
 
 		this.selectionUpdater(selected, false)

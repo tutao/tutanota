@@ -1,31 +1,33 @@
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import m, { ChildArray, Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
-import { lang } from "../../misc/LanguageViewModel"
-import { IconButton } from "../../gui/base/IconButton"
-import { Icons } from "../../gui/base/icons/Icons"
-import { ButtonSize } from "../../gui/base/ButtonSize"
-import { KeyVerificationFacade, TrustedIdentity } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { IconButton } from "../../../ui/base/IconButton"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { ButtonSize } from "../../../ui/base/ButtonSize"
+import { KeyVerificationFacade, TrustedIdentity } from "../../../base/facades/lazy/KeyVerificationFacade"
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
-import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { UsageTestController } from "@tutao/usagetests"
-import { TitleSection } from "../../gui/TitleSection"
-import { Card } from "../../gui/base/Card"
+import { TitleSection } from "../../../ui/TitleSection"
+import { Card } from "../../../ui/base/Card"
 import { renderFingerprintAsQrCode } from "./FingerprintRenderers"
-import { MenuTitle } from "../../gui/titles/MenuTitle"
-import { theme } from "../../gui/theme"
+import { MenuTitle } from "../../../ui/titles/MenuTitle"
+import { theme } from "../../../ui/theme"
 import { FingerprintRow } from "./FingerprintRow"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
-import { ThemeController } from "../../gui/ThemeController"
+import { ThemeController } from "../../../ui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
-import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKeyProvider"
 import { lazy, Versioned } from "@tutao/utils"
-import { showInfoSnackbar } from "../../gui/base/SnackBar"
-import { copyToClipboard } from "../../misc/ClipboardUtils"
-import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
-import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { DesktopSystemFacade } from "@tutao/native-bridge/common"
+import { showInfoSnackbar } from "../../../ui/base/SnackBar"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
+import { IdentityKeyCreator } from "../../../base/crypto/IdentityKeyCreator"
+import { isSameId } from "../../../meta"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { SigningPublicKey } from "../../../crypto/encryption/Ed25519"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { GroupTypeRef } from "@tutao/entities/sys"
 
 /**
  * Our own identity key, which is not stored on the trust DB.
@@ -89,14 +91,11 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		// we only need to listen for updates of new identity keys of the user group
 		// everything else is only stored locally
 		for (const update of updates) {
-			if (
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupTypeRef, update) &&
-				isSameId(this.userController.userGroupInfo.group, update.instanceId)
-			) {
+			if (isUpdateForTypeRef(GroupTypeRef, update) && isSameId(this.userController.userGroupInfo.group, update.instanceId)) {
 				await this.loadIdentityKey()
 				m.redraw()
 			}

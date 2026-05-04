@@ -1,13 +1,12 @@
 import { client } from "../app-env/boot/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
-import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
-import { root } from "../RootView.js"
+import { lang, languageCodeToTag, languages } from "../ui/utils/LanguageViewModel.js"
+import { root } from "../ui/base/RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
-import { styles } from "../common/gui/styles.js"
+import { styles } from "../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./calendar-applicationPaths.js"
@@ -19,17 +18,18 @@ import { MobileWebauthnAttrs, MobileWebauthnView } from "../common/login/MobileW
 import { BrowserWebauthn } from "../common/misc/2fa/webauthn/BrowserWebauthn.js"
 import { CalendarView, CalendarViewAttrs } from "./calendar/view/CalendarView.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
-import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { AppHeaderAttrs } from "../common/gui/Header.js"
+import { TopLevelAttrs, TopLevelView } from "../ui/base/TopLevelView.js"
+import { AppHeaderAttrs } from "../ui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { CALENDAR_PREFIX } from "../common/misc/RouteChange"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { AppType } from "@tutao/app-env"
+import { MainStyles } from "../ui/main-styles"
+import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { CALENDAR_PREFIX } from "../ui/utils/RouteChange"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -61,17 +61,15 @@ if (!client.isSupported()) {
 setupExceptionHandling()
 
 // If the webapp is served under some folder e.g. /build we want to consider this our root
-const urlPrefixes = extractPathPrefixes()
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
-window.tutao.appState = urlPrefixes
 
 const startRoute = getStartUrl(urlQueryParams)
-history.replaceState(null, "", urlPrefixes.prefix + startRoute)
+history.replaceState(null, "", startRoute)
 
-import("../mail-app/translations/en.js")
+import("../ui/translations/en.js")
 	.then((en) => lang.init(en.default))
 	.then(async () => {
-		await import("../common/gui/main-styles.js")
+		await import("../ui/main-styles.js")
 
 		// do this after lang initialized
 		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
@@ -79,6 +77,9 @@ import("../mail-app/translations/en.js")
 		await calendarLocator.init()
 
 		initCommonLocator(calendarLocator)
+
+		const mainStyles = new MainStyles(calendarLocator.themeController, windowFacade)
+		mainStyles.init()
 
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)
@@ -124,7 +125,7 @@ import("../mail-app/translations/en.js")
 				)
 			})
 			calendarLocator.logins.addPostLoginAction(async () => {
-				const { RegisterPushServicePostLoginAction } = await import("../common/native/main/RegisterPushServicePostLoginAction.js")
+				const { RegisterPushServicePostLoginAction } = await import("../common/native/RegisterPushServicePostLoginAction.js")
 				return new RegisterPushServicePostLoginAction(deviceConfig, calendarLocator.pushService)
 			})
 		}
@@ -378,10 +379,6 @@ import("../mail-app/translations/en.js")
 			),
 		})
 
-		// In some cases our prefix can have non-ascii characters, depending on the path the webapp is served from
-		// see https://github.com/MithrilJS/mithril.js/issues/2659
-		m.route.prefix = neverNull(urlPrefixes.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
-
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
 			"/": {
@@ -396,7 +393,7 @@ import("../mail-app/translations/en.js")
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path..."] = {
 			onmatch: async () => {
-				const { NotFoundPage } = await import("../common/gui/base/NotFoundPage.js")
+				const { NotFoundPage } = await import("../ui/base/NotFoundPage.js")
 				return {
 					view: () => m(root, m(NotFoundPage)),
 				}
@@ -415,7 +412,6 @@ import("../mail-app/translations/en.js")
 		// 	const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
 		// 	calendarLocator.logins.addPostLoginAction(async () => exposeNativeInterface(calendarLocator.native).postLoginActions)
 		// }
-		// after we set up prefixWithoutFile
 		const domainConfig = calendarLocator.domainConfigProvider().getCurrentDomainConfig()
 		const serviceworker = await import("../common/serviceworker/ServiceWorkerClient.js")
 		serviceworker.init(domainConfig)
@@ -613,12 +609,6 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	}
 }
 
-function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
-	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
-	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
-	return Object.freeze({ prefix, prefixWithoutFile })
-}
-
 function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Redirection triggered by the server or service worker (e.g. the user reloads /mail/id by pressing
 	// F5 and we want to open /login?r=mail/id).
@@ -653,7 +643,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Most browsers will keep the hash around even after the redirect unless there's another one provided.
 	// In our case the hash is encoded as part of the query and is not deduplicated like described above so we have to manually do it, otherwise we end
 	// up with double hashes.
-	if (!new URL(urlPrefixes.prefix + target, window.location.href).hash) {
+	if (!new URL(target, window.location.href).hash) {
 		target += location.hash
 	}
 	return target

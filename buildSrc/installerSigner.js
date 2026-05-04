@@ -43,7 +43,7 @@ import fs from "node:fs"
 import { spawnSync } from "node:child_process"
 import jsyaml from "js-yaml"
 import crypto from "node:crypto"
-import { base64ToUint8Array } from "../src/utils/dist/Encoding.js"
+import { base64ToUint8Array } from "../build/utils/Encoding.js"
 
 const SIG_ALGO = "RSASSA-PKCS1-v1_5"
 const DIGEST = "SHA-512"

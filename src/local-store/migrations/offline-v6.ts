@@ -1,14 +1,16 @@
-import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { isAdminClient, isBrowser } from "@tutao/app-env"
+import { OfflineStorage } from "../OfflineStorage"
+import { OfflineMigration } from "../OfflineMigration"
 
 /**
- * indexedDB index is no longer needed once migrated to local-store storage index
+ * indexedDB index is no longer needed once migrated to offline storage index
  */
-export const offline6: OfflineMigration = {
-	version: 6,
-	async migrate(storage: OfflineStorage, _: SqlCipherFacade): Promise<void> {
+const VERSION = 6
+export class offline6 extends OfflineMigration {
+	constructor() {
+		super(VERSION)
+	}
+	async migrate(storage: OfflineStorage): Promise<void> {
 		if (!isBrowser() && !isAdminClient()) {
 			const { uint8ArrayToBase64, stringToUtf8Uint8Array } = await import("@tutao/utils")
 			const { sha256Hash } = await import("@tutao/crypto")
@@ -16,5 +18,5 @@ export const offline6: OfflineMigration = {
 			const userIdAsDbName = uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(userId)))
 			indexedDB.deleteDatabase(userIdAsDbName)
 		}
-	},
+	}
 }

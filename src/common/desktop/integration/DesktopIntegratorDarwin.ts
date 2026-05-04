@@ -1,6 +1,6 @@
 import type { BaseWindow, KeyboardEvent, MenuItemConstructorOptions } from "electron"
 import type { WindowManager } from "../DesktopWindowManager"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
 import { ElectronExports } from "../ElectronExportTypes"
 

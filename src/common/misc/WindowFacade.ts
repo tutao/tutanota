@@ -1,17 +1,17 @@
 import m, { Params } from "mithril"
-import { assertMainOrNodeBoot, isApp, isDesktop, isIOSApp, Mode, isAdminClient } from "@tutao/app-env"
-import { lang } from "./LanguageViewModel"
-import { client } from "../../app-env/boot/ClientDetector"
 import { isSessionStorageAvailable, remove } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
+import type { KeyboardSizeListener, WindowSizeListener } from "../../ui/utils/WindowUtils"
+import type { IWindowFacade } from "../../ui/IWindowFacade"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { assertMainOrNodeBoot, client, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
-export type KeyboardSizeListener = (keyboardSize: number) => unknown
-export type windowSizeListener = (width: number, height: number) => unknown
 
-export class WindowFacade {
-	private _windowSizeListeners: windowSizeListener[]
+export class WindowFacade implements IWindowFacade {
+	private _windowSizeListeners: WindowSizeListener[]
 	resizeTimeout: (AnimationFrameID | null) | (TimeoutID | null)
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
@@ -49,15 +49,11 @@ export class WindowFacade {
 		window.onorientationchange = onresize
 	}
 
-	/**
-	 * Add a window resize listener with a listenerId
-	 * @param listener Provides the new width and height of the window if the values change.
-	 */
-	addResizeListener(listener: windowSizeListener) {
+	addResizeListener(listener: WindowSizeListener) {
 		this._windowSizeListeners.push(listener)
 	}
 
-	removeResizeListener(listener: windowSizeListener) {
+	removeResizeListener(listener: WindowSizeListener) {
 		remove(this._windowSizeListeners, listener)
 	}
 
@@ -128,7 +124,7 @@ export class WindowFacade {
 				}
 			})
 		}
-
+		this.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
 		// call the resize listeners once to make sure everyone
 		// has the current window size once we're done initializing
 		this._resize()
@@ -169,11 +165,6 @@ export class WindowFacade {
 		}
 	}
 
-	/**
-	 * add a function to call when onpopstate event occurs
-	 * @param listener: return true if this popstate may go ahead
-	 * @returns {Function}
-	 */
 	addHistoryEventListener(listener: (e: Event) => boolean): () => void {
 		this._historyStateEventListeners.push(listener)
 

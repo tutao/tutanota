@@ -1,23 +1,23 @@
 import m, { Children, VnodeDOM } from "mithril"
-import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
-import { focusNext, focusPrevious, Shortcut } from "../../../common/misc/KeyManager.js"
-import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton.js"
-import { showDropdown } from "../../../common/gui/base/Dropdown.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { component_size, size } from "../../../common/gui/size.js"
-import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { theme } from "../../../common/gui/theme.js"
+import { modal, ModalComponent } from "../../../ui/base/Modal.js"
+import { focusNext, focusPrevious, Shortcut } from "../../../ui/utils/KeyManager.js"
+import { BaseButton, BaseButtonAttrs } from "../../../ui/base/buttons/BaseButton.js"
+import { showDropdown } from "../../../ui/base/Dropdown.js"
+import { component_size, size } from "../../../ui/size.js"
+import { AllIcons, Icon, IconSize } from "../../../ui/base/Icon.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { theme } from "../../../ui/theme.js"
 import { Keys, TabIndex } from "@tutao/app-env"
-import { getElementId } from "@tutao/typerefs"
-import { getLabelColor } from "../../../common/gui/base/Label.js"
+import { getElementId } from "../../../meta"
+import { getLabelColor } from "../../../ui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
-import { AriaRole } from "../../../common/gui/AriaUtils.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { AriaRole } from "../../../ui/AriaUtils.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { noOp } from "@tutao/utils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
-import { PosRect } from "../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../ui/utils/PosRect"
+import { MailSet } from "@tutao/entities/tutanota"
 
 /**
  * Popup that displays assigned labels and allows changing them
@@ -30,7 +30,7 @@ export class LabelsPopup implements ModalComponent {
 		private readonly origin: PosRect,
 		private readonly width: number,
 		private readonly viewModel: LabelsPopupViewModel,
-		private readonly onLabelsApplied: (addedLabels: tutanotaTypeRefs.MailSet[], removedLabels: tutanotaTypeRefs.MailSet[]) => unknown,
+		private readonly onLabelsApplied: (addedLabels: MailSet[], removedLabels: MailSet[]) => unknown,
 	) {
 		this.view = this.view.bind(this)
 		this.oncreate = this.oncreate.bind(this)

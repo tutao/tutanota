@@ -1,10 +1,24 @@
-import { Stripped, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { Stripped, StrippedEntity } from "@tutao/meta"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
-import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
+import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import {
+	AdvancedRepeatRule,
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarGroupRoot,
+	CalendarRepeatRule,
+	createAdvancedRepeatRule,
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createCalendarRepeatRule,
+	createEncryptedMailAddress,
+	EncryptedMailAddress,
+} from "@tutao/entities/tutanota"
+import { createDateWrapper, DateWrapper } from "@tutao/entities/sys"
 
 export enum EventImportRejectionReason {
 	Pre1970,
@@ -15,7 +29,7 @@ export enum EventImportRejectionReason {
 
 // CalendarEventWithAlarm
 export type EventAlarmInfoTemplatesTuple = {
-	event: tutanotaTypeRefs.CalendarEvent
+	event: CalendarEvent
 	alarmInfoTemplates: ReadonlyArray<AlarmInfoTemplate>
 }
 
@@ -34,7 +48,7 @@ export type IcsCalendarEvent = {
 	recurrenceId: null | Date
 	repeatRule: StrippedRepeatRule | null
 	attendees: Array<StrippedCalendarEventAttendee> | null
-	organizer: Stripped<tutanotaTypeRefs.EncryptedMailAddress> | null
+	organizer: Stripped<EncryptedMailAddress> | null
 }
 export type ParsedEvent = {
 	icsCalendarEvent: IcsCalendarEvent
@@ -46,23 +60,20 @@ export type ParsedCalendarData = {
 }
 
 export type StrippedCalendarEventAttendee = Stripped<
-	Omit<tutanotaTypeRefs.CalendarEventAttendee, "address"> & {
-		address: Stripped<tutanotaTypeRefs.EncryptedMailAddress>
+	Omit<CalendarEventAttendee, "address"> & {
+		address: Stripped<EncryptedMailAddress>
 	}
 >
 
 export type StrippedRepeatRule = Stripped<
-	Omit<tutanotaTypeRefs.CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-		excludedDates: Stripped<sysTypeRefs.DateWrapper>[]
-		advancedRules: Stripped<tutanotaTypeRefs.AdvancedRepeatRule>[]
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
 	}
 >
 
 /** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
-function shouldBeSkipped(
-	event: tutanotaTypeRefs.CalendarEvent,
-	instanceIdentifierToEventMap: Map<string, tutanotaTypeRefs.CalendarEvent>,
-): EventImportRejectionReason | null {
+function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map<string, CalendarEvent>): EventImportRejectionReason | null {
 	if (!event.uid) {
 		// should not happen because calendar parser will generate uids if they do not exist
 		throw new Error("Uid is not set for imported event")
@@ -87,21 +98,21 @@ function shouldBeSkipped(
 
 /** we try to enforce that each calendar only contains each uid once, but we need to take into consideration
  * that altered instances have the same uid as their progenitor.*/
-function makeInstanceIdentifier(event: tutanotaTypeRefs.CalendarEvent): string {
+function makeInstanceIdentifier(event: CalendarEvent): string {
 	return `${event.uid}-${event.recurrenceId?.getTime() ?? "progenitor"}`
 }
 
-export type RejectedEvents = Map<EventImportRejectionReason, Array<tutanotaTypeRefs.CalendarEvent>>
+export type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
 
-export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly<IcsCalendarEvent>): tutanotaTypeRefs.CalendarEvent {
+export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly<IcsCalendarEvent>): CalendarEvent {
 	const rrule = icsCalendarEvent.repeatRule
-	const repeatRule = rrule ? tutanotaTypeRefs.createCalendarRepeatRule(fromStrippedRepeatRule(rrule)) : null
+	const repeatRule = rrule ? createCalendarRepeatRule(fromStrippedRepeatRule(rrule)) : null
 
 	const attendees = icsCalendarEvent.attendees
-		? icsCalendarEvent.attendees.map((attendee) => tutanotaTypeRefs.createCalendarEventAttendee(fromStrippedCalendarEventAttendee(attendee)))
+		? icsCalendarEvent.attendees.map((attendee) => createCalendarEventAttendee(fromStrippedCalendarEventAttendee(attendee)))
 		: []
 
-	const organizer = icsCalendarEvent.organizer ? tutanotaTypeRefs.createEncryptedMailAddress(icsCalendarEvent.organizer) : null
+	const organizer = icsCalendarEvent.organizer ? createEncryptedMailAddress(icsCalendarEvent.organizer) : null
 
 	const additionalValues = {
 		hashedUid: null,
@@ -110,13 +121,13 @@ export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly
 		pendingInvitation: false,
 		alarmInfos: [],
 	}
-	const calendarEvent: StrippedEntity<tutanotaTypeRefs.CalendarEvent> = Object.assign({}, icsCalendarEvent, additionalValues, {
+	const calendarEvent: StrippedEntity<CalendarEvent> = Object.assign({}, icsCalendarEvent, additionalValues, {
 		repeatRule,
 		organizer,
 		attendees,
-	}) satisfies Stripped<tutanotaTypeRefs.CalendarEvent>
+	}) satisfies Stripped<CalendarEvent>
 
-	return tutanotaTypeRefs.createCalendarEvent(calendarEvent)
+	return createCalendarEvent(calendarEvent)
 }
 
 /** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
@@ -124,8 +135,8 @@ export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly
  * the calendarGroupRoot and the long/short event status */
 export function sortOutParsedEvents(
 	parsedEvents: ParsedEvent[],
-	existingEvents: Array<tutanotaTypeRefs.CalendarEvent>,
-	calendarGroupRoot: tutanotaTypeRefs.CalendarGroupRoot,
+	existingEvents: Array<CalendarEvent>,
+	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
 ): {
 	rejectedEvents: RejectedEvents
@@ -166,7 +177,7 @@ export function sortOutParsedEvents(
 			const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 			if (progenitor?.event.repeatRule != null && calendarEvent.recurrenceId != null) {
 				insertIntoSortedArray(
-					sysTypeRefs.createDateWrapper({ date: calendarEvent.recurrenceId }),
+					createDateWrapper({ date: calendarEvent.recurrenceId }),
 					progenitor.event.repeatRule.excludedDates,
 					(left, right) => left.date.getTime() - right.date.getTime(),
 					() => true,
@@ -217,13 +228,13 @@ export function sortOutParsedEvents(
  * Looks for the progenitor of an altered instance inside a given event list and
  * updates only the progenitor in place with the excluded instance.
  */
-function treatProgenitorExcludedDates(alteredInstance: tutanotaTypeRefs.CalendarEvent, events: tutanotaTypeRefs.CalendarEvent[]) {
+function treatProgenitorExcludedDates(alteredInstance: CalendarEvent, events: CalendarEvent[]) {
 	if (alteredInstance.recurrenceId == null) {
 		throw Error(`Tried to handle an excluded date without recurrence id`)
 	}
 
 	const event = events.find((ev) => ev.uid === alteredInstance.uid && ev.repeatRule != null && ev.recurrenceId == null)
-	event?.repeatRule?.excludedDates.push(sysTypeRefs.createDateWrapper({ date: alteredInstance.recurrenceId }))
+	event?.repeatRule?.excludedDates.push(createDateWrapper({ date: alteredInstance.recurrenceId }))
 }
 
 /** importer internals exported for testing */
@@ -266,7 +277,7 @@ export function normalizeCalendarUrl(url: string): string {
 	return url.replace(/^webcal[s]?:\/\//, "https://")
 }
 
-export function shallowIsSameEvent(eventA: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent, eventB: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent) {
+export function shallowIsSameEvent(eventA: CalendarEvent | IcsCalendarEvent, eventB: CalendarEvent | IcsCalendarEvent) {
 	const sameUid = eventA.uid === eventB.uid
 	const sameSequence = eventA.sequence === eventB.sequence
 	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
@@ -274,7 +285,7 @@ export function shallowIsSameEvent(eventA: tutanotaTypeRefs.CalendarEvent | IcsC
 	return sameUid && sameSequence && sameRecurrenceId
 }
 
-export function eventHasSameFields(a: tutanotaTypeRefs.CalendarEvent, b: tutanotaTypeRefs.CalendarEvent) {
+export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 	const rruleA = createStrippedRepeatRule(a.repeatRule)
 	const rruleB = createStrippedRepeatRule(b.repeatRule)
 	const attendeesA = createStrippedAttendees(a.attendees)
@@ -296,7 +307,7 @@ export function eventHasSameFields(a: tutanotaTypeRefs.CalendarEvent, b: tutanot
 	)
 }
 
-export function createStrippedRepeatRule(repeatRule: tutanotaTypeRefs.CalendarRepeatRule | null): StrippedRepeatRule | null {
+export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
 	if (!repeatRule) {
 		return null
 	}
@@ -320,8 +331,8 @@ export function createStrippedRepeatRule(repeatRule: tutanotaTypeRefs.CalendarRe
 	}
 }
 
-export function createStrippedAttendees(attendees: tutanotaTypeRefs.CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
-	return attendees.map((attendee: tutanotaTypeRefs.CalendarEventAttendee) => {
+export function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
+	return attendees.map((attendee: CalendarEventAttendee) => {
 		return {
 			status: attendee.status,
 			address: createStrippedMailAddress(attendee.address)!,
@@ -329,7 +340,7 @@ export function createStrippedAttendees(attendees: tutanotaTypeRefs.CalendarEven
 	})
 }
 
-export function createStrippedMailAddress(mailAddress: tutanotaTypeRefs.EncryptedMailAddress | null): Stripped<tutanotaTypeRefs.EncryptedMailAddress> | null {
+export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
 	if (!mailAddress) {
 		return null
 	}
@@ -340,27 +351,25 @@ export function createStrippedMailAddress(mailAddress: tutanotaTypeRefs.Encrypte
 	}
 }
 
-export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<tutanotaTypeRefs.CalendarRepeatRule> {
+export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<CalendarRepeatRule> {
 	return {
 		frequency: repeatRule.frequency,
 		endType: repeatRule.endType,
 		endValue: repeatRule.endValue,
 		interval: repeatRule.interval,
 		timeZone: repeatRule.timeZone,
-		excludedDates: repeatRule.excludedDates.map(function (values: StrippedEntity<sysTypeRefs.DateWrapper>): sysTypeRefs.DateWrapper {
-			return sysTypeRefs.createDateWrapper(values)
+		excludedDates: repeatRule.excludedDates.map(function (values: StrippedEntity<DateWrapper>): DateWrapper {
+			return createDateWrapper(values)
 		}),
-		advancedRules: repeatRule.advancedRules.map(function (values): tutanotaTypeRefs.AdvancedRepeatRule {
-			return tutanotaTypeRefs.createAdvancedRepeatRule(values)
+		advancedRules: repeatRule.advancedRules.map(function (values): AdvancedRepeatRule {
+			return createAdvancedRepeatRule(values)
 		}),
 	}
 }
 
-export function fromStrippedCalendarEventAttendee(
-	strippedCalendarEventAttendee: StrippedCalendarEventAttendee,
-): StrippedEntity<tutanotaTypeRefs.CalendarEventAttendee> {
+export function fromStrippedCalendarEventAttendee(strippedCalendarEventAttendee: StrippedCalendarEventAttendee): StrippedEntity<CalendarEventAttendee> {
 	return {
-		address: tutanotaTypeRefs.createEncryptedMailAddress(strippedCalendarEventAttendee.address),
+		address: createEncryptedMailAddress(strippedCalendarEventAttendee.address),
 		status: strippedCalendarEventAttendee.status,
 	}
 }

@@ -1,6 +1,6 @@
-import { getFileExtension } from "../../../common/api/common/utils/FileUtils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { theme } from "../../../common/gui/theme"
+import { getFileExtension } from "../../../ui/utils/FileUtils"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { theme } from "../../../ui/theme"
 
 export enum FileType {
 	Generic,

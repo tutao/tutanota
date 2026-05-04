@@ -1,18 +1,18 @@
 import o, { spy } from "@tutao/otest"
 import { CustomColorsEditorViewModel } from "../../../../src/common/settings/whitelabel/CustomColorsEditorViewModel.js"
-import { ThemeController } from "../../../../src/common/gui/ThemeController.js"
+import { ThemeController } from "../../../../src/ui/ThemeController.js"
 import { downcast } from "@tutao/utils"
-import type { ThemeCustomizations } from "../../../../src/common/misc/WhitelabelCustomizations.js"
-import { WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/common/misc/WhitelabelCustomizations.js"
 import { EntityClient } from "../../../../src/network/EntityClient.js"
-import { themes } from "../../../../src/common/gui/builtinThemes.js"
+import { themes } from "../../../../src/ui/builtinThemes.js"
 import type { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { WhitelabelThemeGenerator } from "../../../../src/common/gui/WhitelabelThemeGenerator"
+import { WhitelabelThemeGenerator } from "../../../../src/ui/WhitelabelThemeGenerator"
 import { matchers, object, when } from "testdouble"
-import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/common/gui/theme"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/ui/theme"
 
+import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/ui/WhitelabelCustomizations"
+
+import { DomainInfoTypeRef, WhitelabelConfigTypeRef } from "@tutao/entities/sys"
 o.spec("CustomColorEditorViewModel", () => {
 	let model: CustomColorsEditorViewModel
 	let themeController: ThemeController
@@ -44,8 +44,8 @@ o.spec("CustomColorEditorViewModel", () => {
 			},
 		} as Partial<ThemeController> as ThemeController
 		whitelabelThemeGenerator = object()
-		whitelabelConfig = createTestEntity(sysTypeRefs.WhitelabelConfigTypeRef)
-		whitelabelDomainInfo = createTestEntity(sysTypeRefs.DomainInfoTypeRef)
+		whitelabelConfig = createTestEntity(WhitelabelConfigTypeRef)
+		whitelabelDomainInfo = createTestEntity(DomainInfoTypeRef)
 		whitelabelDomainInfo.domain = "test.domain.com"
 		defaultTheme = themeController.getDefaultTheme()
 		entityClient = downcast({

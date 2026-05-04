@@ -1,18 +1,25 @@
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
+import {
+	CalendarAttendeeStatus,
+	CalendarEvent,
+	CalendarEventAttendee,
+	EncryptedMailAddress,
+	MailMethod,
+	mailMethodToCalendarMethod,
+} from "@tutao/entities/tutanota"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
-import { CalendarAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "@tutao/app-env"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
-import { getAttendeeStatus, tutanotaTypeRefs } from "@tutao/typerefs"
 import { difference, noOp, ofClass } from "@tutao/utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
-import { RecipientsNotFoundError } from "../../../network/crypto/error/RecipientsNotFoundError.js"
+import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
 import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
 import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "@tutao/app-env"
+import { getAttendeeStatus } from "../../../base/utils_todo_move_elsewhere/CalendarUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -22,7 +29,7 @@ export class CalendarNotificationSender {
 		this.countDownLatch = 0
 	}
 
-	sendInvite(event: tutanotaTypeRefs.CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	sendInvite(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const message = lang.get("eventInviteMail_msg", {
 			"{event}": event.summary,
 		})
@@ -42,7 +49,7 @@ export class CalendarNotificationSender {
 		})
 	}
 
-	sendUpdate(event: tutanotaTypeRefs.CalendarEvent, sendMailModel: SendMailModel, oldEvent: tutanotaTypeRefs.CalendarEvent): Promise<void> {
+	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel, oldEvent: CalendarEvent): Promise<void> {
 		const message = lang.get("eventUpdated_msg", {
 			"{event}": event.summary,
 		})
@@ -65,7 +72,7 @@ export class CalendarNotificationSender {
 		})
 	}
 
-	sendCancellation(event: tutanotaTypeRefs.CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const message = lang.get("eventCancelled_msg", {
 			"{event}": event.summary,
 		})
@@ -162,7 +169,7 @@ export class CalendarNotificationSender {
 	 * @param sendMailModel used to actually send the mail
 	 * @param comment
 	 */
-	async sendResponse(event: tutanotaTypeRefs.CalendarEvent, sendMailModel: SendMailModel, comment?: string): Promise<void> {
+	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, comment?: string): Promise<void> {
 		const commentWithLineBreaks = comment ? comment.replaceAll("\n", "<br>") : undefined
 		const sendAs = sendMailModel.getSender()
 		const guestName = this.resolveGuestNameOnReply(sendMailModel, event)
@@ -192,7 +199,7 @@ export class CalendarNotificationSender {
 		})
 	}
 
-	private resolveGuestNameOnReply(sendMailModel: SendMailModel, event: tutanotaTypeRefs.CalendarEvent) {
+	private resolveGuestNameOnReply(sendMailModel: SendMailModel, event: CalendarEvent) {
 		let guestName = sendMailModel.getSender()
 		const attendee = event.attendees.find((a) => a.address.address === sendMailModel.getSender())
 
@@ -216,7 +223,7 @@ export class CalendarNotificationSender {
 		sendMailModel: SendMailModel
 		method: MailMethod
 		subject: string
-		event: tutanotaTypeRefs.CalendarEvent
+		event: CalendarEvent
 		body: string
 		sender: string
 	}): Promise<void> {
@@ -251,7 +258,7 @@ export class CalendarNotificationSender {
 		}
 	}
 
-	private getDiff(oldEvent: tutanotaTypeRefs.CalendarEvent, event: tutanotaTypeRefs.CalendarEvent) {
+	private getDiff(oldEvent: CalendarEvent, event: CalendarEvent) {
 		const removed = difference(oldEvent.attendees, event.attendees, (a, b) => a.address.address === b.address.address)
 		const added = difference(event.attendees, oldEvent.attendees, (a, b) => a.address.address === b.address.address)
 		return {
@@ -268,12 +275,12 @@ export class CalendarNotificationSender {
 	}
 }
 
-function whenLine(event: tutanotaTypeRefs.CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	const duration = formatEventDuration(event, getTimeZone(), true)
 	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
-function organizerLine(event: tutanotaTypeRefs.CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+function organizerLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	const { organizer } = event
 	const attendee = event.attendees.find((attendee) => attendee.address.address === organizer?.address)
 	return newLine(
@@ -289,10 +296,10 @@ function commentLine(comment: string): string {
 }
 
 function attendeesLine(
-	event: tutanotaTypeRefs.CalendarEvent,
+	event: CalendarEvent,
 	attendeesChanges: {
-		added: tutanotaTypeRefs.CalendarEventAttendee[]
-		removed: tutanotaTypeRefs.CalendarEventAttendee[]
+		added: CalendarEventAttendee[]
+		removed: CalendarEventAttendee[]
 	},
 	theme: EmailTheme,
 	self?: { address: string; status: CalendarAttendeeStatus },
@@ -300,7 +307,7 @@ function attendeesLine(
 	const { organizer } = event
 	const hasChanges = !!(attendeesChanges.added.length || attendeesChanges.removed.length)
 
-	function buildAttendee(a: tutanotaTypeRefs.CalendarEventAttendee, removed: boolean) {
+	function buildAttendee(a: CalendarEventAttendee, removed: boolean) {
 		if (a.address.address === organizer?.address) {
 			return ""
 		}
@@ -315,7 +322,7 @@ function attendeesLine(
 	return newLine(getLabel("guests_label", hasChanges), `<table style="line-height: 1rem;">${attendees.join("")}</table>`)
 }
 
-function makeAttendee(attendee: tutanotaTypeRefs.CalendarEventAttendee, theme: EmailTheme, removed: boolean = false, highlightColor?: string): string {
+function makeAttendee(attendee: CalendarEventAttendee, theme: EmailTheme, removed: boolean = false, highlightColor?: string): string {
 	const resolvedStyles = highlightColor ? `font-weight: 600; color: ${highlightColor}` : ""
 	const content = `
 				<span style="${removed ? `text-decoration: line-through; color: ${theme.textSecondaryColor}` : ""}">
@@ -331,7 +338,7 @@ function makeAttendee(attendee: tutanotaTypeRefs.CalendarEventAttendee, theme: E
 	return `<tr><td style="${resolvedStyles}">${content}</td></tr>`
 }
 
-function locationLine(event: tutanotaTypeRefs.CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+function locationLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	const content = `
 		<span>${event.location}</span><br>
 		<a href=${getLocationUrl(event.location).toString()} target="_blank" referrerpolicy="no-referrer" style="color: ${theme.linkColor}">View on map</a>
@@ -339,7 +346,7 @@ function locationLine(event: tutanotaTypeRefs.CalendarEvent, highlightChange: bo
 	return event.location ? newLine(getLabel("location_label", highlightChange), content) : ""
 }
 
-function descriptionLine(event: tutanotaTypeRefs.CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+function descriptionLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	// We can't actually highlight the description because it can have richtext/html
 	return event.description ? newLine(getLabel("description_label", highlightChange), `<div>${event.description}</div>`) : ""
 }
@@ -467,12 +474,12 @@ function makeEventInviteEmailBody(isPlainText: boolean, emailBodyIngredients: Em
 }
 
 interface EmailBodyIngredients {
-	event: tutanotaTypeRefs.CalendarEvent
+	event: CalendarEvent
 	infoBannerMessage: string
 	eventInviteEmailType: EventInviteEmailType
 	sender: string
 	changedFields?: {
-		attendee: { added: tutanotaTypeRefs.CalendarEventAttendee[]; removed: tutanotaTypeRefs.CalendarEventAttendee[] }
+		attendee: { added: CalendarEventAttendee[]; removed: CalendarEventAttendee[] }
 		description: boolean
 		location: boolean
 		organizer: boolean
@@ -489,9 +496,7 @@ function isAttendanceUpdateNotification(eventInviteEmailType: EventInviteEmailTy
 }
 
 function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, comment }: EmailBodyIngredients) {
-	const organizer: tutanotaTypeRefs.CalendarEventAttendee | undefined = event.attendees.find(
-		(attendee) => attendee.address.address === event.organizer?.address,
-	)
+	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
 	const duration = formatEventDuration(event, getTimeZone(), true)
 	const eventLines: string[] = []
 
@@ -589,7 +594,7 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 	return body.join("")
 }
 
-function assertOrganizer(event: tutanotaTypeRefs.CalendarEvent): tutanotaTypeRefs.EncryptedMailAddress {
+function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
 	if (event.organizer == null) {
 		throw new ProgrammingError("Cannot send event update without organizer")
 	}

@@ -1,22 +1,27 @@
-import { OfflineMigration } from "../OfflineStorageMigrator.js"
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { assertNotNull, isEmpty } from "@tutao/utils"
 import { sql } from "../Sql"
-import { CUSTOM_MIN_ID, getTypeString, tutanotaTypeRefs, untagSqlObject } from "@tutao/typerefs"
+import { CUSTOM_MIN_ID, getTypeString } from "@tutao/meta"
+import { untagSqlObject } from "../SqlValue"
+import { MailSetEntryTypeRef } from "@tutao/entities/tutanota"
+import { OfflineMigration } from "../OfflineMigration"
 
+const VERSION = 12
 /**
  * Delete MailSetEntry ranges that might have been made inconsistent by offline cleaner
  */
-export const offline12: OfflineMigration = {
-	version: 12,
-	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+export class offline12 extends OfflineMigration {
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {
+		super(VERSION)
+	}
+	async migrate(storage: OfflineStorage) {
 		const { query, params } = sql`SELECT listId
 									  FROM ranges
-									  WHERE type = ${getTypeString(tutanotaTypeRefs.MailSetEntryTypeRef)}
+									  WHERE type = ${getTypeString(MailSetEntryTypeRef)}
 										AND lower = ${CUSTOM_MIN_ID}`
 
-		const rows = await sqlCipherFacade.all(query, params)
+		const rows = await this.sqlCipherFacade.all(query, params)
 		if (isEmpty(rows)) {
 			// either no ranges exist yet, or all existing ranges are consistent
 			return
@@ -26,8 +31,8 @@ export const offline12: OfflineMigration = {
 			rows.map((row) => {
 				const listId = assertNotNull(untagSqlObject(row)["listId"] as Id, "null listId when deleting range")
 				console.log("will delete range for list: ", listId)
-				storage.deleteRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId)
+				storage.deleteRange(MailSetEntryTypeRef, listId)
 			}),
 		)
-	},
+	}
 }

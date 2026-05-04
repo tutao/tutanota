@@ -1,5 +1,4 @@
-import type { Thunk } from "@tutao/utils"
-import { DateProvider } from "../../../../utils/DateProvider.js"
+import type { DateProvider, Thunk } from "@tutao/utils"
 
 export type ScheduledTimeoutId = TimeoutID
 export type ScheduledPeriodicId = TimeoutID

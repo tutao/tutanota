@@ -8,28 +8,21 @@ import { mock } from "@tutao/otest"
 import { Aes256Key, aes256RandomKey, FIXED_IV, SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "@tutao/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
-import {
-	Cardinality,
-	ClientModelInfo,
-	clone,
-	create,
-	Entity,
-	generatedIdToTimestamp,
-	ModelValue,
-	ServerModelInfo,
-	ServerModels,
-	timestampToGeneratedId,
-	TypeModel,
-	TypeModelResolver,
-	TypeRef,
-	ValueType,
-} from "@tutao/typerefs"
+import { Cardinality, clone, create, Entity, generatedIdToTimestamp, ModelValue, timestampToGeneratedId, TypeModel, TypeRef, ValueType } from "../../src/meta"
 import { type fetch as undiciFetch, type Response } from "undici"
-import { InstancePipeline, ModelMapper } from "@tutao/instance-pipeline"
+import { ClientModelInfo, InstancePipeline, ModelMapper, ServerModelInfo, ServerModels, TypeModelResolver } from "@tutao/instance-pipeline"
 import { dummyResolver } from "./instance-pipeline/InstancePipelineTestUtils"
+import { accountingTypeModels, accountingModelInfo } from "@tutao/entities/accounting"
+import { baseTypeModels, baseModelInfo } from "@tutao/entities/base"
+import { driveTypeModels, driveModelInfo } from "@tutao/entities/drive"
+import { monitorTypeModels, monitorModelInfo } from "@tutao/entities/monitor"
+import { storageTypeModels, storageModelInfo } from "@tutao/entities/storage"
+import { sysTypeModels, sysModelInfo } from "@tutao/entities/sys"
+import { tutanotaTypeModels, tutanotaModelInfo } from "@tutao/entities/tutanota"
+import { usageTypeModels, usageModelInfo } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/app-env/boot/ClientDetector"
-import { KeyLoaderFacade } from "../../src/network/crypto/facades/KeyLoaderFacade"
+import { KeyLoaderFacade } from "../../src/base/crypto/KeyLoaderFacade"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -153,9 +146,34 @@ export const domainConfigStub: DomainConfig = {
 	websiteBaseUrl: "",
 }
 
+export function makePopulatedClientModelInfo(): ClientModelInfo {
+	const info = ClientModelInfo.getNewInstanceForTestsOnly()
+	info.typeModels = {
+		accounting: accountingTypeModels as any,
+		base: baseTypeModels as any,
+		drive: driveTypeModels as any,
+		monitor: monitorTypeModels as any,
+		storage: storageTypeModels as any,
+		sys: sysTypeModels as any,
+		tutanota: tutanotaTypeModels as any,
+		usage: usageTypeModels as any,
+	}
+	Object.assign(info.modelInfos, {
+		accounting: accountingModelInfo,
+		base: baseModelInfo,
+		drive: driveModelInfo,
+		monitor: monitorModelInfo,
+		storage: storageModelInfo,
+		sys: sysModelInfo,
+		tutanota: tutanotaModelInfo,
+		usage: usageModelInfo,
+	})
+	return info
+}
+
 // non-async copy of the function
 function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
-	const modelMap = ClientModelInfo.getNewInstanceForTestsOnly().typeModels[typeRef.app]
+	const modelMap = makePopulatedClientModelInfo().typeModels[typeRef.app]
 	const typeModel = modelMap[typeRef.typeId]
 
 	if (typeModel == null) {
@@ -337,7 +355,7 @@ export function clientModelAsServerModel(clientModel: ClientModelInfo): ServerMo
 }
 
 export function clientInitializedTypeModelResolver(): TypeModelResolver {
-	const clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
+	const clientModelInfo = makePopulatedClientModelInfo()
 	const serverModelInfo = clientModelAsServerModel(clientModelInfo)
 	return new TypeModelResolver(clientModelInfo, serverModelInfo)
 }

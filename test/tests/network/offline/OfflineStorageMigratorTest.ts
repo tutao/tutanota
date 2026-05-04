@@ -1,9 +1,8 @@
 import o, { verify } from "@tutao/otest"
 import {
 	assertLastMigrationConsistentVersion,
+	createOfflineStorageMigrations,
 	CURRENT_OFFLINE_VERSION,
-	OFFLINE_STORAGE_MIGRATIONS,
-	OfflineMigration,
 	OfflineStorageMigrator,
 } from "../../../../src/local-store/OfflineStorageMigrator.js"
 import { OfflineStorage } from "../../../../src/local-store/OfflineStorage.js"
@@ -11,7 +10,8 @@ import { func, instance, matchers, object, when } from "testdouble"
 import { ProgrammingError } from "@tutao/app-env"
 import { maxBy } from "@tutao/utils"
 import { ApplicationTypesFacade } from "../../../../src/instance-pipeline/ApplicationTypesFacade"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { OfflineMigration } from "../../../../src/local-store/OfflineMigration"
 
 o.spec("OfflineStorageMigrator", function () {
 	let migrations: OfflineMigration[]
@@ -24,7 +24,7 @@ o.spec("OfflineStorageMigrator", function () {
 		migrations = []
 		storage = instance(OfflineStorage)
 		applicationTypesFacadeMock = object()
-		migrator = new OfflineStorageMigrator(migrations, applicationTypesFacadeMock)
+		migrator = new OfflineStorageMigrator(migrations)
 		sqlCipherFacade = object()
 	})
 
@@ -36,15 +36,15 @@ o.spec("OfflineStorageMigrator", function () {
 		}
 		migrations.push(migration)
 
-		await migrator.migrate(storage, sqlCipherFacade)
+		await migrator.migrate(storage)
 		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
-		verify(migration.migrate(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		verify(migration.migrate(matchers.anything()), { times: 0 })
 	})
 
 	o.test("when the model version is written it is not overwritten", async function () {
 		when(storage.dumpMetadata()).thenResolve({ "offline-version": 5 })
 
-		await migrator.migrate(storage, sqlCipherFacade)
+		await migrator.migrate(storage)
 
 		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
 	})
@@ -58,9 +58,9 @@ o.spec("OfflineStorageMigrator", function () {
 		}
 		migrations.push(migration)
 
-		await migrator.migrate(storage, sqlCipherFacade)
+		await migrator.migrate(storage)
 
-		verify(migration.migrate(storage, sqlCipherFacade, applicationTypesFacadeMock))
+		verify(migration.migrate(storage))
 		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
 	})
 
@@ -73,18 +73,18 @@ o.spec("OfflineStorageMigrator", function () {
 		}
 		migrations.push(migration)
 
-		await o.check(() => migrator.migrate(storage, sqlCipherFacade)).asyncThrows(ProgrammingError)
+		await o.check(() => migrator.migrate(storage)).asyncThrows(ProgrammingError)
 
-		verify(migration.migrate(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		verify(migration.migrate(matchers.anything()), { times: 0 })
 		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
 	})
 
 	o.test("real migration list: consistent with the latest version", async function () {
-		assertLastMigrationConsistentVersion(OFFLINE_STORAGE_MIGRATIONS)
+		assertLastMigrationConsistentVersion(createOfflineStorageMigrations(sqlCipherFacade, applicationTypesFacadeMock))
 	})
 
 	o("ensure CURRENT_OFFLINE_VERSION matches the greatest registered migration", async function () {
-		const greatestMigration = maxBy(OFFLINE_STORAGE_MIGRATIONS, (item: OfflineMigration) => item.version)
+		const greatestMigration = maxBy(createOfflineStorageMigrations(sqlCipherFacade, applicationTypesFacadeMock), (item: OfflineMigration) => item.version)
 		o(CURRENT_OFFLINE_VERSION).equals(greatestMigration?.version)
 	})
 })

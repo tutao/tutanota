@@ -1,4 +1,4 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Contact, ContactList } from "@tutao/entities/tutanota"
 
 /**
  * Indexer backend for the contact list on the user.
@@ -11,13 +11,13 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 export interface ContactIndexerBackend {
 	init(): Promise<void>
 
-	indexContactList(contactList: tutanotaTypeRefs.ContactList): Promise<void>
+	indexContactList(contactList: ContactList): Promise<void>
 
-	onContactCreated(contact: tutanotaTypeRefs.Contact): Promise<void>
+	onContactCreated(contact: Contact): Promise<void>
 
-	onContactUpdated(contact: tutanotaTypeRefs.Contact): Promise<void>
+	onContactUpdated(contact: Contact): Promise<void>
 
 	onContactDeleted(contact: IdTuple): Promise<void>
 
-	areContactsIndexed(contactList: tutanotaTypeRefs.ContactList): Promise<boolean>
+	areContactsIndexed(contactList: ContactList): Promise<boolean>
 }

@@ -8,9 +8,10 @@ import {
 	migrateConfigV5to6,
 } from "../../../src/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
-import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
+
 import { getDayShifted, getStartOfDay } from "@tutao/utils"
 import { CredentialEncryptionMode } from "@tutao/app-env"
+import { CredentialType } from "@tutao/network/types"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {

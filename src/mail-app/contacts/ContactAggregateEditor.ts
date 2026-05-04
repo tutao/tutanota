@@ -1,11 +1,11 @@
-import { Autocapitalize, LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
-import { lang, MaybeTranslation, TranslationKey } from "../../common/misc/LanguageViewModel"
+import { Autocapitalize, LegacyTextField, LegacyTextFieldType } from "../../ui/base/LegacyTextField.js"
+import { lang, MaybeTranslation, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Icons } from "../../common/gui/base/icons/Icons"
-import { animations, height, opacity } from "../../common/gui/animation/Animations"
-import { attachDropdown } from "../../common/gui/base/Dropdown.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { Icons } from "../../ui/base/icons/Icons"
+import { animations, height, opacity } from "../../ui/animation/Animations"
+import { attachDropdown } from "../../ui/base/Dropdown.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 
 export type AggregateEditorAttrs<AggregateType> = {
 	value: string

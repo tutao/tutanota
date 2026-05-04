@@ -1,23 +1,23 @@
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import { Dialog } from "../gui/base/Dialog"
-import { countryList } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import { px } from "../gui/size"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { px } from "../../ui/size"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import { assertNotNull, LazyLoaded, neverNull, newPromise } from "@tutao/utils"
-import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./utils/SubscriptionUtils.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
-import { lang } from "../misc/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { PaypalButton } from "./PaypalButton"
 import { getVisiblePaymentMethods, isOnAccountAllowed, validatePaymentData } from "./utils/PaymentUtils"
-import { MessageBox } from "../gui/base/MessageBox"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { PaymentMethodType } from "@tutao/app-env"
+import { MessageBox } from "../../ui/base/MessageBox"
+import { AccountingInfo, Customer, PaymentMethodType } from "@tutao/entities/sys"
+import { Country } from "@tutao/app-env"
+import { getByAbbreviation } from "../gui/CountryList"
 
 function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 	return m(SimplifiedCreditCardInput, { viewModel: ccViewModel })
@@ -25,7 +25,7 @@ function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 
 function renderPaypalInput(
 	paypalButtonData: {
-		accountingInfo: sysTypeRefs.AccountingInfo
+		accountingInfo: AccountingInfo
 	},
 	payPalRequestUrl: LazyLoaded<string>,
 ): Children {
@@ -41,7 +41,7 @@ function renderPaypalInput(
 	})
 }
 
-function renderInvoiceInput(country: countryList.Country | null, accountingInfo: sysTypeRefs.AccountingInfo, isBusiness: boolean): Children {
+function renderInvoiceInput(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): Children {
 	return m(
 		".flex-center",
 		m(
@@ -76,17 +76,12 @@ function renderAccountBalanceInput(): Children {
 /**
  * @returns {boolean} true if the payment data update was successful
  */
-export async function show(
-	customer: sysTypeRefs.Customer,
-	accountingInfo: sysTypeRefs.AccountingInfo,
-	price: number,
-	defaultPaymentMethod: PaymentMethodType,
-): Promise<boolean> {
+export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
 	const paypalButtonData = { accountingInfo }
 	const payPalRequestUrl = getLazyLoadedPayPalUrl()
 	const invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-		country: accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null,
+		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo,
 	}
 	const subscriptionOptions = {

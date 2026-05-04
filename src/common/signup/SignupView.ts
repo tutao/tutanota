@@ -1,15 +1,20 @@
 import m, { Vnode } from "mithril"
-import { assertMainOrNode, AvailablePlanType, isDesktop, isIOSApp, PlanType, SubscriptionType } from "@tutao/app-env"
-import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
-import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { createWizard, WizardAttrs } from "../gui/base/wizard/Wizard"
+import { assertMainOrNode, Country, InvoiceData, isDesktop, isIOSApp } from "@tutao/app-env"
+import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { BaseTopLevelView } from "../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView.js"
+import { createWizard, WizardAttrs } from "../../ui/base/wizard/Wizard"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "../subscription/utils/PriceUtils"
-import { InvoiceData } from "@tutao/app-env"
-import { canSubscribeToPlan, queryAppStoreSubscriptionOwnership, UpgradeType } from "../subscription/utils/SubscriptionUtils"
+import {
+	canSubscribeToPlan,
+	getDefaultPaymentMethod,
+	PaymentData,
+	queryAppStoreSubscriptionOwnership,
+	UpgradeType,
+} from "../subscription/utils/SubscriptionUtils"
 import { locator } from "../api/main/CommonLocator"
 import {
 	getAvailablePlansFromSubscriptionParameters,
@@ -21,15 +26,14 @@ import {
 	stringToSubscriptionType,
 } from "../misc/LoginUtils"
 import { FeatureListProvider, SelectedSubscriptionOptions, UpgradePriceType } from "../subscription/FeatureListProvider"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/common"
+import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/types"
 import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
 import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
 import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
-import { IconMessageBox, InfoMessaggeBoxAttrs } from "../gui/base/ColumnEmptyMessageBox"
-import { theme } from "../gui/theme"
-import { countryList } from "@tutao/app-env"
+import { IconMessageBox, InfoMessaggeBoxAttrs } from "../../ui/base/ColumnEmptyMessageBox"
+import { theme } from "../../ui/theme"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
@@ -37,9 +41,9 @@ import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
-import { Icons } from "../gui/base/icons/Icons"
-import { getDefaultPaymentMethod, PaymentData, sysTypeRefs } from "@tutao/typerefs"
+import { Icons } from "../../ui/base/icons/Icons"
 import { mailLocator } from "../../mail-app/mailLocator"
+import { AccountingInfo, AvailablePlanType, Customer, PlanType, SubscriptionType } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -58,8 +62,8 @@ export class SignupViewModel {
 	public targetPlanType: PlanType
 	public price: SubscriptionPrice | null
 	public nextYearPrice: SubscriptionPrice | null
-	public accountingInfo: sysTypeRefs.AccountingInfo | null
-	public customer: sysTypeRefs.Customer | null
+	public accountingInfo: AccountingInfo | null
+	public customer: Customer | null
 	public newAccountData: NewAccountData | null
 	public registrationDataId: string | null
 	public priceInfoTextId?: TranslationKey | null
@@ -154,7 +158,7 @@ export class SignupViewModel {
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 	}
 
-	public updateInvoiceCountry(country: countryList.Country) {
+	public updateInvoiceCountry(country: Country) {
 		this.invoiceData.country = country
 		// We overwrite this flag only for th UI change, this does not affect anything for the stored data in the server.
 		// Actual paymentBillingAgreement is removed in PaymentDataService.put if the updated payment method is not PayPal.

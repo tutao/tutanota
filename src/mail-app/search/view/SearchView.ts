@@ -1,14 +1,15 @@
 import m, { Children, Vnode } from "mithril"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, MailReportType, MailSetKind, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { getElementId, getIds, isSameId, isSameTypeRef, SimpleMoveMailTarget, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
+import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { keyManager, Shortcut } from "../../../ui/utils/KeyManager"
+import { getElementId, getIds, isSameId, isSameTypeRef, TypeRef } from "../../../meta"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailReportType, MailSetKind, MailTypeRef } from "@tutao/entities/tutanota"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { layout_size } from "../../../common/gui/size"
+import { layout_size } from "../../../ui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	assertNotNull,
@@ -25,42 +26,42 @@ import {
 	ofClass,
 	setDifference,
 } from "@tutao/utils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { AppHeaderAttrs, Header } from "../../../ui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { ContactEditor } from "../../contacts/ContactEditor"
-import { styles } from "../../../common/gui/styles"
+import { styles } from "../../../ui/styles"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../network/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { SidebarSection } from "../../../common/gui/SidebarSection"
-import { ClickHandler, getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
-import { SelectorItem } from "../../../common/gui/base/DropDownSelector.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { SidebarSection } from "../../../ui/SidebarSection"
+import { ClickHandler, getDetachedDropdownBounds } from "../../../ui/base/GuiUtils"
+import { SelectorItem } from "../../../ui/base/DropDownSelector.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { MobileMailActionBar } from "../../mail/view/MobileMailActionBar.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { getContactSelectionMessage, MultiContactViewer } from "../../contacts/view/MultiContactViewer.js"
 import { ContactCardViewer } from "../../contacts/view/ContactCardViewer.js"
 import { getMailSelectionMessage, MultiItemViewer } from "../../mail/view/MultiItemViewer.js"
 import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ContactViewerActions } from "../../contacts/view/ContactViewerActions.js"
 import { confirmMerge, deleteContacts, writeMail } from "../../contacts/view/ContactView.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
 import { searchBar } from "../SearchBar.js"
 import { MobileMailMultiselectionActionBar } from "../../mail/view/MobileMailMultiselectionActionBar.js"
 import { exportContacts } from "../../contacts/VCardExporter.js"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { DesktopListToolbar, DesktopViewerToolbar } from "../../../common/gui/DesktopToolbars.js"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../ui/DesktopToolbars.js"
 import { MailViewerActions } from "../../mail/view/MailViewerToolbar.js"
-import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
-import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
-import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
-import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar.js"
-import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
+import { BaseMobileHeader } from "../../../ui/BaseMobileHeader.js"
+import { ProgressBar } from "../../../ui/base/ProgressBar.js"
+import { EnterMultiselectIconButton } from "../../../ui/EnterMultiselectIconButton.js"
+import { MobileHeader } from "../../../ui/MobileHeader.js"
+import { MobileActionAttrs, MobileActionBar } from "../../../ui/MobileActionBar.js"
+import { MobileBottomActionBar } from "../../../ui/MobileBottomActionBar.js"
 import {
 	getConversationTitle,
 	LabelsPopupOpts,
@@ -71,14 +72,14 @@ import {
 	simpleMoveToSystemFolder,
 	trashMails,
 } from "../../mail/view/MailGuiUtils.js"
-import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
+import { SelectAllCheckbox } from "../../../ui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
-import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
-import { MultiselectMode } from "../../../common/gui/base/List.js"
+import { MultiselectMobileHeader } from "../../../ui/MultiselectMobileHeader.js"
+import { MultiselectMode } from "../../../ui/base/List.js"
 import { SearchViewModel } from "./SearchViewModel.js"
 import * as restError from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts } from "../../../ui/base/ListUtils.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import {
 	EventDetailsView,
@@ -87,7 +88,7 @@ import {
 	handleEventEditButtonClick,
 	handleSendUpdatesClick,
 } from "../../../calendar-app/calendar/view/EventDetailsView.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { EventEditorDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
@@ -96,7 +97,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
-import { createDropdown } from "../../../common/gui/base/Dropdown"
+import { createDropdown } from "../../../ui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
@@ -104,17 +105,19 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MoveMode } from "../../mail/model/MailModel"
 import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
-import { Card } from "../../../common/gui/base/Card"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { FilterChip } from "../../../common/gui/base/FilterChip"
-import { formatDate } from "../../../common/misc/Formatter"
-import { AllIcons } from "../../../common/gui/base/Icon"
+import { Card } from "../../../ui/base/Card"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../../../ui/utils/RouteChange"
+import { FilterChip } from "../../../ui/base/FilterChip"
+import { formatDate } from "../../../ui/utils/Formatter"
+import { AllIcons } from "../../../ui/base/Icon"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 
-import { PosRect } from "../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../ui/utils/PosRect"
+import { SimpleMoveMailTarget } from "../../mail/MailUtils"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -136,15 +139,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly startOfTheWeekOffset: number
 	private readonly undoModel: UndoModel
 
-	private getSanitizedPreviewData: (event: tutanotaTypeRefs.CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized(
-		(event: tutanotaTypeRefs.CalendarEvent) =>
-			new LazyLoaded(async () => {
-				const calendars = await this.searchViewModel.getAvailableCalendars(false)
-				const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-				const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, this.searchViewModel.getHighlightedStrings())
-				eventPreviewModel.sanitizeDescription().then(() => m.redraw())
-				return eventPreviewModel
-			}).load(),
+	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
+		new LazyLoaded(async () => {
+			const calendars = await this.searchViewModel.getAvailableCalendars(false)
+			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, this.searchViewModel.getHighlightedStrings())
+			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
+			return eventPreviewModel
+		}).load(),
 	)
 
 	private getContactPreviewData = memoized((id: string) =>
@@ -227,7 +229,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				maxWidth: layout_size.third_col_max_width,
 			},
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
+		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], windowFacade)
 	}
 
 	private getResultColumnLayout() {
@@ -240,7 +242,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					currentType: this.searchViewModel.searchedType,
 					onSingleSelection: (item) => {
 						this.viewSlider.focus(this.resultDetailsColumn)
-						if (isSameTypeRef(item.entry._type, tutanotaTypeRefs.MailTypeRef)) {
+						if (isSameTypeRef(item.entry._type, MailTypeRef)) {
 							// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
 							// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
 							// sync so this should be enough.
@@ -510,7 +512,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderMobileListActionsHeader(header: AppHeaderAttrs): Children {
 		const rightActions: Children[] = []
 
-		if (!isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
+		if (!isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
 			rightActions.push(
 				m(EnterMultiselectIconButton, {
 					clickAction: () => {
@@ -528,11 +530,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							title: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => {
-								if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef)) {
+								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 									m.route.set(MAIL_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.ContactTypeRef)) {
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
 									m.route.set(CONTACTS_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.CalendarEventTypeRef)) {
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
 									m.route.set(CALENDAR_PREFIX)
 								}
 							},
@@ -578,7 +580,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 			const actions = m(ContactViewerActions, {
 				contacts: selectedContacts,
-				onEdit: (c: tutanotaTypeRefs.Contact) => new ContactEditor(locator.entityClient, c).show(),
+				onEdit: (c: Contact) => new ContactEditor(locator.entityClient, c).show(),
 				onDelete: deleteContacts,
 				onMerge: confirmMerge,
 				onExport: exportContacts,
@@ -662,7 +664,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								: this.searchViewModel.listModel.isLoadedCompletely() || this.searchViewModel.isIndexingMails()
 									? "none"
 									: "can_load",
-						getSelectionMessage: (selected: ReadonlyArray<tutanotaTypeRefs.Mail>) => getMailSelectionMessage(selected),
+						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 					}),
 				})
 			} else {
@@ -925,7 +927,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
 
-	private renderEventPreview(event: tutanotaTypeRefs.CalendarEvent): Children {
+	private renderEventPreview(event: CalendarEvent): Children {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
@@ -942,7 +944,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return null
 	}
 
-	private renderContactPreview(contact: tutanotaTypeRefs.Contact): Children {
+	private renderContactPreview(contact: Contact): Children {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -956,7 +958,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	private renderEventDetails(selectedEvent: tutanotaTypeRefs.CalendarEvent): Children {
+	private renderEventDetails(selectedEvent: CalendarEvent): Children {
 		return m(
 			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
@@ -984,6 +986,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							returnListener: () => this.resultListColumn.focus(),
 						}),
 					...attrs.header,
+					isFeatureEnabled: locator.logins.isEnabled,
+					isInternalUserLoggedIn: locator.logins.isUserLoggedIn(),
 				}),
 				bottomNav: this.renderBottomNav(),
 			}),
@@ -1089,7 +1093,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					m(ContactViewerActions, {
 						contacts: this.searchViewModel.getSelectedContacts(),
 						onEdit: () => new ContactEditor(locator.entityClient, getFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
-						onDelete: (contacts: tutanotaTypeRefs.Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
+						onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
 						onMerge: confirmMerge,
 						onExport: exportContacts,
 					}),
@@ -1173,11 +1177,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				exec: () => {
 					const type = this.searchViewModel.searchedType
 
-					if (isSameTypeRef(type, tutanotaTypeRefs.MailTypeRef)) {
+					if (isSameTypeRef(type, MailTypeRef)) {
 						newMailEditor()
 							.then((editor) => editor?.show())
 							.catch(ofClass(PermissionError, noOp))
-					} else if (isSameTypeRef(type, tutanotaTypeRefs.ContactTypeRef)) {
+					} else if (isSameTypeRef(type, ContactTypeRef)) {
 						locator.contactModel.getContactListId().then((contactListId) => {
 							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
 						})
@@ -1256,7 +1260,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
-			isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef) &&
+			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
 			styles.isSingleColumnLayout() &&
 			!args.id &&
 			this.viewSlider.focusedColumn === this.resultDetailsColumn
@@ -1275,7 +1279,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	} | null {
 		if (styles.isUsingBottomNavigation()) {
 			return null
-		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef) && isNewMailActionAvailable()) {
+		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
 					newMailEditor()
@@ -1284,7 +1288,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				label: "newMail_action",
 			}
-		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.ContactTypeRef)) {
+		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
 			return {
 				click: () => {
 					locator.contactModel.getContactListId().then((contactListId) => {
@@ -1293,7 +1297,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				label: "newContact_action",
 			}
-		} else if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
 			return {
 				click: () => {
 					this.createNewEventDialog()
@@ -1368,7 +1372,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
-		if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.MailTypeRef)) {
+		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 			const selected = this.searchViewModel.getSelectedMails()
 			const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
@@ -1389,7 +1393,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						: null,
 				}
 			}
-		} else if (isSameTypeRef(this.searchViewModel.searchedType, tutanotaTypeRefs.ContactTypeRef)) {
+		} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
 			const selectedContacts = this.searchViewModel.getSelectedContacts()
 			if (isNotEmpty(selectedContacts)) {
 				return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
@@ -1402,7 +1406,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private deleteContacts(selected: tutanotaTypeRefs.Contact[]): void {
+	private deleteContacts(selected: Contact[]): void {
 		Dialog.confirm("deleteContacts_msg").then((confirmed) => {
 			if (confirmed) {
 				if (selected.length > 1) {

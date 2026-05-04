@@ -1,5 +1,5 @@
 import { assertMainOrNode } from "@tutao/app-env"
-import { DeleteService, GetService, ParamTypeFromRef, PostService, PutService, ReturnTypeFromRef } from "@tutao/typerefs"
+import { DeleteService, GetService, ParamTypeFromRef, PostService, PutService, ReturnTypeFromRef } from "../meta"
 import { AesKey } from "@tutao/crypto"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
 

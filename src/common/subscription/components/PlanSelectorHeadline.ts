@@ -1,8 +1,8 @@
 import m, { Component, Vnode } from "mithril"
-import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
-import { theme } from "../../gui/theme"
-import { Translation } from "../../misc/LanguageViewModel"
-import { px } from "../../gui/size"
+import { AllIcons, Icon, IconSize } from "../../../ui/base/Icon"
+import { theme } from "../../../ui/theme"
+import { Translation } from "../../../ui/utils/LanguageViewModel"
+import { px } from "../../../ui/size"
 
 interface PlanSelectorHeadlineAttrs {
 	translation: Translation

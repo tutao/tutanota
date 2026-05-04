@@ -1,24 +1,24 @@
 import { Children, Component } from "mithril"
-import { TopLevelAttrs } from "../../TopLevelView.js"
+import { TopLevelAttrs } from "../../ui/base/TopLevelView.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
-import { AppHeaderAttrs } from "../gui/Header.js"
+import { AppHeaderAttrs } from "../../ui/Header.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 import { EventController } from "../api/main/EventController"
 import { DomainConfigProvider } from "../api/common/DomainConfigProvider"
-import { Translation } from "../misc/LanguageViewModel"
 import { SettingsFolder } from "./SettingsFolder"
+import { Translation } from "../../ui/utils/LanguageViewModel"
 
 /** UI component shown in the second column of settings. */
 export interface UpdatableSettingsViewer extends Component {
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<unknown>
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 /** UI component shown in the third column of settings. Not actually a Mithril component. */
 export interface UpdatableSettingsDetailsViewer {
 	renderView(): Children
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<unknown>
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 export interface SettingsViewAttrs extends TopLevelAttrs {

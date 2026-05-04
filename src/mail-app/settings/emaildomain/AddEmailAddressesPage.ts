@@ -3,23 +3,23 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
 import { neverNull } from "@tutao/utils"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import type { TableAttrs } from "../../../common/gui/base/Table.js"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
-import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import type { TableAttrs } from "../../../ui/base/Table.js"
+import { ColumnWidth, Table } from "../../../ui/base/Table.js"
+import type { WizardPageAttrs } from "../../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../../ui/base/WizardDialog.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import * as restError from "@tutao/rest-client/error"
 import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
+import { CustomerTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -128,8 +128,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 				return true
 			} else {
 				return locator.entityClient
-					.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-					.then((customer) => locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.userGroups))
+					.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
 					.then((allUserGroupInfos) => {
 						return allUserGroupInfos.some(
 							(u) =>

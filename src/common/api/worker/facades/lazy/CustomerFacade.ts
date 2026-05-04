@@ -1,43 +1,27 @@
-import {
-	AccountType,
-	assertWorkerOrNode,
-	BookingItemFeatureType,
-	Const,
-	CounterType,
-	countryList,
-	CryptoProtocolVersion,
-	FeatureType,
-	GroupType,
-	InvoiceData,
-	ProgrammingError,
-	SpamRuleFieldType,
-	SpamRuleType,
-} from "@tutao/app-env"
-import { DataFile, PaymentData, sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertWorkerOrNode, Const, Country, CryptoProtocolVersion, FeatureType, InvoiceData, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
-import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
-import type { GroupManagementFacade } from "../../../../../network/facades/lazy/GroupManagementFacade.js"
-import { CounterFacade } from "../../../../../network/facades/CounterFacade.js"
+import type { GroupManagementFacade } from "../../../../../base/facades/lazy/GroupManagementFacade.js"
+import { CounterFacade } from "../../../../../network/CounterFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import type { RsaImplementation } from "../../../../../native-bridge/worker/RsaImplementation.js"
 import { EntityClient } from "../../../../../network/EntityClient.js"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
 import { BookingFacade } from "./BookingFacade.js"
-import { UserFacade } from "../../../../../network/UserFacade.js"
+import { UserFacade } from "../../../../../base/facades/UserFacade.js"
 import { PaymentInterval } from "../../../../subscription/utils/PriceUtils.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
-import { PQFacade } from "../../../../../network/crypto/facades/PQFacade.js"
+import { PQFacade } from "../../../../../base/crypto/PQFacade.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
-import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
-import { RecoverCodeFacade } from "../../../../../network/facades/lazy/RecoverCodeFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../network/crypto/facades/AsymmetricCryptoFacade.js"
-import { PublicEncryptionKeyProvider } from "../../../../../network/crypto/facades/PublicEncryptionKeyProvider"
+import { KeyLoaderFacade } from "../../../../../base/crypto/KeyLoaderFacade.js"
+import { RecoverCodeFacade } from "../../../../../base/facades/lazy/RecoverCodeFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../base/crypto/AsymmetricCryptoFacade.js"
+import PublicEncryptionKeyProvider from "../../../../../base/crypto/PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
-import { CacheMode } from "@tutao/network"
-import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
+import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
 import {
 	_encryptKeyWithVersionedKey,
 	cryptoUtils,
@@ -48,6 +32,39 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "@tutao/crypto"
+import { CacheMode } from "../../../../../network/EntityRestClient"
+import { CounterType } from "@tutao/entities/monitor"
+import { createCustomerAccountCreateData, CustomerAccountService, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import {
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	AccountType,
+	BookingItemFeatureType,
+	BrandingDomainService,
+	createBrandingDomainData,
+	createBrandingDomainDeleteData,
+	createCreateCustomerServerPropertiesData,
+	createCustomDomainData,
+	CreateCustomerServerProperties,
+	createEmailSenderListElement,
+	createInvoiceDataGetIn,
+	createPaymentDataServicePutData,
+	CustomDomainReturn,
+	CustomDomainService,
+	CustomerInfoTypeRef,
+	CustomerServerProperties,
+	CustomerServerPropertiesTypeRef,
+	CustomerTypeRef,
+	EmailSenderListElement,
+	GroupType,
+	InvoiceDataService,
+	PaymentDataService,
+	PaymentDataServicePutReturn,
+	SystemKeysService,
+	User,
+} from "@tutao/entities/sys"
+import { getByAbbreviation } from "../../../../gui/CountryList"
+import { DataFile } from "@tutao/entities/tutanota"
 
 assertWorkerOrNode()
 
@@ -82,45 +99,45 @@ export class CustomerFacade {
 		return "t-verify=" + uint8ArrayToHex(hash)
 	}
 
-	addDomain(domainName: string): Promise<sysTypeRefs.CustomDomainReturn> {
-		const data = sysTypeRefs.createCustomDomainData({
+	addDomain(domainName: string): Promise<CustomDomainReturn> {
+		const data = createCustomDomainData({
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: null,
 		})
-		return this.serviceExecutor.post(sysServices.CustomDomainService, data)
+		return this.serviceExecutor.post(CustomDomainService, data)
 	}
 
 	async removeDomain(domainName: string): Promise<void> {
-		const data = sysTypeRefs.createCustomDomainData({
+		const data = createCustomDomainData({
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: null,
 		})
-		await this.serviceExecutor.delete(sysServices.CustomDomainService, data)
+		await this.serviceExecutor.delete(CustomDomainService, data)
 	}
 
 	async setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void> {
-		const data = sysTypeRefs.createCustomDomainData({
+		const data = createCustomDomainData({
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: mailGroupId,
 		})
-		await this.serviceExecutor.put(sysServices.CustomDomainService, data)
+		await this.serviceExecutor.put(CustomDomainService, data)
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
 		const customerId = this.getCustomerId()
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId)
-		const customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
+		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomainInfo(customerInfo, domainName)
 		let sessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const keyData = await this.serviceExecutor.get(sysServices.SystemKeysService, null)
+		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const systemAdminPubKeys = this.publicEncryptionKeyProvider.convertFromSystemKeysReturn(keyData)
 		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.asymEncryptSymKey(
 			sessionKey,
 			systemAdminPubKeys,
 			this.userFacade.getUserGroupId(),
 		)
-		const data = sysTypeRefs.createBrandingDomainData({
+		const data = createBrandingDomainData({
 			domain: domainName,
 			systemAdminPubEncSessionKey: pubEncSymKeyBytes,
 			systemAdminPubKeyVersion: String(systemAdminPubKeys.version),
@@ -129,9 +146,9 @@ export class CustomerFacade {
 			sessionEncPemCertificateChain: null,
 		})
 		if (existingBrandingDomain) {
-			await this.serviceExecutor.put(sysServices.BrandingDomainService, data)
+			await this.serviceExecutor.put(BrandingDomainService, data)
 		} else {
-			await this.serviceExecutor.post(sysServices.BrandingDomainService, data)
+			await this.serviceExecutor.post(BrandingDomainService, data)
 		}
 	}
 
@@ -140,10 +157,10 @@ export class CustomerFacade {
 	}
 
 	async deleteCertificate(domainName: string): Promise<void> {
-		const data = sysTypeRefs.createBrandingDomainDeleteData({
+		const data = createBrandingDomainDeleteData({
 			domain: domainName,
 		})
-		await this.serviceExecutor.delete(sysServices.BrandingDomainService, data)
+		await this.serviceExecutor.delete(BrandingDomainService, data)
 	}
 
 	/**
@@ -160,8 +177,8 @@ export class CustomerFacade {
 	 * @return The amount of available storage capacity in byte.
 	 */
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return this.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId).then((customer) => {
-			return this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
+		return this.entityClient.load(CustomerTypeRef, customerId).then((customer) => {
+			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity)
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity)
 				let availableStorage = Math.max(includedStorage, promotionStorage)
@@ -185,8 +202,8 @@ export class CustomerFacade {
 		})
 	}
 
-	async loadCustomerServerProperties(): Promise<sysTypeRefs.CustomerServerProperties> {
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, this.getCustomerId())
+	async loadCustomerServerProperties(): Promise<CustomerServerProperties> {
+		const customer = await this.entityClient.load(CustomerTypeRef, this.getCustomerId())
 		let cspId
 		if (customer.serverProperties) {
 			cspId = customer.serverProperties
@@ -197,20 +214,20 @@ export class CustomerFacade {
 			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 			const adminGroupEncSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
-			const data = sysTypeRefs.createCreateCustomerServerPropertiesData({
+			const data = createCreateCustomerServerPropertiesData({
 				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
 				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
 			})
-			const returnData = await this.serviceExecutor.post(sysServices.CreateCustomerServerProperties, data)
+			const returnData = await this.serviceExecutor.post(CreateCustomerServerProperties, data)
 			cspId = returnData.id
 		}
-		return this.entityClient.load(sysTypeRefs.CustomerServerPropertiesTypeRef, cspId)
+		return this.entityClient.load(CustomerServerPropertiesTypeRef, cspId)
 	}
 
 	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void> {
 		return this.loadCustomerServerProperties().then((props) => {
 			value = value.toLowerCase().trim()
-			let newListEntry = sysTypeRefs.createEmailSenderListElement({
+			let newListEntry = createEmailSenderListElement({
 				value,
 				hashedValue: uint8ArrayToBase64(this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(value))),
 				type,
@@ -221,10 +238,12 @@ export class CustomerFacade {
 		})
 	}
 
-	editSpamRule(spamRule: sysTypeRefs.EmailSenderListElement): Promise<void> {
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
 		return this.loadCustomerServerProperties().then((props) => {
 			spamRule.value = spamRule.value.toLowerCase().trim()
-			const index = props.emailSenderList.findIndex((item) => spamRule._id === item._id)
+			const index = props.emailSenderList.findIndex((item) => {
+				return spamRule._id === item._id
+			})
 
 			if (index === -1) {
 				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
@@ -263,7 +282,7 @@ export class CustomerFacade {
 		const accountingInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const customerServerPropertiesSessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const keyData = await this.serviceExecutor.get(sysServices.SystemKeysService, null)
+		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey
 		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
 		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
@@ -314,7 +333,7 @@ export class CustomerFacade {
 		const adminEncAccountingInfoSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
 		const adminEncCustomerServerPropertiesSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
-		const data = tutanotaTypeRefs.createCustomerAccountCreateData({
+		const data = createCustomerAccountCreateData({
 			authToken,
 			date: Const.CURRENT_DATE,
 			lang: currentLanguage,
@@ -341,7 +360,7 @@ export class CustomerFacade {
 			accountGroupKeyVersion: "0",
 			app,
 		})
-		await this.serviceExecutor.post(tutanotaServices.CustomerAccountService, data)
+		await this.serviceExecutor.post(CustomerAccountService, data)
 
 		return recoverData.hexCode
 	}
@@ -350,13 +369,13 @@ export class CustomerFacade {
 		paymentInterval: PaymentInterval,
 		invoiceData: InvoiceData,
 		paymentData: PaymentData | null,
-		confirmedInvoiceCountry: countryList.Country | null,
-	): Promise<sysTypeRefs.PaymentDataServicePutReturn> {
-		let customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer))
-		let customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
-		let accountingInfo = await this.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
+		confirmedInvoiceCountry: Country | null,
+	): Promise<PaymentDataServicePutReturn> {
+		let customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer))
+		let customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKey(accountingInfo)
-		const service = sysTypeRefs.createPaymentDataServicePutData({
+		const service = createPaymentDataServicePutData({
 			paymentInterval: paymentInterval.toString(),
 			invoiceName: "",
 			invoiceAddress: invoiceData.invoiceAddress,
@@ -368,7 +387,7 @@ export class CustomerFacade {
 			creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
 			confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
 		})
-		return this.serviceExecutor.put(sysServices.PaymentDataService, service, { sessionKey: accountingInfoSessionKey ?? undefined })
+		return this.serviceExecutor.put(PaymentDataService, service, { sessionKey: accountingInfoSessionKey ?? undefined })
 	}
 
 	/**
@@ -376,11 +395,8 @@ export class CustomerFacade {
 	 * @param accountingInfo accounting info
 	 * @param newPaymentInterval new payment interval
 	 */
-	async changePaymentInterval(
-		accountingInfo: sysTypeRefs.AccountingInfo,
-		newPaymentInterval: PaymentInterval,
-	): Promise<sysTypeRefs.PaymentDataServicePutReturn> {
-		const invoiceCountry = neverNull(countryList.getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
+	async changePaymentInterval(accountingInfo: AccountingInfo, newPaymentInterval: PaymentInterval): Promise<PaymentDataServicePutReturn> {
+		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
 
 		return this.updatePaymentData(
 			newPaymentInterval,
@@ -395,7 +411,7 @@ export class CustomerFacade {
 	}
 
 	async generatePdfInvoice(invoiceNumber: string): Promise<DataFile> {
-		const invoiceData = await this.serviceExecutor.get(sysServices.InvoiceDataService, sysTypeRefs.createInvoiceDataGetIn({ invoiceNumber }))
+		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }))
 		const writer = await this.pdfWriter()
 		const { PdfInvoiceGenerator } = await import("../../invoicegen/PdfInvoiceGenerator.js")
 		const pdfGenerator = new PdfInvoiceGenerator(writer, invoiceData, invoiceNumber, this.getCustomerId())
@@ -428,9 +444,9 @@ export class CustomerFacade {
 	}
 
 	async generateXRechnungInvoice(invoiceNumber: string): Promise<DataFile> {
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
-		const customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
-		const invoiceData = await this.serviceExecutor.get(sysServices.InvoiceDataService, sysTypeRefs.createInvoiceDataGetIn({ invoiceNumber }))
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }))
 		const { XRechnungInvoiceGenerator } = await import("../../invoicegen/XRechnungInvoiceGenerator.js")
 		const xRechnungGenerator = new XRechnungInvoiceGenerator(invoiceData, invoiceNumber, this.getCustomerId(), customerInfo.registrationMailAddress)
 		const xRechnungFile = xRechnungGenerator.generate()
@@ -444,10 +460,10 @@ export class CustomerFacade {
 		}
 	}
 
-	async loadAccountingInfo(): Promise<sysTypeRefs.AccountingInfo> {
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
-		const customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
-		return this.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
+	async loadAccountingInfo(): Promise<AccountingInfo> {
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 	}
 
 	// This also exists in LoginController. Look at the comment in LoginController for an explanation.
@@ -461,7 +477,7 @@ export class CustomerFacade {
 		} else {
 			const user = this.userFacade.getLoggedInUser()
 			if (isInternalUser(user)) {
-				const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
+				const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
 				this.customizations = customer.customizations.map((f) => f.feature)
 				return this.customizations
 			} else {
@@ -470,7 +486,7 @@ export class CustomerFacade {
 		}
 	}
 
-	async getUser(): Promise<Nullable<sysTypeRefs.User>> {
+	async getUser(): Promise<Nullable<User>> {
 		return this.userFacade.getUser()
 	}
 }

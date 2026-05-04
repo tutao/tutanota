@@ -1,4 +1,5 @@
-import { IntegrationInfo, SettingsFacade } from "@tutao/native-bridge/common"
+import { IntegrationInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopConfig } from "./DesktopConfig.js"
 import { DesktopConfigKey } from "@tutao/app-env"
 import { DesktopUtils } from "../DesktopUtils.js"
@@ -6,7 +7,7 @@ import { DesktopIntegrator } from "../integration/DesktopIntegrator.js"
 import { ElectronUpdater } from "../ElectronUpdater.js"
 import * as electron from "electron"
 import { UpdateInfo } from "electron-updater"
-import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
+import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel.js"
 
 export class DesktopSettingsFacade implements SettingsFacade {
 	constructor(

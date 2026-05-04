@@ -1,34 +1,22 @@
-import { Dialog } from "../gui/base/Dialog.js"
-import { convertToDataFile, createDataFile, createReferencingInstance, DataFile, DownloadableFileEntity, FileReference } from "@tutao/typerefs"
-import { ArchiveDataType, assertMainOrNode, isApp } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { assertMainOrNode, BrowserType, client, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { BrowserType } from "../../app-env/boot/ClientConstants.js"
-import { client } from "../../app-env/boot/ClientDetector.js"
-import { deduplicateFilenames, sanitizeFilename, WebFile } from "../api/common/utils/FileUtils"
-
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { deduplicateFilenames, sanitizeFilename } from "../../ui/utils/FileUtils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { TransferId } from "../api/common/drive/DriveTypes"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { ArchiveDataType } from "@tutao/entities/sys"
+import { DataFile, FileReference, WebFile } from "@tutao/entities/tutanota"
+import { TransferId } from "@tutao/entities/drive"
+import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile"
+import { createReferencingInstance, DownloadableFileEntity } from "@tutao/entities/storage"
+import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
-export const CALENDAR_MIME_TYPE = "text/calendar"
-
-// We want to handle both types of vCards
-export enum VCARD_MIME_TYPES {
-	X_VCARD = "text/x-vcard",
-	VCARD = "text/vcard",
-}
-
-export enum MAIL_MIME_TYPES {
-	EML = "message/rfc822",
-	MBOX = "application/mbox",
-}
 
 const enum DownloadPostProcessing {
 	Open,

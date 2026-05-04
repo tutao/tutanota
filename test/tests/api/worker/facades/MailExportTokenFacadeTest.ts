@@ -1,9 +1,10 @@
 import o from "@tutao/otest"
 import { func, matchers, object, when } from "testdouble"
-import { tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+
 import * as restError from "@tutao/rest-client/error"
 import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
 import { ServiceExecutor } from "@tutao/network"
+import { MailExportTokenService, createMailExportTokenServicePostOut } from "@tutao/entities/tutanota"
 
 o.spec("MailExportTokenFacade", () => {
 	let facade!: MailExportTokenFacade
@@ -22,8 +23,8 @@ o.spec("MailExportTokenFacade", () => {
 			const expected = "result"
 			const cb = func<(token: string) => Promise<string>>()
 			when(cb(validToken)).thenResolve(expected)
-			when(serviceExecutor.post(tutanotaServices.MailExportTokenService, null, matchers.anything())).thenResolve(
-				tutanotaTypeRefs.createMailExportTokenServicePostOut({ mailExportToken: validToken }),
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenResolve(
+				createMailExportTokenServicePostOut({ mailExportToken: validToken }),
 			)
 
 			const result = await facade.loadWithToken(cb)
@@ -48,8 +49,8 @@ o.spec("MailExportTokenFacade", () => {
 			when(cb(validToken)).thenResolve(expected)
 			when(cb(expiredToken)).thenReject(new restError.AccessExpiredError("token expired"))
 			facade._setCurrentExportToken(expiredToken)
-			when(serviceExecutor.post(tutanotaServices.MailExportTokenService, null, matchers.anything())).thenResolve(
-				tutanotaTypeRefs.createMailExportTokenServicePostOut({ mailExportToken: validToken }),
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenResolve(
+				createMailExportTokenServicePostOut({ mailExportToken: validToken }),
 			)
 
 			const result = await facade.loadWithToken(cb)
@@ -60,9 +61,7 @@ o.spec("MailExportTokenFacade", () => {
 		o.test("when requesting token fails none are stored", async () => {
 			const cb = func<(token: string) => Promise<string>>()
 			when(cb(expiredToken)).thenReject(new restError.AccessExpiredError("token expired"))
-			when(serviceExecutor.post(tutanotaServices.MailExportTokenService, null, matchers.anything())).thenReject(
-				new restError.TooManyRequestsError("no more tokens :("),
-			)
+			when(serviceExecutor.post(MailExportTokenService, null, matchers.anything())).thenReject(new restError.TooManyRequestsError("no more tokens :("))
 
 			await o(() => facade.loadWithToken(cb)).asyncThrows(restError.TooManyRequestsError)
 

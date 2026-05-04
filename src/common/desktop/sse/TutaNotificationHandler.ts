@@ -1,18 +1,10 @@
 import type { WindowManager } from "../DesktopWindowManager"
-import { ExtendedNotificationMode, NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-bridge/common"
+import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
-import { LanguageViewModel } from "../../misc/LanguageViewModel"
-import {
-	AttributeModel,
-	ClientTypeModelResolver,
-	EncryptedParsedInstance,
-	ServerModelUntypedInstance,
-	StrippedEntity,
-	sysTypeRefs,
-	tutanotaModelInfo,
-	tutanotaTypeRefs,
-	TypeModel,
-} from "@tutao/typerefs"
+import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
+import { AttributeModel, EncryptedParsedInstance, ServerModelUntypedInstance, StrippedEntity, TypeModel } from "@tutao/meta"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/utils"
 import { log } from "../DesktopLog"
@@ -21,8 +13,10 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+import { ClientTypeModelResolver, InstancePipeline } from "@tutao/instance-pipeline"
 import * as restError from "@tutao/rest-client/error"
+import { IdTupleWrapper, NotificationInfo } from "@tutao/entities/sys"
+import { MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 
 const TAG = "[notifications]"
 
@@ -30,10 +24,10 @@ export type MailMetadata = {
 	senderAddress: string
 	firstRecipientAddress: string | null
 	id: IdTuple
-	notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>
+	notificationInfo: StrippedEntity<NotificationInfo>
 }
 
-export class TutaNotificationHandler {
+class TutaNotificationHandler {
 	constructor(
 		private readonly windowManager: WindowManager,
 		private readonly nativeCredentialFacade: NativeCredentialsFacade,
@@ -48,7 +42,7 @@ export class TutaNotificationHandler {
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {}
 
-	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<sysTypeRefs.NotificationInfo>>) {
+	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<NotificationInfo>>) {
 		const infosByListId = groupBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
 		for (const [listId, infos] of infosByListId.entries()) {
 			const firstNotificationInfo = getFirstOrThrow(infos)
@@ -92,7 +86,7 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private onMailNotificationClick(notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>) {
+	private onMailNotificationClick(notificationInfo: StrippedEntity<NotificationInfo>) {
 		let requestedPath: string | null
 		if (notificationInfo.mailId) {
 			const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
@@ -112,7 +106,7 @@ export class TutaNotificationHandler {
 	private async downloadMailMetadata(
 		sseInfo: SseInfo,
 		listId: Id,
-		notificationInfos: Array<StrippedEntity<sysTypeRefs.NotificationInfo>>,
+		notificationInfos: Array<StrippedEntity<NotificationInfo>>,
 		credentials: UnencryptedCredentials,
 	): Promise<Array<MailMetadata>> {
 		const result: Array<MailMetadata> = []
@@ -140,8 +134,8 @@ export class TutaNotificationHandler {
 
 			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>
 
-			const mailModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
-			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailAddressTypeRef)
+			const mailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
+			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
 
 			result.push(
 				...(await Promise.all(
@@ -169,7 +163,7 @@ export class TutaNotificationHandler {
 		mailModel: TypeModel,
 		mailAddressModel: TypeModel,
 		mi: EncryptedParsedInstance,
-		notificationInfo: StrippedEntity<sysTypeRefs.NotificationInfo>,
+		notificationInfo: StrippedEntity<NotificationInfo>,
 	): MailMetadata {
 		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
 
@@ -185,7 +179,7 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private makeMailMetadataUrl(sseInfo: SseInfo, listId: Id, mailIds: Array<sysTypeRefs.IdTupleWrapper>): URL {
+	private makeMailMetadataUrl(sseInfo: SseInfo, listId: Id, mailIds: Array<IdTupleWrapper>): URL {
 		const url = new URL(sseInfo.sseOrigin)
 		const listElementIds = mailIds.map((mailId) => base64ToBase64Url(mailId.listElementId)).join(",")
 		url.pathname = `rest/tutanota/mail/${base64ToBase64Url(listId)}`
@@ -203,3 +197,5 @@ export class TutaNotificationHandler {
 		await this.windowManager.invalidateAlarms()
 	}
 }
+
+export default TutaNotificationHandler

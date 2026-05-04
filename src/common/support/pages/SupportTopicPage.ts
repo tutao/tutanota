@@ -1,21 +1,22 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { convertTextToHtml } from "../../misc/Formatter.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../gui/utils/HtmlSanitizer.js"
+import { convertTextToHtml } from "../../../ui/utils/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { makeSingleUse, noOp, Thunk } from "@tutao/utils"
-import { Card } from "../../gui/base/Card.js"
-import { theme } from "../../gui/theme.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
+import { Card } from "../../../ui/base/Card.js"
+import { theme } from "../../../ui/theme.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { PrimaryButton, SecondaryButton } from "../../gui/base/buttons/VariantButtons.js"
+import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { isSupportVisibilityEnabled, SupportVisibilityMask } from "../SupportVisibilityMask"
 import { fastTrackAction } from "../../misc/ApprovalNeededMessageDialog"
 import { ApprovalStatus } from "@tutao/app-env"
-import { getCustomerApprovalStatus, tutanotaTypeRefs } from "@tutao/typerefs"
+import { SupportTopic } from "@tutao/entities/tutanota"
+import { getCustomerApprovalStatus } from "../../subscription/utils/SubscriptionUtils"
 
 type Props = {
 	data: SupportDialogState
@@ -105,7 +106,7 @@ export class SupportTopicPage implements Component<Props> {
 		)
 	}
 
-	renderFastTrackButtonIfNeeded(topic: tutanotaTypeRefs.SupportTopic, approvalStatus: ApprovalStatus): Children {
+	renderFastTrackButtonIfNeeded(topic: SupportTopic, approvalStatus: ApprovalStatus): Children {
 		if (approvalStatus !== ApprovalStatus.DELAYED) {
 			return null
 		} else {

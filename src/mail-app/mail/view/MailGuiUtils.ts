@@ -1,28 +1,31 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { DataFile, elementIdPart, getIdOfInstance, getIds, getMailFolderType, isSameId, SimpleMoveMailTarget, tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { AllIcons } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { $Promisable, assertNotNull, clamp, delay, filterInt, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/utils"
+import { Dialog } from "../../../ui/base/Dialog"
+import { AllIcons } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
 import {
-	EncryptionAuthStatus,
-	isApp,
-	isDesktop,
-	MailAuthenticationStatus,
-	MailReportType,
-	MailSetKind,
-	ProgrammingError,
-	secondsToMillis,
-	SystemFolderType,
-} from "@tutao/app-env"
+	$Promisable,
+	assertNotNull,
+	clamp,
+	cleanMailAddress,
+	delay,
+	filterInt,
+	first,
+	isEmpty,
+	isNotEmpty,
+	lazyMemoized,
+	neverNull,
+	noOp,
+	promiseMap,
+} from "@tutao/utils"
+import { CancelledError, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError, secondsToMillis } from "@tutao/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
-import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
-import { modal } from "../../../common/gui/base/Modal.js"
+import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../ui/base/Dropdown.js"
+import { modal } from "../../../ui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
-import { PinchZoom } from "../../../common/gui/PinchZoom.js"
+import { PinchZoom } from "../../../ui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -37,30 +40,28 @@ import {
 	RegularMoveTargets,
 	SimpleMoveTargets,
 } from "../model/MailUtils.js"
-import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
+import { FontIcons } from "../../../ui/base/icons/FontIcons.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
-import { styles } from "../../../common/gui/styles"
-import { showSnackBar } from "../../../common/gui/base/SnackBar"
+import { styles } from "../../../ui/styles"
+import { showSnackBar } from "../../../ui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
-import { computeColor, rgbToHSL } from "../../../common/gui/base/Color"
-import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
+import { computeColor, rgbToHSL } from "../../../ui/base/Color"
+import { getDetachedDropdownBounds } from "../../../ui/base/GuiUtils"
 import { DownloadListener, TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import stream from "mithril/stream"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { CancelledError } from "@tutao/app-env"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import m from "mithril"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
-import { cleanMailAddress } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectionDialog"
-import { TransferId } from "../../../common/api/common/drive/DriveTypes"
+import { PosRect } from "../../../ui/utils/PosRect"
+import { Contact, DataFile, File, Mail, MailReportType, MailSet, MailSetKind, MovedMails, SystemFolderType } from "@tutao/entities/tutanota"
+import { TransferId } from "../../../entities/drive/Utils"
+import { elementIdPart, getIds, isSameId } from "@tutao/meta"
+import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 
-import { PosRect } from "../../../native-bridge/shared/PosRect"
-
-type Mail = tutanotaTypeRefs.Mail
-type MailSet = tutanotaTypeRefs.MailSet
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
 /**
@@ -216,7 +217,7 @@ async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, ma
 		confirmActionText: "deleteContacts_msg",
 	}
 
-	showContactSelectionDialog(attrs, matchingContacts, async (dialog: Dialog, selectedContacts: tutanotaTypeRefs.Contact[]) => {
+	showContactSelectionDialog(attrs, matchingContacts, async (dialog: Dialog, selectedContacts: Contact[]) => {
 		showProgressDialog("pleaseWait_msg", contactModel.eraseContacts(selectedContacts))
 		dialog.close()
 	})
@@ -254,7 +255,7 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 	}
 }
 
-async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxModel, undoModel: UndoModel, movedMails: readonly tutanotaTypeRefs.MovedMails[]) {
+async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxModel, undoModel: UndoModel, movedMails: readonly MovedMails[]) {
 	// With move we only have two cases: either we move all emails that are in one mailbox to a specific folder or
 	// we are moving emails in different mailboxes to respective mailSets of the same type (e.g. user moves some emails
 	// in search into spam, mails of each mailbox go into their own spam folder).
@@ -387,7 +388,7 @@ export async function simpleMoveToSystemFolder(
 		warnUsersIfMovingContactMailToSpam(contactModel, mailModel, mailIds)
 	}
 
-	let movedMails: tutanotaTypeRefs.MovedMails[]
+	let movedMails: MovedMails[]
 	try {
 		movedMails = await mailModel.simpleMoveMails(mailIds, targetFolder)
 	} catch (e) {
@@ -546,23 +547,19 @@ function createInlineImageReference(file: DataFile, cid: string): InlineImageRef
 	}
 }
 
-export async function loadInlineImages(
-	fileController: FileController,
-	attachments: Array<tutanotaTypeRefs.File>,
-	referencedCids: Array<string>,
-): Promise<InlineImages> {
+export async function loadInlineImages(fileController: FileController, attachments: Array<File>, referencedCids: Array<string>): Promise<InlineImages> {
 	const filesToLoad = getReferencedAttachments(attachments, referencedCids)
 	const inlineImages = new Map()
 	return promiseMap(filesToLoad, async (file) => {
 		let dataFile = await fileController.getAsDataFile(file)
-		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
 		dataFile = getHtmlSanitizer().sanitizeInlineAttachment(dataFile)
 		const inlineImageReference = createInlineImageReference(dataFile, neverNull(file.cid))
 		inlineImages.set(inlineImageReference.cid, inlineImageReference)
 	}).then(() => inlineImages)
 }
 
-export function getReferencedAttachments(attachments: Array<tutanotaTypeRefs.File>, referencedCids: Array<string>): Array<tutanotaTypeRefs.File> {
+export function getReferencedAttachments(attachments: Array<File>, referencedCids: Array<string>): Array<File> {
 	return attachments.filter((file) => referencedCids.find((rcid) => file.cid === rcid))
 }
 
@@ -884,7 +881,7 @@ export function showLabelsPopup(
 // A temporary solution, we should try to use non-modal progress indicators
 export async function showDownloadProgressDialog(
 	transferProgressDispatcher: TransferProgressDispatcher,
-	files: readonly tutanotaTypeRefs.File[],
+	files: readonly File[],
 	downloadReturn: DownloadReturn,
 ): Promise<unknown> {
 	const progressStream = stream(0)

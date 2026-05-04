@@ -1,16 +1,15 @@
+import { createPushIdentifier, User } from "@tutao/entities/sys"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
-import { Dialog } from "../../common/gui/base/Dialog.js"
-import { lang, type TranslationKey } from "../../common/misc/LanguageViewModel.js"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { lang, type TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import m from "mithril"
-import { LegacyTextField, LegacyTextFieldType } from "../../common/gui/base/LegacyTextField.js"
+import { LegacyTextField, LegacyTextFieldType } from "../../ui/base/LegacyTextField.js"
 import { assertNotNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../../common/misc/parsing/MailAddressParser.js"
-import { PushServiceType, UpgradePromptType } from "@tutao/app-env"
-import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
+import { AppType, PushServiceType, UpgradePromptType } from "@tutao/app-env"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
-import { EntityClient } from "@tutao/network"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { AppType } from "@tutao/app-env"
+import { EntityClient } from "../../network/EntityClient"
 
 export class AddNotificationEmailDialog {
 	constructor(
@@ -47,8 +46,8 @@ export class AddNotificationEmailDialog {
 		}
 	}
 
-	private createNotificationEmail(mailAddress: string, user: sysTypeRefs.User) {
-		const pushIdentifier = sysTypeRefs.createPushIdentifier({
+	private createNotificationEmail(mailAddress: string, user: User) {
+		const pushIdentifier = createPushIdentifier({
 			_area: "0", // legacy
 			_owner: user.userGroup.group, // legacy
 			_ownerGroup: user.userGroup.group,

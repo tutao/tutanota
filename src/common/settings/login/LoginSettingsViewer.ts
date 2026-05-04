@@ -1,38 +1,42 @@
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { CustomerPropertiesTypeRef, GroupInfo, Session, SessionTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import { LegacyTextFieldAttrs, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { elementIdPart, entityUpdateUtils, getElementId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { LegacyTextFieldAttrs, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { elementIdPart, getElementId } from "@tutao/meta"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/utils"
-import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
+import { formatDateTimeFromYesterdayOn } from "../../../ui/utils/Formatter.js"
 import { assertMainOrNode, CredentialEncryptionMode, isDesktop, SessionState } from "@tutao/app-env"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
 import * as restError from "@tutao/rest-client/error"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
-import { attachDropdown } from "../../gui/base/Dropdown.js"
-import { ExpanderButton, ExpanderPanel } from "../../gui/base/Expander.js"
-import { ColumnWidth, Table } from "../../gui/base/Table.js"
-import { ifAllowedTutaLinks } from "../../gui/base/GuiUtils.js"
+import { attachDropdown } from "../../../ui/base/Dropdown.js"
+import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander.js"
+import { ColumnWidth, Table } from "../../../ui/base/Table.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { showCredentialsEncryptionModeDialog } from "../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
+import { showCredentialsEncryptionModeDialog } from "./SelectCredentialsEncryptionModeDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showChangeOwnPasswordDialog } from "./ChangePasswordDialogs.js"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
-import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/common"
+import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { UserController } from "../../api/main/UserController"
-import { Checkbox } from "../../gui/base/Checkbox"
-import { isOfflineError } from "../../api/common/utils/ErrorUtils"
-import { TextField } from "../../gui/base/TextField"
-import { theme } from "../../gui/theme"
+import { ifAllowedTutaLinks } from "../../gui/base/TutaLinkUtils"
+import { TextField } from "../../../ui/base/TextField"
+import { theme } from "../../../ui/theme"
+import { Checkbox } from "../../../ui/base/Checkbox"
+import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -40,7 +44,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _mailAddress = stream(neverNull(locator.logins.getUserController().userGroupInfo.mailAddress))
 	private readonly _stars = stream("***")
 	private readonly _closedSessionsExpanded = stream(false)
-	private _sessions: sysTypeRefs.Session[] = []
+	private _sessions: Session[] = []
 	private readonly _secondFactorsForm = new SecondFactorsEditForm(
 		new LazyLoaded(() => Promise.resolve(locator.logins.getUserController().user)),
 		locator.domainConfigProvider(),
@@ -222,7 +226,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private onChangeName(groupInfo: sysTypeRefs.GroupInfo) {
+	private onChangeName(groupInfo: GroupInfo) {
 		let name = groupInfo.name
 		let updatePrimaryAddressName = false
 		let dialog: Dialog
@@ -315,7 +319,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async _updateSessions(): Promise<void> {
-		const sessions = await locator.entityClient.loadAll(sysTypeRefs.SessionTypeRef, neverNull(locator.logins.getUserController().user.auth).sessions)
+		const sessions = await locator.entityClient.loadAll(SessionTypeRef, neverNull(locator.logins.getUserController().user.auth).sessions)
 		sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 		this._sessions = sessions
 		m.redraw()
@@ -359,7 +363,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private showActiveSessionInfoDialog(session: sysTypeRefs.Session, isThisSession: boolean) {
+	private showActiveSessionInfoDialog(session: Session, isThisSession: boolean) {
 		const actionDialogProperties = {
 			title: "details_label",
 			child: {
@@ -391,7 +395,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		Dialog.showActionDialog(actionDialogProperties)
 	}
 
-	private _closeSession(session: sysTypeRefs.Session) {
+	private _closeSession(session: Session) {
 		locator.entityClient.erase(session).catch(
 			ofClass(restError.NotFoundError, () => {
 				console.log(`session ${JSON.stringify(session._id)} already deleted`)
@@ -399,14 +403,11 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.SessionTypeRef, update)) {
+			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				await this._updateSessions()
-			} else if (
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update) ||
-				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)
-			) {
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) || isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				m.redraw()
 			}
 

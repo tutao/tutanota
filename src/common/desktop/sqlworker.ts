@@ -1,5 +1,5 @@
 /**
- * entry point to the sqlite worker threads. one is created for each user's local-store database.
+ * entry point to the sqlite worker threads. one is created for each user's offline database.
  * it's possible for multiple windows to access the same sqlite database through the same thread.
  * it must be ensured that there is never more than one thread accessing the same database.
  *
@@ -15,9 +15,9 @@ import { parentPort, workerData } from "node:worker_threads"
 import { DesktopSqlCipher } from "./db/DesktopSqlCipher.js"
 import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import { Command, Request } from "../../native-bridge/shared/MessageTypes"
-import { NodeWorkerTransport } from "../api/common/threading/NodeWorkerTransport.js"
+import { NodeWorkerTransport } from "../../native-bridge/common/threading/NodeWorkerTransport.js"
 import { objToError } from "../api/common/utils/ErrorUtils"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */
 export type SqlCipherCommandNames = keyof SqlCipherFacade

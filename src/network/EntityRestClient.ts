@@ -1,50 +1,45 @@
 import { type RestClient, restError } from "@tutao/rest-client"
 import { HttpMethod, MediaType, SuspensionBehavior } from "@tutao/rest-client/types"
-import { CryptoFacade } from "./crypto/facades/CryptoFacade"
+import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
+import { assertWorkerOrNode } from "@tutao/app-env"
+import { SetupMultipleError } from "./error/SetupMultipleError"
+import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
+import { AesKey, VersionedKey } from "@tutao/crypto"
 import {
 	_verifyType,
-	AttributeModel,
-	baseTypeRefs,
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	OwnerEncSessionKeyProvider,
+	OwnerKeyProvider,
+	SessionKeyResolver,
+	TypeModelResolver,
+	typeModelToRestPath,
+} from "@tutao/instance-pipeline"
+import { CryptoNetworkHelper } from "./CryptoNetworkHelper"
+import {
 	ClientModelUntypedInstance,
 	ClientTypeModel,
-	computePatchPayload,
-	elementIdPart,
 	Entity,
-	entityUpdateUtils,
 	ListElementEntity,
-	LOAD_MULTIPLE_LIMIT,
-	POST_MULTIPLE_LIMIT,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 	SomeEntity,
-	storageTypeRefs as storageTypeRefs,
-	sysTypeRefs,
-	Type,
-	TypeModel,
-	TypeRef,
-	TypeModelResolver,
 	UntypedInstance,
-} from "@tutao/typerefs"
-import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
-import { assertWorkerOrNode } from "@tutao/app-env"
-import { SetupMultipleError } from "./error/SetupMultipleError"
-import { AuthDataProvider } from "./UserFacade"
-import { LoginIncompleteError } from "./error/LoginIncompleteError.js"
-import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
-import { AesKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { isOfflineError } from "./error/NetworkErrorUtils.js"
-import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
-import { expandId } from "@tutao/typerefs"
-import { Category, syncMetrics } from "../utils/SyncMetrics"
+} from "@tutao/meta"
+import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
+import { computePatchPayload } from "../instance-pipeline/PatchGenerator"
+import { PatchListTypeRef } from "@tutao/entities/sys"
+import { EntityUpdateData } from "../instance-pipeline/EntityUpdateUtils"
+import { BlobServerUrl } from "@tutao/entities/storage"
+import { EntityRestInterface } from "./EntityRestCacheInterface"
+import { isOfflineError, LoginIncompleteError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
-
-export function typeModelToRestPath(typeModel: TypeModel): string {
-	return `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
-}
 
 export interface EntityRestClientSetupOptions {
 	baseUrl?: string
@@ -111,94 +106,6 @@ export interface EntityRestClientLoadOptions {
 	suspensionBehavior?: SuspensionBehavior
 }
 
-export interface OwnerEncSessionKeyProvider {
-	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
-}
-
-export interface OwnerKeyProvider {
-	(ownerKeyVersion: KeyVersion): Promise<AesKey>
-}
-
-/**
- * The EntityRestInterface provides a convenient interface for invoking server side REST services.
- */
-export interface EntityRestInterface {
-	/**
-	 * Reads a single element from the server (or cache). Entities are decrypted before they are returned.
-	 * @param typeRef
-	 * @param id
-	 * @param loadOptions
-	 */
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, loadOptions?: EntityRestClientLoadOptions): Promise<T>
-
-	/**
-	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
-	 */
-	loadRange<T extends ListElementEntity>(
-		typeRef: TypeRef<T>,
-		listId: Id,
-		start: Id,
-		count: number,
-		reverse: boolean,
-		loadOptions?: EntityRestClientLoadOptions,
-	): Promise<T[]>
-
-	/**
-	 * Reads multiple elements from the server (or cache). Entities are decrypted before they are returned.
-	 * @param typeRef
-	 * @param listId
-	 * @param elementIds
-	 * @param ownerEncSessionKeyProvider use this to resolve the instances session key in case instance.ownerEncSessionKey is not defined (which might be undefined for MailDetails / Files)
-	 * @param loadOptions
-	 */
-	loadMultiple<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		listId: Id | null,
-		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		loadOptions?: EntityRestClientLoadOptions,
-	): Promise<Array<T>>
-
-	/**
-	 * Creates a single element on the server. Entities are encrypted before they are sent.
-	 * @return the element id generated on the server side or null if it is a custom id
-	 */
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null>
-
-	/**
-	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
-	 * ? What does the id returned in the promise array represent?  And where is it created ?
-	 */
-	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>>
-
-	/**
-	 * Modifies a single element on the server. Entities are encrypted before they are sent.
-	 * @param instance
-	 * @param options
-	 */
-	update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void>
-
-	/**
-	 * Deletes a single element on the server.
-	 */
-	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void>
-
-	/**
-	 * Deletes multiple elements on the server.
-	 */
-	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void>
-
-	/**
-	 * Must be called when entity events are received.
-	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
-	 */
-	entityEventsReceived(
-		events: readonly entityUpdateUtils.EntityUpdateData[],
-		batchId: Id,
-		groupId: Id,
-	): Promise<readonly entityUpdateUtils.EntityUpdateData[]>
-}
-
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *
@@ -209,17 +116,18 @@ export interface EntityRestInterface {
  *
  */
 export class EntityRestClient implements EntityRestInterface {
-	get _crypto(): CryptoFacade {
+	get _crypto(): CryptoNetworkHelper {
 		return this.lazyCrypto()
 	}
 
 	constructor(
-		private readonly authDataProvider: AuthDataProvider,
+		private readonly authDataProvider: LoggedInUserProvider,
 		private readonly restClient: RestClient,
-		private readonly lazyCrypto: lazy<CryptoFacade>,
+		private readonly lazyCrypto: lazy<CryptoNetworkHelper>,
 		public readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
 	) {}
 
 	async loadParsedInstance<T extends SomeEntity>(
@@ -249,7 +157,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entityAdapter)
-		const sessionKey = await this._crypto.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
+		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
 			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
@@ -458,7 +366,7 @@ export class EntityRestClient implements EntityRestInterface {
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
 		} else {
 			try {
-				sessionKey = await this._crypto.resolveSessionKey(entityAdapter)
+				sessionKey = await this.sessionKeyResolver().resolveSessionKey(entityAdapter)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
 					console.log("could not resolve session key", e, e.message, e.stack)
@@ -502,7 +410,7 @@ export class EntityRestClient implements EntityRestInterface {
 			body: JSON.stringify(untypedInstance),
 			responseType: MediaType.Json,
 		})
-		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(baseTypeRefs.PersistenceResourcePostReturnTypeRef)
+		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
 		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(JSON.parse(persistencePostReturn))
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
@@ -586,7 +494,7 @@ export class EntityRestClient implements EntityRestInterface {
 			undefined,
 			options?.ownerKeyProvider,
 		)
-		const sessionKey = await this._crypto.resolveSessionKeyWithOwnerKeyProvider(options?.ownerKeyProvider, instance)
+		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(options?.ownerKeyProvider, instance)
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
@@ -603,7 +511,7 @@ export class EntityRestClient implements EntityRestInterface {
 			env.networkDebugging,
 		)
 		// PatchList has no encrypted fields (sk == null)
-		const patchPayload = await this.instancePipeline.mapAndEncrypt(sysTypeRefs.PatchListTypeRef, patchList, null)
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
 		await this.restClient.request(path, HttpMethod.PATCH, {
 			baseUrl: options?.baseUrl,
 			queryParams,
@@ -706,11 +614,7 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(
-		events: readonly entityUpdateUtils.EntityUpdateData[],
-		_batchId: Id,
-		_groupId: Id,
-	): Promise<readonly entityUpdateUtils.EntityUpdateData[]> {
+	entityEventsReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<readonly EntityUpdateData[]> {
 		return Promise.resolve(events)
 	}
 
@@ -722,11 +626,7 @@ export class EntityRestClient implements EntityRestInterface {
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
 				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedPostReturn)
-				const parsedInstance = await this.instancePipeline.decryptAndMap(
-					baseTypeRefs.PersistenceResourcePostReturnTypeRef,
-					sanitisedUntypedPostReturn,
-					null,
-				)
+				const parsedInstance = await this.instancePipeline.decryptAndMap(PersistenceResourcePostReturnTypeRef, sanitisedUntypedPostReturn, null)
 				return parsedInstance.generatedId as Id // is null for customIds
 			})
 		} catch (e) {
@@ -741,7 +641,7 @@ export class EntityRestClient implements EntityRestInterface {
  * that might occur only for a single blob server, the next server is tried.
  * Throws in all other cases.
  */
-export async function tryServers<T>(servers: storageTypeRefs.BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
+export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
 	let index = 0
 	let error: Error | null = null
 	for (const server of servers) {

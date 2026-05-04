@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang, Translation } from "../misc/LanguageViewModel"
-import { styles } from "../gui/styles"
-import { theme } from "../gui/theme"
 import { SettingsNavButton, SettingsNavButtonAttrs } from "../../calendar-app/gui/SettingsNavButton"
 import { lazyStringValue } from "@tutao/utils"
-import { NavButtonAttrs } from "../gui/base/NavButton"
+import { lang, Translation } from "../../ui/utils/LanguageViewModel"
+import { NavButtonAttrs } from "../../ui/base/NavButton"
+import { styles } from "../../ui/styles"
+import { theme } from "../../ui/theme"
 
 export interface SettingsListSection {
 	name: Translation

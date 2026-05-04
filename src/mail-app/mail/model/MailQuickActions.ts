@@ -3,11 +3,11 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { getIndentedFolderNameForDropdown, getPathToFolderString } from "./MailUtils"
-import { Router } from "../../../common/gui/ScopedRouter"
-import { getElementId } from "@tutao/typerefs"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { Router } from "../../../ui/ScopedRouter"
+import { getElementId } from "../../../meta"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
-import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
+import { MAIL_PREFIX } from "../../../ui/utils/RouteChange"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
 
 export async function quickMailActions(

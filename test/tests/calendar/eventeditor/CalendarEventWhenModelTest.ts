@@ -5,12 +5,14 @@ import { EndType, RepeatPeriod } from "../../../../src/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/common/calendar/date/Time.js"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
+import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
+
+import { DateWrapperTypeRef, RepeatRuleTypeRef, createDateWrapper, createRepeatRule } from "@tutao/entities/sys"
 o.spec("CalendarEventWhenModel", function () {
-	const getModelBerlin = (initialValues: Partial<tutanotaTypeRefs.CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
+	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
 
-	const getModelKrasnoyarsk = (initialValues: Partial<tutanotaTypeRefs.CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Asia/Krasnoyarsk", noOp)
+	const getModelKrasnoyarsk = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Asia/Krasnoyarsk", noOp)
 
 	o.spec("date modifications", function () {
 		o("if the start date is set to before 1970, it will be set to this year", function () {
@@ -334,7 +336,7 @@ o.spec("CalendarEventWhenModel", function () {
 			model.repeatPeriod = RepeatPeriod.DAILY
 			o(model.repeatPeriod).equals(RepeatPeriod.DAILY)
 			o(model.result.repeatRule).deepEquals(
-				sysTypeRefs.createRepeatRule({
+				createRepeatRule({
 					interval: "1",
 					endType: EndType.Never,
 					endValue: "1",
@@ -350,7 +352,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "1",
 					endType: EndType.Never,
 					endValue: "1",
@@ -377,7 +379,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "1",
 					endType: EndType.Never,
 					endValue: "1",
@@ -423,7 +425,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "1",
 					endType: EndType.Count,
 					endValue: "42",
@@ -442,7 +444,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "1",
 					endType: EndType.UntilDate,
 					endValue: new Date("2023-04-30T00:00:00.000Z").getTime().toString(),
@@ -464,7 +466,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "10",
 					endType: EndType.Count,
 					endValue: "10",
@@ -482,7 +484,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					interval: "10",
 					endType: EndType.Count,
 					endValue: "10",
@@ -501,10 +503,10 @@ o.spec("CalendarEventWhenModel", function () {
 	o.spec("deleteExcludedDates", function () {
 		o("clears the array of excluded dates", async function () {
 			const model = await getModelBerlin(
-				createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+				createTestEntity(CalendarEventTypeRef, {
 					startTime: new Date("2023-03-13T00:00:00Z"),
-					repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
-						excludedDates: [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
+					repeatRule: createTestEntity(RepeatRuleTypeRef, {
+						excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
 					}),
 				}),
 			)
@@ -515,12 +517,12 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 		o("end occurrence changed to smaller -> delete exclusions", async function () {
 			const model = await getModelBerlin(
-				createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+				createTestEntity(CalendarEventTypeRef, {
 					startTime: new Date("2023-03-13T00:00:00Z"),
-					repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+					repeatRule: createTestEntity(RepeatRuleTypeRef, {
 						endType: EndType.Count,
 						endValue: "42",
-						excludedDates: [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
+						excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
 					}),
 				}),
 			)
@@ -530,12 +532,12 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 		o("end occurrence changed to bigger -> delete exclusions", async function () {
 			const model = await getModelBerlin(
-				createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+				createTestEntity(CalendarEventTypeRef, {
 					startTime: new Date("2023-03-13T00:00:00Z"),
-					repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+					repeatRule: createTestEntity(RepeatRuleTypeRef, {
 						endType: EndType.Count,
 						endValue: "42",
-						excludedDates: [createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
+						excludedDates: [createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-13T00:00:00Z") })],
 					}),
 				}),
 			)
@@ -545,14 +547,14 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 		o("interval changes delete exclusions", async function () {
 			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-13T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: "1",
 					interval: "1",
 					endType: EndType.Count,
 					endValue: "10",
-					excludedDates: excludedDates.map((date) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date })),
+					excludedDates: excludedDates.map((date) => createTestEntity(DateWrapperTypeRef, { date })),
 					timeZone: "Europe/Berlin",
 				}),
 			})
@@ -567,14 +569,14 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 		o("frequency changes delete exclusions", async function () {
 			const excludedDates = [new Date("2023-03-13T00:00:00Z")]
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-03-13T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: "1",
 					interval: "1",
 					endType: EndType.Count,
 					endValue: "10",
-					excludedDates: excludedDates.map((date) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date })),
+					excludedDates: excludedDates.map((date) => createTestEntity(DateWrapperTypeRef, { date })),
 					timeZone: "Europe/Berlin",
 				}),
 			})
@@ -589,15 +591,15 @@ o.spec("CalendarEventWhenModel", function () {
 		o("repeat end date changes delete exclusions", async function () {
 			const excludedDates = [new Date("2023-04-13T15:00:00Z")]
 			const originalUntilDate = new Date("2023-05-13T00:00:00Z")
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T15:00:00Z"),
 				endTime: new Date("2023-01-13T20:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.UntilDate,
 					endValue: originalUntilDate.getTime().toString(),
-					excludedDates: excludedDates.map((date) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date })),
+					excludedDates: excludedDates.map((date) => createTestEntity(DateWrapperTypeRef, { date })),
 					timeZone: "Europe/Berlin",
 				}),
 			})
@@ -614,15 +616,15 @@ o.spec("CalendarEventWhenModel", function () {
 		o("repeat end date changes delete exclusions, all-day events", function () {
 			const excludedDates = [new Date("2023-04-13T15:00:00Z")]
 			const originalUntilDate = new Date("2023-05-13T00:00:00Z")
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.UntilDate,
 					endValue: originalUntilDate.getTime().toString(),
-					excludedDates: excludedDates.map((date) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date })),
+					excludedDates: excludedDates.map((date) => createTestEntity(DateWrapperTypeRef, { date })),
 					timeZone: "Europe/Berlin",
 				}),
 			})
@@ -640,15 +642,15 @@ o.spec("CalendarEventWhenModel", function () {
 		o("time zone changes do not delete exclusions", async function () {
 			const excludedDates = [new Date("2023-04-13T15:00:00Z")]
 			const originalUntilDate = new Date("2023-05-13T00:00:00Z")
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.UntilDate,
 					endValue: originalUntilDate.getTime().toString(),
-					excludedDates: excludedDates.map((date) => createTestEntity(sysTypeRefs.DateWrapperTypeRef, { date })),
+					excludedDates: excludedDates.map((date) => createTestEntity(DateWrapperTypeRef, { date })),
 					timeZone: "Asia/Krasnoyarsk",
 				}),
 			})
@@ -661,7 +663,7 @@ o.spec("CalendarEventWhenModel", function () {
 	})
 	o.spec("excludeDate", function () {
 		o("no exclusion is added if event has no repeat rule", async function () {
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
 				repeatRule: null,
@@ -672,10 +674,10 @@ o.spec("CalendarEventWhenModel", function () {
 			o(model.result.repeatRule).equals(null)
 		})
 		o("adding two exclusions in reverse order sorts them", async function () {
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.Never,
@@ -688,14 +690,14 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusions[1])
 			model.excludeDate(exclusions[0])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => sysTypeRefs.createDateWrapper({ date })))
+			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding two exclusions in order sorts them", async function () {
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.Never,
@@ -708,14 +710,14 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusions[0])
 			model.excludeDate(exclusions[1])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => sysTypeRefs.createDateWrapper({ date })))
+			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding the same exclusion multiple times deduplicates them", async function () {
-			const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const event = createTestEntity(CalendarEventTypeRef, {
 				startTime: new Date("2023-01-13T00:00:00Z"),
 				endTime: new Date("2023-01-14T00:00:00Z"),
-				repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef, {
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 					endType: EndType.Never,
@@ -728,7 +730,7 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusion)
 			model.excludeDate(exclusion)
 
-			o(model.result.repeatRule?.excludedDates).deepEquals([sysTypeRefs.createDateWrapper({ date: exclusion })])
+			o(model.result.repeatRule?.excludedDates).deepEquals([createDateWrapper({ date: exclusion })])
 			o(model.excludedDates).deepEquals([exclusion])
 		})
 	})

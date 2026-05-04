@@ -1,12 +1,12 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { InfoLink, lang } from "../../LanguageViewModel.js"
-import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
+import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../SubscriptionDialogs.js"
 import { UpgradePromptType } from "@tutao/app-env"
+import { NewsId } from "@tutao/entities/tutanota"
 
 /**
  * News item that informs admin users about the new pricing model.
@@ -26,7 +26,7 @@ export class NewPlansNews implements NewsListItem {
 		return !(await this.userController.isNewPaidPlan())
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Children {
+	render(newsId: NewsId): Children {
 		const lnk = InfoLink.Privacy
 
 		const acknowledgeAction = () => {

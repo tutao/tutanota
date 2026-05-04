@@ -1,38 +1,61 @@
-// read from the local-store db according to the list and element id on the entityUpdate
-// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the local-store db
+// read from the offline db according to the list and element id on the entityUpdate
+// decrypt encrypted fields using the OwnerEncSessionKey on the entry from the offline db
 // apply patch operations using a similar logic from the server
-// update the instance in the local-store db
+// update the instance in the offline db
 
+import { AssociationType, AttributeModel, hasError, isSameId, isSameTypeRef, TypeRef } from "../meta"
+import { assertNotNull, deepEqual, isEmpty, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
+import { convertDbToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
+import { Aes256Key, AesKey, InstanceDecryptor, SymmetricCipherFacade, VersionedEncryptedKey } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 import {
-	AssociationType,
-	AttributeModel,
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	Entity,
-	entityUpdateUtils,
-	hasError,
-	isSameId,
-	isSameTypeRef,
 	ModelValue,
 	ParsedAssociation,
 	ParsedInstance,
 	ParsedValue,
-	PatchOperationType,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
-	sysTypeRefs,
-	TypeModelResolver,
-	TypeRef,
-} from "@tutao/typerefs"
-import { assertNotNull, deepEqual, isEmpty, lazy, Nullable, promiseMap } from "@tutao/utils"
-import { convertDbToJsType, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
-import { AesKey, InstanceDecryptor, SymmetricCipherFacade } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
+} from "../meta/EntityTypes"
+import { PatchOperationType } from "./PatchGenerator.js"
+import { TypeModelResolver } from "./EntityFunctions"
+import { Patch, UserTypeRef } from "../entities/sys/TypeRefs"
+import { EntityUpdateData } from "./EntityUpdateUtils"
+
+export interface OwnerKeyProvider {
+	(ownerKeyVersion: KeyVersion): Promise<AesKey>
+}
+export interface OwnerEncSessionKeyProvider {
+	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
+}
 
 export interface SessionKeyResolver {
+	/**
+	 * Returns the session key for the provided type/instance:
+	 * * null, if the instance is unencrypted
+	 * * the decrypted _ownerEncSessionKey, if it is available
+	 * * the public decrypted session key, otherwise
+	 *
+	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
+	 */
 	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
+
+	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
+
+	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
+
+	/**
+	 * Returns the session key for the provided service response:
+	 * * null, if the instance is unencrypted
+	 * * the decrypted _ownerPublicEncSessionKey, if it is available
+	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
+	 *
+	 */
+	resolveServiceSessionKey(instance: EntityAdapter): Promise<Aes256Key | null>
 }
 /*
  * Note:
@@ -61,7 +84,7 @@ export class PatchMerger {
 		instanceType: TypeRef<Entity>,
 		listId: Nullable<Id>,
 		elementId: Id,
-		patches: Array<sysTypeRefs.Patch>,
+		patches: Array<Patch>,
 	): Promise<ServerModelParsedInstance | null> {
 		const parsedInstance = await this.cacheStorage.getParsed(instanceType, listId, elementId)
 		if (parsedInstance != null) {
@@ -84,7 +107,7 @@ export class PatchMerger {
 		return null
 	}
 
-	public async patchAndStoreInstance(entityUpdate: entityUpdateUtils.EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
+	public async patchAndStoreInstance(entityUpdate: EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
 		const { typeRef, instanceListId, instanceId, patches } = entityUpdate
 
 		try {
@@ -95,7 +118,7 @@ export class PatchMerger {
 			await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			return patchAppliedInstance
 		} catch (e) {
-			// returning null leads to reloading from the server, this fixes the broken entity in the local-store storage
+			// returning null leads to reloading from the server, this fixes the broken entity in the offline storage
 			return null
 		}
 	}
@@ -103,7 +126,7 @@ export class PatchMerger {
 	private async applySinglePatch(
 		parsedInstance: ServerModelParsedInstance,
 		typeModel: ServerTypeModel,
-		patch: sysTypeRefs.Patch,
+		patch: Patch,
 		sk: Nullable<AesKey>,
 		kdfNonce: Nullable<Uint8Array>,
 		ownerGroup: Nullable<Id>,
@@ -161,7 +184,7 @@ export class PatchMerger {
 
 				// We fetch the latest state of the user immediately in LoginFacade#initSession, but we still receive
 				// patches from the server for the group memberships of the user. This is fine, so we don't want to log it
-				if (!isEmpty(commonAssociationItems) && !isSameTypeRef(sysTypeRefs.UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
+				if (!isEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
 					console.log(
 						`PatchMerger attempted to add an already existing item to an association. Common items: ${JSON.stringify(commonAssociationItems)}`,
 					)

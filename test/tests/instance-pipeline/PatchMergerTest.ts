@@ -9,17 +9,17 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError } from "@tutao/instance-pipeline"
+import { PatchMerger, PatchOperationError, PatchOperationType, convertJsToDbType, encryptValue } from "@tutao/instance-pipeline"
 import { instance, matchers, object, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../src/network/crypto/facades/KeyLoaderFacade"
-import { CryptoFacade } from "../../../src/network/crypto/facades/CryptoFacade"
-import { UserFacade } from "../../../src/network/UserFacade"
+import { KeyLoaderFacade } from "../../../src/base/crypto/KeyLoaderFacade"
+import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
+import { UserFacade } from "../../../src/base/facades/UserFacade"
 import { EntityClient } from "../../../src/network/EntityClient"
 import { ServiceExecutor } from "@tutao/network"
 import { DefaultEntityRestCache } from "../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { AsymmetricCryptoFacade } from "../../../src/network/crypto/facades/AsymmetricCryptoFacade"
-import { KeyRotationFacade } from "../../../src/network/crypto/facades/KeyRotationFacade"
-import { AttributeModel, Entity, ModelValue, PatchOperationType, ServerModelParsedInstance, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { AsymmetricCryptoFacade } from "../../../src/base/crypto/AsymmetricCryptoFacade"
+import { KeyRotationFacade } from "../../../src/base/crypto/KeyRotationFacade"
+
 import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
 import {
@@ -30,13 +30,33 @@ import {
 	removeOriginals,
 } from "../TestUtils"
 import { CustomCacheHandlerMap } from "../../../src/local-store/CustomCacheHandler"
-import { EphemeralCacheStorage } from "../../../src/common/api/worker/rest/EphemeralCacheStorage"
+import { EphemeralCacheStorage } from "../../../src/local-store/EphemeralCacheStorage"
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "@tutao/app-env"
-import { PublicEncryptionKeyProvider } from "../../../src/network/crypto/facades/PublicEncryptionKeyProvider"
+import PublicEncryptionKeyProvider from "../../../src/base/crypto/PublicEncryptionKeyProvider"
 import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
 import { CacheStorage } from "../../../src/local-store/CacheStorage"
+import { CacheManagementInterface } from "../../../src/local-store/CacheManagementInterface"
+import {
+	CalendarEvent,
+	CalendarEventTypeRef,
+	CalendarRepeatRuleTypeRef,
+	Mail,
+	MailAddress,
+	MailAddressTypeRef,
+	MailDetailsBlob,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
+	MailTypeRef,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
+	OutOfOfficeNotificationRecipientListTypeRef,
+	RecipientsTypeRef,
+	createOutOfOfficeNotificationRecipientList,
+} from "@tutao/entities/tutanota"
+import { AttributeModel, Entity, ModelValue, ServerModelParsedInstance } from "@tutao/meta"
 
+import { Customer, CustomerTypeRef, Patch, createPatch } from "@tutao/entities/sys"
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey
@@ -61,7 +81,7 @@ o.spec("PatchMergerTest", () => {
 			instance(RestClient),
 			instance(ServiceExecutor),
 			instancePipeline,
-			instance(DefaultEntityRestCache),
+			async () => object<CacheManagementInterface>(),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
@@ -105,17 +125,17 @@ o.spec("PatchMergerTest", () => {
 				_ownerGroup: ownerGroupId,
 				unread: true,
 			})
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 			const wrongAttributeId = 42
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: wrongAttributeId.toString(),
 					value: "0",
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			o(await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches)).equals(null)
+			o(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches)).equals(null)
 		})
 
 		o.test("when_attribute_not_existing_in_parsed_instance_but_in_server_model_is_supplied_path_patch_applies", async () => {
@@ -128,19 +148,19 @@ o.spec("PatchMergerTest", () => {
 
 			// remove unread to make it a partial mail, leading to addition of the unread flag with the patch
 			delete testMail.unread
-			const partialMail = testMail as tutanotaTypeRefs.Mail
+			const partialMail = testMail as Mail
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(partialMail))
+			await storage.put(MailTypeRef, await toStorableInstance(partialMail))
 			const unreadAttributeId = 109
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: unreadAttributeId.toString(),
 					value: "0",
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const parsedInstance = assertNotNull(await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches))
+			const parsedInstance = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 			o(Object.keys(parsedInstance).find((attribute) => attribute === unreadAttributeId.toString())).equals("109")
 		})
 	})
@@ -155,23 +175,21 @@ o.spec("PatchMergerTest", () => {
 				unread: true,
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const unreadAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "unread"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: unreadAttributeId.toString(),
 					value: "0",
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.unread).equals(false)
 		})
 
@@ -184,16 +202,16 @@ o.spec("PatchMergerTest", () => {
 				subject: "old subject",
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const subjectAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "subject"))
 			const valueType = mailTypeModel.values[subjectAttributeId] as ModelValue & { encrypted: true }
 			let plaintext = "new subject"
 			let ciphertext = encryptValue(valueType, plaintext, sk)
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: subjectAttributeId.toString(),
 					value: ciphertext,
 					patchOperation: PatchOperationType.REPLACE,
@@ -201,10 +219,8 @@ o.spec("PatchMergerTest", () => {
 			]
 			when(instanceDecryptor.getValueDecryptor(base64ToUint8Array(ciphertext!), matchers.anything())).thenReturn(valueDecryptor)
 			when(valueDecryptor.getValue(matchers.anything())).thenReturn(stringToUtf8Uint8Array(plaintext))
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.subject).equals(plaintext)
 		})
 
@@ -215,18 +231,18 @@ o.spec("PatchMergerTest", () => {
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 				_ownerGroup: ownerGroupId,
 				encryptionAuthStatus: null,
-			}) as tutanotaTypeRefs.Mail
+			}) as Mail
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as ModelValue & { encrypted: true }
 			const plaintext = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 			const ciphertext = encryptValue(valueType, plaintext, sk)
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: encryptionAuthStatusAttributeId.toString(),
 					value: ciphertext,
 					patchOperation: PatchOperationType.REPLACE,
@@ -234,10 +250,8 @@ o.spec("PatchMergerTest", () => {
 			]
 			when(instanceDecryptor.getValueDecryptor(base64ToUint8Array(ciphertext!), matchers.anything())).thenReturn(valueDecryptor)
 			when(valueDecryptor.getValue(matchers.anything())).thenReturn(stringToUtf8Uint8Array(plaintext))
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.encryptionAuthStatus).equals(plaintext)
 		})
 
@@ -250,9 +264,9 @@ o.spec("PatchMergerTest", () => {
 				encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as ModelValue & { encrypted: true }
@@ -260,18 +274,16 @@ o.spec("PatchMergerTest", () => {
 				mailTypeModel.values[encryptionAuthStatusAttributeId].type,
 				encryptValue(valueType, null, sk),
 			) as Nullable<string>
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: encryptionAuthStatusAttributeId.toString(),
 					value: encryptionAuthStatusUntypedValue,
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o.check(testMailPatched.encryptionAuthStatus).equals(null)
 		})
 
@@ -284,23 +296,21 @@ o.spec("PatchMergerTest", () => {
 				listUnsubscribe: true,
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const listUnsubscribeAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "listUnsubscribe"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: listUnsubscribeAttributeId.toString(),
 					value: "", // "" indicates default value
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o.check(testMailPatched.listUnsubscribe).equals(false)
 		})
 
@@ -310,32 +320,30 @@ o.spec("PatchMergerTest", () => {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 				_ownerGroup: ownerGroupId,
-				sender: createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity<MailAddress>(MailAddressTypeRef, {
 					_id: "senderId",
 					address: "example@tutao.de",
 					name: "example name",
 				}),
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
-			const mailAddressTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailAddressTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+			const mailAddressTypeModel = await typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
 			const senderAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sender"))
 			const addressAttributeId = assertNotNull(AttributeModel.getAttributeId(mailAddressTypeModel, "address"))
 			const pathString = `${senderAttributeId}/senderId/${addressAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: pathString,
 					value: "newmail@tutao.de",
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sender.address).equals("newmail@tutao.de")
 		})
 
@@ -345,17 +353,17 @@ o.spec("PatchMergerTest", () => {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 				_ownerGroup: ownerGroupId,
-				sender: createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity<MailAddress>(MailAddressTypeRef, {
 					_id: "senderId",
 					address: "example@tutao.de",
 					name: "example name",
 				}),
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
-			const mailAddressTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailAddressTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
+			const mailAddressTypeModel = await typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
 
 			const senderAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sender"))
 			const nameAttributeId = assertNotNull(AttributeModel.getAttributeId(mailAddressTypeModel, "name"))
@@ -364,8 +372,8 @@ o.spec("PatchMergerTest", () => {
 			const pathString = `${senderAttributeId}/senderId/${nameAttributeId}`
 			let plaintext = "new name"
 			const ciphertext = encryptValue(valueType, plaintext, sk)
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: pathString,
 					value: ciphertext,
 					patchOperation: PatchOperationType.REPLACE,
@@ -373,50 +381,46 @@ o.spec("PatchMergerTest", () => {
 			]
 			when(instanceDecryptor.getValueDecryptor(base64ToUint8Array(ciphertext!), matchers.anything())).thenReturn(valueDecryptor)
 			when(valueDecryptor.getValue(matchers.anything())).thenReturn(stringToUtf8Uint8Array(plaintext))
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sender.name).equals(plaintext)
 		})
 	})
 
 	o.spec("replace on aggregations", () => {
 		o.test("apply_replace_on_One_ET_on_aggregation", async () => {
-			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
 				_id: "elementId",
 				mailbox: "mailboxId",
 				serverProperties: "serverId",
-				outOfOfficeNotificationRecipientList: tutanotaTypeRefs.createOutOfOfficeNotificationRecipientList({
+				outOfOfficeNotificationRecipientList: createOutOfOfficeNotificationRecipientList({
 					_id: "aggId",
 					list: "oldListId",
 				}),
 			})
 
-			await storage.put(tutanotaTypeRefs.MailboxGroupRootTypeRef, await toStorableInstance(mailboxGroupRoot))
+			await storage.put(MailboxGroupRootTypeRef, await toStorableInstance(mailboxGroupRoot))
 
-			const mailboxGroupRootTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailboxGroupRootTypeRef)
+			const mailboxGroupRootTypeModel = await typeModelResolver.resolveClientTypeReference(MailboxGroupRootTypeRef)
 			const outOfOfficeNotificationRecipientListTypeModel = await typeModelResolver.resolveClientTypeReference(
-				tutanotaTypeRefs.OutOfOfficeNotificationRecipientListTypeRef,
+				OutOfOfficeNotificationRecipientListTypeRef,
 			)
 			const outOfOfficeNotificationAttributeId = assertNotNull(
 				AttributeModel.getAttributeId(mailboxGroupRootTypeModel, "outOfOfficeNotificationRecipientList"),
 			)
 			const listAttributeId = assertNotNull(AttributeModel.getAttributeId(outOfOfficeNotificationRecipientListTypeModel, "list"))
 			const pathString = `${outOfOfficeNotificationAttributeId}/aggId/${listAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: pathString,
 					value: JSON.stringify(["newListId"]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const mailboxGroupRootPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailboxGroupRootTypeRef, null, "elementId", patches),
-			)
-			const mailboxGroupRootPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailboxGroupRoot>(
-				tutanotaTypeRefs.MailboxGroupRootTypeRef,
+			const mailboxGroupRootPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailboxGroupRootTypeRef, null, "elementId", patches))
+			const mailboxGroupRootPatched = await instancePipeline.modelMapper.mapToInstance<MailboxGroupRoot>(
+				MailboxGroupRootTypeRef,
 				mailboxGroupRootPatchedParsed,
 			)
 			o(mailboxGroupRootPatched.outOfOfficeNotificationRecipientList?.list).equals("newListId")
@@ -431,12 +435,12 @@ o.spec("PatchMergerTest", () => {
 				sets: [["listId", "elementId"]],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId2", "elementId1"],
@@ -446,10 +450,8 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([
 				["listId2", "elementId1"],
 				["listId2", "elementId2"],
@@ -464,73 +466,71 @@ o.spec("PatchMergerTest", () => {
 				_ownerGroup: ownerGroupId,
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const senderAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sender"))
-			const senderToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const senderToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedSender = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, senderToAdd, sk)
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const untypedSender = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, senderToAdd, sk)
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: senderAttributeId.toString(),
 					value: JSON.stringify([untypedSender]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sender.name).deepEquals("new name")
 			o(testMailPatched.sender.address).deepEquals("address@tutao.de")
 		})
 
 		o.test("apply_replace_on_ZeroOrOne_aggregation_works", async () => {
 			const eventElementId = stringToBase64("elementId")
-			const calendarEvent = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", eventElementId],
 				repeatRule: null,
 			})
 
-			await storage.put(tutanotaTypeRefs.CalendarEventTypeRef, await toStorableInstance(calendarEvent))
+			await storage.put(CalendarEventTypeRef, await toStorableInstance(calendarEvent))
 
-			const calendarEventTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.CalendarEventTypeRef)
+			const calendarEventTypeModel = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			const repeatRuleAttributeId = assertNotNull(AttributeModel.getAttributeId(calendarEventTypeModel, "repeatRule"))
-			const repeatRuleToAdd = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, { _id: "added-by-patch" })
-			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
+			const repeatRuleToAdd = createTestEntity(CalendarRepeatRuleTypeRef, { _id: "added-by-patch" })
+			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
 
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: repeatRuleAttributeId.toString(),
 					value: JSON.stringify([untypedRepeatRule]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 			o(calendarEvent.repeatRule).equals(null)
-			const patchedInstance = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.CalendarEvent>(
-				tutanotaTypeRefs.CalendarEventTypeRef,
-				assertNotNull(await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.CalendarEventTypeRef, "listId", eventElementId, patches)),
+			const patchedInstance = await instancePipeline.modelMapper.mapToInstance<CalendarEvent>(
+				CalendarEventTypeRef,
+				assertNotNull(await patchMerger.getPatchedInstanceParsed(CalendarEventTypeRef, "listId", eventElementId, patches)),
 			)
 			o(patchedInstance.repeatRule?._id).equals("added-by-patch")
 		})
 
 		o.test("apply_replace_on_Any_aggregation_works", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipientsId" }),
+							recipients: createTestEntity(RecipientsTypeRef, { _id: "recipientsId" }),
 						},
 						{ populateAggregates: true },
 					),
@@ -538,24 +538,24 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const toRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const toRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([untypedToRecipient]),
 					patchOperation: PatchOperationType.REPLACE,
@@ -563,10 +563,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const mailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const mailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const mailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				mailDetailsBlobPatchedParsed,
 			)
 			const addedToRecipient = assertNotNull(mailDetailsBlobPatched.details.recipients.toRecipients.pop())
@@ -582,12 +582,12 @@ o.spec("PatchMergerTest", () => {
 				unread: true,
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const unreadAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "unread"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: unreadAttributeId.toString(),
 					value: "0",
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -596,7 +596,7 @@ o.spec("PatchMergerTest", () => {
 
 			const e = await assertThrows(
 				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
+				async () => await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches),
 			)
 			o(
 				e.message
@@ -616,22 +616,20 @@ o.spec("PatchMergerTest", () => {
 				sets: [["listId", "elementId"]],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([["listId", "elementId2"]]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([
 				["listId", "elementId"],
 				["listId", "elementId2"],
@@ -647,12 +645,12 @@ o.spec("PatchMergerTest", () => {
 				sets: [["listId", "elementId"]],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId2"],
@@ -662,10 +660,8 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([
 				["listId", "elementId"],
 				["listId", "elementId2"],
@@ -682,12 +678,12 @@ o.spec("PatchMergerTest", () => {
 				sets: [["listId", "elementId"]],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId"],
@@ -697,26 +693,24 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([["listId", "elementId"]])
 		})
 
 		o.test("apply_additem_on_Any_aggregation", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipientsId" }),
+							recipients: createTestEntity(RecipientsTypeRef, { _id: "recipientsId" }),
 						},
 						{ populateAggregates: true },
 					),
@@ -724,24 +718,24 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const toRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const toRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([untypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -749,10 +743,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			const addedToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
@@ -761,17 +755,17 @@ o.spec("PatchMergerTest", () => {
 
 		o.test("apply_additem_on_Any_aggregation_multiple", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, { _id: "recipientsId" }),
+							recipients: createTestEntity(RecipientsTypeRef, { _id: "recipientsId" }),
 						},
 						{ populateAggregates: true },
 					),
@@ -779,29 +773,29 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const firstToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const firstToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				name: "first name",
 				address: "address@tutao.de",
 			})
-			const secondToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const secondToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -809,10 +803,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			const addedSecondToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
@@ -823,20 +817,20 @@ o.spec("PatchMergerTest", () => {
 
 		o.test("apply_additem_on_Any_aggregation_multiple_existing_ignored", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {
 								_id: "recipientsId",
 								toRecipients: [
-									createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+									createTestEntity<MailAddress>(MailAddressTypeRef, {
 										_id: "existingToRecipientId",
 										name: "first name",
 										address: "address@tutao.de",
@@ -850,31 +844,31 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const firstToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const firstToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "existingToRecipientId",
 				name: "first name",
 				address: "address@tutao.de",
 			})
-			const secondToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const secondToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "newToRecipientId",
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -882,10 +876,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(2) // only second toRecipient is added
@@ -893,20 +887,20 @@ o.spec("PatchMergerTest", () => {
 
 		o.test("apply_additem_on_Any_aggregation_multiple_duplicates_ignored", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {
 								_id: "recipientsId",
 								toRecipients: [
-									createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+									createTestEntity<MailAddress>(MailAddressTypeRef, {
 										_id: "existingToRecipientId",
 										name: "first name",
 										address: "address@tutao.de",
@@ -920,32 +914,32 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const firstToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const firstToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "existingToRecipientId",
 				name: "first name",
 				address: "address@tutao.de",
 			})
 
-			const secondToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const secondToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "existingToRecipientId",
 				name: "first name",
 				address: "address@tutao.de",
 			})
 
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -953,10 +947,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(1) // nothing is added as both entities are identical to existing toRecipient
@@ -964,20 +958,20 @@ o.spec("PatchMergerTest", () => {
 
 		o.test("apply_additem_on_Any_aggregation_multiple_existing_but_DIFFERENT_attribute_values_throws", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {
 								_id: "recipientsId",
 								toRecipients: [
-									createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+									createTestEntity<MailAddress>(MailAddressTypeRef, {
 										_id: "existingToRecipientId",
 										name: "first name",
 										address: "address@tutao.de",
@@ -991,31 +985,31 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
-			const firstToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const firstToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "existingToRecipientId",
 				name: "NEW first name",
 				address: "address@tutao.de",
 			})
-			const secondToRecipientToAdd = createTestEntity<tutanotaTypeRefs.MailAddress>(tutanotaTypeRefs.MailAddressTypeRef, {
+			const secondToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "newToRecipientId",
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
@@ -1023,14 +1017,14 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			await assertThrows(PatchOperationError, async () =>
-				assertNotNull(await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches)),
+				assertNotNull(await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches)),
 			)
 		})
 	})
 
 	o.spec("Remove Item", () => {
 		o.test("apply_removeitem_on_ZeroOrOne_id_association", async () => {
-			const customer = createTestEntity(sysTypeRefs.CustomerTypeRef, {
+			const customer = createTestEntity(CustomerTypeRef, {
 				_id: "customerId",
 				adminGroup: "adminGroupId",
 				adminGroups: "adminGroupsId",
@@ -1042,19 +1036,19 @@ o.spec("PatchMergerTest", () => {
 				properties: "propertiesId",
 			})
 
-			await storage.put(sysTypeRefs.CustomerTypeRef, await toStorableInstance(customer))
-			const customerTypeModel = await typeModelResolver.resolveClientTypeReference(sysTypeRefs.CustomerTypeRef)
+			await storage.put(CustomerTypeRef, await toStorableInstance(customer))
+			const customerTypeModel = await typeModelResolver.resolveClientTypeReference(CustomerTypeRef)
 			const propertiesAttributeId = assertNotNull(AttributeModel.getAttributeId(customerTypeModel, "properties"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: propertiesAttributeId.toString(),
 					value: '["propertiesId"]',
 					patchOperation: PatchOperationType.REMOVE_ITEM,
 				}),
 			]
 
-			const customerPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(sysTypeRefs.CustomerTypeRef, null, "customerId", patches))
-			const customerPatched = await instancePipeline.modelMapper.mapToInstance<sysTypeRefs.Customer>(sysTypeRefs.CustomerTypeRef, customerPatchedParsed)
+			const customerPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(CustomerTypeRef, null, "customerId", patches))
+			const customerPatched = await instancePipeline.modelMapper.mapToInstance<Customer>(CustomerTypeRef, customerPatchedParsed)
 			o(customerPatched.properties).equals(null)
 		})
 
@@ -1070,12 +1064,12 @@ o.spec("PatchMergerTest", () => {
 				],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId"],
@@ -1085,10 +1079,8 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([])
 		})
 
@@ -1104,12 +1096,12 @@ o.spec("PatchMergerTest", () => {
 				],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId"],
@@ -1119,10 +1111,8 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([["listId", "elementId2"]])
 		})
 
@@ -1138,12 +1128,12 @@ o.spec("PatchMergerTest", () => {
 				],
 			})
 
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(testMail))
+			await storage.put(MailTypeRef, await toStorableInstance(testMail))
 
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const setsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sets"))
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId2"],
@@ -1154,29 +1144,27 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const testMailPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailTypeRef, "listId", "elementId", patches),
-			)
-			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.Mail>(tutanotaTypeRefs.MailTypeRef, testMailPatchedParsed)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sets).deepEquals([["listId", "elementId"]])
 		})
 
 		o.test("apply_removeitem_on_Any_aggregation", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {
 								_id: "recipientsId",
 								toRecipients: [
-									createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+									createTestEntity(MailAddressTypeRef, {
 										_id: "addressId",
 										name: "delete me",
 										address: "delet@tutao.de",
@@ -1190,18 +1178,18 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: '["addressId"]',
 					patchOperation: PatchOperationType.REMOVE_ITEM,
@@ -1209,10 +1197,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(0)
@@ -1220,20 +1208,20 @@ o.spec("PatchMergerTest", () => {
 
 		o.test("apply_removeitem_on_Any_aggregation_multiple_ignored", async () => {
 			const mailDetailsBlob = createTestEntity(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+				MailDetailsBlobTypeRef,
 				{
 					_id: ["listId", "elementId"],
 					_ownerEncSessionKey: encryptedSessionKey.key,
 					_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 					_ownerGroup: ownerGroupId,
 					details: createTestEntity(
-						tutanotaTypeRefs.MailDetailsTypeRef,
+						MailDetailsTypeRef,
 						{
 							_id: "detailsId",
-							recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+							recipients: createTestEntity(RecipientsTypeRef, {
 								_id: "recipientsId",
 								toRecipients: [
-									createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+									createTestEntity(MailAddressTypeRef, {
 										_id: "addressId",
 										name: "delete me",
 										address: "delet@tutao.de",
@@ -1247,18 +1235,18 @@ o.spec("PatchMergerTest", () => {
 				{ populateAggregates: true },
 			)
 
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
-			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsBlobTypeRef)
-			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailDetailsTypeRef)
-			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.RecipientsTypeRef)
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			const mailDetailsBlobTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+			const mailDetailsTypeModel = await typeModelResolver.resolveClientTypeReference(MailDetailsTypeRef)
+			const recipientsTypeModel = await typeModelResolver.resolveClientTypeReference(RecipientsTypeRef)
 
 			const detailsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsBlobTypeModel, "details"))
 			const recipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(mailDetailsTypeModel, "recipients"))
 			const toRecipientsAttributeId = assertNotNull(AttributeModel.getAttributeId(recipientsTypeModel, "toRecipients"))
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
-			const patches: Array<sysTypeRefs.Patch> = [
-				sysTypeRefs.createPatch({
+			const patches: Array<Patch> = [
+				createPatch({
 					attributePath: attributePath,
 					value: '["addressId", "addressId"]',
 					patchOperation: PatchOperationType.REMOVE_ITEM,
@@ -1266,10 +1254,10 @@ o.spec("PatchMergerTest", () => {
 			]
 
 			const testMailDetailsBlobPatchedParsed = assertNotNull(
-				await patchMerger.getPatchedInstanceParsed(tutanotaTypeRefs.MailDetailsBlobTypeRef, "listId", "elementId", patches),
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<tutanotaTypeRefs.MailDetailsBlob>(
-				tutanotaTypeRefs.MailDetailsBlobTypeRef,
+			const testMailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
 			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(0)

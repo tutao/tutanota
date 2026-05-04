@@ -1,14 +1,7 @@
-import { CacheInfo, LoginFacade, LoginListener } from "../../../common/api/worker/facades/LoginFacade.js"
-import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
-import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
-import { CacheStorage, DefaultEntityRestCache, EntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
-import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
-import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
 import {
 	assertWorkerOrNode,
+	BrowserData,
 	Const,
 	getWebsocketBaseUrl,
 	isAndroidApp,
@@ -17,86 +10,103 @@ import {
 	isOfflineStorageAvailable,
 	Mode,
 	ProgrammingError,
+	SessionType,
 } from "@tutao/app-env"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
-import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
 import { RestClient, restSuspension } from "@tutao/rest-client"
-import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { DeviceEncryptionFacade } from "../../../common/api/worker/facades/DeviceEncryptionFacade.js"
-import type { NativeInterface } from "../../../common/native/common/NativeInterface.js"
-import { NativeFileApp } from "../../../common/native/common/FileApp.js"
-import { AesApp } from "../../../common/native/worker/AesApp.js"
-import type { RsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
-import { createRsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
-import { LateInitializedCacheStorageImpl } from "../../../common/api/worker/rest/CacheStorageProxy.js"
-import { IServiceExecutor } from "../../../common/api/common/ServiceRequest.js"
-import { ServiceExecutor } from "../../../common/api/worker/rest/ServiceExecutor.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
-import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
-import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
 import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
-import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import { lazyAsync, lazyMemoized, noOp } from "@tutao/utils"
-import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
-import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
-import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
+import { DateProvider, lazyAsync, lazyMemoized, noOp } from "@tutao/utils"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { ClientModelInfo, ServerModelInfo, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
-import { SessionType } from "../../../common/api/common/SessionType.js"
-import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"
-import { PQFacade } from "../../../common/api/worker/facades/PQFacade.js"
 import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
-import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
-import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
-import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
-import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { Credentials } from "../../../common/misc/credentials/Credentials.js"
-import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { InstancePipeline, PatchMerger, SessionKeyResolver } from "@tutao/instance-pipeline"
-import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
-import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
-import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
-import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
-import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
-import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
-import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
-import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
-import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
+import {
+	ApplicationTypesFacade,
+	InstancePipeline,
+	PatchMerger,
+	ServerModelInfo,
+	TypeModelResolver,
+	UpdateAppTypesHashMiddleware,
+} from "@tutao/instance-pipeline"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
-	LastProcessedEventBatchStorageFacade,
 	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
-import { DateProvider } from "../../../common/api/common/DateProvider"
-import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
 import { DriveWorkerImpl } from "./DriveWorkerImpl"
 import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
+import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../base/facades/LoginFacade"
+import { IServiceExecutor } from "../../../network/ServiceRequest"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade"
+import { EntityRestCache, EntityRestInterface } from "../../../network/EntityRestCacheInterface"
+import { EntityClient } from "../../../network/EntityClient"
+import { EventBusClient } from "../../../network/EventBusClient"
+import { createRsaImplementation, RsaImplementation } from "../../../native-bridge/worker/RsaImplementation"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../base/crypto/KyberFacade"
+import { PQFacade } from "../../../base/crypto/PQFacade"
+import { EntropyFacade } from "../../../base/facades/EntropyFacade"
+import { BlobAccessTokenFacade } from "../../../network/BlobAccessTokenFacade"
+import { KeyCache } from "../../../local-store/KeyCache"
+import { KeyLoaderFacade } from "../../../base/crypto/KeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../base/crypto/AdminKeyLoaderFacade"
+import { KeyAuthenticationFacade } from "../../../network/KeyAuthenticationFacade"
+import PublicEncryptionKeyProvider from "../../../base/crypto/PublicEncryptionKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKeyProvider"
+import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../local-store/IdentityKeyTrustDatabase"
+import { KeyRotationFacade } from "../../../base/crypto/KeyRotationFacade"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../base/crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../base/crypto/PublicKeySignatureFacade"
+import { RolloutFacade } from "../../../base/facades/RolloutFacade"
+import { UserFacade } from "../../../base/facades/UserFacade"
+import { CounterFacade } from "../../../network/CounterFacade"
+import { GroupManagementFacade } from "../../../base/facades/lazy/GroupManagementFacade"
+import { IdentityKeyCreator } from "../../../base/crypto/IdentityKeyCreator"
+import { RecoverCodeFacade } from "../../../base/facades/lazy/RecoverCodeFacade"
+import { ShareFacade } from "../../../base/facades/lazy/ShareFacade"
+import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
+import { DeviceEncryptionFacade } from "../../../base/crypto/DeviceEncryptionFacade"
+import { NativeInterface } from "../../../native-bridge/common/NativeInterface"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { ServiceExecutor } from "../../../network/ServiceExecutor"
+import { EntityRestClient } from "../../../network/EntityRestClient"
+import {
+	ExportFacadeSendDispatcher,
+	FileFacadeSendDispatcher,
+	InterWindowEventFacadeSendDispatcher,
+	NativeCryptoFacadeSendDispatcher,
+	SqlCipherFacadeSendDispatcher,
+} from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { NativeFileApp } from "../../../native-bridge/common/FileApp"
+import { CustomCacheHandlerMap } from "../../../local-store/CustomCacheHandler"
+import { Challenge, UserTypeRef } from "@tutao/entities/sys"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
+import { EphemeralCacheStorage } from "../../../local-store/EphemeralCacheStorage"
+import { LateInitializedCacheStorageImpl } from "../../../local-store/CacheStorageProxy"
+import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { PublicEncryptionKeyCache } from "../../../local-store/PublicEncryptionKeyCache"
+import { AsymmetricCryptoFacade } from "../../../base/crypto/AsymmetricCryptoFacade"
+import { InstanceSessionKeysCache } from "../../../local-store/InstanceSessionKeysCache"
+import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { CustomCalendarEventCacheHandler } from "../../../calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
+import { OfflineStorage } from "../../../local-store/OfflineStorage"
+import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../local-store/OfflineStorageMigrator"
+
+import { CacheStorage } from "../../../local-store/CacheStorage"
+import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
+import { Argon2idFacade, WASMArgon2idFacade } from "../../../base/crypto/WasmArgon2idFacade"
+import { NativeArgon2idFacade } from "../../../base/crypto/NativeArgon2idFacade"
+import { Credentials } from "@tutao/network/types"
+import { AesApp } from "../../../native-bridge/worker/AesApp"
+import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
+import { LastProcessedEventBatchProvider } from "../../../network/LastProcessedEventBatchProvider"
 
 assertWorkerOrNode()
 
@@ -166,7 +176,7 @@ export type DriveWorkerLocatorType = {
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
 
-	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>
+	lastProcessedEventBatchProvider: lazyAsync<LastProcessedEventBatchProvider>
 }
 export const locator: DriveWorkerLocatorType = {} as any
 
@@ -188,7 +198,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		})
 	})
 
-	const clientModelInfo = ClientModelInfo.getInstance()
+	const clientModelInfo = initClientModels()
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash) =>
 		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
@@ -215,6 +225,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.instancePipeline,
 		locator.blobAccessToken,
 		typeModelResolver,
+		() => locator.crypto,
 	)
 	locator.native = worker
 
@@ -232,7 +243,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
-				ref: tutanotaTypeRefs.CalendarEventTypeRef,
+				ref: CalendarEventTypeRef,
 				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
 			})
 
@@ -240,7 +251,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
-				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, locator.applicationTypesFacade),
+				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.applicationTypesFacade)),
 				new DriveOfflineCleanerStub(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
@@ -258,7 +269,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
-			ref: sysTypeRefs.UserTypeRef,
+			ref: UserTypeRef,
 			handler: new CustomUserCacheHandler(locator.cacheStorage),
 		})
 		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
@@ -274,16 +285,9 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	const cryptoFacadeSessionKeyResolver: SessionKeyResolver = (entity) => locator.crypto.resolveSessionKey(entity)
-	locator.patchMerger = new PatchMerger(
-		locator.cacheStorage,
-		locator.instancePipeline,
-		typeModelResolver,
-		cryptoFacadeSessionKeyResolver,
-		SYMMETRIC_CIPHER_FACADE,
-	)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
 
-	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
+	locator.lastProcessedEventBatchProvider = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
@@ -296,7 +300,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		maybeUninitializedStorage,
 		typeModelResolver,
 		locator.patchMerger,
-		locator.lastProcessedEventBatchStorageFacade,
+		locator.lastProcessedEventBatchProvider,
 	)
 
 	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
@@ -334,7 +338,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.identityKeyTrustDatabase,
 	)
 	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		const { KeyVerificationFacade } = await import("../../../base/facades/lazy/KeyVerificationFacade")
 		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
 	})
 
@@ -368,7 +372,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		locator.cache as DefaultEntityRestCache,
+		locator.cacheManagement,
 		locator.keyLoader,
 		asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
@@ -382,20 +386,20 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
-		const { RecoverCodeFacade } = await import("../../../common/api/worker/facades/lazy/RecoverCodeFacade.js")
+		const { RecoverCodeFacade } = await import("../../../base/facades/lazy/RecoverCodeFacade.js")
 		return new RecoverCodeFacade(locator.user, locator.cachingEntityClient, locator.login, locator.keyLoader)
 	})
 	locator.share = lazyMemoized(async () => {
-		const { ShareFacade } = await import("../../../common/api/worker/facades/lazy/ShareFacade.js")
+		const { ShareFacade } = await import("../../../base/facades/lazy/ShareFacade.js")
 		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
 	})
 	locator.counters = lazyMemoized(async () => {
-		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
+		const { CounterFacade } = await import("../../../network/CounterFacade")
 		return new CounterFacade(locator.serviceExecutor)
 	})
 
 	locator.identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("../../../common/api/worker/facades/lazy/IdentityKeyCreator.js")
+		const { IdentityKeyCreator } = await import("../../../base/crypto/IdentityKeyCreator")
 		return new IdentityKeyCreator(
 			locator.user,
 			locator.cachingEntityClient,
@@ -412,7 +416,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	})
 
 	locator.groupManagement = lazyMemoized(async () => {
-		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
+		const { GroupManagementFacade } = await import("../../../base/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
 			locator.user,
 			await locator.counters(),
@@ -459,7 +463,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			return mainInterface.loginListener.onLoginFailure(reason)
 		},
 
-		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void> {
+		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
 			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
 		},
 	}
@@ -472,7 +476,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("../../../common/misc/credentials/DatabaseKeyFactory.js")
+	const { DatabaseKeyFactory } = await import("../../../base/crypto/DatabaseKeyFactory")
 
 	locator.login = new LoginFacade(
 		locator.restClient,
@@ -597,9 +601,10 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		new SleepDetector(scheduler, dateProvider),
 		typeModelResolver,
 		locator.crypto,
-		locator.lastProcessedEventBatchStorageFacade,
+		locator.crypto,
+		locator.lastProcessedEventBatchProvider,
 		serverDateProvider,
-		mainInterface.progressTracker,
+		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

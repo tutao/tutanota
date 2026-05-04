@@ -1,23 +1,22 @@
 import m, { Children, Vnode } from "mithril"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { assertMainOrNode, FeatureType, isApp, Keys, MailReportType, MailSetKind, SystemFolderType } from "@tutao/app-env"
-import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { getElementId, getMailFolderType, isFolder, isFolderReadOnly, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
+import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog"
+import { assertMainOrNode, CancelledError, FeatureType, isApp, Keys } from "@tutao/app-env"
+import { AppHeaderAttrs, Header } from "../../../ui/Header.js"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, localeCompare, noOp, ofClass } from "@tutao/utils"
 import { MailListView } from "./MailListView"
-import type { Shortcut } from "../../../common/misc/KeyManager"
-import { keyManager } from "../../../common/misc/KeyManager"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { keyManager } from "../../../ui/utils/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
-import { styles } from "../../../common/gui/styles"
-import { layout_size, px, size } from "../../../common/gui/size"
+import { styles } from "../../../ui/styles"
+import { layout_size, px, size } from "../../../ui/size"
 import {
 	getConversationTitle,
 	LabelsPopupOpts,
@@ -30,66 +29,66 @@ import {
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { CancelledError } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { readLocalFiles } from "../../../common/file/FileController.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { showEditFolderDialog } from "./EditFolderDialog.js"
 import { MailFoldersView } from "./MailFoldersView.js"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
-import { SidebarSection } from "../../../common/gui/SidebarSection.js"
+import { SidebarSection } from "../../../ui/SidebarSection.js"
 import { EditFoldersDialog } from "./EditFoldersDialog.js"
-import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
 import { conversationCardMargin, ConversationViewer } from "./ConversationViewer.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
 import { MailViewerActions } from "./MailViewerToolbar.js"
-import { theme } from "../../../common/gui/theme.js"
+import { theme } from "../../../ui/theme.js"
 import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionActionBar.js"
-import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
-import { DesktopListToolbar, DesktopViewerToolbar } from "../../../common/gui/DesktopToolbars.js"
-import { MobileHeader } from "../../../common/gui/MobileHeader.js"
+import { SelectAllCheckbox } from "../../../ui/SelectAllCheckbox.js"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../ui/DesktopToolbars.js"
+import { MobileHeader } from "../../../ui/MobileHeader.js"
 import { LazySearchBar } from "../../LazySearchBar.js"
-import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
+import { MultiselectMobileHeader } from "../../../ui/MultiselectMobileHeader.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
-import { ListLoadingState, MultiselectMode } from "../../../common/gui/base/List.js"
-import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
+import { ListLoadingState, MultiselectMode } from "../../../ui/base/List.js"
+import { EnterMultiselectIconButton } from "../../../ui/EnterMultiselectIconButton.js"
 import { MailFilterButton } from "./MailFilterButton.js"
-import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts } from "../../../ui/base/ListUtils.js"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
-import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
+import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
-import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
-import { attachDropdown } from "../../../common/gui/base/Dropdown"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize"
-import { RowButton } from "../../../common/gui/base/buttons/RowButton"
-import { getLabelColor } from "../../../common/gui/base/Label.js"
-import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../common/gui/base/GuiUtils"
-import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
+import { SidebarSectionRow } from "../../../ui/base/SidebarSectionRow"
+import { attachDropdown } from "../../../ui/base/Dropdown"
+import { ButtonSize } from "../../../ui/base/ButtonSize"
+import { RowButton } from "../../../ui/base/buttons/RowButton"
+import { getLabelColor } from "../../../ui/base/Label.js"
+import { MAIL_PREFIX } from "../../../ui/utils/RouteChange"
+import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../ui/base/GuiUtils"
+import { fileListToArray } from "../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import * as restError from "@tutao/rest-client/error"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
-
-import { PosRect } from "../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../ui/utils/PosRect"
+import { Mail, MailBox, MailReportType, MailSet, MailSetKind, SystemFolderType } from "@tutao/entities/tutanota"
+import { getElementId, isSameId } from "@tutao/meta"
+import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 
 assertMainOrNode()
 
-type Mail = tutanotaTypeRefs.Mail
-type MailSet = tutanotaTypeRefs.MailSet
 /** State persisted between re-creations. */
 export interface MailViewCache {
 	/** The preference for if conversation view was used, so we can reset if it was changed */
@@ -266,7 +265,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				testId: "mail-area",
 			},
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn])
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], windowFacade)
 		this.viewSlider.focusedColumn = this.listColumn
 
 		const shortcuts = this.getShortcuts()
@@ -590,6 +589,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								})
 							: null,
 					...attrs.header,
+					isFeatureEnabled: locator.logins.isEnabled,
+					isInternalUserLoggedIn: locator.logins.isInternalUserLoggedIn(),
 				}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
@@ -1452,7 +1453,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
 
-	private async showLabelAddDialog(mailbox: tutanotaTypeRefs.MailBox) {
+	private async showLabelAddDialog(mailbox: MailBox) {
 		await showEditLabelDialog(mailbox, this.mailViewModel, null)
 	}
 

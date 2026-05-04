@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Weekday } from "@tutao/app-env"
-import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
+import { Select, SelectAttributes } from "../../../../ui/base/Select.js"
 import { IntervalOption } from "../CalendarGuiUtils.js"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import stream from "mithril/stream"
 
 export interface WeekRepetitionSelectorAttrs {

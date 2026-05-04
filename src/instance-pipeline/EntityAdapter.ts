@@ -1,7 +1,8 @@
 import { assertNotNull, downcast, Nullable } from "@tutao/utils"
-import type { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "@tutao/typerefs"
-import { AttributeModel, sysTypeRefs, TypeRef } from "@tutao/typerefs"
+import { AttributeModel, TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
+import { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "../meta/EntityTypes"
+import { BucketKey, BucketKeyTypeRef } from "../entities/sys/TypeRefs"
 
 export class EntityAdapter implements Entity {
 	isAdapter = true
@@ -9,17 +10,17 @@ export class EntityAdapter implements Entity {
 	private constructor(
 		readonly typeModel: TypeModel,
 		readonly encryptedParsedInstance: EncryptedParsedInstance,
-		public readonly bucketKey: sysTypeRefs.BucketKey | null,
+		public readonly bucketKey: BucketKey | null,
 	) {}
 
 	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, modelMapper: ModelMapper) {
-		let bucketKey: Nullable<sysTypeRefs.BucketKey> = null
+		let bucketKey: Nullable<BucketKey> = null
 		const bucketKeyParsedInstance = downcast<ServerModelParsedInstance>(
 			AttributeModel.getAttributeorNull<ServerModelEncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)?.[0],
 		)
 		if (bucketKeyParsedInstance) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await modelMapper.mapToInstance<sysTypeRefs.BucketKey>(sysTypeRefs.BucketKeyTypeRef, bucketKeyParsedInstance)
+			bucketKey = await modelMapper.mapToInstance<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance)
 		}
 		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}

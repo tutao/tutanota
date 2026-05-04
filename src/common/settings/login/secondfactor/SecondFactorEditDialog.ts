@@ -1,28 +1,27 @@
-import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
-import { isApp, SecondFactorType } from "@tutao/app-env"
-import type { DropDownSelectorAttrs } from "../../../gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../../gui/base/DropDownSelector.js"
-import { lang } from "../../../misc/LanguageViewModel.js"
-import type { LegacyTextFieldAttrs } from "../../../gui/base/LegacyTextField.js"
-import { Autocomplete, LegacyTextField } from "../../../gui/base/LegacyTextField.js"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
+import { isApp, ProgrammingError, SecondFactorType } from "@tutao/app-env"
+import type { DropDownSelectorAttrs } from "../../../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import type { LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import m, { Children } from "mithril"
-import { copyToClipboard } from "../../../misc/ClipboardUtils.js"
-import { Icons } from "../../../gui/base/icons/Icons.js"
-import { Dialog } from "../../../gui/base/Dialog.js"
-import { Icon, IconSize, progressIcon } from "../../../gui/base/Icon.js"
-import { theme } from "../../../gui/theme.js"
+import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon.js"
+import { theme } from "../../../../ui/theme.js"
 import { assertNotNull, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../../api/main/CommonLocator.js"
 import * as RecoverCodeDialog from "../RecoverCodeDialog.js"
 import { EntityClient } from "../../../../network/EntityClient.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { IconButton, IconButtonAttrs } from "../../../gui/base/IconButton.js"
-import { ButtonSize } from "../../../gui/base/ButtonSize.js"
+import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus } from "./SecondFactorEditModel.js"
 import { UserError } from "../../../api/main/UserError.js"
 import * as restError from "@tutao/rest-client/error"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { PrimaryButton } from "../../../gui/base/buttons/VariantButtons.js"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
+import { User } from "@tutao/entities/sys"
 
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean
@@ -79,17 +78,12 @@ export class SecondFactorEditDialog {
 		}
 	}
 
-	finalize(user: sysTypeRefs.User): void {
+	finalize(user: User): void {
 		this.dialog.close()
 		RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user)
 	}
 
-	static async loadAndShow(
-		entityClient: EntityClient,
-		lazyUser: LazyLoaded<sysTypeRefs.User>,
-		token?: string,
-		attrs?: SecondFactorEditDialogAttrs,
-	): Promise<void> {
+	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string, attrs?: SecondFactorEditDialogAttrs): Promise<void> {
 		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, token, attrs))
 		dialog.dialog.show()
 	}
@@ -200,7 +194,7 @@ export class SecondFactorEditDialog {
 
 	private static async loadWebauthnClient(
 		entityClient: EntityClient,
-		lazyUser: LazyLoaded<sysTypeRefs.User>,
+		lazyUser: LazyLoaded<User>,
 		token?: string,
 		attrs?: SecondFactorEditDialogAttrs,
 	): Promise<SecondFactorEditDialog> {

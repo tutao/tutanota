@@ -1,30 +1,43 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../misc/LanguageViewModel.js"
-import { DropDownSelector } from "../gui/base/DropDownSelector.js"
-import { entityUpdateUtils, GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typerefs"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { ExpandableTable } from "./ExpandableTable.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { showDeleteAccountDialog } from "../subscription/DeleteAccountDialog.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { ColumnWidth, TableAttrs, TableLineAttrs } from "../gui/base/Table.js"
+import { ColumnWidth, TableAttrs, TableLineAttrs } from "../../ui/base/Table.js"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
-import { formatDateTime, formatDateTimeFromYesterdayOn } from "../misc/Formatter.js"
-import { Icons } from "../gui/base/icons/Icons.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
+import { formatDateTime, formatDateTimeFromYesterdayOn } from "../../ui/utils/Formatter.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../gui/base/Dialog.js"
+import { Dialog } from "../../ui/base/Dialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../../app-env/boot/ClientDetector"
+import {
+	AuditLogEntry,
+	AuditLogEntryTypeRef,
+	createSurveyData,
+	Customer,
+	CustomerInfo,
+	CustomerPropertiesTypeRef,
+	CustomerServerProperties,
+	CustomerTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+} from "@tutao/entities/sys"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { GENERATED_MAX_ID } from "@tutao/meta"
 
-export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => void
+export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
 export interface AccountMaintenanceSettingsAttrs {
-	customerServerProperties: stream<Readonly<sysTypeRefs.CustomerServerProperties>>
+	customerServerProperties: stream<Readonly<CustomerServerProperties>>
 	setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => void
 }
 
@@ -36,12 +49,12 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 	private auditLogLines: ReadonlyArray<TableLineAttrs> = []
 	private auditLogLoaded = false
 
-	private customer: sysTypeRefs.Customer | null = null
-	private readonly customerInfo = new LazyLoaded<sysTypeRefs.CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
+	private customer: Customer | null = null
+	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
 	constructor(vnode: Vnode<AccountMaintenanceSettingsAttrs>) {
@@ -51,7 +64,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		})
 
 		this.customerProperties.getAsync().then(m.redraw)
-		vnode.attrs.setOnUpdateHandler((updates: entityUpdateUtils.EntityUpdateData[]) => this.handleEventUpdates(updates))
+		vnode.attrs.setOnUpdateHandler((updates: EntityUpdateData[]) => this.handleEventUpdates(updates))
 		this.view = this.view.bind(this)
 		this.updateAuditLog()
 	}
@@ -144,7 +157,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 								const isPremium = locator.logins.getUserController().isPaidAccount()
 								showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
 									if (reason.submitted && reason.category && reason.reason) {
-										const surveyData = sysTypeRefs.createSurveyData({
+										const surveyData = createSurveyData({
 											category: reason.category,
 											details: reason.details,
 											reason: reason.reason,
@@ -216,7 +229,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
 				selectedValue: this.requirePasswordUpdateAfterReset,
 				selectionChangedHandler: (value) => {
-					const newProps: sysTypeRefs.CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
+					const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
 						requirePasswordUpdateAfterReset: value,
 					})
 					locator.entityClient.update(newProps)
@@ -275,7 +288,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				this.customer = customer
 
 				return locator.entityClient
-					.loadRange(sysTypeRefs.AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+					.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
 					.then((auditLog) => {
 						this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
 						this.auditLogLines = auditLog.map((auditLogEntry) => {
@@ -294,15 +307,15 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 			})
 	}
 
-	private showAuditLogDetails(entry: sysTypeRefs.AuditLogEntry, customer: sysTypeRefs.Customer) {
-		let modifiedGroupInfo: Stream<sysTypeRefs.GroupInfo> = stream()
-		let groupInfo = stream<sysTypeRefs.GroupInfo>()
+	private showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
+		let modifiedGroupInfo: Stream<GroupInfo> = stream()
+		let groupInfo = stream<GroupInfo>()
 		let groupInfoLoadingPromises: Promise<unknown>[] = []
 
 		if (entry.modifiedGroupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					.load(sysTypeRefs.GroupInfoTypeRef, entry.modifiedGroupInfo)
+					.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
 					.then((gi) => {
 						modifiedGroupInfo(gi)
 					})
@@ -317,7 +330,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		if (entry.groupInfo) {
 			groupInfoLoadingPromises.push(
 				locator.entityClient
-					.load(sysTypeRefs.GroupInfoTypeRef, entry.groupInfo)
+					.load(GroupInfoTypeRef, entry.groupInfo)
 					.then((gi) => {
 						groupInfo(gi)
 					})
@@ -369,7 +382,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		})
 	}
 
-	private getGroupInfoDisplayText(groupInfo: sysTypeRefs.GroupInfo): string {
+	private getGroupInfoDisplayText(groupInfo: GroupInfo): string {
 		if (groupInfo.name && groupInfo.mailAddress) {
 			return groupInfo.name + " <" + groupInfo.mailAddress + ">"
 		} else if (groupInfo.mailAddress) {
@@ -379,11 +392,11 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		}
 	}
 
-	handleEventUpdates(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	handleEventUpdates(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.AuditLogEntryTypeRef, update)) {
+			if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
 				return this.updateAuditLog()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update)) {
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				this.customerProperties.reset()
 				this.customerProperties.getAsync().then(m.redraw)
 			}

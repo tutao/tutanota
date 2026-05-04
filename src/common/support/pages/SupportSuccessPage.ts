@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../gui/base/icons/Icons.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { Card } from "../../gui/base/Card"
-import { SecondaryButton } from "../../gui/base/buttons/VariantButtons"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { Card } from "../../../ui/base/Card"
+import { SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 
 type SupportSuccessPageAttrs = {
 	dialog: Dialog
@@ -30,7 +30,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 						m(
 							".block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/rate-us.svg`,
+								path: `/images/dynamic-color-svg/rate-us.svg`,
 							}),
 						),
 					),

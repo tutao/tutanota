@@ -1,16 +1,28 @@
-import { Const } from "@tutao/app-env"
-import { assertTranslation, lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { Const, reverse } from "@tutao/app-env"
+import { assertTranslation, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
-import { PlanTypeToName, reverse, sysServices, sysTypeRefs } from "@tutao/typerefs"
 import { IServiceExecutor } from "../../../network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { UserError } from "../../api/main/UserError.js"
-import { MobilePlanPrice } from "@tutao/native-bridge/common"
+import { MobilePlanPrice } from "@tutao/native-bridge/generatedIpc/types"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
 import { SignupViewModel } from "../../signup/SignupView"
-import { BookingItemFeatureType, isIOSApp, PaymentMethodType, PlanType } from "@tutao/app-env"
+import { isIOSApp } from "@tutao/app-env"
+import {
+	AccountingInfo,
+	BookingItemFeatureType,
+	createUpgradePriceServiceData,
+	PaymentMethodType,
+	PlanPrices,
+	PlanType,
+	PriceData,
+	PriceItemData,
+	UpgradePriceService,
+	UpgradePriceServiceReturn,
+} from "@tutao/entities/sys"
+import { PlanTypeToName } from "./SubscriptionUtils"
 
 export enum PaymentInterval {
 	Monthly = 1,
@@ -58,7 +70,7 @@ export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
 	}
 }
 
-export function getPaymentMethodInfoText(accountingInfo: sysTypeRefs.AccountingInfo): string {
+export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string {
 	if (accountingInfo.paymentMethodInfo) {
 		return accountingInfo.paymentMethod === PaymentMethodType.CreditCard
 			? lang.get("endsWith_label") + " " + neverNull(accountingInfo.paymentMethodInfo)
@@ -68,7 +80,7 @@ export function getPaymentMethodInfoText(accountingInfo: sysTypeRefs.AccountingI
 	}
 }
 
-export function formatPriceDataWithInfo(priceData: sysTypeRefs.PriceData): string {
+export function formatPriceDataWithInfo(priceData: PriceData): string {
 	return formatPriceWithInfo(formatPrice(Number(priceData.price), true), asPaymentInterval(priceData.paymentInterval), priceData.taxIncluded)
 }
 
@@ -104,11 +116,11 @@ export function formatPriceWithInfo(formattedPrice: string, paymentInterval: Pay
 /**
  * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
  */
-export function getPriceItem(priceData: sysTypeRefs.PriceData | null, featureType: NumberString): sysTypeRefs.PriceItemData | null {
+export function getPriceItem(priceData: PriceData | null, featureType: NumberString): PriceItemData | null {
 	return priceData?.items.find((item) => item.featureType === featureType) ?? null
 }
 
-export function getCountFromPriceData(priceData: sysTypeRefs.PriceData | null, featureType: BookingItemFeatureType): number {
+export function getCountFromPriceData(priceData: PriceData | null, featureType: BookingItemFeatureType): number {
 	const priceItem = getPriceItem(priceData, featureType)
 	return priceItem ? Number(priceItem.count) : 0
 }
@@ -117,7 +129,7 @@ export function getCountFromPriceData(priceData: sysTypeRefs.PriceData | null, f
  * Returns the price for the feature type from the price data if available. otherwise 0.
  * @return The price
  */
-export function getPriceFromPriceData(priceData: sysTypeRefs.PriceData | null, featureType: NumberString): number {
+export function getPriceFromPriceData(priceData: PriceData | null, featureType: NumberString): number {
 	let item = getPriceItem(priceData, featureType)
 
 	if (item) {
@@ -136,20 +148,20 @@ export type SubscriptionPrice = {
 }
 
 export class PriceAndConfigProvider {
-	private upgradePriceData: sysTypeRefs.UpgradePriceServiceReturn | null = null
-	private planPrices: Array<sysTypeRefs.PlanPrices> | null = null
+	private upgradePriceData: UpgradePriceServiceReturn | null = null
+	private planPrices: Array<PlanPrices> | null = null
 	private isReferralCodeSignup: boolean = false
 	private mobilePrices: Map<string, MobilePlanPrice> | null = null
 
 	private constructor() {}
 
 	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor, referralCode: string | null): Promise<void> {
-		const data = sysTypeRefs.createUpgradePriceServiceData({
+		const data = createUpgradePriceServiceData({
 			date: Const.CURRENT_DATE,
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})
-		this.upgradePriceData = await serviceExecutor.get(sysServices.UpgradePriceService, data)
+		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
 		if (isIOSApp()) {
 			this.mobilePrices = new Map()
 
@@ -218,7 +230,7 @@ export class PriceAndConfigProvider {
 		}
 	}
 
-	getRawPricingData(): sysTypeRefs.UpgradePriceServiceReturn {
+	getRawPricingData(): UpgradePriceServiceReturn {
 		return assertNotNull(this.upgradePriceData)
 	}
 
@@ -238,7 +250,7 @@ export class PriceAndConfigProvider {
 		return assertNotNull(this.mobilePrices)
 	}
 
-	getPlanPricesForPlan(subscription: PlanType): sysTypeRefs.PlanPrices {
+	getPlanPricesForPlan(subscription: PlanType): PlanPrices {
 		const planPrices = assertNotNull(this.planPrices, "called getPlanPricesForPlan before init")
 		return assertNotNull(
 			planPrices.find((prices) => PlanTypeToName[subscription] === prices.planName),

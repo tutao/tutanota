@@ -1,18 +1,18 @@
 import { NewsListItem } from "../NewsListItem.js"
-import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { lang } from "../../LanguageViewModel.js"
-import { Button, ButtonType } from "../../../gui/base/Button.js"
+import { NewsId } from "@tutao/entities/tutanota"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
-import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import * as restError from "@tutao/rest-client/error"
 import { LazyLoaded, noOp, ofClass } from "@tutao/utils"
-import { copyToClipboard } from "../../ClipboardUtils.js"
+import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
-import { progressIcon } from "../../../gui/base/Icon.js"
+import { progressIcon } from "../../../../ui/base/Icon.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
-import { RecoverCodeFacade } from "../../../../network/facades/lazy/RecoverCodeFacade.js"
+import { RecoverCodeFacade } from "../../../../base/facades/lazy/RecoverCodeFacade.js"
 import { daysToMillis, isApp } from "@tutao/app-env"
+import m, { Children } from "mithril"
 
 /**
  * News item that informs admin users about their recovery code.
@@ -31,12 +31,12 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 	) {}
 
-	isShown(newsId: tutanotaTypeRefs.NewsId): Promise<boolean> {
+	isShown(newsId: NewsId): Promise<boolean> {
 		const customerCreationTime = this.userController.userGroupInfo.created.getTime()
 		return Promise.resolve(this.userController.isGlobalAdmin() && Date.now() - customerCreationTime > daysToMillis(14))
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Children {
+	render(newsId: NewsId): Children {
 		const recoveryCode = this.recoveryCode
 		// toggle the load if it's not started yet
 		this.recoverCodeField.getAsync()
@@ -73,7 +73,7 @@ export class RecoveryCodeNews implements NewsListItem {
 		])
 	}
 
-	private renderDoneButton(newsId: tutanotaTypeRefs.NewsId) {
+	private renderDoneButton(newsId: NewsId) {
 		return m(Button, {
 			label: "done_action",
 			type: ButtonType.Secondary,
@@ -125,7 +125,7 @@ export class RecoveryCodeNews implements NewsListItem {
 		})
 	}
 
-	private confirmButton(newsId: tutanotaTypeRefs.NewsId): Children {
+	private confirmButton(newsId: NewsId): Children {
 		return m(Button, {
 			label: "paymentDataValidation_action",
 			click: async () => {

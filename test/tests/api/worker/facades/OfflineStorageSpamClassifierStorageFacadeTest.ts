@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import {
 	OfflineStorageSpamClassifierStorageFacade,

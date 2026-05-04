@@ -1,6 +1,14 @@
+import {
+	CalendarAttendeeStatus,
+	CalendarEventAttendee,
+	CalendarMethod,
+	createCalendarEventAttendee,
+	createEncryptedMailAddress,
+	EncryptedMailAddress,
+} from "@tutao/entities/tutanota"
+import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
 import { filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
-import { reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -16,8 +24,8 @@ import {
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import { isMailAddress } from "../../../common/misc/FormatValidator"
-import { CalendarAttendeeStatus, CalendarMethod, DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/app-env"
+import { isMailAddress } from "../../../utils/FormatUtils"
+import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "@tutao/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -341,7 +349,7 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	}
 }
 
-export function parseRrule(rawRruleValue: string, tzId: string | null): sysTypeRefs.RepeatRule {
+export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRule {
 	let rruleValue
 
 	try {
@@ -359,7 +367,7 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): sysTypeR
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
 	const endType: EndType = until != null ? EndType.UntilDate : count != null ? EndType.Count : EndType.Never
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
-	const repeatRule = sysTypeRefs.createRepeatRule({
+	const repeatRule = createRepeatRule({
 		endValue: until ? String(until.getTime()) : count ? String(count) : null,
 		endType: endType,
 		interval: String(interval),
@@ -376,8 +384,8 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): sysTypeR
 	return repeatRule
 }
 
-export function parseAdvancedRule(rrule: Record<string, string>): sysTypeRefs.CalendarAdvancedRepeatRule[] {
-	const advancedRepeatRules: sysTypeRefs.CalendarAdvancedRepeatRule[] = []
+export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvancedRepeatRule[] {
+	const advancedRepeatRules: CalendarAdvancedRepeatRule[] = []
 	for (const rruleKey in rrule) {
 		if (!BYRULE_MAP.has(rruleKey)) {
 			continue
@@ -389,7 +397,7 @@ export function parseAdvancedRule(rrule: Record<string, string>): sysTypeRefs.Ca
 			}
 
 			advancedRepeatRules.push(
-				sysTypeRefs.createCalendarAdvancedRepeatRule({
+				createCalendarAdvancedRepeatRule({
 					ruleType: BYRULE_MAP.get(rruleKey)!.toString(),
 					interval,
 				}),
@@ -399,15 +407,15 @@ export function parseAdvancedRule(rrule: Record<string, string>): sysTypeRefs.Ca
 	return advancedRepeatRules
 }
 
-export function parseExDates(excludedDatesProps: Property[]): sysTypeRefs.DateWrapper[] {
+export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
-	const allExDates: Map<number, sysTypeRefs.DateWrapper> = new Map<number, sysTypeRefs.DateWrapper>()
+	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
 	for (let excludedDatesProp of excludedDatesProps) {
 		const tzId = getTzId(excludedDatesProp)
 		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
 		for (let value of values) {
 			const { date: exDate } = parseTime(value, tzId ?? undefined)
-			allExDates.set(exDate.getTime(), sysTypeRefs.createDateWrapper({ date: exDate }))
+			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
 		}
 	}
 	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
@@ -549,7 +557,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
 		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
 
-		let repeatRule: sysTypeRefs.RepeatRule | null = null
+		let repeatRule: RepeatRule | null = null
 		if (rruleProp != null) {
 			repeatRule = parseRrule(rruleProp, tzId)
 			repeatRule.excludedDates = parseExDates(excludedDateProps)
@@ -573,12 +581,12 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const attendees = getAttendees(eventObj)
 
 		const organizerProp = getProp(eventObj, "ORGANIZER", true)
-		let organizer: tutanotaTypeRefs.EncryptedMailAddress | null = null
+		let organizer: EncryptedMailAddress | null = null
 		if (organizerProp) {
 			const organizerAddress = parseMailtoValue(organizerProp.value)
 
 			if (organizerAddress && isMailAddress(organizerAddress, false)) {
-				organizer = tutanotaTypeRefs.createEncryptedMailAddress({
+				organizer = createEncryptedMailAddress({
 					address: organizerAddress,
 					name: organizerProp.params["name"] || "",
 				})
@@ -617,7 +625,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 }
 
 function getAttendees(eventObj: ICalObject) {
-	let attendees: tutanotaTypeRefs.CalendarEventAttendee[] = []
+	let attendees: CalendarEventAttendee[] = []
 	for (const property of eventObj.properties) {
 		if (property.name === "ATTENDEE") {
 			const attendeeAddress = parseMailtoValue(property.value)
@@ -636,8 +644,8 @@ function getAttendees(eventObj: ICalObject) {
 			}
 
 			attendees.push(
-				tutanotaTypeRefs.createCalendarEventAttendee({
-					address: tutanotaTypeRefs.createEncryptedMailAddress({
+				createCalendarEventAttendee({
+					address: createEncryptedMailAddress({
 						address: attendeeAddress,
 						name: property.params["CN"] || "",
 					}),

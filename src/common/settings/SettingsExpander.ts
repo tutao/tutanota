@@ -1,11 +1,11 @@
-import type { InfoLink, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import type { InfoLink, TranslationKey, MaybeTranslation } from "../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
-import { ifAllowedTutaLinks } from "../gui/base/GuiUtils.js"
+import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander.js"
 import type { lazy, Thunk } from "@tutao/utils"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
+import { ifAllowedTutaLinks } from "../gui/base/TutaLinkUtils"
 
 export type SettingsExpanderAttrs = {
 	id?: string

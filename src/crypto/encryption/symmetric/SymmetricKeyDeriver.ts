@@ -6,7 +6,7 @@ import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat } from "@tutao/utils"
 import { CryptoError } from "../../error.js"
-import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
+import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../CryptoTypes"
 
 export type SymmetricSubKeys = {
 	encryptionKey: AesKey

@@ -1,7 +1,6 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { downcast, getFirstOrThrow } from "@tutao/utils"
 import {
 	CalendarEventBubble,
@@ -12,11 +11,12 @@ import {
 } from "./CalendarEventBubble"
 import { eventEndsAfterDay, eventStartsBeforeDay, getEventEnd, getEventStart, getStartOfDayWithZone, getTimeZone } from "../date/CalendarUtils"
 import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
+import { getPosAndBoundsFromMouseEvent } from "../../../ui/base/GuiUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "../date/Time"
-import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { layout_size, px, size } from "../../gui/size"
+import { DefaultAnimationTime } from "../../../ui/animation/Animations"
+import { layout_size, px, size } from "../../../ui/size"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 /**
  * Internal data structure tracking events within a single row.
@@ -189,7 +189,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	 *
 	 * @VisibleForTesting
 	 */
-	static getColumnBounds(event: tutanotaTypeRefs.CalendarEvent, dates: Date[], zone: string) {
+	static getColumnBounds(event: CalendarEvent, dates: Date[], zone: string) {
 		// need to convert start and end time of all day events into local start and end time in order to assign the events to the correct columns.
 		const eventStartTimeStartOfDay = getStartOfDayWithZone(getEventStart(event, zone), zone).getTime()
 		const eventEndTimeStartOfDay = getStartOfDayWithZone(getEventEnd(event, zone), zone).getTime()

@@ -9,23 +9,11 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import {
-	AssociationType,
-	Cardinality,
-	ClientModelParsedInstance,
-	ClientTypeReferenceResolver,
-	Entity,
-	ModelAssociation,
-	ParsedAssociation,
-	ParsedValue,
-	ServerModelParsedInstance,
-	ServerTypeReferenceResolver,
-	Type,
-	TypeRef,
-	ValueType,
-} from "@tutao/typerefs"
+import { AssociationType, Cardinality, Type, TypeRef, ValueType } from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
+import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../meta/EntityTypes"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -146,9 +134,9 @@ function assertCompatibleModelTypesForApplyingClientModel(
  */
 export class ModelMapper {
 	constructor(
-		/** resolves typerefs against the type models used by the clients business logic. */
+		/** resolves meta against the type models used by the clients business logic. */
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		/** resolves typerefs against the current type models as used on the server the client connects to */
+		/** resolves meta against the current type models as used on the server the client connects to */
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {

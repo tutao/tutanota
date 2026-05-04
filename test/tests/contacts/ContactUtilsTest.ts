@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { lang } from "../../../src/common/misc/LanguageViewModel.js"
+import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import { compareContacts } from "../../../src/mail-app/contacts/view/ContactGuiUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import {
@@ -8,13 +8,14 @@ import {
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
 } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { ContactAddressType, ContactPhoneNumberType } from "../../../src/app-env"
+
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota"
+import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {
-		let c1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
-		let c2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		let c1 = createTestEntity(ContactTypeRef)
+		let c2 = createTestEntity(ContactTypeRef)
 		c1._id = ["a", "1"]
 		c2._id = ["a", "2"]
 		c1.firstName = c1Firstname
@@ -23,13 +24,13 @@ o.spec("ContactUtilsTest", function () {
 		c2.lastName = c2Lastname
 
 		if (c1MailAddress) {
-			let m = createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef)
+			let m = createTestEntity(ContactMailAddressTypeRef)
 			m.address = c1MailAddress
 			c1.mailAddresses.push(m)
 		}
 
 		if (c2MailAddress) {
-			let m = createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef)
+			let m = createTestEntity(ContactMailAddressTypeRef)
 			m.address = c2MailAddress
 			c2.mailAddresses.push(m)
 		}
@@ -129,7 +130,7 @@ o.spec("ContactUtilsTest", function () {
 			languageTag: "en",
 		})
 		lang.updateFormats({})
-		let bday = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
+		let bday = createTestEntity(BirthdayTypeRef)
 		bday.day = "12"
 		bday.month = "10"
 		bday.year = "2009"
@@ -142,24 +143,24 @@ o.spec("ContactUtilsTest", function () {
 		bday.month = "7"
 		bday.year = null
 		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
+		bday = createTestEntity(BirthdayTypeRef)
 		bday.day = "12"
 		bday.month = "10"
 		bday.year = "2009"
 	})
 
 	o("formatBirthdayNumeric", function () {
-		const leapYearBirthday = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
+		const leapYearBirthday = createTestEntity(BirthdayTypeRef)
 		leapYearBirthday.year = "2016"
 		leapYearBirthday.month = "2"
 		leapYearBirthday.day = "29"
 
-		const leapYearBirthdayNoYear = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
+		const leapYearBirthdayNoYear = createTestEntity(BirthdayTypeRef)
 		leapYearBirthdayNoYear.month = "2"
 		leapYearBirthdayNoYear.day = "29"
 
 		// Chrome date bug issue: https://github.com/tutao/tutanota/issues/414
-		const chromeBugBirthday = createTestEntity(tutanotaTypeRefs.BirthdayTypeRef)
+		const chromeBugBirthday = createTestEntity(BirthdayTypeRef)
 		chromeBugBirthday.year = "1911"
 		chromeBugBirthday.month = "8"
 		chromeBugBirthday.day = "15"
@@ -183,10 +184,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredEmailAddress", function () {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
-		contact.mailAddresses.push(createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef))
-		contact.mailAddresses.push(createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef))
+		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
+		contact.mailAddresses.push(createTestEntity(ContactMailAddressTypeRef))
 
 		o(extractStructuredMailAddresses(contact.mailAddresses)).deepEquals(
 			contact.mailAddresses.map((address) => ({
@@ -198,10 +199,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredAddress", function () {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
-		contact.addresses.push(createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef))
-		contact.addresses.push(createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef))
+		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
+		contact.addresses.push(createTestEntity(ContactAddressTypeRef))
 
 		o(extractStructuredAddresses(contact.addresses)).deepEquals(
 			contact.addresses.map((address) => ({
@@ -213,10 +214,10 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("extractStructuredPhoneNumber", function () {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 
-		contact.phoneNumbers.push(createTestEntity(tutanotaTypeRefs.ContactPhoneNumberTypeRef))
-		contact.phoneNumbers.push(createTestEntity(tutanotaTypeRefs.ContactPhoneNumberTypeRef))
+		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
+		contact.phoneNumbers.push(createTestEntity(ContactPhoneNumberTypeRef))
 
 		o(extractStructuredPhoneNumbers(contact.phoneNumbers)).deepEquals(
 			contact.phoneNumbers.map((phone) => ({

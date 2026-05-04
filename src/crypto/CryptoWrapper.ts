@@ -1,7 +1,7 @@
 import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "./error.js"
 import { aes256RandomKey, AesKey, keyToUint8Array, uint8ArrayToKey } from "./encryption/symmetric/SymmetricCipherUtils.js"
-import { Aes256Key, Ed25519PrivateKey, Ed25519PublicKey } from "@tutao/crypto-primitives"
+import type { Aes256Key, Ed25519PrivateKey, Ed25519PublicKey } from "@tutao/crypto"
 import { aesDecrypt, aesEncrypt } from "./encryption/Aes.js"
 import {
 	decryptKey,
@@ -26,13 +26,13 @@ import {
 import { RawRsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "./encryption/RsaKeyPair.js"
 import { AsymmetricKeyPair } from "./encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "./hashes/Sha256.js"
-import { HkdfKeyDerivationDomains } from "./misc/Constants.js"
 import { AesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"
 import { hmacSha256, MacTag, verifyHmacSha256 } from "./encryption/Hmac.js"
 import { extractRawPublicRsaKeyFromPrivateRsaKey } from "./encryption/Rsa.js"
 import * as cryptoUtils from "./CryptoUtils.js"
 import { PQKeyPairs } from "./encryption/PQKeyPairs.js"
 import { hkdf } from "./hashes/HKDF.js"
+import { HkdfKeyDerivationDomains } from "./CryptoTypes"
 
 type IdentityKeyPair = { privateEd25519Key: Uint8Array; identityKeyVersion: NumberString }
 

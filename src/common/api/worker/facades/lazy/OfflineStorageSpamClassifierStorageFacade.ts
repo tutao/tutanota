@@ -1,10 +1,10 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../../../local-store/Sql"
-import { untagSqlObject } from "@tutao/typerefs"
 import type { OfflineStorageTable } from "../../../../../local-store/OfflineStorage"
 import type { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/utils"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
+import { untagSqlObject } from "../../../../../local-store/SqlValue"
 
 export const SpamClassificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	spam_classification_model: {

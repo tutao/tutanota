@@ -1,11 +1,11 @@
-import { CommonNativeFacade } from "@tutao/native-bridge/common"
-import { lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { lang, MaybeTranslation, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
-import { CancelledError } from "@tutao/app-env"
+import { AppType, CancelledError, isDesktop } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import m from "mithril"
-import { Dialog } from "../gui/base/Dialog.js"
-import { AttachmentType, getAttachmentType } from "../gui/AttachmentBubble.js"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { AttachmentType, getAttachmentType } from "../../ui/AttachmentBubble.js"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MailboxModel } from "../mailFunctionality/MailboxModel.js"
@@ -13,11 +13,10 @@ import { UsageTestController } from "@tutao/usagetests"
 import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { CalendarOpenAction } from "@tutao/native-bridge/common"
+import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/types"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade"
-import { isDesktop, isHighestTierPlan } from "@tutao/app-env"
-import { AppType } from "@tutao/app-env"
+import { isHighestTierPlan } from "@tutao/entities/sys"
+import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -51,7 +50,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const decodedContactId = decodeBase64("utf-8", contactId)
 		const idParts = decodedContactId.split("/")
 		try {
-			const contact = await locator.entityClient.load(tutanotaTypeRefs.ContactTypeRef, [idParts[0], idParts[1]])
+			const contact = await locator.entityClient.load(ContactTypeRef, [idParts[0], idParts[1]])
 			const editor = new ContactEditor(locator.entityClient, contact)
 
 			return editor.show()
@@ -177,7 +176,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async showAlertDialog(translationKey: string): Promise<void> {
-		const { Dialog } = await import("../gui/base/Dialog.js")
+		const { Dialog } = await import("../../ui/base/Dialog.js")
 		return Dialog.message(translationKey as TranslationKey)
 	}
 
@@ -190,7 +189,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	 * don't support bcrypt for this one.
 	 */
 	async promptForNewPassword(title: string, oldPassword: string | null): Promise<string> {
-		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../gui/base/Dialog.js"), import("../settings/PasswordForm.js")])
+		const [{ Dialog }, { PasswordForm, PasswordModel }] = await Promise.all([import("../../ui/base/Dialog.js"), import("../settings/PasswordForm.js")])
 		const model = new PasswordModel(this.usageTestController, this.logins, {
 			checkOldPassword: false,
 			enforceStrength: false,
@@ -220,7 +219,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	}
 
 	async promptForPassword(title: string): Promise<string> {
-		const { Dialog } = await import("../gui/base/Dialog.js")
+		const { Dialog } = await import("../../ui/base/Dialog.js")
 
 		return newPromise((resolve, reject) => {
 			const dialog = showRequestPasswordDialog({

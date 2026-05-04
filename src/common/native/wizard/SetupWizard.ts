@@ -1,20 +1,21 @@
-import { createWizardDialog, WizardPageWrapper, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
+import { createWizardDialog, WizardPageWrapper, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
 import { defer } from "@tutao/utils"
 import { SetupCongratulationsPage, SetupCongratulationsPageAttrs } from "./setupwizardpages/SetupCongraulationsPage.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import { SetupNotificationsPage, SetupNotificationsPageAttrs } from "./setupwizardpages/SetupNotificationsPage.js"
-import { DialogType } from "../../gui/base/Dialog.js"
+import { DialogType } from "../../../ui/base/Dialog.js"
 import { SetupThemePage, SetupThemePageAttrs } from "./setupwizardpages/SetupThemePage.js"
 import { SetupContactsPage, SetupContactsPageAttrs } from "./setupwizardpages/SetupContactsPage.js"
 import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockPage.js"
 import { SystemPermissionHandler } from "../SystemPermissionHandler.js"
 import { WebMobileFacade } from "../WebMobileFacade.js"
 import { ContactImporter } from "../../../mail-app/contacts/ContactImporter.js"
-import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeContactsSyncManager } from "../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { PermissionType } from "@tutao/native-bridge/common"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { windowFacade } from "../../misc/WindowFacade"
 import { NativePushServiceApp } from "../NativePushServiceApp"
 
 export async function showSetupWizard(
@@ -68,6 +69,7 @@ export async function showSetupWizard(
 			deferred.resolve()
 		},
 		dialogType: DialogType.EditSmall,
+		windowFacade,
 	})
 
 	wizardBuilder.dialog.show()

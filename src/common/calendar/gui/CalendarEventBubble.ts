@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px } from "../../gui/size"
-import { Icon } from "../../gui/base/Icon"
-import { Icons } from "../../gui/base/icons/Icons"
-import { colorForBg, normalizeColorHex } from "../../gui/base/GuiUtils"
-import { theme } from "../../gui/theme"
+import { px } from "../../../ui/size"
+import { Icon } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { colorForBg, normalizeColorHex } from "../../../ui/base/GuiUtils"
+import { theme } from "../../../ui/theme"
 import { EventGridData, RowBounds } from "./CalendarTimeGrid"
 import {
 	type CalendarEventBubbleClickHandler,

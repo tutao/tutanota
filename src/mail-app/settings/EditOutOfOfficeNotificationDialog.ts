@@ -1,29 +1,29 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../common/gui/base/Dialog"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { Keys, UpgradePromptType } from "@tutao/app-env"
-import { Checkbox } from "../../common/gui/base/Checkbox.js"
-import { px } from "../../common/gui/size"
-import { ButtonType } from "../../common/gui/base/Button.js"
+import { Checkbox } from "../../ui/base/Checkbox.js"
+import { px } from "../../ui/size"
+import { ButtonType } from "../../ui/base/Button.js"
 import { getDefaultNotificationLabel } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
-import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
+import { HtmlEditor } from "../../ui/editor/HtmlEditor"
 import { UserError } from "../../common/api/main/UserError"
 import { DatePicker } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import type { lazy } from "@tutao/utils"
 import { ofClass } from "@tutao/utils"
-import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
+import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
-import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "@tutao/app-env"
+import { OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotification } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
 
-export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification | null) {
+export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
 		outOfOfficeNotification,
 		locator.entityClient,
@@ -31,12 +31,16 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: t
 		lang,
 		locator.serviceExecutor,
 	)
-	const organizationMessageEditor = new HtmlEditor("message_label")
+	const organizationMessageEditor = new HtmlEditor(getHtmlSanitizer(), "message_label")
 		.setMinHeight(100)
 		.showBorders()
 		.setValue(dialogModel.organizationMessage())
 		.enableToolbar()
-	const defaultMessageEditor = new HtmlEditor("message_label").setMinHeight(100).showBorders().setValue(dialogModel.defaultMessage()).enableToolbar()
+	const defaultMessageEditor = new HtmlEditor(getHtmlSanitizer(), "message_label")
+		.setMinHeight(100)
+		.showBorders()
+		.setValue(dialogModel.defaultMessage())
+		.enableToolbar()
 
 	const saveOutOfOfficeNotification = () => {
 		dialogModel.organizationMessage(organizationMessageEditor.getValue())

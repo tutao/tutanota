@@ -1,26 +1,28 @@
-import { BaseTopLevelView } from "../gui/BaseTopLevelView"
-import { TopLevelView } from "../../TopLevelView"
 import { MobileSettingsViewAttrs, SettingsViewSection, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./Interfaces"
-import { ViewSlider } from "../gui/nav/ViewSlider"
-import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { LoginController } from "../api/main/LoginController"
 import { SettingsFolder } from "./SettingsFolder"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { styles } from "../gui/styles"
-import { Header, HeaderAttrs } from "../gui/Header"
 import type { DomainConfigProvider } from "../api/common/DomainConfigProvider"
-import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout"
-import { theme } from "../gui/theme"
 import { SettingsList } from "./SettingsList"
 import { isNotEmpty } from "@tutao/utils"
-import { MobileHeader } from "../gui/MobileHeader"
-import { SETTINGS_PREFIX } from "../misc/RouteChange"
-import { component_size, layout_size, px, size } from "../gui/size"
 import { isAndroidApp } from "@tutao/app-env"
 import { SettingsSupportButton } from "./SettingsSupportButton"
 import { SettingsAboutLInk } from "./SettingsAboutLInk"
-import { NavButtonAttrs, NavButtonColor } from "../gui/base/NavButton"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { ViewSlider } from "../../ui/nav/ViewSlider"
+import { SETTINGS_PREFIX } from "../../ui/utils/RouteChange"
+import { BaseTopLevelView } from "../../ui/BaseTopLevelView"
+import { TopLevelView } from "../../ui/base/TopLevelView"
+import { ColumnType, ViewColumn } from "../../ui/base/ViewColumn"
+import { styles } from "../../ui/styles"
+import { AppHeaderAttrs, Header } from "../../ui/Header"
+import { BackgroundColumnLayout } from "../../ui/BackgroundColumnLayout"
+import { theme } from "../../ui/theme"
+import { MobileHeader } from "../../ui/MobileHeader"
+import { component_size, layout_size, px, size } from "../../ui/size"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { NavButtonAttrs, NavButtonColor } from "../../ui/base/NavButton"
+import { CustomerTypeRef } from "@tutao/entities/sys"
+import { windowFacade } from "../misc/WindowFacade"
 
 export class MobileSettingsView extends BaseTopLevelView implements TopLevelView<MobileSettingsViewAttrs> {
 	viewSlider: ViewSlider
@@ -45,7 +47,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 
 		this.settingsCategoriesColumn = this.makeSettingsCategoriesColumn(header, domainConfigProvider, settingSections)
 		this.settingsColumn = this.makeSettingsColumn(header)
-		this.viewSlider = new ViewSlider([this.settingsCategoriesColumn, this.settingsColumn], false)
+		this.viewSlider = new ViewSlider([this.settingsCategoriesColumn, this.settingsColumn], windowFacade, false)
 
 		this.targetFolder = m.route.param("folder")
 		this.targetRoute = m.route.get()
@@ -57,7 +59,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private makeSettingsCategoriesColumn(
-		header: HeaderAttrs,
+		header: AppHeaderAttrs,
 		domainConfigProvider: DomainConfigProvider,
 		settings: readonly SettingsViewSection[],
 	): ViewColumn {
@@ -102,7 +104,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		)
 	}
 
-	private makeSettingsColumn(header: HeaderAttrs): ViewColumn {
+	private makeSettingsColumn(header: AppHeaderAttrs): ViewColumn {
 		return new ViewColumn(
 			{
 				// the CSS improves the situation on devices with notches (no control elements
@@ -167,11 +169,11 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener: entityUpdateUtils.EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[], eventOwnerGroupId: Id) => {
+	private entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
 			return this.entityEventsReceived(updates, eventOwnerGroupId)
 		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs: { settingSections, header, backUrl } }: Vnode<MobileSettingsViewAttrs>): Children {
@@ -182,6 +184,8 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 			m(this.viewSlider, {
 				header: m(Header, {
 					...header,
+					isInternalUserLoggedIn: this.logins.isInternalUserLoggedIn(),
+					isFeatureEnabled: (f) => this.logins.isEnabled(f),
 				}),
 			}),
 		)
@@ -244,9 +248,9 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		m.route.set(url + location.hash)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, _eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, _eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
+			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				m.redraw()
 			}
 		}

@@ -1,24 +1,25 @@
 import m from "mithril"
-import type { TranslationKey } from "../../common/misc/LanguageViewModel"
-import { lang } from "../../common/misc/LanguageViewModel"
-import { isDomainOrTopLevelDomain, isMailAddress } from "../../common/misc/FormatValidator"
-import { SpamRuleFieldType, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
+import type { TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { isDomainOrTopLevelDomain, isMailAddress } from "../../utils/FormatUtils"
+import { assertMainOrNode, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
 import { contains, objectEntries } from "@tutao/utils"
-import { Dialog } from "../../common/gui/base/Dialog"
+import { Dialog } from "../../ui/base/Dialog"
 import stream from "mithril/stream"
-import type { SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
+import type { SelectorItemList } from "../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
+import { Autocapitalize, LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { locator } from "../../common/api/main/CommonLocator"
-import { assertMainOrNode, SpamRuleType } from "@tutao/app-env"
-import { getSpamRuleField, getSpamRuleType, sysTypeRefs } from "@tutao/typerefs"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { EmailSenderListElement } from "@tutao/entities/sys"
+import { isOfflineError } from "@tutao/rest-client/error"
+import { getSpamRuleField, getSpamRuleType } from "../mail/MailUtils"
 
 assertMainOrNode()
 
-type LoadedData = { customDomains: string[]; existingSpamRules: sysTypeRefs.EmailSenderListElement[] }
+type LoadedData = { customDomains: string[]; existingSpamRules: EmailSenderListElement[] }
 
-export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: sysTypeRefs.EmailSenderListElement | null) {
+export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderListElement | null) {
 	let loadedData: LoadedData | null = null
 
 	const typeItems = getSpamRuleTypeNameMapping()
@@ -87,7 +88,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: sysTypeRefs.Em
 			m.redraw()
 		},
 		(e) => {
-			// Might be an local-store error, if we can't load data we should close the dialog regardless, they can try opening it again
+			// Might be an offline error, if we can't load data we should close the dialog regardless, they can try opening it again
 			dialog.close()
 			throw e
 		},
@@ -111,7 +112,7 @@ function validate(
 	value: string,
 	field: SpamRuleFieldType,
 	loadedData: LoadedData | null,
-	existingSpamRuleOrTemplate: sysTypeRefs.EmailSenderListElement | null,
+	existingSpamRuleOrTemplate: EmailSenderListElement | null,
 ): TranslationKey | null {
 	let currentValue = value.toLowerCase().trim()
 

@@ -6,7 +6,7 @@ import { filterMailMemberships } from "../../../common/api/common/utils/IndexUti
 import { assertNotNull } from "@tutao/utils"
 import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
 
 /**
  * Initialize SpamClassifier if FeatureType.SpamClientClassification feature is enabled for the customer.

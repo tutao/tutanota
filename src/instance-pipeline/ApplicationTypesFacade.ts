@@ -1,18 +1,13 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
-import {
-	ApplicationTypesGetOut,
-	ApplicationTypesHash,
-	baseModelInfo,
-	baseServices,
-	getServiceRestPath,
-	ServerModelInfo,
-	ServiceDefinition,
-} from "@tutao/typerefs"
+import { getServiceRestPath, ServiceDefinition } from "../meta"
+import { ApplicationTypesService } from "../entities/base/Services.js"
+import { baseModelInfo } from "../entities/base"
 import { HttpMethod, MediaType, RestClientInterface } from "@tutao/rest-client/types"
 import { sha256Hash } from "@tutao/crypto"
 import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
 import { decompressString } from "./ModelMapper.js"
+import { ApplicationTypesHash, ServerModelInfo } from "./EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -37,6 +32,17 @@ export interface SimpleFileFacade {
 }
 export const APPLICATION_TYPES_PATH: string = "server_type_models.json"
 export const APPLICATION_TYPES_PATH_SDK: string = "server_type_models_sdk.json"
+
+/**
+ * Do **NOT** change the names of these attributes, they need to match the record found on the
+ * server at ApplicationTypesService#ApplicationTypesGetOut. This is to make sure we can update the
+ * format of the service output in the future. With general schema definitions this would not be
+ * possible as schemas returned by this service are required to read the schemas themselves.
+ */
+export type ApplicationTypesGetOut = {
+	applicationTypesHash: ApplicationTypesHash
+	applicationTypesJson: string
+}
 
 /**
  * Facade to call the ApplicationTypesService, ensuring that multiple
@@ -64,7 +70,7 @@ export class ApplicationTypesFacade {
 
 	private async requestApplicationTypes(): Promise<ApplicationTypesGetOut> {
 		const applicationTypesGetOutCompressed = await this.restClient.request(
-			getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition),
+			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
 			HttpMethod.GET,
 			{
 				headers: {

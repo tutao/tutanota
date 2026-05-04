@@ -1,20 +1,20 @@
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
-import { ButtonType } from "../../gui/base/Button.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../../ui/base/Button.js"
 import m from "mithril"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { IndentedFolder } from "../../api/common/mail/FolderSystem"
 import { repeat } from "@tutao/utils"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { MailSet } from "@tutao/entities/tutanota"
 
 /**
  * Shows a dialog with the users mailSets that are able to import mails.
  * @param indentedFolders List of user's mailSets
  * @param okAction
  */
-export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: tutanotaTypeRefs.MailSet) => unknown) {
+export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: MailSet) => unknown) {
 	let selectedIndentedFolder = indentedFolders[0]
 
 	const dialog = new Dialog(DialogType.EditSmall, {
@@ -54,7 +54,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 					selectedValue: selectedIndentedFolder.folder,
 					selectionChangedHandler: (v) => (selectedIndentedFolder.folder = v),
 					icon: Icons.ArrowDown,
-				} satisfies DropDownSelectorAttrs<tutanotaTypeRefs.MailSet>),
+				} satisfies DropDownSelectorAttrs<MailSet>),
 			]),
 		],
 	}).show()

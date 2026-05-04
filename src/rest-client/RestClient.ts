@@ -299,7 +299,7 @@ export class RestClient implements RestClientInterface {
 	/**
 	 * Get the time on the server based on the client time + the server time offset
 	 * The server time offset is calculated based on the date field in the header returned from REST requests.
-	 * will throw an error if local-store or no rest requests have been made yet
+	 * will throw an error if offline or no rest requests have been made yet
 	 */
 	getServerTimestampMs(): number {
 		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")

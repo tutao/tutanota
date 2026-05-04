@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { SectionButton, SectionButtonAttrs } from "../../gui/base/buttons/SectionButton.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { SectionButton, SectionButtonAttrs } from "../../../ui/base/buttons/SectionButton.js"
 import { getCategoryName, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/utils"
-import { AllIcons, progressIcon } from "../../gui/base/Icon.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { theme } from "../../gui/theme.js"
-import { TitleSection } from "../../gui/TitleSection"
+import { AllIcons, progressIcon } from "../../../ui/base/Icon.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { theme } from "../../../ui/theme.js"
+import { TitleSection } from "../../../ui/TitleSection"
 import { windowFacade } from "../../misc/WindowFacade"
 
 type Props = {

@@ -1,6 +1,6 @@
 import { Thunk } from "@tutao/utils"
 import m, { Children, Component, Vnode } from "mithril"
-import { SectionButton } from "../gui/base/buttons/SectionButton.js"
+import { SectionButton } from "../../ui/base/buttons/SectionButton.js"
 
 type Props = {
 	onClick: Thunk

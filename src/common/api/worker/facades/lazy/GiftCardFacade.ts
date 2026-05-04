@@ -9,14 +9,23 @@ import {
 	isEmpty,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdPart, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
 import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
-import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
-import { UserFacade } from "../../../../../network/UserFacade.js"
-import { GroupType, ProgrammingError } from "@tutao/app-env"
+import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade.js"
+import { UserFacade } from "../../../../../base/facades/UserFacade.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"
-import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../base/crypto/KeyLoaderFacade.js"
+import {
+	createGiftCardCreateData,
+	createGiftCardRedeemData,
+	GiftCard,
+	GiftCardRedeemGetReturn,
+	GiftCardRedeemService,
+	GiftCardService,
+	GroupType,
+} from "@tutao/entities/sys"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24
@@ -44,8 +53,8 @@ export class GiftCardFacade {
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
 		const { giftCard } = await this.serviceExecutor.post(
-			sysServices.GiftCardService,
-			sysTypeRefs.createGiftCardCreateData({
+			GiftCardService,
+			createGiftCardCreateData({
 				message: message,
 				keyHash: sha256Hash(keyToUint8Array(sessionKey)),
 				value,
@@ -58,10 +67,10 @@ export class GiftCardFacade {
 		return giftCard
 	}
 
-	getGiftCardInfo(id: Id, key: string): Promise<sysTypeRefs.GiftCardRedeemGetReturn> {
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
 		return this.serviceExecutor.get(
-			sysServices.GiftCardRedeemService,
-			sysTypeRefs.createGiftCardRedeemData({
+			GiftCardRedeemService,
+			createGiftCardRedeemData({
 				giftCardInfo: id,
 				keyHash: sha256Hash(base64ToUint8Array(key)),
 				countryCode: "",
@@ -83,8 +92,8 @@ export class GiftCardFacade {
 		}
 
 		await this.serviceExecutor.post(
-			sysServices.GiftCardRedeemService,
-			sysTypeRefs.createGiftCardRedeemData({
+			GiftCardRedeemService,
+			createGiftCardRedeemData({
 				giftCardInfo: giftCardInfoId,
 				keyHash: sha256Hash(base64ToUint8Array(key)),
 				countryCode,
@@ -92,7 +101,7 @@ export class GiftCardFacade {
 		)
 	}
 
-	async encodeGiftCardToken(giftCard: sysTypeRefs.GiftCard): Promise<string> {
+	async encodeGiftCardToken(giftCard: GiftCard): Promise<string> {
 		const key = assertNotNull(await this.cryptoFacade.resolveSessionKey(giftCard))
 		return this.encodeToken(elementIdPart(giftCard._id), keyToUint8Array(key))
 	}

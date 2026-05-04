@@ -1,16 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { theme } from "../../../common/gui/theme.js"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { responsiveCardHMargin } from "../../../common/gui/cards.js"
+import { theme } from "../../../ui/theme.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import { responsiveCardHMargin } from "../../../ui/cards.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
-import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel.js"
-import { ContactAddressType } from "@tutao/app-env"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel.js"
+import { Contact, ContactAddressType, ContactListEntry, createContact, createContactMailAddress, PartialRecipient } from "@tutao/entities/tutanota"
 
-type Contact = tutanotaTypeRefs.Contact
 export interface ContactListEntryViewerAttrs {
-	entry: tutanotaTypeRefs.ContactListEntry
+	entry: ContactListEntry
 	contacts: Contact[]
 	contactEdit: (contact: Contact) => unknown
 	contactDelete: (contacts: Contact[]) => unknown
@@ -56,9 +53,9 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							m(Button, {
 								label: "createContact_action",
 								click: () => {
-									let newContact = tutanotaTypeRefs.createContact({
+									let newContact = createContact({
 										mailAddresses: [
-											tutanotaTypeRefs.createContactMailAddress({
+											createContactMailAddress({
 												type: ContactAddressType.WORK,
 												customTypeName: "",
 												address: attrs.entry.emailAddress,
@@ -101,7 +98,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 	}
 }
 
-export function getContactListEntriesSelectionMessage(selectedEntities: tutanotaTypeRefs.ContactListEntry[] | undefined): Translation {
+export function getContactListEntriesSelectionMessage(selectedEntities: ContactListEntry[] | undefined): Translation {
 	if (selectedEntities && selectedEntities.length > 0) {
 		return lang.getTranslation("nbrOfEntriesSelected_msg", { "{nbr}": selectedEntities.length })
 	} else {

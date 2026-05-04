@@ -2,7 +2,8 @@ import m, { Children } from "mithril"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { getReferralLink, ReferralLinkViewer } from "../misc/news/items/ReferralLinkViewer.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import {} from "../../meta"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 
 /**
  * Section in user settings to display the referral link and let users share it.
@@ -18,7 +19,7 @@ export class ReferralSettingsViewer implements UpdatableSettingsViewer {
 		return m(".mt-32.plr-24.pb-48", m(ReferralLinkViewer, { referralLink: this.referralLink }))
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		// can be a noop because the referral code will never change once it was created
 		// we trigger creation in the constructor if there is no code yet
 	}

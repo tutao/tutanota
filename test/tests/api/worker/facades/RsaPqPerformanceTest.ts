@@ -11,8 +11,8 @@ import {
 	rsaEncrypt,
 	RsaKeyPair,
 } from "@tutao/crypto"
-import { PQFacade } from "../../../../../src/network/crypto/facades/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/network/crypto/facades/KyberFacade.js"
+import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 

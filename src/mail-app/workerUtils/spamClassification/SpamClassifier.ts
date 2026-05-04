@@ -21,9 +21,8 @@ import {
 	SpamMailProcessor,
 } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { SpamDecision } from "@tutao/app-env"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Mail, MailDetails, SpamDecision } from "@tutao/entities/tutanota"
 
 export type SpamClassificationModelMetaData = {
 	hamCount: number
@@ -401,7 +400,7 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async createModelInputAndUploadVector(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails) {
+	public async createModelInputAndUploadVector(mail: Mail, mailDetails: MailDetails) {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
 		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)

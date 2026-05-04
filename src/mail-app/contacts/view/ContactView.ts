@@ -1,73 +1,74 @@
 import m, { Children, Vnode } from "mithril"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
+import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
+import { AppHeaderAttrs, Header } from "../../../ui/Header.js"
+import { Button, ButtonColor, ButtonType } from "../../../ui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { ContactListView } from "./ContactListView"
-import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/utils"
 import { assertMainOrNode, ContactMergeAction, isApp, Keys, UpgradePromptType } from "@tutao/app-env"
-import type { Shortcut } from "../../../common/misc/KeyManager"
-import { keyManager } from "../../../common/misc/KeyManager"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { keyManager } from "../../../ui/utils/KeyManager"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Dialog } from "../../../ui/base/Dialog"
 import * as restError from "@tutao/rest-client/error"
 import { getContactSelectionMessage, MultiContactViewer } from "./MultiContactViewer"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactMergeView } from "./ContactMergeView"
 import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
-import { styles } from "../../../common/gui/styles"
-import { layout_size } from "../../../common/gui/size"
+import { styles } from "../../../ui/styles"
+import { layout_size } from "../../../ui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../network/GroupUtils"
-import { SidebarSection, SidebarSectionAttrs } from "../../../common/gui/SidebarSection"
-import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import { SidebarSection, SidebarSectionAttrs } from "../../../ui/SidebarSection"
+import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
-import { MobileActionBar } from "../../../common/gui/MobileActionBar.js"
+import { MobileActionBar } from "../../../ui/MobileActionBar.js"
 import { appendEmailSignature } from "../../mail/signature/Signature.js"
-import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { newMailEditorFromTemplate } from "../../mail/editor/MailEditor.js"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { theme } from "../../../common/gui/theme.js"
-import { DesktopListToolbar, DesktopViewerToolbar } from "../../../common/gui/DesktopToolbars.js"
-import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
+import { theme } from "../../../ui/theme.js"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../ui/DesktopToolbars.js"
+import { SelectAllCheckbox } from "../../../ui/SelectAllCheckbox.js"
 import { ContactViewerActions } from "./ContactViewerActions.js"
-import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
+import { MobileBottomActionBar } from "../../../ui/MobileBottomActionBar.js"
 import { exportAsVCard, importAsVCard } from "./ImportAsVCard.js"
-import { MobileHeader } from "../../../common/gui/MobileHeader.js"
+import { MobileHeader } from "../../../ui/MobileHeader.js"
 import { LazySearchBar } from "../../LazySearchBar.js"
-import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
-import { MultiselectMode } from "../../../common/gui/base/List.js"
-import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton.js"
+import { MultiselectMobileHeader } from "../../../ui/MultiselectMobileHeader.js"
+import { MultiselectMode } from "../../../ui/base/List.js"
+import { EnterMultiselectIconButton } from "../../../ui/EnterMultiselectIconButton.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { ContactViewModel } from "./ContactViewModel.js"
-import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts } from "../../../ui/base/ListUtils.js"
 import { ContactListViewModel } from "./ContactListViewModel.js"
 import { ContactListRecipientView } from "./ContactListRecipientView.js"
 import { showContactListEditor, showContactListNameEditor } from "../ContactListEditor.js"
 import { ContactListEntryViewer, getContactListEntriesSelectionMessage } from "./ContactListEntryViewer.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
 import { ContactListInfo } from "../../../common/contactsFunctionality/ContactModel.js"
-import { CONTACTLIST_PREFIX } from "../../../common/misc/RouteChange.js"
+import { CONTACTLIST_PREFIX } from "../../../ui/utils/RouteChange.js"
 import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
-import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
+import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../ui/base/SidebarSectionRow"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { ReceivedGroupInvitation } from "../../../entities/sys/TypeRefs"
+import { Contact, ContactTypeRef } from "../../../entities/tutanota/TypeRefs"
+import { PartialRecipient } from "@tutao/entities/tutanota"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 
 assertMainOrNode()
 
-type Contact = tutanotaTypeRefs.Contact
 export interface ContactViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
@@ -169,7 +170,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 		)
 
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.detailsColumn])
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.detailsColumn], windowFacade)
 
 		const shortcuts = this.getShortcuts()
 		this.oncreate = (vnode) => {
@@ -298,6 +299,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				header: styles.isSingleColumnLayout()
 					? null
 					: m(Header, {
+							isInternalUserLoggedIn: locator.logins.isUserLoggedIn(),
+							isFeatureEnabled: locator.logins.isEnabled,
 							firstColWidth: this.folderColumn.width,
 							searchBar: () =>
 								this.inContactListView()
@@ -537,7 +540,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		]
 	}
 
-	updateContactListInvitationsSection(receivedInvitations: sysTypeRefs.ReceivedGroupInvitation[]) {
+	updateContactListInvitationsSection(receivedInvitations: ReceivedGroupInvitation[]) {
 		if (isEmpty(receivedInvitations)) {
 			this.contactListInvitationSection = null
 		} else {
@@ -686,7 +689,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return showProgressDialog(
 			"pleaseWait_msg",
 			locator.contactModel.getContactListId().then((contactListId) => {
-				return contactListId ? locator.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactListId) : []
+				return contactListId ? locator.entityClient.loadAll(ContactTypeRef, contactListId) : []
 			}),
 		).then((allContacts) => {
 			if (allContacts.length === 0) {

@@ -1,9 +1,9 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang, MaybeTranslation } from "../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { AccountType, AvailablePlanType, Const, isIOSApp, PaymentMethodType, PlanType, SessionType } from "@tutao/app-env"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { Const, isIOSApp, SessionType } from "@tutao/app-env"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import * as restError from "@tutao/rest-client/error"
 import {
 	appStorePlanName,
@@ -14,25 +14,25 @@ import {
 } from "./utils/SubscriptionUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import { AccountType, AvailablePlanType, createSwitchAccountTypePostIn, PaymentMethodType, PlanType, SwitchAccountTypeService } from "@tutao/entities/sys"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { MobilePaymentResultType } from "@tutao/native-bridge/common"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
+import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/types"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../../app-env/boot/ClientDetector.js"
 import { DateTime } from "luxon"
-import { formatDate } from "../misc/Formatter.js"
-import { WizardStepContext } from "../gui/base/wizard/WizardController"
+import { formatDate } from "../../ui/utils/Formatter.js"
+import { WizardStepContext } from "../../ui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
-import { theme } from "../gui/theme"
-import { TextField } from "../gui/base/TextField"
-import { Icons } from "../gui/base/icons/Icons"
-import { IconButton } from "../gui/base/IconButton"
-import { styles } from "../gui/styles"
-import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
-import { AllIcons } from "../gui/base/Icon"
-import { layout_size, px } from "../gui/size"
+import { theme } from "../../ui/theme"
+import { TextField } from "../../ui/base/TextField"
+import { Icons } from "../../ui/base/icons/Icons"
+import { IconButton } from "../../ui/base/IconButton"
+import { styles } from "../../ui/styles"
+import { WizardStepComponentAttrs } from "../../ui/base/wizard/WizardStep"
+import { AllIcons } from "../../ui/base/Icon"
+import { layout_size, px } from "../../ui/size"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
@@ -251,7 +251,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 		}
 
-		const serviceData = sysTypeRefs.createSwitchAccountTypePostIn({
+		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: ctx.viewModel.targetPlanType,
@@ -261,7 +261,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, serviceData))
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			// Order confirmation (click on Buy), send selected payment method as an enum
 			.then(() => ctx.goNext())
 			.catch(

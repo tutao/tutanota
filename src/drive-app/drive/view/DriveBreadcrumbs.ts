@@ -1,24 +1,24 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { driveTypeRefs } from "@tutao/typerefs"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { getElementId, getListId } from "@tutao/typerefs"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
+import { getElementId, getListId } from "@tutao/meta"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { Keys } from "@tutao/app-env"
-import { Dropdown } from "../../../common/gui/base/Dropdown"
-import { BaseButton, BaseButtonAttrs } from "../../../common/gui/base/buttons/BaseButton"
-import { theme } from "../../../common/gui/theme"
+import { Dropdown } from "../../../ui/base/Dropdown"
+import { BaseButton, BaseButtonAttrs } from "../../../ui/base/buttons/BaseButton"
+import { theme } from "../../../ui/theme"
 import { driveFolderName, isDraggingDriveItems } from "./DriveGuiUtils"
 import { FolderItem } from "./DriveUtils"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { modal } from "../../../common/gui/base/Modal"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { modal } from "../../../ui/base/Modal"
+import { DriveFolder } from "@tutao/entities/drive"
 
 export interface DriveBreadcrumbsAttrs {
-	currentFolder: driveTypeRefs.DriveFolder | null
-	parents: readonly driveTypeRefs.DriveFolder[]
-	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
+	currentFolder: DriveFolder | null
+	parents: readonly DriveFolder[]
+	loadParents: () => Promise<DriveFolder[]>
 	onDropInto?: (f: FolderItem, event: DragEvent) => unknown
-	onClick?: (f: driveTypeRefs.DriveFolder, event: MouseEvent) => unknown
+	onClick?: (f: DriveFolder, event: MouseEvent) => unknown
 }
 
 export interface BreadcrumbLinkAttrs {
@@ -68,7 +68,7 @@ class BreadcrumbLink implements Component<BreadcrumbLinkAttrs> {
 	}
 }
 
-function folderRoute(entry: driveTypeRefs.DriveFolder): string {
+function folderRoute(entry: DriveFolder): string {
 	return `/drive/${getListId(entry)}/${getElementId(entry)}`
 }
 
@@ -139,7 +139,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 	}
 	private async onLoadParents(
 		dom: HTMLElement,
-		loadParents: () => Promise<driveTypeRefs.DriveFolder[]>,
+		loadParents: () => Promise<DriveFolder[]>,
 		onClick: DriveBreadcrumbsAttrs["onClick"],
 		onDropInto: DriveBreadcrumbsAttrs["onDropInto"],
 	) {

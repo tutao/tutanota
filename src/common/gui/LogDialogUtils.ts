@@ -1,7 +1,7 @@
-import type { Dialog } from "./base/Dialog.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { ButtonType } from "./base/Button.js"
-import { copyToClipboard } from "../misc/ClipboardUtils.js"
+import type { Dialog } from "../../ui/base/Dialog.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { ButtonType } from "../../ui/base/Button.js"
+import { copyToClipboard } from "../../ui/utils/ClipboardUtils.js"
 import m from "mithril"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
@@ -34,7 +34,7 @@ ${entries.join("\n")}`
 }
 
 export async function showLogsDialog(logContent: string) {
-	const { Dialog: dialog } = await import("./base/Dialog.js")
+	const { Dialog: dialog } = await import("../../ui/base/Dialog.js")
 
 	const dialogComponent: Dialog = dialog.editDialog(
 		{

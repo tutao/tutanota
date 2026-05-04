@@ -1,9 +1,9 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
-import { TaggedSqlValue } from "@tutao/typerefs"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ProgrammingError } from "@tutao/app-env"
 import { log } from "../DesktopLog.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { OfflineDbRefCounter } from "./OfflineDbRefCounter.js"
+import { TaggedSqlValue } from "../../../local-store/Types"
 
 const TAG = "[PerWindowSqlCipherFacade]"
 

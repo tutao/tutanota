@@ -1,37 +1,39 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, BookingItemFeatureType, GroupType, OperationType, UnsubscribeFailureReason } from "@tutao/app-env"
-import { Dialog } from "../gui/base/Dialog.js"
-import { formatDateWithMonth, formatStorageSize } from "../misc/Formatter.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { entityUpdateUtils, isSameId, sysTypeRefs } from "@tutao/typerefs"
+import { assertMainOrNode, UnsubscribeFailureReason } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { formatDateWithMonth, formatStorageSize } from "../../ui/utils/Formatter.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
-import { ColumnWidth, Table, TableAttrs } from "../gui/base/Table.js"
+import { ColumnWidth, Table, TableAttrs } from "../../ui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
-import { Icons } from "../gui/base/icons/Icons.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
 import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditForm.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-
-import { HtmlEditor as Editor, HtmlEditorMode } from "../gui/editor/HtmlEditor.js"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
+import { isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { BookingItemFeatureType, Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupType, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { HtmlEditor, HtmlEditorMode } from "../../ui/editor/HtmlEditor.js"
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
 import { MailAddressTable } from "./mailaddress/MailAddressTable.js"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../network/GroupUtils.js"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { DropDownSelector } from "../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog } from "./login/ChangePasswordDialogs.js"
-import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { IconButton, IconButtonAttrs } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { MailAddressTableModel } from "./mailaddress/MailAddressTableModel.js"
-import { progressIcon } from "../gui/base/Icon.js"
+import { progressIcon } from "../../ui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
 
 assertMainOrNode()
 
 export class UserViewer implements UpdatableSettingsDetailsViewer {
-	private readonly user: LazyLoaded<sysTypeRefs.User> = new LazyLoaded(() => this.loadUser())
+	private readonly user: LazyLoaded<User> = new LazyLoaded(() => this.loadUser())
 	private readonly customer = new LazyLoaded(() => this.loadCustomer())
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
 	private groupsTableAttrs: TableAttrs | null = null
@@ -42,7 +44,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private isPurchasingNewSharedMailboxGroup: boolean
 
 	constructor(
-		public userGroupInfo: sysTypeRefs.GroupInfo,
+		public userGroupInfo: GroupInfo,
 		private isAdmin: boolean,
 	) {
 		this.userGroupInfo = userGroupInfo
@@ -78,7 +80,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.user.getAsync().then(async (user) => {
 			const mailMembership = await asyncFind(user.memberships, async (ship) => {
-				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(sysTypeRefs.GroupTypeRef, ship.group)).user === user._id
+				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(GroupTypeRef, ship.group)).user === user._id
 			})
 			if (mailMembership == null) {
 				console.error("User doesn't have a mailbox?", user._id)
@@ -269,7 +271,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.groupsTableAttrs.lines = await promiseMap(
 				this.getTeamMemberships(user, customer),
 				async (m) => {
-					const groupInfo = await locator.entityClient.load(sysTypeRefs.GroupInfoTypeRef, m.groupInfo)
+					const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, m.groupInfo)
 					return {
 						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeDisplayName(neverNull(m.groupType))],
 						actionButtonAttrs: {
@@ -327,7 +329,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 								label: "group_label",
 								items: dropdownItems,
 								selectedValue: selectedGroupInfo,
-								selectionChangedHandler: (selection: sysTypeRefs.GroupInfo) => (selectedGroupInfo = selection),
+								selectionChangedHandler: (selection: GroupInfo) => (selectedGroupInfo = selection),
 								dropdownWidth: 250,
 							}),
 					},
@@ -359,11 +361,11 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	private getTeamMemberships(user: sysTypeRefs.User, customer: sysTypeRefs.Customer): sysTypeRefs.GroupMembership[] {
+	private getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
 		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
 	}
 
-	private isAdminUser(user: sysTypeRefs.User): boolean {
+	private isAdminUser(user: User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
 
@@ -408,18 +410,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update
 			if (
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) &&
+				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
 				operation === OperationType.UPDATE &&
 				isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])
 			) {
-				this.userGroupInfo = await locator.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.userGroupInfo._id)
+				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
 				m.redraw()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) && operation === OperationType.CREATE) {
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.CREATE) {
 				await this.teamGroupInfos.reload()
 				// When getting a create event, if user has just bought a new shared mailbox, add it to the selected user
 				if (this.isPurchasingNewSharedMailboxGroup) {
@@ -428,7 +430,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				}
 				m.redraw()
 			} else if (
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserTypeRef, update) &&
+				isUpdateForTypeRef(UserTypeRef, update) &&
 				operation === OperationType.UPDATE &&
 				this.user.isLoaded() &&
 				isSameId(this.user.getLoaded()._id, instanceId)
@@ -442,18 +444,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		m.redraw()
 	}
 
-	private loadUser(): Promise<sysTypeRefs.User> {
-		return locator.entityClient.load(sysTypeRefs.GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
-			return locator.entityClient.load(sysTypeRefs.UserTypeRef, neverNull(userGroup.user))
+	private loadUser(): Promise<User> {
+		return locator.entityClient.load(GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
+			return locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
 		})
 	}
 
-	private loadCustomer(): Promise<sysTypeRefs.Customer> {
+	private loadCustomer(): Promise<Customer> {
 		return locator.logins.getUserController().reloadCustomer()
 	}
 
-	private loadTeamGroupInfos(): Promise<Array<sysTypeRefs.GroupInfo>> {
-		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.teamGroups))
+	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
+		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
 	}
 }
 
@@ -461,7 +463,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
  * Show editor for adding the csv values of the users.
  */
 export function showUserImportDialog(customDomains: string[]) {
-	let editor = new Editor("enterAsCSV_msg").showBorders().setMode(HtmlEditorMode.HTML).setValue(CSV_USER_FORMAT).setMinHeight(200)
+	let editor = new HtmlEditor(getHtmlSanitizer(), "enterAsCSV_msg").showBorders().setMode(HtmlEditorMode.HTML).setValue(CSV_USER_FORMAT).setMinHeight(200)
 	let form = {
 		view: () => {
 			return [m(editor)]

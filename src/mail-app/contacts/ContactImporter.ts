@@ -1,28 +1,39 @@
-import { Dialog } from "../../common/gui/base/Dialog.js"
+import { Dialog } from "../../ui/base/Dialog.js"
 import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "@tutao/utils"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactFacade } from "../../common/api/worker/facades/lazy/ContactFacade.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksDialog.js"
-import { StructuredContact } from "@tutao/native-bridge/common"
+import { StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
 import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils.js"
-import { ContactBook } from "@tutao/native-bridge/common"
-import { PermissionType } from "@tutao/native-bridge/common"
+import { ContactBook } from "@tutao/native-bridge/generatedIpc/types"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { SystemPermissionHandler } from "../../common/native/SystemPermissionHandler.js"
 import { mailLocator } from "../mailLocator.js"
-import { FileReference } from "@tutao/typerefs"
-import { AttachmentType, getAttachmentType } from "../../common/gui/AttachmentBubble.js"
-import { NativeFileApp } from "@tutao/native-bridge/common"
-import { MobileContactsFacade } from "@tutao/native-bridge/common"
+import { AttachmentType, getAttachmentType } from "../../ui/AttachmentBubble.js"
+import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
+import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { _compareContactsForMerge } from "./ContactMergeUtils"
 import { ContactSelectionDialogAttrs, ContactSelectionDialogSize, showContactSelectionDialog } from "./view/ContactSelectionDialog"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { ContactComparisonResult, isIOSApp } from "@tutao/app-env"
+import {
+	Contact,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactCustomDate,
+	createContactMailAddress,
+	createContactMessengerHandle,
+	createContactPhoneNumber,
+	createContactRelationship,
+	createContactWebsite,
+	FileReference,
+} from "@tutao/entities/tutanota"
 
 export class ContactImporter {
 	constructor(
@@ -64,9 +75,9 @@ export class ContactImporter {
 		return combinedVCardData.filter((vCard) => vCard != null) as string[]
 	}
 
-	async importContacts(selectedContacts: readonly tutanotaTypeRefs.Contact[], contactListId: string) {
+	async importContacts(selectedContacts: readonly Contact[], contactListId: string) {
 		//loading all contacts to avoid duplicating contacts while importing
-		const allContacts = await locator.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactListId)
+		const allContacts = await locator.entityClient.loadAll(ContactTypeRef, contactListId)
 
 		const deDuplicatedContacts = this.getDeDuplicatedContacts(allContacts, selectedContacts)
 
@@ -157,11 +168,7 @@ export class ContactImporter {
 		})
 	}
 
-	private async onContactImportConfirmed(
-		contactListId: string | null,
-		selectedContacts: tutanotaTypeRefs.Contact[],
-		allImportableContacts: Map<tutanotaTypeRefs.Contact, StructuredContact>,
-	) {
+	private async onContactImportConfirmed(contactListId: string | null, selectedContacts: Contact[], allImportableContacts: Map<Contact, StructuredContact>) {
 		const importer = await mailLocator.contactImporter()
 		const mobileContactsFacade = assertNotNull(this.mobileContactsFacade)
 		const nativeContactSyncManager = assertNotNull(this.nativeContactSyncManager)
@@ -186,10 +193,7 @@ export class ContactImporter {
 		}
 	}
 
-	getDeDuplicatedContacts(
-		allContacts: readonly tutanotaTypeRefs.Contact[],
-		selectedContacts: readonly tutanotaTypeRefs.Contact[],
-	): tutanotaTypeRefs.Contact[] {
+	getDeDuplicatedContacts(allContacts: readonly Contact[], selectedContacts: readonly Contact[]): Contact[] {
 		return selectedContacts.filter(
 			(selectedContact) =>
 				!allContacts.some((serverContact) => _compareContactsForMerge(serverContact, selectedContact) === ContactComparisonResult.Equal),
@@ -210,8 +214,8 @@ export class ContactImporter {
 		}
 	}
 
-	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact, index: number): tutanotaTypeRefs.Contact {
-		return tutanotaTypeRefs.createContact({
+	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact, index: number): Contact {
+		return createContact({
 			_id: ["dummyContactListId", "dummyContactElementId" + index],
 			_ownerGroup: ownerGroupId,
 			nickname: contact.nickname,
@@ -219,21 +223,21 @@ export class ContactImporter {
 			lastName: contact.lastName,
 			company: contact.company,
 			addresses: contact.addresses.map((address) =>
-				tutanotaTypeRefs.createContactAddress({
+				createContactAddress({
 					type: address.type,
 					address: address.address,
 					customTypeName: address.customTypeName,
 				}),
 			),
 			mailAddresses: contact.mailAddresses.map((address) =>
-				tutanotaTypeRefs.createContactMailAddress({
+				createContactMailAddress({
 					type: address.type,
 					address: address.address,
 					customTypeName: address.customTypeName,
 				}),
 			),
 			phoneNumbers: contact.phoneNumbers.map((number) =>
-				tutanotaTypeRefs.createContactPhoneNumber({
+				createContactPhoneNumber({
 					type: number.type,
 					number: number.number,
 					customTypeName: number.customTypeName,
@@ -246,16 +250,16 @@ export class ContactImporter {
 			socialIds: [],
 			birthdayIso: this.validateBirthdayOfContact(contact),
 			pronouns: [],
-			customDate: contact.customDate.map((date) => tutanotaTypeRefs.createContactCustomDate(date)),
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
 			department: contact.department,
-			messengerHandles: contact.messengerHandles.map((handle) => tutanotaTypeRefs.createContactMessengerHandle(handle)),
+			messengerHandles: contact.messengerHandles.map((handle) => createContactMessengerHandle(handle)),
 			middleName: contact.middleName,
 			nameSuffix: contact.nameSuffix,
 			phoneticFirst: contact.phoneticFirst,
 			phoneticLast: contact.phoneticLast,
 			phoneticMiddle: contact.phoneticMiddle,
-			relationships: contact.relationships.map((relation) => tutanotaTypeRefs.createContactRelationship(relation)),
-			websites: contact.websites.map((website) => tutanotaTypeRefs.createContactWebsite(website)),
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
 			comment: contact.notes,
 			title: contact.title ?? "",
 			role: contact.role,

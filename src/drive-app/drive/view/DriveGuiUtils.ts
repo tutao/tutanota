@@ -1,12 +1,12 @@
-import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { driveTypeRefs } from "@tutao/typerefs"
+import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../ui/base/Dropdown"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
-import { DropType } from "../../../common/gui/base/GuiUtils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { styles } from "../../../common/gui/styles"
+import { DropType } from "../../../ui/base/GuiUtils"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { styles } from "../../../ui/styles"
+import { DriveFolder } from "@tutao/entities/drive"
 
 export function newItemActions({
 	onNewFile,
@@ -80,7 +80,7 @@ export function isDraggingDriveItems(dataTransfer: DataTransfer | null): boolean
 	return maybeDriveItem != null && maybeDriveItem !== ""
 }
 
-export function driveFolderName(folder: driveTypeRefs.DriveFolder): Translation {
+export function driveFolderName(folder: DriveFolder): Translation {
 	switch (folder.type) {
 		case DriveFolderType.Root:
 			return lang.getTranslation("driveHome_label")

@@ -1,27 +1,28 @@
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import m, { Children } from "mithril"
-import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
-import { ButtonSize } from "../../common/gui/base/ButtonSize"
+import { IconButton, IconButtonAttrs } from "../../ui/base/IconButton"
+import { ButtonSize } from "../../ui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { ImportStatus, UpgradePromptType } from "@tutao/app-env"
+import { client, UpgradePromptType } from "@tutao/app-env"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
-import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
-import { elementIdPart, entityUpdateUtils, generatedIdToTimestamp, EntityIdEncoding, isSameId, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../ui/base/DropDownSelector.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
-import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar.js"
-import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js"
-import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.js"
+import { ProgressBar, ProgressBarType } from "../../ui/base/ProgressBar.js"
+import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander.js"
+import { ColumnWidth, Table, TableLineAttrs } from "../../ui/base/Table.js"
 import { mailLocator } from "../mailLocator.js"
-import { formatDate } from "../../common/misc/Formatter.js"
-import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
-import { client } from "../../app-env/boot/ClientDetector"
+import { formatDate } from "../../ui/utils/Formatter.js"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
-import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans, MailSetKind } from "@tutao/app-env"
+import { ImportStatus, MailSet, MailSetKind } from "@tutao/entities/tutanota"
+import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "@tutao/entities/sys"
+import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "@tutao/meta"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.
@@ -128,7 +129,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			.getIndentedList()
 			.filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX && folderInfo.folder.folderType !== MailSetKind.SCHEDULED)
 
-		let targetFolders: SelectorItemList<tutanotaTypeRefs.MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
+		let targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
 				value: folderInfo.folder,
@@ -140,7 +141,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			disabled: this.mailImporter().shouldRenderImportStatus(),
 			selectedValue: selectedTargetFolder,
 			selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
-			selectionChangedHandler: (newFolder: tutanotaTypeRefs.MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
+			selectionChangedHandler: (newFolder: MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
 			helpLabel: () => helpLabel,
 		})
 	}
@@ -310,7 +311,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {}
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
 }
 
 export function getReadableUiImportStatus(uiStatus: UiImportStatus): string {

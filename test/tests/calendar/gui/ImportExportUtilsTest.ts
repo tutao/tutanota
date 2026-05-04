@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 
 import { createTestEntity } from "../../TestUtils"
-import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "@tutao/app-env"
+import { EndType, RepeatPeriod } from "@tutao/app-env"
 import {
 	eventHasSameFields,
 	IcsCalendarEvent,
@@ -9,9 +9,20 @@ import {
 	StrippedRepeatRule,
 } from "../../../../src/common/calendar/gui/ImportExportUtils"
 import { object } from "testdouble"
-import { clone } from "@tutao/utils"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone } from "@tutao/meta"
 
+import { CalendarAttendeeStatus } from "@tutao/entities/tutanota"
+import {
+	AdvancedRepeatRuleTypeRef,
+	CalendarEvent,
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
+	CalendarRepeatRule,
+	CalendarRepeatRuleTypeRef,
+	EncryptedMailAddressTypeRef,
+} from "@tutao/entities/tutanota"
+
+import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("makeCalendarEventFromIcsCalendarEvent", function () {
 		let icsEvent: IcsCalendarEvent
@@ -66,7 +77,7 @@ o.spec("ImportExportUtilsTest", function () {
 			o.test("event with simple repeat rule", function () {
 				icsEvent.repeatRule = strippedRepeatRule
 
-				const calendarEvent: tutanotaTypeRefs.CalendarEvent = makeCalendarEventFromIcsCalendarEvent(icsEvent)
+				const calendarEvent: CalendarEvent = makeCalendarEventFromIcsCalendarEvent(icsEvent)
 
 				o.check(calendarEvent.repeatRule?.frequency).equals(RepeatPeriod.DAILY)
 				o.check(calendarEvent.repeatRule?.endType).equals(EndType.Never)
@@ -80,10 +91,10 @@ o.spec("ImportExportUtilsTest", function () {
 	})
 
 	o.spec("eventHasSameFields", function () {
-		let eventA: tutanotaTypeRefs.CalendarEvent
-		let eventB: tutanotaTypeRefs.CalendarEvent
+		let eventA: CalendarEvent
+		let eventB: CalendarEvent
 		o.beforeEach(() => {
-			eventA = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+			eventA = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "eventId"],
 				uid: "someUid",
 				startTime: new Date(),
@@ -91,15 +102,15 @@ o.spec("ImportExportUtilsTest", function () {
 				description: "some description",
 				summary: "v1",
 				attendees: [
-					createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
 							address: "guestAddress1",
 							name: "guestName1",
 						}),
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
-					createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: createTestEntity(EncryptedMailAddressTypeRef, {
 							address: "guestAddress2",
 							name: "guestName2",
 						}),
@@ -107,7 +118,7 @@ o.spec("ImportExportUtilsTest", function () {
 					}),
 				],
 				alarmInfos: [["listId", "elementId"]],
-				organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 					address: "organizerAddress",
 					name: "organizerName3",
 				}),
@@ -143,12 +154,12 @@ o.spec("ImportExportUtilsTest", function () {
 		})
 
 		o.test("calendar events are the same even if aggregated _type for nested aggregates do not match", function () {
-			eventA.repeatRule = createTestEntity(tutanotaTypeRefs.CalendarRepeatRuleTypeRef)
-			eventA.repeatRule.advancedRules = [createTestEntity(tutanotaTypeRefs.AdvancedRepeatRuleTypeRef)]
+			eventA.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef)
+			eventA.repeatRule.advancedRules = [createTestEntity(AdvancedRepeatRuleTypeRef)]
 
 			eventB.repeatRule = clone(eventA.repeatRule)
-			eventB.repeatRule._type = sysTypeRefs.RepeatRuleTypeRef
-			eventB.repeatRule.advancedRules[0]._type = sysTypeRefs.CalendarAdvancedRepeatRuleTypeRef
+			eventB.repeatRule._type = RepeatRuleTypeRef
+			eventB.repeatRule.advancedRules[0]._type = CalendarAdvancedRepeatRuleTypeRef
 			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
 
@@ -183,7 +194,7 @@ o.spec("ImportExportUtilsTest", function () {
 			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.spec("repeatRule comparisons", function () {
-			let repeatRule: tutanotaTypeRefs.CalendarRepeatRule
+			let repeatRule: CalendarRepeatRule
 
 			o.beforeEach(function () {
 				repeatRule = {
@@ -196,7 +207,7 @@ o.spec("ImportExportUtilsTest", function () {
 					advancedRules: [],
 					_id: object(),
 					_original: object(),
-					_type: tutanotaTypeRefs.CalendarRepeatRuleTypeRef,
+					_type: CalendarRepeatRuleTypeRef,
 				}
 			})
 

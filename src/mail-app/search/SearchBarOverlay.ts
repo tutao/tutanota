@@ -1,22 +1,20 @@
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import type { Entry, SearchBarState, ShowMoreAction } from "./SearchBar"
-import { px, size } from "../../common/gui/size"
-import { lang } from "../../common/misc/LanguageViewModel"
-import { Icons } from "../../common/gui/base/icons/Icons"
+import { px, size } from "../../ui/size"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { Icons } from "../../ui/base/icons/Icons"
 import { downcast, isEmpty } from "@tutao/utils"
-import { isSameTypeRef, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { formatDate, formatTimeOrDateOrYesterday } from "../../common/misc/Formatter"
-import Badge from "../../common/gui/base/Badge"
-import { Icon } from "../../common/gui/base/Icon"
+import { isSameTypeRef, TypeRef } from "../../meta"
+import { companyTeamLabel, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { formatDate, formatTimeOrDateOrYesterday } from "../../ui/utils/Formatter"
+import Badge from "../../ui/base/Badge"
+import { Icon } from "../../ui/base/Icon"
 import m, { Children, Component, Vnode } from "mithril"
 import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { companyTeamLabel } from "../../app-env/boot/ClientConstants.js"
 import { getTimeZone } from "../../common/calendar/date/CalendarUtils.js"
-
 import { formatEventDuration } from "../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { getContactListName } from "../../common/contactsFunctionality/ContactUtils.js"
-
 import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
@@ -74,11 +72,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		if (!type) {
 			return this.renderShowMoreAction(downcast(result))
-		} else if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, type)) {
+		} else if (isSameTypeRef(MailTypeRef, type)) {
 			return this.renderMailResult(downcast(result), state)
-		} else if (isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, type)) {
+		} else if (isSameTypeRef(ContactTypeRef, type)) {
 			return this.renderContactResult(downcast(result))
-		} else if (isSameTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, type)) {
+		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 			return this.renderCalendarEventResult(downcast(result))
 		} else {
 			return []
@@ -114,7 +112,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
-	private renderContactResult(contact: tutanotaTypeRefs.Contact): Children {
+	private renderContactResult(contact: Contact): Children {
 		return [
 			m(".top.flex-space-between", m(".name", getContactListName(contact))),
 			m(
@@ -124,14 +122,14 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		]
 	}
 
-	private renderCalendarEventResult(event: tutanotaTypeRefs.CalendarEvent): Children {
+	private renderCalendarEventResult(event: CalendarEvent): Children {
 		return [
 			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
 			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
 		]
 	}
 
-	private renderMailResult(mail: tutanotaTypeRefs.Mail, state: SearchBarState): Children {
+	private renderMailResult(mail: Mail, state: SearchBarState): Children {
 		return [
 			m(".top.flex-space-between.badge-line-height", [
 				isTutaTeamMail(mail)

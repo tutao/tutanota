@@ -1,22 +1,23 @@
 import o from "@tutao/otest"
 import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
-import { NativePushServiceApp } from "../../../src/native-bridge/main/NativePushServiceApp"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { NativePushServiceApp } from "../../../src/common/native/NativePushServiceApp.js"
+
 import { EntityClient } from "../../../src/network/EntityClient"
 import { object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"
 
-import { AppType } from "../../../types/globals"
+import { AppType } from "@tutao/app-env"
 
+import { PushIdentifier, PushIdentifierTypeRef, User, UserTypeRef, createPushIdentifierList } from "@tutao/entities/sys"
 o.spec("NotificationSettingsViewerModel", () => {
 	let model: NotificationSettingsViewerModel
 	let pushService: NativePushServiceApp
-	let user: sysTypeRefs.User
+	let user: User
 	let entityClient: EntityClient
 
 	o.beforeEach(() => {
 		pushService = object()
-		user = createTestEntity(sysTypeRefs.UserTypeRef, user)
+		user = createTestEntity(UserTypeRef, user)
 		entityClient = object()
 		model = new NotificationSettingsViewerModel(pushService, user, entityClient)
 	})
@@ -30,19 +31,19 @@ o.spec("NotificationSettingsViewerModel", () => {
 		o.test("loaded with a few identifiers and no current identifier", async () => {
 			when(pushService.getLoadedPushIdentifier()).thenReturn(null)
 
-			user.pushIdentifierList = sysTypeRefs.createPushIdentifierList({
+			user.pushIdentifierList = createPushIdentifierList({
 				list: "hi i'm a list",
 			})
 
 			const someList = [
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "a", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "b", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "c", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "d", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "e", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "a", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "b", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "c", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "d", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "e", app: AppType.Mail }),
 			]
 
-			when(entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
+			when(entityClient.loadAll(PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
 
 			await model.reload()
 
@@ -56,19 +57,19 @@ o.spec("NotificationSettingsViewerModel", () => {
 				disabled: false,
 			})
 
-			user.pushIdentifierList = sysTypeRefs.createPushIdentifierList({
+			user.pushIdentifierList = createPushIdentifierList({
 				list: "hi i'm a list",
 			})
 
 			const someList = [
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "a", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "b", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "c", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "d", app: AppType.Mail }),
-				createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "e", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "a", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "b", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "c", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "d", app: AppType.Mail }),
+				createTestEntity(PushIdentifierTypeRef, { identifier: "e", app: AppType.Mail }),
 			]
 
-			when(entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
+			when(entityClient.loadAll(PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
 
 			await model.reload()
 
@@ -79,17 +80,17 @@ o.spec("NotificationSettingsViewerModel", () => {
 		o.test("loaded with many identifiers and no current identifier", async () => {
 			when(pushService.getLoadedPushIdentifier()).thenReturn(null)
 
-			user.pushIdentifierList = sysTypeRefs.createPushIdentifierList({
+			user.pushIdentifierList = createPushIdentifierList({
 				list: "hi i'm a list",
 			})
 
-			const someList: sysTypeRefs.PushIdentifier[] = []
+			const someList: PushIdentifier[] = []
 
 			for (let i = 1; i <= 1000; i++) {
-				someList.push(createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: `${i}`, app: AppType.Mail }))
+				someList.push(createTestEntity(PushIdentifierTypeRef, { identifier: `${i}`, app: AppType.Mail }))
 			}
-			someList.splice(500, 0, createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "this is my current identifier", app: AppType.Mail }))
-			when(entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
+			someList.splice(500, 0, createTestEntity(PushIdentifierTypeRef, { identifier: "this is my current identifier", app: AppType.Mail }))
+			when(entityClient.loadAll(PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
 
 			await model.reload()
 			o.check(model.getCurrentIdentifier()).equals(null)
@@ -105,17 +106,17 @@ o.spec("NotificationSettingsViewerModel", () => {
 				disabled: false,
 			})
 
-			user.pushIdentifierList = sysTypeRefs.createPushIdentifierList({
+			user.pushIdentifierList = createPushIdentifierList({
 				list: "hi i'm a list",
 			})
 
-			const someList: sysTypeRefs.PushIdentifier[] = []
+			const someList: PushIdentifier[] = []
 
 			for (let i = 1; i <= 1000; i++) {
-				someList.push(createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: `${i}`, app: AppType.Mail }))
+				someList.push(createTestEntity(PushIdentifierTypeRef, { identifier: `${i}`, app: AppType.Mail }))
 			}
-			someList.splice(500, 0, createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: "this is my current identifier", app: AppType.Mail }))
-			when(entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
+			someList.splice(500, 0, createTestEntity(PushIdentifierTypeRef, { identifier: "this is my current identifier", app: AppType.Mail }))
+			when(entityClient.loadAll(PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
 
 			await model.reload()
 			o.check(model.getCurrentIdentifier()).equals("this is my current identifier")
@@ -128,16 +129,16 @@ o.spec("NotificationSettingsViewerModel", () => {
 		o.test("calendar notifiers are ignored", async () => {
 			when(pushService.getLoadedPushIdentifier()).thenReturn(null)
 
-			user.pushIdentifierList = sysTypeRefs.createPushIdentifierList({
+			user.pushIdentifierList = createPushIdentifierList({
 				list: "hi i'm a list",
 			})
 
-			const someList: sysTypeRefs.PushIdentifier[] = []
-			someList.push(createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: `a mail identifier`, app: AppType.Mail }))
-			someList.push(createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: `a calendar identifier`, app: AppType.Calendar }))
-			someList.push(createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { identifier: `an integrated identifier`, app: AppType.Integrated }))
+			const someList: PushIdentifier[] = []
+			someList.push(createTestEntity(PushIdentifierTypeRef, { identifier: `a mail identifier`, app: AppType.Mail }))
+			someList.push(createTestEntity(PushIdentifierTypeRef, { identifier: `a calendar identifier`, app: AppType.Calendar }))
+			someList.push(createTestEntity(PushIdentifierTypeRef, { identifier: `an integrated identifier`, app: AppType.Integrated }))
 
-			when(entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
+			when(entityClient.loadAll(PushIdentifierTypeRef, user.pushIdentifierList.list)).thenResolve(someList)
 
 			await model.reload()
 			o.check(model.getCurrentIdentifier()).equals(null)

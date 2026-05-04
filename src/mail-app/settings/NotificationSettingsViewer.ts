@@ -1,29 +1,30 @@
 import m, { Children } from "mithril"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/common"
+import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../../common/api/main/CommonLocator.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { NotificationContentSelector } from "./NotificationContentSelector.js"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../common/settings/NotificationTargetsList.js"
 import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
-import { DropDownSelector, type DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { PermissionType } from "@tutao/native-bridge/common"
+import { DropDownSelector, type DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
 	private readonly expanded: Stream<boolean>
-	private readonly user: sysTypeRefs.User
+	private readonly user: User
 	private hasNotificationPermission: boolean = true
 	private receiveCalendarNotifications: boolean = true
 	private readonly model: NotificationSettingsViewerModel
@@ -56,7 +57,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.reloadPushIdentifiers()
 	}
 
-	private togglePushIdentifier(identifier: sysTypeRefs.PushIdentifier) {
+	private togglePushIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
@@ -166,8 +167,8 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
-		if (updates.some((update) => entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.PushIdentifierTypeRef, update))) {
+	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
+		if (updates.some((update) => isUpdateForTypeRef(PushIdentifierTypeRef, update))) {
 			await this.reloadPushIdentifiers()
 		}
 	}

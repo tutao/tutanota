@@ -1,14 +1,13 @@
 import { newPromise, uint8ArrayToBase64 } from "@tutao/utils"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { sysServices } from "@tutao/typerefs"
-import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
-import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
 import m, { Children } from "mithril"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { px } from "../../gui/size"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { px } from "../../../ui/size"
+import { CaptchaChallenge, createRegistrationCaptchaServiceData, RegistrationCaptchaService } from "@tutao/entities/sys"
 
 const enum CaptchaType {
 	Visual,
@@ -23,7 +22,7 @@ export class CaptchaDialogViewModel {
 	public readonly audioCaptchaDescription: string
 	public readonly visualCaptchaDescription: string
 
-	constructor(audioChallenge: sysTypeRefs.CaptchaChallenge, visualChallenge: sysTypeRefs.CaptchaChallenge) {
+	constructor(audioChallenge: CaptchaChallenge, visualChallenge: CaptchaChallenge) {
 		this.imageData = `data:image/png;base64,${uint8ArrayToBase64(visualChallenge.challenge)}`
 		const audioBlob = new Blob([audioChallenge.challenge], { type: "audio/wav" })
 		this.audioBlobUrl = URL.createObjectURL(audioBlob)
@@ -79,11 +78,7 @@ export class CaptchaDialogViewModel {
 	}
 }
 
-export function showCaptchaDialog(
-	audioChallenge: sysTypeRefs.CaptchaChallenge,
-	visualChallenge: sysTypeRefs.CaptchaChallenge,
-	token: string,
-): Promise<string | null> {
+export function showCaptchaDialog(audioChallenge: CaptchaChallenge, visualChallenge: CaptchaChallenge, token: string): Promise<string | null> {
 	const viewModel = new CaptchaDialogViewModel(audioChallenge, visualChallenge)
 	return newPromise<string | null>((resolve, reject) => {
 		let dialog: Dialog
@@ -107,8 +102,8 @@ export function showCaptchaDialog(
 			viewModel.revokeBlobUrl()
 			locator.serviceExecutor
 				.post(
-					sysServices.RegistrationCaptchaService,
-					sysTypeRefs.createRegistrationCaptchaServiceData({
+					RegistrationCaptchaService,
+					createRegistrationCaptchaServiceData({
 						token,
 						visualChallengeResponse: viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? parsedInput : null,
 						audioChallengeResponse: viewModel.getSelectedCaptchaType() === CaptchaType.Audio ? parsedInput : null,

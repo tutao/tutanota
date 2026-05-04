@@ -6,7 +6,7 @@ export type LoggedInEvent = {
 }
 
 export interface PostLoginAction {
-	/** Partial login is achieved with getting the user, can happen local-store. The login will wait for the returned promise. */
+	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
 	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 
 	/** Full login is achieved with getting group keys. Can do service calls from this point on. */

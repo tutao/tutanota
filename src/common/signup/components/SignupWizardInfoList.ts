@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
+import { AllIcons, Icon, IconSize } from "../../../ui/base/Icon"
 
 const DEFAULT_SCRAMBLE_CHARS = "#$%&*?@/\\+=-_~<>[]{}"
 const DEFAULT_TRANSITION_MS = 500

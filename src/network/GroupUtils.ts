@@ -1,13 +1,12 @@
-import { sysTypeRefs } from "@tutao/typerefs"
-import { GroupType } from "@tutao/app-env"
+import { GroupInfo, GroupMembership, GroupType, User } from "@tutao/entities/sys"
 
-export function getEnabledMailAddressesForGroupInfo(groupInfo: sysTypeRefs.GroupInfo): string[] {
+export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)
 	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
 	return aliases
 }
 
-export function isAliasEnabledForGroupInfo(groupInfo: sysTypeRefs.GroupInfo, aliasAddress: string): boolean {
+export function isAliasEnabledForGroupInfo(groupInfo: GroupInfo, aliasAddress: string): boolean {
 	return (
 		(groupInfo.mailAddress && groupInfo.mailAddress === aliasAddress) ||
 		(groupInfo.mailAddressAliases.find((alias) => alias.mailAddress === aliasAddress)?.enabled ?? false)
@@ -17,7 +16,7 @@ export function isAliasEnabledForGroupInfo(groupInfo: sysTypeRefs.GroupInfo, ali
 /**
  * Provides the memberships of the user with the given type. In case of area groups all groups are returned.
  */
-export function getUserGroupMemberships(user: sysTypeRefs.User, groupType: GroupType): sysTypeRefs.GroupMembership[] {
+export function getUserGroupMemberships(user: User, groupType: GroupType): GroupMembership[] {
 	if (groupType === GroupType.User) {
 		return [user.userGroup]
 	} else {
@@ -28,7 +27,7 @@ export function getUserGroupMemberships(user: sysTypeRefs.User, groupType: Group
 /**
  * Provides the name if available, otherwise the email address if available, otherwise an empty string.
  */
-export function getGroupInfoDisplayName(groupInfo: sysTypeRefs.GroupInfo): string {
+export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 	if (groupInfo.name) {
 		return groupInfo.name
 	} else if (groupInfo.mailAddress) {
@@ -38,6 +37,10 @@ export function getGroupInfoDisplayName(groupInfo: sysTypeRefs.GroupInfo): strin
 	}
 }
 
-export function compareGroupInfos(a: sysTypeRefs.GroupInfo, b: sysTypeRefs.GroupInfo): number {
+export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
 	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
+}
+
+export function filterIndexMemberships(user: User): GroupMembership[] {
+	return user.memberships.filter(({ groupType }) => groupType === GroupType.Mail || groupType === GroupType.Contact)
 }

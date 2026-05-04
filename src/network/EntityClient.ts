@@ -1,14 +1,5 @@
+import { EntityRestClientEraseOptions, EntityRestClientLoadOptions, EntityRestClientSetupOptions, EntityRestClientUpdateOptions } from "./EntityRestClient"
 import {
-	EntityRestClientEraseOptions,
-	EntityRestClientLoadOptions,
-	EntityRestClientSetupOptions,
-	EntityRestClientUpdateOptions,
-	EntityRestInterface,
-	OwnerEncSessionKeyProvider,
-} from "./EntityRestClient"
-import type { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/typerefs"
-import {
-	ClientTypeModelResolver,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -18,14 +9,17 @@ import {
 	getServerIdEncodingForType,
 	listIdPart,
 	RANGE_ITEM_LIMIT,
-	sysTypeRefs,
 	Type,
 	TypeRef,
 	ValueType,
-} from "@tutao/typerefs"
+} from "../meta"
 import { downcast, groupByAndMap, last, promiseMap } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
+import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
+import { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/meta"
+import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
+import { EntityRestInterface } from "./EntityRestCacheInterface"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -142,8 +136,9 @@ export class EntityClient {
 
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+
 		const rootId = [groupId, typeModel.rootId] as const
-		const root = await this.load<sysTypeRefs.RootInstance>(sysTypeRefs.RootInstanceTypeRef, rootId, opts)
+		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
 		return this.load<T>(typeRef, downcast(root.reference), opts)
 	}
 }

@@ -5,12 +5,12 @@ import { object, replace, when } from "testdouble"
 import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"
 import { getDayShifted } from "@tutao/utils"
 import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
-import { timestampToGeneratedId } from "@tutao/typerefs"
+import { timestampToGeneratedId } from "../../../../../src/meta"
 import { UserController } from "../../../../../src/common/api/main/UserController.js"
 import { initCommonLocator } from "../../../../../src/common/api/main/CommonLocator.js"
 import { IMailLocator } from "../../../../../src/mail-app/mailLocator.js"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { Customer, User } from "@tutao/entities/sys"
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider
 	let newsModel: NewsModel
@@ -40,8 +40,8 @@ o.spec("ReferralLinkNews", function () {
 		newsModel = object()
 		referralViewModel = object()
 		userController = object()
-		const user: sysTypeRefs.User = object()
-		const customer: sysTypeRefs.Customer = object()
+		const user: User = object()
+		const customer: Customer = object()
 
 		replace(userController, "user", user)
 		replace(user, "customer", timestampToGeneratedId(0))

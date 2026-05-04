@@ -3,14 +3,12 @@ import type { LoginController } from "./LoginController.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 import type { EntityClient } from "../../../network/EntityClient.js"
 import { getContactDisplayName } from "../../contactsFunctionality/ContactUtils.js"
-import { PartialRecipient, Recipient, RecipientType } from "../common/recipients/Recipient.js"
-import { BoundedExecutor, LazyLoaded } from "@tutao/utils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
+import { BoundedExecutor, cleanMailAddress, LazyLoaded } from "@tutao/utils"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
-import { KeyVerificationMismatchError } from "../../../network/crypto/error/KeyVerificationMismatchError"
-import { VerifiedPublicEncryptionKey } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
+import { VerifiedPublicEncryptionKey } from "../../../base/facades/lazy/KeyVerificationFacade"
+import { Contact, ContactTypeRef, PartialRecipient, Recipient, RecipientType } from "@tutao/entities/tutanota"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -28,7 +26,7 @@ export interface ResolvableRecipient extends Recipient {
 	whenResolved(onResolved: (resolvedRecipient: Recipient) => void): this
 
 	/** update the contact. will override whatever contact gets resolved */
-	setContact(contact: tutanotaTypeRefs.Contact): void
+	setContact(contact: Contact): void
 
 	/** update the name. will override whatever the name has resolved to */
 	setName(name: string): void
@@ -108,10 +106,10 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	private readonly lazyInfo: LazyLoaded<RecipientInfo>
 	private readonly initialInfo: RecipientInfo
 
-	private readonly lazyContact: LazyLoaded<tutanotaTypeRefs.Contact | null>
-	private readonly initialContact: tutanotaTypeRefs.Contact | null = null
+	private readonly lazyContact: LazyLoaded<Contact | null>
+	private readonly initialContact: Contact | null = null
 
-	private overrideContact: tutanotaTypeRefs.Contact | null = null
+	private overrideContact: Contact | null = null
 
 	get address(): string {
 		return this._address
@@ -130,7 +128,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		}
 	}
 
-	get contact(): tutanotaTypeRefs.Contact | null {
+	get contact(): Contact | null {
 		return this.lazyContact.getSync() ?? this.initialContact
 	}
 
@@ -183,7 +181,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		this._name = newName
 	}
 
-	setContact(newContact: tutanotaTypeRefs.Contact) {
+	setContact(newContact: Contact) {
 		this.overrideContact = newContact
 		this.lazyContact.reload()
 	}
@@ -227,7 +225,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	 * If {@param contact} is an Id, the contact will be loaded directly
 	 * Otherwise, the contact will be searched for in the ContactModel
 	 */
-	private async resolveContact(contact: tutanotaTypeRefs.Contact | IdTuple | None): Promise<tutanotaTypeRefs.Contact | null> {
+	private async resolveContact(contact: Contact | IdTuple | None): Promise<Contact | null> {
 		try {
 			if (this.overrideContact) {
 				return this.overrideContact
@@ -235,7 +233,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 				console.log("can't resolve contacts for users with no contact list id")
 				return null
 			} else if (contact instanceof Array) {
-				return await this.entityClient.load(tutanotaTypeRefs.ContactTypeRef, contact)
+				return await this.entityClient.load(ContactTypeRef, contact)
 			} else if (contact == null) {
 				const foundContact = await this.contactModel.searchForContact(this.address)
 				if (foundContact) {

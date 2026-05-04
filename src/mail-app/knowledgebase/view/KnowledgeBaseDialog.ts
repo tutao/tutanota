@@ -1,21 +1,21 @@
 import { KnowledgeBaseModel } from "../model/KnowledgeBaseModel.js"
-import { Editor } from "../../../common/gui/editor/Editor.js"
+import { Editor } from "../../../ui/editor/Editor.js"
 import type { KnowledgebaseDialogContentAttrs } from "./KnowledgeBaseDialogContent.js"
 import { KnowledgeBaseDialogContent } from "./KnowledgeBaseDialogContent.js"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup.js"
-import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
-import { ButtonType } from "../../../common/gui/base/Button.js"
-import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import type { ButtonAttrs } from "../../../ui/base/Button.js"
+import { ButtonType } from "../../../ui/base/Button.js"
+import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import type { lazy } from "@tutao/utils"
-import { createDropdown } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown } from "../../../ui/base/Dropdown.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { DialogInjectionRightAttrs } from "../../../common/gui/base/DialogInjectionRight.js"
+import type { DialogInjectionRightAttrs } from "../../../ui/base/DialogInjectionRight.js"
 import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel.js"
 
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils.js"
+import { KnowledgeBaseEntry, TemplateGroupRoot } from "@tutao/entities/tutanota"
 
 export function createKnowledgeBaseDialogInjection(
 	knowledgeBase: KnowledgeBaseModel,
@@ -44,7 +44,7 @@ function _createHeaderAttrs(attrs: KnowledgebaseDialogContentAttrs, isDialogVisi
 	}
 }
 
-function createEntryViewHeader(entry: tutanotaTypeRefs.KnowledgeBaseEntry, model: KnowledgeBaseModel): DialogHeaderBarAttrs {
+function createEntryViewHeader(entry: KnowledgeBaseEntry, model: KnowledgeBaseModel): DialogHeaderBarAttrs {
 	return {
 		left: [
 			{
@@ -104,7 +104,7 @@ function createAddButtonAttrs(model: KnowledgeBaseModel): ButtonAttrs {
 	}
 }
 
-function showKnowledgeBaseEditor(entryToEdit: tutanotaTypeRefs.KnowledgeBaseEntry | null, groupRoot: tutanotaTypeRefs.TemplateGroupRoot) {
+function showKnowledgeBaseEditor(entryToEdit: KnowledgeBaseEntry | null, groupRoot: TemplateGroupRoot) {
 	import("../../settings/KnowledgeBaseEditor.js").then((editor) => {
 		editor.showKnowledgeBaseEditor(entryToEdit, groupRoot)
 	})

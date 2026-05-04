@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
-import { lang } from "../misc/LanguageViewModel"
-import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { DropDownSelector, type DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 
 export type CancellationReasonInputAttrs = {
 	category: NumberString | null

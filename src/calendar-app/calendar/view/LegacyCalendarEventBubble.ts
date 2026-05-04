@@ -1,8 +1,8 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
-import { layout_size, px } from "../../../common/gui/size"
-import { Icon } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { ClickHandler, colorForBg, normalizeColorHex } from "../../../common/gui/base/GuiUtils"
+import { layout_size, px } from "../../../ui/size"
+import { Icon } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { ClickHandler, colorForBg, normalizeColorHex } from "../../../ui/base/GuiUtils"
 import { TabIndex } from "@tutao/app-env"
 
 export type LegacyCalendarEventBubbleAttrs = {

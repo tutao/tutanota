@@ -2,33 +2,33 @@ import m, { Children, Component, Vnode } from "mithril"
 import { DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderNav, DriveSelectedItemsActions } from "./DriveFolderNav"
 import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
-import { driveTypeRefs } from "@tutao/typerefs"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { ListLoadingState, ListState } from "../../../common/gui/base/List"
-import { px, size } from "../../../common/gui/size"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { ListLoadingState, ListState } from "../../../ui/base/List"
+import { px, size } from "../../../ui/size"
 import { assertNotNull, isEmpty } from "@tutao/utils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { theme } from "../../../common/gui/theme"
-import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { LayerType } from "../../../RootView"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../common/gui/base/Dropdown"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { theme } from "../../../ui/theme"
+import { IconMessageBox } from "../../../ui/base/ColumnEmptyMessageBox"
+import { LayerType } from "../../../ui/base/RootView"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../ui/base/Dropdown"
 import { isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
-import { modal } from "../../../common/gui/base/Modal"
-import { DropType } from "../../../common/gui/base/GuiUtils"
+import { modal } from "../../../ui/base/Modal"
+import { DropType } from "../../../ui/base/GuiUtils"
 import { FileActions } from "./DriveFolderContentEntry"
 import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { DriveFolder } from "@tutao/entities/drive"
 
 export interface DriveFolderViewAttrs {
 	selection: SelectionState
 	selectedItemsActions: DriveSelectedItemsActions
-	currentFolder: driveTypeRefs.DriveFolder | null
-	parents: readonly driveTypeRefs.DriveFolder[]
+	currentFolder: DriveFolder | null
+	parents: readonly DriveFolder[]
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
 	onDropFiles: (files: File[]) => unknown
-	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
+	loadParents: () => Promise<DriveFolder[]>
 	onNewFile: (event: MouseEvent, dom: HTMLElement) => unknown
 	onNewFolder: () => unknown
 	fileActions: FileActions
@@ -38,7 +38,7 @@ export interface DriveFolderViewAttrs {
 	clipboard: DriveClipboard | null
 }
 
-function canDropFilesToFolder(currentFolder: driveTypeRefs.DriveFolder | null): boolean {
+function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
 	return currentFolder != null && currentFolder.type !== DriveFolderType.Trash
 }
 
@@ -146,7 +146,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
-	private renderEmptyView(folder: driveTypeRefs.DriveFolder | null): Children {
+	private renderEmptyView(folder: DriveFolder | null): Children {
 		return m(
 			"",
 			{

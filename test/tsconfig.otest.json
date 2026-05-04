@@ -1,11 +1,11 @@
 {
 	"extends": "../tsconfig_common.json",
 	"include": ["./otest", "../types/"],
-	"exclude": ["otest/dist"],
+	"exclude": ["build"],
 	"compilerOptions": {
 		"rootDir": "otest",
-		"outDir": "otest/dist",
-		"tsBuildInfoFile": "otest/dist/tsbuildinfo",
+		"outDir": "build/otest",
+		"tsBuildInfoFile": "build/otest/tsbuildinfo",
 		"composite": true
 	},
 	"references": [

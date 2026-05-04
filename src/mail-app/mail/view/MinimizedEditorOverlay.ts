@@ -1,19 +1,20 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CounterBadge } from "../../../common/gui/base/CounterBadge"
-import { theme } from "../../../common/gui/theme"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { CounterBadge } from "../../../ui/base/CounterBadge"
+import { theme } from "../../../ui/theme"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import type { MinimizedEditor, MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { px } from "../../../common/gui/size"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { styles } from "../../../common/gui/styles"
+import { px } from "../../../ui/size"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { styles } from "../../../ui/styles"
 import { trashMails } from "./MailGuiUtils"
-import { entityUpdateUtils, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { promiseMap } from "@tutao/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
-import { OperationType } from "@tutao/app-env"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { MailTypeRef } from "@tutao/entities/tutanota"
+import { isSameId, OperationType } from "@tutao/meta"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -23,7 +24,7 @@ export type MinimizedEditorOverlayAttrs = {
 }
 
 export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayAttrs> {
-	_listener: entityUpdateUtils.EntityEventsListener
+	_listener: EntityEventsListener
 	_eventController: EventController
 
 	constructor(vnode: Vnode<MinimizedEditorOverlayAttrs>) {
@@ -31,9 +32,9 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		this._eventController = eventController
 
 		this._listener = {
-			onEntityUpdatesReceived: (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
+			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
 				return promiseMap(updates, (update) => {
-					if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) && update.operation === OperationType.DELETE) {
+					if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 						let draft = minimizedEditor.sendMailModel.getDraft()
 
 						if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {
@@ -42,7 +43,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					}
 				})
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		eventController.addEntityListener(this._listener)

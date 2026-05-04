@@ -1,8 +1,9 @@
-import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
+import { createWizardDialog, wizardPageWrapper } from "../../ui/base/WizardDialog.js"
 import { LeavingUserSurveyCategoryPage, LeavingUserSurveyPageAttrs } from "./LeavingUserSurveyCategoryPage.js"
 import { defer } from "@tutao/utils"
 import { LeavingUserSurveyReasonPage } from "./LeavingUserSurveyReasonPage.js"
-import { DialogType } from "../gui/base/Dialog.js"
+import { DialogType } from "../../ui/base/Dialog.js"
+import { windowFacade } from "../misc/WindowFacade"
 
 export type LeavingUserSurveyData = {
 	category: NumberString | null
@@ -42,6 +43,7 @@ export async function showLeavingUserSurveyWizard(showPriceCategory: boolean, sh
 		},
 		dialogType: DialogType.EditLarge,
 		cancelButtonText: "surveySkip_action",
+		windowFacade,
 	})
 
 	wizardBuilder.dialog.show()

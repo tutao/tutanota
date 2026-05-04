@@ -1,14 +1,13 @@
 import o, { mock, Spy, spy, verify } from "@tutao/otest"
-import { Notifications } from "../../../src/common/gui/Notifications.js"
-import { MailSetKind, OperationType, ProcessingState } from "../../../src/app-env"
-import { ClientModelInfo, entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
+import { Notifications } from "../../../src/ui/Notifications.js"
+
 import { EntityClient } from "../../../src/network/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { downcast } from "@tutao/utils"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { instance, matchers, object, when } from "testdouble"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { createTestEntity } from "../TestUtils.js"
+import { createTestEntity, makePopulatedClientModelInfo } from "../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
@@ -20,6 +19,21 @@ import * as restError from "@tutao/rest-client/error"
 import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
+import { MailSetKind, ProcessingState } from "../../../src/entities/tutanota"
+import {
+	BodyTypeRef,
+	Mail,
+	MailAddressTypeRef,
+	MailDetails,
+	MailDetailsBlob,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+} from "@tutao/entities/tutanota"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { OperationType } from "@tutao/meta"
 
 const { anything } = matchers
 
@@ -27,15 +41,15 @@ o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
-	const inboxFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+	const inboxFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "inboxId"],
 		folderType: MailSetKind.INBOX,
 	})
-	const spamFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+	const spamFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "spamId"],
 		folderType: MailSetKind.SPAM,
 	})
-	const anotherFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, {
+	const anotherFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "archiveId"],
 		folderType: MailSetKind.ARCHIVE,
 	})
@@ -63,7 +77,7 @@ o.spec("MailModelTest", function () {
 			downcast({}),
 			mailboxModel,
 			eventController,
-			new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly()),
+			new EntityClient(restClient, makePopulatedClientModelInfo()),
 			logins,
 			mailFacade,
 			connectivityModel,
@@ -84,38 +98,38 @@ o.spec("MailModelTest", function () {
 		let inboxRuleHandler: InboxRuleHandler
 		let mailboxModel: MailboxModel
 		let modelWithSpamAndInboxRule: MailModel
-		let mail: tutanotaTypeRefs.Mail
-		let mailDetails: tutanotaTypeRefs.MailDetails
+		let mail: Mail
+		let mailDetails: MailDetails
 		let processInboxHandler: ProcessInboxHandler = object<ProcessInboxHandler>()
 		o.beforeEach(async () => {
-			const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
+			const entityClient = new EntityClient(restClient, makePopulatedClientModelInfo())
 			mailboxModel = instance(MailboxModel)
 			inboxRuleHandler = object<InboxRuleHandler>()
 
-			mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+			mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: "mailDetail",
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: "some text" }),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				body: createTestEntity(BodyTypeRef, { text: "some text" }),
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [
-						createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+						createTestEntity(MailAddressTypeRef, {
 							name: "Recipient",
 							address: "recipient@tuta.com",
 						}),
 					],
 				}),
 			})
-			mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "mailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
 				subject: "subject",
 				sets: [inboxFolder._id],
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, { name: "Sender", address: "sender@tuta.com" }),
+				sender: createTestEntity(MailAddressTypeRef, { name: "Sender", address: "sender@tuta.com" }),
 				processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 				processNeeded: true,
 				authStatus: "0",
 			})
-			const mailDetailsBlob: tutanotaTypeRefs.MailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
+			const mailDetailsBlob: MailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: mail.mailDetails!,
 				details: mailDetails,
 			})
@@ -142,13 +156,13 @@ o.spec("MailModelTest", function () {
 						o(groupId).equals("mailGroup")
 						return new FolderSystem([inboxFolder, spamFolder, anotherFolder])
 					}
-					m.getMailboxDetailsForMail = async (_: tutanotaTypeRefs.Mail) => object<MailboxDetail>()
+					m.getMailboxDetailsForMail = async (_: Mail) => object<MailboxDetail>()
 				},
 			)
 		})
 
 		o("invokes ProcessInboxHandler with sendServerRequest == false when the client is not leader", async function () {
-			const notProcessedMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const notProcessedMail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "notProcessedMailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
@@ -171,7 +185,7 @@ o.spec("MailModelTest", function () {
 		})
 
 		o("invokes ProcessInboxHandler if the mail is not processed", async function () {
-			const notProcessedMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const notProcessedMail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "notProcessedMailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
@@ -193,7 +207,7 @@ o.spec("MailModelTest", function () {
 		})
 
 		o("does not invoke ProcessInboxHandler if the mail is already processed", async function () {
-			const alreadyProcessedMail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			const alreadyProcessedMail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "processedMailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
@@ -237,9 +251,9 @@ o.spec("MailModelTest", function () {
 		instanceListId: NonEmptyString
 		instanceId: Id
 		operation: OperationType
-	}): entityUpdateUtils.EntityUpdateData {
+	}): EntityUpdateData {
 		return {
-			typeRef: tutanotaTypeRefs.MailTypeRef,
+			typeRef: MailTypeRef,
 			operation,
 			instanceListId,
 			instanceId,

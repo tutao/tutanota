@@ -1,13 +1,11 @@
 import m, { Component, Vnode } from "mithril"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/common"
-import { PermissionType } from "@tutao/native-bridge/common"
-import { locator } from "../../common/api/main/CommonLocator.js"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { ExtendedNotificationMode, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { renderNotificationPermissionsDialog } from "../../common/settings/NotificationPermissionsDialog.js"
 import { isApp, isDesktop } from "@tutao/app-env"
-import { NativePushServiceApp } from "../../common/native/main/NativePushServiceApp"
-import { SystemPermissionHandler } from "../../common/native/main/SystemPermissionHandler"
+import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
+import { SystemPermissionHandler } from "../../common/native/SystemPermissionHandler"
 
 export interface NotificationContentSelectorAttrs {
 	extendedNotificationMode: ExtendedNotificationMode

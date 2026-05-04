@@ -1,16 +1,16 @@
 import m, { Component, Vnode } from "mithril"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { theme } from "../../../common/gui/theme"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
+import { theme } from "../../../ui/theme"
 import { assertMainOrNode } from "@tutao/app-env"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Contact } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
 export interface MultiContactViewerAttrs {
-	selectedEntities: tutanotaTypeRefs.Contact[]
+	selectedEntities: Contact[]
 	selectNone: () => unknown
 }
 

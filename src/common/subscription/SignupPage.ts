@@ -1,14 +1,15 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
+import type { WizardPageAttrs, WizardPageN } from "../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../ui/base/WizardDialog.js"
 import { SignupForm } from "./SignupForm"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
-import { lang, Translation } from "../misc/LanguageViewModel.js"
+import { lang, Translation } from "../../ui/utils/LanguageViewModel.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount } from "./utils/PaymentUtils"
-import { Dialog } from "../gui/base/Dialog"
-import { isIOSApp, PlanType } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog"
+import { isIOSApp } from "@tutao/app-env"
+import { PlanType } from "@tutao/entities/sys"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement

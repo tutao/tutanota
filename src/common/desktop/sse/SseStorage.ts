@@ -1,8 +1,8 @@
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { DesktopConfigEncKey, DesktopConfigKey } from "../../../app-env/ConfigKeys.js"
+import { DesktopConfigEncKey, DesktopConfigKey } from "@tutao/app-env"
 import { remove } from "@tutao/utils"
 import { SseInfo } from "./SseInfo.js"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/common"
+import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
 
 const DEFAULT_EXTENDED_NOTIFICATION_MODE = ExtendedNotificationMode.NoSenderOrSubject
 

@@ -1,11 +1,11 @@
-import { pureComponent } from "../gui/base/PureComponent"
 import m from "mithril"
-import { BaseButton } from "../gui/base/buttons/BaseButton"
-import { theme } from "../gui/theme"
-import { lang } from "../misc/LanguageViewModel"
-import { Icon, IconSize } from "../gui/base/Icon"
-import { Icons } from "../gui/base/icons/Icons"
 import { LoginController } from "../api/main/LoginController"
+import { pureComponent } from "../../ui/base/PureComponent"
+import { BaseButton } from "../../ui/base/buttons/BaseButton"
+import { theme } from "../../ui/theme"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { Icon, IconSize } from "../../ui/base/Icon"
+import { Icons } from "../../ui/base/icons/Icons"
 
 export const SettingsSupportButton = pureComponent(function SettingsSupportButton({ logins }: { logins: LoginController }) {
 	return m(BaseButton, {

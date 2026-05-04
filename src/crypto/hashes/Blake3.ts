@@ -1,8 +1,9 @@
 import { blake3 } from "../internal/noble-hashes-2.0.1.js"
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { MacTag } from "../misc/Constants.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
+
+import { MacTag } from "../CryptoTypes"
 
 export const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
 

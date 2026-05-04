@@ -1,9 +1,11 @@
 import o from "@tutao/otest"
 import { _findMatchingRule, _matchesRegularExpression } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { createTestEntity } from "../TestUtils.js"
-import { InboxRuleType } from "../../../src/app-env"
+
+import { InboxRuleType } from "../../../src/entities/tutanota"
+import { InboxRule, InboxRuleTypeRef, Mail, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("InboxRuleHandlerTest", function () {
 	o.spec("Test _matchesRegularExpression", function () {
@@ -63,7 +65,7 @@ o.spec("InboxRuleHandlerTest", function () {
 	o.spec("Test _findMatchingRule", function () {
 		const restClient: EntityRestClientMock = new EntityRestClientMock()
 		o("check FROM_EQUALS is applied to from", async function () {
-			const rules: tutanotaTypeRefs.InboxRule[] = [_createRule("sender@tuta.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
+			const rules: InboxRule[] = [_createRule("sender@tuta.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
 
 			const mail = _createMailWithDifferentEnvelopeSender()
 
@@ -75,9 +77,7 @@ o.spec("InboxRuleHandlerTest", function () {
 			}
 		})
 		o("check FROM_EQUALS is applied to envelope  sender", async function () {
-			const rules: tutanotaTypeRefs.InboxRule[] = [
-				_createRule("differentenvelopsender@something.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"]),
-			]
+			const rules: InboxRule[] = [_createRule("differentenvelopsender@something.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
 
 			const mail = _createMailWithDifferentEnvelopeSender()
 
@@ -91,7 +91,7 @@ o.spec("InboxRuleHandlerTest", function () {
 
 		o("checks all rules independent of excludeFromSpamFilter is true", async function () {
 			const subject = "Excluded Rule"
-			const rules: tutanotaTypeRefs.InboxRule[] = [
+			const rules: InboxRule[] = [
 				_createRule(subject, InboxRuleType.SUBJECT_CONTAINS, ["ruleTarget", "ruleTarget"], true),
 				_createRule(subject, InboxRuleType.SUBJECT_CONTAINS, ["invalidTarget", "invalidTarget"], false),
 			]
@@ -109,17 +109,17 @@ o.spec("InboxRuleHandlerTest", function () {
 	})
 })
 
-function _createMailWithDifferentEnvelopeSender(): tutanotaTypeRefs.Mail {
-	let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-	let sender = createTestEntity(tutanotaTypeRefs.MailAddressTypeRef)
+function _createMailWithDifferentEnvelopeSender(): Mail {
+	let mail = createTestEntity(MailTypeRef)
+	let sender = createTestEntity(MailAddressTypeRef)
 	sender.address = "sender@tuta.com"
 	mail.sender = sender
 	mail.differentEnvelopeSender = "differentenvelopsender@something.com"
 	return mail
 }
 
-function _createRule(value: string, type?: string, targetFolder?: IdTuple, excludeFromSpamFilter = false): tutanotaTypeRefs.InboxRule {
-	let rule = createTestEntity(tutanotaTypeRefs.InboxRuleTypeRef)
+function _createRule(value: string, type?: string, targetFolder?: IdTuple, excludeFromSpamFilter = false): InboxRule {
+	let rule = createTestEntity(InboxRuleTypeRef)
 	rule.value = value
 	rule.type = type ? type : InboxRuleType.SUBJECT_CONTAINS
 	rule.targetFolder = targetFolder ? targetFolder : ["empty", "empty"]

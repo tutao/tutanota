@@ -1,25 +1,25 @@
-import { clone, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../../common/api/main/CommonLocator.js"
-import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
-import { ButtonType } from "../../common/gui/base/Button.js"
-import { Dialog } from "../../common/gui/base/Dialog.js"
+import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../ui/base/Button.js"
+import { Dialog } from "../../ui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { component_size, px, size } from "../../common/gui/size.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextField.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { component_size, px, size } from "../../ui/size.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { MailRecipientsTextField } from "./view/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
-import { lazy, noOp } from "@tutao/utils"
-import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
+import { cleanMailAddress, lazy, noOp } from "@tutao/utils"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import { Keys } from "@tutao/app-env"
-import { isMailAddress } from "../../common/misc/FormatValidator.js"
-import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
+import { isMailAddress } from "../../utils/FormatUtils.js"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { ContactListEditorModel } from "./ContactListEditorModel"
+import { ContactListGroupRoot } from "@tutao/entities/tutanota"
+import { clone, isSameId } from "@tutao/meta"
 
 export async function showContactListEditor(
-	contactListGroupRoot: tutanotaTypeRefs.ContactListGroupRoot | null,
+	contactListGroupRoot: ContactListGroupRoot | null,
 	headerText: TranslationKey,
 	save: (name: string, addresses: Array<string>) => void,
 	addressesOnList?: Array<string>,

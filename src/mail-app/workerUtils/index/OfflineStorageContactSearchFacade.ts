@@ -1,6 +1,6 @@
 import { ContactSearchFacade } from "./ContactSearchFacade"
 import { OfflineStorageSearchFacade } from "./OfflineStorageSearchFacade"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 /**
  * SQLite-based contact search
@@ -12,7 +12,7 @@ export class OfflineStorageContactSearchFacade implements ContactSearchFacade {
 		const results = await this.search.search(
 			query,
 			{
-				type: tutanotaTypeRefs.ContactTypeRef,
+				type: ContactTypeRef,
 				field,
 
 				// we use specific column names rather than attribute IDs

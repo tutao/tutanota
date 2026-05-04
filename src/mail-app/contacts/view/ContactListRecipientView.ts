@@ -1,14 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"
-import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { List, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { List, MultiselectMode, RenderConfig } from "../../../ui/base/List.js"
 import { noOp } from "@tutao/utils"
 import { ContactListViewModel } from "./ContactListViewModel.js"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { VirtualRow } from "../../../ui/base/ListUtils.js"
 import {
 	checkboxOpacity,
 	scaleXHide,
@@ -17,14 +16,15 @@ import {
 	SelectableRowContainer,
 	SelectableRowSelectedSetter,
 	shouldAlwaysShowMultiselectCheckbox,
-} from "../../../common/gui/SelectableRowContainer.js"
-import { component_size, px } from "../../../common/gui/size.js"
+} from "../../../ui/SelectableRowContainer.js"
+import { component_size, px } from "../../../ui/size.js"
 import { shiftByForCheckbox, translateXHide, translateXShow } from "./ContactRow.js"
-import { styles } from "../../../common/gui/styles.js"
+import { styles } from "../../../ui/styles.js"
+
+import { ContactListEntry } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
-type ContactListEntry = tutanotaTypeRefs.ContactListEntry
 export interface ContactListViewAttrs {
 	viewModel: ContactListViewModel
 	focusDetailsViewer: () => unknown

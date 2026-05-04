@@ -1,16 +1,14 @@
 import { assertMainOrNode, isWebClient, Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
-import { DataFile, tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../api/main/CommonLocator.js"
 import { client } from "../../app-env/boot/ClientDetector"
 import { isSupportVisibilityEnabled, SupportVisibilityMask } from "./SupportVisibilityMask"
-import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog"
+import { MultiPageDialog } from "../../ui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { SupportLandingPage } from "./pages/SupportLandingPage.js"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { CacheMode } from "@tutao/network"
-import { ButtonType } from "../gui/base/Button.js"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { ButtonType } from "../../ui/base/Button.js"
 import { SupportCategoryPage } from "./pages/SupportCategoryPage.js"
 import { SupportTopicPage } from "./pages/SupportTopicPage.js"
 import { ContactSupportPage } from "./pages/ContactSupportPage.js"
@@ -18,15 +16,15 @@ import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
 import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
 import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
 import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
-import { Dialog } from "../gui/base/Dialog.js"
+import { Dialog } from "../../ui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { size } from "../gui/size"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
+import { size } from "../../ui/size"
+import { CacheMode } from "../../network/EntityRestClient"
+import { DataFile, SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
-type SupportCategory = tutanotaTypeRefs.SupportCategory
-type SupportTopic = tutanotaTypeRefs.SupportTopic
 type SupportDialogPageName =
 	| "home"
 	| "categoryDetail"
@@ -80,7 +78,7 @@ export async function showSupportDialog(logins: LoginController) {
 
 	const supportData = await showProgressDialog(
 		"pleaseWait_msg",
-		locator.entityClient.load(tutanotaTypeRefs.SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly }),
+		locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly }),
 	)
 	data.categories = filterCategories(supportData)
 
@@ -314,7 +312,7 @@ export function getCategoryIntroduction(category: SupportCategory, languageTag: 
 	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
 }
 
-function filterCategories(supportData: tutanotaTypeRefs.SupportData) {
+function filterCategories(supportData: SupportData) {
 	const categories = supportData.categories
 
 	for (const key in supportData.categories) {

@@ -1,14 +1,14 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { InfoLink, lang } from "../../LanguageViewModel.js"
-import { Dialog } from "../../../gui/base/Dialog.js"
-import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
+import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UsageTestModel } from "../../UsageTestModel.js"
 import { MoreInfoLink } from "../MoreInfoLink.js"
-import { Checkbox, CheckboxAttrs } from "../../../gui/base/Checkbox"
+import { Checkbox, CheckboxAttrs } from "../../../../ui/base/Checkbox"
 import { locator } from "../../../api/main/CommonLocator"
+import { NewsId } from "@tutao/entities/tutanota"
 
 /**
  * News item that informs users about the usage data opt-in.
@@ -25,7 +25,7 @@ export class UsageOptInNews implements NewsListItem {
 		return Promise.resolve(locator.usageTestModel.showOptInIndicator())
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Children {
+	render(newsId: NewsId): Children {
 		const closeAction = (optedIn?: boolean) => {
 			this.newsModel
 				.acknowledgeNews(newsId.newsItemId)

@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { keyManager, Shortcut } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
-type Contact = tutanotaTypeRefs.Contact
+import { Contact } from "@tutao/entities/tutanota"
+
 export interface ContactViewToolbarAttrs {
 	contacts: Contact[]
 	onEdit: (contact: Contact) => unknown

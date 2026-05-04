@@ -4,22 +4,22 @@ import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/comm
 import { object, when } from "testdouble"
 import { Const } from "../../../src/app-env"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { Customer, CustomerInfo, CustomerInfoTypeRef, CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 o.spec("PostLoginUtils", () => {
 	o.spec("shouldShowUpgradeReminder", () => {
 		let userController: UserController
-		let customerInfo: sysTypeRefs.CustomerInfo
-		let customerProperties: sysTypeRefs.CustomerProperties
-		let customer: sysTypeRefs.Customer
+		let customerInfo: CustomerInfo
+		let customerProperties: CustomerProperties
+		let customer: Customer
 		const date = new Date("2023-09-05")
 
 		o.beforeEach(() => {
 			userController = object()
 
-			customerInfo = createTestEntity(sysTypeRefs.CustomerInfoTypeRef, {})
-			customerProperties = createTestEntity(sysTypeRefs.CustomerPropertiesTypeRef, {})
-			customer = createTestEntity(sysTypeRefs.CustomerTypeRef)
+			customerInfo = createTestEntity(CustomerInfoTypeRef, {})
+			customerProperties = createTestEntity(CustomerPropertiesTypeRef, {})
+			customer = createTestEntity(CustomerTypeRef)
 
 			when(userController.loadCustomerInfo()).thenResolve(customerInfo)
 			when(userController.loadCustomerProperties()).thenResolve(customerProperties)

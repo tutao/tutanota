@@ -3,19 +3,18 @@ import { LazyLoaded } from "@tutao/utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { CalendarAttendeeStatus } from "@tutao/app-env"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
 import { type IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { CalendarAttendeeStatus, Mail } from "@tutao/entities/tutanota"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent
-	mail: tutanotaTypeRefs.Mail
+	mail: Mail
 	recipient: string
 	eventsRepository: CalendarEventsRepository
 	groupColors: Map<Id, string>
@@ -59,7 +58,7 @@ export function sendResponse(
 	event: IcsCalendarEvent,
 	recipient: string,
 	status: CalendarAttendeeStatus,
-	previousMail: tutanotaTypeRefs.Mail,
+	previousMail: Mail,
 	comment?: string,
 ): Promise<boolean> {
 	return showProgressDialog(

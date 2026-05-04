@@ -1,8 +1,7 @@
-import type { Thunk } from "@tutao/utils"
-import type { ScheduledTimeoutId, Scheduler } from "../../../common/api/common/utils/Scheduler.js"
-import { calculateAlarmTime, findNextAlarmOccurrence, getEventEnd, getEventStart, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
-import { DateProvider } from "../../../utils/DateProvider.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import type { DateProvider, Thunk } from "@tutao/utils"
+import { calculateAlarmTime, findNextAlarmOccurrence, getEventStart, getValidTimeZone, parseAlarmInterval } from "./CalendarUtils.js"
+import { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler"
+import { AlarmInfo, RepeatRule } from "@tutao/entities/sys"
 
 type NotificationSender = (eventTime: Date, summary: string) => void
 type EventInfo = {
@@ -28,7 +27,7 @@ export class AlarmScheduler {
 		this._scheduler = scheduler
 	}
 
-	scheduleAlarm(event: EventInfo, alarmInfo: sysTypeRefs.AlarmInfo, repeatRule: sysTypeRefs.RepeatRule | null, notificationSender: NotificationSender): void {
+	scheduleAlarm(event: EventInfo, alarmInfo: AlarmInfo, repeatRule: RepeatRule | null, notificationSender: NotificationSender): void {
 		const localZone = this._dateProvider.timeZone()
 
 		if (repeatRule) {

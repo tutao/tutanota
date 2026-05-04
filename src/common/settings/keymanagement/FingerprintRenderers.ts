@@ -1,4 +1,4 @@
-import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../gui/utils/HtmlSanitizer"
 import QRCode from "qrcode-svg"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 

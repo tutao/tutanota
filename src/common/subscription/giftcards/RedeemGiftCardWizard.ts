@@ -1,41 +1,42 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { mapNullable, neverNull, noOp, ofClass } from "@tutao/utils"
-import type { WizardPageAttrs, WizardPageN } from "../../gui/base/WizardDialog.js"
-import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../gui/base/WizardDialog.js"
+import type { WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
+import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
 import { LoginController } from "../../api/main/LoginController"
 import type { NewAccountData } from "../UpgradeSubscriptionWizard"
-import { Dialog, DialogType } from "../../gui/base/Dialog"
+import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { LoginForm } from "../../../common/login/LoginForm"
 import { CredentialsSelector } from "../../../common/login/CredentialsSelector"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { SignupForm } from "../SignupForm"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { elementIdPart, isSameId, sysTypeRefs } from "@tutao/typerefs"
 import { locator } from "../../api/main/CommonLocator"
 import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg } from "./GiftCardUtils"
-import { CancelledError } from "@tutao/app-env"
-import { lang } from "../../misc/LanguageViewModel"
+import { CancelledError, Country } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
-import { HabReminderImage } from "../../gui/base/icons/Icons"
+import { HabReminderImage } from "../../../ui/base/icons/Icons"
 import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../app-env/SessionType.js"
 import * as restError from "@tutao/rest-client/error"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { countryList } from "@tutao/app-env"
-import { renderCountryDropdown } from "../../gui/base/GuiUtils.js"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { CredentialsInfo } from "@tutao/native-bridge/common"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { signup } from "../utils/PaymentUtils"
-import { MessageBanner } from "../../gui/base/MessageBanner"
-import { PaymentMethodType, PlanType } from "@tutao/app-env"
+import { MessageBanner } from "../../../ui/base/MessageBanner"
+import { AccountingInfo, AccountingInfoTypeRef, CustomerInfoTypeRef, GiftCardRedeemGetReturn, PaymentMethodType, PlanType } from "@tutao/entities/sys"
+import { renderCountryDropdown } from "../../gui/CountryDropdown"
+import { elementIdPart, isSameId } from "@tutao/meta"
+import { getByAbbreviation } from "../../gui/CountryList"
+import { windowFacade } from "../../misc/WindowFacade"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -48,11 +49,11 @@ class RedeemGiftCardModel {
 	credentialsMethod = GetCredentialsMethod.Signup
 
 	// accountingInfo is loaded after the user logs in, before redeeming the gift card
-	accountingInfo: sysTypeRefs.AccountingInfo | null = null
+	accountingInfo: AccountingInfo | null = null
 
 	constructor(
 		private readonly config: {
-			giftCardInfo: sysTypeRefs.GiftCardRedeemGetReturn
+			giftCardInfo: GiftCardRedeemGetReturn
 			key: string
 			premiumPrice: number
 			storedCredentials: ReadonlyArray<CredentialsInfo>
@@ -66,7 +67,7 @@ class RedeemGiftCardModel {
 		private readonly entityClient: EntityClient,
 	) {}
 
-	get giftCardInfo(): sysTypeRefs.GiftCardRedeemGetReturn {
+	get giftCardInfo(): GiftCardRedeemGetReturn {
 		return this.config.giftCardInfo
 	}
 
@@ -142,7 +143,7 @@ class RedeemGiftCardModel {
 		}
 	}
 
-	async redeemGiftCard(country: countryList.Country | null): Promise<void> {
+	async redeemGiftCard(country: Country | null): Promise<void> {
 		if (country == null) {
 			throw new UserError("invoiceCountryInfoBusiness_msg")
 		}
@@ -168,8 +169,8 @@ class RedeemGiftCardModel {
 
 		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		const customer = await this.logins.getUserController().reloadCustomer()
-		const customerInfo = await this.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo)
-		this.accountingInfo = await this.entityClient.load(sysTypeRefs.AccountingInfoTypeRef, customerInfo.accountingInfo)
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 
 		if (PaymentMethodType.AppStore === this.accountingInfo.paymentMethod) {
 			throw new UserError("redeemGiftCardWithAppStoreSubscription_msg")
@@ -386,13 +387,13 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 	private confirmed = false
 	private showCountryDropdown: boolean
-	private country: countryList.Country | null
+	private country: Country | null
 	private dom!: HTMLElement
 
 	constructor({ attrs }: Vnode<GiftCardRedeemAttrs>) {
 		// we expect that the accounting info is actually available by now,
 		// but we optional chain because invoiceCountry is nullable anyway
-		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, countryList.getByAbbreviation)
+		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, getByAbbreviation)
 
 		// if a country is already set, then we don't need to ask for one
 		this.showCountryDropdown = this.country == null
@@ -571,6 +572,7 @@ export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dia
 			m.route.set("/login", urlParams)
 		},
 		dialogType: DialogType.EditLarge,
+		windowFacade,
 	}).dialog
 }
 

@@ -3,8 +3,8 @@ import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 
 import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
-import { NewPaidPlans, PlanType } from "../../../src/app-env"
-import { clone } from "@tutao/typerefs"
+import { clone } from "../../../src/meta"
+import { NewPaidPlans, PlanType } from "../../../src/entities/sys"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

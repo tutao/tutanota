@@ -1,8 +1,7 @@
 import o from "@tutao/otest"
 import { CalendarInviteHandler, ReplyResult } from "../../../src/calendar-app/calendar/view/CalendarInvites.js"
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { CalendarAttendeeStatus } from "../../../src/app-env"
+
 import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { instance, matchers, verify, when } from "testdouble"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
@@ -13,8 +12,25 @@ import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/v
 import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
-import { AccountType } from "../../../src/app-env"
+import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
+import { AccountType } from "../../../src/entities/sys"
+import {
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
+	EncryptedMailAddressTypeRef,
+	Mail,
+	MailBoxTypeRef,
+	MailTypeRef,
+	MailboxGroupRootTypeRef,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
+	UserSettingsGroupRootTypeRef,
+	createMailAddress,
+} from "@tutao/entities/tutanota"
 
+import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
 		calendarInviteHandler: CalendarInviteHandler,
@@ -27,23 +43,23 @@ o.spec("CalendarInviteHandlerTest", function () {
 	const SENDER_ADDRESS = "sender@example.com"
 	const ATTENDEE_ADDRESS = "attendee@example.com"
 
-	let ownAttendee: tutanotaTypeRefs.CalendarEventAttendee
-	let mail: tutanotaTypeRefs.Mail
-	let event: tutanotaTypeRefs.CalendarEvent
+	let ownAttendee: CalendarEventAttendee
+	let mail: Mail
+	let event: CalendarEvent
 
 	o.beforeEach(function () {
-		event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+		event = createTestEntity(CalendarEventTypeRef, {
 			uid: "uid",
-			organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef),
+			organizer: createTestEntity(EncryptedMailAddressTypeRef),
 			attendees: [
-				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: SENDER_ADDRESS,
 					}),
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-					address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
 						address: ATTENDEE_ADDRESS,
 					}),
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
@@ -57,19 +73,19 @@ o.spec("CalendarInviteHandlerTest", function () {
 		const user = {
 			_id: "userId",
 			customer: customerId,
-		} as sysTypeRefs.User
-		const userSettingsGroupRoot = createTestEntity(tutanotaTypeRefs.UserSettingsGroupRootTypeRef)
+		} as User
+		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
 		let userController: Partial<UserController> = makeUserController([], AccountType.FREE, undefined, false, false, user, userSettingsGroupRoot)
 
 		mailboxDetails = {
-			mailbox: createTestEntity(tutanotaTypeRefs.MailBoxTypeRef),
-			mailGroupInfo: createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+			mailbox: createTestEntity(MailBoxTypeRef),
+			mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "mailgroup@addre.ss",
 			}),
-			mailGroup: createTestEntity(sysTypeRefs.GroupTypeRef),
-			mailboxGroupRoot: createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef),
+			mailGroup: createTestEntity(GroupTypeRef),
+			mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 		}
-		const mailboxProperties: tutanotaTypeRefs.MailboxProperties = createTestEntity(tutanotaTypeRefs.MailboxPropertiesTypeRef, {})
+		const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
 
 		maiboxModel = instance(MailboxModel)
 		when(maiboxModel.getMailboxProperties(matchers.anything())).thenResolve(mailboxProperties)
@@ -100,8 +116,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 			 */
 
 			o.beforeEach(function () {
-				mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-				mail.sender = tutanotaTypeRefs.createMailAddress({
+				mail = createTestEntity(MailTypeRef)
+				mail.sender = createMailAddress({
 					address: SENDER_ADDRESS,
 					name: "whatever",
 					contact: null,
@@ -119,7 +135,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 				const calendarEventCaptor = matchers.captor()
 				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
-				const capturedCalendarEvent: tutanotaTypeRefs.CalendarEvent = calendarEventCaptor.value
+				const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 				const calendarEventAttendee = capturedCalendarEvent.attendees.find((attendee) => attendee.address.address === ATTENDEE_ADDRESS)
 				o(calendarEventAttendee?.status).equals(CalendarAttendeeStatus.DECLINED)
 			})
@@ -135,7 +151,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 				const calendarEventCaptor = matchers.captor()
 				verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
-				const capturedCalendarEvent: tutanotaTypeRefs.CalendarEvent = calendarEventCaptor.value
+				const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 				const calendarEventAttendee = capturedCalendarEvent.attendees.find((attendee) => attendee.address.address === ATTENDEE_ADDRESS)
 				o(calendarEventAttendee?.status).equals(CalendarAttendeeStatus.ACCEPTED)
 			})
@@ -143,8 +159,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 		o.spec("Known sender  - User can reply only from EventBanner or eventPreview", function () {
 			o.test("respond yes to event from eventBanner", async function () {
-				mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-				mail.sender = tutanotaTypeRefs.createMailAddress({
+				mail = createTestEntity(MailTypeRef)
+				mail.sender = createMailAddress({
 					address: SENDER_ADDRESS,
 					name: "whatever",
 					contact: null,
@@ -164,8 +180,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 			})
 
 			o.test("respond no to event from eventBanner should update persisted events", async function () {
-				mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-				mail.sender = tutanotaTypeRefs.createMailAddress({
+				mail = createTestEntity(MailTypeRef)
+				mail.sender = createMailAddress({
 					address: SENDER_ADDRESS,
 					name: "whatever",
 					contact: null,
@@ -188,33 +204,33 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 				const eventCaptor = matchers.captor()
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), eventCaptor.capture()), { times: 1 })
-				const capturedEvent: tutanotaTypeRefs.CalendarEvent = eventCaptor.value
+				const capturedEvent: CalendarEvent = eventCaptor.value
 				o.check(capturedEvent.pendingInvitation).equals(false)
 				const guestAttendee = capturedEvent.attendees[1]
 				o.check(guestAttendee.status).equals(CalendarAttendeeStatus.DECLINED)
 			})
 
 			o.test("respond yes to event on read only shared calendar", async function () {
-				const event = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
-					organizer: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: SENDER_ADDRESS, name: "sender" }),
+				const event = createTestEntity(CalendarEventTypeRef, {
+					organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: SENDER_ADDRESS, name: "sender" }),
 					_ownerGroup: "ownergroup",
 					attendees: [
-						createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-							address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+						createTestEntity(CalendarEventAttendeeTypeRef, {
+							address: createTestEntity(EncryptedMailAddressTypeRef, {
 								address: SENDER_ADDRESS,
 							}),
 							status: CalendarAttendeeStatus.ACCEPTED,
 						}),
-						createTestEntity(tutanotaTypeRefs.CalendarEventAttendeeTypeRef, {
-							address: createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, {
+						createTestEntity(CalendarEventAttendeeTypeRef, {
+							address: createTestEntity(EncryptedMailAddressTypeRef, {
 								address: ATTENDEE_ADDRESS,
 							}),
 							status: CalendarAttendeeStatus.NEEDS_ACTION,
 						}),
 					],
 				})
-				mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-				mail.sender = tutanotaTypeRefs.createMailAddress({
+				mail = createTestEntity(MailTypeRef)
+				mail.sender = createMailAddress({
 					address: SENDER_ADDRESS,
 					name: "whatever",
 					contact: null,
@@ -228,8 +244,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 		})
 
 		o.test("Reply to a confidential email sends out a confidential reply", async function () {
-			mail = createTestEntity(tutanotaTypeRefs.MailTypeRef)
-			mail.sender = tutanotaTypeRefs.createMailAddress({
+			mail = createTestEntity(MailTypeRef)
+			mail.sender = createMailAddress({
 				address: SENDER_ADDRESS,
 				name: "whatever",
 				contact: null,
@@ -242,7 +258,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 			const calendarEventCaptor = matchers.captor()
 			verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
-			const capturedCalendarEvent: tutanotaTypeRefs.CalendarEvent = calendarEventCaptor.value
+			const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 			o(capturedCalendarEvent.invitedConfidentially).equals(mail.confidential)
 			verify(sendMailModel.setConfidential(true), { times: 2 })
 		})

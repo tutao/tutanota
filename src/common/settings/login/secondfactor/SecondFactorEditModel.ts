@@ -2,15 +2,13 @@ import { EntityClient } from "../../../../network/EntityClient.js"
 import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/webauthn/WebauthnClient.js"
 import type { TotpSecret } from "@tutao/crypto"
 import { assertNotNull, LazyLoaded, neverNull, singleAsync } from "@tutao/utils"
-import { TranslationKey } from "../../../misc/LanguageViewModel.js"
-import { SecondFactorType } from "@tutao/app-env"
-import { ProgrammingError } from "@tutao/app-env"
-import { LoginFacade } from "../../../../network/LoginFacade.js"
+import { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { isApp, ProgrammingError, SecondFactorType } from "@tutao/app-env"
+import { LoginFacade } from "../../../../base/facades/LoginFacade.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../../gui/utils/HtmlSanitizer.js"
 import QRCode from "qrcode-svg"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { isApp } from "@tutao/app-env"
+import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from "@tutao/entities/sys"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -43,11 +41,11 @@ export class SecondFactorEditModel {
 		qrCodeSvg: string | null
 		url: string
 	}>
-	private u2fRegistrationData: sysTypeRefs.U2fRegisteredDevice | null = null
+	private u2fRegistrationData: U2fRegisteredDevice | null = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
-		private readonly user: sysTypeRefs.User,
+		private readonly user: User,
 		private readonly webauthnClient: WebauthnClient,
 		readonly totpKeys: TotpSecret,
 		private readonly webauthnSupported: boolean,
@@ -183,7 +181,7 @@ export class SecondFactorEditModel {
 			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
 		}
 
-		const sf = sysTypeRefs.createSecondFactor({
+		const sf = createSecondFactor({
 			_ownerGroup: this.user._ownerGroup!,
 			name: this.name,
 			type: this.selectedType,
@@ -212,7 +210,7 @@ export class SecondFactorEditModel {
 
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
 	private async getOtpAuthUrl(secret: string): Promise<string> {
-		const userGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.user.userGroup.groupInfo)
+		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.user.userGroup.groupInfo)
 		const issuer = this.domainConfig.firstPartyDomain ? "Tutanota" : this.hostname
 		const account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
 		const url = new URL("otpauth://totp/" + account)

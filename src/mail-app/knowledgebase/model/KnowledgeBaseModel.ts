@@ -1,8 +1,7 @@
-import { entityUpdateUtils, getElementId, getEtId, getLetId, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter.js"
-import type { LanguageCode } from "../../../common/misc/LanguageViewModel.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import type { LanguageCode } from "../../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { ShareCapability } from "@tutao/app-env"
@@ -11,11 +10,11 @@ import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupM
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel.js"
 import type { UserController } from "../../../common/api/main/UserController.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-
 import { EventController } from "../../../common/api/main/EventController.js"
-import { OperationType } from "@tutao/app-env"
+import { EmailTemplate, EmailTemplateTypeRef, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { getElementId, getEtId, getLetId, isSameId, OperationType } from "@tutao/meta"
 
-type KnowledgeBaseEntry = tutanotaTypeRefs.KnowledgeBaseEntry
 export const SELECT_NEXT_ENTRY = "next"
 
 function compareKnowledgeBaseEntriesForSort(entry1: KnowledgeBaseEntry, entry2: KnowledgeBaseEntry): number {
@@ -34,7 +33,7 @@ export class KnowledgeBaseModel {
 	_filterValue: string
 	readonly _eventController: EventController
 	readonly _entityClient: EntityClient
-	readonly _entityEventReceived: entityUpdateUtils.EntityEventsListener
+	readonly _entityEventReceived: EntityEventsListener
 	_groupInstances: Array<TemplateGroupInstance>
 	_initialized: LazyLoaded<KnowledgeBaseModel>
 	readonly userController: UserController
@@ -54,7 +53,7 @@ export class KnowledgeBaseModel {
 			onEntityUpdatesReceived: (updates) => {
 				return this._entityUpdate(updates)
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this._eventController.addEntityListener(this._entityEventReceived)
@@ -121,7 +120,7 @@ export class KnowledgeBaseModel {
 		return this._matchedKeywordsInContent
 	}
 
-	getLanguageFromTemplate(template: tutanotaTypeRefs.EmailTemplate): LanguageCode {
+	getLanguageFromTemplate(template: EmailTemplate): LanguageCode {
 		const clientLanguage = lang.code
 		const hasClientLanguage = template.contents.some((content) => content.languageCode === clientLanguage)
 
@@ -208,8 +207,8 @@ export class KnowledgeBaseModel {
 		this._eventController.removeEntityListener(this._entityEventReceived)
 	}
 
-	loadTemplate(templateId: IdTuple): Promise<tutanotaTypeRefs.EmailTemplate> {
-		return this._entityClient.load(tutanotaTypeRefs.EmailTemplateTypeRef, templateId)
+	loadTemplate(templateId: IdTuple): Promise<EmailTemplate> {
+		return this._entityClient.load(EmailTemplateTypeRef, templateId)
 	}
 
 	isReadOnly(entry: KnowledgeBaseEntry): boolean {
@@ -218,30 +217,28 @@ export class KnowledgeBaseModel {
 		return !instance || !hasCapabilityOnGroup(this.userController.user, instance.group, ShareCapability.Write)
 	}
 
-	_entityUpdate(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update)) {
+			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					return this._entityClient.load(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((entry) => {
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((entry) => {
 						this._allEntries.insert(entry)
 
 						this.filter(this._filterValue)
 					})
 				} else if (update.operation === OperationType.UPDATE) {
-					return this._entityClient
-						.load(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId])
-						.then((updatedEntry) => {
-							this._allEntries.removeFirst((e) => isSameId(getElementId(e), update.instanceId))
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((updatedEntry) => {
+						this._allEntries.removeFirst((e) => isSameId(getElementId(e), update.instanceId))
 
-							this._allEntries.insert(updatedEntry)
+						this._allEntries.insert(updatedEntry)
 
-							this.filter(this._filterValue)
-							const oldSelectedEntry = this.selectedEntry()
+						this.filter(this._filterValue)
+						const oldSelectedEntry = this.selectedEntry()
 
-							if (oldSelectedEntry && isSameId(oldSelectedEntry._id, updatedEntry._id)) {
-								this.selectedEntry(updatedEntry)
-							}
-						})
+						if (oldSelectedEntry && isSameId(oldSelectedEntry._id, updatedEntry._id)) {
+							this.selectedEntry(updatedEntry)
+						}
+					})
 				} else if (update.operation === OperationType.DELETE) {
 					const selected = this.selectedEntry()
 
@@ -259,7 +256,7 @@ export class KnowledgeBaseModel {
 }
 
 function loadKnowledgebaseEntries(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<KnowledgeBaseEntry>> {
-	return promiseMap(templateGroups, (group) => entityClient.loadAll(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase)).then(
-		(groupedTemplates) => groupedTemplates.flat(),
+	return promiseMap(templateGroups, (group) => entityClient.loadAll(KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase)).then((groupedTemplates) =>
+		groupedTemplates.flat(),
 	)
 }

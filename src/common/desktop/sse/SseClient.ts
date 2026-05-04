@@ -2,10 +2,9 @@ import http from "node:http"
 import type { DesktopNetworkClient } from "../net/DesktopNetworkClient"
 import { makeTaggedLogger } from "../DesktopLog"
 import { Scheduler } from "../../api/common/utils/Scheduler.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError, reverse } from "@tutao/app-env"
 
 import { newPromise } from "@tutao/utils"
-import { reverse } from "@tutao/typerefs"
 
 const log = makeTaggedLogger("[SSE]")
 

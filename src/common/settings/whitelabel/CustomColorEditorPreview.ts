@@ -1,15 +1,14 @@
+import { createMail, createMailAddress, Mail, ProcessingState } from "@tutao/entities/tutanota"
 import m, { Children, Component } from "mithril"
-import { component_size, layout_size, px } from "../../gui/size"
-import { Button, ButtonType } from "../../gui/base/Button.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { component_size, layout_size, px } from "../../../ui/size"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { MailRow } from "../../../mail-app/mail/view/MailRow"
 import { noOp } from "@tutao/utils"
-import { IconButton } from "../../gui/base/IconButton.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { ProcessingState } from "@tutao/app-env"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { ToggleButton } from "../../../ui/base/buttons/ToggleButton.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { isApp, isDesktop } from "@tutao/app-env"
 
 export const BUTTON_WIDTH = 270
@@ -98,9 +97,9 @@ export class CustomColorEditorPreview implements Component {
 			clientSpamClassifierResult: null,
 			processNeeded: true,
 			serverClassificationData: "0,1",
-		} satisfies Partial<tutanotaTypeRefs.Mail>
-		const mail = tutanotaTypeRefs.createMail({
-			sender: tutanotaTypeRefs.createMailAddress({
+		} satisfies Partial<Mail>
+		const mail = createMail({
+			sender: createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
 				contact: null,
@@ -112,8 +111,8 @@ export class CustomColorEditorPreview implements Component {
 			sendAt: null,
 			...mailTemplate,
 		})
-		const mail2 = tutanotaTypeRefs.createMail({
-			sender: tutanotaTypeRefs.createMailAddress({
+		const mail2 = createMail({
+			sender: createMailAddress({
 				address: "m.mustermann@example.com",
 				name: "Max Mustermann",
 				contact: null,

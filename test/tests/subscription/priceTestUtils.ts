@@ -1,11 +1,12 @@
 import { matchers, object, when } from "testdouble"
 import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
-import { sysServices } from "@tutao/typerefs"
+
 import { createTestEntity } from "../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+
+import { PlanConfigurationTypeRef, PlanPricesTypeRef, UpgradePriceService } from "@tutao/entities/sys"
 
 export const PLAN_PRICES = {
-	Free: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Free: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "0.00",
 		business: false,
 		firstYearDiscount: "0",
@@ -17,12 +18,12 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		planName: "Free",
 		businessPlan: false,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "0",
 			whitelabel: false,
 		}),
 	}),
-	PremiumBusiness: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	PremiumBusiness: createTestEntity(PlanPricesTypeRef, {
 		_id: "",
 		_type: undefined,
 		customDomains: "",
@@ -37,12 +38,12 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "2.40",
 		planName: "PremiumBusiness",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "5",
 			whitelabel: false,
 		}),
 	}),
-	Premium: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Premium: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "1.20",
 		business: false,
 		firstYearDiscount: "0",
@@ -52,12 +53,12 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "1.20",
 		planName: "Premium",
 		businessPlan: false,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "5",
 			whitelabel: false,
 		}),
 	}),
-	Pro: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Pro: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "4.80",
 		business: true,
 		firstYearDiscount: "0",
@@ -67,12 +68,12 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "8.40",
 		planName: "Pro",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "20",
 			whitelabel: false,
 		}),
 	}),
-	TeamsBusiness: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	TeamsBusiness: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "3.60",
 		business: true,
 		firstYearDiscount: "0",
@@ -82,12 +83,12 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "6.00",
 		planName: "TeamsBusiness",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "5",
 			whitelabel: false,
 		}),
 	}),
-	Teams: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Teams: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "2.40",
 		business: false,
 		firstYearDiscount: "0",
@@ -97,12 +98,12 @@ export const PLAN_PRICES = {
 		monthlyReferencePrice: "4.80",
 		planName: "Teams",
 		businessPlan: false,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "5",
 			whitelabel: false,
 		}),
 	}),
-	Revolutionary: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Revolutionary: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "3.60",
 		business: true,
 		firstYearDiscount: "0",
@@ -114,12 +115,12 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		planName: "Revolutionary",
 		businessPlan: false,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "15",
 			whitelabel: false,
 		}),
 	}),
-	Legend: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Legend: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "9.60",
 		business: true,
 		firstYearDiscount: "0",
@@ -131,12 +132,12 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		planName: "Legend",
 		businessPlan: false,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "30",
 			whitelabel: false,
 		}),
 	}),
-	Essential: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Essential: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "7.20",
 		business: true,
 		firstYearDiscount: "0",
@@ -148,12 +149,12 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		planName: "Essential",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "15",
 			whitelabel: false,
 		}),
 	}),
-	Advanced: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Advanced: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "9.60",
 		business: true,
 		firstYearDiscount: "0",
@@ -165,12 +166,12 @@ export const PLAN_PRICES = {
 		whitelabel: false,
 		planName: "Advanced",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "30",
 			whitelabel: false,
 		}),
 	}),
-	Unlimited: createTestEntity(sysTypeRefs.PlanPricesTypeRef, {
+	Unlimited: createTestEntity(PlanPricesTypeRef, {
 		additionalUserPriceMonthly: "14.40",
 		business: true,
 		firstYearDiscount: "0",
@@ -182,7 +183,7 @@ export const PLAN_PRICES = {
 		whitelabel: true,
 		planName: "Unlimited",
 		businessPlan: true,
-		planConfiguration: createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, {
+		planConfiguration: createTestEntity(PlanConfigurationTypeRef, {
 			nbrOfAliases: "30",
 			whitelabel: true,
 		}),
@@ -198,7 +199,7 @@ export function createUpgradePriceServiceMock(
 	bonusMonths: number = 0,
 ): IServiceExecutor {
 	const executorMock = object<IServiceExecutor>()
-	when(executorMock.get(sysServices.UpgradePriceService, matchers.anything())).thenResolve({
+	when(executorMock.get(UpgradePriceService, matchers.anything())).thenResolve({
 		premiumPrices: planPrices.Premium,
 		premiumBusinessPrices: planPrices.PremiumBusiness,
 		teamsPrices: planPrices.Teams,

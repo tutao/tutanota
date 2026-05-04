@@ -11,19 +11,21 @@ import { SessionType } from "../../../src/app-env/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
 import * as restError from "@tutao/rest-client/error"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig"
-import { ResumeSessionErrorReason } from "../../../src/network/LoginFacade"
+import { ResumeSessionErrorReason } from "../../../src/base/facades/LoginFacade"
 import { createTestEntity, domainConfigStub, textIncludes } from "../TestUtils.js"
 import { CredentialRemovalHandler } from "../../../src/common/login/CredentialRemovalHandler.js"
-import { NativePushServiceApp } from "../../../src/native-bridge/main/NativePushServiceApp.js"
-import { PersistedCredentials } from "@tutao/native-bridge"
-import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
-import { UnencryptedCredentials } from "@tutao/native-bridge"
+import { NativePushServiceApp } from "../../../src/common/native/NativePushServiceApp.js"
+import { PersistedCredentials } from "../../../src/native-bridge/common/generatedipc/types/PersistedCredentials.js"
+
+import { UnencryptedCredentials } from "../../../src/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { AppLock } from "../../../src/common/login/AppLock.js"
-import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { Credentials } from "../../../src/network/Constants"
+import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
+import { Credentials } from "../../../src/network/types"
+import { CredentialType } from "@tutao/network/types"
+
+import { GroupInfoTypeRef, UserTypeRef } from "@tutao/entities/sys"
 const { anything } = matchers
 
 /**
@@ -126,11 +128,11 @@ o.spec("LoginViewModelTest", () => {
 		loginControllerMock = object<LoginController>()
 		const userControllerMock = object<UserController>()
 
-		replace(userControllerMock, "user", createTestEntity(sysTypeRefs.UserTypeRef))
+		replace(userControllerMock, "user", createTestEntity(UserTypeRef))
 		replace(
 			userControllerMock,
 			"userGroupInfo",
-			createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+			createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "test@example.com",
 			}),
 		)

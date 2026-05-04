@@ -1,17 +1,16 @@
-import { elementIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
-import { ProcessingState } from "@tutao/app-env"
-import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, Nullable } from "@tutao/utils"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { assertNotNull, asyncFind, isDomainName, isRegularExpression, Nullable } from "@tutao/utils"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { assertMainOrNode, InboxRuleType, MailSetKind } from "@tutao/app-env"
+import type { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
+import { assertMainOrNode } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
+import { InboxRule, InboxRuleType, Mail, MailSet, MailSetKind, ProcessingState } from "@tutao/entities/tutanota"
+import { elementIdPart } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -62,10 +61,10 @@ export class InboxRuleHandler {
 	 */
 	async findMatchingInboxRule(
 		mailboxDetail: MailboxDetail,
-		mail: Readonly<tutanotaTypeRefs.Mail>,
-		sourceFolder: tutanotaTypeRefs.MailSet,
+		mail: Readonly<Mail>,
+		sourceFolder: MailSet,
 		ignoreProcessingState = false,
-	): Promise<Nullable<{ targetFolder: tutanotaTypeRefs.MailSet; processInboxDatum: UnencryptedProcessInboxDatum; excludeFromSpamFilter: boolean }>> {
+	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum; excludeFromSpamFilter: boolean }>> {
 		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
 			return null
 		}
@@ -117,15 +116,11 @@ export class InboxRuleHandler {
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export async function _findMatchingRule(
-	mailFacade: MailFacade,
-	mail: tutanotaTypeRefs.Mail,
-	rules: tutanotaTypeRefs.InboxRule[],
-): Promise<tutanotaTypeRefs.InboxRule | null> {
+export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
 	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
 }
 
-async function checkInboxRule(mailFacade: MailFacade, mail: tutanotaTypeRefs.Mail, inboxRule: tutanotaTypeRefs.InboxRule): Promise<boolean> {
+async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
 	const ruleType = inboxRule.type
 	try {
 		if (ruleType === InboxRuleType.FROM_EQUALS) {
@@ -173,12 +168,12 @@ async function checkInboxRule(mailFacade: MailFacade, mail: tutanotaTypeRefs.Mai
 	}
 }
 
-function _checkContainsRule(value: string, inboxRule: tutanotaTypeRefs.InboxRule): boolean {
+function _checkContainsRule(value: string, inboxRule: InboxRule): boolean {
 	return (isRegularExpression(inboxRule.value) && _matchesRegularExpression(value, inboxRule)) || value.includes(inboxRule.value)
 }
 
 /** export for test. */
-export function _matchesRegularExpression(value: string, inboxRule: tutanotaTypeRefs.InboxRule): boolean {
+export function _matchesRegularExpression(value: string, inboxRule: InboxRule): boolean {
 	if (isRegularExpression(inboxRule.value)) {
 		let flags = inboxRule.value.replace(/.*\/([gimsuy]*)$/, "$1")
 		let pattern = inboxRule.value.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1")
@@ -189,7 +184,7 @@ export function _matchesRegularExpression(value: string, inboxRule: tutanotaType
 	return false
 }
 
-function _checkEmailAddresses(mailAddresses: string[], inboxRule: tutanotaTypeRefs.InboxRule): boolean {
+function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): boolean {
 	const mailAddress = mailAddresses.find((mailAddress) => {
 		let cleanMailAddress = mailAddress.toLowerCase().trim()
 

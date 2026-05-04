@@ -1,12 +1,12 @@
+import { CreditCard } from "@tutao/entities/sys"
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete } from "../gui/base/LegacyTextField.js"
+import { Autocomplete } from "../../ui/base/LegacyTextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { TextField, TextFieldAttrs } from "../gui/base/TextField"
-import { Icons } from "../gui/base/icons/Icons"
-import { theme } from "../gui/theme"
-import { styles } from "../gui/styles"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { TextField, TextFieldAttrs } from "../../ui/base/TextField"
+import { Icons } from "../../ui/base/icons/Icons"
+import { theme } from "../../ui/theme"
+import { styles } from "../../ui/styles"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
@@ -15,9 +15,9 @@ export type SimplifiedCreditCardAttrs = {
 export interface CCViewModel {
 	validateCreditCardPaymentData(): TranslationKey | null
 
-	setCreditCardData(data: sysTypeRefs.CreditCard | null): void
+	setCreditCardData(data: CreditCard | null): void
 
-	getCreditCardData(): sysTypeRefs.CreditCard
+	getCreditCardData(): CreditCard
 }
 
 // changing the content (ie grouping) sets selection to the end, this restores it after the next redraw.

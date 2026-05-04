@@ -1,19 +1,20 @@
 import m, { Children } from "mithril"
 import type { lazy } from "@tutao/utils"
 import { assertNotNull } from "@tutao/utils"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { Icons } from "../../common/gui/base/icons/Icons"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { Icons } from "../../ui/base/icons/Icons"
 import { getLanguageCode } from "./TemplateEditorModel"
 import { showTemplateEditor } from "./TemplateEditor"
-import { Dialog } from "../../common/gui/base/Dialog"
-import { lang, languageByCode, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang, languageByCode, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../network/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
-import { ActionBar } from "../../common/gui/base/ActionBar.js"
-import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
+import { ActionBar } from "../../ui/base/ActionBar.js"
+import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer.js"
 import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EmailTemplate, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	// we're not memoizing the translated language name since this is not a proper mithril component and may stick around after a language
@@ -21,7 +22,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	private readonly sanitizedContents: Array<{ text: string; languageCodeTextId: TranslationKey }>
 
 	constructor(
-		private readonly template: tutanotaTypeRefs.EmailTemplate,
+		private readonly template: EmailTemplate,
 		private readonly entityClient: EntityClient,
 		readonly isReadOnly: lazy<boolean>,
 	) {
@@ -81,14 +82,11 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 
 	private async editTemplate() {
 		const { template } = this
-		const groupRoot = await locator.entityClient.load(
-			tutanotaTypeRefs.TemplateGroupRootTypeRef,
-			assertNotNull(template._ownerGroup, "template without ownerGroup!"),
-		)
+		const groupRoot = await locator.entityClient.load(TemplateGroupRootTypeRef, assertNotNull(template._ownerGroup, "template without ownerGroup!"))
 		showTemplateEditor(template, groupRoot)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.resolve()
 	}
 }

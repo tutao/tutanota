@@ -15,7 +15,7 @@ import {
 	ML_URL_REGEX,
 	ML_URL_TOKEN,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/PreprocessPatterns"
-import { isMailAddress } from "../../../../../../src/common/misc/FormatValidator"
+import { isMailAddress } from "../../../../../../src/utils/FormatUtils"
 
 o.spec("PreprocessPatterns", () => {
 	const otherNumberFormats = [

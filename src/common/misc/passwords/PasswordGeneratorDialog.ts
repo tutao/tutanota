@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../gui/base/Dialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { PasswordGenerator } from "./PasswordGenerator"
-import { Button, ButtonType } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator"
-import { px } from "../../gui/size"
-import { copyToClipboard } from "../ClipboardUtils"
-import { InfoLink, lang } from "../LanguageViewModel.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { ExternalLink } from "../../gui/base/ExternalLink.js"
+import { px } from "../../../ui/size"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 
 import { newPromise } from "@tutao/utils"
 
@@ -19,8 +19,7 @@ let dictionary: string[] | null = null
  */
 export async function showPasswordGeneratorDialog(): Promise<string> {
 	if (dictionary == null) {
-		const appState = window.tutao.appState
-		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "") + appState.prefixWithoutFile
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 		dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
 	}
 

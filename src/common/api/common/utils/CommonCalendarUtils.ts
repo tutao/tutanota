@@ -1,10 +1,12 @@
-import { StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
+import { cleanMailAddress } from "@tutao/utils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 import { DAY_IN_MILLIS } from "@tutao/app-env"
 import { stringToBase64UrlCustomId } from "@tutao/utils"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { StrippedEntity } from "@tutao/meta"
 
-export type CalendarEventTimes = Pick<tutanotaTypeRefs.CalendarEvent, "startTime" | "endTime">
+export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
@@ -102,13 +104,6 @@ export function geEventElementMaxId(timestamp: number): string {
  */
 export function getEventElementMinId(timestamp: number): string {
 	return createEventElementId(timestamp, -DAYS_SHIFTED_MS)
-}
-
-/**
- * return a cleaned and comparable version of a mail address without leading/trailing whitespace or uppercase characters.
- */
-export function cleanMailAddress(address: string): string {
-	return address.trim().toLowerCase()
 }
 
 /**
@@ -250,13 +245,13 @@ export function formatJSDate(date: Date) {
 	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
 }
 
-export function isSameExternalEvent(calendarEvent: tutanotaTypeRefs.CalendarEvent, icsCalendarEvent: IcsCalendarEvent) {
+export function isSameExternalEvent(calendarEvent: CalendarEvent, icsCalendarEvent: IcsCalendarEvent) {
 	const sameUid = calendarEvent.uid === icsCalendarEvent.uid
 	const sameRecurrenceId = calendarEvent.recurrenceId?.getTime() === icsCalendarEvent.recurrenceId?.getTime()
 
 	return sameUid && sameRecurrenceId
 }
-export function makeEmptyCalendarEvent(): StrippedEntity<tutanotaTypeRefs.CalendarEvent> {
+export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 	return {
 		alarmInfos: [],
 		invitedConfidentially: null,

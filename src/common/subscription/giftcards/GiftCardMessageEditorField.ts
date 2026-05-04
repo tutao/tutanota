@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { assertNotNull } from "@tutao/utils"
-import { px, size } from "../../gui/size.js"
+import { px, size } from "../../../ui/size.js"
 
 export const GIFT_CARD_MESSAGE_COLS = 26
 const GIFT_CARD_MESSAGE_HEIGHT = 5

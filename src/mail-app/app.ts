@@ -1,15 +1,27 @@
-import { client } from "../app-env/boot/ClientDetector.js"
+import {
+	AppType,
+	assertMainOrNodeBoot,
+	bootFinished,
+	client,
+	FeatureType,
+	isAdminClient,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	ProgrammingError,
+	SessionType,
+} from "@tutao/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
-import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
-import { root } from "../RootView.js"
-import { assertNotNull, isSessionStorageAvailable, neverNull } from "@tutao/utils"
+import { lang, languageCodeToTag, languages } from "../ui/utils/LanguageViewModel.js"
+import { root } from "../ui/base/RootView.js"
+import { assertNotNull, isSessionStorageAvailable } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
-import { styles } from "../common/gui/styles.js"
+import { styles } from "../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./ApplicationPaths.js"
-import { assertMainOrNodeBoot, bootFinished, FeatureType, isApp, isBrowser, isDesktop, isIOSApp, Mode, isAdminClient, ProgrammingError, AppType } from "@tutao/app-env"
 import { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -22,8 +34,8 @@ import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView } from "./settings/SettingsView.js"
 import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
-import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { AppHeaderAttrs } from "../common/gui/Header.js"
+import { TopLevelAttrs, TopLevelView } from "../ui/base/TopLevelView.js"
+import { AppHeaderAttrs } from "../ui/Header.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { LoginController } from "../common/api/main/LoginController.js"
@@ -34,8 +46,6 @@ import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { CacheMode } from "@tutao/network"
-import { SessionType } from "@tutao/app-env"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
@@ -43,6 +53,8 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
+import { CacheMode } from "../network/EntityRestClient"
+import { initUiSingletons } from "../common/api/common/app-common"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -101,27 +113,21 @@ if (!client.isSupported()) {
 // we still want to do this ASAP so we can handle other errors
 setupExceptionHandling()
 
-// If the webapp is served under some folder e.g. /build we want to consider this our root
-const urlPrefixes = extractPathPrefixes()
-// Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
-window.tutao.appState = urlPrefixes
-
 const startRoute = getStartUrl(urlQueryParams)
-history.replaceState(null, "", urlPrefixes.prefix + startRoute)
+history.replaceState(null, "", startRoute)
 
 registerForMailto()
 
-import("./translations/en.js")
+import("../ui/translations/en.js")
 	.then((en) => lang.init(en.default))
 	.then(async () => {
-		await import("../common/gui/main-styles.js")
-
 		// do this after lang initialized
+
 		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
 		const { mailLocator } = await import("./mailLocator.js")
 		await mailLocator.init()
-
 		initCommonLocator(mailLocator)
+		initUiSingletons(windowFacade, mailLocator.themeController)
 
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts({ quickActionsModel: () => mailLocator.quickActionsModel(), logins: mailLocator.logins })
@@ -182,9 +188,9 @@ import("./translations/en.js")
 					}
 
 					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
-						const { tutanotaTypeRefs } = await import("@tutao/typerefs")
+						const { TutanotaPropertiesTypeRef } = await import("@tutao/entities/tutanota")
 						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
-							tutanotaTypeRefs.TutanotaPropertiesTypeRef,
+							TutanotaPropertiesTypeRef,
 							mailLocator.logins.getUserController().user.userGroup.group,
 							{ cacheMode: CacheMode.WriteOnly },
 						)
@@ -270,7 +276,7 @@ import("./translations/en.js")
 				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade, mailLocator.syncTracker)
 			})
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { RegisterPushServicePostLoginAction } = await import("../common/native/main/RegisterPushServicePostLoginAction.js")
+				const { RegisterPushServicePostLoginAction } = await import("../common/native/RegisterPushServicePostLoginAction.js")
 				return new RegisterPushServicePostLoginAction(deviceConfig, mailLocator.pushService)
 			})
 		}
@@ -749,10 +755,8 @@ import("./translations/en.js")
 				mailLocator.logins,
 			),
 		})
-
-		// In some cases our prefix can have non-ascii characters, depending on the path the webapp is served from
-		// see https://github.com/MithrilJS/mithril.js/issues/2659
-		m.route.prefix = neverNull(urlPrefixes.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+		// We set the prefix to empty string intentionally here. See (https://mithril.js.org/route.html?utm_source=chatgpt.com#routing-strategies)
+		m.route.prefix = ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
@@ -768,7 +772,7 @@ import("./translations/en.js")
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path..."] = {
 			onmatch: async () => {
-				const { NotFoundPage } = await import("../common/gui/base/NotFoundPage.js")
+				const { NotFoundPage } = await import("../ui/base/NotFoundPage.js")
 				return {
 					view: () => m(root, m(NotFoundPage)),
 				}
@@ -787,7 +791,6 @@ import("./translations/en.js")
 			const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
 			mailLocator.logins.addPostLoginAction(async () => exposeNativeInterface(mailLocator.native).postLoginActions)
 		}
-		// after we set up prefixWithoutFile
 		const domainConfig = mailLocator.domainConfigProvider().getCurrentDomainConfig()
 		const serviceworker = await import("../common/serviceworker/ServiceWorkerClient.js")
 		serviceworker.init(domainConfig)
@@ -986,12 +989,6 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	}
 }
 
-function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
-	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
-	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
-	return Object.freeze({ prefix, prefixWithoutFile })
-}
-
 function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Redirection triggered by the server or service worker (e.g. the user reloads /mail/id by pressing
 	// F5 and we want to open /login?r=mail/id).
@@ -1026,7 +1023,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Most browsers will keep the hash around even after the redirect unless there's another one provided.
 	// In our case the hash is encoded as part of the query and is not deduplicated like described above so we have to manually do it, otherwise we end
 	// up with double hashes.
-	if (!new URL(urlPrefixes.prefix + target, window.location.href).hash) {
+	if (!new URL(target, window.location.href).hash) {
 		target += location.hash
 	}
 	return target

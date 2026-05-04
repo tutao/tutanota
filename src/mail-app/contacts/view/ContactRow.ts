@@ -1,4 +1,3 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	checkboxOpacity,
 	scaleXHide,
@@ -6,23 +5,24 @@ import {
 	selectableRowAnimParams,
 	SelectableRowContainer,
 	SelectableRowSelectedSetter,
-} from "../../../common/gui/SelectableRowContainer.js"
+} from "../../../ui/SelectableRowContainer.js"
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/utils"
 import m, { Children } from "mithril"
-import { component_size, px, size } from "../../../common/gui/size.js"
-import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
-import { splitTextForHighlighting, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { component_size, px, size } from "../../../ui/size.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../ui/base/ListUtils.js"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { Contact } from "@tutao/entities/tutanota"
 
 export const shiftByForCheckbox = px(component_size.checkbox_size + size.spacing_12)
 export const translateXShow = `translateX(${shiftByForCheckbox})`
 export const translateXHide = "translateX(0)"
 
-export class ContactRow implements VirtualRow<tutanotaTypeRefs.Contact> {
+export class ContactRow implements VirtualRow<Contact> {
 	top: number
 	domElement: HTMLElement | null = null // set from List
 
-	entity: tutanotaTypeRefs.Contact | null
+	entity: Contact | null
 	private selectionUpdater!: SelectableRowSelectedSetter
 	private domName!: HTMLElement
 	private domAddress!: HTMLElement
@@ -31,7 +31,7 @@ export class ContactRow implements VirtualRow<tutanotaTypeRefs.Contact> {
 	private highlightedStrings?: readonly SearchToken[]
 
 	constructor(
-		private readonly onSelected: (entity: tutanotaTypeRefs.Contact, selected: boolean) => unknown,
+		private readonly onSelected: (entity: Contact, selected: boolean) => unknown,
 		private readonly shouldShowCheckbox: () => boolean,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
@@ -40,7 +40,7 @@ export class ContactRow implements VirtualRow<tutanotaTypeRefs.Contact> {
 		this.checkboxWasVisible = this.shouldShowCheckbox()
 	}
 
-	update(contact: tutanotaTypeRefs.Contact, selected: boolean, isInMultiSelect: boolean): void {
+	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
 		const oldEntity = this.entity
 		this.entity = contact
 		const oldHighlightedStrings = this.highlightedStrings

@@ -1,9 +1,9 @@
-import type { LanguageViewModelType } from "../misc/LanguageViewModel"
-import { lang, LanguageViewModel } from "../misc/LanguageViewModel"
+import type { LanguageViewModelType } from "../../ui/utils/LanguageViewModel"
+import { lang, LanguageViewModel } from "../../ui/utils/LanguageViewModel"
 import { delay, downcast, LazyLoaded } from "@tutao/utils"
 import { search } from "../api/common/utils/PlainTextSearch"
 import { ProgrammingError } from "@tutao/app-env"
-import { getHtmlSanitizer, HtmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../gui/utils/HtmlSanitizer.js"
 
 export type FaqEntry = {
 	id: string

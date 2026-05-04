@@ -1,15 +1,14 @@
-import { PartialRecipient, Recipient } from "../api/common/recipients/Recipient.js"
 import { RecipientsModel } from "../api/main/RecipientsModel.js"
 import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
-import { isMailAddress } from "./FormatValidator.js"
+import { isMailAddress } from "../../utils/FormatUtils.js"
 import { ofClass } from "@tutao/utils"
 import { DbError } from "../api/common/error/DbError.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { LoginIncompleteError } from "../../network/error/LoginIncompleteError.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { EntityClient } from "../../network/EntityClient.js"
-import { ContactSuggestion } from "@tutao/native-bridge/common"
+import { ContactSuggestion } from "@tutao/native-bridge/generatedIpc/types"
+import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { ContactListEntryTypeRef, ContactTypeRef, PartialRecipient, Recipient } from "@tutao/entities/tutanota"
 
 const MaxNativeSuggestions = 10
 
@@ -96,7 +95,7 @@ export class RecipientsSearchModel {
 	}
 
 	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
-		const entries = await this.entityClient.loadAll(tutanotaTypeRefs.ContactListEntryTypeRef, contactList.groupRoot.entries)
+		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.entries)
 		return entries.map((entry) => {
 			// just create a resolvable recipient
 			// all the places resolve the recipients when they need to
@@ -119,7 +118,7 @@ export class RecipientsSearchModel {
 				ofClass(DbError, async () => {
 					const listId = await this.contactModel.getContactListId()
 					if (listId) {
-						return locator.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, listId)
+						return locator.entityClient.loadAll(ContactTypeRef, listId)
 					} else {
 						return []
 					}

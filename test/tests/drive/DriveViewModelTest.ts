@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { EntityClient } from "../../../src/network/EntityClient"
 import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
-import { Router } from "../../../src/common/gui/ScopedRouter"
+import { Router } from "../../../src/ui/ScopedRouter"
 import { TransferProgressDispatcher } from "../../../src/common/api/main/TransferProgressDispatcher"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { LoginController } from "../../../src/common/api/main/LoginController"
@@ -11,15 +11,18 @@ import { matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
 import { verify } from "@tutao/otest"
-import { driveTypeRefs } from "@tutao/typerefs"
+
 import { UserController } from "../../../src/common/api/main/UserController"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { elementIdPart, getElementId } from "@tutao/typerefs"
+
+import { elementIdPart, getElementId } from "../../../src/meta"
 import { FolderItemId } from "../../../src/drive-app/drive/view/DriveUtils"
 import { DriveTransferController } from "../../../src/drive-app/drive/view/DriveTransferController"
-import { WebFile } from "../../../src/common/api/common/utils/FileUtils"
 
+import { WebFile } from "../../../src/entities/tutanota/Utils"
+import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, createDriveFolder } from "@tutao/entities/drive"
+
+import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
 
@@ -40,7 +43,7 @@ o.spec("DriveViewModel", function () {
 	}
 
 	const rootFolders = {
-		root: driveTypeRefs.createDriveFolder({
+		root: createDriveFolder({
 			_id: rootIds.root,
 			type: DriveFolderType.Root,
 			name: "",
@@ -50,7 +53,7 @@ o.spec("DriveViewModel", function () {
 			createdDate: new Date(1),
 			originalParent: null,
 		}),
-		trash: driveTypeRefs.createDriveFolder({
+		trash: createDriveFolder({
 			_id: rootIds.trash,
 			type: DriveFolderType.Trash,
 			name: "",
@@ -71,16 +74,16 @@ o.spec("DriveViewModel", function () {
 		eventController = object()
 		loginController = object()
 
-		const props = createTestEntity(tutanotaTypeRefs.TutanotaPropertiesTypeRef, {
+		const props = createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: "user@tuta.com",
 		})
-		const userGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+		const userGroupInfo = createTestEntity(GroupInfoTypeRef, {
 			mailAddress: props.defaultSender,
 		})
 		userController = {
 			props,
 			userGroupInfo: userGroupInfo,
-			getPlanConfig: async () => createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, { drive: true }),
+			getPlanConfig: async () => createTestEntity(PlanConfigurationTypeRef, { drive: true }),
 		} satisfies Partial<UserController> as UserController
 		userManagementFacade = object()
 
@@ -117,14 +120,14 @@ o.spec("DriveViewModel", function () {
 
 			const items: FolderItemId[] = [...files, ...folders]
 
-			const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const driveFiles: DriveFile[] = files.map((f) =>
+				createTestEntity(DriveFileTypeRef, {
 					_id: f.id,
 					name: `my favorite file ${f.id}`,
 				}),
 			)
-			const driveFolders: driveTypeRefs.DriveFolder[] = folders.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+			const driveFolders: DriveFolder[] = folders.map((f) =>
+				createTestEntity(DriveFolderTypeRef, {
 					_id: f.id,
 					name: `my favorite folder ${f.id}`,
 				}),
@@ -152,9 +155,9 @@ o.spec("DriveViewModel", function () {
 
 			const items: FolderItemId[] = [...files, ...folders]
 
-			const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) => createTestEntity(driveTypeRefs.DriveFileTypeRef, { _id: f.id, name: `file1` }))
-			const driveFolders: driveTypeRefs.DriveFolder[] = folders.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+			const driveFiles: DriveFile[] = files.map((f) => createTestEntity(DriveFileTypeRef, { _id: f.id, name: `file1` }))
+			const driveFolders: DriveFolder[] = folders.map((f) =>
+				createTestEntity(DriveFolderTypeRef, {
 					_id: f.id,
 					name: `my favorite folder ${f.id}`,
 				}),
@@ -186,14 +189,14 @@ o.spec("DriveViewModel", function () {
 
 			const items: FolderItemId[] = [...files, ...folders]
 
-			const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const driveFiles: DriveFile[] = files.map((f) =>
+				createTestEntity(DriveFileTypeRef, {
 					_id: f.id,
 					name: `my favorite file ${f.id}`,
 				}),
 			)
-			const driveFolders: driveTypeRefs.DriveFolder[] = folders.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+			const driveFolders: DriveFolder[] = folders.map((f) =>
+				createTestEntity(DriveFolderTypeRef, {
 					_id: f.id,
 					name: `folder1`,
 				}),
@@ -221,14 +224,14 @@ o.spec("DriveViewModel", function () {
 
 				const items: FolderItemId[] = [...files, ...folders]
 
-				const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-					createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+				const driveFiles: DriveFile[] = files.map((f) =>
+					createTestEntity(DriveFileTypeRef, {
 						_id: f.id,
 						name: `same name`,
 					}),
 				)
-				const driveFolders: driveTypeRefs.DriveFolder[] = folders.map((f) =>
-					createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+				const driveFolders: DriveFolder[] = folders.map((f) =>
+					createTestEntity(DriveFolderTypeRef, {
 						_id: f.id,
 						name: `same name`,
 					}),
@@ -252,16 +255,16 @@ o.spec("DriveViewModel", function () {
 			async function () {
 				const files: FolderItemId[] = [{ type: "file", id: ["lid1", "eid1"] }]
 				const items: FolderItemId[] = [...files]
-				const existingFiles: driveTypeRefs.DriveFile[] = [
-					createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+				const existingFiles: DriveFile[] = [
+					createTestEntity(DriveFileTypeRef, {
 						_id: ["lid1", "eid0"],
 						name: `same name`,
 					}),
 				]
 				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
 
-				const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-					createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+				const driveFiles: DriveFile[] = files.map((f) =>
+					createTestEntity(DriveFileTypeRef, {
 						_id: f.id,
 						name: `same name`,
 					}),
@@ -284,16 +287,16 @@ o.spec("DriveViewModel", function () {
 			async function () {
 				const folders: FolderItemId[] = [{ type: "folder", id: ["lid1", "eid1"] }]
 				const items: FolderItemId[] = [...folders]
-				const existingFiles: driveTypeRefs.DriveFile[] = [
-					createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+				const existingFiles: DriveFile[] = [
+					createTestEntity(DriveFileTypeRef, {
 						_id: ["lid1", "eid0"],
 						name: `same name`,
 					}),
 				]
 				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
 
-				const driveFolders: driveTypeRefs.DriveFolder[] = folders.map((f) =>
-					createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+				const driveFolders: DriveFolder[] = folders.map((f) =>
+					createTestEntity(DriveFolderTypeRef, {
 						_id: f.id,
 						name: `same name`,
 					}),
@@ -375,8 +378,8 @@ o.spec("DriveViewModel", function () {
 					},
 				]
 
-				const existingFolders: driveTypeRefs.DriveFolder[] = [
-					createTestEntity(driveTypeRefs.DriveFolderTypeRef, {
+				const existingFolders: DriveFolder[] = [
+					createTestEntity(DriveFolderTypeRef, {
 						_id: ["lid1", "eid0"],
 						name: `meow (copy)`,
 					}),
@@ -394,8 +397,8 @@ o.spec("DriveViewModel", function () {
 
 	o.spec("moveItems", function () {
 		o.test("when moving item with the same name as existing one the it gets renamed", async function () {
-			const existingFiles: driveTypeRefs.DriveFile[] = [
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const existingFiles: DriveFile[] = [
+				createTestEntity(DriveFileTypeRef, {
 					_id: ["lid1", "eid0"],
 					name: `same name`,
 				}),
@@ -403,8 +406,8 @@ o.spec("DriveViewModel", function () {
 			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
 
 			const files: FolderItemId[] = [{ type: "file", id: ["lid1", "eid1"] }]
-			const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const driveFiles: DriveFile[] = files.map((f) =>
+				createTestEntity(DriveFileTypeRef, {
 					_id: f.id,
 					name: `same name`,
 				}),
@@ -416,8 +419,8 @@ o.spec("DriveViewModel", function () {
 		})
 
 		o.test("when moving items and the picked name conflicts with existing one it gets renamed", async function () {
-			const existingFiles: driveTypeRefs.DriveFile[] = [
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const existingFiles: DriveFile[] = [
+				createTestEntity(DriveFileTypeRef, {
 					_id: ["lid1", "eid0"],
 					name: `same name (copy)`,
 				}),
@@ -428,8 +431,8 @@ o.spec("DriveViewModel", function () {
 				{ type: "file", id: ["lid1", "eid1"] },
 				{ type: "file", id: ["lid1", "eid2"] },
 			]
-			const driveFiles: driveTypeRefs.DriveFile[] = files.map((f) =>
-				createTestEntity(driveTypeRefs.DriveFileTypeRef, {
+			const driveFiles: DriveFile[] = files.map((f) =>
+				createTestEntity(DriveFileTypeRef, {
 					_id: f.id,
 					name: `same name`,
 				}),

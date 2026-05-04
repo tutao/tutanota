@@ -1,13 +1,11 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Checkbox } from "../../../common/gui/base/Checkbox.js"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { Checkbox } from "../../../ui/base/Checkbox.js"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import m from "mithril"
-import { MailReportType, ReportMovedMailsType } from "@tutao/app-env"
-import { ButtonAttrs, ButtonType } from "../../../common/gui/base/Button.js"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
+import { Dialog } from "../../../ui/base/Dialog"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
-
+import { Mail, MailReportType, ReportMovedMailsType } from "@tutao/entities/tutanota"
 import { newPromise } from "@tutao/utils"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
@@ -68,7 +66,7 @@ export async function reportMailsAutomatically(
 	mailReportType: MailReportType,
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	mails: () => Promise<ReadonlyArray<tutanotaTypeRefs.Mail>>,
+	mails: () => Promise<ReadonlyArray<Mail>>,
 ): Promise<void> {
 	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel)
 	if (shouldReportMails) {

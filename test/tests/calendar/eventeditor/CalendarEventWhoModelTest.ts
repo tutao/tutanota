@@ -1,9 +1,8 @@
 import o from "@tutao/otest"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { matchers, object, replace, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
-import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
-import { CalendarAttendeeStatus, PresentableKeyVerificationState, ShareCapability } from "../../../../src/app-env"
+import { PresentableKeyVerificationState, ShareCapability } from "../../../../src/app-env"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
@@ -29,11 +28,18 @@ import { ProgrammingError } from "@tutao/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
-import { AccountType } from "../../../../src/app-env"
-
-type CalendarEvent = tutanotaTypeRefs.CalendarEvent
-const CalendarEventAttendeeTypeRef = tutanotaTypeRefs.CalendarEventAttendeeTypeRef
-const CalendarEventTypeRef = tutanotaTypeRefs.CalendarEventTypeRef
+import {
+	CalendarAttendeeStatus,
+	CalendarEvent,
+	CalendarEventAttendeeTypeRef,
+	CalendarEventTypeRef,
+	EncryptedMailAddressTypeRef,
+	Recipient,
+	RecipientType,
+	UserSettingsGroupRootTypeRef,
+	createCalendarEventAttendee,
+} from "@tutao/entities/tutanota"
+import { AccountType, UserTypeRef } from "@tutao/entities/sys"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
@@ -289,11 +295,11 @@ o.spec("CalendarEventWhoModel", function () {
 			o(result.cancelModel).equals(null)
 			o(result.responseModel).equals(null)
 			o(result.attendees).deepEquals([
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: ownerAlias,
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: otherAddress,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
@@ -388,15 +394,15 @@ o.spec("CalendarEventWhoModel", function () {
 			await model.recipientsSettled
 			const resultBeforeRemove = model.result
 			o(resultBeforeRemove.attendees).deepEquals([
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: ownerAddress,
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: otherAddress,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: otherAddress2,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
@@ -405,11 +411,11 @@ o.spec("CalendarEventWhoModel", function () {
 			model.removeAttendee(otherAddress.address)
 			const result = model.result
 			o(result.attendees).deepEquals([
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: ownerAddress,
 					status: CalendarAttendeeStatus.ACCEPTED,
 				}),
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: otherAddress2,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
@@ -457,11 +463,11 @@ o.spec("CalendarEventWhoModel", function () {
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })
 			const { attendees } = model.result
 			o(attendees).deepEquals([
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: ownerAddress,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
-				tutanotaTypeRefs.createCalendarEventAttendee({
+				createCalendarEventAttendee({
 					address: otherAddress,
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 				}),
@@ -469,7 +475,7 @@ o.spec("CalendarEventWhoModel", function () {
 		})
 		o("adding only oneself as an organizer but no attendees results in a result without organizer or attendees", function () {
 			const model = getNewModel({})
-			model.addAttendee(createTestEntity(tutanotaTypeRefs.EncryptedMailAddressTypeRef, { address: ownAddresses[0].address }))
+			model.addAttendee(createTestEntity(EncryptedMailAddressTypeRef, { address: ownAddresses[0].address }))
 			o(model.guests.length).equals(0)
 			o(model.organizer?.address).equals(ownAddresses[0].address)
 			o(model.result.organizer).equals(null)
@@ -599,7 +605,7 @@ o.spec("CalendarEventWhoModel", function () {
 		o.spec("getAvailableCalendars", function () {
 			o.beforeEach(() => {
 				const userSettingsGroupRoot = createTestEntity(
-					tutanotaTypeRefs.UserSettingsGroupRootTypeRef,
+					UserSettingsGroupRootTypeRef,
 					downcast({
 						groupSettings: [
 							{
@@ -610,7 +616,7 @@ o.spec("CalendarEventWhoModel", function () {
 					}),
 				)
 				replace(userController, "userSettingsGroupRoot", Object.assign({}, userController.userSettingsGroupRoot, userSettingsGroupRoot))
-				replace(userController, "user", createTestEntity(sysTypeRefs.UserTypeRef, { _id: "ownerId" }))
+				replace(userController, "user", createTestEntity(UserTypeRef, { _id: "ownerId" }))
 				addCapability(userController.user, "ownExternalCalendar", ShareCapability.Read) // External calendars are actually normal user owned calendars handled as Read Only
 			})
 			o("it returns the owned calendars and shared calendars we have write access to when there are no attendees", function () {

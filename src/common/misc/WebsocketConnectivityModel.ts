@@ -1,14 +1,9 @@
 import stream from "mithril/stream"
 import { identity } from "@tutao/utils"
-import { CloseEventBusOption } from "@tutao/app-env"
 import { ExposedEventBus } from "../api/worker/workerInterfaces.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { WsConnectionState } from "@tutao/network"
-
-export interface WebsocketConnectivityListener {
-	updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void>
-	onLeaderStatusMessageReceived(leaderStatus: sysTypeRefs.WebsocketLeaderStatus): Promise<void>
-}
+import { CloseEventBusOption, WsConnectionState } from "../../network/Constants"
+import { WebsocketConnectivityListener } from "../../network/WebsocketConnectivityListener"
+import { WebsocketLeaderStatus } from "@tutao/entities/sys"
 
 const TAG = "[WebsocketConnectivityModel]"
 
@@ -34,7 +29,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	 * Gets invoked by the worker thread whenever there is a new leader status message received by the EventBus.
 	 * @param wsLeaderStatus
 	 */
-	async onLeaderStatusMessageReceived(wsLeaderStatus: sysTypeRefs.WebsocketLeaderStatus): Promise<void> {
+	async onLeaderStatusMessageReceived(wsLeaderStatus: WebsocketLeaderStatus): Promise<void> {
 		if (wsLeaderStatus.leaderStatus !== this.leaderStatus) {
 			this.leaderStatus = wsLeaderStatus.leaderStatus
 			await this.notifyListeners()

@@ -1,22 +1,21 @@
 import m, { Children } from "mithril"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { locator } from "../../api/main/CommonLocator"
-import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
+import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { UserError } from "../../api/main/UserError"
-import { Dialog } from "../../gui/base/Dialog"
-import { ButtonType } from "../../gui/base/Button.js"
-import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { copyToClipboard } from "../../misc/ClipboardUtils"
-import { Checkbox } from "../../gui/base/Checkbox.js"
-import { Keys } from "@tutao/app-env"
+import { Dialog } from "../../../ui/base/Dialog"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { DefaultAnimationTime } from "../../../ui/animation/Animations"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
+import { Checkbox } from "../../../ui/base/Checkbox.js"
+import { isAndroidApp, isApp, Keys } from "@tutao/app-env"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
-import { IconButton } from "../../gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { formatPrice } from "../utils/PriceUtils.js"
-import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { urlEncodeHtmlTags } from "../../misc/Formatter.js"
+import { getHtmlSanitizer } from "../../gui/utils/HtmlSanitizer.js"
+import { urlEncodeHtmlTags } from "../../../ui/utils/Formatter.js"
 import QRCode from "qrcode-svg"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { isAndroidApp, isApp } from "@tutao/app-env"
+import { CustomerInfo, CustomerInfoTypeRef, CustomerTypeRef, GiftCard, GiftCardTypeRef } from "@tutao/entities/sys"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -40,21 +39,21 @@ export async function getTokenFromUrl(url: string): Promise<{ id: Id; key: strin
 	}
 }
 
-export function loadGiftCards(customerId: Id): Promise<sysTypeRefs.GiftCard[]> {
+export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 	const entityClient = locator.entityClient
 	return entityClient
-		.load(sysTypeRefs.CustomerTypeRef, customerId)
-		.then((customer) => entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo))
-		.then((customerInfo: sysTypeRefs.CustomerInfo) => {
+		.load(CustomerTypeRef, customerId)
+		.then((customer) => entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+		.then((customerInfo: CustomerInfo) => {
 			if (customerInfo.giftCards) {
-				return entityClient.loadAll(sysTypeRefs.GiftCardTypeRef, customerInfo.giftCards.items)
+				return entityClient.loadAll(GiftCardTypeRef, customerInfo.giftCards.items)
 			} else {
 				return Promise.resolve([])
 			}
 		})
 }
 
-export async function generateGiftCardLink(giftCard: sysTypeRefs.GiftCard): Promise<string> {
+export async function generateGiftCardLink(giftCard: GiftCard): Promise<string> {
 	const token = await locator.giftCardFacade.encodeGiftCardToken(giftCard)
 	const giftCardBaseUrl = locator.domainConfigProvider().getCurrentDomainConfig().giftCardBaseUrl
 	const giftCardUrl = new URL(giftCardBaseUrl)
@@ -62,7 +61,7 @@ export async function generateGiftCardLink(giftCard: sysTypeRefs.GiftCard): Prom
 	return giftCardUrl.href
 }
 
-export function showGiftCardToShare(giftCard: sysTypeRefs.GiftCard) {
+export function showGiftCardToShare(giftCard: GiftCard) {
 	generateGiftCardLink(giftCard).then((link) => {
 		let infoMessage: MaybeTranslation = "emptyString_msg"
 		const dialog: Dialog = Dialog.largeDialog(
@@ -157,7 +156,7 @@ const giftCardSVGGetter = new (class GiftCardSVGGetter {
 	private static giftCardSvg: string | null = null
 	private static giftCardNoQrSvg: string | null = null
 
-	// Returns a cached `gift-card.svg` or downloads it if online. Returns a placeholder if local-store.
+	// Returns a cached `gift-card.svg` or downloads it if online. Returns a placeholder if offline.
 	getWithQr(): string {
 		if (GiftCardSVGGetter.giftCardSvg == null) {
 			GiftCardSVGGetter.downloadSVG("gift-card", (rawSVG) => {
@@ -169,7 +168,7 @@ const giftCardSVGGetter = new (class GiftCardSVGGetter {
 		return GiftCardSVGGetter.giftCardSvg
 	}
 
-	// Returns a cached `gift-card-no-qr.svg` or downloads it if online. Returns a placeholder if local-store.
+	// Returns a cached `gift-card-no-qr.svg` or downloads it if online. Returns a placeholder if offline.
 	getNoQr(): string {
 		if (GiftCardSVGGetter.giftCardNoQrSvg == null) {
 			GiftCardSVGGetter.downloadSVG("gift-card-no-qr", (rawSVG) => {
@@ -183,7 +182,7 @@ const giftCardSVGGetter = new (class GiftCardSVGGetter {
 
 	// Downloads an SVG from the images folder without returning a promise via using a callback
 	private static downloadSVG(fileName: string, onComplete: (rawSVG: string) => void) {
-		fetch(`${window.tutao.appState.prefixWithoutFile}/images/${fileName}.svg`).then(
+		fetch(`/images/${fileName}.svg`).then(
 			async (res) => {
 				onComplete(await res.text())
 			},

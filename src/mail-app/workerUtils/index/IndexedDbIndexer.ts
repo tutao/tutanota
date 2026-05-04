@@ -1,26 +1,9 @@
-import {
-	CancelledError,
-	daysToMillis,
-	ENTITY_EVENT_BATCH_TTL_DAYS,
-	GroupType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-	ProgrammingError,
-} from "@tutao/app-env"
+import { CancelledError, daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
-import {
-	ClientTypeModelResolver,
-	entityUpdateUtils,
-	getMembershipGroupType,
-	isSameId,
-	isSameTypeRef,
-	sysTypeRefs,
-	timestampToGeneratedId,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
+import { isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "@tutao/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "@tutao/utils"
+import { contains, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
@@ -28,8 +11,8 @@ import { ContactIndexer } from "./ContactIndexer.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
-import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
-import { EventQueue } from "../../../common/api/worker/EventQueue.js"
+import type { QueuedBatch } from "../../../network/EventQueue.js"
+import { EventQueue } from "../../../network/EventQueue.js"
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../network/EntityClient.js"
@@ -57,16 +40,20 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { KeyLoaderFacade } from "../../../network/crypto/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../base/crypto/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import { DateProvider } from "../../../utils/DateProvider"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
-import { OutOfSyncError } from "../../../local-store/OutOfSyncError"
+import { OutOfSyncError } from "../../../app-env/OutOfSyncError"
+import { MailTypeRef } from "@tutao/entities/tutanota"
+import { GroupMembership, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { getMembershipGroupType } from "../../../common/sharing/GroupUtils"
 
 export type InitParams = {
-	user: sysTypeRefs.User
+	user: User
 }
 
 const DB_VERSION: number = 3
@@ -150,7 +137,7 @@ export class IndexedDbIndexer implements Indexer {
 	) {}
 
 	async partialLoginInit() {
-		// no-op: this is not intended to be used local-store / partial login
+		// no-op: this is not intended to be used offline / partial login
 	}
 
 	/**
@@ -221,7 +208,7 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	private getDbId(user: sysTypeRefs.User) {
+	private getDbId(user: User) {
 		return b64UserIdHash(user._id)
 	}
 
@@ -302,7 +289,7 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.resume()
 	}
 
-	async processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
+	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		try {
 			await this.throwIfOutOfDate()
 			await this.writeServerTimestamp()
@@ -337,7 +324,7 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	private async createIndexTables(user: sysTypeRefs.User, userGroupKey: VersionedKey): Promise<void> {
+	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
 		const key = aes256RandomKey()
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		this.db.init({ key, iv })
@@ -353,7 +340,7 @@ export class IndexedDbIndexer implements Indexer {
 		await this.updateIndexedGroups()
 	}
 
-	private async loadIndexTables(user: sysTypeRefs.User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
+	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
 		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
 		const iv = aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv))
 		this.db.init({ key, iv })
@@ -378,7 +365,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	/** @private visibleForTesting */
-	_loadGroupDiff(user: sysTypeRefs.User): Promise<GroupDiff> {
+	_loadGroupDiff(user: User): Promise<GroupDiff> {
 		let currentGroups: Array<GroupDiffGroup> = filterIndexMemberships(user)
 			.concat(user.userGroup)
 			.map((m) => {
@@ -424,7 +411,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 * @private visibleForTesting
 	 */
-	async _updateGroups(user: sysTypeRefs.User, groupDiff: GroupDiff): Promise<void> {
+	async _updateGroups(user: User, groupDiff: GroupDiff): Promise<void> {
 		if (groupDiff.deletedGroups.some((g) => g.type === GroupType.Mail || g.type === GroupType.Contact)) {
 			throw new MembershipRemovedError("user has been removed from contact or mail group") // user has been removed from a shared group
 		}
@@ -443,7 +430,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * Provides a GroupData object including the last 100 event batch ids for all indexed membership groups of the given user.
 	 * @private visibleForTesting
 	 */
-	_loadGroupData(user: sysTypeRefs.User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
+	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
 		let memberships = filterIndexMemberships(user).concat(user.userGroup)
 
 		const restrictTo = restrictToTheseGroups // type check
@@ -452,7 +439,7 @@ export class IndexedDbIndexer implements Indexer {
 			memberships = memberships.filter((membership) => contains(restrictTo, membership.group))
 		}
 
-		return promiseMap(memberships, async (membership: sysTypeRefs.GroupMembership) => {
+		return promiseMap(memberships, async (membership: GroupMembership) => {
 			const FIVE_SECONDS_IN_MILLISECONDS = 5000
 			const lastProcessedBatchId =
 				(await this.core.getLastProcessedEventBatchIdForGroup(membership.group)) ??
@@ -515,9 +502,9 @@ export class IndexedDbIndexer implements Indexer {
 	 *
 	 * ATTENTION: Must be called before the group batch ID is written.
 	 */
-	private async processMailEntityEvents(events: Iterable<entityUpdateUtils.EntityUpdateData>) {
+	private async processMailEntityEvents(events: Iterable<EntityUpdateData>) {
 		for (const event of events) {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, event)) {
+			if (isUpdateForTypeRef(MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
 				try {
 					switch (event.operation) {
@@ -545,18 +532,14 @@ export class IndexedDbIndexer implements Indexer {
 	/**
 	 * @private visibleForTesting
 	 */
-	async _processUserEntityEvents(events: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
+	async _processUserEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
 			if (
-				!(
-					event.operation === OperationType.UPDATE &&
-					isSameTypeRef(sysTypeRefs.UserTypeRef, event.typeRef) &&
-					isSameId(this.initParams.user._id, event.instanceId)
-				)
+				!(event.operation === OperationType.UPDATE && isSameTypeRef(UserTypeRef, event.typeRef) && isSameId(this.initParams.user._id, event.instanceId))
 			) {
 				continue
 			}
-			this.initParams.user = await this.entity.load(sysTypeRefs.UserTypeRef, event.instanceId)
+			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)
 			await updateEncryptionMetadata(this.db.dbFacade, this.keyLoaderFacade, MetaDataOS)
 		}
 	}
@@ -594,7 +577,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	async resizeMailIndex(_: number) {
-		throw new ProgrammingError("resizeMailIndex can only be called with local-store storage")
+		throw new ProgrammingError("resizeMailIndex can only be called with offline storage")
 	}
 
 	async rebuildMailIndex() {

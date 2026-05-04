@@ -1,79 +1,100 @@
 import o, { spy } from "@tutao/otest"
 import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
-import { CryptoFacade } from "../../../../src/network/crypto/facades/CryptoFacade.js"
-import {
-	BucketPermissionType,
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	EncryptionKeyVerificationState,
-	GroupType,
-	PermissionType,
-	PresentableKeyVerificationState,
-	ProcessingState,
-	PublicKeyIdentifierType,
-} from "@tutao/app-env"
-import {
-	asCryptoProtoocolVersion,
-	AttributeModel,
-	elementIdPart,
-	getListId,
-	isSameId,
-	listIdPart,
-	ServerModelUntypedInstance,
-	sysServices,
-	sysTypeRefs,
-	tutanotaTypeRefs,
-	TypeModel,
-	TypeModelResolver,
-	UntypedInstance,
-} from "@tutao/typerefs"
+import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/app-env"
+import { asCryptoProtoocolVersion } from "../../../../src/base/crypto/Constants.js"
+import { AttributeModel, elementIdPart, getListId, isSameId, listIdPart, ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../src/meta"
 import { RestClient, restError } from "@tutao/rest-client"
 import { HttpMethod } from "@tutao/rest-client/types"
 import { EntityClient } from "../../../../src/network/EntityClient.js"
 import {
 	Aes256Key,
+	AesKey,
+	CryptoWrapper,
+	KeyPairType,
+	PQPublicKeys,
+	PublicKeyIdentifierType,
+	RsaPublicKey,
+	X25519KeyPair,
+	X25519PublicKey,
 	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
-	AesKey,
 	bitArrayToUint8Array,
 	cryptoUtils,
-	CryptoWrapper,
 	decryptKey,
 	encryptKey,
 	encryptRsaKey,
 	generateX25519KeyPair,
-	InstanceSessionKeysCache,
-	KeyPairType,
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
-	PQPublicKeys,
-	RsaPublicKey,
 	rsaPublicKeyToHex,
-	X25519KeyPair,
-	X25519PublicKey,
 } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../src/network/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../../src/network/UserFacade.js"
+import { UserFacade } from "../../../../src/base/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { WASMKyberFacade } from "../../../../src/network/crypto/facades/KyberFacade.js"
-import { PQFacade } from "../../../../src/network/crypto/facades/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/network/crypto/facades/PQMessage.js"
+import { WASMKyberFacade } from "../../../../src/base/crypto/KyberFacade.js"
+import { PQFacade } from "../../../../src/base/crypto/PQFacade.js"
+import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/base/crypto/PQMessage.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { AsymmetricCryptoFacade } from "../../../../src/network/crypto/facades/AsymmetricCryptoFacade.js"
-import { VerifiedPublicEncryptionKey } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
-import { KeyLoaderFacade } from "../../../../src/network/crypto/facades/KeyLoaderFacade.js"
-import { PublicEncryptionKeyProvider } from "../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
-import { KeyRotationFacade } from "../../../../src/network/crypto/facades/KeyRotationFacade.js"
-import { EntityAdapter } from "@tutao/instance-pipeline"
-import { KeyVerificationMismatchError } from "../../../../src/network/crypto/error/KeyVerificationMismatchError"
+import { AsymmetricCryptoFacade } from "../../../../src/base/crypto/AsymmetricCryptoFacade.js"
+import { VerifiedPublicEncryptionKey } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
+import { KeyLoaderFacade } from "../../../../src/base/crypto/KeyLoaderFacade.js"
+import PublicEncryptionKeyProvider from "../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
+import { KeyRotationFacade } from "../../../../src/base/crypto/KeyRotationFacade.js"
+import { EntityAdapter, TypeModelResolver } from "@tutao/instance-pipeline"
+import { KeyVerificationMismatchError } from "../../../../src/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
 import { CacheManagementInterface } from "../../../../src/local-store/CacheManagementInterface"
+import { ProcessingState } from "../../../../src/entities/tutanota"
+import { PermissionType } from "../../../../src/entities/sys"
+import {
+	FileTypeRef,
+	InternalRecipientKeyData,
+	Mail,
+	MailAddressTypeRef,
+	MailDetailsBlobTypeRef,
+	MailTypeRef,
+	createMail,
+	createMailAddress,
+} from "@tutao/entities/tutanota"
+import {
+	BucketKey,
+	BucketKeyTypeRef,
+	BucketPermissionTypeRef,
+	BucketTypeRef,
+	CustomerAccountTerminationRequestTypeRef,
+	Group,
+	GroupKeysRefTypeRef,
+	GroupMembershipTypeRef,
+	GroupType,
+	GroupTypeRef,
+	InstanceSessionKey,
+	InstanceSessionKeyTypeRef,
+	KeyPair,
+	KeyPairTypeRef,
+	PermissionTypeRef,
+	TypeInfoTypeRef,
+	UpdatePermissionKeyData,
+	UpdatePermissionKeyService,
+	User,
+	UserTypeRef,
+	createBucket,
+	createBucketKey,
+	createBucketPermission,
+	createGroup,
+	createInstanceSessionKey,
+	createKeyPair,
+	createPermission,
+	createTypeInfo,
+} from "@tutao/entities/sys"
+import { BucketPermissionType } from "../../../../src/base/crypto/Constants.js"
+import { InstanceSessionKeysCache } from "../../../../src/local-store/InstanceSessionKeysCache.js"
 
 const { anything, argThat } = matchers
 
@@ -85,10 +106,10 @@ let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
  * Helper to have all the mocked items available in the test case.
  */
 type TestUser = {
-	user: sysTypeRefs.User
+	user: User
 	name: string
-	userGroup: sysTypeRefs.Group
-	mailGroup: sysTypeRefs.Group
+	userGroup: Group
+	mailGroup: Group
 	userGroupKey: AesKey
 	mailGroupKey: AesKey
 }
@@ -118,16 +139,16 @@ o.spec("CryptoFacadeTest", function () {
 		bk: AesKey,
 		pubEncBucketKey: Uint8Array,
 		recipientUser: TestUser,
-		mail: tutanotaTypeRefs.Mail,
+		mail: Mail,
 		senderPubEccKey: Versioned<X25519PublicKey> | undefined,
 		recipientKeyVersion: NumberString,
 		protocolVersion: CryptoProtocolVersion,
 		asymmetricCryptoFacade: AsymmetricCryptoFacade,
 	) {
-		const MailTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.MailTypeRef)
+		const MailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
-		const mailInstanceSessionKey = createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
-			typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef, {
+		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
 				typeId: String(MailTypeModel.id),
 			}),
@@ -135,10 +156,10 @@ o.spec("CryptoFacadeTest", function () {
 			instanceList: "mailListId",
 			instanceId: "mailId",
 		})
-		const FileTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.FileTypeRef)
+		const FileTypeModel = await typeModelResolver.resolveClientTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
-			return createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
-				typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef, {
+			return createTestEntity(InstanceSessionKeyTypeRef, {
+				typeInfo: createTestEntity(TypeInfoTypeRef, {
 					application: FileTypeModel.app,
 					typeId: String(FileTypeModel.id),
 				}),
@@ -149,7 +170,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
-		const bucketKey = createTestEntity(sysTypeRefs.BucketKeyTypeRef, {
+		const bucketKey = createTestEntity(BucketKeyTypeRef, {
 			pubEncBucketKey,
 			keyGroup: recipientUser.userGroup._id,
 			bucketEncSessionKeys: bucketEncSessionKeys,
@@ -196,7 +217,7 @@ o.spec("CryptoFacadeTest", function () {
 			restClient,
 			serviceExecutor,
 			instancePipeline,
-			async () => object<CacheManagementInterface>(),
+			async () => cache as unknown as CacheManagementInterface,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicEncryptionKeyProvider,
@@ -211,7 +232,7 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
-		const customerAccountTerminationRequest = createTestEntity(sysTypeRefs.CustomerAccountTerminationRequestTypeRef)
+		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
 
 		o(await crypto.resolveSessionKey(customerAccountTerminationRequest)).equals(null)
 	})
@@ -220,7 +241,7 @@ o.spec("CryptoFacadeTest", function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
 		const sk = aes256RandomKey()
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
@@ -239,7 +260,7 @@ o.spec("CryptoFacadeTest", function () {
 		const groupKey_v1 = aes256RandomKey()
 		when(keyLoaderFacade.loadSymGroupKey(recipientUser.mailGroup._id, 1)).thenResolve(groupKey_v1)
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerEncSessionKey: encryptKey(groupKey_v1, sk),
 			_ownerKeyVersion: "1",
@@ -259,23 +280,23 @@ o.spec("CryptoFacadeTest", function () {
 		let bk = aes256RandomKey()
 		let privateKey = RSA_TEST_KEYPAIR.privateKey
 		let publicKey = RSA_TEST_KEYPAIR.publicKey
-		const keyPair = createTestEntity(sysTypeRefs.KeyPairTypeRef, {
+		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivRsaKey: encryptRsaKey(recipientUser.userGroupKey, privateKey),
 			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
 		})
 		recipientUser.userGroup.currentKeys = keyPair
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			confidential,
 			_ownerGroup: recipientUser.mailGroup._id,
 			_permissions: "permissionListId",
 		})
 
-		const bucket = createTestEntity(sysTypeRefs.BucketTypeRef, {
+		const bucket = createTestEntity(BucketTypeRef, {
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = createTestEntity(sysTypeRefs.PermissionTypeRef, {
+		const permission = createTestEntity(PermissionTypeRef, {
 			_id: ["permissionListId", "permissionId"],
 			_ownerGroup: recipientUser.userGroup._id,
 			bucketEncSessionKey: encryptKey(bk, sk),
@@ -283,7 +304,7 @@ o.spec("CryptoFacadeTest", function () {
 			type: PermissionType.Public,
 		})
 		const pubEncBucketKey = object<Uint8Array>()
-		const bucketPermission = createTestEntity(sysTypeRefs.BucketPermissionTypeRef, {
+		const bucketPermission = createTestEntity(BucketPermissionTypeRef, {
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_ownerGroup: recipientUser.userGroup._id,
 			type: BucketPermissionType.Public,
@@ -302,12 +323,12 @@ o.spec("CryptoFacadeTest", function () {
 				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: null })
-		when(entityClient.loadAll(sysTypeRefs.BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
-		when(entityClient.loadAll(sysTypeRefs.PermissionTypeRef, getListId(permission))).thenResolve([permission])
+		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
+		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 		when(
 			serviceExecutor.post(
-				sysServices.UpdatePermissionKeyService,
-				argThat((p: sysTypeRefs.UpdatePermissionKeyData) => {
+				UpdatePermissionKeyService,
+				argThat((p: UpdatePermissionKeyData) => {
 					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
 				}),
 			),
@@ -332,15 +353,15 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",
 			_ownerGroup: recipientTestUser.mailGroup._id,
 			confidential: true,
 		})
-		const bucket = sysTypeRefs.createBucket({
+		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = sysTypeRefs.createPermission({
+		const permission = createPermission({
 			_format: "",
 			listElementApplication: null,
 			listElementTypeId: null,
@@ -364,7 +385,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
-		const bucketPermission = sysTypeRefs.createBucketPermission({
+		const bucketPermission = createBucketPermission({
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
 			_permissions: "",
@@ -393,8 +414,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(userFacade.createAuthHeaders()).thenReturn({})
 		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
-		when(entityClient.loadAll(sysTypeRefs.BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
-		when(entityClient.loadAll(sysTypeRefs.PermissionTypeRef, getListId(permission))).thenResolve([permission])
+		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
+		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
@@ -415,15 +436,15 @@ o.spec("CryptoFacadeTest", function () {
 		const sk = aes256RandomKey()
 		const bk = aes256RandomKey()
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_ownerGroup: recipientTestUser.mailGroup._id,
 			confidential: true,
 			_permissions: "permissionListId",
 		})
-		const bucket = sysTypeRefs.createBucket({
+		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = sysTypeRefs.createPermission({
+		const permission = createPermission({
 			_format: "",
 			listElementApplication: null,
 			listElementTypeId: null,
@@ -447,7 +468,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
-		const bucketPermission = sysTypeRefs.createBucketPermission({
+		const bucketPermission = createBucketPermission({
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
 			_permissions: "",
@@ -475,8 +496,8 @@ o.spec("CryptoFacadeTest", function () {
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 		when(userFacade.createAuthHeaders()).thenReturn({})
 		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
-		when(entityClient.loadAll(sysTypeRefs.BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
-		when(entityClient.loadAll(sysTypeRefs.PermissionTypeRef, getListId(permission))).thenResolve([permission])
+		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
+		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
@@ -499,12 +520,12 @@ o.spec("CryptoFacadeTest", function () {
 		const sk = aes256RandomKey()
 		const bk = aes256RandomKey()
 
-		let mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		let mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			_ownerGroup: recipientTestUser.mailGroup._id,
 			confidential,
 			mailDetails: ["mailDetailsArchiveId", "mailDetailsId"],
-			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+			sender: createTestEntity(MailAddressTypeRef, {
 				address: senderAddress,
 				name: "sender name",
 			}),
@@ -569,8 +590,8 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey already defined", async function () {
-		const files = [createTestEntity(tutanotaTypeRefs.FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, { bucketKey: null })
+		const files = [createTestEntity(FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
+		const mail = createTestEntity(MailTypeRef, { bucketKey: null })
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
 
@@ -581,8 +602,8 @@ o.spec("CryptoFacadeTest", function () {
 	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey missing", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const files = [
-			createTestEntity(tutanotaTypeRefs.FileTypeRef, { _id: ["listId", "1"], _ownerEncSessionKey: new Uint8Array() }),
-			createTestEntity(tutanotaTypeRefs.FileTypeRef, { _id: ["listId", "2"], _ownerEncSessionKey: null }),
+			createTestEntity(FileTypeRef, { _id: ["listId", "1"], _ownerEncSessionKey: new Uint8Array() }),
+			createTestEntity(FileTypeRef, { _id: ["listId", "2"], _ownerEncSessionKey: null }),
 		]
 
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
@@ -604,7 +625,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(testData.mail, files)
 		verify(crypto.postUpdateSessionKeysService(anything()), { times: 1 })
-		verify(cache.deleteFromCacheIfExists(tutanotaTypeRefs.FileTypeRef, "listId", "2"))
+		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
 	})
 
 	o("encryptBucketKeyForInternalRecipient with existing PQKeys for sender and recipient", async function () {
@@ -614,7 +635,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientKeyPairs = await pqFacade.generateKeyPairs()
 
-		const recipientKeyPair = sysTypeRefs.createKeyPair({
+		const recipientKeyPair = createKeyPair({
 			_id: "recipientKeyPairId",
 			pubEccKey: recipientKeyPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: null,
@@ -627,7 +648,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const senderKeyPairs = await pqFacade.generateKeyPairs()
 
-		const senderKeyPair = sysTypeRefs.createKeyPair({
+		const senderKeyPair = createKeyPair({
 			_id: "senderKeyPairId",
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
@@ -638,7 +659,7 @@ o.spec("CryptoFacadeTest", function () {
 			signature: null,
 		})
 
-		const senderUserGroup = sysTypeRefs.createGroup({
+		const senderUserGroup = createGroup({
 			_format: "",
 			_ownerGroup: "",
 			_permissions: "",
@@ -658,7 +679,7 @@ o.spec("CryptoFacadeTest", function () {
 			_id: "userGroupId",
 			currentKeys: senderKeyPair,
 			groupKeyVersion: "0",
-			formerGroupKeys: createTestEntity(sysTypeRefs.GroupKeysRefTypeRef),
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
 			pubAdminGroupEncGKey: null,
 			identityKeyPair: null,
 		})
@@ -704,7 +725,7 @@ o.spec("CryptoFacadeTest", function () {
 			recipientMailAddress,
 			notFoundRecipients,
 			keyVerificationMismatchRecipients,
-		)) as tutanotaTypeRefs.InternalRecipientKeyData
+		)) as InternalRecipientKeyData
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
 		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
@@ -725,9 +746,9 @@ o.spec("CryptoFacadeTest", function () {
 
 		let senderMailAddress = "alice@tutanota.com"
 
-		const senderKeyPair: sysTypeRefs.KeyPair = object()
+		const senderKeyPair: KeyPair = object()
 
-		const senderUserGroup = sysTypeRefs.createGroup({
+		const senderUserGroup = createGroup({
 			_id: "userGroupId",
 			currentKeys: senderKeyPair,
 			groupKeyVersion: "0",
@@ -745,7 +766,7 @@ o.spec("CryptoFacadeTest", function () {
 			storageCounter: null,
 			type: "",
 			user: null,
-			formerGroupKeys: createTestEntity(sysTypeRefs.GroupKeysRefTypeRef),
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
 			pubAdminGroupEncGKey: null,
 			identityKeyPair: null,
 		})
@@ -793,7 +814,7 @@ o.spec("CryptoFacadeTest", function () {
 			recipientMailAddress,
 			notFoundRecipients,
 			keyVerificationMismatchRecipients,
-		)) as tutanotaTypeRefs.InternalRecipientKeyData
+		)) as InternalRecipientKeyData
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
 		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
@@ -1049,7 +1070,7 @@ o.spec("CryptoFacadeTest", function () {
 		o(sessionKey).deepEquals(testData.sk)
 
 		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.mail))
-		const instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys as Array<sysTypeRefs.InstanceSessionKey>
+		const instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys as Array<InstanceSessionKey>
 		o(instanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = instanceSessionKeys.find((instanceSessionKey) =>
 			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
@@ -1064,7 +1085,7 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 
-		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
+		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
@@ -1094,7 +1115,7 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 
-		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
+		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
@@ -1260,11 +1281,11 @@ o.spec("CryptoFacadeTest", function () {
 			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
 
 			const mailInstanceOwnerKeyVersion = "0"
-			const cachedInstanceSessionKeys: Array<sysTypeRefs.InstanceSessionKey> = [
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.MailTypeRef.app,
-						typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+			const cachedInstanceSessionKeys: Array<InstanceSessionKey> = [
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
 					instanceList: listIdPart(testData.mail._id),
@@ -1273,10 +1294,10 @@ o.spec("CryptoFacadeTest", function () {
 					symKeyVersion: mailInstanceOwnerKeyVersion,
 					keyVerificationState: null,
 				}),
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.FileTypeRef.app,
-						typeId: tutanotaTypeRefs.FileTypeRef.typeId.toString(),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: FileTypeRef.app,
+						typeId: FileTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, file1SessionKey),
 					instanceList: "fileListId",
@@ -1285,10 +1306,10 @@ o.spec("CryptoFacadeTest", function () {
 					symKeyVersion: "0",
 					keyVerificationState: null,
 				}),
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.MailTypeRef.app,
-						typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
 					instanceList: "fileListId",
@@ -1477,11 +1498,11 @@ o.spec("CryptoFacadeTest", function () {
 			o(mailSessionKey).deepEquals(testData.sk)
 
 			const mailInstanceOwnerKeyVersion = "0"
-			const cachedInstanceSessionKeys: Array<sysTypeRefs.InstanceSessionKey> = [
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.MailTypeRef.app,
-						typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+			const cachedInstanceSessionKeys: Array<InstanceSessionKey> = [
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
 					instanceList: listIdPart(testData.mail._id),
@@ -1490,10 +1511,10 @@ o.spec("CryptoFacadeTest", function () {
 					symKeyVersion: mailInstanceOwnerKeyVersion,
 					keyVerificationState: null,
 				}),
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.FileTypeRef.app,
-						typeId: tutanotaTypeRefs.FileTypeRef.typeId.toString(),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: FileTypeRef.app,
+						typeId: FileTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, file1SessionKey),
 					instanceList: "fileListId",
@@ -1502,10 +1523,10 @@ o.spec("CryptoFacadeTest", function () {
 					symKeyVersion: "0",
 					keyVerificationState: null,
 				}),
-				sysTypeRefs.createInstanceSessionKey({
-					typeInfo: sysTypeRefs.createTypeInfo({
-						application: tutanotaTypeRefs.MailTypeRef.app,
-						typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+				createInstanceSessionKey({
+					typeInfo: createTypeInfo({
+						application: MailTypeRef.app,
+						typeId: MailTypeRef.typeId.toString(),
 					}),
 					symEncSessionKey: encryptKey(testData.mailGroupKey, testData.sk),
 					instanceList: "fileListId",
@@ -1574,7 +1595,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(userFacade.hasGroup(ownerGroup)).thenReturn(true)
 		when(userFacade.isFullyLoggedIn()).thenReturn(true)
 
-		const mailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
+		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: ["mailDetailsArchiveId", "mailDetailsId"],
 			_ownerGroup: ownerGroup,
 			_ownerEncSessionKey: encryptKey(gk, sk),
@@ -1586,11 +1607,11 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("resolve session key: MailDetailsBlob - session key not found", async function () {
-		const mailDetailsBlob = createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
+		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: ["mailDetailsArchiveId", "mailDetailsId"],
 			_permissions: "permissionListId",
 		})
-		when(entityClient.loadAll(sysTypeRefs.PermissionTypeRef, "permissionListId")).thenResolve([])
+		when(entityClient.loadAll(PermissionTypeRef, "permissionListId")).thenResolve([])
 
 		try {
 			await crypto.resolveSessionKey(mailDetailsBlob)
@@ -1610,7 +1631,7 @@ o.spec("CryptoFacadeTest", function () {
 	 * @param fileSessionKeys List of session keys for the attachments. When the list is empty there are no attachments
 	 */
 	async function prepareRsaPubEncBucketKeyResolveSessionKeyTest(fileSessionKeys: Array<Aes256Key> = []): Promise<{
-		mail: tutanotaTypeRefs.Mail
+		mail: Mail
 		sk: Aes256Key
 		bk: Aes256Key
 		mailGroupKey: Aes256Key
@@ -1622,7 +1643,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		let privateKey = RSA_TEST_KEYPAIR.privateKey
 		let publicKey = RSA_TEST_KEYPAIR.publicKey
-		const keyPair = createTestEntity(sysTypeRefs.KeyPairTypeRef, {
+		const keyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			symEncPrivRsaKey: encryptRsaKey(recipientUser.userGroupKey, privateKey),
 			pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(publicKey)),
@@ -1632,7 +1653,7 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			_permissions: "permissionListId",
 			_ownerGroup: recipientUser.mailGroup._id,
@@ -1643,10 +1664,10 @@ o.spec("CryptoFacadeTest", function () {
 		const pubEncBucketKey = new Uint8Array([1, 2, 3, 4])
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const mailInstanceSessionKey = sysTypeRefs.createInstanceSessionKey({
-			typeInfo: sysTypeRefs.createTypeInfo({
-				application: tutanotaTypeRefs.MailTypeRef.app,
-				typeId: tutanotaTypeRefs.MailTypeRef.typeId.toString(),
+		const mailInstanceSessionKey = createInstanceSessionKey({
+			typeInfo: createTypeInfo({
+				application: MailTypeRef.app,
+				typeId: MailTypeRef.typeId.toString(),
 			}),
 			symEncSessionKey: bucketEncMailSessionKey,
 			instanceList: listIdPart(mail._id),
@@ -1655,10 +1676,10 @@ o.spec("CryptoFacadeTest", function () {
 			symKeyVersion: "0",
 			keyVerificationState: null,
 		})
-		const FileTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.FileTypeRef)
+		const FileTypeModel = await typeModelResolver.resolveClientTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
-			return sysTypeRefs.createInstanceSessionKey({
-				typeInfo: sysTypeRefs.createTypeInfo({
+			return createInstanceSessionKey({
+				typeInfo: createTypeInfo({
 					application: FileTypeModel.app,
 					typeId: String(FileTypeModel.id),
 				}),
@@ -1673,7 +1694,7 @@ o.spec("CryptoFacadeTest", function () {
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
 		const protocolVersion = CryptoProtocolVersion.RSA
-		const bucketKey = sysTypeRefs.createBucketKey({
+		const bucketKey = createBucketKey({
 			pubEncBucketKey,
 			keyGroup: recipientUser.userGroup._id,
 			bucketEncSessionKeys: bucketEncSessionKeys,
@@ -1682,7 +1703,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 			recipientKeyVersion: "0",
 		})
-		when(keyLoaderFacade.loadCurrentKeyPair(recipientUser.userGroup._id)).thenResolve({
+		when(keyLoaderFacade.loadCurrentKeyPair(recipientUser.userGroup._id, anything())).thenResolve({
 			object: {
 				keyPairType: KeyPairType.RSA,
 				publicKey: RSA_TEST_KEYPAIR.publicKey,
@@ -1724,7 +1745,7 @@ o.spec("CryptoFacadeTest", function () {
 		fileSessionKeys: Array<AesKey> = [],
 		confidential: boolean = true,
 	): Promise<{
-		mail: tutanotaTypeRefs.Mail
+		mail: Mail
 		sk: AesKey
 		bk: AesKey
 		mailGroupKey: AesKey
@@ -1736,7 +1757,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		let pqKeyPairs = await pqFacade.generateKeyPairs()
 
-		const recipientKeyPair = sysTypeRefs.createKeyPair({
+		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
 			pubEccKey: pqKeyPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: aesEncrypt(recipientUser.userGroupKey, pqKeyPairs.x25519KeyPair.privateKey),
@@ -1754,13 +1775,13 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			confidential,
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerEncSessionKey: null, // enforce asymmetric crypto to resolve session key
 			_id: ["mailListId", "mailId"],
 			_permissions: "permissionListId",
-			sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+			sender: createTestEntity(MailAddressTypeRef, {
 				address: senderAddress,
 				name: "sender name",
 			}),
@@ -1832,7 +1853,7 @@ o.spec("CryptoFacadeTest", function () {
 		externalUserGroupEncBucketKey = false,
 	): Promise<{
 		entityAdapter: EntityAdapter
-		bucketKey: sysTypeRefs.BucketKey
+		bucketKey: BucketKey
 		sk: AesKey
 		bk: AesKey
 		MailTypeModel: TypeModel
@@ -1852,10 +1873,10 @@ o.spec("CryptoFacadeTest", function () {
 		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef)
+		const MailTypeModel = await typeModelResolver.resolveServerTypeReference(MailTypeRef)
 
-		const mailInstanceSessionKey = createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
-			typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef, {
+		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
 				typeId: String(MailTypeModel.id),
 			}),
@@ -1863,10 +1884,10 @@ o.spec("CryptoFacadeTest", function () {
 			instanceList: "mailListId",
 			instanceId: "mailId",
 		})
-		const FileTypeModel = await typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.FileTypeRef)
+		const FileTypeModel = await typeModelResolver.resolveServerTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
-			return createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
-				typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef, {
+			return createTestEntity(InstanceSessionKeyTypeRef, {
+				typeInfo: createTestEntity(TypeInfoTypeRef, {
 					application: FileTypeModel.app,
 					typeId: String(FileTypeModel.id),
 				}),
@@ -1877,14 +1898,14 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
-		const bucketKey = createTestEntity(sysTypeRefs.BucketKeyTypeRef, {
+		const bucketKey = createTestEntity(BucketKeyTypeRef, {
 			pubEncBucketKey: null,
 			keyGroup: externalUserGroupEncBucketKey ? externalUser.userGroup._id : null,
 			groupEncBucketKey: groupEncBucketKey,
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(sysTypeRefs.BucketKeyTypeRef, bucketKey, null)
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
 
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
 		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
@@ -1908,7 +1929,7 @@ o.spec("CryptoFacadeTest", function () {
 	 */
 	async function prepareConfidentialReplyFromExternalUser(): Promise<{
 		entityAdapter: EntityAdapter
-		bucketKey: sysTypeRefs.BucketKey
+		bucketKey: BucketKey
 		sk: AesKey
 		bk: AesKey
 		MailTypeModel: TypeModel
@@ -1950,9 +1971,9 @@ o.spec("CryptoFacadeTest", function () {
 		const groupEncBucketKey = encryptKey(externalUser.mailGroupKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await typeModelResolver.resolveServerTypeReference(tutanotaTypeRefs.MailTypeRef)
-		const mailInstanceSessionKey = createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
-			typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef, {
+		const MailTypeModel = await typeModelResolver.resolveServerTypeReference(MailTypeRef)
+		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
 				typeId: String(MailTypeModel.id),
 			}),
@@ -1961,10 +1982,10 @@ o.spec("CryptoFacadeTest", function () {
 			instanceId: "mailId",
 		})
 
-		const bucketEncSessionKeys = new Array<sysTypeRefs.InstanceSessionKey>()
+		const bucketEncSessionKeys = new Array<InstanceSessionKey>()
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
 
-		const bucketKey = createTestEntity(sysTypeRefs.BucketKeyTypeRef, {
+		const bucketKey = createTestEntity(BucketKeyTypeRef, {
 			pubEncBucketKey: null,
 			keyGroup: keyGroup,
 			groupEncBucketKey: groupEncBucketKey,
@@ -1974,7 +1995,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(sysTypeRefs.BucketKeyTypeRef, bucketKey, null)
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
 
 		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
 
@@ -1999,7 +2020,7 @@ o.spec("CryptoFacadeTest", function () {
 		confidential: boolean,
 		ownerGroupId: string,
 	): Promise<ServerModelUntypedInstance> {
-		const mail = tutanotaTypeRefs.createMail({
+		const mail = createMail({
 			_format: "0",
 			_ownerGroup: ownerGroupId,
 			_ownerEncSessionKey: ownerGroupKey ? encryptKey(ownerGroupKey, sessionKey) : null,
@@ -2011,7 +2032,7 @@ o.spec("CryptoFacadeTest", function () {
 			subject: "any subject",
 			replyType: "",
 			confidential: confidential,
-			sender: tutanotaTypeRefs.createMailAddress({
+			sender: createMailAddress({
 				address: senderAddress,
 				name: "any sender",
 				contact: null,
@@ -2041,7 +2062,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		// casting here is fine, since we just want to mimic server response data
-		return (await instancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailTypeRef, mail, sessionKey)) as unknown as ServerModelUntypedInstance
+		return (await instancePipeline.mapAndEncrypt(MailTypeRef, mail, sessionKey)) as unknown as ServerModelUntypedInstance
 	}
 })
 
@@ -2049,34 +2070,34 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
 	const userGroupKey = aes256RandomKey()
 	const mailGroupKey = aes256RandomKey()
 
-	const userGroup = createTestEntity(sysTypeRefs.GroupTypeRef, {
+	const userGroup = createTestEntity(GroupTypeRef, {
 		_id: "userGroup" + name,
 		type: GroupType.User,
 		currentKeys: null,
 		groupKeyVersion: "0",
 	})
 
-	const mailGroup = createTestEntity(sysTypeRefs.GroupTypeRef, {
+	const mailGroup = createTestEntity(GroupTypeRef, {
 		_id: "mailGroup" + name,
 		type: GroupType.Mail,
 		currentKeys: null,
 		groupKeyVersion: "0",
 	})
 
-	const userGroupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+	const userGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 		group: userGroup._id,
 	})
-	const mailGroupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+	const mailGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 		group: mailGroup._id,
 	})
 
-	const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+	const user = createTestEntity(UserTypeRef, {
 		userGroup: userGroupMembership,
 		memberships: [mailGroupMembership],
 	})
 
-	when(entityClient.load(sysTypeRefs.GroupTypeRef, userGroup._id)).thenResolve(userGroup)
-	when(entityClient.load(sysTypeRefs.GroupTypeRef, mailGroup._id)).thenResolve(mailGroup)
+	when(entityClient.load(GroupTypeRef, userGroup._id)).thenResolve(userGroup)
+	when(entityClient.load(GroupTypeRef, mailGroup._id)).thenResolve(mailGroup)
 	return {
 		user,
 		userGroup,

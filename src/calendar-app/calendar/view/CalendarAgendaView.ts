@@ -1,37 +1,36 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/utils"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Contact, PartialRecipient } from "@tutao/entities/tutanota"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventWrapper } from "./CalendarViewModel"
-import { styles } from "../../../common/gui/styles.js"
+import { styles } from "../../../ui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { layout_size, px, size } from "../../../common/gui/size.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { layout_size, px, size } from "../../../ui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
-import { getElementId, getListId } from "@tutao/typerefs"
+import { getElementId, getListId } from "@tutao/meta"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
 import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
-import { PageView } from "../../../common/gui/base/PageView.js"
-import { getIfLargeScroll } from "../../../common/gui/base/GuiUtils.js"
-import { isKeyPressed } from "../../../common/misc/KeyManager.js"
+import { PageView } from "../../../ui/base/PageView.js"
+import { getIfLargeScroll } from "../../../ui/base/GuiUtils.js"
+import { isKeyPressed } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
-import { MainCreateButton } from "../../../common/gui/MainCreateButton.js"
-import { client } from "../../../app-env/boot/ClientDetector.js"
+import { MainCreateButton } from "../../../ui/MainCreateButton.js"
+import { client } from "@tutao/app-env"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
-import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -56,7 +55,7 @@ export type CalendarAgendaViewAttrs = {
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
 	onNewEvent: (date: Date | null) => unknown
-	onEditContact: (contact: tutanotaTypeRefs.Contact) => unknown
+	onEditContact: (contact: Contact) => unknown
 	onWriteMail: (recipient: PartialRecipient) => unknown
 }
 

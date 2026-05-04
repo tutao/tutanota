@@ -156,7 +156,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
 		external: (id, parent, isResolved) => {
-			if (parent != null && parent.endsWith("mimimi/dist/binding.cjs")) return true
+			if (parent != null && parent.endsWith("mimimi/napi-out/binding.cjs")) return true
 			if (id.endsWith(".node")) return true
 			return ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"].includes(id)
 		},

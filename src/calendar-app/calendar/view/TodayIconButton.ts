@@ -1,9 +1,9 @@
-import { IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
+import { IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
-import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
-import { theme } from "../../../common/gui/theme.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
+import { Icon, IconSize } from "../../../ui/base/Icon.js"
+import { theme } from "../../../ui/theme.js"
 
 type TodayIconButtonAttrs = Pick<IconButtonAttrs, "click">
 

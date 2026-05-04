@@ -1,4 +1,3 @@
-import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
@@ -7,16 +6,27 @@ import { LoginController } from "../api/main/LoginController.js"
 import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import * as restError from "@tutao/rest-client/error"
-
+import { isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import {
+	createMailAddressProperties,
+	createMailboxProperties,
+	MailBox,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
+} from "@tutao/entities/tutanota"
+import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import m from "mithril"
 import { ProgrammingError } from "@tutao/app-env"
-import { OperationType } from "@tutao/app-env"
 
 export type MailboxDetail = {
-	mailbox: tutanotaTypeRefs.MailBox
-	mailGroupInfo: sysTypeRefs.GroupInfo
-	mailGroup: sysTypeRefs.Group
-	mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot
+	mailbox: MailBox
+	mailGroupInfo: GroupInfo
+	mailGroup: Group
+	mailboxGroupRoot: MailboxGroupRoot
 }
 
 export type MailboxCounters = Record<Id, Record<string, number>>
@@ -30,7 +40,7 @@ export class MailboxModel {
 	 * A way to avoid race conditions in case we try to create mailbox properties from multiple places.
 	 *
 	 */
-	private mailboxPropertiesPromises: Map<Id, Promise<tutanotaTypeRefs.MailboxProperties>> = new Map()
+	private mailboxPropertiesPromises: Map<Id, Promise<MailboxProperties>> = new Map()
 
 	constructor(
 		private readonly eventController: EventController,
@@ -42,7 +52,7 @@ export class MailboxModel {
 	private readonly initListeners = lazyMemoized(() => {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	})
 
@@ -72,13 +82,13 @@ export class MailboxModel {
 	/**
 	 * load mailbox details from a mailgroup membership
 	 */
-	private async mailboxDetailsFromMembership(membership: sysTypeRefs.GroupMembership): Promise<MailboxDetail> {
+	private async mailboxDetailsFromMembership(membership: GroupMembership): Promise<MailboxDetail> {
 		const [mailboxGroupRoot, mailGroupInfo, mailGroup] = await Promise.all([
-			this.entityClient.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, membership.group),
-			this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, membership.groupInfo),
-			this.entityClient.load(sysTypeRefs.GroupTypeRef, membership.group),
+			this.entityClient.load(MailboxGroupRootTypeRef, membership.group),
+			this.entityClient.load(GroupInfoTypeRef, membership.groupInfo),
+			this.entityClient.load(GroupTypeRef, membership.group),
 		])
-		const mailbox = await this.entityClient.load(tutanotaTypeRefs.MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 		return {
 			mailbox,
 			mailGroupInfo,
@@ -131,9 +141,9 @@ export class MailboxModel {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update)) {
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
 					await this._init()
 					m.redraw()
@@ -150,7 +160,7 @@ export class MailboxModel {
 		}
 	}
 
-	async getMailboxProperties(mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot): Promise<tutanotaTypeRefs.MailboxProperties> {
+	async getMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		// MailboxProperties is an encrypted instance that is created lazily. When we create it the reference is automatically written to the MailboxGroupRoot.
 		// Unfortunately we will only get updated new MailboxGroupRoot with the next EntityUpdate.
 		// To prevent parallel creation attempts we do two things:
@@ -163,17 +173,17 @@ export class MailboxModel {
 			return existingPromise
 		}
 
-		const promise: Promise<tutanotaTypeRefs.MailboxProperties> = this.loadOrCreateMailboxProperties(mailboxGroupRoot)
+		const promise: Promise<MailboxProperties> = this.loadOrCreateMailboxProperties(mailboxGroupRoot)
 		this.mailboxPropertiesPromises.set(mailboxGroupRoot._id, promise)
 		return promise.finally(() => this.mailboxPropertiesPromises.delete(mailboxGroupRoot._id))
 	}
 
-	async loadOrCreateMailboxProperties(mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot): Promise<tutanotaTypeRefs.MailboxProperties> {
+	async loadOrCreateMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		if (!mailboxGroupRoot.mailboxProperties) {
 			mailboxGroupRoot.mailboxProperties = await this.entityClient
 				.setup(
 					null,
-					tutanotaTypeRefs.createMailboxProperties({
+					createMailboxProperties({
 						_ownerGroup: mailboxGroupRoot._ownerGroup ?? "",
 						reportMovedMails: "0",
 						mailAddressProperties: [],
@@ -193,7 +203,7 @@ export class MailboxModel {
 					}),
 				)
 		}
-		const mailboxProperties = await this.entityClient.load(tutanotaTypeRefs.MailboxPropertiesTypeRef, assertNotNull(mailboxGroupRoot.mailboxProperties))
+		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, assertNotNull(mailboxGroupRoot.mailboxProperties))
 		if (mailboxProperties.mailAddressProperties.length === 0) {
 			await this.migrateFromOldSenderName(mailboxGroupRoot, mailboxProperties)
 		}
@@ -201,14 +211,14 @@ export class MailboxModel {
 	}
 
 	/** If there was no sender name configured before take the user's name and assign it to all email addresses. */
-	private async migrateFromOldSenderName(mailboxGroupRoot: tutanotaTypeRefs.MailboxGroupRoot, mailboxProperties: tutanotaTypeRefs.MailboxProperties) {
+	private async migrateFromOldSenderName(mailboxGroupRoot: MailboxGroupRoot, mailboxProperties: MailboxProperties) {
 		const userGroupInfo = this.logins.getUserController().userGroupInfo
 		const legacySenderName = userGroupInfo.name
 		const mailboxDetails = await this.getMailboxDetailsForMailGroup(mailboxGroupRoot._id)
 		const mailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userGroupInfo)
 		for (const mailAddress of mailAddresses) {
 			mailboxProperties.mailAddressProperties.push(
-				tutanotaTypeRefs.createMailAddressProperties({
+				createMailAddressProperties({
 					mailAddress,
 					senderName: legacySenderName,
 				}),

@@ -1,26 +1,27 @@
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../gui/base/Dialog"
-import { lang } from "./LanguageViewModel"
+import { isOfflineError } from "@tutao/rest-client/error"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, CancelledError, InvalidModelError, isAdminClient, isBrowser, isDesktop } from "@tutao/app-env"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
-import { OutOfSyncError } from "../../local-store/OutOfSyncError"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { OutOfSyncError } from "../../app-env/OutOfSyncError"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
 import { windowFacade } from "./WindowFacade"
-import { locator } from "../api/main/CommonLocator"
 import { QuotaExceededError } from "../api/common/error/QuotaExceededError"
 import { UserError } from "../api/main/UserError"
 import { showMoreStorageNeededOrderDialog } from "./SubscriptionDialogs"
-import { showSnackBar } from "../gui/base/SnackBar"
+import { showSnackBar } from "../../ui/base/SnackBar"
 import { credentialsToUnencrypted } from "./credentials/Credentials"
 import { showErrorDialogNotLoggedIn, showErrorNotification } from "./ErrorReporter"
 import { SessionType } from "../../app-env/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../../instance-pipeline/ServerModelsUnavailableError"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
-import { Credentials } from "../../network/Constants"
+
+import { Credentials } from "@tutao/network/types"
+import { locator } from "../api/main/CommonLocator"
+import { UserTypeRef } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -188,7 +189,7 @@ export async function reloginForExpiredSession() {
 	// Fetch old credentials to preserve database key if it's there
 	const oldCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(userId)
 	// we're deleting the outdated user here because before resetSession() the cache is still open and can be modified.
-	await cacheStorage?.deleteIfExists(sysTypeRefs.UserTypeRef, null, userId)
+	await cacheStorage?.deleteIfExists(UserTypeRef, null, userId)
 	const sessionReset = loginFacade.resetSession()
 	loginDialogActive = true
 
@@ -254,7 +255,7 @@ function handleImportError() {
 
 	showingImportError = true
 	const message =
-		"There was an error while loading part of the app. It might be that you are local-store, running an outdated version, or your browser is blocking the request."
+		"There was an error while loading part of the app. It might be that you are offline, running an outdated version, or your browser is blocking the request."
 	Dialog.choice(lang.makeTranslation("error_msg", message), [
 		{
 			text: "close_alt",

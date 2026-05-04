@@ -1,10 +1,9 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import type { EntityClient } from "../../network/EntityClient"
-import { lang, LanguageViewModel } from "../../common/misc/LanguageViewModel"
+import { lang, LanguageViewModel } from "../../ui/utils/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
 import { appendEmailSignature } from "../mail/signature/Signature"
 import { UserError } from "../../common/api/main/UserError"
@@ -12,7 +11,14 @@ import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 
 import { getAvailablePlansWithAutoResponder } from "../../common/subscription/utils/SubscriptionUtils.js"
-import { OutOfOfficeNotificationMessageType } from "@tutao/app-env"
+
+import {
+	createOutOfOfficeNotification,
+	createOutOfOfficeNotificationMessage,
+	OutOfOfficeNotification,
+	OutOfOfficeNotificationMessage,
+	OutOfOfficeNotificationMessageType,
+} from "@tutao/entities/tutanota"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,
@@ -23,7 +29,7 @@ export const enum RecipientMessageType {
 const FAILURE_UPGRADE_REQUIRED = "outofoffice.not_available_on_current_plan"
 
 export class EditOutOfOfficeNotificationDialogModel {
-	outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification
+	outOfOfficeNotification: OutOfOfficeNotification
 	enabled: Stream<boolean> = stream<boolean>(false)
 	startDate: Stream<Date> = stream(new Date())
 	endDate: Stream<Date> = stream(new Date())
@@ -39,7 +45,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 	_languageViewModel: LanguageViewModel
 
 	constructor(
-		outOfOfficeNotification: tutanotaTypeRefs.OutOfOfficeNotification | null,
+		outOfOfficeNotification: OutOfOfficeNotification | null,
 		entityClient: EntityClient,
 		userController: UserController,
 		languageViewModel: LanguageViewModel,
@@ -53,7 +59,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 
 		if (!outOfOfficeNotification) {
 			this.startDate(getStartOfDay(new Date()))
-			this.outOfOfficeNotification = tutanotaTypeRefs.createOutOfOfficeNotification({
+			this.outOfOfficeNotification = createOutOfOfficeNotification({
 				notifications: [],
 				enabled: false,
 				endDate: null,
@@ -114,7 +120,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 	 * Return OutOfOfficeNotification created from input data.
 	 * @throws UserError if time period is invalid
 	 * */
-	getNotificationFromData(): tutanotaTypeRefs.OutOfOfficeNotification {
+	getNotificationFromData(): OutOfOfficeNotification {
 		let startDate: Date | null = null
 		let endDate: Date | null = null
 
@@ -132,10 +138,10 @@ export class EditOutOfOfficeNotificationDialogModel {
 			}
 		}
 
-		const notificationMessages: tutanotaTypeRefs.OutOfOfficeNotificationMessage[] = []
+		const notificationMessages: OutOfOfficeNotificationMessage[] = []
 
 		if (this.isDefaultMessageEnabled()) {
-			const defaultNotification = tutanotaTypeRefs.createOutOfOfficeNotificationMessage({
+			const defaultNotification = createOutOfOfficeNotificationMessage({
 				subject: this.defaultSubject().trim(),
 				message: this.defaultMessage().trim(),
 				type: OutOfOfficeNotificationMessageType.Default,
@@ -144,7 +150,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 		}
 
 		if (this.isOrganizationMessageEnabled()) {
-			const organizationNotification = tutanotaTypeRefs.createOutOfOfficeNotificationMessage({
+			const organizationNotification = createOutOfOfficeNotificationMessage({
 				subject: this.organizationSubject().trim(),
 				message: this.organizationMessage().trim(),
 				type: OutOfOfficeNotificationMessageType.InsideOrganization,

@@ -1,10 +1,11 @@
-import { DataFile, DownloadableFileEntity, FileReference } from "@tutao/typerefs"
-import { ArchiveDataType, assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { downloadAndDecryptFromArchive, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { assertOnlyDataFiles } from "../api/common/utils/FileUtils.js"
-import { TransferId } from "../api/common/drive/DriveTypes"
+import { ArchiveDataType } from "@tutao/entities/sys"
+import { assertOnlyDataFiles, DataFile, FileReference } from "@tutao/entities/tutanota"
+import { TransferId } from "@tutao/entities/drive"
+import { DownloadableFileEntity } from "@tutao/entities/storage"
 
 assertMainOrNode()
 

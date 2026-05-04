@@ -1,5 +1,6 @@
 import {
 	camelCaseToSnakeCase,
+	DefinationType,
 	EnumDefinition,
 	FacadeDefinition,
 	getArgs,
@@ -225,7 +226,7 @@ export class SwiftGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	generateExtraFiles(_platform: Platform, _generatedSymbols: Array<string>): Record<string, string> {
+	generateExtraFiles(_platform: Platform, _generatedSymbols: Array<{ symbol: string; defType: DefinationType }>): Record<string, string> {
 		return {
 			NativeInterface: SwiftGenerator.generateNativeInterface(),
 		}
@@ -255,6 +256,14 @@ export class SwiftGenerator implements LangGenerator {
 			.indented((acc) => acc.lines(values.map((value, index) => `case ${camelCaseToSnakeCase(value)} = "${index}"`))) // enums are snake_case
 			.line("}")
 			.finish()
+	}
+
+	storeEnum(enumName: string): void {
+		console.log("nothing to do")
+	}
+	getEnumExports(): string {
+		console.log("nothing to do")
+		return ""
 	}
 }
 

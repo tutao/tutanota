@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
-import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog.js"
-import { lang, type TranslationKey } from "../../../misc/LanguageViewModel.js"
+import { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
+import { lang, type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 
 export class SetupCongratulationsPage implements WizardPageN<null> {

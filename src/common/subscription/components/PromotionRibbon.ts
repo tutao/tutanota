@@ -1,10 +1,10 @@
 import m, { Component, Vnode } from "mithril"
-import { Theme, theme } from "../../gui/theme"
-import { px, size } from "../../gui/size"
-import { Translation } from "../../misc/LanguageViewModel"
+import { Theme, theme } from "../../../ui/theme"
+import { px, size } from "../../../ui/size"
+import { Translation } from "../../../ui/utils/LanguageViewModel"
 import { CAMPAIGN_NAME, PlanBoxPosition } from "../utils/PlanSelectorUtils"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg"
-import { styles } from "../../gui/styles"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg"
+import { styles } from "../../../ui/styles"
 
 interface PromotionRibbonAttrs {
 	translation: Translation
@@ -38,7 +38,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 					},
 
 					m(DynamicColorSvg, {
-						path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/birthday-hat.svg`,
+						path: `/images/dynamic-color-svg/birthday-hat.svg`,
 					}),
 				),
 			m(

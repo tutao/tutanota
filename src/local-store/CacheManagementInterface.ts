@@ -1,19 +1,21 @@
-import { SomeEntity, sysTypeRefs, TypeRef } from "@tutao/typerefs"
+import { Group, User } from "@tutao/entities/sys"
+import { SomeEntity } from "../meta/EntityTypes"
+import { TypeRef } from "@tutao/meta"
 
 export interface CacheManagementInterface {
 	/**
 	 * Refreshes group and user (because of the memberships) in the rest cache and updates the key cache if possible.
 	 * @param groupId
 	 */
-	refreshKeyCache(groupId: Id): Promise<{ user: sysTypeRefs.User; group: sysTypeRefs.Group }>
+	refreshKeyCache(groupId: Id): Promise<{ user: User; group: Group }>
 
 	/**
 	 * Refreshes a group in the rest cache.
 	 * @param groupId
 	 */
-	reloadGroup(groupId: Id): Promise<sysTypeRefs.Group>
+	reloadGroup(groupId: Id): Promise<Group>
 
-	reloadUser(): Promise<sysTypeRefs.User>
+	reloadUser(): Promise<User>
 
 	/**
 	 * Tries updating the user group key in the key cache by loading and decrypting the UserGroupKeyDistribution entity.

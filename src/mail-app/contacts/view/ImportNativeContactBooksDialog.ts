@@ -1,9 +1,9 @@
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog.js"
-import { ContactBook } from "@tutao/native-bridge/common"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { ContactBook } from "@tutao/native-bridge/generatedIpc/types"
 import m, { Children } from "mithril"
-import { Checkbox } from "../../../common/gui/base/Checkbox.js"
+import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { defer } from "@tutao/utils"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 
 /**
  * Displays a list of contact books to import contacts from.

@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "../Env"
+import { assertMainOrNodeBoot, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -367,7 +367,7 @@ export class ClientDetector {
 			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
 			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${client.device} ${appType} App`
-		} else if (env.mode === Mode.Browser) {
+		} else if (isBrowser()) {
 			return client.browser + " Browser"
 		} else if (env.platformId === "linux") {
 			return "Linux Desktop"

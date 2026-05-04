@@ -7,26 +7,26 @@ import {
 	isEventHappyMoment,
 	TriggerType,
 } from "./UserSatisfactionUtils.js"
-import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
+import { MultiPageDialog } from "../../ui/dialogs/MultiPageDialog.js"
 import { EvaluationPage } from "./pages/EvaluationPage.js"
 import m from "mithril"
 import { DateTime } from "luxon"
-import { ButtonType } from "../gui/base/Button.js"
+import { ButtonType } from "../../ui/base/Button.js"
 import { AndroidPlayStorePage } from "./pages/AndroidPlayStorePage.js"
 import { SupportTutaPage } from "./pages/SupportTutaPage.js"
 import { DissatisfactionPage } from "./pages/DissatisfactionPage.js"
 import { SuggestionPage } from "./pages/SuggestionPage.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import Stream from "mithril/stream"
-import { getCurrentDate, tutanotaTypeRefs } from "@tutao/typerefs"
 import { SupportDialogState } from "../support/SupportDialog.js"
-import { showSnackBar } from "../gui/base/SnackBar.js"
+import { showSnackBar } from "../../ui/base/SnackBar.js"
 import { client } from "../../app-env/boot/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { isApp, isIOSApp, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { isEmpty, noOp } from "@tutao/utils"
-import { Dialog } from "../gui/base/Dialog.js"
-import { isApp, isIOSApp } from "@tutao/app-env"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
+import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "androidPlayStore" | "supportTuta" | "suggestion" | "contactSupport"
 
@@ -39,8 +39,8 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 	const data: SupportDialogState = {
 		canHaveEmailSupport: true,
 		isExternalUser: false,
-		selectedCategory: Stream<tutanotaTypeRefs.SupportCategory | null>(null),
-		selectedTopic: Stream<tutanotaTypeRefs.SupportTopic | null>(null),
+		selectedCategory: Stream<SupportCategory | null>(null),
+		selectedTopic: Stream<SupportTopic | null>(null),
 		categories: [],
 		supportRequestHtml: "",
 		isSupportRequestEmpty: true,

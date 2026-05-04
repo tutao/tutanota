@@ -1,29 +1,31 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { ButtonColor, ButtonType } from "../../common/gui/base/Button.js"
+import {} from "../../meta"
+import { ButtonColor, ButtonType } from "../../ui/base/Button.js"
 import { KnowledgeBaseEditorModel } from "./KnowledgeBaseEditorModel"
 import { noOp, ofClass } from "@tutao/utils"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { Dialog } from "../../common/gui/base/Dialog"
-import type { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { Dialog } from "../../ui/base/Dialog"
+import type { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { locator } from "../../common/api/main/CommonLocator"
-import type { DropdownChildAttrs } from "../../common/gui/base/Dropdown.js"
-import { createAsyncDropdown } from "../../common/gui/base/Dropdown.js"
+import type { DropdownChildAttrs } from "../../ui/base/Dropdown.js"
+import { createAsyncDropdown } from "../../ui/base/Dropdown.js"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
-import { elementIdPart, getLetId, listIdPart } from "@tutao/typerefs"
-import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
+import { elementIdPart, getLetId, listIdPart } from "../../meta"
+import { HtmlEditor } from "../../ui/editor/HtmlEditor"
 import { UserError } from "../../common/api/main/UserError"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
-import { IconButtonAttrs } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
+import { EmailTemplate, KnowledgeBaseEntry, TemplateGroupRoot } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
 
 /**
  *  Editor to edit / add a knowledgeBase entry
  *  Returned promise resolves when the dialog closes
  */
-export function showKnowledgeBaseEditor(entry: tutanotaTypeRefs.KnowledgeBaseEntry | null, templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot): void {
+export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templateGroupRoot: TemplateGroupRoot): void {
 	const { entityClient } = locator
 	const editorModel = new KnowledgeBaseEditorModel(entry, templateGroupRoot, entityClient)
 
@@ -74,7 +76,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 			},
 			size: ButtonSize.Compact,
 		}
-		this.entryContentEditor = new HtmlEditor("content_label")
+		this.entryContentEditor = new HtmlEditor(getHtmlSanitizer(), "content_label")
 			.showBorders()
 			.setMinHeight(500)
 			.enableToolbar()
@@ -128,7 +130,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 	}
 }
 
-function createTemplateLink(template: tutanotaTypeRefs.EmailTemplate): string {
+function createTemplateLink(template: EmailTemplate): string {
 	const listId = listIdPart(getLetId(template))
 	const elementId = elementIdPart(getLetId(template))
 	return `<a href="tutatemplate:${listId}/${elementId}">${TEMPLATE_SHORTCUT_PREFIX + template.tag}</a>`

@@ -1,27 +1,28 @@
-import { TopLevelAttrs, TopLevelView } from "../../../../TopLevelView.js"
-import { AppHeaderAttrs, Header } from "../../../../common/gui/Header.js"
+import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js"
+import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchViewModel.js"
-import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
-import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
-import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
-import { isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView.js"
+import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn.js"
+import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
+import { isSameId } from "../../../../meta"
 import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "@tutao/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
-import { NavButton } from "../../../../common/gui/base/NavButton.js"
-import { layout_size } from "../../../../common/gui/size.js"
-import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
-import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
-import { theme } from "../../../../common/gui/theme.js"
-import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
+import { NavButton } from "../../../../ui/base/NavButton.js"
+import { layout_size } from "../../../../ui/size.js"
+import { lang, type MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
+import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout.js"
+import { theme } from "../../../../ui/theme.js"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars.js"
 import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView.js"
-import { keyManager, Shortcut } from "../../../../common/misc/KeyManager.js"
-import { styles } from "../../../../common/gui/styles.js"
-import { BaseMobileHeader } from "../../../../common/gui/BaseMobileHeader.js"
-import { MobileHeader } from "../../../../common/gui/MobileHeader.js"
+import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { styles } from "../../../../ui/styles.js"
+import { BaseMobileHeader } from "../../../../ui/BaseMobileHeader.js"
+import { MobileHeader } from "../../../../ui/MobileHeader.js"
 import { searchBar } from "../CalendarSearchBar.js"
-import { ProgressBar } from "../../../../common/gui/base/ProgressBar.js"
-import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
+import { ProgressBar } from "../../../../ui/base/ProgressBar.js"
+import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
+import { CalendarEvent, Contact, PartialRecipient } from "@tutao/entities/tutanota"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
@@ -29,32 +30,33 @@ import {
 	handleEventEditButtonClick,
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { assertMainOrNode, FeatureType, isAndroidApp, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { IconButton } from "../../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../../ui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
-import { listSelectionKeyboardShortcuts } from "../../../../common/gui/base/ListUtils.js"
-import { MultiselectMode } from "../../../../common/gui/base/List.js"
-import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
+import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils.js"
+import { MultiselectMode } from "../../../../ui/base/List.js"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
+import { MobileActionAttrs, MobileActionBar } from "../../../../ui/MobileActionBar.js"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../app-env/boot/ClientDetector.js"
-import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
-import { Dialog } from "../../../../common/gui/base/Dialog.js"
+import { CALENDAR_PREFIX } from "../../../../ui/utils/RouteChange.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
 import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
 import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
-import { PartialRecipient } from "../../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
 import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
 import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
-import { FilterChip } from "../../../../common/gui/base/FilterChip"
-import { formatDate } from "../../../../common/misc/Formatter"
-import { createDropdown } from "../../../../common/gui/base/Dropdown"
+import { FilterChip } from "../../../../ui/base/FilterChip"
+import { formatDate } from "../../../../ui/utils/Formatter"
+import { createDropdown } from "../../../../ui/base/Dropdown"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
 import { CalendarInfo } from "../../model/CalendarModel"
+import { locator } from "../../../../common/api/main/CommonLocator"
+import { windowFacade } from "../../../../common/misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -72,15 +74,14 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
 
-	private getSanitizedPreviewData: (event: tutanotaTypeRefs.CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized(
-		(event: tutanotaTypeRefs.CalendarEvent) =>
-			new LazyLoaded(async () => {
-				const calendars = await this.searchViewModel.getAvailableCalendars(false)
-				const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-				const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
-				eventPreviewModel.sanitizeDescription().then(() => m.redraw())
-				return eventPreviewModel
-			}).load(),
+	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
+		new LazyLoaded(async () => {
+			const calendars = await this.searchViewModel.getAvailableCalendars(false)
+			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
+			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
+			return eventPreviewModel
+		}).load(),
 	)
 
 	private getContactPreviewData = memoized((id: string) =>
@@ -126,7 +127,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				maxWidth: layout_size.third_col_max_width,
 			},
 		)
-		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], false)
+		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], windowFacade, false)
 	}
 
 	private getResultColumnLayout() {
@@ -233,7 +234,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		})
 	}
 
-	private renderEventPreview(event: tutanotaTypeRefs.CalendarEvent) {
+	private renderEventPreview(event: CalendarEvent) {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
@@ -250,7 +251,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return null
 	}
 
-	private renderContactPreview(contact: tutanotaTypeRefs.Contact) {
+	private renderContactPreview(contact: Contact) {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -267,7 +268,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		)
 	}
 
-	private renderEventDetails(selectedEvent: tutanotaTypeRefs.CalendarEvent) {
+	private renderEventDetails(selectedEvent: CalendarEvent) {
 		return m(
 			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
@@ -463,6 +464,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 							returnListener: () => this.resultListColumn.focus(),
 						}),
 					...attrs.header,
+					isFeatureEnabled: locator.logins.isEnabled,
+					isInternalUserLoggedIn: locator.logins.isInternalUserLoggedIn(),
 				}),
 			}),
 		)

@@ -26,7 +26,7 @@ export interface LangGenerator {
 	 * @param platform
 	 * @param generatedSymbols name of every scheme that have been generated so far
 	 */
-	generateExtraFiles(platform: Platform, generatedSymbols: Array<string>): Record<string, string>
+	generateExtraFiles(platform: Platform, generatedSymbols: Array<{ symbol: string; defType: DefinationType }>): Record<string, string>
 
 	/**
 	 * external types that don't get generated but are located somewhere else
@@ -34,20 +34,37 @@ export interface LangGenerator {
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null
 
 	generateEnum(definition: EnumDefinition): string
+	storeEnum(enumName: string): void
+	getEnumExports(): string
+}
+export const enum Platform {
+	Ios = "ios",
+	Web = "web",
+	Android = "android",
+	Desktop = "desktop",
+}
+export const enum Language {
+	Kotlin = "kotlin",
+	Swift = "swift",
+	Typescript = "typescript",
+}
+export const enum DefinationType {
+	Struct = "struct",
+	Facade = "facade",
+	TypeRef = "typeref",
+	Enum = "enum",
+	Dispatcher = "dispatcher",
 }
 
-export type Platform = "ios" | "web" | "android" | "desktop"
-export type Language = "kotlin" | "swift" | "typescript"
-
 export interface StructDefinition {
-	type: "struct"
+	type: DefinationType.Struct
 	name: string
 	fields: Record<string, string>
 	doc?: string
 }
 
 export interface FacadeDefinition {
-	type: "facade"
+	type: DefinationType.Facade
 	name: string
 	senders: Array<Platform>
 	receivers: Array<Platform>
@@ -55,13 +72,10 @@ export interface FacadeDefinition {
 	doc?: string
 }
 
-/// When we refer to some entityTypeRefs(eg: sysTypeRefs),
-/// they are exported under a namespace, hence we need this struct
-export type TypescriptTypeRefLocation = { package: string; namespace: string }
 export interface TypeRefDefinition {
-	type: "typeref"
+	type: DefinationType.TypeRef
 	name: string
-	location: Record<Language, string | TypescriptTypeRefLocation>
+	location: Record<Language, string>
 }
 
 export interface MethodDefinition {
@@ -71,7 +85,7 @@ export interface MethodDefinition {
 }
 
 export interface EnumDefinition {
-	type: "enum"
+	type: DefinationType.Enum
 	name: string
 	values: Array<string>
 	doc?: string

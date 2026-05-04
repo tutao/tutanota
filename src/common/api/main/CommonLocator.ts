@@ -1,19 +1,18 @@
 import { WorkerClient } from "./WorkerClient.js"
 import { FileController } from "../../file/FileController.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import {
-	CommonSystemFacade,
-	DesktopSystemFacade,
-	InterWindowEventFacadeSendDispatcher,
-	MobileContactsFacade,
-	MobilePaymentsFacade,
-	MobileSystemFacade,
-	NativeCredentialsFacade,
-	NativeFileApp,
-	SearchTextInAppFacade,
-	SettingsFacade,
-	ThemeFacade,
-} from "@tutao/native-bridge/common"
+import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
+import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
+
 import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient.js"
 import { SystemPermissionHandler } from "../../native/SystemPermissionHandler.js"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
@@ -21,31 +20,32 @@ import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
 import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import type { LoginFacade } from "../../../network/LoginFacade.js"
+import type { LoginFacade } from "../../../base/facades/LoginFacade.js"
 import type { CustomerFacade } from "../worker/facades/lazy/CustomerFacade.js"
 import type { GiftCardFacade } from "../worker/facades/lazy/GiftCardFacade.js"
-import type { GroupManagementFacade } from "../../../network/facades/lazy/GroupManagementFacade.js"
+import type { GroupManagementFacade } from "../../../base/facades/lazy/GroupManagementFacade.js"
 import type { ConfigurationDatabase } from "../worker/facades/lazy/ConfigurationDatabase.js"
 import type { CalendarFacade } from "../worker/facades/lazy/CalendarFacade.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
-import type { ShareFacade } from "../../../network/facades/lazy/ShareFacade.js"
-import type { CounterFacade } from "../../../network/facades/CounterFacade.js"
+
+import type { ShareFacade } from "../../../base/facades/lazy/ShareFacade.js"
+import type { CounterFacade } from "../../../network/CounterFacade.js"
 import type { BookingFacade } from "../worker/facades/lazy/BookingFacade.js"
 import type { MailAddressFacade } from "../worker/facades/lazy/MailAddressFacade.js"
 import type { BlobFacade } from "../worker/facades/lazy/BlobFacade.js"
 import type { UserManagementFacade } from "../worker/facades/lazy/UserManagementFacade.js"
-import { RecoverCodeFacade } from "../../../network/facades/lazy/RecoverCodeFacade.js"
+import { RecoverCodeFacade } from "../../../base/facades/lazy/RecoverCodeFacade.js"
 import { ContactFacade } from "../worker/facades/lazy/ContactFacade.js"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
-import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade.js"
 import { WorkerFacade } from "../worker/facades/WorkerFacade.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import type { MailboxDetail, MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { EventController } from "./EventController.js"
+
 import type { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { ProgressTracker } from "./ProgressTracker.js"
 import { LoginController } from "./LoginController.js"
-import { Header } from "../../gui/Header.js"
 import { UsageTestController } from "@tutao/usagetests"
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { WebMobileFacade } from "../../native/WebMobileFacade.js"
@@ -53,35 +53,39 @@ import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { MailAddressTableModel, UserInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
 import { lazy } from "@tutao/utils"
-import { Router } from "../../gui/ScopedRouter.js"
 import { NativeInterfaceMain } from "../../native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../../native/NativePushServiceApp.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import type { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
-import { ThemeController } from "../../gui/ThemeController.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
+// fine
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "./SyncTracker.js"
-import { KeyVerificationFacade } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
-import { SearchToken } from "../common/utils/QueryTokenUtils"
+import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
 import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { GroupSettingsModel } from "../../sharing/model/GroupSettingsModel"
-import { PublicEncryptionKeyProvider } from "../../../network/crypto/facades/PublicEncryptionKeyProvider"
-import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
-import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import PublicEncryptionKeyProvider from "../../../base/crypto/PublicEncryptionKeyProvider"
+import { IdentityKeyCreator } from "../../../base/crypto/IdentityKeyCreator"
+
+import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKeyProvider"
 import { LoginViewModel } from "../../login/LoginViewModel"
 import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { TransferProgressDispatcher } from "./TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../../../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
+import { CalendarEvent, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
+import { ThemeController } from "../../../ui/ThemeController"
+import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
+import { Header } from "../../../ui/Header"
+import { Router } from "../../../ui/ScopedRouter"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -160,7 +164,7 @@ export interface CommonLocator {
 
 	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel>
 
-	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: tutanotaTypeRefs.MailboxProperties): Promise<SendMailModel>
+	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
 
 	recipientsModel(): Promise<RecipientsModel>
 
@@ -174,23 +178,19 @@ export interface CommonLocator {
 	// calendar-related
 	calendarEventModel(
 		editMode: CalendarOperation,
-		event: Partial<tutanotaTypeRefs.CalendarEvent>,
+		event: Partial<CalendarEvent>,
 		mailboxDetail: MailboxDetail,
-		mailboxProperties: tutanotaTypeRefs.MailboxProperties,
-		responseTo: tutanotaTypeRefs.Mail | null,
+		mailboxProperties: MailboxProperties,
+		responseTo: Mail | null,
 	): Promise<CalendarEventModel | null>
 
 	calendarEventPreviewModel(
-		selectedEvent: tutanotaTypeRefs.CalendarEvent,
+		selectedEvent: CalendarEvent,
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel>
 
-	calendarContactPreviewModel(
-		event: tutanotaTypeRefs.CalendarEvent,
-		contact: tutanotaTypeRefs.Contact,
-		canEdit: boolean,
-	): Promise<CalendarContactPreviewViewModel>
+	calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel>
 
 	// native
 	native: NativeInterfaceMain

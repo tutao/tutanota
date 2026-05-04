@@ -2,8 +2,8 @@ import o from "@tutao/otest"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { ExposedEventBus } from "../../../src/common/api/worker/workerInterfaces"
 import { func, object, verify } from "testdouble"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { WebsocketLeaderStatus } from "@tutao/entities/sys"
 o.spec("WebsocketConnectivityModelTest", function () {
 	let websocketConnectivityModel: WebsocketConnectivityModel
 	let mockEventBus: ExposedEventBus
@@ -16,7 +16,7 @@ o.spec("WebsocketConnectivityModelTest", function () {
 		let leaderStatusListenerMock = func<(current: boolean) => Promise<void>>()
 		websocketConnectivityModel.addLeaderStatusListener(leaderStatusListenerMock)
 
-		const mockWebsocketLeaderStatus: sysTypeRefs.WebsocketLeaderStatus = object()
+		const mockWebsocketLeaderStatus: WebsocketLeaderStatus = object()
 		mockWebsocketLeaderStatus.leaderStatus = false
 		await websocketConnectivityModel.onLeaderStatusMessageReceived(mockWebsocketLeaderStatus)
 		verify(leaderStatusListenerMock(false), { times: 0 }) // listener not called because value didn't change
@@ -31,7 +31,7 @@ o.spec("WebsocketConnectivityModelTest", function () {
 	})
 
 	o("onLeaderStatusChanged broadcasts its value ONLY when it is changed", async function () {
-		const mockWebsocketLeaderStatus: sysTypeRefs.WebsocketLeaderStatus = object()
+		const mockWebsocketLeaderStatus: WebsocketLeaderStatus = object()
 		mockWebsocketLeaderStatus.leaderStatus = true
 
 		let leaderStatusListenerMock = func<(current: boolean) => Promise<void>>()

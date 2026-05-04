@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../gui/theme"
-import { px } from "../../gui/size"
+import { theme } from "../../../ui/theme"
+import { px } from "../../../ui/size"
 
 export interface PasswordStrengthIndicatorAttrs {
 	percentageCompleted: number

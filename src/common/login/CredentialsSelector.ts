@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Button, ButtonType } from "../gui/base/Button.js"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { CredentialsInfo } from "@tutao/native-bridge/common"
-import { lang } from "../misc/LanguageViewModel.js"
+import { Button, ButtonType } from "../../ui/base/Button.js"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 
 export type CredentialsSelectorAttrs = {
 	credentials: ReadonlyArray<CredentialsInfo>

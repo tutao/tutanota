@@ -1,17 +1,18 @@
 import m, { Child, Children } from "mithril"
-import { assertMainOrNode, isApp, OperationType } from "@tutao/app-env"
-import { lang } from "../../common/misc/LanguageViewModel"
-import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import type { DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
-import { FeatureType } from "@tutao/app-env"
-import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
-import { Button, ButtonType } from "../../common/gui/base/Button.js"
-import { Dialog } from "../../common/gui/base/Dialog.js"
+import { assertMainOrNode, FeatureType, isApp } from "@tutao/app-env"
+import { Button, ButtonType } from "../../ui/base/Button.js"
+import { Dialog } from "../../ui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { assert } from "@tutao/utils"
 import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../common/subscription/TermsAndConditions"
+import { TutanotaProperties, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { OperationType } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -129,15 +130,15 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	updateTutaPropertiesSettings(props: tutanotaTypeRefs.TutanotaProperties) {
+	updateTutaPropertiesSettings(props: TutanotaProperties) {
 		this.noAutomaticContacts = props.noAutomaticContacts
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await locator.entityClient.load(tutanotaTypeRefs.TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
+			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				const props = await locator.entityClient.load(TutanotaPropertiesTypeRef, locator.logins.getUserController().props._id)
 				this.updateTutaPropertiesSettings(props)
 			}
 		}

@@ -1,12 +1,12 @@
 import { Request } from "../../../native-bridge/shared/MessageTypes"
-import { TaggedSqlValue } from "@tutao/typerefs"
 import { Worker } from "node:worker_threads"
 import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { SqlCipherCommandNames, WorkerLogCommandNames } from "../sqlworker.js"
-import { NodeWorkerTransport } from "../../api/common/threading/NodeWorkerTransport.js"
+import { NodeWorkerTransport } from "../../../native-bridge/common/threading/NodeWorkerTransport.js"
 import { createRequire } from "node:module"
 import { objToError } from "../../api/common/utils/ErrorUtils"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { TaggedSqlValue } from "../../../local-store/Types"
 
 const TAG = "[WorkerSqlCipher]"
 

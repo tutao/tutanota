@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/app-env"
+
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { assertNotNull, delay } from "@tutao/utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
@@ -12,35 +11,48 @@ import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHand
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/common/api/main/LoginController"
-import { CryptoFacade } from "../../../src/network/crypto/facades/CryptoFacade"
+import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota"
+import {
+	Body,
+	BodyTypeRef,
+	ClientSpamClassifierResultTypeRef,
+	Mail,
+	MailDetails,
+	MailDetailsTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
+import { isSameId } from "@tutao/meta"
 
+import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
 const { captor, anything } = matchers
 
 o.spec("ProcessInboxHandlerTest", function () {
 	let mailFacade = object<MailFacade>()
 	let cryptoFacade = object<CryptoFacade>()
 	let logins = object<LoginController>()
-	let body: tutanotaTypeRefs.Body
-	let mail: tutanotaTypeRefs.Mail
+	let body: Body
+	let mail: Mail
 	let spamHandler: SpamClassificationHandler
 	let folderSystem: FolderSystem
 	let mailboxDetail: MailboxDetail
-	let mailDetails: tutanotaTypeRefs.MailDetails
+	let mailDetails: MailDetails
 	let inboxRuleHandler: InboxRuleHandler = object<InboxRuleHandler>()
 	let processInboxHandler: ProcessInboxHandler
 
-	const inboxFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
-	const trashFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
-	const spamFolder = createTestEntity(tutanotaTypeRefs.MailSetTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
+	const inboxFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
+	const trashFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
+	const spamFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
 
 	o.beforeEach(function () {
 		spamHandler = object<SpamClassificationHandler>()
 		inboxRuleHandler = object<InboxRuleHandler>()
 
-		body = createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: "Body Text" })
-		mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, { _id: "mailDetail", body })
-		mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		body = createTestEntity(BodyTypeRef, { text: "Body Text" })
+		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail", body })
+		mail = createTestEntity(MailTypeRef, {
 			_id: ["listId", "elementId"],
 			sets: [spamFolder._id],
 			subject: "subject",
@@ -48,9 +60,9 @@ o.spec("ProcessInboxHandlerTest", function () {
 			mailDetails: ["detailsList", mailDetails._id],
 			unread: true,
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
-			clientSpamClassifierResult: createTestEntity(tutanotaTypeRefs.ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
+			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
 			processNeeded: true,
-			bucketKey: createTestEntity(sysTypeRefs.BucketKeyTypeRef),
+			bucketKey: createTestEntity(BucketKeyTypeRef),
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
@@ -58,7 +70,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 		when(mailFacade.moveMails(anything(), anything(), anything())).thenResolve([])
 		when(
 			mailFacade.loadMailDetailsBlob(
-				matchers.argThat((requestedMails: tutanotaTypeRefs.Mail) => {
+				matchers.argThat((requestedMails: Mail) => {
 					return isSameId(requestedMails._id, mail._id)
 				}),
 			),
@@ -92,16 +104,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
-				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -136,16 +148,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
-				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "mailInstanceId",
 					instanceList: "mailInstanceList",
-					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([1, 2, 3]),
 				}),
-				createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+				createTestEntity(InstanceSessionKeyTypeRef, {
 					instanceId: "fileInstanceId",
 					instanceList: "fileInstanceList",
-					typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+					typeInfo: createTestEntity(TypeInfoTypeRef),
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
@@ -182,16 +194,16 @@ o.spec("ProcessInboxHandlerTest", function () {
 		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
 
 		const mailInstanceSessionKeys = [
-			createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+			createTestEntity(InstanceSessionKeyTypeRef, {
 				instanceId: "mailInstanceId",
 				instanceList: "mailInstanceList",
-				typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+				typeInfo: createTestEntity(TypeInfoTypeRef),
 				symEncSessionKey: new Uint8Array([1, 2, 3]),
 			}),
-			createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef, {
+			createTestEntity(InstanceSessionKeyTypeRef, {
 				instanceId: "fileInstanceId",
 				instanceList: "fileInstanceList",
-				typeInfo: createTestEntity(sysTypeRefs.TypeInfoTypeRef),
+				typeInfo: createTestEntity(TypeInfoTypeRef),
 				symEncSessionKey: new Uint8Array([4, 5, 6]),
 			}),
 		]
@@ -236,7 +248,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			excludeFromSpamFilter: false,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -272,7 +284,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			excludeFromSpamFilter: true,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -317,7 +329,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -362,7 +374,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -456,7 +468,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -495,7 +507,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -533,7 +545,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -571,7 +583,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey
@@ -610,7 +622,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			processInboxDatum,
 		})
 
-		const mailInstanceSessionKeys = [createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef), createTestEntity(sysTypeRefs.InstanceSessionKeyTypeRef)]
+		const mailInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef), createTestEntity(InstanceSessionKeyTypeRef)]
 		when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 			instanceSessionKeys: mailInstanceSessionKeys,
 			resolvedSessionKeyForInstance: [0, 2, 3, 4, 2, 1, 2, 3], // decrypted mailSessionKey

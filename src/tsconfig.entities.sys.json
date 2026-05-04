@@ -1,0 +1,15 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["entities/sys", "../types/"],
+	"compilerOptions": {
+		"rootDir": "entities/sys",
+		"outDir": "../build/entities/sys",
+		"tsBuildInfoFile": "../build/entities/sys/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.meta.json"
+		}
+	]
+}

@@ -8,3 +8,4 @@ Sqlcipher/generated/*
 # Caches
 **/*.xcodeproj/MockingbirdCache/
 
+tutanota/tutanota-web

@@ -1,18 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { Card } from "../../gui/base/Card.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { Card } from "../../../ui/base/Card.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { sysServices } from "@tutao/typerefs"
-import { px } from "../../gui/size.js"
-import { showSnackBar } from "../../gui/base/SnackBar.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { px } from "../../../ui/size.js"
+import { showSnackBar } from "../../../ui/base/SnackBar.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { noOp } from "@tutao/utils"
 import { client } from "../../../app-env/boot/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
+import { createSurveyData, createSurveyDataPostIn, SurveyService } from "@tutao/entities/sys"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -39,7 +38,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						},
 					},
 					m(DynamicColorSvg, {
-						path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/on-your-mind.svg`,
+						path: `/images/dynamic-color-svg/on-your-mind.svg`,
 					}),
 				),
 				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),
@@ -80,9 +79,9 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 	private async onSendButtonClick() {
 		const send = async () => {
 			await locator.serviceExecutor.post(
-				sysServices.SurveyService,
-				sysTypeRefs.createSurveyDataPostIn({
-					surveyData: sysTypeRefs.createSurveyData({
+				SurveyService,
+				createSurveyDataPostIn({
+					surveyData: createSurveyData({
 						version: SURVEY_VERSION_NUMBER,
 						category: "4", // 4 == "Other"
 						details: this.textFieldInput,

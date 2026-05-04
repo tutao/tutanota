@@ -1,25 +1,27 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, SecondFactorType } from "@tutao/app-env"
 import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/utils"
-import { Icons } from "../../../gui/base/icons/Icons.js"
-import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
-import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
-import { ColumnWidth, Table } from "../../../gui/base/Table.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
+import type { TableAttrs, TableLineAttrs } from "../../../../ui/base/Table.js"
+import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { SecondFactor, SecondFactorTypeRef, User } from "@tutao/entities/sys"
 import * as restError from "@tutao/rest-client/error"
-import { ifAllowedTutaLinks } from "../../../gui/base/GuiUtils.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
-import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
-import { ButtonSize } from "../../../gui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { appIdToLoginUrl } from "../../../misc/2fa/SecondFactorUtils.js"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { MoreInfoLink } from "../../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../../misc/passwords/PasswordRequestDialog"
-import { LoginFacade } from "../../../../network/LoginFacade"
-import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog"
-import { Dialog } from "../../../gui/base/Dialog"
-import { assertEnumValue, entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { LoginFacade } from "../../../../base/facades/LoginFacade"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { assertEnumValue } from "../../../../meta"
+import { ifAllowedTutaLinks } from "../../../gui/base/TutaLinkUtils"
 
 assertMainOrNode()
 
@@ -27,7 +29,7 @@ export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]
 
 	constructor(
-		private readonly user: LazyLoaded<sysTypeRefs.User>,
+		private readonly user: LazyLoaded<User>,
 		private readonly domainConfigProvider: DomainConfigProvider,
 		private readonly loginFacade: LoginFacade,
 		private askForPassword: boolean,
@@ -79,7 +81,7 @@ export class SecondFactorsEditForm {
 
 	async _updateSecondFactors(): Promise<void> {
 		const user = await this.user.getAsync()
-		const factors = await locator.entityClient.loadAll(sysTypeRefs.SecondFactorTypeRef, neverNull(user.auth).secondFactors)
+		const factors = await locator.entityClient.loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors)
 		// If we have keys registered on multiple domains (read: whitelabel) then we display domain for each
 		const loginDomains = new Set<string>()
 
@@ -118,7 +120,7 @@ export class SecondFactorsEditForm {
 		m.redraw()
 	}
 
-	private formatSecondFactorName(factor: sysTypeRefs.SecondFactor, loginDomains: ReadonlySet<string>): string {
+	private formatSecondFactorName(factor: SecondFactor, loginDomains: ReadonlySet<string>): string {
 		const isU2F = factor.type === SecondFactorType.u2f || factor.type === SecondFactorType.webauthn
 		// we only show the domains when we have keys registered for different domains
 		const requiresDomainDisambiguation = isU2F && loginDomains.size > 1
@@ -160,7 +162,7 @@ export class SecondFactorsEditForm {
 		SecondFactorEditDialog.loadAndShow(locator.entityClient, this.user, token)
 	}
 
-	private removeSecondFactorWithPasswordCheck(secondFactorToRemove: sysTypeRefs.SecondFactor) {
+	private removeSecondFactorWithPasswordCheck(secondFactorToRemove: SecondFactor) {
 		const dialog = showRequestPasswordDialog({
 			action: async (passphrase) => {
 				let token = undefined
@@ -185,7 +187,7 @@ export class SecondFactorsEditForm {
 		})
 	}
 
-	private removeSecondFactor(secondFactorToRemove: sysTypeRefs.SecondFactor, token?: string) {
+	private removeSecondFactor(secondFactorToRemove: SecondFactor, token?: string) {
 		try {
 			let options = undefined
 			if (token) {
@@ -201,8 +203,8 @@ export class SecondFactorsEditForm {
 		}
 	}
 
-	entityEventReceived(update: entityUpdateUtils.EntityUpdateData): Promise<void> {
-		if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.SecondFactorTypeRef, update)) {
+	entityEventReceived(update: EntityUpdateData): Promise<void> {
+		if (isUpdateForTypeRef(SecondFactorTypeRef, update)) {
 			return this._updateSecondFactors()
 		} else {
 			return Promise.resolve()

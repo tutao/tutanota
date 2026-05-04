@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../../misc/LanguageViewModel"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { TitleSection } from "../../../gui/TitleSection"
+import { TitleSection } from "../../../../ui/TitleSection"
 import { FingerprintRow } from "../FingerprintRow"
-import { Icons } from "../../../gui/base/icons/Icons"
-import { theme } from "../../../gui/theme"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
 
 export class VerificationResultPage implements Component<VerificationResultPageAttrs> {
 	view(vnode: Vnode<VerificationResultPageAttrs>): Children {

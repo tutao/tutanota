@@ -1,5 +1,6 @@
-import { IProgressMonitor, ProgressListener } from "./ProgressMonitor"
 import { first, last } from "@tutao/utils"
+import { ProgressMonitorInterface } from "../../../../network/ProgressMonitorInterface"
+import { ProgressListener } from "../../../../network/ProgressMonitorInterface"
 
 const DEFAULT_RATE_PER_SECOND = 0.5
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000
@@ -16,11 +17,12 @@ const WORK_COMPLETED_MIN = 0
  * EstimatingProgressMonitor works the same as the {@link ProgressMonitor}, but
  * additionally **estimates** progress internally on the go.
  */
-export class EstimatingProgressMonitor implements IProgressMonitor {
+export class EstimatingProgressMonitor implements ProgressMonitorInterface {
 	workCompleted: number
 	ratePerSecondHistory: Array<Readonly<[number, number]>> = Array.of([Date.now(), DEFAULT_RATE_PER_SECOND]) // entries: timestamp, rate per second
 	totalWork: number
 	progressEstimation: TimeoutID
+	progressMonitorId: Promise<number> | null
 
 	constructor(
 		totalWork: number,
@@ -28,6 +30,7 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 	) {
 		this.workCompleted = WORK_COMPLETED_MIN
 		this.totalWork = totalWork
+		this.progressMonitorId = null
 	}
 
 	public updateTotalWork(totalWork: number) {

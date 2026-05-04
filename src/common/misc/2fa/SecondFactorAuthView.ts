@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey } from "../LanguageViewModel"
-import { lang } from "../LanguageViewModel"
-import { Icon, IconSize, progressIcon } from "../../gui/base/Icon"
-import { Icons, SecondFactorImage } from "../../gui/base/icons/Icons"
-import { theme } from "../../gui/theme"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Icon, IconSize, progressIcon } from "../../../ui/base/Icon"
+import { Icons, SecondFactorImage } from "../../../ui/base/icons/Icons"
+import { theme } from "../../../ui/theme"
 import type { Thunk } from "@tutao/utils"
-import { Autocomplete, LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { ExternalLink } from "../../gui/base/ExternalLink.js"
+import { Autocomplete, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
 

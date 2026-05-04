@@ -1,24 +1,24 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { PasswordFieldAttrs, PasswordFieldNew } from "./PasswordFieldNew"
-import { font_size, px } from "../../gui/size"
+import { font_size, px } from "../../../ui/size"
 import { assertMainOrNode } from "@tutao/app-env"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UsageTestController } from "@tutao/usagetests"
 import { LoginController } from "../../api/main/LoginController"
-import { Status } from "../../gui/base/StatusField"
+import { Status } from "../../../ui/base/StatusField"
 import { getPasswordStrength, isSecurePassword } from "../../misc/passwords/PasswordUtils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../network/GroupUtils"
-import { Autocomplete } from "../../gui/base/LegacyTextField"
-import { theme } from "../../gui/theme"
+import { Autocomplete } from "../../../ui/base/LegacyTextField"
+import { theme } from "../../../ui/theme"
 import { PasswordGenerator } from "../../misc/passwords/PasswordGenerator"
 import { locator } from "../../api/main/CommonLocator"
-import { copyToClipboard } from "../../misc/ClipboardUtils"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { delay } from "@tutao/utils"
-import { showSnackBar } from "../../gui/base/SnackBar"
-import { Icons } from "../../gui/base/icons/Icons"
-import { styles } from "../../gui/styles"
+import { showSnackBar } from "../../../ui/base/SnackBar"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { styles } from "../../../ui/styles"
 
 assertMainOrNode()
 
@@ -227,8 +227,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	private hasGeneratedPassword = false
 
 	async oncreate() {
-		const appState = window.tutao.appState
-		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "") + appState.prefixWithoutFile
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 		this.dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
 		this.pwGenerator = new PasswordGenerator(locator.random, this.dictionary)
 	}

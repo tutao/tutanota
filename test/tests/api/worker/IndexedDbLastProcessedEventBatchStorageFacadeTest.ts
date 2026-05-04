@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { object, verify, when } from "testdouble"
 import { IndexerCore } from "../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { EphemeralCacheStorage } from "../../../../src/common/api/worker/rest/EphemeralCacheStorage"
+import { EphemeralCacheStorage } from "../../../../src/local-store/EphemeralCacheStorage"
 import { IndexedDbLastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { IndexingNotSupportedError } from "../../../../src/common/api/common/error/IndexingNotSupportedError"
 import { MailIndexer } from "../../../../src/mail-app/workerUtils/index/MailIndexer"

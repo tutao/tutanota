@@ -1,15 +1,16 @@
 import { SearchFacade } from "./SearchFacade"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../local-store/Sql"
-import { untagSqlValue } from "@tutao/typerefs"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "@tutao/utils"
-import { isSameId, isSameTypeRef, tutanotaTypeRefs } from "@tutao/typerefs"
+import { isSameId, isSameTypeRef } from "@tutao/meta"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { ContactIndexer } from "./ContactIndexer"
-import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken, splitQuery } from "../../../ui/utils/QueryTokenUtils"
+import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { untagSqlValue } from "../../../local-store/SqlValue"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -24,9 +25,9 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
 		const tokens = await this.tokenize(query)
 
-		if (isSameTypeRef(restriction.type, tutanotaTypeRefs.MailTypeRef)) {
+		if (isSameTypeRef(restriction.type, MailTypeRef)) {
 			return this.searchMails(query, tokens, restriction, maxResults)
-		} else if (isSameTypeRef(restriction.type, tutanotaTypeRefs.ContactTypeRef)) {
+		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			return this.searchContacts(query, tokens, restriction)
 		} else {
 			throw new ProgrammingError(`cannot search ${restriction.type.typeId}`)

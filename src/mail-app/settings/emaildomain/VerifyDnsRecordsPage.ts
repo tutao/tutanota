@@ -1,22 +1,22 @@
 import { DomainDnsStatus } from "../DomainDnsStatus"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "@tutao/app-env"
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { assertMainOrNode, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "@tutao/app-env"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
-import { ActionDialogProps, Dialog } from "../../../common/gui/base/Dialog"
-import type { WizardPageAttrs } from "../../../common/gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { ActionDialogProps, Dialog } from "../../../ui/base/Dialog"
+import type { WizardPageAttrs } from "../../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../ui/base/WizardDialog.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { downcast } from "@tutao/utils"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { ColumnWidth, Table } from "../../../ui/base/Table.js"
 import { DnsRecordTable } from "./DnsRecordTable.js"
-import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { assertEnumValue, sysTypeRefs } from "@tutao/typerefs"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { assertEnumValue } from "../../../meta"
+import { DnsRecord } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -90,7 +90,7 @@ function _updateDnsStatus(domainStatus: DomainDnsStatus): Promise<void> {
 	})
 }
 
-function _getDisplayableRecordValue(record: sysTypeRefs.DnsRecord): string {
+function _getDisplayableRecordValue(record: DnsRecord): string {
 	if (
 		!record.value.endsWith(".") &&
 		(record.type === DnsRecordType.DNS_RECORD_TYPE_MX ||
@@ -138,7 +138,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			const displayableRecordValue = _getDisplayableRecordValue(record)
 
 			const helpInfo: string[] = []
-			let validatedRecord: sysTypeRefs.DnsRecord | null = null
+			let validatedRecord: DnsRecord | null = null
 
 			for (let missingRecord of findDnsRecordInList(record, missingRecords)) {
 				validatedRecord = record
@@ -193,7 +193,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 	}
 }
 
-function findDnsRecordInList(record: sysTypeRefs.DnsRecord, recordList: Array<sysTypeRefs.DnsRecord>): Array<sysTypeRefs.DnsRecord> {
+function findDnsRecordInList(record: DnsRecord, recordList: Array<DnsRecord>): Array<DnsRecord> {
 	return recordList.filter((r) => r.type === record.type && r.subdomain === record.subdomain)
 }
 

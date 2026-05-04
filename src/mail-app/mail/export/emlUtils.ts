@@ -1,7 +1,8 @@
 import { MailBundle, MailBundleRecipient, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { createDataFile, DataFile, getCleanedMimeType } from "@tutao/typerefs"
 import { assertNotNull, formatSortableDateTime, pad, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { sanitizeFilename } from "../../../common/api/common/utils/FileUtils.js"
+import { sanitizeFilename } from "../../../ui/utils/FileUtils.js"
+import { DataFile } from "@tutao/entities/tutanota"
+import { createDataFile, getCleanedMimeType } from "../../../common/api/worker/utils/DataFile"
 
 export function mailToEmlFile(mail: MailBundle, fileName: string): DataFile {
 	const data = stringToUtf8Uint8Array(mailToEml(mail))

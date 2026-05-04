@@ -1,33 +1,33 @@
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
+import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { theme } from "../../../common/gui/theme"
+import { theme } from "../../../ui/theme"
 import { DriveBreadcrumbs, DriveBreadcrumbsAttrs } from "./DriveBreadcrumbs"
-import { PrimaryButton, TertiaryButton, TertiaryButtonAttrs } from "../../../common/gui/base/buttons/VariantButtons.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { driveTypeRefs } from "@tutao/typerefs"
+import { PrimaryButton, TertiaryButton, TertiaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../network/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { assertNotNull } from "@tutao/utils"
+import { getElementId, isSameId } from "@tutao/meta"
 import { FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItems } from "./DriveUtils"
-import { getElementId, isSameId } from "@tutao/typerefs"
-import { DialogHeaderBar } from "../../../common/gui/base/DialogHeaderBar"
-import { ButtonType } from "../../../common/gui/base/Button"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar"
+import { ButtonType } from "../../../ui/base/Button"
+import { Icon, IconSize } from "../../../ui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
-import { TextField } from "../../../common/gui/base/TextField"
-import { styles } from "../../../common/gui/styles"
-import { component_size, size } from "../../../common/gui/size"
+import { TextField } from "../../../ui/base/TextField"
+import { styles } from "../../../ui/styles"
+import { component_size, size } from "../../../ui/size"
+import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 interface State {
-	currentFolder: driveTypeRefs.DriveFolder
+	currentFolder: DriveFolder
 	items: readonly FolderItem[]
-	parents: readonly driveTypeRefs.DriveFolder[]
+	parents: readonly DriveFolder[]
 	newFolderName: string | null
 }
 
-export type MoveItems = (items: readonly FolderItemId[], destinationFolder: driveTypeRefs.DriveFolder) => Promise<void>
+export type MoveItems = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
 
 /**
  * Shows a dialog for interactively choosing a destination to move an item to.
@@ -47,11 +47,11 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 	}
 
 	async function loadFolder(folderId: IdTuple): Promise<State> {
-		const currentFolder = await entityClient.load(driveTypeRefs.DriveFolderTypeRef, folderId)
+		const currentFolder = await entityClient.load(DriveFolderTypeRef, folderId)
 
 		const contents = await driveFacade.getFolderContents(folderId)
 		const items = toFolderItems(contents)
-		const parents = currentFolder.parent ? [await entityClient.load(driveTypeRefs.DriveFolderTypeRef, currentFolder.parent)] : []
+		const parents = currentFolder.parent ? [await entityClient.load(DriveFolderTypeRef, currentFolder.parent)] : []
 		return { currentFolder, parents, items, newFolderName: null }
 	}
 
@@ -114,7 +114,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 									currentFolder,
 									parents,
 									loadParents,
-									onClick: (f: driveTypeRefs.DriveFolder, e: MouseEvent) => {
+									onClick: (f: DriveFolder, e: MouseEvent) => {
 										e.preventDefault()
 										this.onOpenFolder(f)
 									},
@@ -175,7 +175,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				]
 			}
 
-			private async onCreateFolder(newFolderNameCaptured: string, currentFolder: driveTypeRefs.DriveFolder) {
+			private async onCreateFolder(newFolderNameCaptured: string, currentFolder: DriveFolder) {
 				state.newFolderName = null
 				m.redraw()
 				const newFolder = await driveFacade.createFolder(newFolderNameCaptured, currentFolder._id)
@@ -183,7 +183,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 				m.redraw()
 			}
 
-			private async onOpenFolder(folder: driveTypeRefs.DriveFolder) {
+			private async onOpenFolder(folder: DriveFolder) {
 				state = await loadFolder(folder._id)
 				m.redraw()
 			}

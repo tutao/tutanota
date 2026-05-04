@@ -1,52 +1,54 @@
-import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
-import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
+import { AppHeaderAttrs, Header } from "../../../ui/Header"
 import m, { Children, Vnode } from "mithril"
 import { DriveOperationType, DriveViewModel } from "./DriveViewModel"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
-import { DataFile, driveTypeRefs, FileReference } from "@tutao/typerefs"
-import { getFileBaseNameAndExtensions, WebFile } from "../../../common/api/common/utils/FileUtils"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView"
+import { getFileBaseNameAndExtensions } from "../../../ui/utils/FileUtils"
+import { ViewSlider } from "../../../ui/nav/ViewSlider"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
-import { layout_size } from "../../../common/gui/size"
+import { layout_size } from "../../../ui/size"
 import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
-import { theme } from "../../../common/gui/theme"
-import { createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout"
+import { theme } from "../../../ui/theme"
+import { createDropdown, Dropdown } from "../../../ui/base/Dropdown"
 import { DriveTransferStack } from "./DriveTransferStack"
 import { DriveSidebar } from "./Sidebar"
-import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
-import { ListState, MultiselectMode } from "../../../common/gui/base/List"
-import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "@tutao/app-env"
-import { formatStorageSize } from "../../../common/misc/Formatter"
+import { listSelectionKeyboardShortcuts } from "../../../ui/base/ListUtils"
+import { ListState, MultiselectMode } from "../../../ui/base/List"
+import { keyManager, Shortcut } from "../../../ui/utils/KeyManager"
+import { Keys, OperationStatus, UpgradePromptType } from "@tutao/app-env"
+import { formatStorageSize } from "../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
-import { modal } from "../../../common/gui/base/Modal"
+import { modal } from "../../../ui/base/Modal"
 import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDialog } from "./DriveGuiUtils"
-import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { styles } from "../../../common/gui/styles"
-import { MobileHeader } from "../../../common/gui/MobileHeader"
-import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
+import { getDetachedDropdownBounds } from "../../../ui/base/GuiUtils"
+import { Dialog } from "../../../ui/base/Dialog"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { styles } from "../../../ui/styles"
+import { MobileHeader } from "../../../ui/MobileHeader"
+import { EnterMultiselectIconButton } from "../../../ui/EnterMultiselectIconButton"
 import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { showSnackBar } from "../../../common/gui/base/SnackBar"
+import { showSnackBar } from "../../../ui/base/SnackBar"
 import Stream from "mithril/stream"
 import { assertNotNull, isNotEmpty, isNotNull } from "@tutao/utils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { MoveItems } from "./DriveMoveItemDialog"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
-import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader"
-import { MobileActionAttrs, MobileActionBar } from "../../../common/gui/MobileActionBar"
+import { MAIL_PREFIX } from "../../../ui/utils/RouteChange"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { MultiselectMobileHeader } from "../../../ui/MultiselectMobileHeader"
+import { MobileActionAttrs, MobileActionBar } from "../../../ui/MobileActionBar"
 import { DriveSelectedItemsActions } from "./DriveFolderNav"
-import { IconButton } from "../../../common/gui/base/IconButton"
-import { MessageBanner } from "../../../common/gui/base/MessageBanner"
-import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
+import { IconButton } from "../../../ui/base/IconButton"
+import { MessageBanner } from "../../../ui/base/MessageBanner"
+import { FabMenu, FabMenuAttrs } from "../../../ui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
+import { NewPaidPlans } from "@tutao/entities/sys"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 
@@ -150,7 +152,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
 		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
-		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
+		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn], windowFacade)
 
 		this.shortcuts = [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel),
@@ -229,7 +231,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				exec: () => {
 					const selectedItems = this.driveViewModel.listState().selectedItems
 
-					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: driveTypeRefs.DriveFolder) =>
+					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: DriveFolder) =>
 						this.driveViewModel.moveItems(items, destination._id),
 					)
 				},
@@ -262,6 +264,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m("#drive.main-view", {}, [
 			m(this.viewSlider, {
 				header: m(Header, {
+					isFeatureEnabled: locator.logins.isEnabled,
+					isInternalUserLoggedIn: locator.logins.isInternalUserLoggedIn(),
 					firstColWidth: this.driveNavColumn.width,
 					rightView: null,
 					...attrs.header,
@@ -412,7 +416,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn(headerAttrs: HeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]) {
+	private createCurrentFolderColumn(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -456,7 +460,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		} satisfies FabMenuAttrs)
 	}
 
-	private renderMobileHeader(headerAttrs: HeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+	private renderMobileHeader(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
 		const listState = this.driveViewModel.listState()
 		const actions = this.selectedItemsActions(listState, showMoveItemDialog)
 		const { onPaste } = actions

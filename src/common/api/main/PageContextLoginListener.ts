@@ -1,11 +1,12 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
-import { CacheInfo, LoginFailReason, LoginListener } from "../../../network/LoginFacade.js"
+import { CacheInfo, LoginFailReason, LoginListener } from "../../../base/facades/LoginFacade.js"
 import { SessionType } from "@tutao/app-env"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { PersistedCredentials } from "@tutao/native-bridge/common"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { Credentials } from "../../../network/Constants"
+import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+
+import { Credentials } from "@tutao/network/types"
+import { Challenge } from "@tutao/entities/sys"
 
 /** Listener for the login events from the worker side. */
 export class PageContextLoginListener implements LoginListener {
@@ -100,7 +101,7 @@ export class PageContextLoginListener implements LoginListener {
 	/**
 	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
 	 */
-	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<sysTypeRefs.Challenge>, mailAddress: string | null): Promise<void> {
+	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
 		return this.secondFactorHandler.showSecondFactorAuthenticationDialog(sessionId, challenges, mailAddress)
 	}
 

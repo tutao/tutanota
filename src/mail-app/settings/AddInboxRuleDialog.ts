@@ -1,14 +1,14 @@
 import m from "mithril"
-import { Dialog } from "../../common/gui/base/Dialog"
-import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
-import { assertMainOrNode, InboxRuleType, MailSetKind, UpgradePromptType } from "@tutao/app-env"
-import { isDomainName, isMailAddress, isRegularExpression } from "../../common/misc/FormatValidator"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
+import { isDomainName, isMailAddress, isRegularExpression } from "../../utils/FormatUtils"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
-import { elementIdPart, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, isSameId } from "../../meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
+import { Autocapitalize, LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -22,15 +22,16 @@ import {
 	getPathToFolderString,
 } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
-import { Checkbox } from "../../common/gui/base/Checkbox"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { Checkbox } from "../../ui/base/Checkbox"
+import { createInboxRule, InboxRule, InboxRuleType, MailSetKind } from "@tutao/entities/tutanota"
+import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
-export type InboxRuleTemplate = Pick<tutanotaTypeRefs.InboxRule, "type" | "value"> & {
-	_id?: tutanotaTypeRefs.InboxRule["_id"]
-	targetFolder?: tutanotaTypeRefs.InboxRule["targetFolder"]
-	excludeFromSpamFilter?: tutanotaTypeRefs.InboxRule["excludeFromSpamFilter"]
+export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
+	_id?: InboxRule["_id"]
+	targetFolder?: InboxRule["targetFolder"]
+	excludeFromSpamFilter?: InboxRule["excludeFromSpamFilter"]
 }
 
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
@@ -90,7 +91,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const addInboxRuleOkAction = (dialog: Dialog) => {
-			let rule = tutanotaTypeRefs.createInboxRule({
+			let rule = createInboxRule({
 				type: inboxRuleType(),
 				value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
 				targetFolder: inboxRuleTarget()._id,

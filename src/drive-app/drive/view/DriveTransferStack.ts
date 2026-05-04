@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveTransferState } from "./DriveTransferController"
-import { px, size } from "../../../common/gui/size"
-import { TransferId } from "../../../common/api/common/drive/DriveTypes"
-import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../../common/gui/ProgressSnackBar"
-import { TranslationKeyType } from "../../../common/misc/TranslationKey"
-import { fabBottomSpacing } from "../../../common/gui/base/FloatingActionButton"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { px, size } from "../../../ui/size"
+import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../../ui/ProgressSnackBar"
+import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
+import { fabBottomSpacing } from "../../../ui/base/FloatingActionButton"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
+import { TransferId } from "../../../entities/drive/Utils"
 
 export interface DriveTransferStackAttrs {
 	transfers: readonly DriveTransferState[]

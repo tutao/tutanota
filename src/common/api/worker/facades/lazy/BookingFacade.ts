@@ -1,8 +1,16 @@
 import { Const } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
-import { assertWorkerOrNode, BookingItemFeatureType } from "@tutao/app-env"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import {
+	BookingItemFeatureType,
+	createPriceRequestData,
+	createPriceServiceData,
+	PriceData,
+	PriceItemData,
+	PriceService,
+	PriceServiceReturn,
+} from "@tutao/entities/sys"
 
 assertWorkerOrNode()
 
@@ -16,8 +24,8 @@ export class BookingFacade {
 	 * @param  reactivate  If true a user or group is reactivated instead of created - not used for aliases, storage or branding
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getPrice(type: BookingItemFeatureType, count: number, reactivate: boolean): Promise<sysTypeRefs.PriceServiceReturn> {
-		const priceRequestData = sysTypeRefs.createPriceRequestData({
+	getPrice(type: BookingItemFeatureType, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
+		const priceRequestData = createPriceRequestData({
 			featureType: type,
 			count: String(count),
 			reactivate,
@@ -25,23 +33,23 @@ export class BookingFacade {
 			accountType: null,
 			business: null,
 		})
-		const serviceData = sysTypeRefs.createPriceServiceData({
+		const serviceData = createPriceServiceData({
 			date: Const.CURRENT_DATE,
 			priceRequest: priceRequestData,
 		})
-		return this.serviceExecutor.get(sysServices.PriceService, serviceData)
+		return this.serviceExecutor.get(PriceService, serviceData)
 	}
 
 	/**
 	 * Provides the price for a given feature type and count.
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
-	getCurrentPrice(): Promise<sysTypeRefs.PriceServiceReturn> {
-		const serviceData = sysTypeRefs.createPriceServiceData({
+	getCurrentPrice(): Promise<PriceServiceReturn> {
+		const serviceData = createPriceServiceData({
 			date: null,
 			priceRequest: null,
 		})
-		return this.serviceExecutor.get(sysServices.PriceService, serviceData)
+		return this.serviceExecutor.get(PriceService, serviceData)
 	}
 
 	/**
@@ -50,7 +58,7 @@ export class BookingFacade {
 	 * @param  featureType The booking item feature type
 	 * @return The price item or null
 	 */
-	getPriceItem(priceData: sysTypeRefs.PriceData | null, featureType: NumberString): sysTypeRefs.PriceItemData | null {
+	getPriceItem(priceData: PriceData | null, featureType: NumberString): PriceItemData | null {
 		if (priceData != null) {
 			return neverNull(priceData).items.find((p) => p.featureType === featureType) ?? null
 		}

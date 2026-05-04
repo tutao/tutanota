@@ -1,13 +1,13 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Button, ButtonAttrs, ButtonType } from "../../../gui/base/Button.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { getReferralLink, ReferralLinkViewer } from "./ReferralLinkViewer.js"
 import { DateProvider } from "../../../../utils/DateProvider.js"
-import { generatedIdToTimestamp } from "@tutao/typerefs"
+import { generatedIdToTimestamp } from "../../../../meta"
 import { getDayShifted, neverNull } from "@tutao/utils"
 import { UserController } from "../../../api/main/UserController.js"
+import { NewsId } from "@tutao/entities/tutanota"
 
 const REFERRAL_NEWS_DISPLAY_THRESHOLD_DAYS = 7
 
@@ -42,7 +42,7 @@ export class ReferralLinkNews implements NewsListItem {
 		)
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Children {
+	render(newsId: NewsId): Children {
 		const buttonAttrs: Array<ButtonAttrs> = [
 			{
 				label: "close_alt",

@@ -1,7 +1,6 @@
 import {
 	AttributeModel,
 	DeleteService,
-	Entity,
 	GetService,
 	getServiceRestPath,
 	isSameTypeRef,
@@ -10,19 +9,17 @@ import {
 	PostService,
 	PutService,
 	ReturnTypeFromRef,
-	ServerModelUntypedInstance,
-	TypeModelResolver,
 	TypeRef,
-} from "@tutao/typerefs"
+} from "../meta"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
 import { lazy } from "@tutao/utils"
-import { CryptoFacade } from "./crypto/facades/CryptoFacade.js"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
-import { AuthDataProvider } from "./UserFacade.js"
-import { LoginIncompleteError } from "./error/LoginIncompleteError.js"
-import { EntityAdapter, InstancePipeline } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver } from "@tutao/instance-pipeline"
+import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
+import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
+import { LoginIncompleteError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -31,9 +28,9 @@ type AnyService = GetService | PostService | PutService | DeleteService
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(
 		private readonly restClient: RestClient,
-		private readonly authDataProvider: AuthDataProvider,
+		private readonly authDataProvider: LoggedInUserProvider,
 		private readonly instancePipeline: InstancePipeline,
-		private readonly cryptoFacade: lazy<CryptoFacade>,
+		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
@@ -166,7 +163,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
-		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+		const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
 		return await this.instancePipeline.decryptAndMap(typeRef, cleanInstance, sessionKey)
 	}

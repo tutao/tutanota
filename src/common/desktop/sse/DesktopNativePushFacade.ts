@@ -1,14 +1,14 @@
-import { NativePushFacade } from "@tutao/native-bridge/common"
+import { NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/common"
+import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
-import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/typerefs"
+import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { base64ToKey } from "@tutao/crypto"
 import { log } from "../DesktopLog"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { AlarmNotificationTypeRef } from "@tutao/entities/sys"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -55,7 +55,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		for (const alarm of alarms) {
 			const sk = base64ToKey(newDeviceSessionKey)
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
-				sysTypeRefs.AlarmNotificationTypeRef,
+				AlarmNotificationTypeRef,
 				alarm as unknown as ServerModelUntypedInstance,
 				sk,
 			)

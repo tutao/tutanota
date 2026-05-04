@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { Card } from "../../gui/base/Card.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { Card } from "../../../ui/base/Card.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
-import { px } from "../../gui/size.js"
-import { theme } from "../../gui/theme.js"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
+import { px } from "../../../ui/size.js"
+import { theme } from "../../../ui/theme.js"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 
 interface DissatisfactionPageAttrs {
 	dialog: Dialog
@@ -39,7 +39,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					},
 				},
 				m(DynamicColorSvg, {
-					path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/feedback.svg`,
+					path: `/images/dynamic-color-svg/feedback.svg`,
 				}),
 			),
 			m(

@@ -1,26 +1,16 @@
 import { IndexerCore } from "../../../mail-app/workerUtils/index/IndexerCore"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../local-store/Sql"
-import { TaggedSqlValue } from "@tutao/typerefs"
 import { lazyAsync, noOp } from "@tutao/utils"
-import { EphemeralCacheStorage } from "./rest/EphemeralCacheStorage"
+import { EphemeralCacheStorage } from "../../../local-store/EphemeralCacheStorage"
 import { IndexingNotSupportedError } from "../common/error/IndexingNotSupportedError"
 import { InvalidDatabaseStateError } from "../common/error/InvalidDatabaseStateError"
 import { MailIndexer } from "../../../mail-app/workerUtils/index/MailIndexer"
 import { OfflineDbClosedError } from "../common/error/OfflineDbClosedError"
+import { LastProcessedEventBatchProvider } from "../../../network/LastProcessedEventBatchProvider"
+import { TaggedSqlValue } from "../../../local-store/Types"
 
-export interface LastProcessedEventBatchStorageFacade {
-	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>
-
-	/**
-	 * Saved the batch id of the most recently processed batch manually.`
-	 *
-	 * Is needed when the cache is new but we want to make sure that the next time we will download from this moment, even if we don't receive any events.
-	 */
-	putLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void>
-}
-
-export class IndexedDbLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchStorageFacade {
+export class IndexedDbLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchProvider {
 	constructor(
 		private readonly core: lazyAsync<IndexerCore>,
 		private readonly ephemeralCacheStorage: lazyAsync<EphemeralCacheStorage>,
@@ -66,7 +56,7 @@ export class IndexedDbLastProcessedEventBatchStorageFacade implements LastProces
 	}
 }
 
-export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchStorageFacade {
+export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchProvider {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
 	async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
@@ -98,7 +88,7 @@ export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastP
 				// We do nothing if we get an OfflineDbClosedError. This is a valid case when creating an account.
 				// We do not want to stop the PayPal hook and the general registration flow from working by throwing an error here.
 				// After the user has logged in, they would anyway receive updates for the applicable groups
-				// and save a correct last processed batch id for them into the local-store storage.
+				// and save a correct last processed batch id for them into the offline storage.
 			} else {
 				throw e
 			}
@@ -106,7 +96,7 @@ export class OfflineStorageLastProcessedEventBatchStorageFacade implements LastP
 	}
 }
 
-export class NoOpLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchStorageFacade {
+export class NoOpLastProcessedEventBatchStorageFacade implements LastProcessedEventBatchProvider {
 	constructor() {}
 
 	async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {

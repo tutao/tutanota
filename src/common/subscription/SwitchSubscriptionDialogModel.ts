@@ -1,8 +1,7 @@
 import { FeatureType } from "@tutao/app-env"
 import { asPaymentInterval, PaymentInterval } from "./utils/PriceUtils"
 import { isCustomizationEnabledForCustomer } from "../api/common/utils/CustomerUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { BookingItemFeatureType, LegacyPlans, PlanType } from "@tutao/app-env"
+import { AccountingInfo, Booking, BookingItemFeatureType, Customer, LegacyPlans, PlanType } from "@tutao/entities/sys"
 
 export type CurrentPlanInfo = {
 	businessUse: boolean
@@ -14,10 +13,10 @@ export class SwitchSubscriptionDialogModel {
 	currentPlanInfo: CurrentPlanInfo
 
 	constructor(
-		private readonly customer: sysTypeRefs.Customer,
-		private readonly accountingInfo: sysTypeRefs.AccountingInfo,
+		private readonly customer: Customer,
+		private readonly accountingInfo: AccountingInfo,
 		private readonly planType: PlanType,
-		private readonly lastBooking: sysTypeRefs.Booking,
+		private readonly lastBooking: Booking,
 	) {
 		this.currentPlanInfo = this._initCurrentPlanInfo()
 	}

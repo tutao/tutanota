@@ -1,21 +1,22 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, PlanType } from "@tutao/app-env"
-import { formatDateWithMonth } from "../misc/Formatter.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
+import { assertMainOrNode } from "@tutao/app-env"
+import { formatDateWithMonth } from "../../ui/utils/Formatter.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
-import { Button, ButtonType } from "../gui/base/Button"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { Button, ButtonType } from "../../ui/base/Button"
+import { CustomerInfo, PlanType } from "@tutao/entities/sys"
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 
 assertMainOrNode()
 
 export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
-	constructor(public customerInfo: sysTypeRefs.CustomerInfo) {
+	constructor(public customerInfo: CustomerInfo) {
 		this.customerInfo = customerInfo
 	}
 
-	private getDisplayValueForPlan({ plan }: sysTypeRefs.CustomerInfo) {
+	private getDisplayValueForPlan({ plan }: CustomerInfo) {
 		return getDisplayNameOfPlanType(plan as PlanType)
 	}
 
@@ -52,5 +53,5 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 		])
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {}
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {}
 }

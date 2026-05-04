@@ -1,5 +1,5 @@
 import * as restError from "@tutao/rest-client/error"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../ui/utils/LanguageViewModel.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils.js"
 import type { LoginController } from "../api/main/LoginController"
@@ -17,13 +17,14 @@ import { DeviceConfig } from "../misc/DeviceConfig.js"
 import { CancelledError } from "@tutao/app-env"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/NativePushServiceApp.js"
-import { CredentialsInfo } from "@tutao/native-bridge/common"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
-import { UnencryptedCredentials } from "@tutao/native-bridge/common"
+import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { AppLock } from "./AppLock.js"
 import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthenticationError"
-import { getWhitelabelRegistrationDomains } from "../misc/WhitelabelCustomizations"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { getWhitelabelRegistrationDomains } from "../../ui/utils/WhitelabelUtils"
+
+import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 

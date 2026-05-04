@@ -1,16 +1,17 @@
 import o, { assertThrows } from "@tutao/otest"
-import { SqlType, TaggedSqlValue } from "../../../../src/typerefs/SqlValue"
+import { TaggedSqlValue } from "../../../../src/local-store/Types"
 import { matchers, object, verify, when } from "testdouble"
-import { TrustedIdentity } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
+import { TrustedIdentity } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../src/local-store/IdentityKeyTrustDatabase"
 import { hexToUint8Array } from "@tutao/utils"
 import testData from "../../api/worker/crypto/CompatibilityTestData.json"
 import { bytesToEd25519PublicKey, SigningKeyPairType } from "@tutao/crypto"
 import { withOverriddenEnv } from "../../TestUtils"
 import { IdentityKeySourceOfTrust, Mode, ProgrammingError } from "@tutao/app-env"
-import { LoginFacade } from "../../../../src/network/LoginFacade"
+import { LoginFacade } from "../../../../src/base/facades/LoginFacade"
 import { SessionType } from "../../../../src/app-env/SessionType"
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { SqlType } from "../../../../src/local-store/Types.js"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {

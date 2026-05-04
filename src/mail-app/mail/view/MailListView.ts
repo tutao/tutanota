@@ -1,41 +1,39 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../../common/misc/LanguageViewModel"
-
-import { Keys } from "@tutao/app-env"
-import { getElementId, getLetId, haveSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import { component_size } from "../../../common/gui/size"
-import { styles } from "../../../common/gui/styles"
-import { Icon } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Mail, MailSetKind, SystemFolderType } from "@tutao/entities/tutanota"
+import { assertMainOrNode, Keys } from "@tutao/app-env"
+import { getElementId, getLetId, haveSameId } from "../../../meta"
+import { component_size } from "../../../ui/size"
+import { styles } from "../../../ui/styles"
+import { Icon } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import type { ButtonAttrs } from "../../../ui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../../ui/base/Button.js"
+import { Dialog } from "../../../ui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
-import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
-import { deduplicateFilenames } from "../../../common/api/common/utils/FileUtils"
+import { deduplicateFilenames } from "../../../ui/utils/FileUtils"
 import { downloadMailBundle } from "../export/Bundler"
-import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
-import { assertMainOrNode, MailSetKind, SystemFolderType } from "@tutao/app-env"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
 import { MailViewModel } from "./MailViewModel.js"
-import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../common/gui/base/List.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
-import { isKeyPressed } from "../../../common/misc/KeyManager.js"
+import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../ui/base/List.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { VirtualRow } from "../../../ui/base/ListUtils.js"
+import { isKeyPressed } from "../../../ui/utils/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
-import { DropType } from "../../../common/gui/base/GuiUtils"
+import { DropType } from "../../../ui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
+import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 
 assertMainOrNode()
 
-type Mail = tutanotaTypeRefs.Mail
 export interface MailListViewAttrs {
 	// We would like to not get and hold to the whole MailView eventually
 	// but for that we need to rewrite the List
@@ -269,7 +267,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			new Set(downloaded.map((f) => f.fileName)),
 		)
 
-		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
 		const htmlSanitizer = getHtmlSanitizer()
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename

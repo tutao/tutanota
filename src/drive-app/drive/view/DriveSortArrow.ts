@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { Icon } from "../../../common/gui/base/Icon"
-import { theme } from "../../../common/gui/theme"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Icon } from "../../../ui/base/Icon"
+import { theme } from "../../../ui/theme"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 
 export interface DriveSortArrowAttrs {
 	sortOrder: "asc" | "desc" | null

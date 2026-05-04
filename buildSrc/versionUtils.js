@@ -63,7 +63,7 @@ function makeNewVersion(currentVersion) {
  * @returns {number[]}
  */
 function readModelVersions() {
-	const appNames = fs.readdirSync("./src/typerefs/entities/")
+	const appNames = fs.readdirSync("./src/meta/entities/")
 	return appNames.map((appName) => {
 		const modelInfoString = fs.readFileSync(`./src/typerefs/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
 		const versionPrefix = "version:"

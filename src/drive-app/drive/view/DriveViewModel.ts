@@ -1,7 +1,9 @@
+import { OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 import { EntityClient, loadMultipleFromLists } from "../../../network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { Router } from "../../../common/gui/ScopedRouter"
-import { driveTypeRefs, elementIdPart, entityUpdateUtils, getElementId, isSameId, listIdPart } from "@tutao/typerefs"
+import { Router } from "../../../ui/ScopedRouter"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../meta"
 import m from "mithril"
 import * as restError from "@tutao/rest-client/error"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
@@ -9,18 +11,17 @@ import { DriveTransferController, DriveTransferState } from "./DriveTransferCont
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
 
-import { Const, OperationStatus, OperationType, SECOND_IN_MILLIS } from "@tutao/app-env"
+import { Const, OperationStatus, SECOND_IN_MILLIS } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
-import { ListFetchResult } from "../../../common/gui/base/ListUtils"
-import { ListState } from "../../../common/gui/base/List"
+import { ListFetchResult } from "../../../ui/base/ListUtils"
+import { ListState } from "../../../ui/base/List"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../common/api/common/drive/DriveTypes"
 import {
 	deduplicateItemNames,
 	FileFolderItem,
@@ -36,19 +37,22 @@ import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
-import { FileReference, isWebFile, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { isWebFile } from "../../../ui/utils/FileUtils"
+import { FileReference, WebFile } from "../../../entities/tutanota/Utils"
+import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../entities/drive/Utils"
+import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
 	parents: readonly BreadcrumbEntry[]
-	folder: driveTypeRefs.DriveFolder
+	folder: DriveFolder
 }
 
 export type SpecialFolderType = DriveFolderType.Root | DriveFolderType.Trash
 
 export interface SpecialFolder {
 	type: SpecialFolderType
-	folder: driveTypeRefs.DriveFolder
+	folder: DriveFolder
 }
 
 export type DisplayFolder = RegularFolder | SpecialFolder
@@ -149,7 +153,7 @@ export class DriveViewModel {
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
-	parents: readonly driveTypeRefs.DriveFolder[] = []
+	parents: readonly DriveFolder[] = []
 	roots: DriveRootFolders | null = null
 
 	private _clipboard: DriveClipboard | null = null
@@ -203,7 +207,7 @@ export class DriveViewModel {
 			onEntityUpdatesReceived: async (events) => {
 				await this.entityEventsReceived(events)
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 
 		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
@@ -254,7 +258,7 @@ export class DriveViewModel {
 		return isDriveEnabled(this.loginController)
 	}
 
-	private newListModel(folder: driveTypeRefs.DriveFolder): ListModel<FolderItem, Id> {
+	private newListModel(folder: DriveFolder): ListModel<FolderItem, Id> {
 		const newListModel = new ListModel<FolderItem, Id>({
 			fetch: async (lastFetchedItem, count) => {
 				if (lastFetchedItem == null) {
@@ -302,14 +306,14 @@ export class DriveViewModel {
 		},
 	)
 
-	private async entityEventsReceived(events: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
-			if (entityUpdateUtils.isUpdateForTypeRef(driveTypeRefs.DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
+			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
 				if (update.operation === OperationType.DELETE) {
 					await this.listModel.deleteLoadedItem(update.instanceId)
 				}
 				if (update.operation === OperationType.CREATE) {
-					const fileRef = await this.entityClient.load(driveTypeRefs.DriveFileRefTypeRef, [update.instanceListId, update.instanceId])
+					const fileRef = await this.entityClient.load(DriveFileRefTypeRef, [update.instanceListId, update.instanceId])
 					const item = fileRef.file ? await this.loadItem("file", fileRef.file) : await this.loadItem("folder", assertNotNull(fileRef.folder))
 					this.listModel.waitLoad(() => {
 						if (this.listModel.canInsertItem(item)) {
@@ -317,15 +321,12 @@ export class DriveViewModel {
 						}
 					})
 				}
-			} else if (
-				entityUpdateUtils.isUpdateForTypeRef(driveTypeRefs.DriveFileTypeRef, update) ||
-				entityUpdateUtils.isUpdateForTypeRef(driveTypeRefs.DriveFolderTypeRef, update)
-			) {
+			} else if (isUpdateForTypeRef(DriveFileTypeRef, update) || isUpdateForTypeRef(DriveFolderTypeRef, update)) {
 				if (this.currentFolder == null) {
 					continue
 				}
 				if (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE) {
-					const item = await this.loadItem(entityUpdateUtils.isUpdateForTypeRef(driveTypeRefs.DriveFolderTypeRef, update) ? "folder" : "file", [
+					const item = await this.loadItem(isUpdateForTypeRef(DriveFolderTypeRef, update) ? "folder" : "file", [
 						update.instanceListId,
 						update.instanceId,
 					])
@@ -338,10 +339,10 @@ export class DriveViewModel {
 
 	private async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
 		if (type === "file") {
-			const file = await this.entityClient.load(driveTypeRefs.DriveFileTypeRef, id)
+			const file = await this.entityClient.load(DriveFileTypeRef, id)
 			return { type, file }
 		} else {
-			const folder = await this.entityClient.load(driveTypeRefs.DriveFolderTypeRef, id)
+			const folder = await this.entityClient.load(DriveFolderTypeRef, id)
 			return { type, folder }
 		}
 	}
@@ -389,15 +390,15 @@ export class DriveViewModel {
 	/**
 	 * @throws UserError
 	 */
-	async copyItems(items: readonly FolderItemId[], destination: driveTypeRefs.DriveFolder) {
+	async copyItems(items: readonly FolderItemId[], destination: DriveFolder) {
 		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 		const files = await loadMultipleFromLists(
-			driveTypeRefs.DriveFileTypeRef,
+			DriveFileTypeRef,
 			this.entityClient,
 			fileItems.map((item) => item.id),
 		)
 		const folders = await loadMultipleFromLists(
-			driveTypeRefs.DriveFolderTypeRef,
+			DriveFolderTypeRef,
 			this.entityClient,
 			folderItems.map((item) => item.id),
 		)
@@ -501,10 +502,10 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
-	private async loadParents(folder: driveTypeRefs.DriveFolder) {
+	private async loadParents(folder: DriveFolder) {
 		if (folder.parent != null) {
-			const directParent = await this.entityClient.load(driveTypeRefs.DriveFolderTypeRef, folder.parent)
-			const grandparent = directParent.parent ? await this.entityClient.load(driveTypeRefs.DriveFolderTypeRef, directParent.parent) : null
+			const directParent = await this.entityClient.load(DriveFolderTypeRef, folder.parent)
+			const grandparent = directParent.parent ? await this.entityClient.load(DriveFolderTypeRef, directParent.parent) : null
 			this.parents = grandparent ? [grandparent, directParent] : [directParent]
 		} else {
 			this.parents = []
@@ -513,7 +514,7 @@ export class DriveViewModel {
 
 	async displayFolder(folderId: IdTuple): Promise<void> {
 		try {
-			const folder = await this.entityClient.load(driveTypeRefs.DriveFolderTypeRef, folderId)
+			const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 			if (folder.type === DriveFolderType.Regular) {
 				this.currentFolder = {
 					type: folder.type,
@@ -597,10 +598,10 @@ export class DriveViewModel {
 		}
 	}
 
-	async openFile(file: driveTypeRefs.DriveFile): Promise<void> {
+	async openFile(file: DriveFile): Promise<void> {
 		this.transferController.download(file, "open")
 	}
-	async downloadFile(file: driveTypeRefs.DriveFile): Promise<void> {
+	async downloadFile(file: DriveFile): Promise<void> {
 		this.transferController.download(file, "download")
 	}
 
@@ -681,7 +682,7 @@ export class DriveViewModel {
 		return this.storage
 	}
 
-	async getMoreParents(): Promise<driveTypeRefs.DriveFolder[]> {
+	async getMoreParents(): Promise<DriveFolder[]> {
 		if (this.currentFolder == null) {
 			return []
 		}

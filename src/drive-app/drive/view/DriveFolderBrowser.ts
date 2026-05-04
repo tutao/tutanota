@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { getElementId } from "@tutao/typerefs"
+import { getElementId } from "../../../meta"
 import { DriveFolderBrowserEntry, DriveFolderBrowserEntryAttrs } from "./DriveFolderBrowserEntry"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
 import { isEmpty, lastIndex } from "@tutao/utils"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { Keys } from "@tutao/app-env"
 
 export interface DriveFolderBrowserAttrs {

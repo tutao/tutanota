@@ -5,12 +5,13 @@ import { LoginController } from "../../../../src/common/api/main/LoginController
 import { object, replace, when } from "testdouble"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { AccountType } from "../../../../src/app-env"
 
+import { AccountType } from "../../../../src/entities/sys"
+
+import { Customer, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 o.spec("CalendarNotificationModel", function () {
 	let userController: UserController
-	let customer: sysTypeRefs.Customer
+	let customer: Customer
 	let logins: LoginController
 
 	o.beforeEach(function () {
@@ -24,7 +25,7 @@ o.spec("CalendarNotificationModel", function () {
 	o.spec("hasPlanWithInvites", function () {
 		o("available for users with new paid plan that contains invites", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(true)
-			when(userController.getPlanConfig()).thenResolve(createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, { eventInvites: true }))
+			when(userController.getPlanConfig()).thenResolve(createTestEntity(PlanConfigurationTypeRef, { eventInvites: true }))
 			replace(userController, "user", { accountType: AccountType.PAID })
 			replace(customer, "customizations", [])
 			o(await hasPlanWithInvites(logins)).equals(true)
@@ -32,7 +33,7 @@ o.spec("CalendarNotificationModel", function () {
 
 		o("not available for users with new paid plan that does not contain invites", async function () {
 			when(userController.isNewPaidPlan()).thenResolve(true)
-			when(userController.getPlanConfig()).thenResolve(createTestEntity(sysTypeRefs.PlanConfigurationTypeRef, { eventInvites: false }))
+			when(userController.getPlanConfig()).thenResolve(createTestEntity(PlanConfigurationTypeRef, { eventInvites: false }))
 			replace(userController, "user", { accountType: AccountType.PAID })
 			o(await hasPlanWithInvites(logins)).equals(false)
 		})

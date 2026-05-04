@@ -1,46 +1,45 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
-import {
-	AlarmFacade,
-	CommonNativeFacade,
-	CommonSystemFacade,
-	CommonSystemFacadeSendDispatcher,
-	DesktopFacade,
-	DesktopSystemFacade,
-	DesktopSystemFacadeSendDispatcher,
-	ExportFacade,
-	ExportFacadeSendDispatcher,
-	ExternalCalendarFacade,
-	ExternalCalendarFacadeSendDispatcher,
-	FileFacadeSendDispatcher,
-	InterWindowEventFacade,
-	InterWindowEventFacadeSendDispatcher,
-	MobileContactsFacade,
-	MobileContactsFacadeSendDispatcher,
-	MobilePaymentsFacade,
-	MobilePaymentsFacadeSendDispatcher,
-	MobileSystemFacade,
-	MobileSystemFacadeSendDispatcher,
-	NativeCredentialsFacade,
-	NativeCredentialsFacadeSendDispatcher,
-	NativeFileApp,
-	NativeMailImportFacade,
-	NativeMailImportFacadeSendDispatcher,
-	NativePushFacadeSendDispatcher,
-	SearchTextInAppFacade,
-	SearchTextInAppFacadeSendDispatcher,
-	SettingsFacadeSendDispatcher,
-	ThemeFacade,
-	ThemeFacadeSendDispatcher,
-	WebGlobalDispatcher,
-} from "@tutao/native-bridge/common"
-import { isAdminClient, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
-import { CryptoFacade, EntityClient } from "@tutao/network"
+import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonSystemFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExportFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExternalCalendarFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { FileFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileContactsFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentsFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileSystemFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCredentialsFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
+import { NativeMailImportFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeMailImportFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { NativePushFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SearchTextInAppFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { SettingsFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ThemeFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { WebGlobalDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
+import { isAdminClient, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { WebMobileFacade } from "./WebMobileFacade.js"
 import { AppType } from "@tutao/app-env"
+import { CryptoFacade } from "../../base/crypto/CryptoFacade"
+import { EntityClient } from "../../network/EntityClient"
+import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain

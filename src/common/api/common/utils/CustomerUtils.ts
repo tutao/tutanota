@@ -1,14 +1,14 @@
-import { sysTypeRefs } from "@tutao/typerefs"
 import { FeatureType } from "@tutao/app-env"
+import { Customer, CustomerInfo, DomainInfo } from "@tutao/entities/sys"
 
-export function getWhitelabelDomainInfo(customerInfo: sysTypeRefs.CustomerInfo, domainName?: string): sysTypeRefs.DomainInfo | null {
+export function getWhitelabelDomainInfo(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find((info) => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
 }
 
-export function getCustomMailDomains(customerInfo: sysTypeRefs.CustomerInfo): Array<sysTypeRefs.DomainInfo> {
+export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
 	return customerInfo.domainInfos.filter((di) => di.whitelabelConfig == null)
 }
 
-export function isCustomizationEnabledForCustomer(customer: sysTypeRefs.Customer, feature: FeatureType): boolean {
+export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
 	return customer.customizations.some((customization) => customization.feature === feature)
 }

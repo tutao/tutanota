@@ -1,11 +1,12 @@
+import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
 import { LoginController } from "../api/main/LoginController.js"
-import { createDataFile, sysTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { FileController } from "../file/FileController.js"
-import { CounterFacade } from "../../network/facades/CounterFacade.js"
-import { CounterType } from "@tutao/app-env"
+import { CounterFacade } from "../../network/CounterFacade.js"
 import { CancelledError } from "@tutao/app-env"
+import { CounterType } from "@tutao/entities/monitor"
+import { createDataFile } from "../api/worker/utils/DataFile"
 
 const GROUP_DOWNLOAD_SIZE = 50
 
@@ -52,7 +53,7 @@ export async function loadUserExportData(
 	abortSignal?: AbortSignal,
 ): Promise<UserExportData[]> {
 	const customer = await logins.getUserController().reloadCustomer()
-	const groupsAdministeredByUser = await entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.userGroups)
+	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customer._id)
 
 	let isCancelled = false
@@ -68,7 +69,7 @@ export async function loadUserExportData(
 		}
 
 		const groups = await entityClient.loadMultiple(
-			sysTypeRefs.GroupTypeRef,
+			GroupTypeRef,
 			null,
 			infos.map((group) => group.group),
 		)

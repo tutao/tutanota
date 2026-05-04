@@ -224,3 +224,6 @@ export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from
 
 export { parseUrl, getUrlDomain } from "./URLUtils.js"
 export * from "./ErrorUtils.js"
+export * from "./SyncMetrics.js"
+export * from "./DateProvider.js"
+export * from "./FormatUtils.js"

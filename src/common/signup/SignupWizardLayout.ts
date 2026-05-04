@@ -1,26 +1,27 @@
 import m, { Component, Vnode } from "mithril"
-import { WizardProgress } from "../gui/base/wizard/WizardProgress"
-import { WizardLayoutAttrs } from "../gui/base/wizard/Wizard"
-import { styles } from "../gui/styles"
-import { component_size, layout_size, px, size } from "../gui/size"
+import { WizardProgress } from "../../ui/base/wizard/WizardProgress"
+import { WizardLayoutAttrs } from "../../ui/base/wizard/Wizard"
+import { styles } from "../../ui/styles"
+import { component_size, layout_size, px, size } from "../../ui/size"
 import { SignupViewModel } from "./SignupView"
-import { DynamicColorSvg } from "../gui/base/DynamicColorSvg"
+import { DynamicColorSvg } from "../../ui/base/DynamicColorSvg"
 import { InfoBoxItem, SignupWizardInfoBoxController, SignupWizardInfoList } from "./components/SignupWizardInfoList"
-import { Icons } from "../gui/base/icons/Icons"
-import { lang } from "../misc/LanguageViewModel"
+import { Icons } from "../../ui/base/icons/Icons"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { SignupInlinePlanSelector } from "./components/SignupInlinePlanSelector"
-import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { WizardProgressCircular } from "../gui/base/wizard/WizardProgressCircular"
-import { getTutaLogo, getTutaLogoSignetSvg } from "../gui/base/Logo"
-import { LanguageDropdown } from "../gui/LanguageDropdown"
-import { theme } from "../gui/theme"
-import { getSafeAreaInsetTop } from "../gui/HtmlUtils"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
+import { DefaultAnimationTime } from "../../ui/animation/Animations"
+import { WizardProgressCircular } from "../../ui/base/wizard/WizardProgressCircular"
+import { getTutaLogo, getTutaLogoSignetSvg } from "../../ui/base/Logo"
+import { LanguageDropdown } from "../settings/LanguageDropdown"
+import { theme } from "../../ui/theme"
+import { getSafeAreaInsetTop } from "../../ui/HtmlUtils"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { CAMPAIGN_NAME, shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { PlanTypeToName } from "@tutao/typerefs"
-import { AvailablePlanType, PlanType } from "@tutao/app-env"
+import { AvailablePlanType, PlanType } from "@tutao/entities/sys"
+import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
+import { deviceConfig } from "../misc/DeviceConfig"
 
 const INFO_BOX_TRANSITION_MS = 500
 const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
@@ -366,7 +367,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 						{ style: { height: px(32), width: styles.isMobileLayout() ? px(32) : px(90) } },
 						m.trust(styles.isMobileLayout() ? getTutaLogoSignetSvg() : getTutaLogo()),
 					),
-					m(LanguageDropdown, { variant: "Link" }),
+					m(LanguageDropdown, { variant: "Link", deviceConfig }),
 				],
 			),
 			ctx.controller.currentStep === 0 && this.shouldFixButtonPos && m("", { style: { "padding-top": px(72) } }),
@@ -395,7 +396,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	}
 
 	private getIllustrationPath(name: string): string {
-		return `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/${name}`
+		return `/images/dynamic-color-svg/${name}`
 	}
 
 	private isInlinePlanSelectorToggleEnabled(viewModel: SignupViewModel, step: number): boolean {

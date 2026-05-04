@@ -1,21 +1,18 @@
-import {
-	convertToDataFile,
-	createReferencingInstance,
-	DataFile,
-	elementIdPart,
-	storageTypeRefs as storageTypeRefs,
-	sysTypeRefs,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
-import { ArchiveDataType, assertWorkerOrNode } from "@tutao/app-env"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "./BlobFacade.js"
-import { CryptoFacade } from "../../../../../network/crypto/facades/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
-import { BlobAccessTokenFacade } from "../../../../../network/facades/BlobAccessTokenFacade"
+import { BlobAccessTokenFacade } from "../../../../../network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { ArchiveDataType, Group } from "@tutao/entities/sys"
+import { File } from "@tutao/entities/tutanota"
+import { DataFile, Mail } from "@tutao/entities/tutanota"
+import { BlobServerUrl, createReferencingInstance } from "@tutao/entities/storage"
+import { elementIdPart } from "@tutao/meta"
+import { convertToDataFile } from "../../utils/DataFile"
 
 assertWorkerOrNode()
 
@@ -41,26 +38,26 @@ export class MailExportFacade {
 	/**
 	 * Returns a list of servers that can be used to request data from.
 	 */
-	async getExportServers(group: sysTypeRefs.Group): Promise<storageTypeRefs.BlobServerUrl[]> {
+	async getExportServers(group: Group): Promise<BlobServerUrl[]> {
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(ArchiveDataType.Attachments, group._id)
 		return blobServerAccessInfo.servers
 	}
 
-	async loadFixedNumberOfMailsWithCache(mailListId: Id, startId: Id, baseUrl: string): Promise<tutanotaTypeRefs.Mail[]> {
+	async loadFixedNumberOfMailsWithCache(mailListId: Id, startId: Id, baseUrl: string): Promise<Mail[]> {
 		return this.mailExportTokenFacade.loadWithToken((token) =>
 			this.bulkMailLoader.loadFixedNumberOfMailsWithCache(mailListId, startId, { baseUrl, ...this.options(token) }),
 		)
 	}
 
-	async loadMailDetails(mails: readonly tutanotaTypeRefs.Mail[], baseUrl: string): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(mails: readonly Mail[], baseUrl: string): Promise<MailWithMailDetails[]> {
 		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadMailDetails(mails, { baseUrl, ...this.options(token) }))
 	}
 
-	async loadAttachments(mails: readonly tutanotaTypeRefs.Mail[], baseUrl: string): Promise<tutanotaTypeRefs.File[]> {
+	async loadAttachments(mails: readonly Mail[], baseUrl: string): Promise<File[]> {
 		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadAttachments(mails, { baseUrl, ...this.options(token) }))
 	}
 
-	async loadAttachmentData(mail: tutanotaTypeRefs.Mail, attachments: readonly tutanotaTypeRefs.File[]): Promise<DataFile[]> {
+	async loadAttachmentData(mail: Mail, attachments: readonly File[]): Promise<DataFile[]> {
 		const attachmentsWithKeys = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, attachments)
 
 		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {

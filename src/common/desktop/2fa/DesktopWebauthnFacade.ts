@@ -1,10 +1,8 @@
-import {
-	WebAuthnFacade,
-	WebAuthnRegistrationChallenge,
-	WebAuthnRegistrationResult,
-	WebAuthnSignChallenge,
-	WebAuthnSignResult,
-} from "@tutao/native-bridge/common"
+import { WebAuthnFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnRegistrationChallenge } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnRegistrationResult } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnSignChallenge } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnSignResult } from "@tutao/native-bridge/generatedIpc/types"
 import type { WebDialogController } from "../WebDialog.js"
 import { WebDialog } from "../WebDialog.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"

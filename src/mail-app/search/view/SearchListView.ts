@@ -1,32 +1,33 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, UpgradePromptType } from "@tutao/app-env"
 import { downcast, YEAR_IN_MILLIS } from "@tutao/utils"
-import { isSameTypeRef, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../ui/base/List.js"
+import { component_size, px, size } from "../../../ui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
-import { styles } from "../../../common/gui/styles.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { VirtualRow } from "../../../ui/base/ListUtils.js"
+import { styles } from "../../../ui/styles.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
-import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
+import type { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { shouldAlwaysShowMultiselectCheckbox } from "../../../ui/SelectableRowContainer"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import Stream from "mithril/stream"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { Button, ButtonType } from "../../../common/gui/base/Button"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Button, ButtonType } from "../../../ui/base/Button"
 import { mailLocator } from "../../mailLocator"
-import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
-import { formatDate } from "../../../common/misc/Formatter"
-import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { CircleLoadingBar } from "../../../ui/ProgressSnackBar"
+import { formatDate } from "../../../ui/utils/Formatter"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
+import { isSameTypeRef, TypeRef } from "@tutao/meta"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -41,10 +42,10 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListElementListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent>
+	currentType: TypeRef<Mail | Contact | CalendarEvent>
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
-	getLabelsForMail: (mail: tutanotaTypeRefs.Mail) => tutanotaTypeRefs.MailSet[]
+	getLabelsForMail: (mail: Mail) => MailSet[]
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
@@ -117,7 +118,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private endOfListRender(attrs: SearchListViewAttrs): Children {
-		if (!isSameTypeRef(attrs.currentType, tutanotaTypeRefs.MailTypeRef)) {
+		if (!isSameTypeRef(attrs.currentType, MailTypeRef)) {
 			// We only want to show these messages in mail search for now, though this may change in the future
 			return null
 		}
@@ -199,16 +200,16 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		)
 	}
 
-	private getRenderItems(type: TypeRef<tutanotaTypeRefs.Mail | tutanotaTypeRefs.Contact | tutanotaTypeRefs.CalendarEvent>): {
+	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {
 		icon: Icons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
-		if (isSameTypeRef(type, tutanotaTypeRefs.ContactTypeRef)) {
+		if (isSameTypeRef(type, ContactTypeRef)) {
 			return {
 				icon: Icons.PeopleFilled,
 				renderConfig: this.contactRenderConfig,
 			}
-		} else if (isSameTypeRef(type, tutanotaTypeRefs.CalendarEventTypeRef)) {
+		} else if (isSameTypeRef(type, CalendarEventTypeRef)) {
 			return {
 				icon: Icons.CalendarFilled,
 				renderConfig: this.calendarRenderConfig,

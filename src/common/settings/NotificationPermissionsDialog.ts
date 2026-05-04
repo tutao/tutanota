@@ -1,15 +1,15 @@
 import m, { Component, Vnode } from "mithril"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { Dialog } from "../gui/base/Dialog.js"
-import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
-import { ButtonType } from "../gui/base/Button.js"
-import { ClickHandler } from "../gui/base/GuiUtils.js"
-import { PermissionType } from "@tutao/native-bridge/common"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../ui/base/Button.js"
+import { ClickHandler } from "../../ui/base/GuiUtils.js"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
 import { isAndroidApp } from "@tutao/app-env"
-import { SystemPermissionHandler } from "../native/main/SystemPermissionHandler"
-import { NativePushServiceApp } from "../native/main/NativePushServiceApp"
 import { isNotNull } from "@tutao/utils"
+import { NativePushServiceApp } from "../native/NativePushServiceApp"
+import { SystemPermissionHandler } from "../native/SystemPermissionHandler"
 
 function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
 	return renderSettingsBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)

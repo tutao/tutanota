@@ -1,12 +1,29 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, OperationType } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType } from "@tutao/app-env"
 import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
-import { entityUpdateUtils, GENERATED_MAX_ID, sysServices, sysTypeRefs } from "@tutao/typerefs"
-import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
-import { FeatureType } from "@tutao/app-env"
-import { progressIcon } from "../../gui/base/Icon.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { GENERATED_MAX_ID, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import {
+	Booking,
+	BookingTypeRef,
+	BrandingDomainService,
+	CertificateInfo,
+	createStringWrapper,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	CustomerProperties,
+	CustomerPropertiesTypeRef,
+	CustomerTypeRef,
+	DomainInfo,
+	NotificationMailTemplate,
+	PlanConfiguration,
+	WhitelabelConfig,
+	WhitelabelConfigTypeRef,
+} from "@tutao/entities/sys"
 import * as EditNotificationEmailDialog from "../../settings/EditNotificationEmailDialog"
 import { isWhitelabelActive } from "../../subscription/utils/SubscriptionUtils.js"
 import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings"
@@ -19,28 +36,29 @@ import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEma
 import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
 import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
 import type { UpdatableSettingsViewer } from "../Interfaces.js"
-import { getThemeCustomizations, ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { getThemeCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { SelectorItem, SelectorItemList } from "../../gui/base/DropDownSelector.js"
+import { SelectorItem, SelectorItemList } from "../../../ui/base/DropDownSelector.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/utils/CustomerUtils.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
-import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
-import type { ThemeController } from "../../gui/ThemeController"
+import type { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
+import type { ThemeController } from "../../../ui/ThemeController"
+import { ThemeCustomizations } from "../../../ui/WhitelabelCustomizations"
 
 assertMainOrNode()
 
 export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
-	private _whitelabelConfig: sysTypeRefs.WhitelabelConfig | null = null
-	private _certificateInfo: sysTypeRefs.CertificateInfo | null = null
-	private _whitelabelDomainInfo: sysTypeRefs.DomainInfo | null = null
+	private _whitelabelConfig: WhitelabelConfig | null = null
+	private _certificateInfo: CertificateInfo | null = null
+	private _whitelabelDomainInfo: DomainInfo | null = null
 	private _customJsonTheme: ThemeCustomizations | null = null
-	private _customer: LazyLoaded<sysTypeRefs.Customer>
-	private _customerInfo: LazyLoaded<sysTypeRefs.CustomerInfo>
-	private _planConfig: LazyLoaded<sysTypeRefs.PlanConfiguration>
-	private _customerProperties: LazyLoaded<sysTypeRefs.CustomerProperties>
-	private _lastBooking: sysTypeRefs.Booking | null
+	private _customer: LazyLoaded<Customer>
+	private _customerInfo: LazyLoaded<CustomerInfo>
+	private _planConfig: LazyLoaded<PlanConfiguration>
+	private _customerProperties: LazyLoaded<CustomerProperties>
+	private _lastBooking: Booking | null
 	private _entityClient: EntityClient
 	private _logins: LoginController
 
@@ -57,7 +75,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._customerInfo = new LazyLoaded(() => locator.logins.getUserController().loadCustomerInfo())
 		this._planConfig = new LazyLoaded(() => locator.logins.getUserController().getPlanConfig())
 		this._customerProperties = new LazyLoaded(() =>
-			this._customer.getAsync().then((customer) => locator.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			this._customer.getAsync().then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 		)
 		this._lastBooking = null
 
@@ -162,7 +180,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				clear(neverNull(this._whitelabelConfig).whitelabelRegistrationDomains)
 
 				if (domain) {
-					const domainWrapper = sysTypeRefs.createStringWrapper({
+					const domainWrapper = createStringWrapper({
 						value: domain,
 					})
 					neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.push(domainWrapper)
@@ -278,18 +296,18 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	_tryLoadWhitelabelConfig(domainInfo: sysTypeRefs.DomainInfo | null): Promise<
+	_tryLoadWhitelabelConfig(domainInfo: DomainInfo | null): Promise<
 		| {
-				whitelabelConfig: sysTypeRefs.WhitelabelConfig
-				certificateInfo: sysTypeRefs.CertificateInfo
+				whitelabelConfig: WhitelabelConfig
+				certificateInfo: CertificateInfo
 		  }
 		| null
 		| undefined
 	> {
 		if (domainInfo && domainInfo.whitelabelConfig) {
 			return Promise.all([
-				locator.entityClient.load(sysTypeRefs.WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
-				locator.serviceExecutor.get(sysServices.BrandingDomainService, null).then((response) => neverNull(response.certificateInfo)),
+				locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
+				locator.serviceExecutor.get(BrandingDomainService, null).then((response) => neverNull(response.certificateInfo)),
 			]).then(([whitelabelConfig, certificateInfo]) => ({
 				whitelabelConfig,
 				certificateInfo,
@@ -307,7 +325,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._whitelabelConfig = data?.whitelabelConfig ?? null
 		this._certificateInfo = data?.certificateInfo ?? null
 		return locator.entityClient
-			.loadRange(sysTypeRefs.BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+			.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 			.then((bookings) => {
 				this._lastBooking = bookings.length === 1 ? bookings[0] : null
 				const unknownCustomizations = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
@@ -330,11 +348,11 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			showBuyOrSetNotificationEmailDialog(this._lastBooking, this._customerProperties)
 		}
 
-		const onEditTemplate = (template: sysTypeRefs.NotificationMailTemplate) => {
+		const onEditTemplate = (template: NotificationMailTemplate) => {
 			EditNotificationEmailDialog.show(template, this._customerProperties)
 		}
 
-		const onRemoveTemplate = (template: sysTypeRefs.NotificationMailTemplate) => {
+		const onRemoveTemplate = (template: NotificationMailTemplate) => {
 			this._removeNotificationMailTemplate(template)
 		}
 
@@ -347,7 +365,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		return m(WhitelabelNotificationEmailSettings, whitelabelNotificationEmailSettingsAttrs)
 	}
 
-	_removeNotificationMailTemplate(template: sysTypeRefs.NotificationMailTemplate) {
+	_removeNotificationMailTemplate(template: NotificationMailTemplate) {
 		showProgressDialog(
 			"pleaseWait_msg",
 			this._customerProperties.getAsync().then((customerProps) => {
@@ -362,23 +380,23 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
+			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customer.reset()
 
 				return this._customer.getAsync().then(() => m.redraw())
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerInfo.reset()
 
 				return this._updateFields()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
 				return this._updateFields()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerProperties.reset()
 
 				return this._updateFields()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.BookingTypeRef, update)) {
+			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 				return this._updateFields()
 			}
 		}).then(noOp)

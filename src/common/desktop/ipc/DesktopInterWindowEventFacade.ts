@@ -1,4 +1,4 @@
-import { InterWindowEventFacade } from "@tutao/native-bridge/common"
+import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { WindowManager } from "../DesktopWindowManager.js"
 

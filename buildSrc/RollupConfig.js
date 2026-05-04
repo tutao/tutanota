@@ -25,21 +25,23 @@ export const dependencyMap = {
 }
 
 export let tsImportAliases = {
-	"@tutao/utils": path.normalize("src/utils/dist/index.js"),
-	"@tutao/crypto-primitives": path.normalize("src/crypto-primitives/dist/crypto_primitives.js"),
-	"@tutao/crypto": path.normalize("src/crypto/dist/index.js"),
-	"@tutao/crypto/error": path.normalize("src/crypto/dist/error.js"),
-	"@tutao/usagetests": path.normalize("src/usagetests/dist/index.js"),
-	"@tutao/mimimi": path.normalize("src/mimimi/dist/binding.js"),
-	"@tutao/rest-client": path.normalize("src/rest-client/dist/index.js"),
-	"@tutao/rest-client/error": path.normalize("src/rest-client/dist/error.js"),
-	"@tutao/app-env": path.normalize("src/app-env/dist/index.js"),
-	"@tutao/typerefs": path.normalize("src/typerefs/dist/index.js"),
-	"@tutao/instance-pipeline": path.normalize("src/instance-pipeline/dist/index.js"),
-	"@tutao/native-bridge/common": path.normalize("src/native-bridge/dist/common/index.js"),
-	"@tutao/native-bridge/worker": path.normalize("src/native-bridge/dist/worker/index.js"),
-	"@tutao/native-bridge/main": path.normalize("src/native-bridge/dist/main/index.js"),
-	"@tutao/native-bridge/shared": path.normalize("src/native-bridge/dist/shared/index.js"),
+	"@tutao/utils": path.normalize("build/utils/index.js"),
+	"@tutao/crypto": path.normalize("build/crypto/index.js"),
+	"@tutao/crypto/error": path.normalize("build/crypto/error.js"),
+	"@tutao/usagetests": path.normalize("build/usagetests/index.js"),
+	"@tutao/mimimi": path.normalize("build/mimimi/binding.js"),
+	"@tutao/rest-client": path.normalize("build/rest-client/index.js"),
+	"@tutao/rest-client/error": path.normalize("build/rest-client/error.js"),
+	"@tutao/app-env": path.normalize("build/app-env/index.js"),
+	"@tutao/typerefs": path.normalize("build/meta/index.js"),
+	"@tutao/instance-pipeline": path.normalize("build/instance-pipeline/index.js"),
+	"@tutao/native-bridge/common": path.normalize("build/native-bridge/common/index.js"),
+	"@tutao/native-bridge/worker": path.normalize("build/native-bridge/worker/index.js"),
+	"@tutao/native-bridge/main": path.normalize("build/native-bridge/main/index.js"),
+	"@tutao/native-bridge/shared": path.normalize("build/native-bridge/shared/index.js"),
+	"@tutao/native-bridge/generatedIpc/types": path.normalize("build/native-bridge/common/generatedipc/types/index.js"),
+	"@tutao/local-store": path.normalize("build/local-store/index.js"),
+	"@tutao/network": path.normalize("build/network/index.js"),
 }
 
 /**
@@ -49,15 +51,15 @@ export const allowedImports = {
 	"polyfill-helpers": [],
 	"wasm-fallback": [],
 	wasm: ["wasm-fallback"],
-	"common-min": ["polyfill-helpers"],
+	"common-min": ["polyfill-helpers", "boot"],
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
-	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
+	"gui-base": ["polyfill-helpers", "common-min", "common", "boot", "worker"],
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
 	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra"],
-	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
+	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "ui-extra"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "date-gui"],
 	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
@@ -156,7 +158,19 @@ export const allowedImports = {
 	"native-common": ["polyfill-helpers", "common-min", "common"],
 	"native-main": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "native-common", "login"],
 	"native-worker": ["polyfill-helpers", "common-min", "common"],
-	"setup-wizard": ["boot", "common-min", "gui-base", "main", "native-common", "native-main", "settings", "mail-settings", "calendar-settings", "ui-extra"],
+	"setup-wizard": [
+		"boot",
+		"common-min",
+		"gui-base",
+		"main",
+		"native-common",
+		"native-main",
+		"settings",
+		"mail-settings",
+		"calendar-settings",
+		"ui-extra",
+		"ui",
+	],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
@@ -268,7 +282,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (
 		isIn("src/mail-app/mail/editor") ||
 		moduleId.includes("squire") ||
-		isIn("src/common/gui/editor") ||
+		isIn("src/ui/editor") ||
 		isIn("src/mail-app/mail/signature") ||
 		isIn("src/mail-app/templates") ||
 		isIn("src/mail-app/knowledgebase") ||
@@ -384,9 +398,11 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "drive"
 	} else if (isIn("src/utils")) {
 		return "common-min"
-	} else if (isIn("src/typerefs") || isIn("src/rest-client/error.ts")) {
+	} else if (isIn("src/meta") || isIn("src/rest-client/error.ts")) {
 		return "common"
 	} else if (isIn("src/rest-client") || isIn("src/crypto") || isIn("src/instance-pipeline")) {
+		return "worker"
+	} else if (isIn("src/base")) {
 		return "worker"
 	} else if (isIn("src/native-bridge/main")) {
 		return "native-main"
@@ -404,10 +420,18 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-lazy"
 	} else if (isIn("src/network/crypto/facades") || isIn("src/network/facades/") || isIn("src/network/offline/migrations")) {
 		return "worker"
-	} else if (isIn("src/network/GroupUtils.ts") || isIn("src/network/EntityClient.ts")) {
+	} else if (isIn("src/network/GroupUtils.ts") || isIn("src/network/EntityClient.ts") || isIn("src/network/ProgressMonitorInterface.ts")) {
 		return "common"
 	} else if (isIn("src/network")) {
 		return "worker"
+	} else if (isIn("src/local-store")) {
+		return "worker"
+	} else if (isIn("src/entities")) {
+		return "common"
+	} else if (isIn("src/ui/base")) {
+		return "gui-base"
+	} else if (isIn("src/ui")) {
+		return "main"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
@@ -499,6 +523,9 @@ export function bundleDependencyCheckPlugin() {
 					}
 
 					for (const importedId of getModuleInfo(moduleId).importedIds) {
+						if (importedId.includes("@tutao")) {
+							throw new Error("path alias not replaces: " + importedId)
+						}
 						// static dependencies on translation files are not allowed
 						if (importedId.includes(path.normalize("src/mail-app/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)

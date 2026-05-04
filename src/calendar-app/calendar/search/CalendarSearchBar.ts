@@ -1,22 +1,21 @@
+import { CalendarEvent } from "@tutao/entities/tutanota"
 import m, { Component, Vnode } from "mithril"
-import { component_size, px } from "../../../common/gui/size"
+import { component_size, px } from "../../../ui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { PositionRect } from "../../../common/gui/base/Overlay"
-import { displayOverlay } from "../../../common/gui/base/Overlay"
-import { tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
-import type { Shortcut } from "../../../common/misc/KeyManager"
-import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
+import type { PositionRect } from "../../../ui/base/Overlay"
+import { displayOverlay } from "../../../ui/base/Overlay"
+import { TypeRef } from "@tutao/meta"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
-import { styles } from "../../../common/gui/styles"
-import { client } from "../../../app-env/boot/ClientDetector"
+import { assertMainOrNode, BrowserType, client, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
+import { styles } from "../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "@tutao/utils"
-import { BrowserType } from "../../../app-env/boot/ClientConstants"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { LayerType } from "../../../RootView"
-import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
+import { LayerType } from "../../../ui/base/RootView"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
 import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 
 import { loadMultipleFromLists } from "../../../network/EntityClient.js"
@@ -38,7 +37,7 @@ export type CalendarSearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = tutanotaTypeRefs.CalendarEvent | ShowMoreAction
+export type Entry = CalendarEvent | ShowMoreAction
 type Entries = Array<Entry>
 export type CalendarSearchBarState = {
 	query: string
@@ -293,7 +292,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		},
 	]
 
-	private selectResult(result: tutanotaTypeRefs.CalendarEvent | ShowMoreAction | null) {
+	private selectResult(result: CalendarEvent | ShowMoreAction | null) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -322,7 +321,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		return getRestriction(m.route.get())
 	}
 
-	private updateSearchUrl(query: string, selected?: tutanotaTypeRefs.CalendarEvent) {
+	private updateSearchUrl(query: string, selected?: CalendarEvent) {
 		searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
 	}
 

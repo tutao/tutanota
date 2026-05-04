@@ -1,20 +1,37 @@
 import { SseClient, SseEventHandler } from "./SseClient.js"
-import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
+import TutaNotificationHandler from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
-import { AttributeModel, ClientTypeModelResolver, elementIdPart, hasError, ServerModelUntypedInstance, sysTypeModels, sysTypeRefs } from "@tutao/typerefs"
-import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, throttleStart, uint8ArrayToBase64 } from "@tutao/utils"
+import { AttributeModel, elementIdPart, hasError, OperationType, ServerModelUntypedInstance } from "@tutao/meta"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	DateProvider,
+	downcast,
+	filterInt,
+	neverNull,
+	stringToUtf8Uint8Array,
+	throttleStart,
+	uint8ArrayToBase64,
+} from "@tutao/utils"
 import { SseStorage } from "./SseStorage.js"
-import { DateProvider } from "../../../utils/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+import { ClientTypeModelResolver, InstancePipeline } from "@tutao/instance-pipeline"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { EncryptedMissedNotification } from "../../../native-bridge/common/EncryptedMissedNotification"
 import { EncryptedAlarmNotification } from "../../../native-bridge/common/EncryptedAlarmNotification"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
 import { CryptoError } from "@tutao/crypto/error"
-import { OperationType } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
+import {
+	AlarmNotificationTypeRef,
+	createGeneratedIdWrapper,
+	createSseConnectData,
+	MissedNotificationTypeRef,
+	NotificationInfoTypeRef,
+	SseConnectDataTypeRef,
+	sysTypeModels,
+} from "@tutao/entities/sys"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -56,7 +73,7 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 		const url = await this.getSseUrl(sseInfo, sseInfo.userIds[0])
 		const headers = {
-			v: sysTypeModels[sysTypeRefs.MissedNotificationTypeRef.typeId].version,
+			v: sysTypeModels[MissedNotificationTypeRef.typeId].version,
 			cv: this.appVersion,
 		}
 		const timeout = await this.sseStorage.getHeartbeatTimeoutSec()
@@ -89,16 +106,16 @@ export class TutaSseFacade implements SseEventHandler {
 	}
 
 	private async requestJson(identifier: string, userId: string): Promise<string> {
-		const connectData = sysTypeRefs.createSseConnectData({
+		const connectData = createSseConnectData({
 			identifier: identifier,
 			userIds: [
-				sysTypeRefs.createGeneratedIdWrapper({
+				createGeneratedIdWrapper({
 					value: userId,
 				}),
 			],
 		})
 		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
-			await this.nativeInstancePipeline.mapAndEncrypt(sysTypeRefs.SseConnectDataTypeRef, connectData, null),
+			await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null),
 		)
 		return JSON.stringify(untypedInstance)
 	}
@@ -133,8 +150,7 @@ export class TutaSseFacade implements SseEventHandler {
 		if (sseInfo == null) return
 		const notificationInfos = await Promise.all(
 			encryptedMissedNotification.notificationInfos.map(
-				async (notificationInfoUntyped) =>
-					await this.nativeInstancePipeline.decryptAndMap(sysTypeRefs.NotificationInfoTypeRef, notificationInfoUntyped, null),
+				async (notificationInfoUntyped) => await this.nativeInstancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null),
 			),
 		)
 		await this.notificationHandler.onMailNotification(sseInfo, notificationInfos)
@@ -161,7 +177,7 @@ export class TutaSseFacade implements SseEventHandler {
 						throw new CryptoError("could not find session key to decrypt alarm notification")
 					}
 					const alarmNotification = await this.nativeInstancePipeline.decryptAndMap(
-						sysTypeRefs.AlarmNotificationTypeRef,
+						AlarmNotificationTypeRef,
 						alarmNotificationUntyped,
 						assertNotNull(sk).sessionKey,
 					)
@@ -188,7 +204,7 @@ export class TutaSseFacade implements SseEventHandler {
 		log.debug("downloading missed notification", url)
 		const headers: Record<string, string> = {
 			userIds: sseInfo.userIds[0],
-			v: sysTypeModels[sysTypeRefs.MissedNotificationTypeRef.typeId].version,
+			v: sysTypeModels[MissedNotificationTypeRef.typeId].version,
 			cv: this.appVersion,
 		}
 		const lastProcessedId = await this.sseStorage.getLastProcessedNotificationId()
