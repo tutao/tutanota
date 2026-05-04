@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Nyissa meg az alkalmazást!";
 TutaoWidgetUnexpectedErrorMsg = "Hajaj! Valami nem sikerült.";
 TutaoWidgetSendLogsAction = "Naplók küldése";
 TutaoWidgetNoEventsMsg = "Nincsenek események";
+TutaoWidgetNoEventsTodayMsg = "Mára nincsenek események";
 TutaoWidgetCredentialsErrorMsg = "Nincsenek hitelesítő adatok";
 TutaoAccountLabel = "Felhasználó";
 TutaoCalendarsLabel = "Naptárak";

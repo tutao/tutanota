@@ -2266,4 +2266,7 @@ export type TranslationKeyType =
 	| "searchUntil_msg"
 	| "waitingForAppStoreConfirmation_msg"
 	| "beginTyping_msg"
+	| "manualUpdateNeeded_msg"
+	| "setAsSenderNameForPrimaryAddress_label"
+	| "incorrectRecoveryCodeFormat_msg"
 	| "emptyString_msg"
