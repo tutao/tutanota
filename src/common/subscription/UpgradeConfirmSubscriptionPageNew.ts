@@ -244,7 +244,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 			const receivedNotification = await showProgressDialog(
 				"waitingForAppStoreConfirmation_msg",
-				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?.customerInfo)),
+				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
 			)
 			if (receivedNotification) {
 				return

@@ -49,7 +49,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			if (!success) {
 				return
 			}
-			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?.customerInfo))
+			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?._id))
 			if (receivedNotification) {
 				return
 			}

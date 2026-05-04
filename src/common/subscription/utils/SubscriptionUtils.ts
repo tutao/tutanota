@@ -306,10 +306,12 @@ export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array
 // we can't do the upgrade from the client because apple is supposed to contact us.
 // we can proceed with the flow once we see that the plan on customerInfo is what we
 // ordered.
-export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerInfoId: IdTuple): Promise<boolean> {
+export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
-
-	const customerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customerInfoId, { cacheMode: CacheMode.WriteOnly })
+	const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId, {
+		cacheMode: CacheMode.WriteOnly,
+	})
+	const customerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo, { cacheMode: CacheMode.WriteOnly })
 	if (expectedPlan === customerInfo.plan) {
 		// plan is already correct!
 		return true
@@ -322,7 +324,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 							if (entityUpdateUtils.isUpdateFor(customerInfo, update)) {
 								// since we're waiting for an account upgrade, the customerInfo moves between the free and the paid list.
 								// we need to load the customer to find the new location.
-								const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerInfo.customer, {
+								const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId, {
 									cacheMode: CacheMode.WriteOnly,
 								})
 								const newCustomerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo, {
@@ -330,7 +332,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 								})
 								if (expectedPlan === newCustomerInfo.plan) {
 									// plan is now correct!
-									console.log("app store upgrade listener succeeded for", customerInfoId)
+									console.log("app store upgrade listener succeeded for", customer.customerInfo)
 									resolve(true)
 									locator.eventController.removeEntityListener(customerInfoUpdateListener)
 								}
@@ -342,11 +344,11 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 				locator.eventController.addEntityListener(customerInfoUpdateListener)
 				setTimeout(() => {
 					locator.eventController.removeEntityListener(customerInfoUpdateListener)
-					console.warn("app store upgrade listener timed out for", customerInfoId)
+					console.warn("app store upgrade listener timed out for", customer.customerInfo)
 					resolve(false)
 				}, timeout_ms)
 			} catch (e) {
-				console.error("failed to receive app store upgrade notification for", customerInfoId, e)
+				console.error("failed to receive app store upgrade notification for", customer.customerInfo, e)
 				resolve(false)
 			}
 		})
