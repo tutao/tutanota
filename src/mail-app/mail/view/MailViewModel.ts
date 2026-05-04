@@ -11,7 +11,7 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { MailSetKind, OperationType, ProgrammingError, SystemFolderType } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EventController } from "../../../common/api/main/EventController.js"
@@ -30,7 +30,7 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { MailSetKind, OperationType, SystemFolderType } from "@tutao/app-env"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet
@@ -97,6 +97,7 @@ export class MailViewModel {
 		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
+		private readonly syncTracker: SyncTracker,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -530,6 +531,11 @@ export class MailViewModel {
 	private fixCounterIfNeeded: (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
 		async (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
+			// We cannot be sure that we will fix counters correctly if sync is not yet done
+			if (!this.syncTracker.isSyncDone) {
+				return
+			}
+
 			// If mailSets are changed, the list won't have the data we need.
 			// Do not rely on counters if we are not connected.
 			// We can't know the correct unreadMailCount if some unread mails are filtered out.
@@ -567,7 +573,8 @@ export class MailViewModel {
 		// A counter fixup with a partially loaded list will set the counter to an incorrect value.
 		const folder = this.getFolder()
 		if (this.shouldAttemptCounterFixup && folder != null && folder.folderType !== MailSetKind.LABEL && newState.loadingStatus === ListLoadingState.Done) {
-			this.fixCounterIfNeeded(folder, newState.items)
+			// We use listModel.mails to get a correct count as it has all mails, even when conversation grouping is enabled
+			this.fixCounterIfNeeded(folder, listModel.mails)
 			this.shouldAttemptCounterFixup = false
 		}
 
