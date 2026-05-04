@@ -224,7 +224,7 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun requestWidgetRefresh() {
-		throw NotImplementedError("requestWidgetRefresh")
+		// throw NotImplementedError("requestWidgetRefresh")
 	}
 
 	override suspend fun storeServerRemoteOrigin(origin: String) {
