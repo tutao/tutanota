@@ -18,7 +18,7 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { LegacyTextField } from "../gui/base/LegacyTextField.js"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+import { sysServices, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typerefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
@@ -72,7 +72,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				if (stage) {
 					stage.setMetric({
 						name: "upgradeResult",
-						value: "Upgraded",
+						value: `${UpgradePromptTypeByName[assertNotNull(data.upgradePromptType)]}.Upgraded`,
 					})
 					stage.complete()
 				}

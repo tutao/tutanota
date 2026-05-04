@@ -1,14 +1,22 @@
-import type { Hex } from "@tutao/utils"
-import { defer } from "@tutao/utils"
-import { InvoiceData, NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
-import { countryList } from "@tutao/app-env"
+import { assertNotNull, defer, Hex } from "@tutao/utils"
+import {
+	assertMainOrNode,
+	AvailablePlans,
+	AvailablePlanType,
+	countryList,
+	InvoiceData,
+	isIOSApp,
+	NewPaidPlans,
+	PlanType,
+	SubscriptionType,
+	UpgradePromptType,
+} from "@tutao/app-env"
 import stream from "mithril/stream"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
-import { assertMainOrNode, AvailablePlans, AvailablePlanType, isIOSApp, PlanType, SubscriptionType } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
@@ -73,6 +81,7 @@ export type UpgradeSubscriptionData = {
 	emailInputStore?: string
 	passwordInputStore?: string
 	upgradeUsageTest: UsageTest | null
+	upgradePromptType: UpgradePromptType | null
 }
 
 export async function showUpgradeWizard({
@@ -92,7 +101,7 @@ export async function showUpgradeWizard({
 
 	let upgradeUsageTest: UsageTest | null = null
 	if (logins.getUserController().isFreeAccount() && upgradePromptType != null) {
-		upgradeUsageTest = locator.usageTestController.getTest("upgrade.paywall.upgradePaywallType")
+		upgradeUsageTest = locator.usageTestController.getTest("upgrade.paywall.upgradePaywallTypeAndResult")
 
 		const stage = upgradeUsageTest.getStage(0)
 		stage.setMetric({
@@ -143,6 +152,7 @@ export async function showUpgradeWizard({
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 		isCalledBySatisfactionDialog,
 		upgradeUsageTest,
+		upgradePromptType,
 	}
 
 	let { pageClass: planPageClass, attrs: planPageAttrs } = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(upgradeData) }
@@ -160,18 +170,6 @@ export async function showUpgradeWizard({
 		data: upgradeData,
 		pages: wizardPages,
 		closeAction: async () => {
-			if (upgradeUsageTest != null) {
-				const stage = upgradeUsageTest.getStage(1)
-
-				if (!stage.isMetricSet("upgradeResult")) {
-					stage.setMetric({
-						name: "upgradeResult",
-						value: "Dismissed",
-					})
-					stage.complete()
-				}
-			}
-
 			deferred.resolve()
 		},
 		dialogType: DialogType.EditLarge,
@@ -254,6 +252,7 @@ export async function loadSignupWizard(
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 		isCalledBySatisfactionDialog: false,
 		upgradeUsageTest: null,
+		upgradePromptType: null,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
