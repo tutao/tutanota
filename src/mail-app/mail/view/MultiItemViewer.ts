@@ -1,13 +1,13 @@
 import m, { Component, Vnode } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox"
-import { lang, Translation, MaybeTranslation } from "../../../common/misc/LanguageViewModel"
-import { theme } from "../../../common/gui/theme"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { progressIcon } from "../../../common/gui/base/Icon.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox"
+import { lang, MaybeTranslation, Translation } from "../../../ui/utils/LanguageViewModel"
+import { theme } from "../../../ui/theme"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
 import { deviceConfig, MailListDisplayMode } from "../../../common/misc/DeviceConfig"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Mail } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -75,7 +75,7 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 	}
 }
 
-export function getMailSelectionMessage(selectedEntities: ReadonlyArray<tutanotaTypeRefs.Mail>): Translation {
+export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): Translation {
 	let nbrOfSelectedMails = selectedEntities.length
 	let isConversationViewEnabled = deviceConfig.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 

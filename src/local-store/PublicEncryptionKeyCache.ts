@@ -1,9 +1,8 @@
 import { KeyVersion, Versioned } from "@tutao/utils"
-import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
-import { PublicKey, PublicKeyIdentifier } from "@tutao/crypto"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { PublicKey, PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
+import { PublicKeySignature, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/entities/sys"
 
-export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: sysTypeRefs.PublicKeySignature | null }
+export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: PublicKeySignature | null }
 
 /**
  * This caches public encryption keys that did not fail key verification / TOFU.

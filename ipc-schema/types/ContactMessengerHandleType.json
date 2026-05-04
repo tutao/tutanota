@@ -2,7 +2,7 @@
 	"name": "ContactMessengerHandleType",
 	"type": "typeref",
 	"location": {
-		"typescript": "@tutao/app-env",
+		"typescript": "@tutao/entities/tutanota",
 		"kotlin": "de.tutao.tutashared.contacts.ContactMessengerHandleType"
 	}
 }

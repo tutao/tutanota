@@ -6,14 +6,14 @@
  * and which methods to call to save the changes.
  */
 
-import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { Keys, UpgradePromptType } from "@tutao/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../app-env/boot/ClientDetector.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/utils"
-import type { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
+import type { HtmlEditor } from "../../../../ui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView, EditorPages } from "./CalendarEventEditView.js"
 import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.js"
@@ -21,16 +21,17 @@ import { CalendarEventIdentity, CalendarEventModel, EventSaveResult } from "../e
 import { ProgrammingError } from "@tutao/app-env"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
-import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
+import { convertTextToHtml } from "../../../../ui/utils/Formatter.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
-import { theme } from "../../../../common/gui/theme.js"
+import { theme } from "../../../../ui/theme.js"
 import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { newPromise } from "@tutao/utils"
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
 
-import { PosRect } from "../../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../../ui/utils/PosRect"
+import { getHtmlSanitizer } from "../../../../common/gui/utils/HtmlSanitizer"
 
 const enum ConfirmationResult {
 	Cancel,
@@ -86,7 +87,7 @@ export class EventEditorDialog {
 	 */
 	async showCalendarEventEditDialog(model: CalendarEventModel, handler: EditDialogOkHandler): Promise<void> {
 		const recipientsSearch = await locator.recipientsSearchModel()
-		const { HtmlEditor } = await import("../../../../common/gui/editor/HtmlEditor.js")
+		const { HtmlEditor } = await import("../../../../ui/editor/HtmlEditor.js")
 		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
 
 		const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
@@ -103,7 +104,7 @@ export class EventEditorDialog {
 		}, new Map())
 
 		const descriptionText = convertTextToHtml(model.editModels.description.content)
-		const descriptionEditor: HtmlEditor = new HtmlEditor()
+		const descriptionEditor: HtmlEditor = new HtmlEditor(getHtmlSanitizer())
 			.setShowOutline(true)
 			.setMinHeight(200)
 			.setEnabled(true)

@@ -1,12 +1,14 @@
 import o from "@tutao/otest"
 import { object, when } from "testdouble"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { IndexedDbContactSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactSearchFacade"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
-import { TypeModelResolver } from "@tutao/typerefs"
+
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { typedValues } from "@tutao/utils"
+import { ContactTypeRef } from "@tutao/entities/tutanota"
+import { TypeModelResolver } from "@tutao/instance-pipeline"
 
 o.spec("IndexedDbContactSearchFacade", () => {
 	let facade: IndexedDbContactSearchFacade
@@ -21,10 +23,10 @@ o.spec("IndexedDbContactSearchFacade", () => {
 
 	o.spec("findContacts", () => {
 		o.test("mailAddress", async () => {
-			const mailType = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: tutanotaTypeRefs.ContactTypeRef,
+				type: ContactTypeRef,
 				start: null,
 				end: null,
 				field: "mailAddresses",
@@ -42,10 +44,10 @@ o.spec("IndexedDbContactSearchFacade", () => {
 			o.check(result).deepEquals([["it's me", "a contact"] as IdTuple])
 		})
 		o.test("recipient", async () => {
-			const mailType = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: tutanotaTypeRefs.ContactTypeRef,
+				type: ContactTypeRef,
 				start: null,
 				end: null,
 				field: null,

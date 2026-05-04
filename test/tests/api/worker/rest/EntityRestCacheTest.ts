@@ -8,7 +8,6 @@ import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	Entity,
-	entityUpdateUtils,
 	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
@@ -16,33 +15,53 @@ import {
 	getListId,
 	isSameTypeRef,
 	listIdPart,
-	PatchOperationType,
 	ServerModelParsedInstance,
 	SomeEntity,
-	sysTypeRefs,
-	tutanotaTypeRefs,
-	TypeModelResolver,
 	TypeRef,
-} from "@tutao/typerefs"
+} from "../../../../../src/meta"
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "@tutao/utils"
 import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/local-store/OfflineStorage.js"
 import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { RestClient, restError } from "@tutao/rest-client"
-import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
+import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/local-store/OfflineStorageMigrator.js"
-import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { CacheMode, EntityRestClient } from "@tutao/network"
+import { CacheMode, EntityRestClient, LastProcessedEventBatchProvider } from "@tutao/network"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
-import { ModelMapper, PatchMerger } from "@tutao/instance-pipeline"
-import { collapseId } from "@tutao/network"
-import { LastProcessedEventBatchStorageFacade } from "../../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { OperationType } from "@tutao/app-env"
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { entityUpdateToUpdateData, EntityUpdateData, ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "@tutao/instance-pipeline"
 
+import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import {
+	BodyTypeRef,
+	ContactTypeRef,
+	Mail,
+	MailAddressTypeRef,
+	MailDetailsBlob,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+} from "@tutao/entities/tutanota"
+import { OperationType, collapseId } from "@tutao/meta"
+
+import {
+	Customer,
+	CustomerTypeRef,
+	ExternalUserReferenceTypeRef,
+	GroupKeyTypeRef,
+	MailAddressToGroupTypeRef,
+	Patch,
+	PermissionTypeRef,
+	RootInstanceTypeRef,
+	createEntityUpdate,
+	createPatch,
+	createPatchList,
+} from "@tutao/entities/sys"
 const { anything } = matchers
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
@@ -110,7 +129,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let typeModelResolver: TypeModelResolver
 		let modelMapper: ModelMapper
 		let patchMergerMock: PatchMerger
-		let lastProcessedBatchIdStorageFacadeMock: LastProcessedEventBatchStorageFacade
+		let lastProcessedBatchIdStorageFacadeMock: LastProcessedEventBatchProvider
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
@@ -127,42 +146,38 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			elementId: Id,
 			operation: OperationType,
 			instance: Nullable<T>,
-			patches: Nullable<Array<sysTypeRefs.Patch>>,
-		): Promise<entityUpdateUtils.EntityUpdateData> {
-			const entityUpdate = sysTypeRefs.createEntityUpdate({
+			patches: Nullable<Array<Patch>>,
+		): Promise<EntityUpdateData> {
+			const entityUpdate = createEntityUpdate({
 				instanceListId: listId,
 				instanceId: elementId,
 				operation: operation,
 				typeId: typeRef.typeId.toString(),
 				application: typeRef.app,
-				patch: patches ? sysTypeRefs.createPatchList({ patches }) : null,
+				patch: patches ? createPatchList({ patches }) : null,
 				instance: null, // will be added by entityUpdateToUpdateData
 				blobInstance: null,
 			})
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
-			return await entityUpdateUtils.entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
+			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
 		}
 		let updateDataForCreate = function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			instance: Nullable<T>,
-		): Promise<entityUpdateUtils.EntityUpdateData> {
+		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [])
 		}
 		let updateDataForUpdate = async function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
-			patches: Nullable<Array<sysTypeRefs.Patch>>,
-		): Promise<entityUpdateUtils.EntityUpdateData> {
+			patches: Nullable<Array<Patch>>,
+		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches)
 		}
-		let updateDataForDelete = async function <T extends SomeEntity>(
-			typeRef: TypeRef<T>,
-			listId: Id,
-			elementId: Id,
-		): Promise<entityUpdateUtils.EntityUpdateData> {
+		let updateDataForDelete = async function <T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [])
 		}
 
@@ -171,8 +186,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			return Array(13 - idText.length).join("-") + idText
 		}
 
-		let createCustomer = function (id): sysTypeRefs.Customer {
-			let customer = createTestEntity(sysTypeRefs.CustomerTypeRef, {
+		let createCustomer = function (id): Customer {
+			let customer = createTestEntity(CustomerTypeRef, {
 				_id: createId(id),
 				_ownerGroup: "customer-owner",
 				adminGroup: "adminGroup",
@@ -186,14 +201,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			return customer
 		}
 
-		let createMailDetailsBlobInstance = function (archiveId, id, bodyText): tutanotaTypeRefs.MailDetailsBlob {
-			let body = createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: bodyText })
-			let mailDetails = createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
+		let createMailDetailsBlobInstance = function (archiveId, id, bodyText): MailDetailsBlob {
+			let body = createTestEntity(BodyTypeRef, { text: bodyText })
+			let mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: createId(id),
 				body: body,
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef),
+				recipients: createTestEntity(RecipientsTypeRef),
 			})
-			return createTestEntity(tutanotaTypeRefs.MailDetailsBlobTypeRef, {
+			return createTestEntity(MailDetailsBlobTypeRef, {
 				_id: [archiveId, mailDetails._id],
 				details: mailDetails,
 				_permissions: "blob-permission-list",
@@ -201,11 +216,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 		}
 
-		let createMailInstance = function (listId, id, subject): tutanotaTypeRefs.Mail {
-			return createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		let createMailInstance = function (listId, id, subject): Mail {
+			return createTestEntity(MailTypeRef, {
 				_id: [listId, createId(id)],
 				_permissions: "permId",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					_id: "agId",
 				}),
 				subject: subject ?? "",
@@ -237,7 +252,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o.beforeEach(async function () {
 			userId = "userId"
 			customCacheHandlerMap = object()
-			lastProcessedBatchIdStorageFacadeMock = object<LastProcessedEventBatchStorageFacade>()
+			lastProcessedBatchIdStorageFacadeMock = object<LastProcessedEventBatchProvider>()
 			storage = await getStorage(userId, customCacheHandlerMap)
 			typeModelResolver = clientInitializedTypeModelResolver()
 			modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
@@ -257,18 +272,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const id4 = "id4"
 
 			o("writes batch meta on entity update", async function () {
-				const contact1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact1 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id1],
 					_ownerGroup: "owner-group",
 				})
-				const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact2 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id2],
 					_ownerGroup: "owner-group",
 				})
 
 				const batch = [
-					await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, contact1),
-					await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, contact2),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 				]
 
 				const putLastBatchIdForGroup = func<typeof lastProcessedBatchIdStorageFacadeMock.putLastEntityEventBatchForGroup>()
@@ -282,56 +297,52 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o.spec("post multiple cache range", function () {
 				o("create is not in cache range", async function () {
-					const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, { _id: [firstContactListId, id1] })
+					const contact = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
 					const batch = [
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
 					]
 					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
-					o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)).equals(null)
-					o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)).equals(null)
+					o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
+					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
 					o(updates).deepEquals(batch)
 				})
 
 				o("create partially not found", async function () {
-					await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id2)
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
 
-					const firstContact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const firstContact = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id1],
 						_permissions: "permissions",
 						_ownerGroup: "owner-group",
 					})
 					const thirdContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id3] })
-					const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3, null),
+					const batch: readonly EntityUpdateData[] = [
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null),
 					]
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id1])).thenResolve(
-						await toStorableInstance(firstContact),
-					)
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id2])).thenReject(
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(
 						new restError.NotFoundError("does not exist"),
 					)
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id3])).thenResolve(
-						await toStorableInstance(thirdContact),
-					)
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
 					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-					o(removeOriginals(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
-					o(removeOriginals(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2))).deepEquals(null)
-					o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3)).equals(null)
+					o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
+					o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id2))).deepEquals(null)
+					o(await storage.get(ContactTypeRef, firstContactListId, id3)).equals(null)
 					o(filteredUpdates.length).equals(2)
 					o(batch.filter((eud) => eud.instanceId !== id2)).deepEquals([...filteredUpdates])
 				})
 
 				o("create events are loaded from network if instance is not available on entity update", async function () {
-					await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id3)
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 					const ownerGroupId = "someOwnerGroupId"
 					const dummyContact = await toStorableInstance(
-						createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+						createTestEntity(ContactTypeRef, {
 							_id: ["dummyListId", "dummyId"],
 							_ownerGroup: ownerGroupId,
 						}),
@@ -339,39 +350,39 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 					// CREATE entity update without instance
-					const entityUpdateContact1 = sysTypeRefs.createEntityUpdate({
+					const entityUpdateContact1 = createEntityUpdate({
 						instanceListId: firstContactListId,
 						instanceId: id1,
 						operation: "0",
-						typeId: tutanotaTypeRefs.ContactTypeRef.typeId.toString(),
-						application: tutanotaTypeRefs.ContactTypeRef.app,
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
 						patch: null,
 						instance: null,
 						blobInstance: null,
 					})
-					const contact1EntityUpdate = await entityUpdateUtils.entityUpdateToUpdateData(entityUpdateContact1, null, null)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, null, null)
 
-					const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
 						_ownerGroup: ownerGroupId,
 					})
 
 					// CREATE entity update without instance
-					const entityUpdateContact3 = sysTypeRefs.createEntityUpdate({
+					const entityUpdateContact3 = createEntityUpdate({
 						instanceListId: firstContactListId,
 						instanceId: id3,
 						operation: "0",
-						typeId: tutanotaTypeRefs.ContactTypeRef.typeId.toString(),
-						application: tutanotaTypeRefs.ContactTypeRef.app,
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
 						patch: null,
 						instance: null,
 						blobInstance: null,
 					})
-					const contact3EntityUpdate = await entityUpdateUtils.entityUpdateToUpdateData(entityUpdateContact3, null, null)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, null, null)
 
-					const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
+					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, contact2),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 						contact3EntityUpdate,
 					]
 
@@ -380,61 +391,61 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				o("create events are loaded from network if instance has _errors after decryption", async function () {
-					await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id3)
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 					const ownerGroupId = "someOwnerGroupId"
 					const dummyContact = await toStorableInstance(
-						createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+						createTestEntity(ContactTypeRef, {
 							_id: ["dummyListId", "dummyId"],
 							_ownerGroup: ownerGroupId,
 						}),
 					)
 					when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
-					const contact1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const contact1 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id1],
 						_ownerGroup: ownerGroupId,
 					})
-					const entityUpdateContact1 = sysTypeRefs.createEntityUpdate({
+					const entityUpdateContact1 = createEntityUpdate({
 						instanceListId: firstContactListId,
 						instanceId: id1,
 						operation: "0",
-						typeId: tutanotaTypeRefs.ContactTypeRef.typeId.toString(),
-						application: tutanotaTypeRefs.ContactTypeRef.app,
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
 						blobInstance: null,
 					})
 					const contact1Parsed = await toStorableInstance(contact1)
 					contact1Parsed._errors = { 12: "some error for contact 1" }
-					const contact1EntityUpdate = await entityUpdateUtils.entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
+					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
-					const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const contact2 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id2],
 						_ownerGroup: ownerGroupId,
 					})
 
-					const contact3 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const contact3 = createTestEntity(ContactTypeRef, {
 						_id: [firstContactListId, id3],
 						_ownerGroup: ownerGroupId,
 					})
-					const entityUpdateContact3 = sysTypeRefs.createEntityUpdate({
+					const entityUpdateContact3 = createEntityUpdate({
 						instanceListId: firstContactListId,
 						instanceId: id3,
 						operation: "0",
-						typeId: tutanotaTypeRefs.ContactTypeRef.typeId.toString(),
-						application: tutanotaTypeRefs.ContactTypeRef.app,
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
 						patch: null,
 						instance: null, // will be added by entityUpdateToUpdateData
 						blobInstance: null,
 					})
 					const contact3Parsed = await toStorableInstance(contact3)
 					contact3Parsed._errors = { 12: "some error for contact 3" }
-					const contact3EntityUpdate = await entityUpdateUtils.entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
+					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
-					const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
+					const batch: readonly EntityUpdateData[] = [
 						contact1EntityUpdate,
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, contact2),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2),
 						contact3EntityUpdate,
 					]
 
@@ -443,10 +454,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				o("create events are partially in cache range", async function () {
-					await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id1)
-					await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4, id4)
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id1)
+					await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, id4)
 
-					const sampleContact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					const sampleContact = createTestEntity(ContactTypeRef, {
 						_permissions: "permissions",
 						_ownerGroup: "owner-group",
 					})
@@ -456,30 +467,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
 					const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
 
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, firstContact._id)).thenResolve(
-						await toStorableInstance(firstContact),
-					)
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, secondContact._id)).thenResolve(
-						await toStorableInstance(secondContact),
-					)
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, thirdContact._id)).thenResolve(
-						await toStorableInstance(thirdContact),
-					)
-					when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, fourthContact._id)).thenResolve(
-						await toStorableInstance(fourthContact),
-					)
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, firstContact._id)).thenResolve(await toStorableInstance(firstContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, secondContact._id)).thenResolve(await toStorableInstance(secondContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, thirdContact._id)).thenResolve(await toStorableInstance(thirdContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, fourthContact._id)).thenResolve(await toStorableInstance(fourthContact))
 
 					const batch = [
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id3, null),
-						await updateDataForCreate(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id3, null),
+						await updateDataForCreate(ContactTypeRef, secondContactListId, id4, null),
 					]
 					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-					o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
-					o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
-					o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)).equals(null)
-					o(await storage.get(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id3)).equals(null)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
+					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
+					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
+					o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
 						o(filteredUpdates.includes(update)).equals(true)
@@ -489,77 +492,71 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("update is not in cache range", async function () {
 				const batch = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
 				]
 				const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
-				o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)).equals(null)
-				o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)).equals(null)
+				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
+				o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
 				o(updates).deepEquals([])
 			})
 
 			o("update partially not found", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id2)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
 
-				const firstContact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const firstContact = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id1],
 					_permissions: "permissions",
 					_ownerGroup: "owner-group",
 				})
 				const secondContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id2] })
 				const thirdContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id3] })
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(firstContact))
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(secondContact))
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(thirdContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(secondContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
 
-				const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3, null),
+				const batch: readonly EntityUpdateData[] = [
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id1])).thenResolve(
-					await toStorableInstance(firstContact),
-				)
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id2])).thenReject(
-					new restError.NotFoundError("does not exist"),
-				)
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, [firstContactListId, id3])).thenResolve(
-					await toStorableInstance(thirdContact),
-				)
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new restError.NotFoundError("does not exist"))
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
 				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-				o(removeOriginals(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
-				o(removeOriginals(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2))).deepEquals(null)
-				o(removeOriginals(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3))).deepEquals(thirdContact)
+				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
+				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id2))).deepEquals(null)
+				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id3))).deepEquals(thirdContact)
 				o(filteredUpdates.length).equals(2)
 				o(batch.filter((eud) => eud.instanceId !== id2)).deepEquals([...filteredUpdates])
 			})
 
 			o("update events are loaded from network if patches are null and no instance is on the update", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id3)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 				const ownerGroupId = "someOwnerGroupId"
-				const contact1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact1 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id1],
 					_ownerGroup: ownerGroupId,
 				})
-				const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact2 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id2],
 					_ownerGroup: ownerGroupId,
 				})
 
-				const contact3 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact3 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id3],
 					_ownerGroup: ownerGroupId,
 				})
 				const parsedInstance1 = await toStorableInstance(contact1)
 				const parsedInstance2 = await toStorableInstance(contact2)
 				const parsedInstance3 = await toStorableInstance(contact3)
-				await storage.putMultiple(tutanotaTypeRefs.ContactTypeRef, [parsedInstance1, parsedInstance2, parsedInstance3])
+				await storage.putMultiple(ContactTypeRef, [parsedInstance1, parsedInstance2, parsedInstance3])
 
 				const dummyContact = await toStorableInstance(
-					createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
 					}),
@@ -567,43 +564,43 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				// patch data is null, BUT instance not null does NOT trigger re-load
-				const updateContact1 = await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null)
+				const updateContact1 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null)
 				updateContact1.instance = parsedInstance1
-				const updateContact2 = await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null)
+				const updateContact2 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null)
 				updateContact2.instance = parsedInstance2
-				const updateContact3 = await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3, null)
+				const updateContact3 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null)
 				updateContact3.instance = parsedInstance3
-				const batch: readonly entityUpdateUtils.EntityUpdateData[] = [updateContact1, updateContact2, updateContact3]
+				const batch: readonly EntityUpdateData[] = [updateContact1, updateContact2, updateContact3]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 0 })
 			})
 
 			o("update events are not loaded from network if patches are null, but instance is on the update", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id3)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 				const ownerGroupId = "someOwnerGroupId"
-				const contact1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact1 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id1],
 					_ownerGroup: ownerGroupId,
 				})
-				const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact2 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id2],
 					_ownerGroup: ownerGroupId,
 				})
 
-				const contact3 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact3 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id3],
 					_ownerGroup: ownerGroupId,
 				})
-				await storage.putMultiple(tutanotaTypeRefs.ContactTypeRef, [
+				await storage.putMultiple(ContactTypeRef, [
 					await toStorableInstance(contact1),
 					await toStorableInstance(contact2),
 					await toStorableInstance(contact3),
 				])
 
 				const dummyContact = await toStorableInstance(
-					createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
 					}),
@@ -611,10 +608,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				// patch data is null trigger re-load
-				const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3, null),
+				const batch: readonly EntityUpdateData[] = [
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
@@ -622,30 +619,30 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			o("update events do not store instance when instance has _errors after decryption", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, id3)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 				const ownerGroupId = "someOwnerGroupId"
-				const contact1 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact1 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id1],
 					_ownerGroup: ownerGroupId,
 				})
-				const contact2 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact2 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id2],
 					_ownerGroup: ownerGroupId,
 				})
 
-				const contact3 = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contact3 = createTestEntity(ContactTypeRef, {
 					_id: [firstContactListId, id3],
 					_ownerGroup: ownerGroupId,
 				})
-				await storage.putMultiple(tutanotaTypeRefs.ContactTypeRef, [
+				await storage.putMultiple(ContactTypeRef, [
 					await toStorableInstance(contact1),
 					await toStorableInstance(contact2),
 					await toStorableInstance(contact3),
 				])
 
 				const dummyContact = await toStorableInstance(
-					createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
 					}),
@@ -653,29 +650,29 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				dummyContact._errors = { 12: "some error for dummy contact" }
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
-				const batch: readonly entityUpdateUtils.EntityUpdateData[] = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, null),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3, null),
+				const batch: readonly EntityUpdateData[] = [
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 3 })
 
 				// contacts where not put / updated in storage with _errors
-				const contact1InStorage = await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)
-				const contact2InStorage = await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)
-				const contact3InStorage = await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id3)
+				const contact1InStorage = await storage.get(ContactTypeRef, firstContactListId, id1)
+				const contact2InStorage = await storage.get(ContactTypeRef, firstContactListId, id2)
+				const contact3InStorage = await storage.get(ContactTypeRef, firstContactListId, id3)
 				o(contact1InStorage?._errors).equals(undefined)
 				o(contact2InStorage?._errors).equals(undefined)
 				o(contact3InStorage?._errors).equals(undefined)
 			})
 
 			o("update events with patches do not optimize for ranges", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, GENERATED_MAX_ID)
 
-				const sampleContact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const sampleContact = createTestEntity(ContactTypeRef, {
 					_permissions: "permissions",
 					_ownerGroup: "owner-group",
 				})
@@ -684,14 +681,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
 				const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
 
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(firstContact))
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(fourthContact))
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(thirdContact))
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(secondContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(fourthContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(secondContact))
 
-				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
-				const firstNamePatch = sysTypeRefs.createPatch({
+				const firstNamePatch = createPatch({
 					attributePath: assertNotNull(AttributeModel.getAttributeId(contactTypeModel, "firstName")).toString(),
 					patchOperation: PatchOperationType.REPLACE,
 					value: "CipherTextForGuenther",
@@ -707,36 +704,36 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, [firstNamePatch]), // update for item not in cache range
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, [firstNamePatch]),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id3, [firstNamePatch]), // update for item not in cache range
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4, [firstNamePatch]),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]),
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id3, [firstNamePatch]), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch]),
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenResolve(null)
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, collapseId(firstContactListId, id1) as IdTuple)).thenResolve(
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(firstContactListId, id1) as IdTuple)).thenResolve(
 					await toStorableInstance(secondContact),
 				)
 				when(patchMergerMock.patchAndStoreInstance(batch[1])).thenDo(async () => {
 					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
-					await storage.put(tutanotaTypeRefs.ContactTypeRef, firstContactPatchedParsed)
+					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
 				when(patchMergerMock.patchAndStoreInstance(batch[2])).thenResolve(null)
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, collapseId(secondContactListId, id3) as IdTuple)).thenResolve(
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(secondContactListId, id3) as IdTuple)).thenResolve(
 					await toStorableInstance(thirdContact),
 				)
 				when(patchMergerMock.patchAndStoreInstance(batch[3])).thenDo(async () => {
 					const fourthContactPatchedParsed = await toStorableInstance(fourthContactPatched)
-					await storage.put(tutanotaTypeRefs.ContactTypeRef, fourthContactPatchedParsed)
+					await storage.put(ContactTypeRef, fourthContactPatchedParsed)
 					return fourthContactPatchedParsed
 				})
 
 				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-				o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)))).deepEquals(firstContactPatched)
-				o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)))).deepEquals(secondContact)
-				o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
-				o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContactPatched)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(firstContactPatched)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(secondContact)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContactPatched)
 
 				o(filteredUpdates.length).equals(batch.length)
 				for (const update of batch) {
@@ -745,20 +742,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			o("update events are processed only for instances already in cache", async function () {
-				await storage.setNewRangeForList(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
 
-				const sampleContact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const sampleContact = createTestEntity(ContactTypeRef, {
 					_permissions: "permissions",
 					_ownerGroup: "owner-group",
 				})
 				const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
 				const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
 
-				await storage.put(tutanotaTypeRefs.ContactTypeRef, await toStorableInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
 
-				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
-				const firstNamePatch = sysTypeRefs.createPatch({
+				const firstNamePatch = createPatch({
 					attributePath: assertNotNull(AttributeModel.getAttributeId(contactTypeModel, "firstName")).toString(),
 					patchOperation: PatchOperationType.REPLACE,
 					value: "CipherTextForGuenther",
@@ -770,19 +767,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1, [firstNamePatch]),
-					await updateDataForUpdate(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2, [firstNamePatch]), // update for item not in cache should be skipped
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]), // update for item not in cache should be skipped
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenDo(async () => {
 					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
-					await storage.put(tutanotaTypeRefs.ContactTypeRef, firstContactPatchedParsed)
+					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
 
 				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
-				o(removeOriginals(assertNotNull(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
-				o(await storage.get(tutanotaTypeRefs.ContactTypeRef, firstContactListId, id2)).deepEquals(null)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
+				o(await storage.get(ContactTypeRef, firstContactListId, id2)).deepEquals(null)
 
 				o(filteredUpdates.length).equals(1)
 				o(filteredUpdates.includes(batch[0])).equals(true)
@@ -791,75 +788,64 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o.test("Create event for new entity is received, it should not be downloaded - when update has instance attached", async () => {
 				const blob = createMailDetailsBlobInstance("blobListId", "blobId", "test storage")
-				let blobUpdate = await updateDataForCreate(tutanotaTypeRefs.MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
+				let blobUpdate = await updateDataForCreate(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
 				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
 
-				const blobFromStorage = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
+				const blobFromStorage = await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
 				o(blob).deepEquals(assertNotNull(removeOriginals(blobFromStorage)))
 			})
 
 			o.test("Create event with customCacheHandler should use instance attached to event", async () => {
-				const customCacheHandler: CustomCacheHandler<tutanotaTypeRefs.MailDetailsBlob> = {
+				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = {
 					shouldLoadOnCreateEvent: () => true,
 				}
-				when(customCacheHandlerMap.get(tutanotaTypeRefs.MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
 				const blob = createMailDetailsBlobInstance("blobListId", "blobId", "test storage")
-				let blobUpdate = await updateDataForCreate(tutanotaTypeRefs.MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
+				let blobUpdate = await updateDataForCreate(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
 				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
 
-				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, blob._id, anything()), { times: 0 })
-				const blobFromStorage = await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
+				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, blob._id, anything()), { times: 0 })
+				const blobFromStorage = await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
 				o(blob).deepEquals(assertNotNull(removeOriginals(blobFromStorage)))
 			})
 
 			o.test("create event should not write to storage if no instance is attached to it", async () => {
 				const blob = createMailDetailsBlobInstance("blobListId", "blobId", "test storage")
-				let blobUpdate = await makeUpdateData(
-					tutanotaTypeRefs.MailDetailsBlobTypeRef,
-					listIdPart(blob._id),
-					elementIdPart(blob._id),
-					OperationType.CREATE,
-					null,
-					[],
-				)
+				let blobUpdate = await makeUpdateData(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), OperationType.CREATE, null, [])
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
+				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
 				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
 
-				o(await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)).equals(null)
+				o(await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)).equals(null)
 			})
 
 			o("element should be deleted from the cache when a delete event is received", async function () {
 				const archiveId = "archiveId"
 				const mailDetailsId = "detailsId1"
 				let mailDetailsBlob = createMailDetailsBlobInstance(archiveId, mailDetailsId, "hello")
-				await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(
+				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(
 					new restError.NotFoundError("not found"),
 				)
-				await cache.entityEventsReceived(
-					[await updateDataForDelete(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))],
-					"batchId",
-					groupId,
-				)
+				await cache.entityEventsReceived([await updateDataForDelete(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))], "batchId", groupId)
 				// entity is not loaded from server when it is deleted
-				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
-				await assertThrows(restError.NotFoundError, () => cache.load(tutanotaTypeRefs.MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
+				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
+				await assertThrows(restError.NotFoundError, () => cache.load(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
 
 				// we tried to reload the mail body using the rest client, because it was removed from the cache
-				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 1 })
+				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 1 })
 			})
 			o("id is in range but instance doesn't exist after moving lower range", async function () {
 				const listId = "listId1"
 
 				const mailSetEntries = [1, 2, 3].map((i) =>
-					createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef, {
+					createTestEntity(MailSetEntryTypeRef, {
 						_id: [listId, "id" + i],
 						_permissions: "permissionId",
 						_ownerGroup: "owner-group",
@@ -868,74 +854,70 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 				const newListId = "listId2"
 
-				when(
-					entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything()),
-				).thenResolve(await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)))
+				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything())).thenResolve(
+					await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)),
+				)
 
-				await cache.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false)
+				await cache.loadRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false)
 
-				verify(entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything()), {
+				verify(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything()), {
 					times: 1,
 				})
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
 					[
-						await updateDataForDelete(tutanotaTypeRefs.MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0])),
-						await updateDataForCreate(tutanotaTypeRefs.MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), null),
+						await updateDataForDelete(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0])),
+						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), null),
 					],
 					"batchId",
 					groupId,
 				)
 
 				// id1 was moved to another list, which means it is no longer cached, which means we should try to load it again (causing NotFoundError)
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntries[0]._id, anything())).thenReject(
+				when(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, mailSetEntries[0]._id, anything())).thenReject(
 					new restError.NotFoundError("This is not the mailSetEntry you're looking for"),
 				)
 
-				const thrown = await assertThrows(Error, () => cache.load(tutanotaTypeRefs.MailSetEntryTypeRef, [listId, getElementId(mailSetEntries[0])]))
+				const thrown = await assertThrows(Error, () => cache.load(MailSetEntryTypeRef, [listId, getElementId(mailSetEntries[0])]))
 				o(thrown.message).equals("This is not the mailSetEntry you're looking for")
-				verify(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailSetEntryTypeRef, mailSetEntries[0]._id, anything()), { times: 1 })
+				verify(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, mailSetEntries[0]._id, anything()), { times: 1 })
 			})
 
 			o("move instance to other list", async function () {
 				const listId = "listId1"
 				const mailSetEntries = [1, 2, 3].map((i) =>
-					createTestEntity(tutanotaTypeRefs.MailSetEntryTypeRef, {
+					createTestEntity(MailSetEntryTypeRef, {
 						_id: [listId, "id" + i],
 						_ownerGroup: "a-owner",
 						mail: ["mailListId", "mailId"],
 					}),
 				)
 
-				when(entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId, CUSTOM_MIN_ID, 3, false, anything())).thenResolve(
+				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, CUSTOM_MIN_ID, 3, false, anything())).thenResolve(
 					await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)),
 				)
 
-				when(
-					entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailSetEntryTypeRef, "listId2", CUSTOM_MIN_ID, 3, false, anything()),
-				).thenResolve([])
+				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, "listId2", CUSTOM_MIN_ID, 3, false, anything())).thenResolve([])
 
-				await cache.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, "listId1", CUSTOM_MIN_ID, 3, false)
-				await cache.loadRange(tutanotaTypeRefs.MailSetEntryTypeRef, "listId2", CUSTOM_MIN_ID, 3, false)
+				await cache.loadRange(MailSetEntryTypeRef, "listId1", CUSTOM_MIN_ID, 3, false)
+				await cache.loadRange(MailSetEntryTypeRef, "listId2", CUSTOM_MIN_ID, 3, false)
 
-				verify(entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailSetEntryTypeRef, listId, CUSTOM_MIN_ID, 3, false, anything()), {
+				verify(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, CUSTOM_MIN_ID, 3, false, anything()), {
 					times: 1,
 				})
 
 				mailSetEntries[2]._id = ["listId2", "id3"]
 				await cache.entityEventsReceived(
 					[
-						await updateDataForDelete(tutanotaTypeRefs.MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2])),
-						await updateDataForCreate(tutanotaTypeRefs.MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2]), mailSetEntries[2]),
+						await updateDataForDelete(MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2])),
+						await updateDataForCreate(MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2]), mailSetEntries[2]),
 					],
 					"batchId",
 					groupId,
 				)
 
-				o(await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2]))).equals(null)
-				o(removeOriginals(await storage.get(tutanotaTypeRefs.MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2])))).deepEquals(
-					mailSetEntries[2],
-				)
+				o(await storage.get(MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2]))).equals(null)
+				o(removeOriginals(await storage.get(MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2])))).deepEquals(mailSetEntries[2])
 			})
 
 			o("delete Mail deletes MailDetailsBlob", async function () {
@@ -943,42 +925,34 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mailDetailsBlob = createMailDetailsBlobInstance("archiveId", "blobId", "some body")
 				mail.mailDetails = mailDetailsBlob._id
 
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail))
-				await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+				await storage.put(MailTypeRef, await toStorableInstance(mail))
+				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
-				await cache.entityEventsReceived(
-					[await updateDataForDelete(tutanotaTypeRefs.MailTypeRef, getListId(mail), getElementId(mail))],
-					"batchId",
-					groupId,
-				)
+				await cache.entityEventsReceived([await updateDataForDelete(MailTypeRef, getListId(mail), getElementId(mail))], "batchId", groupId)
 
-				o(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail), getElementId(mail))).equals(null)
-				o(await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, getListId(mailDetailsBlob), getElementId(mailDetailsBlob))).equals(null)
+				o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).equals(null)
+				o(await storage.get(MailDetailsBlobTypeRef, getListId(mailDetailsBlob), getElementId(mailDetailsBlob))).equals(null)
 			})
 
 			o("when the list is not cached but there is a custom cache handler, mail create notifications are put into cache", async function () {
-				const customCacheHandler: CustomCacheHandler<tutanotaTypeRefs.Mail> = {
+				const customCacheHandler: CustomCacheHandler<Mail> = {
 					shouldLoadOnCreateEvent: () => true,
 				}
-				when(customCacheHandlerMap.get(tutanotaTypeRefs.MailTypeRef)).thenReturn(customCacheHandler)
+				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
 				const mail = createMailInstance("listId1", "id1", "i am a mail")
-				when(entityRestClient.loadParsedInstance(tutanotaTypeRefs.MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
-				when(entityRestClient.load(tutanotaTypeRefs.MailTypeRef, mail._id)).thenResolve(mail)
+				when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
+				when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
-				await cache.entityEventsReceived(
-					[await updateDataForCreate(tutanotaTypeRefs.MailTypeRef, getListId(mail), getElementId(mail), mail)],
-					"batchId",
-					groupId,
-				)
+				await cache.entityEventsReceived([await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)], "batchId", groupId)
 
-				o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail), getElementId(mail)))).deepEquals(mail)
+				o(removeOriginals(await storage.get(MailTypeRef, getListId(mail), getElementId(mail)))).deepEquals(mail)
 			})
 
 			o("when deleted from a range, then the remaining range will still be retrieved from the cache", async function () {
 				const originalMails = await setupMailList(true, true)
 				// no load should be called
-				await cache.entityEventsReceived([await updateDataForDelete(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"))], "batchId", groupId)
-				const mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
+				await cache.entityEventsReceived([await updateDataForDelete(MailTypeRef, "listId1", createId("id2"))], "batchId", groupId)
+				const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 				// The entity is provided from the cache
 				mails.map(removeOriginals)
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
@@ -988,52 +962,52 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o("when reading from the cache, the entities will be cloned", async function () {
 			const archiveId = "archiveId"
 			const mailDetailsBlob = createMailDetailsBlobInstance(archiveId, "id1", "hello")
-			await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
-			const mailDetailsBlob1 = await cache.load(tutanotaTypeRefs.MailDetailsBlobTypeRef, [archiveId, createId("id1")])
+			const mailDetailsBlob1 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
 			removeOriginals(mailDetailsBlob1)
 			o.check(mailDetailsBlob1).notEquals(mailDetailsBlob)
-			const mailDetailsBlob2 = await cache.load(tutanotaTypeRefs.MailDetailsBlobTypeRef, [archiveId, createId("id1")])
+			const mailDetailsBlob2 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
 			removeOriginals(mailDetailsBlob2)
 			o.check(mailDetailsBlob1).notEquals(mailDetailsBlob2)
 		})
 
 		o("when reading from the cache, the entities will be cloned pt.2", async function () {
 			let mail = createMailInstance("listId1", "id1", "hello")
-			await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail))
-			const mail1 = await cache.load(tutanotaTypeRefs.MailTypeRef, ["listId1", createId("id1")])
+			await storage.put(MailTypeRef, await toStorableInstance(mail))
+			const mail1 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
 			removeOriginals(mail1)
 			o.check(mail1).notEquals(mail)
-			const mail2 = await cache.load(tutanotaTypeRefs.MailTypeRef, ["listId1", createId("id1")])
+			const mail2 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
 			removeOriginals(mail2)
 			o.check(mail1).notEquals(mail2)
 		})
 
-		async function setupMailList(loadedUntilMinId: boolean, loadedUntilMaxId: boolean): Promise<tutanotaTypeRefs.Mail[]> {
+		async function setupMailList(loadedUntilMinId: boolean, loadedUntilMaxId: boolean): Promise<Mail[]> {
 			let mail1 = createMailInstance("listId1", "id1", "hello1")
 			let mail2 = createMailInstance("listId1", "id2", "hello2")
 			let mail3 = createMailInstance("listId1", "id3", "hello3")
 			let startId = loadedUntilMaxId ? GENERATED_MAX_ID : createId("id4")
 			let count = loadedUntilMinId ? 4 : 3
 
-			when(entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailTypeRef, "listId1", startId, count, true, anything())).thenResolve(
+			when(entityRestClient.loadParsedInstancesRange(MailTypeRef, "listId1", startId, count, true, anything())).thenResolve(
 				await promiseMap([mail3, mail2, mail1], (mail) => toStorableInstance(mail)),
 			)
 
 			// load the mails in reverse because this is the mail use case. return them in reverse to have the intuitive order
-			const mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", startId, count, true)
+			const mails = await cache.loadRange(MailTypeRef, "listId1", startId, count, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(clone([mail3, mail2, mail1]))
 
-			verify(entityRestClient.loadParsedInstancesRange(tutanotaTypeRefs.MailTypeRef, "listId1", startId, count, true, anything()), { times: 1 })
+			verify(entityRestClient.loadParsedInstancesRange(MailTypeRef, "listId1", startId, count, true, anything()), { times: 1 })
 
-			return clone([mail1, mail2, mail3].map(removeOriginals)! as tutanotaTypeRefs.Mail[])
+			return clone([mail1, mail2, mail3].map(removeOriginals)! as Mail[])
 		}
 
 		o("when reading from the cache, the entities will be cloned (range requests)", async function () {
 			const originalMails = await setupMailList(true, true)
 			// the range request will be provided from the cache
-			const mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
 			mails.map(removeOriginals)
 			o.check(mails).deepEquals(originalMails)
 			o.check(mails[0]).notEquals(originalMails[0])
@@ -1045,31 +1019,31 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const originalMails = await setupMailList(true, true)
 			let mails
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1], originalMails[0]])
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 3, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 3, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 		})
@@ -1077,22 +1051,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o("list elements are provided from cache - range min to id3 loaded", async function () {
 			const originalMails = await setupMailList(true, false)
 			let mails
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 3, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 3, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id0"), 3, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id0"), 3, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals([])
 		})
@@ -1100,19 +1074,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o("list elements are provided from cache - range max to id1 loaded", async function () {
 			const originalMails = await setupMailList(false, true)
 			let mails
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1], originalMails[0]])
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MAX_ID, 2, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 2, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1]])
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id5"), 1, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id5"), 1, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals([])
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
-			mails = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
 			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
 		})
@@ -1122,7 +1096,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let storableMail4 = await toStorableInstance(mail4)
 			const cachedMails = await setupMailList(true, false)
 			const loadParsedInstancesRange = spy(function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(getElementId(cachedMails[2]))
 				o(count).equals(1)
@@ -1132,10 +1106,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadParsedInstancesRange)
 
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
+			const result = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 			result.map(removeOriginals)
 			o(result).deepEquals([cachedMails[0], cachedMails[1], cachedMails[2], clone(mail4)])
-			o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
 			o(loadParsedInstancesRange.callCount).equals(1) // entities are provided from server
 
 			unmockAttribute(loadRangeMock)
@@ -1145,7 +1119,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let mail4 = createMailInstance("listId1", "id4", "subject4")
 			const cachedMails = await setupMailList(true, false)
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(getElementId(cachedMails[2]))
 				o(count).equals(1)
@@ -1155,10 +1129,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 2, false)
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 2, false)
 			result.map(removeOriginals)
 			o(result).deepEquals([cachedMails[2], clone(mail4)])
-			o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 
 			unmockAttribute(loadRangeMock)
@@ -1168,7 +1142,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let mail0 = createMailInstance("listId1", "id0", "subject0")
 			const cachedMails = await setupMailList(false, true)
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(getElementId(cachedMails[0]))
 				o(count).equals(3)
@@ -1177,9 +1151,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id2"), 4, true)
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 4, true)
 			result.map(removeOriginals)
-			o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
 			o(result).deepEquals([cachedMails[0], clone(mail0)])
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(loadRangeMock)
@@ -1189,7 +1163,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let mail0 = createMailInstance("listId1", "id0", "subject0")
 			const cachedMails = await setupMailList(false, true)
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(cachedMails[0]._id[1])
 				o(count).equals(4)
@@ -1198,9 +1172,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("id1"), 4, true)
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 4, true)
 			result.map(removeOriginals)
-			o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
 			o(result).deepEquals([clone(mail0)])
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(mock)
@@ -1213,7 +1187,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const cachedMails = await setupMailList(true, false)
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals(listId)
 				o(start).equals(createId("id4"))
 				o(count).equals(EXTEND_RANGE_MIN_CHUNK_SIZE)
@@ -1223,13 +1197,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, createId("id5"), 4, false)
+			const result = await cache.loadRange(MailTypeRef, listId, createId("id5"), 4, false)
 			result.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			o(result).deepEquals([clone(mail6)])
 
 			// further range reads are fully taken from range
-			const result2 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, createId("id1"), 4, false)
+			const result2 = await cache.loadRange(MailTypeRef, listId, createId("id1"), 4, false)
 			result2.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // entities are provided from cache
 			o(result2).deepEquals([cachedMails[1], cachedMails[2], clone(mail5), clone(mail6)])
@@ -1241,7 +1215,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let mailSecond = createMailInstance("listId1", "ic8", "subject")
 			await setupMailList(false, false)
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				// the cache actually loads from the end of the range which is id1
 				o(start).equals(createId("id1"))
@@ -1250,10 +1224,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				return Promise.resolve([await toStorableInstance(mailSecond), await toStorableInstance(mailFirst)])
 			})
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("ic6"), 4, true)
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("ic6"), 4, true)
 			result.map(removeOriginals)
 			o(result).deepEquals([clone(mailFirst)])
-			o(removeOriginals(await storage.get(tutanotaTypeRefs.MailTypeRef, getListId(mailFirst), getElementId(mailFirst)))!).deepEquals(mailFirst)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mailFirst), getElementId(mailFirst)))!).deepEquals(mailFirst)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(mock)
 		})
@@ -1261,7 +1235,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o("reverse load range starting outside of stored range - no new elements", async function () {
 			await setupMailList(false, false)
 			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				// the cache actually loads from the end of the range which is id1
 				o(start).equals(createId("id1"))
@@ -1270,7 +1244,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				return Promise.resolve([])
 			})
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", createId("ic6"), 4, true)
+			const result = await cache.loadRange(MailTypeRef, "listId1", createId("ic6"), 4, true)
 			o(result).deepEquals([])
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(mock)
@@ -1278,7 +1252,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("no elements in range", async function () {
 			const loadRange = spy(function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.MailTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(GENERATED_MAX_ID)
 				o(count).equals(100)
@@ -1288,11 +1262,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MAX_ID, 100, true)
+			const result = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 100, true)
 
 			o(result).deepEquals([])
 
-			const result2 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, "listId1", GENERATED_MAX_ID, 100, true)
+			const result2 = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 100, true)
 
 			o(result2).deepEquals([])
 			o(loadRange.callCount).equals(1) // entities are only initially tried to be loaded from server
@@ -1300,10 +1274,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 
 		o("custom id range is not stored", async function () {
-			let ref = clone(createTestEntity(sysTypeRefs.ExternalUserReferenceTypeRef))
+			let ref = clone(createTestEntity(ExternalUserReferenceTypeRef))
 			ref._id = ["listId1", stringToBase64UrlCustomId("custom")]
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, sysTypeRefs.ExternalUserReferenceTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, ExternalUserReferenceTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(CUSTOM_MIN_ID)
 				o(count).equals(1)
@@ -1312,10 +1286,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
-			const result1 = await cache.loadRange(sysTypeRefs.ExternalUserReferenceTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			const result1 = await cache.loadRange(ExternalUserReferenceTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
 
 			o(result1).deepEquals([ref])
-			const result2 = await cache.loadRange(sysTypeRefs.ExternalUserReferenceTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			const result2 = await cache.loadRange(ExternalUserReferenceTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
 
 			o(result2).deepEquals([ref])
 			o(loadRange.callCount).equals(2) // entities are always provided from server
@@ -1324,7 +1298,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("when custom id type is cacheable, the range is cached", async function () {
 			let ref = clone(
-				createTestEntity(sysTypeRefs.GroupKeyTypeRef, {
+				createTestEntity(GroupKeyTypeRef, {
 					_id: ["id-listid", "id-elementid"],
 					_permissions: "permid",
 					_ownerGroup: "owner-group",
@@ -1332,7 +1306,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			)
 			ref._id = ["listId1", stringToBase64UrlCustomId("1")]
 			const loadRange = spy(async function (typeRef, listId, start, count, reverse) {
-				o(isSameTypeRef(typeRef, sysTypeRefs.GroupKeyTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, GroupKeyTypeRef)).equals(true)
 				o(listId).equals("listId1")
 				o(start).equals(CUSTOM_MIN_ID)
 				o(count).equals(1)
@@ -1341,12 +1315,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
-			const result1 = await cache.loadRange(sysTypeRefs.GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			const result1 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
 			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // second call deliviers custom id items from cache.
 
 			o(result1).deepEquals([ref])
-			const result2 = await cache.loadRange(sysTypeRefs.GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			const result2 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
 			result2.map(removeOriginals)
 			o(result2).deepEquals([ref])
 			o(loadRange.callCount).equals(1) // second call delivers custom id it	ems from cache.
@@ -1360,12 +1334,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mail2 = createMailInstance(listId1, ids[1], "hello2")
 			const mail3 = createMailInstance(listId1, ids[2], "hello3")
 
-			await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId1, ids[0], ids[2])
-			await storage.putMultiple(tutanotaTypeRefs.MailTypeRef, [
-				await toStorableInstance(mail1),
-				await toStorableInstance(mail2),
-				await toStorableInstance(mail3),
-			])
+			await storage.setNewRangeForList(MailTypeRef, listId1, ids[0], ids[2])
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail1), await toStorableInstance(mail2), await toStorableInstance(mail3)])
 			const moreMails = new Map()
 			moreMails.set(ids[3], createMailInstance(listId1, ids[3], "hello4"))
 			moreMails.set(ids[4], createMailInstance(listId1, ids[4], "hello5"))
@@ -1376,18 +1346,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 
-			const originalUpper = (await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId1))?.upper
+			const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
 
-			const result1 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
+			const result1 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
 			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1)("entities are provided from server")
 			o(loadRange.args[2]).equals(originalUpper)("starts extending range beginning with upperId")
-			o(await storage.isElementIdInCacheRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MAX_ID)).equals(true)("MAX ID is in cache range")
+			o(await storage.isElementIdInCacheRange(MailTypeRef, listId1, GENERATED_MAX_ID)).equals(true)("MAX ID is in cache range")
 			const expectedResult = [moreMails.get(ids[4]), moreMails.get(ids[3]), mail3, mail2, mail1]
 			o(result1).deepEquals(expectedResult)("Returns all elements in reverse order")
 
 			// further requests are resolved from the cache
-			const result2 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
+			const result2 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
 			result2.map(removeOriginals)
 			o(result2).deepEquals(expectedResult)
 			o(loadRange.callCount).equals(1) // entities are provided from cache
@@ -1404,13 +1374,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mail4 = createMailInstance(listId1, ids[3], "hello4")
 			const mail5 = createMailInstance(listId1, ids[4], "hello5")
 
-			await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId1, ids[2], ids[4])
+			await storage.setNewRangeForList(MailTypeRef, listId1, ids[2], ids[4])
 
-			await storage.putMultiple(tutanotaTypeRefs.MailTypeRef, [
-				await toStorableInstance(mail3),
-				await toStorableInstance(mail4),
-				await toStorableInstance(mail5),
-			])
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail3), await toStorableInstance(mail4), await toStorableInstance(mail5)])
 
 			const loadRange = spy(async function () {
 				return Promise.resolve([await toStorableInstance(mail2), await toStorableInstance(mail1)])
@@ -1418,18 +1384,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 
-			const originalLower = (await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId1))?.lower
+			const originalLower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
 
-			const result1 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
+			const result1 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
 			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1)("entities are provided from server")
 			o(loadRange.args[2]).equals(originalLower)("starts extending range beginning with lowerId")
-			o(await storage.isElementIdInCacheRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MIN_ID)).equals(true)("MIN ID is in cache range")
+			o(await storage.isElementIdInCacheRange(MailTypeRef, listId1, GENERATED_MIN_ID)).equals(true)("MIN ID is in cache range")
 			const expectedResult = [mail1, mail2, mail3, mail4, mail5]
 			o(result1).deepEquals(expectedResult)("Returns all elements in reverse order")
 
 			// further requests are resolved from the cache
-			const result2 = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
+			const result2 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
 			result2.map(removeOriginals)
 			o(result2).deepEquals(expectedResult)
 			o(loadRange.callCount).equals(1)("server is called only once at the end") // entities are provided from cache
@@ -1462,9 +1428,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail5 = createMailInstance(listId, id5, "hello5")
 				const mail6 = createMailInstance(listId, id6, "hello6")
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId, id1, id2)
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail1))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail2))
+				await storage.setNewRangeForList(MailTypeRef, listId, id1, id2)
+				await storage.put(MailTypeRef, await toStorableInstance(mail1))
+				await storage.put(MailTypeRef, await toStorableInstance(mail2))
 
 				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve([
 					await toStorableInstance(mail3),
@@ -1473,16 +1439,16 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await toStorableInstance(mail6),
 				])
 
-				const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, id3, 2, false)
+				const result = await cache.loadRange(MailTypeRef, listId, id3, 2, false)
 				result.map(removeOriginals)
 				o(result).deepEquals([mail4, mail5])
 
-				o((await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId))!).deepEquals({
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
 					lower: id1,
 					upper: GENERATED_MAX_ID,
 				})
 
-				o(await storage.getIdsInRange(tutanotaTypeRefs.MailTypeRef, listId)).deepEquals([id1, id2, id3, id4, id5, id6])
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals([id1, id2, id3, id4, id5, id6])
 			},
 		)
 
@@ -1499,9 +1465,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId, getElementId(mails[98]), getElementId(mails[99]))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mails[98]))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mails[99]))
+				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[98]), getElementId(mails[99]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[98]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[99]))
 
 				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve(
 					await Promise.all(
@@ -1530,15 +1496,15 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					),
 				)
 
-				const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, GENERATED_MIN_ID, 2, false)
+				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 2, false)
 				result.map(removeOriginals)
 				o(result).deepEquals([mails[0], mails[1]])
 
-				o((await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId))!).deepEquals({
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
 					lower: GENERATED_MIN_ID,
 					upper: getElementId(mails[99]),
 				})
-				o(await storage.getIdsInRange(tutanotaTypeRefs.MailTypeRef, listId)).deepEquals(mails.map(getElementId))
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals(mails.map(getElementId))
 			},
 		)
 
@@ -1554,9 +1520,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const listId = "listId1"
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mails[0]))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mails[1]))
+				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[0]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[1]))
 
 				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve(
 					await Promise.all(mails.slice(2, 42).map(toStorableInstance)),
@@ -1570,15 +1536,15 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await Promise.all(mails.slice(82).map(toStorableInstance)),
 				)
 
-				const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
+				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
 				result.map(removeOriginals)
 				o(result).deepEquals([mails[mails.length - 1], mails[mails.length - 2]])
 
-				o((await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId))!).deepEquals({
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
 					lower: getElementId(mails[0]),
 					upper: GENERATED_MAX_ID,
 				})
-				o(await storage.getIdsInRange(tutanotaTypeRefs.MailTypeRef, listId)).deepEquals(mails.map(getElementId))
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals(mails.map(getElementId))
 			},
 		)
 
@@ -1605,9 +1571,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail4 = createMailInstance(listId, id4, "ok")
 				const mail5 = createMailInstance(listId, id5, "ok")
 
-				await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId, id2, id3)
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail2))
-				await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(mail3))
+				await storage.setNewRangeForList(MailTypeRef, listId, id2, id3)
+				await storage.put(MailTypeRef, await toStorableInstance(mail2))
+				await storage.put(MailTypeRef, await toStorableInstance(mail3))
 
 				// First it will try to load in the direction of start id from the existing range
 				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve([
@@ -1621,14 +1587,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await toStorableInstance(mail5),
 				])
 
-				const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, GENERATED_MIN_ID, 10, false)
+				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 10, false)
 				result.map(removeOriginals)
-				o((await storage.getRangeForList(tutanotaTypeRefs.MailTypeRef, listId))!).deepEquals({
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
 					lower: GENERATED_MIN_ID,
 					upper: GENERATED_MAX_ID,
 				})
 
-				o(await storage.getIdsInRange(tutanotaTypeRefs.MailTypeRef, listId)).deepEquals([id1, id2, id3, id4, id5])
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals([id1, id2, id3, id4, id5])
 
 				o(result).deepEquals([mail1, mail2, mail3, mail4, mail5])
 			},
@@ -1639,21 +1605,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createMailInstance(listId, "1", "1"), createMailInstance(listId, "3", "3")]
 
 			const notInCache = [createMailInstance(listId, "2", "2"), createMailInstance(listId, "5", "5")]
-			await Promise.all(inCache.map(async (i) => await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map(getElementId)
 
 			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
-			const result = await cache.loadMultiple(tutanotaTypeRefs.MailTypeRef, listId, ids)
+			const result = await cache.loadMultiple(MailTypeRef, listId, ids)
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([tutanotaTypeRefs.MailTypeRef, listId, notInCache.map(getElementId), undefined, {}])(
+			o(loadMultipleParsedInstances.args).deepEquals([MailTypeRef, listId, notInCache.map(getElementId), undefined, {}])(
 				"load multiple is called for mails not in cache",
 			)
 			for (const item of inCache.concat(notInCache)) {
-				o(await storage.get(tutanotaTypeRefs.MailTypeRef, listId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
+				o(await storage.get(MailTypeRef, listId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
 			unmockAttribute(mock)
 		})
@@ -1662,21 +1628,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createCustomer("customer1"), createCustomer("customer2")]
 
 			const notInCache = [createCustomer("customer3"), createCustomer("customer4")]
-			await Promise.all(inCache.map(async (i) => await storage.put(sysTypeRefs.CustomerTypeRef, await toStorableInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(CustomerTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map((c) => c._id)
 
 			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
-			const result = await cache.loadMultiple(sysTypeRefs.CustomerTypeRef, null, ids)
+			const result = await cache.loadMultiple(CustomerTypeRef, null, ids)
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all customers are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([sysTypeRefs.CustomerTypeRef, null, notInCache.map((c) => c._id), undefined, {}])(
+			o(loadMultipleParsedInstances.args).deepEquals([CustomerTypeRef, null, notInCache.map((c) => c._id), undefined, {}])(
 				"load multiple is called for customers not in cache",
 			)
 			for (const item of inCache.concat(notInCache)) {
-				o(await storage.get(sysTypeRefs.CustomerTypeRef, null, item._id)).notEquals(null)("element is in cache " + item._id)
+				o(await storage.get(CustomerTypeRef, null, item._id)).notEquals(null)("element is in cache " + item._id)
 			}
 			unmockAttribute(mock)
 		})
@@ -1686,23 +1652,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createMailDetailsBlobInstance(archiveId, "1", "1"), createMailDetailsBlobInstance(archiveId, "3", "3")]
 
 			const notInCache = [createMailDetailsBlobInstance(archiveId, "2", "2"), createMailDetailsBlobInstance(archiveId, "5", "5")]
-			await Promise.all(inCache.map(async (i) => await storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, await toStorableInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map(getElementId)
 
 			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
-			const result = await cache.loadMultiple(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, ids)
+			const result = await cache.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails details are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, notInCache.map(getElementId), undefined, {}])(
+			o(loadMultipleParsedInstances.args).deepEquals([MailDetailsBlobTypeRef, archiveId, notInCache.map(getElementId), undefined, {}])(
 				"load multiple is called for mails details not in cache",
 			)
 			for (const item of inCache.concat(notInCache)) {
-				o(await storage.get(tutanotaTypeRefs.MailDetailsBlobTypeRef, archiveId, getElementId(item))).notEquals(null)(
-					"element is in cache " + getElementId(item),
-				)
+				o(await storage.get(MailDetailsBlobTypeRef, archiveId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
 			unmockAttribute(mock)
 		})
@@ -1714,8 +1678,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const serverMails = [...inCache, createMailInstance(listId, "4", "4"), createMailInstance(listId, "5", "5"), createMailInstance(listId, "6", "6")]
 
-			await storage.setNewRangeForList(tutanotaTypeRefs.MailTypeRef, listId, GENERATED_MIN_ID, createId("3"))
-			await Promise.all(inCache.map(async (i) => await storage.put(tutanotaTypeRefs.MailTypeRef, await toStorableInstance(i))))
+			await storage.setNewRangeForList(MailTypeRef, listId, GENERATED_MIN_ID, createId("3"))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await toStorableInstance(i))))
 
 			const loadParsedInstancesRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
 				if (listId !== listIdToLoad) throw new restError.NotFoundError("unknown list id")
@@ -1725,7 +1689,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mockLoadRange = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadParsedInstancesRange)
 
-			const result = await cache.loadRange(tutanotaTypeRefs.MailTypeRef, listId, createId("1"), 3, false)
+			const result = await cache.loadRange(MailTypeRef, listId, createId("1"), 3, false)
 
 			// checking if our cache asked us for the right amount of mails, in this case ids 4, 5 and 6 starting at mail 1 (excl.)
 			o(loadParsedInstancesRange.invocations[0][3]).equals(2)
@@ -1736,25 +1700,25 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			}
 
 			for (const item of serverMails.slice(0, -1)) {
-				const mail = await storage.get(tutanotaTypeRefs.MailTypeRef, listId, getElementId(item))
+				const mail = await storage.get(MailTypeRef, listId, getElementId(item))
 				o(mail).notEquals(null)
 			}
 			const lastId = getElementId(last(serverMails)!)
-			o(await storage.get(tutanotaTypeRefs.MailTypeRef, listId, lastId)).equals(null)
+			o(await storage.get(MailTypeRef, listId, lastId)).equals(null)
 
 			unmockAttribute(mockLoadRange)
 		})
 
 		o("load passes same parameters to entityRestClient", async function () {
 			const contactId: IdTuple = [createId("0"), createId("1")]
-			const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const contact = createTestEntity(ContactTypeRef, {
 				_id: contactId,
 				_permissions: "permid",
 				firstName: "greg",
 				_ownerGroup: "owner-group",
 			})
 			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenDo(async (typeRef, id, opts) => {
-				o(isSameTypeRef(typeRef, tutanotaTypeRefs.ContactTypeRef)).equals(true)
+				o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
 				o(id).deepEquals(contactId)
 				o(opts).deepEquals({
 					queryParams: {
@@ -1771,7 +1735,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
 
-			await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, {
+			await cache.load(ContactTypeRef, contactId, {
 				queryParams: {
 					myParam: "param",
 				},
@@ -1782,7 +1746,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 		o("single entity is cached after being loaded", async function () {
 			const contactId: IdTuple = [createId("0"), createId("1")]
-			const contactOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const contactOnTheServer = createTestEntity(ContactTypeRef, {
 				_id: contactId,
 				firstName: "greg",
 				_permissions: "permid",
@@ -1793,12 +1757,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
-			const firstLoaded = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId)
+			const firstLoaded = await cache.load(ContactTypeRef, contactId)
 			removeOriginals(firstLoaded)
 			o(firstLoaded).deepEquals(contactOnTheServer)
 			// @ts-ignore
 			verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 1 })
-			const secondLoaded = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId)
+			const secondLoaded = await cache.load(ContactTypeRef, contactId)
 			removeOriginals(secondLoaded)
 			o(secondLoaded).deepEquals(contactOnTheServer)
 			// @ts-ignore
@@ -1812,7 +1776,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						.fill({})
 						.map((_v, i) =>
 							toStorableInstance(
-								createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+								createTestEntity(ContactTypeRef, {
 									_permissions: "permid" + i,
 									_id: [listId, createId(i.toString())],
 									_ownerGroup: "owner-group",
@@ -1824,7 +1788,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadParsedInstancesRange)
 
-			const result = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, createId("0"), GENERATED_MIN_ID, 1000, false)
+			const result = await cache.loadRange(ContactTypeRef, createId("0"), GENERATED_MIN_ID, 1000, false)
 
 			o(result.length).equals(6)
 
@@ -1833,7 +1797,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("single entity is not cached if it is an ignored entity", async function () {
 			const permissionId: IdTuple = [createId("0"), createId("1")]
-			const permissionOnTheServer = createTestEntity(sysTypeRefs.PermissionTypeRef, {
+			const permissionOnTheServer = createTestEntity(PermissionTypeRef, {
 				_id: permissionId,
 				_ownerGroup: "owner-group",
 			})
@@ -1846,8 +1810,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
-			await cache.load(sysTypeRefs.PermissionTypeRef, permissionId)
-			await cache.load(sysTypeRefs.PermissionTypeRef, permissionId)
+			await cache.load(PermissionTypeRef, permissionId)
+			await cache.load(PermissionTypeRef, permissionId)
 			// @ts-ignore
 			o(client.load.callCount).equals(2)("The permission was loaded both times from the server")
 		})
@@ -1855,61 +1819,61 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o.test("when loading single ET custom id entity it is cached", async function () {
 			const id = stringToBase64UrlCustomId("1")
 			const client: EntityRestClient = mockRestClient()
-			const entity = createTestEntity(sysTypeRefs.MailAddressToGroupTypeRef, {
+			const entity = createTestEntity(MailAddressToGroupTypeRef, {
 				_id: id,
 				_permissions: "permid",
 				_ownerGroup: "owner-group",
 			})
-			when(client.loadParsedInstance(sysTypeRefs.MailAddressToGroupTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
+			when(client.loadParsedInstance(MailAddressToGroupTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
 
-			const loadedEntity = await cache.load(sysTypeRefs.MailAddressToGroupTypeRef, id)
-			await cache.load(sysTypeRefs.MailAddressToGroupTypeRef, id)
+			const loadedEntity = await cache.load(MailAddressToGroupTypeRef, id)
+			await cache.load(MailAddressToGroupTypeRef, id)
 			removeOriginals(loadedEntity)
 			o(loadedEntity).deepEquals(entity)
-			verify(client.loadParsedInstance(sysTypeRefs.MailAddressToGroupTypeRef, id), { ignoreExtraArgs: true, times: 1 })
+			verify(client.loadParsedInstance(MailAddressToGroupTypeRef, id), { ignoreExtraArgs: true, times: 1 })
 		})
 
 		o.test("when loading single LET custom id entity it is cached", async function () {
 			const id: IdTuple = [createId("0"), stringToBase64UrlCustomId("1")]
 			const client: EntityRestClient = mockRestClient()
-			const entity = createTestEntity(sysTypeRefs.RootInstanceTypeRef, {
+			const entity = createTestEntity(RootInstanceTypeRef, {
 				_id: id,
 				_permissions: "permid",
 				reference: "refid",
 				_ownerGroup: "owner-group",
 			})
-			when(client.loadParsedInstance(sysTypeRefs.RootInstanceTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
+			when(client.loadParsedInstance(RootInstanceTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
 
-			const loadedEntity = await cache.load(sysTypeRefs.RootInstanceTypeRef, id)
-			await cache.load(sysTypeRefs.RootInstanceTypeRef, id)
+			const loadedEntity = await cache.load(RootInstanceTypeRef, id)
+			await cache.load(RootInstanceTypeRef, id)
 			removeOriginals(loadedEntity)
 			o(loadedEntity).deepEquals(entity)
-			verify(client.loadParsedInstance(sysTypeRefs.RootInstanceTypeRef, id), { ignoreExtraArgs: true, times: 1 })
+			verify(client.loadParsedInstance(RootInstanceTypeRef, id), { ignoreExtraArgs: true, times: 1 })
 		})
 
 		o.test("when loading multiple ET custom id entities are cached", async function () {
 			const ids = [stringToBase64UrlCustomId("1"), stringToBase64UrlCustomId("2")]
 			const client: EntityRestClient = mockRestClient()
-			const firstEntity = createTestEntity(sysTypeRefs.MailAddressToGroupTypeRef, {
+			const firstEntity = createTestEntity(MailAddressToGroupTypeRef, {
 				_id: ids[0],
 				_permissions: "permid",
 				_ownerGroup: "owner-group1",
 			})
-			const secondEntity = createTestEntity(sysTypeRefs.MailAddressToGroupTypeRef, {
+			const secondEntity = createTestEntity(MailAddressToGroupTypeRef, {
 				_id: ids[1],
 				_permissions: "permid",
 				_ownerGroup: "owner-group1",
 			})
 
-			when(client.loadMultipleParsedInstances(sysTypeRefs.MailAddressToGroupTypeRef, null, ids), { ignoreExtraArgs: true }).thenResolve([
+			when(client.loadMultipleParsedInstances(MailAddressToGroupTypeRef, null, ids), { ignoreExtraArgs: true }).thenResolve([
 				await toStorableInstance(firstEntity),
 				await toStorableInstance(secondEntity),
 			])
@@ -1918,11 +1882,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
 
-			const loadedEntity = await cache.loadMultiple(sysTypeRefs.MailAddressToGroupTypeRef, null, ids)
-			await cache.loadMultiple(sysTypeRefs.MailAddressToGroupTypeRef, null, ids)
+			const loadedEntity = await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
+			await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
 			loadedEntity.map(removeOriginals)
 			o(loadedEntity).deepEquals([firstEntity, secondEntity])
-			verify(client.loadMultipleParsedInstances(sysTypeRefs.MailAddressToGroupTypeRef, null, ids), {
+			verify(client.loadMultipleParsedInstances(MailAddressToGroupTypeRef, null, ids), {
 				ignoreExtraArgs: true,
 				times: 1,
 			})
@@ -1935,20 +1899,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				[listId, stringToBase64UrlCustomId("2")],
 			]
 			const client: EntityRestClient = mockRestClient()
-			const firstEntity = createTestEntity(sysTypeRefs.RootInstanceTypeRef, {
+			const firstEntity = createTestEntity(RootInstanceTypeRef, {
 				_id: ids[0],
 				_permissions: "permid",
 				reference: "refid",
 				_ownerGroup: "owner-group",
 			})
-			const secondEntity = createTestEntity(sysTypeRefs.RootInstanceTypeRef, {
+			const secondEntity = createTestEntity(RootInstanceTypeRef, {
 				_id: ids[1],
 				_permissions: "permid",
 				reference: "refid",
 				_ownerGroup: "owner-group",
 			})
 
-			when(client.loadMultipleParsedInstances(sysTypeRefs.RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])], anything()), {
+			when(client.loadMultipleParsedInstances(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])], anything()), {
 				ignoreExtraArgs: true,
 			}).thenResolve([await toStorableInstance(firstEntity), await toStorableInstance(secondEntity)])
 			const patchMergerMock = object<PatchMerger>()
@@ -1956,12 +1920,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 			)
 
-			const loadedEntity = await cache.loadMultiple(sysTypeRefs.RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
+			const loadedEntity = await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
 			loadedEntity.map(removeOriginals)
-			await cache.loadMultiple(sysTypeRefs.RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
+			await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
 
 			o(loadedEntity).deepEquals([firstEntity, secondEntity])
-			verify(client.loadMultipleParsedInstances(sysTypeRefs.RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])]), {
+			verify(client.loadMultipleParsedInstances(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])]), {
 				ignoreExtraArgs: true,
 				times: 1,
 			})
@@ -1973,21 +1937,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				entityRestClient.loadParsedInstance = spy(
 					async () =>
 						await toStorableInstance(
-							createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+							createTestEntity(ContactTypeRef, {
 								_id: ["listId", "id"],
 								_permissions: "permid",
 								_ownerGroup: "owner-group",
 							}),
 						),
 				) as EntityRestClient["loadParsedInstance"]
-				await cache.load(tutanotaTypeRefs.ContactTypeRef, ["listId", "id"])
+				await cache.load(ContactTypeRef, ["listId", "id"])
 				o(entityRestClient.loadParsedInstance.callCount).equals(1)
 			})
 
 			o("put", async function () {
 				userId = null
 				entityRestClient.setup = spy(async () => "id")
-				await cache.setup("listId", createTestEntity(tutanotaTypeRefs.ContactTypeRef, { _id: ["listId", "id"] }))
+				await cache.setup("listId", createTestEntity(ContactTypeRef, { _id: ["listId", "id"] }))
 				o(entityRestClient.setup.callCount).equals(1)
 			})
 		})
@@ -1997,7 +1961,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("load", async function () {
 				const contactId: IdTuple = [listId, createId("1")]
-				const contactOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactId,
 					firstName: "greg",
 					_permissions: "permid",
@@ -2005,42 +1969,40 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
-				when(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything())).thenResolve(
-					await toStorableInstance(contactOnTheServer),
-				)
+				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheBypassed1 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				removeOriginals(cacheBypassed1)
 				o(cacheBypassed1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 1 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
-				const cacheBypassed2 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				removeOriginals(cacheBypassed2)
 				o(cacheBypassed2).deepEquals(contactOnTheServer)
 				// Since we're bypassing it, it should still be loaded remotely (but still cached)
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 2 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
 				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// We aren't bypassing it with Cache, so it should just use the cache
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 2 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cacheBypassed3 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				removeOriginals(cacheBypassed3)
 				o(cacheBypassed3).deepEquals(contactOnTheServer)
 				// Bypassing again; should be loaded remotely
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 3 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
 			})
 
 			o("loadMultiple", async function () {
 				const contactAId: IdTuple = [listId, createId("1")]
-				const contactAOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactAOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactAId,
 					firstName: "greg",
 					_permissions: "permid2",
@@ -2048,7 +2010,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const contactBId: IdTuple = [listId, createId("2")]
-				const contactBOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactBOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactBId,
 					firstName: "bob",
 					_permissions: "permid",
@@ -2056,86 +2018,62 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
+				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything())).thenResolve([
+					await toStorableInstance(contactAOnTheServer),
+				])
+				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything())).thenResolve([
+					await toStorableInstance(contactBOnTheServer),
+				])
 				when(
-					client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything()),
-				).thenResolve([await toStorableInstance(contactAOnTheServer)])
-				when(
-					client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything()),
-				).thenResolve([await toStorableInstance(contactBOnTheServer)])
-				when(
-					client.loadMultipleParsedInstances(
-						tutanotaTypeRefs.ContactTypeRef,
-						listId,
-						[elementIdPart(contactAId), elementIdPart(contactBId)],
-						anything(),
-						anything(),
-					),
+					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], anything(), anything()),
 				).thenResolve([await toStorableInstance(contactAOnTheServer), await toStorableInstance(contactBOnTheServer)])
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheBypassed1 = await cache.loadMultiple(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed1.map(removeOriginals)
 				o(cacheBypassed1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 1,
 				})
 
-				const cacheBypassed2 = await cache.loadMultiple(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed2.map(removeOriginals)
 				o(cacheBypassed2).deepEquals([contactAOnTheServer])
 				// Still bypassing
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 2,
 				})
 
-				const cached = await cache.loadMultiple(
-					tutanotaTypeRefs.ContactTypeRef,
-					listId,
-					[elementIdPart(contactAId), elementIdPart(contactBId)],
-					undefined,
-					{
-						cacheMode: CacheMode.ReadAndWrite,
-					},
-				)
+				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					cacheMode: CacheMode.ReadAndWrite,
+				})
 				cached.map(removeOriginals)
 				o(true).equals(cached.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cached.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Not bypassing; should have both contacts now, but only asked for B from server
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 2,
 				})
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
 					times: 1,
 				})
 
-				const cacheBypassed3 = await cache.loadMultiple(
-					tutanotaTypeRefs.ContactTypeRef,
-					listId,
-					[elementIdPart(contactAId), elementIdPart(contactBId)],
-					undefined,
-					{
-						cacheMode: CacheMode.WriteOnly,
-					},
-				)
+				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					cacheMode: CacheMode.WriteOnly,
+				})
 				cacheBypassed3.map(removeOriginals)
 				o(cacheBypassed3).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Bypassed again
 				verify(
-					client.loadMultipleParsedInstances(
-						tutanotaTypeRefs.ContactTypeRef,
-						listId,
-						[elementIdPart(contactAId), elementIdPart(contactBId)],
-						undefined,
-						anything(),
-					),
+					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, anything()),
 					{ times: 1 },
 				)
 			})
@@ -2146,7 +2084,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("load", async function () {
 				const contactId: IdTuple = [listId, createId("1")]
-				const contactOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactId,
 					firstName: "greg",
 					_permissions: "permid",
@@ -2154,42 +2092,40 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
-				when(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything())).thenResolve(
-					await toStorableInstance(contactOnTheServer),
-				)
+				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheReadonly1 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly1)
 				o(cacheReadonly1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely (but not cached)
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 1 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
-				const cacheReadonly2 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly2)
 				o(cacheReadonly2).deepEquals(contactOnTheServer)
 				// It wasn't cached before, so it should be loaded remotely again
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 2 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
 				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// Again, it wasn't cached before, so it should be loaded remotely again
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 3 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
 
-				const cacheReadonly3 = await cache.load(tutanotaTypeRefs.ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly3)
 				o(cacheReadonly3).deepEquals(contactOnTheServer)
 				// Since it was cached before, it won't be loaded remotely
-				verify(client.loadParsedInstance(tutanotaTypeRefs.ContactTypeRef, contactId, anything()), { times: 3 })
+				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
 			})
 
 			o("loadMultiple", async function () {
 				const contactAId: IdTuple = [listId, createId("1")]
-				const contactAOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactAOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactAId,
 					firstName: "greg",
 					_permissions: "permid",
@@ -2197,7 +2133,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const contactBId: IdTuple = [listId, createId("2")]
-				const contactBOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactBOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactBId,
 					firstName: "bob",
 					_permissions: "permid2",
@@ -2205,62 +2141,56 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
-				when(
-					client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything()),
-				).thenResolve([await toStorableInstance(contactAOnTheServer)])
-				when(
-					client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything()),
-				).thenResolve([await toStorableInstance(contactBOnTheServer)])
+				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything())).thenResolve([
+					await toStorableInstance(contactAOnTheServer),
+				])
+				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything())).thenResolve([
+					await toStorableInstance(contactBOnTheServer),
+				])
 
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheReadOnly1 = await cache.loadMultiple(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadOnly1.map(removeOriginals)
 				o(cacheReadOnly1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 1,
 				})
 
-				const cached = await cache.loadMultiple(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.ReadAndWrite,
 				})
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer])
 				// Wasn't written earlier; should be written now
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 2,
 				})
 
-				const cacheReadOnly2 = await cache.loadMultiple(
-					tutanotaTypeRefs.ContactTypeRef,
-					listId,
-					[elementIdPart(contactAId), elementIdPart(contactBId)],
-					undefined,
-					{
-						cacheMode: CacheMode.ReadOnly,
-					},
-				)
+				const cacheReadOnly2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					cacheMode: CacheMode.ReadOnly,
+				})
 				cacheReadOnly2.map(removeOriginals)
 				o(true).equals(cacheReadOnly2.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cacheReadOnly2.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Should have only asked for B from server since we cached A earlier
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
 					times: 2,
 				})
-				verify(client.loadMultipleParsedInstances(tutanotaTypeRefs.ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
 					times: 1,
 				})
 			})
 
 			o("loadRange - full list", async function () {
 				const contactAId: IdTuple = [listId, createId("1")]
-				const contactAOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactAOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactAId,
 					firstName: "greg",
 					_permissions: "permid2",
@@ -2268,7 +2198,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const contactBId: IdTuple = [listId, createId("2")]
-				const contactBOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactBOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactBId,
 					firstName: "bob",
 					_permissions: "permid",
@@ -2276,11 +2206,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = object()
-				when(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([
-					contactAOnTheServer,
-					contactBOnTheServer,
-				])
-				when(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([
+				when(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([contactAOnTheServer, contactBOnTheServer])
+				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([
 					await toStorableInstance(contactAOnTheServer),
 					await toStorableInstance(contactBOnTheServer),
 				])
@@ -2289,39 +2216,39 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
-				const cacheReadonly1 = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, {
+				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
 					cacheMode: CacheMode.ReadOnly,
 				})
 				o(cacheReadonly1).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Wasn't saved before
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
-				verify(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
-				const cacheReadonly2 = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, {
+				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadonly2.map(removeOriginals)
 				o(cacheReadonly2).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Was saved before now
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
-				verify(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 			})
 
 			o("loadRange - partial list", async function () {
 				const contactAId: IdTuple = [listId, createId("1")]
-				const contactAOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactAOnTheServer = createTestEntity(ContactTypeRef, {
 					_id: contactAId,
 					firstName: "greg",
 				})
 
 				const contactBId: IdTuple = [listId, createId("2")]
-				const contactBOnTheServer = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+				const contactBOnTheServer = createTestEntity(ContactTypeRef, {
 					_permissions: "permid",
 					_id: contactBId,
 					firstName: "bob",
@@ -2329,45 +2256,45 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = object()
-				when(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), anything(), false, anything())).thenResolve([
+				when(client.loadRange(ContactTypeRef, listId, createId("0"), anything(), false, anything())).thenResolve([
 					contactAOnTheServer,
 					contactBOnTheServer,
 				])
-				when(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), anything(), false, anything())).thenResolve([
+				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), anything(), false, anything())).thenResolve([
 					await toStorableInstance(contactAOnTheServer),
 					await toStorableInstance(contactBOnTheServer),
 				])
-				when(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([contactBOnTheServer])
-				when(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([
+				when(client.loadRange(ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([contactBOnTheServer])
+				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([
 					await toStorableInstance(contactBOnTheServer),
 				])
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
-				const cacheReadonly1 = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, {
+				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, {
 					cacheMode: CacheMode.ReadOnly,
 				})
 				o(cacheReadonly1).deepEquals([contactBOnTheServer])
 				// Fresh cache
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactBOnTheServer])
 				// Was saved before now
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
-				verify(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
+				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
-				const cacheReadonly2 = await cache.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, {
+				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadonly2.map(removeOriginals)
 				o(cacheReadonly2).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Only the second one was saved
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
-				verify(client.loadParsedInstancesRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
-				verify(client.loadRange(tutanotaTypeRefs.ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
+				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
+				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 			})
 		})
 	})

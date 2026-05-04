@@ -1,8 +1,8 @@
-import { TranslationKey } from "../misc/LanguageViewModel.js"
-import { ClickHandler } from "../gui/base/GuiUtils.js"
+import { TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { ClickHandler } from "../../ui/base/GuiUtils.js"
 import m from "mithril"
-import { BannerButton } from "../gui/base/buttons/BannerButton.js"
-import { theme } from "../gui/theme.js"
+import { BannerButton } from "../../ui/base/buttons/BannerButton.js"
+import { theme } from "../../ui/theme.js"
 
 /// Renders a banner button used in the onboarding wizard and notification permission dialog
 export function renderSettingsBannerButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {

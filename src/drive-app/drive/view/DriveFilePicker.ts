@@ -1,8 +1,8 @@
-import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
-import { NativeFileApp } from "@tutao/native-bridge/common"
+import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
 import { isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { PosRect } from "@tutao/native-bridge/shared"
+import { PosRect } from "../../../ui/utils/PosRect.js"
+import { FileReference, WebFile } from "../../../entities/tutanota/Utils"
 
 /**
  * Wrapper for a browser or app file picker.

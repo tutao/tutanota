@@ -60,10 +60,6 @@ globalThis.electronMock = {
 	app: {},
 }
 
-window.tutao = {
-	appState: {
-		prefixWithoutFile: "./",
-	},
-}
+window.tutao = {}
 
 export const run = (await import("./Suite.js")).run

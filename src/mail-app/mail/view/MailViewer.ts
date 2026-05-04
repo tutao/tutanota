@@ -1,38 +1,39 @@
-import { component_size, font_size, px } from "../../../common/gui/size"
+import { component_size, font_size, px } from "../../../ui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
-import { assertMainOrNode, FeatureType, InboxRuleType, Keys, MailSetKind, SpamRuleFieldType, SpamRuleType } from "@tutao/app-env"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { windowFacade } from "../../../common/misc/WindowFacade"
+import { assertMainOrNode, CancelledError, FeatureType, Keys } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "@tutao/utils"
-import { IconMessageBox } from "../../../common/gui/base/ColumnEmptyMessageBox"
-import type { Shortcut } from "../../../common/misc/KeyManager"
-import { keyManager } from "../../../common/misc/KeyManager"
-import { Icon, progressIcon } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { isDarkTheme, theme } from "../../../common/gui/theme"
+import { IconMessageBox } from "../../../ui/base/ColumnEmptyMessageBox"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { keyManager } from "../../../ui/utils/KeyManager"
+import { Icon, progressIcon } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { isDarkTheme, theme } from "../../../ui/theme"
 import { client } from "../../../app-env/boot/ClientDetector"
-import { styles } from "../../../common/gui/styles"
-import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
+import { styles } from "../../../ui/styles"
+import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
-import { getCoordsOfMouseOrTouchEvent } from "../../../common/gui/base/GuiUtils"
-import { copyToClipboard } from "../../../common/misc/ClipboardUtils"
+import { getCoordsOfMouseOrTouchEvent } from "../../../ui/base/GuiUtils"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { CancelledError } from "@tutao/app-env"
 import { MailHeaderActions, MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
-import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
+import { ToggleButton } from "../../../ui/base/buttons/ToggleButton.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { PinchZoom } from "../../../common/gui/PinchZoom.js"
-import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { PinchZoom } from "../../../ui/PinchZoom.js"
+import { responsiveCardHMargin, responsiveCardHPadding } from "../../../ui/cards.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { createNewContact, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../ui/TextHighlightViewUtils"
+import { WindowSizeListener } from "../../../ui/utils/WindowUtils"
+import { File, InboxRuleType, Mail, MailSetKind, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { createEmailSenderListElement } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -69,7 +70,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	 */
 	private delayProgressSpinner = true
 
-	private readonly resizeListener: windowSizeListener
+	private readonly resizeListener: WindowSizeListener
 	private resizeObserverViewport: ResizeObserver | null = null // needed to detect orientation change to recreate pinchzoom at the right time
 	private resizeObserverZoomable: ResizeObserver | null = null // needed to recreate pinchzoom e.g. when loading images
 
@@ -249,7 +250,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
 			isPrimary: attrs.isPrimary,
-			importFile: (file: tutanotaTypeRefs.File) => this.handleAttachmentImport(file),
+			importFile: (file: File) => this.handleAttachmentImport(file),
 			moreActions: attrs.moreActions,
 			actions: attrs.actions,
 		})
@@ -703,7 +704,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		import("../../settings/AddSpamRuleDialog").then(async ({ showAddSpamRuleDialog }) => {
 			const value = address.trim().toLowerCase()
 			showAddSpamRuleDialog(
-				sysTypeRefs.createEmailSenderListElement({
+				createEmailSenderListElement({
 					value,
 					type: spamRuleType,
 					field: spamRuleField,
@@ -762,7 +763,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return false
 	}
 
-	private async handleAttachmentImport(file: tutanotaTypeRefs.File) {
+	private async handleAttachmentImport(file: File) {
 		try {
 			await this.viewModel.importAttachment(file)
 		} catch (e) {
@@ -777,7 +778,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 }
 
 export type CreateMailViewerOptions = {
-	mail: tutanotaTypeRefs.Mail
+	mail: Mail
 	showFolder: boolean
 	/** latestMail is needed when conversation actions are preformed on it */
 	loadLatestMail: boolean
@@ -789,6 +790,6 @@ export type CreateMailViewerOptions = {
  * support and invoice mails can contain links to the settings page.
  * we don't want normal mails to be able to link places in the app, though.
  * */
-function isSettingsLink(href: string, mail: tutanotaTypeRefs.Mail): boolean {
+function isSettingsLink(href: string, mail: Mail): boolean {
 	return (href.startsWith("/settings/") ?? false) && isTutaTeamMail(mail)
 }

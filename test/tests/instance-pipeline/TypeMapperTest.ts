@@ -1,16 +1,7 @@
-import {
-	AttributeModel,
-	ClientModelEncryptedParsedInstance,
-	ClientTypeModel,
-	ClientTypeReferenceResolver,
-	ServerModelUntypedInstance,
-	ServerTypeModel,
-	ServerTypeReferenceResolver,
-	TypeRef,
-} from "@tutao/typerefs"
+import { AttributeModel, ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel, TypeRef } from "../../../src/meta"
 import { assertNotNull } from "@tutao/utils"
 import o, { assertThrows } from "@tutao/otest"
-import { TypeMapper } from "@tutao/instance-pipeline"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, TypeMapper } from "@tutao/instance-pipeline"
 import { ProgrammingError } from "@tutao/app-env"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 

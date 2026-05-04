@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../../misc/LanguageViewModel"
-import { SectionButton } from "../../../gui/base/buttons/SectionButton"
-import { px, size } from "../../../gui/size"
-import { Card } from "../../../gui/base/Card"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { SectionButton } from "../../../../ui/base/buttons/SectionButton"
+import { px, size } from "../../../../ui/size"
+import { Card } from "../../../../ui/base/Card"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { IdentityKeyVerificationMethod } from "@tutao/app-env"
 

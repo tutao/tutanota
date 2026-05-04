@@ -2,16 +2,6 @@
  * This file is used for *monkey-patching* existing declarations. Don't use it to declare global variables.
  */
 
-import { Logger } from "./api/common/Logger"
-import Mithril from "mithril"
-import { LanguageViewModel } from "./misc/LanguageViewModel"
-import { ClientDetector } from "./misc/ClientDetector"
-import { RootView } from "./RootView"
-import { ICommonLocator } from "./api/main/CommonLocator"
-import { WhitelabelCustomizations } from "./misc/WhitelabelCustomizations"
-import { WorkerLocatorType } from "./api/worker/WorkerLocator"
-import { TopLevelView } from "./TopLevelView.js"
-
 export { NativeApp } from "../types/globals"
 
 type Tutao = {
@@ -20,9 +10,8 @@ type Tutao = {
 	lang: LanguageViewModel
 	client: ClientDetector
 	root: RootView
-	locator: ICommonLocator | null
+	locator: CommonLocator | null
 	nativeApp? // Will either be IosNativeTransport or null
-	appState?
 }
 
 // Monkey-patch Window.

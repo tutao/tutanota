@@ -1,9 +1,9 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { File, Mail, MailDetails } from "@tutao/entities/tutanota"
 
 export interface MailWithDetailsAndAttachments {
-	mail: tutanotaTypeRefs.Mail
-	mailDetails: tutanotaTypeRefs.MailDetails
-	attachments: readonly tutanotaTypeRefs.File[]
+	mail: Mail
+	mailDetails: MailDetails
+	attachments: readonly File[]
 }
 
 export const enum IndexResult {
@@ -28,7 +28,7 @@ export interface MailIndexerBackend {
 	 * Called when only the mail entity data is updated.
 	 * Only data that is directly on the Mail entity (e.g. sets) was updated.
 	 */
-	onPartialMailUpdated(mail: tutanotaTypeRefs.Mail): Promise<void>
+	onPartialMailUpdated(mail: Mail): Promise<void>
 
 	/**
 	 * Called before the mail is deleted from the cache.

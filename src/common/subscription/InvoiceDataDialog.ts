@@ -1,19 +1,19 @@
 import m from "mithril"
-import { Dialog } from "../gui/base/Dialog"
-import type { TranslationKey } from "../misc/LanguageViewModel"
-import { lang } from "../misc/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import type { TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { InvoiceDataInput } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import * as restError from "@tutao/rest-client/error"
 import type { InvoiceData } from "@tutao/app-env"
 import { ofClass } from "@tutao/utils"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { AccountingInfo } from "@tutao/entities/sys"
 
 export function show(
 	businessUse: boolean,
 	invoiceData: InvoiceData,
-	accountingInfo: sysTypeRefs.AccountingInfo,
+	accountingInfo: AccountingInfo,
 	headingId?: TranslationKey,
 	infoMessageId?: TranslationKey,
 ): Dialog {

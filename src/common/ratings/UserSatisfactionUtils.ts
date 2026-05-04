@@ -4,18 +4,9 @@ import { locator } from "../api/main/CommonLocator.js"
 import { Stage } from "@tutao/usagetests"
 import { isEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
-import {
-	AvailablePlanType,
-	isAndroidApp,
-	isApp,
-	isBrowser,
-	isDesktop,
-	LegacyBusinessPlans,
-	LegacyPrivatePlans,
-	NewBusinessPlans,
-	PlanType,
-} from "@tutao/app-env"
-import { PlanTypeToName } from "@tutao/typerefs"
+import { isAndroidApp, isApp, isBrowser, isDesktop } from "@tutao/app-env"
+import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "@tutao/entities/sys"
+import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
 	const retentionPeriod: number = 30

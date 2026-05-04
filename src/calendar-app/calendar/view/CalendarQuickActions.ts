@@ -1,8 +1,8 @@
-import { Router } from "../../../common/gui/ScopedRouter"
+import { Router } from "../../../ui/ScopedRouter"
 import { type MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { CalendarEventModel, CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel"
-import { CALENDAR_PREFIX } from "../../../common/misc/RouteChange"
+import { CALENDAR_PREFIX } from "../../../ui/utils/RouteChange"
 import { getEventWithDefaultTimes } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog"
 import { LoginController } from "../../../common/api/main/LoginController"
@@ -10,10 +10,10 @@ import { CalendarModel } from "../model/CalendarModel"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { type CalendarProperties, showCreateEditCalendarDialog } from "../gui/EditCalendarDialog"
 import { CalendarType } from "../../../common/calendar/date/CalendarUtils"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Dialog } from "../../../ui/base/Dialog"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
 import { UpgradePromptType } from "@tutao/app-env"
+import { CalendarEvent, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 
 export async function quickCalendarActions(
 	router: Router,
@@ -22,10 +22,10 @@ export async function quickCalendarActions(
 	logins: LoginController,
 	createEventModel: (
 		editMode: CalendarOperation,
-		event: Partial<tutanotaTypeRefs.CalendarEvent>,
+		event: Partial<CalendarEvent>,
 		mailboxDetail: MailboxDetail,
-		mailboxProperties: tutanotaTypeRefs.MailboxProperties,
-		responseTo: tutanotaTypeRefs.Mail | null,
+		mailboxProperties: MailboxProperties,
+		responseTo: Mail | null,
 	) => Promise<CalendarEventModel | null>,
 ): Promise<readonly QuickAction[]> {
 	const newEventAction: QuickAction = {

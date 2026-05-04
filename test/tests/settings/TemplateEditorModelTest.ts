@@ -1,10 +1,11 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { TemplateEditorModel } from "../../../src/mail-app/settings/TemplateEditorModel.js"
 import { EntityClient } from "../../../src/network/EntityClient.js"
 import { downcast } from "@tutao/utils"
-import { LanguageNames, languages } from "../../../src/common/misc/LanguageViewModel.js"
+import { LanguageNames, languages } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createTestEntity } from "../TestUtils.js"
+import { EmailTemplateContentTypeRef, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("TemplateEditorModel", function () {
 	let entityClient: EntityClient
@@ -12,19 +13,19 @@ o.spec("TemplateEditorModel", function () {
 		entityClient = downcast({})
 	})
 	o("content languages", function () {
-		const template = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {
+		const template = createTestEntity(EmailTemplateTypeRef, {
 			contents: [
-				createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+				createTestEntity(EmailTemplateContentTypeRef, {
 					languageCode: "en",
 					text: "",
 				}),
-				createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+				createTestEntity(EmailTemplateContentTypeRef, {
 					languageCode: "de",
 					text: "",
 				}),
 			],
 		})
-		const templateGroupRoot = createTestEntity(tutanotaTypeRefs.TemplateGroupRootTypeRef)
+		const templateGroupRoot = createTestEntity(TemplateGroupRootTypeRef)
 		const model = new TemplateEditorModel(template, templateGroupRoot, entityClient)
 		const addedLanguages = model.getAddedLanguages()
 		const additionalLanguages = model.getAdditionalLanguages()

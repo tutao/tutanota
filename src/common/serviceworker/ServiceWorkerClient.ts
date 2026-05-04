@@ -1,4 +1,4 @@
-import { lang } from "../misc/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
@@ -24,7 +24,7 @@ function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink:
 			])
 		},
 	}
-	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/Button.js")]).then(([notificationOverlay, { ButtonType }]) => {
+	Promise.all([import("../../ui/base/NotificationOverlay"), import("../../ui/base/Button.js")]).then(([notificationOverlay, { ButtonType }]) => {
 		notificationOverlay.show(
 			notificationMessage,
 			{
@@ -64,7 +64,7 @@ export function init(domainConfig: DomainConfig) {
 		if (env.dist && !isApp() && !isDesktop() && window.nativeAppWebDialog == null) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
-				.register(window.tutao.appState.prefixWithoutFile + "/sw.js")
+				.register("/sw.js")
 				.then((registration) => {
 					console.log("ServiceWorker has been installed")
 					showUpdateMessageIfNeeded(registration, domainConfig)

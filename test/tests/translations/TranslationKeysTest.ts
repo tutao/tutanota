@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import { difference } from "@tutao/utils"
-import en from "../../../src/mail-app/translations/en.js"
-import de from "../../../src/mail-app/translations/de.js"
-import de_sie from "../../../src/mail-app/translations/de_sie.js"
+import en from "../../../src/ui/translations/en.js"
+import de from "../../../src/ui/translations/de.js"
+import de_sie from "../../../src/ui/translations/de_sie.js"
 
 o.spec("TranslationKeys", () => {
 	o.spec("synchronisation of translation keys", function () {

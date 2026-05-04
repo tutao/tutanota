@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Weekday } from "@tutao/app-env"
 import { client } from "../../../../app-env/boot/ClientDetector.js"
-import { px } from "../../../../common/gui/size.js"
+import { px } from "../../../../ui/size.js"
 
 export interface WeekdayToTranslation {
 	value: Weekday

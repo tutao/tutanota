@@ -1,21 +1,34 @@
-import { ClientTypeModelResolver, entityUpdateUtils, sysTypeRefs, tutanotaTypeRefs, usageServices, usageTypeRefs } from "@tutao/typerefs"
 import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { UsageTestMetricType } from "@tutao/app-env"
 import { SuspensionError } from "../api/common/error/SuspensionError"
 import { DateProvider } from "../../utils/DateProvider.js"
 import { IServiceExecutor } from "../../network/ServiceRequest"
-import { lang, TranslationKey } from "./LanguageViewModel"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import stream from "mithril/stream"
-import { Dialog, DialogType } from "../gui/base/Dialog"
-import { DropDownSelector, SelectorItem } from "../gui/base/DropDownSelector"
+import { Dialog, DialogType } from "../../ui/base/Dialog"
+import { DropDownSelector, SelectorItem } from "../../ui/base/DropDownSelector"
 import m, { Children } from "mithril"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../../network/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { ClientTypeModelResolver, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import {
+	createUsageTestAssignmentIn,
+	createUsageTestMetricData,
+	createUsageTestParticipationDeleteIn,
+	createUsageTestParticipationIn,
+	UsageTestAssignment,
+	UsageTestAssignmentOut,
+	UsageTestAssignmentService,
+	UsageTestAssignmentTypeRef,
+	UsageTestParticipationService,
+} from "@tutao/entities/usage"
+import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -96,7 +109,7 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 
 export interface PersistedAssignmentData {
 	updatedAt: number
-	assignments: usageTypeRefs.UsageTestAssignment[]
+	assignments: UsageTestAssignment[]
 	usageModelVersion: number
 }
 
@@ -146,7 +159,7 @@ export const enum StorageBehavior {
 
 export class UsageTestModel implements PingAdapter {
 	private storageBehavior = StorageBehavior.Ephemeral
-	private customerProperties?: sysTypeRefs.CustomerProperties
+	private customerProperties?: CustomerProperties
 	private lastOptInDecision: boolean | null = null
 
 	constructor(
@@ -160,19 +173,19 @@ export class UsageTestModel implements PingAdapter {
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => {
+			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>) => {
 				return this.entityEventsReceived(updates)
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update)) {
+			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				await this.loginController.waitForFullLogin()
 				await this.updateCustomerProperties()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				await this.loginController.waitForFullLogin()
 				const updatedOptInDecision = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
 
@@ -198,8 +211,8 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async updateCustomerProperties() {
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer))
-		this.customerProperties = await this.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer))
+		this.customerProperties = await this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))
 	}
 
 	/**
@@ -244,7 +257,7 @@ export class UsageTestModel implements PingAdapter {
 	 * Immediately refetches the user's active usage tests if they opted in.
 	 */
 	public async setOptInDecision(decision: boolean) {
-		const userSettingsGroupRoot = tutanotaTypeRefs.createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
+		const userSettingsGroupRoot = createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
 		userSettingsGroupRoot.usageDataOptedIn = decision
 
 		await this.entityClient.update(userSettingsGroupRoot)
@@ -296,22 +309,22 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async modelVersion(): Promise<number> {
-		const model = await this.typeModelResolver.resolveClientTypeReference(usageTypeRefs.UsageTestAssignmentTypeRef)
+		const model = await this.typeModelResolver.resolveClientTypeReference(UsageTestAssignmentTypeRef)
 		return model.version
 	}
 
-	private async loadAssignments(): Promise<usageTypeRefs.UsageTestAssignment[]> {
+	private async loadAssignments(): Promise<UsageTestAssignment[]> {
 		const testDeviceId = await this.storage().getTestDeviceId()
-		const data = usageTypeRefs.createUsageTestAssignmentIn({
+		const data = createUsageTestAssignmentIn({
 			testDeviceId: testDeviceId,
 		})
 
 		try {
-			const response: usageTypeRefs.UsageTestAssignmentOut = testDeviceId
-				? await this.serviceExecutor.put(usageServices.UsageTestAssignmentService, data, {
+			const response: UsageTestAssignmentOut = testDeviceId
+				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
-				: await this.serviceExecutor.post(usageServices.UsageTestAssignmentService, data, {
+				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
@@ -327,7 +340,7 @@ export class UsageTestModel implements PingAdapter {
 				console.log("rate-limit for new assignments reached, disabling tests")
 				return []
 			} else if (isOfflineError(e)) {
-				console.log("local-store, disabling tests")
+				console.log("offline, disabling tests")
 				return []
 			}
 
@@ -335,7 +348,7 @@ export class UsageTestModel implements PingAdapter {
 		}
 	}
 
-	private assignmentsToTests(assignments: usageTypeRefs.UsageTestAssignment[]): UsageTest[] {
+	private assignmentsToTests(assignments: UsageTestAssignment[]): UsageTest[] {
 		return assignments.map((usageTestAssignment) => {
 			const test = new UsageTest(
 				usageTestAssignment.testId,
@@ -371,13 +384,13 @@ export class UsageTestModel implements PingAdapter {
 	async deletePing(testId: string, { pingId, pingListId }: PingIdTuple) {
 		const testDeviceId = await this.storage().getTestDeviceId()
 		if (!testDeviceId) return
-		const data = usageTypeRefs.createUsageTestParticipationDeleteIn({
+		const data = createUsageTestParticipationDeleteIn({
 			testId,
 			testDeviceId,
 			pingListId,
 			pingId,
 		})
-		await this.serviceExecutor.delete(usageServices.UsageTestParticipationService, data)
+		await this.serviceExecutor.delete(UsageTestParticipationService, data)
 		console.log(`Removed Ping: ${pingId}, ${pingListId}`)
 	}
 
@@ -399,13 +412,13 @@ export class UsageTestModel implements PingAdapter {
 		}
 
 		const metrics = Array.from(stage.collectedMetrics).map(([key, { name, value }]) =>
-			usageTypeRefs.createUsageTestMetricData({
+			createUsageTestMetricData({
 				name: name,
 				value: value,
 			}),
 		)
 
-		const data = usageTypeRefs.createUsageTestParticipationIn({
+		const data = createUsageTestParticipationIn({
 			testId: test.testId,
 			metrics,
 			stage: stage.number.toString(),
@@ -414,7 +427,7 @@ export class UsageTestModel implements PingAdapter {
 		})
 
 		try {
-			const { pingListId, pingId } = await this.serviceExecutor.post(usageServices.UsageTestParticipationService, data, {
+			const { pingListId, pingId } = await this.serviceExecutor.post(UsageTestParticipationService, data, {
 				suspensionBehavior: SuspensionBehavior.Throw,
 			})
 			return { pingListId, pingId }
@@ -457,7 +470,7 @@ export class UsageTestModel implements PingAdapter {
 				test.active = false
 				console.log(`Tried to send ping. Setting test '${test.testName}' inactive because it is misconfigured`, e)
 			} else if (isOfflineError(e)) {
-				console.log("Tried to send ping, but we are local-store", e)
+				console.log("Tried to send ping, but we are offline", e)
 			} else {
 				throw e
 			}

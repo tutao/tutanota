@@ -1,4 +1,5 @@
 import o from "@tutao/otest"
+import { MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import {
 	clone,
 	constructMailSetEntryId,
@@ -11,10 +12,8 @@ import {
 	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
-	tutanotaTypeModels,
-	tutanotaTypeRefs,
 	TypeRef,
-} from "@tutao/typerefs"
+} from "../../../src/meta"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {
@@ -54,7 +53,7 @@ o.spec("EntityUtils", function () {
 	})
 
 	o("create new entity without error object ", function () {
-		const mailEntity = create(tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId], tutanotaTypeRefs.MailTypeRef)
+		const mailEntity = create(tutanotaTypeModels[MailTypeRef.typeId], MailTypeRef)
 		o(mailEntity._errors).equals(undefined)
 		o(hasError(mailEntity)).equals(false)
 

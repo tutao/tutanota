@@ -1,9 +1,10 @@
 import Stream from "mithril/stream"
-import { TranslationKey } from "../misc/LanguageViewModel"
+import { TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { downcast, getFromMap } from "@tutao/utils"
-import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
-import { AvailablePlans, isIOSApp, PlanName, PlanType } from "@tutao/app-env"
+import { isIOSApp } from "@tutao/app-env"
+import { AvailablePlans, PlanName, PlanPrices, PlanType } from "@tutao/entities/sys"
+import { PlanTypeToName } from "./utils/SubscriptionUtils"
 
 let dataProvider: FeatureListProvider | null = null
 
@@ -87,7 +88,7 @@ export class FeatureListProvider {
  * tutanota-3 has a typeRef for plan prices, while the web site defines the type with only
  * some of the properties of the model type. using this method to maintain symmetry.
  */
-export type WebsitePlanPrices = Pick<sysTypeRefs.PlanPrices, "additionalUserPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice">
+export type WebsitePlanPrices = Pick<PlanPrices, "additionalUserPriceMonthly" | "firstYearDiscount" | "monthlyPrice" | "monthlyReferencePrice">
 
 export type SelectedSubscriptionOptions = {
 	businessUse: Stream<boolean>
@@ -152,7 +153,7 @@ export function getDisplayNameOfPlanType(planType: PlanType): string {
 	}
 }
 
-export type SubscriptionPlanPrices = Record<PlanType, sysTypeRefs.PlanPrices>
+export type SubscriptionPlanPrices = Record<PlanType, PlanPrices>
 
 export const enum UpgradePriceType {
 	PlanReferencePrice = "0",

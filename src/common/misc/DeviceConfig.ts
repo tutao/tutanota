@@ -1,15 +1,16 @@
 import { base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/utils"
-import type { LanguageCode } from "./LanguageViewModel"
-import type { ThemePreference } from "../gui/theme"
+import type { LanguageCode } from "../../ui/utils/LanguageViewModel"
+import type { ThemePreference } from "../../ui/theme"
 import { assertMainOrNodeBoot, CredentialEncryptionMode, isApp, ProgrammingError } from "@tutao/app-env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { client } from "../../app-env/boot/ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
-import { CredentialsInfo } from "@tutao/native-bridge/common"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 import { SyncStatus } from "../calendar/gui/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { ThemeConfigurator } from "../../ui/ThemeController"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -96,7 +97,7 @@ interface ConfigObject {
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
-export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
+export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
 	public static readonly Version = 7
 	public static readonly LocalStorageKey = "tutanotaConfig"
 

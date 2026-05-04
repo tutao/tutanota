@@ -1,35 +1,35 @@
 import m, { Children } from "mithril"
-import { entityUpdateUtils, isSameId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { lang } from "../../common/misc/LanguageViewModel"
-
-import { component_size } from "../../common/gui/size"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef, TemplateGroupRoot } from "@tutao/entities/tutanota"
+import { Group } from "@tutao/entities/sys"
+import { component_size } from "../../ui/size"
 import { EntityClient } from "../../network/EntityClient"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
-import { ShareCapability } from "@tutao/app-env"
+import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
 import type { LoginController } from "../../common/api/main/LoginController"
-import { ListColumnWrapper } from "../../common/gui/ListColumnWrapper"
+import { ListColumnWrapper } from "../../ui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
 import { memoized, NBSP, noOp } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/app-env"
-import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../common/gui/SelectableRowContainer.js"
+import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../ui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
-import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../common/gui/base/ListUtils.js"
+import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../ui/base/ListUtils.js"
 import Stream from "mithril/stream"
-import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
-import ColumnEmptyMessageBox from "../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../common/gui/theme.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../ui/base/List.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../ui/base/BaseSearchBar.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import ColumnEmptyMessageBox from "../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../ui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
-import { keyManager } from "../../common/misc/KeyManager.js"
+import { keyManager } from "../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { isSameId, listIdPart } from "@tutao/meta"
 
 assertMainOrNode()
 
-type KnowledgeBaseEntry = tutanotaTypeRefs.KnowledgeBaseEntry
 /**
  *  List that is rendered within the knowledgeBase Settings
  */
@@ -54,8 +54,8 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
-		private readonly templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot,
-		private readonly templateGroup: sysTypeRefs.Group,
+		private readonly templateGroupRoot: TemplateGroupRoot,
+		private readonly templateGroup: Group,
 		private readonly updateDetailsViewer: (viewer: KnowledgeBaseSettingsDetailsViewer | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
 	) {
@@ -86,11 +86,11 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			},
 			fetch: async (_lastFetchedEntity, _count) => {
 				// load all entries at once to apply custom sort order
-				const allEntries = await this.entityClient.loadAll(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, this.getListId())
+				const allEntries = await this.entityClient.loadAll(KnowledgeBaseEntryTypeRef, this.getListId())
 				return { items: allEntries, complete: true }
 			},
 			loadSingle: (_listId: Id, elementId: Id) => {
-				return this.entityClient.load<KnowledgeBaseEntry>(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
+				return this.entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [this.getListId(), elementId])
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -160,9 +160,9 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<any> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
+			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
 				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			}
 		}
@@ -246,7 +246,7 @@ export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDeta
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<any> {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		return Promise.resolve()
 	}
 }

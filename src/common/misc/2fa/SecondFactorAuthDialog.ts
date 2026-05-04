@@ -1,23 +1,21 @@
-import { SecondFactorType } from "@tutao/app-env"
+import { CancelledError, SecondFactorType } from "@tutao/app-env"
 import type { Thunk } from "@tutao/utils"
 import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
-import type { TranslationKey } from "../LanguageViewModel.js"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import m from "mithril"
 import { SecondFactorAuthView } from "./SecondFactorAuthView.js"
 import { WebauthnClient } from "./webauthn/WebauthnClient.js"
-import type { LoginFacade } from "../../../network/LoginFacade.js"
-import { CancelledError } from "@tutao/app-env"
+import type { LoginFacade } from "../../../base/facades/LoginFacade.js"
 import { WebauthnError } from "../../api/common/error/WebauthnError.js"
 import { appIdToLoginUrl } from "./SecondFactorUtils.js"
-
+import { Challenge, createSecondFactorAuthData } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
-import { sysTypeRefs } from "@tutao/typerefs"
 
 type AuthData = {
 	readonly sessionId: IdTuple
-	readonly challenges: ReadonlyArray<sysTypeRefs.Challenge>
+	readonly challenges: ReadonlyArray<Challenge>
 	readonly mailAddress: string | null
 }
 type WebauthnState = { state: "init" } | { state: "progress" } | { state: "error"; error: TranslationKey }
@@ -146,7 +144,7 @@ export class SecondFactorAuthDialog {
 
 	async onConfirmOtp() {
 		this.otpState.inProgress = true
-		const authData = sysTypeRefs.createSecondFactorAuthData({
+		const authData = createSecondFactorAuthData({
 			type: SecondFactorType.totp,
 			session: this.authData.sessionId,
 			otpCode: this.otpState.code.replace(/ /g, ""),
@@ -179,7 +177,7 @@ export class SecondFactorAuthDialog {
 		this.close()
 	}
 
-	private async doWebauthn(u2fChallenge: sysTypeRefs.Challenge) {
+	private async doWebauthn(u2fChallenge: Challenge) {
 		this.webauthnState = {
 			state: "progress",
 		}
@@ -188,7 +186,7 @@ export class SecondFactorAuthDialog {
 
 		try {
 			const { responseData, apiBaseUrl } = await this.webauthnClient.authenticate(challenge)
-			const authData = sysTypeRefs.createSecondFactorAuthData({
+			const authData = createSecondFactorAuthData({
 				type: SecondFactorType.webauthn,
 				session: sessionId,
 				webauthn: responseData,

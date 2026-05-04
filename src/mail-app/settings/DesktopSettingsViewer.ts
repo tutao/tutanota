@@ -1,27 +1,27 @@
 import m, { Children } from "mithril"
-import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { Icons } from "../../common/gui/base/icons/Icons"
-import type { LegacyTextFieldAttrs } from "../../common/gui/base/LegacyTextField.js"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { attachDropdown } from "../../common/gui/base/Dropdown.js"
-import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
-import { Dialog } from "../../common/gui/base/Dialog"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
+import { Icons } from "../../ui/base/icons/Icons"
+import type { LegacyTextFieldAttrs } from "../../ui/base/LegacyTextField.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { attachDropdown } from "../../ui/base/Dropdown.js"
+import type { DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
+import { Dialog } from "../../ui/base/Dialog"
 import type { UpdateHelpLabelAttrs } from "./DesktopUpdateHelpLabel"
 import { DesktopUpdateHelpLabel } from "./DesktopUpdateHelpLabel"
-import { DesktopConfigKey } from "../../app-env/ConfigKeys"
-import { getCurrentSpellcheckLanguageLabel, showSpellcheckLanguageDialog } from "../../common/gui/dialogs/SpellcheckLanguageDialog"
-import { ifAllowedTutaLinks } from "../../common/gui/base/GuiUtils"
+import { DesktopConfigKey } from "@tutao/app-env"
 import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
-import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { IconButton, IconButtonAttrs } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { MoreInfoLink } from "../../common/misc/news/MoreInfoLink.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { MailExportMode } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { ifAllowedTutaLinks } from "../../common/gui/base/TutaLinkUtils"
+import { SpellcheckLanguageDialog } from "../../ui/dialogs/SpellcheckLanguageDialog"
 
 assertMainOrNode()
 
@@ -43,6 +43,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	private readonly mailExportMode: Stream<MailExportMode>
 	private isPathDialogOpen: boolean = false
 	private offlineStorageValue: Stream<boolean>
+	private spellCheckLanguageDialog: SpellcheckLanguageDialog
 
 	constructor() {
 		this.isDefaultMailtoHandler = stream<boolean | null>(false)
@@ -55,6 +56,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this.updateAvailable = stream<boolean>(false)
 		this.mailExportMode = stream<MailExportMode>("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
 		this.offlineStorageValue = stream<boolean>(false)
+		this.spellCheckLanguageDialog = new SpellcheckLanguageDialog(locator.desktopSettingsFacade)
 	}
 
 	oninit() {
@@ -133,7 +135,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const editSpellcheckLanguageButtonAttrs: IconButtonAttrs = {
 			title: "checkSpelling_action",
-			click: () => showSpellcheckLanguageDialog().then((newLabel) => this.spellCheckLang(newLabel)),
+			click: () => this.spellCheckLanguageDialog.showSpellcheckLanguageDialog().then((newLabel) => this.spellCheckLang(newLabel)),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		}
@@ -280,7 +282,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.showAutoUpdateOption),
 				locator.desktopSettingsFacade.getBooleanConfigValue(DesktopConfigKey.enableAutoUpdate),
 				locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.mailExportMode),
-				getCurrentSpellcheckLanguageLabel(),
+				this.spellCheckLanguageDialog.getCurrentSpellcheckLanguageLabel(),
 			],
 		)
 		const { isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable } = integrationInfo

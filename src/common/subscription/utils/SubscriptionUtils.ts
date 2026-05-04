@@ -1,28 +1,39 @@
-import type { TranslationKey } from "../../misc/LanguageViewModel"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
-import { entityUpdateUtils, getClientType, getPaymentMethodType, PlanTypeToName, sysServices, sysTypeRefs } from "@tutao/typerefs"
-import {
-	AccountType,
-	AvailablePlans,
-	AvailablePlanType,
-	BookingItemFeatureType,
-	CustomDomainType,
-	CustomDomainTypeCount,
-	isIOSApp,
-	LegacyPrivatePlans,
-	NewBusinessPlans,
-	NewPaidPlans,
-	PaymentMethodType,
-	PlanType,
-	ProgrammingError,
-} from "@tutao/app-env"
+import { ApprovalStatus, CertificateType, getClientType, isIOSApp, ProgrammingError, reverse, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/common"
+import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/types"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
-import { CacheMode } from "@tutao/network"
+import { CacheMode } from "../../../network/EntityRestClient"
+import {
+	AccountingInfo,
+	AccountType,
+	AvailablePlans,
+	AvailablePlanType,
+	Booking,
+	BookingItemFeatureType,
+	CertificateInfo,
+	createPaymentDataServiceGetData,
+	CreditCard,
+	CustomDomainType,
+	CustomDomainTypeCount,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	CustomerTypeRef,
+	LegacyPrivatePlans,
+	NewBusinessPlans,
+	NewPaidPlans,
+	PaymentDataService,
+	PaymentMethodType,
+	PlanConfiguration,
+	PlanName,
+	PlanType,
+} from "@tutao/entities/sys"
+import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 
 export const enum UpgradeType {
 	/**
@@ -47,7 +58,7 @@ export const enum AdAttributionType {
 	ANDROID = 2,
 }
 
-export function getCurrentCount(featureType: BookingItemFeatureType, booking: sysTypeRefs.Booking | null): number {
+export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
 	if (booking) {
 		let bookingItem = booking.items.find((item) => item.featureType === featureType)
 		return bookingItem ? Number(bookingItem.currentCount) : 0
@@ -59,11 +70,7 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: sy
 /**
  * Returns the available storage capacity for the customer in GB
  */
-export function getTotalStorageCapacityPerCustomer(
-	customer: sysTypeRefs.Customer,
-	customerInfo: sysTypeRefs.CustomerInfo,
-	lastBooking: sysTypeRefs.Booking | null,
-): number {
+export function getTotalStorageCapacityPerCustomer(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking | null): number {
 	let freeStorageCapacity = getIncludedStorageCapacityPerCustomer(customerInfo)
 
 	if (customer.type === AccountType.PAID) {
@@ -73,27 +80,27 @@ export function getTotalStorageCapacityPerCustomer(
 	}
 }
 
-function getIncludedStorageCapacityPerCustomer(customerInfo: sysTypeRefs.CustomerInfo): number {
+function getIncludedStorageCapacityPerCustomer(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
 }
 
-export function isWhitelabelActive(lastBooking: sysTypeRefs.Booking | null, planConfig: sysTypeRefs.PlanConfiguration): boolean {
+export function isWhitelabelActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
 	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0 || planConfig.whitelabel
 }
 
-export function isSharingActive(lastBooking: sysTypeRefs.Booking | null, planConfig: sysTypeRefs.PlanConfiguration): boolean {
+export function isSharingActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
 	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0 || planConfig.sharing
 }
 
-function isBusinessFeatureActive(lastBooking: sysTypeRefs.Booking | null): boolean {
+function isBusinessFeatureActive(lastBooking: Booking | null): boolean {
 	return getCurrentCount(BookingItemFeatureType.Business, lastBooking) !== 0
 }
 
-export function isEventInvitesActive(lastBooking: sysTypeRefs.Booking | null, planConfig: sysTypeRefs.PlanConfiguration): boolean {
+export function isEventInvitesActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
 	return isBusinessFeatureActive(lastBooking) || planConfig.eventInvites
 }
 
-export function isAutoResponderActive(lastBooking: sysTypeRefs.Booking | null, planConfig: sysTypeRefs.PlanConfiguration): boolean {
+export function isAutoResponderActive(lastBooking: Booking | null, planConfig: PlanConfiguration): boolean {
 	return isBusinessFeatureActive(lastBooking) || planConfig.autoResponder
 }
 
@@ -172,8 +179,8 @@ export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 		const clientType = getClientType()
 		const subscriptionApp = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 		const result = await locator.serviceExecutor.get(
-			sysServices.PaymentDataService,
-			sysTypeRefs.createPaymentDataServiceGetData({
+			PaymentDataService,
+			createPaymentDataServiceGetData({
 				clientType,
 				subscriptionApp,
 			}),
@@ -211,7 +218,7 @@ export function toFeatureType(type: PlanType): BookingItemFeatureType {
  */
 export async function getAvailableMatchingPlans(
 	serviceExecutor: IServiceExecutor,
-	predicate: (configuration: sysTypeRefs.PlanConfiguration) => boolean,
+	predicate: (configuration: PlanConfiguration) => boolean,
 ): Promise<Array<AvailablePlanType>> {
 	const { PriceAndConfigProvider } = await import("./PriceUtils.js")
 	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
@@ -227,7 +234,7 @@ export async function getAvailableMatchingPlans(
  * @param errorMessage the error message to throw in case no plan satisfies the criterion
  */
 async function getAtLeastOneAvailableMatchingPlan(
-	predicate: (configuration: sysTypeRefs.PlanConfiguration) => boolean,
+	predicate: (configuration: PlanConfiguration) => boolean,
 	errorMessage: string,
 ): Promise<Array<AvailablePlanType>> {
 	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
@@ -288,13 +295,17 @@ export async function getAvailablePlansWithCalendarInvites(): Promise<Array<Avai
 	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Calendar Invite feature")
 }
 
+export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
+
 /** name of the plan/product how it is expected by iOS AppStore */
 export function appStorePlanName(planType: PlanType): string {
 	return PlanTypeToName[planType].toLowerCase()
 }
 
+export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
+
 /** does current user has an active (non-expired) AppStore subscription? */
-export function hasRunningAppStoreSubscription(accountingInfo: sysTypeRefs.AccountingInfo): boolean {
+export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): boolean {
 	return getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore && accountingInfo.appStoreSubscription != null
 }
 
@@ -308,10 +319,10 @@ export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array
 // ordered.
 export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
-	const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId, {
+	const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
 		cacheMode: CacheMode.WriteOnly,
 	})
-	const customerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo, { cacheMode: CacheMode.WriteOnly })
+	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo, { cacheMode: CacheMode.WriteOnly })
 	if (expectedPlan === customerInfo.plan) {
 		// plan is already correct!
 		return true
@@ -319,15 +330,15 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 		return new Promise<boolean>((resolve) => {
 			try {
 				const customerInfoUpdateListener = {
-					onEntityUpdatesReceived: async (updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) => {
+					onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
 						for (const update of updates) {
-							if (entityUpdateUtils.isUpdateFor(customerInfo, update)) {
+							if (isUpdateFor(customerInfo, update)) {
 								// since we're waiting for an account upgrade, the customerInfo moves between the free and the paid list.
 								// we need to load the customer to find the new location.
-								const customer = await locator.entityClient.load(sysTypeRefs.CustomerTypeRef, customerId, {
+								const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
 									cacheMode: CacheMode.WriteOnly,
 								})
-								const newCustomerInfo = await locator.entityClient.load(sysTypeRefs.CustomerInfoTypeRef, customer.customerInfo, {
+								const newCustomerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo, {
 									cacheMode: CacheMode.WriteOnly,
 								})
 								if (expectedPlan === newCustomerInfo.plan) {
@@ -339,7 +350,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 							}
 						}
 					},
-					priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+					priority: OnEntityUpdateReceivedPriority.NORMAL,
 				}
 				locator.eventController.addEntityListener(customerInfoUpdateListener)
 				setTimeout(() => {
@@ -458,7 +469,7 @@ export function getRawApplePrice({ priceAndConfigProvider, targetPlan, paymentIn
 /**
  * Returns whether the current payment method is AppStore.
  */
-export function isAppStorePayment(accountingInfo: sysTypeRefs.AccountingInfo | null): boolean {
+export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
 	return paymentMethod === PaymentMethodType.AppStore
 }
@@ -466,7 +477,7 @@ export function isAppStorePayment(accountingInfo: sysTypeRefs.AccountingInfo | n
 /**
  * Returns whether the apple prices should be displayed when upgrading or switching a subscription.
  */
-export function shouldShowApplePrices(accountingInfo: sysTypeRefs.AccountingInfo | null): boolean {
+export function shouldShowApplePrices(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
 	return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
 }
@@ -540,6 +551,30 @@ export function canSubscribeToPlan(plan: AvailablePlanType): boolean {
 	}
 }
 
-export function getCurrentPaymentInterval(accountingInfo: sysTypeRefs.AccountingInfo | null): PaymentInterval | undefined {
+export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null): PaymentInterval | undefined {
 	return accountingInfo ? (parseInt(accountingInfo.paymentInterval) as PaymentInterval) : undefined
+}
+export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
+
+export function getDefaultPaymentMethod(): PaymentMethodType {
+	if (isIOSApp()) {
+		return PaymentMethodType.AppStore
+	}
+
+	return PaymentMethodType.CreditCard
+}
+
+export function getCustomerApprovalStatus(customer: Customer): ApprovalStatus {
+	return downcast(customer.approvalStatus)
+}
+
+export const UpgradePromptTypeByName = Object.freeze(reverse(UpgradePromptType))
+
+export function getCertificateType(certificateInfo: CertificateInfo): CertificateType {
+	return downcast(certificateInfo.type)
+}
+
+export type PaymentData = {
+	paymentMethod: PaymentMethodType
+	creditCardData: CreditCard | null
 }

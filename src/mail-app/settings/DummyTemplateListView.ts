@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ListColumnWrapper } from "../../common/gui/ListColumnWrapper"
-import { theme } from "../../common/gui/theme"
-import ColumnEmptyMessageBox from "../../common/gui/base/ColumnEmptyMessageBox"
+import { ListColumnWrapper } from "../../ui/ListColumnWrapper"
+import { theme } from "../../ui/theme"
+import ColumnEmptyMessageBox from "../../ui/base/ColumnEmptyMessageBox"
 import { createInitialTemplateListIfAllowed } from "../templates/TemplateGroupUtils"
 import { showTemplateEditor } from "./TemplateEditor"
-import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
-import { lang } from "../../common/misc/LanguageViewModel.js"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../ui/base/BaseSearchBar.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
 
 export type DummyTemplateListViewAttrs = void
 

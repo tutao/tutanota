@@ -1,17 +1,16 @@
 import { Commands, Request, Transport } from "../../../native-bridge/shared/MessageTypes"
-import { WebWorkerTransport } from "../common/threading/WebTransport.js"
-import { assertMainOrNode } from "@tutao/app-env"
-import { client } from "../../../app-env/boot/ClientDetector"
+import { WebWorkerTransport } from "../../../native-bridge/common/threading/WebTransport.js"
+import { assertMainOrNode, client } from "@tutao/app-env"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "@tutao/rest-client"
-import { EntropyDataChunk } from "../../../network/crypto/facades/EntropyFacade.js"
+import { EntropyDataChunk } from "../../../base/facades/EntropyFacade.js"
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
-import { MessageDispatcher } from "@tutao/native-bridge/shared"
+import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 
 assertMainOrNode()
 
@@ -36,12 +35,11 @@ export class WorkerClient {
 
 	async init(locator: CommonLocator): Promise<void> {
 		if (env.mode !== "Test") {
-			const { prefixWithoutFile } = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
 			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = prefixWithoutFile + "/worker-bootstrap.js"
+			const workerUrl = "/worker-bootstrap.js"
 			const worker = new Worker(workerUrl, { type: "module" })
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)

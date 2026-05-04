@@ -1,5 +1,15 @@
 import { TypescriptGenerator } from "./TypescriptGenerator.js"
-import { capitalize, EnumDefinition, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition } from "./common.js"
+import {
+	capitalize,
+	DefinationType,
+	EnumDefinition,
+	FacadeDefinition,
+	LangGenerator,
+	Language,
+	Platform,
+	StructDefinition,
+	TypeRefDefinition,
+} from "./common.js"
 import { SwiftGenerator } from "./SwiftGenerator.js"
 import { KotlinGenerator } from "./KotlinGenerator.js"
 import * as path from "node:path"
@@ -8,26 +18,26 @@ import JSON5 from "json5"
 
 function generatorForLang(lang: Language): LangGenerator {
 	switch (lang) {
-		case "typescript":
+		case Language.Typescript:
 			return new TypescriptGenerator()
-		case "swift":
+		case Language.Swift:
 			return new SwiftGenerator()
-		case "kotlin":
+		case Language.Kotlin:
 			return new KotlinGenerator()
 		default:
 			throw new Error("Unknown output language:" + lang)
 	}
 }
 
-function mapPlatformToLang(platform: string): Language {
+function mapPlatformToLang(platform: Platform): Language {
 	switch (platform) {
-		case "ios":
-			return "swift"
+		case Platform.Ios:
+			return Language.Swift
 		case "android":
-			return "kotlin"
+			return Language.Kotlin
 		case "web":
 		case "desktop":
-			return "typescript"
+			return Language.Typescript
 		default:
 			throw new Error("unknown platform " + platform)
 	}
@@ -38,14 +48,39 @@ function mapPlatformToLang(platform: string): Language {
  *
  * @param platform one of the supported platform names
  * @param sources a map from the definition file name to the definition json string
- * @param outDir the directory the output files should be written to
+ * @param outDirBase the directory the output files should be written to
  */
-export function generate(platform: Platform, sources: Map<string, string>, outDir: string) {
+export function generate(platform: Platform, sources: Map<string, string>, outDirBase: string) {
 	const lang = mapPlatformToLang(platform)
-	const ext = getFileExtensionForLang(lang)
 	const generator = generatorForLang(lang)
+	const { dispatcherOutDir, typesOutDir, dispatcherExt, typesExt } = (function () {
+		switch (lang) {
+			case Language.Typescript:
+				return {
+					dispatcherOutDir: path.join(outDirBase, "dispatchers"),
+					typesOutDir: path.join(outDirBase, "types"),
+					dispatcherExt: ".ts",
+					typesExt: ".d.ts",
+				}
+			case Language.Swift:
+				return {
+					dispatcherOutDir: outDirBase,
+					typesOutDir: outDirBase,
+					dispatcherExt: ".swift",
+					typesExt: ".swift",
+				}
+			case Language.Kotlin:
+				return {
+					dispatcherOutDir: outDirBase,
+					typesOutDir: outDirBase,
+					dispatcherExt: ".kt",
+					typesExt: ".kt",
+				}
+		}
+	})()
+
 	const facadesToImplement: Array<string> = []
-	const generatedSymbols = new Array<string>()
+	const generatedSymbols = new Array<{ symbol: string; defType: DefinationType }>()
 	for (const [inputPath, source] of Array.from(sources.entries())) {
 		console.log("handling ipc schema file", inputPath)
 		const definition = JSON5.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition | EnumDefinition
@@ -57,7 +92,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 		}
 
 		switch (definition.type) {
-			case "facade": {
+			case DefinationType.Facade: {
 				assertReturnTypesPresent(definition)
 				const isReceiving = definition.receivers.includes(platform)
 				const isSending = definition.senders.includes(platform)
@@ -66,41 +101,42 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 				}
 
 				const facadeOutput = generator.generateFacade(definition)
-				generatedSymbols.push(definition.name)
-				write(facadeOutput, outDir, definition.name + ext)
+				generatedSymbols.push({ symbol: definition.name, defType: definition.type })
+				write(facadeOutput, typesOutDir, definition.name + typesExt)
 				if (isReceiving) {
 					const receivingDispatcherSymbol = definition.name + "ReceiveDispatcher"
 					const receiveOutput = generator.generateReceiveDispatcher(definition)
-					generatedSymbols.push(receivingDispatcherSymbol)
-					write(receiveOutput, outDir, receivingDispatcherSymbol + ext)
+					generatedSymbols.push({ symbol: receivingDispatcherSymbol, defType: DefinationType.Dispatcher })
+					write(receiveOutput, dispatcherOutDir, receivingDispatcherSymbol + dispatcherExt)
 					facadesToImplement.push(definition.name)
 				}
 				if (isSending) {
 					const sendingDispatcherSymbol = definition.name + "SendDispatcher"
 					const sendOutput = generator.generateSendDispatcher(definition)
-					generatedSymbols.push(sendingDispatcherSymbol)
-					write(sendOutput, outDir, sendingDispatcherSymbol + ext)
+					generatedSymbols.push({ symbol: sendingDispatcherSymbol, defType: DefinationType.Dispatcher })
+					write(sendOutput, dispatcherOutDir, sendingDispatcherSymbol + dispatcherExt)
 				}
 				break
 			}
-			case "struct": {
+			case DefinationType.Struct: {
 				const structOutput = generator.handleStructDefinition(definition)
-				generatedSymbols.push(definition.name)
-				write(structOutput, outDir, definition.name + ext)
+				generatedSymbols.push({ symbol: definition.name, defType: definition.type })
+				write(structOutput, typesOutDir, definition.name + typesExt)
 				break
 			}
-			case "typeref": {
-				const refOutput = generator.generateTypeRef(outDir, inputPath, definition)
+			case DefinationType.TypeRef: {
+				const refOutput = generator.generateTypeRef(typesOutDir, inputPath, definition)
 				if (refOutput != null) {
-					generatedSymbols.push(definition.name)
-					write(refOutput, outDir, definition.name + ext)
+					generatedSymbols.push({ symbol: definition.name, defType: definition.type })
+					write(refOutput, typesOutDir, definition.name + typesExt)
 				}
 				break
 			}
-			case "enum": {
+			case DefinationType.Enum: {
 				const enumOutput = generator.generateEnum(definition)
-				generatedSymbols.push(definition.name)
-				write(enumOutput, outDir, definition.name + ext)
+				generatedSymbols.push({ symbol: definition.name, defType: definition.type })
+				write(enumOutput, typesOutDir, definition.name + typesExt)
+				generator.storeEnum(definition.name)
 				break
 			}
 			default:
@@ -110,25 +146,12 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 
 	const dispatcherName = `${capitalize(platform)}GlobalDispatcher`
 	const dispatcherCode = generator.generateGlobalDispatcher(dispatcherName, facadesToImplement)
-	generatedSymbols.push(dispatcherName)
-	write(dispatcherCode, outDir, dispatcherName + ext)
+	generatedSymbols.push({ symbol: dispatcherName, defType: DefinationType.Dispatcher })
+	write(dispatcherCode, dispatcherOutDir, dispatcherName + dispatcherExt)
 
 	const extraFiles = generator.generateExtraFiles(platform, generatedSymbols)
 	for (let extraFilesKey in extraFiles) {
-		write(extraFiles[extraFilesKey], outDir, extraFilesKey + ext)
-	}
-}
-
-function getFileExtensionForLang(lang: string): string {
-	switch (lang) {
-		case "typescript":
-			return ".ts"
-		case "swift":
-			return ".swift"
-		case "kotlin":
-			return ".kt"
-		default:
-			throw new Error("unknown output lang: " + lang)
+		write(extraFiles[extraFilesKey], outDirBase, extraFilesKey + dispatcherExt)
 	}
 }
 

@@ -4,17 +4,17 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/network/EntityClient.js"
 import { func, instance, object, when } from "testdouble"
-import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState } from "../../../src/app-env"
 import { defer, delay } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../src/base/facades/lazy/KeyVerificationFacade"
 import { ProgrammingError } from "@tutao/app-env"
-import { KeyVerificationMismatchError } from "../../../src/network/crypto/error/KeyVerificationMismatchError"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { GroupType } from "../../../src/app-env"
+import { KeyVerificationMismatchError } from "../../../src/network/error/KeyVerificationMismatchError"
+
+import { ContactMailAddressTypeRef, ContactTypeRef, Recipient, RecipientType } from "@tutao/entities/tutanota"
+import { GroupInfoTypeRef, GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
 
 o.spec("RecipientsModelTest", function () {
 	const contactListId = "contactListId"
@@ -37,14 +37,14 @@ o.spec("RecipientsModelTest", function () {
 		contactModelMock = object()
 
 		userControllerMock = {
-			user: createTestEntity(sysTypeRefs.UserTypeRef, {
+			user: createTestEntity(UserTypeRef, {
 				memberships: [
-					createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+					createTestEntity(GroupMembershipTypeRef, {
 						groupType: GroupType.Contact,
 					}),
 				],
 			}),
-			userGroupInfo: createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+			userGroupInfo: createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "test@example.com",
 			}),
 		} satisfies Partial<UserController> as UserController
@@ -68,14 +68,14 @@ o.spec("RecipientsModelTest", function () {
 		const contact = makeContactStub(contactId, otherAddress)
 		const recipient = await model.initialize({ address: otherAddress, contact }).resolve()
 		o(recipient.contact).deepEquals(contact)
-		verify(entityClientMock.load(tutanotaTypeRefs.ContactTypeRef, contactId), { times: 0 })
+		verify(entityClientMock.load(ContactTypeRef, contactId), { times: 0 })
 		verify(contactModelMock.searchForContact(otherAddress), { times: 0 })
 	})
 
 	o("loads contact with id", async function () {
 		const contact = makeContactStub(contactId, otherAddress)
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
-		when(entityClientMock.load(tutanotaTypeRefs.ContactTypeRef, contactId)).thenResolve(contact)
+		when(entityClientMock.load(ContactTypeRef, contactId)).thenResolve(contact)
 		const recipient = await model.initialize({ address: otherAddress, contact: contactId }).resolve()
 		o(recipient.contact).deepEquals(contact)
 	})
@@ -265,9 +265,9 @@ o.spec("RecipientsModelTest", function () {
 })
 
 function makeContactStub(id: IdTuple, mailAddress: string, firstName?: string, lastName?: string) {
-	return createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+	return createTestEntity(ContactTypeRef, {
 		_id: id,
-		mailAddresses: [createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, { address: mailAddress })],
+		mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mailAddress })],
 		firstName: firstName ?? "",
 		lastName: lastName ?? "",
 	})

@@ -1,22 +1,22 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"
 import { downcast } from "@tutao/utils"
-import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../common/gui/base/List.js"
-import { component_size } from "../../../../common/gui/size.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../../common/gui/theme.js"
-import { VirtualRow } from "../../../../common/gui/base/ListUtils.js"
-import { styles } from "../../../../common/gui/styles.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../ui/base/List.js"
+import { component_size } from "../../../../ui/size.js"
+import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../../ui/theme.js"
+import { VirtualRow } from "../../../../ui/base/ListUtils.js"
+import { styles } from "../../../../ui/styles.js"
 import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { CalendarInfoBase } from "../../model/CalendarModel"
-import { Icons } from "../../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
 export class CalendarSearchResultListEntry {
-	constructor(readonly entry: tutanotaTypeRefs.CalendarEvent) {}
+	constructor(readonly entry: CalendarEvent) {}
 
 	get _id(): IdTuple {
 		return this.entry._id

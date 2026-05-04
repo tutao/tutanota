@@ -1,25 +1,25 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../common/gui/base/Select.js"
+import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../ui/base/Select.js"
 import { Keys, TabIndex } from "@tutao/app-env"
-import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
+import { SingleLineTextField } from "../../../../ui/base/SingleLineTextField.js"
 import { debounceStart, getFirstOrThrow } from "@tutao/utils"
-import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
-import { parseMailAddress, parsePastedInput, parseTypedInput } from "../../../../common/gui/MailRecipientsTextField.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { parseMailAddress, parsePastedInput, parseTypedInput } from "../../../../mail-app/contacts/view/MailRecipientsTextField.js"
 import { RecipientSearchResultItem, RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
+import { Contact } from "@tutao/entities/tutanota"
 import stream from "mithril/stream"
-import { theme } from "../../../../common/gui/theme.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { Icon } from "../../../../common/gui/base/Icon.js"
-import { px, size } from "../../../../common/gui/size.js"
-import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
-import { LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
-import { keyboardEventToKeyPress } from "../../../../common/misc/KeyManager.js"
+import { theme } from "../../../../ui/theme.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { Icon } from "../../../../ui/base/Icon.js"
+import { px, size } from "../../../../ui/size.js"
+import { DefaultAnimationTime } from "../../../../ui/animation/Animations.js"
+import { LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
+import { keyboardEventToKeyPress } from "../../../../ui/utils/KeyManager.js"
 
 export interface GuestPickerAttrs {
 	ariaLabel: TranslationKey
-	onRecipientAdded: (address: string, name: string | null, contact: tutanotaTypeRefs.Contact | null) => void
+	onRecipientAdded: (address: string, name: string | null, contact: Contact | null) => void
 	disabled: boolean
 	search: RecipientsSearchModel
 }

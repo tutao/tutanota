@@ -3,13 +3,13 @@
 	"compilerOptions": {
 		"composite": true,
 		"removeComments": false,
-		"declaration": false,
+		"declaration": true,
 		"outDir": "build",
 		"rootDir": ".",
 		"noEmit": false
 	},
 	"files": [],
-	"exclude": ["**/dist"],
+	"exclude": ["build"],
 	"references": [
 		{
 			"path": "src/tsconfig.combined-apps.json"

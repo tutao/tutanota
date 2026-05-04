@@ -1,42 +1,43 @@
-import { isApp, isBrowser, isDesktop, Keys, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
+import { isApp, isBrowser, isDesktop, Keys } from "@tutao/app-env"
 import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/utils"
-import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import m from "mithril"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import { progressIcon } from "../../../common/gui/base/Icon.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { ContentBlockingStatus, MailViewerViewModel, UnsubscribeAction, UnsubscribeType } from "./MailViewerViewModel.js"
-import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import * as restError from "@tutao/rest-client/error"
-import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
+import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { elementIdPart, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, listIdPart } from "../../../meta"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-
+import { ConversationEntry, ConversationEntryTypeRef, Mail, MailDetails, MailState, MailTypeRef } from "@tutao/entities/tutanota"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/entities/sys"
 import { ListFilter } from "../../../common/misc/ListModel.js"
 import { isDraft } from "../model/MailChecks.js"
-import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import { exportMails } from "../export/Exporter"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table"
+import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
+import { ColumnWidth, Table } from "../../../ui/base/Table"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
-import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
-import { Card } from "../../../common/gui/base/Card"
-import { isDarkTheme, theme } from "../../../common/gui/theme"
+import { ContentWithOptionsDialog } from "../../../ui/dialogs/ContentWithOptionsDialog"
+import { Card } from "../../../ui/base/Card"
+import { isDarkTheme, theme } from "../../../ui/theme"
 import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
+import { ifAllowedTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -92,7 +93,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		.show()
 }
 
-export async function loadMailDetails(mailFacade: MailFacade, mail: tutanotaTypeRefs.Mail): Promise<tutanotaTypeRefs.MailDetails> {
+export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promise<MailDetails> {
 	if (isDraft(mail)) {
 		const detailsDraftId = assertNotNull(mail.mailDetailsDraft)
 		return mailFacade.loadMailDetailsDraft(mail)
@@ -121,9 +122,9 @@ export async function createEditDraftDialog(viewModel: MailViewerViewModel, loca
 					return null
 				}
 
-				let conversationEntry: tutanotaTypeRefs.ConversationEntry
+				let conversationEntry: ConversationEntry
 				try {
-					conversationEntry = await locator.entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, viewModel.mail.conversationEntry)
+					conversationEntry = await locator.entityClient.load(ConversationEntryTypeRef, viewModel.mail.conversationEntry)
 				} catch (e) {
 					if (e instanceof restError.NotFoundError) {
 						// draft was likely deleted
@@ -217,7 +218,7 @@ async function doExport(
 	numberOfMailsStream(mailIdsToLoad.length)
 	const mailIdsPerList = groupByAndMap(mailIdsToLoad, listIdPart, elementIdPart)
 	const mails = (
-		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, listId, elementIds), {
+		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(MailTypeRef, listId, elementIds), {
 			concurrency: 2,
 		})
 	).flat()
@@ -226,7 +227,7 @@ async function doExport(
 		.finally(operation.done)
 }
 
-function handleExportEmailsResult(mailList: tutanotaTypeRefs.Mail[]) {
+function handleExportEmailsResult(mailList: Mail[]) {
 	if (mailList && mailList.length > 0) {
 		const lines = mailList.map((mail) => ({
 			cells: [mail.sender.address, mail.subject],
@@ -621,7 +622,7 @@ export function isNoReplyTeamAddress(address: string): boolean {
 /**
  * Is this a system notification?
  */
-export function isSystemNotification(mail: tutanotaTypeRefs.Mail): boolean {
+export function isSystemNotification(mail: Mail): boolean {
 	const { confidential, sender, state } = mail
 	return (
 		state === MailState.RECEIVED &&
@@ -634,7 +635,7 @@ export function isSystemNotification(mail: tutanotaTypeRefs.Mail): boolean {
 	)
 }
 
-export function getRecipientHeading(mail: tutanotaTypeRefs.Mail, preferNameOnly: boolean) {
+export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 	let recipientCount = parseInt(mail.recipientCount)
 	if (recipientCount > 0) {
 		let recipient = neverNull(mail.firstRecipient)
@@ -677,7 +678,7 @@ function getUnsubscribeDialogAttrForUnsubscribeType(unsubscribeType: Unsubscribe
 	}
 }
 
-export function getSenderOrRecipientHeading(mail: tutanotaTypeRefs.Mail, preferNameOnly: boolean): string {
+export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
 	if (isSystemNotification(mail)) {
 		return ""
 	} else if (mail.state === MailState.RECEIVED) {
@@ -694,7 +695,7 @@ export enum MailFilterType {
 	WithAttachments,
 }
 
-export function getMailFilterForType(filter: MailFilterType): ListFilter<tutanotaTypeRefs.Mail> {
+export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 	switch (filter) {
 		case MailFilterType.Read:
 			return (mail) => !mail.unread

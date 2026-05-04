@@ -1,9 +1,7 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { MailAuthenticationStatus, MailPhishingStatus } from "@tutao/app-env"
+import { assertMainOrNode, MailAuthenticationStatus } from "@tutao/app-env"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { assertMainOrNode, MailSetKind } from "@tutao/app-env"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -11,7 +9,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { transposeGradConfig } from "@tensorflow/tfjs-core/dist/gradients/Transpose_grad"
+import { Mail, MailDetails, MailPhishingStatus, MailSet, MailSetKind } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -34,11 +32,11 @@ export class SpamClassificationHandler {
 	) {}
 
 	public async predictSpamForNewMail(
-		mail: tutanotaTypeRefs.Mail,
-		mailDetails: tutanotaTypeRefs.MailDetails,
-		sourceFolder: tutanotaTypeRefs.MailSet,
+		mail: Mail,
+		mailDetails: MailDetails,
+		sourceFolder: MailSet,
 		folderSystem: FolderSystem,
-	): Promise<{ targetFolder: tutanotaTypeRefs.MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
+	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
 		const isMailMarkedAsPhishing = mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
@@ -79,7 +77,7 @@ export class SpamClassificationHandler {
 		return { targetFolder, processInboxDatum: processInboxDatum }
 	}
 
-	private async isMailFromTrustedSender(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
+	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		// check if phishingStatus is not suspicious and if the sender is a trusted sender
 		const isMailFromContact = await this.isMailFromContacts(mail, mailDetails)
 		const isMailFromSelf = await this.isMailFromSelf(mail, mailDetails)
@@ -88,7 +86,7 @@ export class SpamClassificationHandler {
 		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && (isMailFromSelf || isMailFromTutaTeam || isMailFromContact)
 	}
 
-	private async isMailFromContacts(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
+	private async isMailFromContacts(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		return (
 			((await this.contactModel.searchForContact(mail.sender.address)) != null && mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) ??
 			false
@@ -102,7 +100,7 @@ export class SpamClassificationHandler {
 	 * yet updated at the point this check is performed.
 	 *
 	 */
-	private async isMailFromSelf(mail: tutanotaTypeRefs.Mail, mailDetails: tutanotaTypeRefs.MailDetails): Promise<boolean> {
+	private async isMailFromSelf(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
 		return mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED && isMailFromSelf

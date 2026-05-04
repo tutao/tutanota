@@ -1,7 +1,27 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
+import {
+	Attachment,
+	Contact,
+	ContactTypeRef,
+	ConversationEntry,
+	ConversationEntryTypeRef,
+	ConversationType,
+	createTranslationGetIn,
+	DataFile,
+	ExternalImageRule,
+	FileReference,
+	isTutanotaFile,
+	Mail,
+	MailboxProperties,
+	MailDetails,
+	MailMethod,
+	RecipientType,
+	TranslationService,
+	VerificationRecipients,
+} from "@tutao/entities/tutanota"
+import { Editor, ImagePasteEvent } from "../../../ui/editor/Editor"
 import {
 	InitAsResponseArgs,
 	SEND_LATER_MAX_DAYS_IN_FUTURE,
@@ -9,15 +29,14 @@ import {
 	SendAtStatus,
 	SendMailModel,
 } from "../../../common/mailFunctionality/SendMailModel.js"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { InfoLink, lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog"
+import { InfoLink, lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
-	ConversationType,
-	ExternalImageRule,
+	CancelledError,
 	FeatureType,
 	isApp,
 	isBrowser,
@@ -25,28 +44,27 @@ import {
 	isIOSApp,
 	Keys,
 	MailAuthenticationStatus,
-	MailMethod,
 	minutesToMillis,
 	secondsToMillis,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
-import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
-import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
-import type { LegacyTextFieldAttrs } from "../../../common/gui/base/LegacyTextField.js"
-import { Autocomplete, LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
+import { isOfflineError } from "@tutao/rest-client/error"
+import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
+import { Button, ButtonColor, ButtonType } from "../../../ui/base/Button.js"
+import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../ui/base/Dropdown.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { AnimationPromise, animations, height, opacity } from "../../../ui/animation/Animations"
+import type { LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
-import { ExpanderPanel } from "../../../common/gui/base/Expander"
+import { ExpanderPanel } from "../../../ui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
-import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
-import { Attachment, createDataFile, DataFile, FileReference, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "@tutao/utils"
 import {
@@ -56,38 +74,35 @@ import {
 	showDownloadProgressDialog,
 	showUndoMailSnackbar,
 } from "../view/MailGuiUtils"
-import { client } from "../../../app-env/boot/ClientDetector"
+import { client } from "@tutao/app-env"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
 import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"
 import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel"
 import { createKnowledgeBaseDialogInjection } from "../../knowledgebase/view/KnowledgeBaseDialog"
 import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel"
-import { styles } from "../../../common/gui/styles"
+import { styles } from "../../../ui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { MinimizedMailEditorViewModel, SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
-import { fileListToArray, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
+import { fileListToArray } from "../../../ui/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
-import { CancelledError } from "@tutao/app-env"
-import { Shortcut } from "../../../common/misc/KeyManager"
-import { Recipients, RecipientType } from "../../../common/api/common/recipients/Recipient"
+import { Shortcut } from "../../../ui/utils/KeyManager"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextField.js"
+import { MailRecipientsTextField } from "../../contacts/view/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
-import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
+import { animateToolbar, RichTextToolbar } from "../../../ui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../../common/file/FileController"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { ToggleButton, ToggleButtonAttrs } from "../../../common/gui/base/buttons/ToggleButton.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { DialogInjectionRightAttrs } from "../../../common/gui/base/DialogInjectionRight.js"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { ToggleButton, ToggleButtonAttrs } from "../../../ui/base/buttons/ToggleButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { DialogInjectionRightAttrs } from "../../../ui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 import { RecipientsSearchModel } from "../../../common/misc/RecipientsSearchModel.js"
-import { AttachmentBubble } from "../../../common/gui/AttachmentBubble.js"
+import { AttachmentBubble } from "../../../ui/AttachmentBubble.js"
 import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
-import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { BannerButtonAttrs, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
+import { BannerButtonAttrs, InfoBanner } from "../../../ui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils.js"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
@@ -101,8 +116,8 @@ import {
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
-import { isDarkTheme, theme } from "../../../common/gui/theme"
-import { px, size } from "../../../common/gui/size"
+import { isDarkTheme, theme } from "../../../ui/theme"
+import { px, size } from "../../../ui/size"
 
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
@@ -113,9 +128,10 @@ import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
-import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
+import { showInfoSnackbar } from "../../../ui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
-import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
+import { createDataFile } from "../../../common/api/worker/utils/DataFile"
 
 // Interval where we save drafts locally.
 //
@@ -993,7 +1009,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					await this.sendMailModel.addRecipient(field, { address, name })
 				} catch (e) {
 					if (isOfflineError(e)) {
-						// we are local-store but we want to show the error dialog only when we click on send.
+						// we are offline but we want to show the error dialog only when we click on send.
 					} else if (e instanceof restError.TooManyRequestsError) {
 						await Dialog.message("tooManyAttempts_msg")
 					} else {
@@ -1040,7 +1056,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			contactModel.getContactListId().then((contactListId: string) => {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
-				entity.load(tutanotaTypeRefs.ContactTypeRef, id).then((contact: tutanotaTypeRefs.Contact) => {
+				entity.load(ContactTypeRef, id).then((contact: Contact) => {
 					if (contact.mailAddresses.some((ma) => cleanMatch(ma.address, mailAddress))) {
 						recipient.setName(getContactDisplayName(contact))
 						recipient.setContact(contact)
@@ -1260,7 +1276,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						async () => {
 							if (model.draft) {
 								await model.mailFacade.undoSendMail(sentMail, sendJob)
-								const conversationEntry = await model.entity.load(tutanotaTypeRefs.ConversationEntryTypeRef, model.draft.conversationEntry)
+								const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
 								// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
 								const editorDialog = await newMailEditorFromDraft(
 									model.draft,
@@ -1577,9 +1593,9 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
-	mail: tutanotaTypeRefs.Mail,
-	mailDetails: tutanotaTypeRefs.MailDetails,
-	conversationEntry: tutanotaTypeRefs.ConversationEntry,
+	mail: Mail,
+	mailDetails: MailDetails,
+	conversationEntry: ConversationEntry,
 	attachments: Attachment[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
@@ -1695,7 +1711,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 export async function newMailEditorFromTemplate(
 	mailboxDetails: MailboxDetail,
-	recipients: Recipients,
+	recipients: VerificationRecipients,
 	subject: string,
 	bodyText: string,
 	attachments?: ReadonlyArray<Attachment>,
@@ -1748,10 +1764,7 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const { invitationSubject } = await locator.serviceExecutor.get(
-		tutanotaServices.TranslationService,
-		tutanotaTypeRefs.createTranslationGetIn({ lang: lang.code }),
-	)
+	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog?.show()
 }
@@ -1771,10 +1784,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const { giftCardSubject } = await locator.serviceExecutor.get(
-		tutanotaServices.TranslationService,
-		tutanotaTypeRefs.createTranslationGetIn({ lang: lang.code }),
-	)
+	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
@@ -1784,7 +1794,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 
 async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
-): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: tutanotaTypeRefs.MailboxProperties }> {
+): Promise<{ mailboxDetails: MailboxDetail; mailboxProperties: MailboxProperties }> {
 	mailboxDetails = mailboxDetails ?? (await locator.mailboxModel.getUserMailboxDetails())
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return { mailboxDetails, mailboxProperties }

@@ -1,16 +1,16 @@
 //@bundleInto:common-min
 
 import { TutanotaError } from "@tutao/app-env"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { Challenge } from "@tutao/entities/sys"
 
 export class SecondFactorPendingError extends TutanotaError {
 	data: {
 		sessionId: IdTuple
-		challenges: sysTypeRefs.Challenge[]
+		challenges: Challenge[]
 		mailAddress: string | null
 	}
 
-	constructor(sessionId: IdTuple, challenges: sysTypeRefs.Challenge[], mailAddress: string | null) {
+	constructor(sessionId: IdTuple, challenges: Challenge[], mailAddress: string | null) {
 		super("SecondFactorPendingError", "")
 		this.data = {
 			sessionId,

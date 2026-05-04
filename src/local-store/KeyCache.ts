@@ -1,6 +1,6 @@
 import { getFromMap, neverNull } from "@tutao/utils"
 import { Aes256Key, cryptoUtils, VersionedKey } from "@tutao/crypto"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { User } from "@tutao/entities/sys"
 
 /**
  * A cache for decrypted current keys of each group. Encrypted keys are stored on membership.symEncGKey.
@@ -70,7 +70,7 @@ export class KeyCache {
 	 * An outdated user membership is ignored and should be processed by the UserGroupKeyDistribution update.
 	 * @param user updated user with up-to-date memberships
 	 */
-	async removeOutdatedGroupKeys(user: sysTypeRefs.User) {
+	async removeOutdatedGroupKeys(user: User) {
 		const currentUserGroupKeyVersion = neverNull(this.getCurrentUserGroupKey()).version
 		const receivedUserGroupKeyVersion = cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion)
 		if (receivedUserGroupKeyVersion > currentUserGroupKeyVersion) {

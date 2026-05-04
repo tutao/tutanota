@@ -7,8 +7,7 @@ import {
 	type Ed25519PrivateKey,
 	type Ed25519PublicKey,
 	type Ed25519Signature,
-} from "@tutao/crypto-primitives"
-
+} from "../crypto-primitives/crypto_primitives"
 import { SigningKeyPairType } from "@tutao/crypto"
 
 export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair, Ed25519Signature }

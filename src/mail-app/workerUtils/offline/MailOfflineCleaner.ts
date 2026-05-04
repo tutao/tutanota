@@ -1,24 +1,26 @@
 import { assertNotNull, groupByAndMap } from "@tutao/utils"
-import {
-	constructMailSetEntryId,
-	elementIdPart,
-	firstBiggerThanSecondBase64Url,
-	GENERATED_MAX_ID,
-	getElementId,
-	getOfflineStorageDefaultTimeRangeDays,
-	listIdPart,
-	sysTypeRefs,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
+import { constructMailSetEntryId, elementIdPart, firstBiggerThanSecondBase64Url, GENERATED_MAX_ID, getElementId, listIdPart } from "@tutao/meta"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../local-store/OfflineStorage.js"
-import { AccountType, daysToMillis } from "@tutao/app-env"
+import { daysToMillis } from "@tutao/app-env"
+import { AccountType, UserTypeRef } from "@tutao/entities/sys"
+import { getOfflineStorageDefaultTimeRangeDays } from "../../mail/MailUtils"
+import {
+	FileTypeRef,
+	Mail,
+	MailBoxTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailSetEntryTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private cutOffId: Id | null = null
 
 	private async calculateCutOffId(offlineStorage: OfflineStorage, userId: string, timeRangeDate: Date | null, now: number): Promise<Id> {
 		if (!this.cutOffId) {
-			const accountType = assertNotNull(await offlineStorage.get(sysTypeRefs.UserTypeRef, null, userId)).accountType as AccountType
+			const accountType = assertNotNull(await offlineStorage.get(UserTypeRef, null, userId)).accountType as AccountType
 			// Free users always have default time range regardless of what is stored
 			const cutoffDate =
 				accountType !== AccountType.FREE && timeRangeDate != null
@@ -30,10 +32,10 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	}
 
 	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void> {
-		const mailBoxes = await offlineStorage.getElementsOfType(tutanotaTypeRefs.MailBoxTypeRef)
+		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
 		for (const mailBox of mailBoxes) {
 			const currentMailBag = assertNotNull(mailBox.currentMailBag)
-			const folders = await offlineStorage.getWholeList(tutanotaTypeRefs.MailSetTypeRef, mailBox.mailSets.mailSets)
+			const folders = await offlineStorage.getWholeList(MailSetTypeRef, mailBox.mailSets.mailSets)
 			// Deleting MailSetEntries first to make sure that once we start deleting Mail
 			// we don't have any MailSetEntries that reference that Mail anymore.
 			for (const mailSet of folders) {
@@ -46,7 +48,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			// It is just important to remove the ranges so that the cache does not attempt to keep it up-to-date,
 			// actual email contents are already handled above.
 			for (const mailBag of [currentMailBag, ...mailBox.archivedMailBags]) {
-				await offlineStorage.deleteRange(tutanotaTypeRefs.MailTypeRef, mailBag.mails)
+				await offlineStorage.deleteRange(MailTypeRef, mailBag.mails)
 			}
 		}
 	}
@@ -59,10 +61,10 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			assertNotNull(entriesListId)
 			const mailIdsToDelete: IdTuple[] = []
 
-			await offlineStorage.updateRangeForList(tutanotaTypeRefs.MailSetEntryTypeRef, entriesListId, cutoffId)
+			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 
 			const mailSetEntriesToDelete: IdTuple[] = []
-			const mailSetEntries = await offlineStorage.getWholeList(tutanotaTypeRefs.MailSetEntryTypeRef, entriesListId)
+			const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
 			for (let mailSetEntry of mailSetEntries) {
 				if (firstBiggerThanSecondBase64Url(cutoffId, getElementId(mailSetEntry))) {
 					mailSetEntriesToDelete.push(mailSetEntry._id)
@@ -70,18 +72,18 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 				}
 			}
 
-			await offlineStorage.deleteIn(tutanotaTypeRefs.MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
+			await offlineStorage.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
 
-			const mailsToDelete: tutanotaTypeRefs.Mail[] = []
+			const mailsToDelete: Mail[] = []
 			for (let [listId, elementIds] of groupByAndMap(mailIdsToDelete, listIdPart, elementIdPart).entries()) {
-				mailsToDelete.push(...(await offlineStorage.provideMultiple(tutanotaTypeRefs.MailTypeRef, listId, elementIds)))
+				mailsToDelete.push(...(await offlineStorage.provideMultiple(MailTypeRef, listId, elementIds)))
 			}
 			await this.deleteMails(offlineStorage, mailsToDelete)
 		} finally {
 			// While the cleaner was deleting mails, the range might have been changed already
 			// As this is unlikely (cleaner does not run for long) we accept eventual
 			// consistency in this case in order to avoid locking
-			await offlineStorage.updateRangeForList(tutanotaTypeRefs.MailSetEntryTypeRef, entriesListId, cutoffId)
+			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 		}
 	}
 
@@ -98,7 +100,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 *  1. They are in the same list for the whole conversation so we can't adjust the range
 	 *  2. We might need them in the future for showing the whole thread
 	 */
-	private async deleteMails(offlineStorage: OfflineStorage, mails: tutanotaTypeRefs.Mail[]) {
+	private async deleteMails(offlineStorage: OfflineStorage, mails: Mail[]) {
 		const mailsToDelete: IdTuple[] = []
 		const attachmentsToDelete: IdTuple[] = []
 		const mailDetailsBlobToDelete: IdTuple[] = []
@@ -122,17 +124,17 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		}
 
 		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(tutanotaTypeRefs.MailDetailsBlobTypeRef, listId, elementIds)
+			await offlineStorage.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
 		}
 		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(tutanotaTypeRefs.MailDetailsDraftTypeRef, listId, elementIds)
+			await offlineStorage.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
 		}
 		for (let [listId, elementIds] of groupByAndMap(attachmentsToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(tutanotaTypeRefs.FileTypeRef, listId, elementIds)
-			await offlineStorage.deleteRange(tutanotaTypeRefs.FileTypeRef, listId)
+			await offlineStorage.deleteIn(FileTypeRef, listId, elementIds)
+			await offlineStorage.deleteRange(FileTypeRef, listId)
 		}
 		for (let [listId, elementIds] of groupByAndMap(mailsToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(tutanotaTypeRefs.MailTypeRef, listId, elementIds)
+			await offlineStorage.deleteIn(MailTypeRef, listId, elementIds)
 		}
 	}
 }

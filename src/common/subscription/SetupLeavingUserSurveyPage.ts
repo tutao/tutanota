@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../gui/styles.js"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { DynamicColorSvg } from "../gui/base/DynamicColorSvg.js"
+import { styles } from "../../ui/styles.js"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { DynamicColorSvg } from "../../ui/base/DynamicColorSvg.js"
 
 export interface SetupLeavingUserSurveyPageAttrs {
 	closeAction: () => void
@@ -37,7 +37,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						m(
 							".pb-16.block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/${vnode.attrs.image}.svg`,
+								path: `/images/leaving-wizard/${vnode.attrs.image}.svg`,
 							}),
 						),
 					),

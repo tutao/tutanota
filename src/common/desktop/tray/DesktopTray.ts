@@ -3,10 +3,10 @@ import { app, Menu, MenuItem, nativeImage, Tray } from "electron"
 import type { DesktopConfig } from "../config/DesktopConfig"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopNotifier } from "../notifications/DesktopNotifier"
-import { lang } from "../../misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { MacTray } from "./MacTray"
 import { NonMacTray } from "./NonMacTray"
-import { BuildConfigKey, DesktopConfigKey } from "../../../app-env/ConfigKeys"
+import { BuildConfigKey, DesktopConfigKey } from "@tutao/app-env"
 import { log } from "../DesktopLog.js"
 
 export interface PlatformTray {

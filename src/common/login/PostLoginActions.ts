@@ -5,15 +5,13 @@ import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClas
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import { GENERATED_MIN_ID, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
-import { lang } from "../misc/LanguageViewModel.js"
-import { getHourCycle } from "../misc/Formatter.js"
+import { GENERATED_MIN_ID } from "../../meta"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
-import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import { ButtonType } from "../gui/base/Button.js"
-import { Dialog } from "../gui/base/Dialog"
+import * as notificationOverlay from "../../ui/base/NotificationOverlay"
+import { ButtonType } from "../../ui/base/Button.js"
+import { Dialog } from "../../ui/base/Dialog"
 import {
-	CloseEventBusOption,
 	Const,
 	CredentialEncryptionMode,
 	FeatureType,
@@ -21,17 +19,16 @@ import {
 	isApp,
 	isDesktop,
 	LOGIN_TITLE,
-	Mode,
 	SecondFactorType,
+	SessionType,
 	UpgradePromptType,
 } from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
-import { notifications } from "../gui/Notifications"
+import { notifications } from "../../ui/Notifications"
 import * as restError from "@tutao/rest-client/error"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
-import { getThemeCustomizations } from "../misc/WhitelabelCustomizations.js"
+import { getThemeCustomizations } from "../../ui/utils/WhitelabelUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
-import { SessionType } from "@tutao/app-env"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
 import { DateProvider } from "../../utils/DateProvider.js"
@@ -40,12 +37,16 @@ import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLogin
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import { ThemeController } from "../gui/ThemeController.js"
-import { showSnackBar } from "../gui/base/SnackBar"
+import { ThemeController } from "../../ui/ThemeController.js"
+import { showSnackBar } from "../../ui/base/SnackBar"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
-import { LoginFacade } from "../../network/LoginFacade"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoginFacade } from "../../base/facades/LoginFacade"
+import { LoggedInEvent } from "../../native-bridge/common/PostLoginAction.js"
+import { getHourCycle } from "../settings/AppearanceSettingsViewer"
+import { createReceiveInfoServiceData, OutOfOfficeNotification, ReceiveInfoService } from "@tutao/entities/tutanota"
+import { createCustomerProperties, SecondFactorTypeRef } from "@tutao/entities/sys"
+import { CloseEventBusOption } from "../../network/Constants"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -81,7 +82,7 @@ export class PostLoginActions implements PostLoginAction {
 			}
 		})
 		windowFacade.addOfflineListener(() => {
-			console.log(new Date().toISOString(), "local-store - pause event bus")
+			console.log(new Date().toISOString(), "offline - pause event bus")
 			this.connectivityModel.close(CloseEventBusOption.Pause)
 		})
 
@@ -155,10 +156,10 @@ export class PostLoginActions implements PostLoginAction {
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
-			const receiveInfoData = tutanotaTypeRefs.createReceiveInfoServiceData({
+			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			const receiveInfoServicePostOut = await locator.serviceExecutor.post(tutanotaServices.ReceiveInfoService, receiveInfoData)
+			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
 			if (receiveInfoServicePostOut && receiveInfoServicePostOut.outdatedVersion) {
 				return Dialog.updateReminder(true, () => {
 					this.updateClient()
@@ -186,7 +187,7 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
-	private deactivateOutOfOfficeNotification(notification: tutanotaTypeRefs.OutOfOfficeNotification): Promise<void> {
+	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return this.entityClient.update(notification)
 	}
@@ -281,7 +282,7 @@ export class PostLoginActions implements PostLoginAction {
 				})
 			}
 
-			const newCustomerProperties = sysTypeRefs.createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
+			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
 			newCustomerProperties.lastUpgradeReminder = new Date(this.dateProvider.now())
 			this.entityClient.update(newCustomerProperties).catch(ofClass(restError.LockedError, noOp))
 		}
@@ -300,7 +301,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
 			const user = this.logins.getUserController().user
-			const secondFactors = await this.entityClient.loadAll(sysTypeRefs.SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
+			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
 			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === Const.WEBAUTHN_RP_ID)) {
@@ -332,13 +333,7 @@ export class PostLoginActions implements PostLoginAction {
 
 		// Next, check if we have at least one.
 		const user = this.logins.getUserController().user
-		const secondFactors = await this.entityClient.loadRange(
-			sysTypeRefs.SecondFactorTypeRef,
-			assertNotNull(user.auth).secondFactors,
-			GENERATED_MIN_ID,
-			1,
-			false,
-		)
+		const secondFactors = await this.entityClient.loadRange(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors, GENERATED_MIN_ID, 1, false)
 		if (!isEmpty(secondFactors)) {
 			return
 		}

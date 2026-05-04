@@ -1,16 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
-import { Card } from "../../gui/base/Card.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
+import { Card } from "../../../ui/base/Card.js"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { UpgradePromptType } from "@tutao/app-env"
 import { Thunk } from "@tutao/utils"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 
 type EmailSupportUnavailableAttrs = {
 	data: SupportDialogState
@@ -36,7 +36,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.svg`,
+							path: `/images/leaving-wizard/account.svg`,
 						}),
 					),
 				]),

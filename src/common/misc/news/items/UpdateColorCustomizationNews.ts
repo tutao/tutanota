@@ -1,11 +1,11 @@
 import { NewsListItem } from "../NewsListItem.js"
 import m, { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { lang } from "../../LanguageViewModel.js"
-import { Button, ButtonType } from "../../../gui/base/Button.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { UserController } from "../../../api/main/UserController.js"
-import { Dialog } from "../../../gui/base/Dialog.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { NewsId } from "@tutao/entities/tutanota"
 
 /**
  * This news item informs admin users that color customization may need updating.
@@ -20,7 +20,7 @@ export class UpdateColorCustomizationNews implements NewsListItem {
 		return this.userController.isGlobalAdmin() && this.userController.isWhitelabelAccount()
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId, dialog: Dialog): Children {
+	render(newsId: NewsId, dialog: Dialog): Children {
 		const acknowledge = () => {
 			this.newsModel.acknowledgeNews(newsId.newsItemId).then(m.redraw)
 		}

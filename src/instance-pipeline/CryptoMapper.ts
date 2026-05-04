@@ -1,30 +1,53 @@
+import { AssociationType, AttributeModel, Cardinality, hasError, TypeRef, ValueType } from "../meta"
+import { base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { aesEncrypt, AesKey, AsymmetricKeyPair, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
+import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
+import { EntityAdapter } from "./EntityAdapter.js"
+import { User, WebsocketLeaderStatus } from "../entities/sys/TypeRefs"
 import {
-	AssociationType,
-	AttributeModel,
-	Cardinality,
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	ClientTypeModel,
-	ClientTypeReferenceResolver,
-	hasError,
 	ModelValue,
 	ParsedValue,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerTypeModel,
-	ServerTypeReferenceResolver,
-	TypeRef,
-	ValueType,
-} from "@tutao/typerefs"
-import { base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { aesEncrypt, AesKey, InstanceDecryptor, MissingSessionKey, SymmetricCipherFacade, VersionedKey } from "@tutao/crypto"
-import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
-import { isWebClient, ProgrammingError } from "@tutao/app-env"
-import { EntityAdapter } from "./EntityAdapter.js"
+} from "../meta/EntityTypes"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
+	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
+	loadCurrentKeyPair(groupId: Id, currentGroupKey: VersionedKey | undefined): Promise<Versioned<AsymmetricKeyPair>>
+	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
+}
+
+export abstract class LoggedInUserProvider {
+	/**
+	 * @return The map which contains authentication data for the logged-in user.
+	 */
+	abstract createAuthHeaders(): Dict
+
+	abstract isFullyLoggedIn(): boolean
+
+	abstract getLoggedInUser(): User
+
+	abstract getCurrentUserGroupKey(): VersionedKey
+
+	abstract setLeaderStatus(data: WebsocketLeaderStatus): void
+
+	getUserGroupId(): Id {
+		return this.getLoggedInUser().userGroup.group
+	}
+
+	getAllGroupIds(): Id[] {
+		let groups = this.getLoggedInUser().memberships.map((membership) => membership.group)
+		groups.push(this.getLoggedInUser().userGroup.group)
+		return groups
+	}
 }
 
 // Exported for testing

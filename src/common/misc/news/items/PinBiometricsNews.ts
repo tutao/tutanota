@@ -1,15 +1,15 @@
 import { NewsListItem } from "../NewsListItem.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import Mithril from "mithril"
 import m from "mithril"
-import { lang } from "../../LanguageViewModel.js"
-import { Button, ButtonType } from "../../../gui/base/Button.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
-import { showCredentialsEncryptionModeDialog } from "../../../gui/dialogs/SelectCredentialsEncryptionModeDialog.js"
+import { showCredentialsEncryptionModeDialog } from "../../../settings/login/SelectCredentialsEncryptionModeDialog.js"
 import { CredentialsProvider } from "../../credentials/CredentialsProvider.js"
-import { Dialog } from "../../../gui/base/Dialog.js"
-import { ExternalLink } from "../../../gui/base/ExternalLink.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { ExternalLink } from "../../../../ui/base/ExternalLink.js"
 import { isAndroidApp, isIOSApp } from "@tutao/app-env"
+import { NewsId } from "@tutao/entities/tutanota"
 
 const playstoreLink = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"
@@ -24,11 +24,11 @@ export class PinBiometricsNews implements NewsListItem {
 		private readonly userId: Id,
 	) {}
 
-	isShown(newsId: tutanotaTypeRefs.NewsId): Promise<boolean> {
+	isShown(newsId: NewsId): Promise<boolean> {
 		return Promise.resolve((isIOSApp() || isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId))
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Mithril.Children {
+	render(newsId: NewsId): Mithril.Children {
 		const displayedLink = isAndroidApp() ? playstoreLink : appstoreLink
 		return m(".full-width", [
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("pinBiometrics_action")),
@@ -44,7 +44,7 @@ export class PinBiometricsNews implements NewsListItem {
 		])
 	}
 
-	private renderLaterButton(newsId: tutanotaTypeRefs.NewsId) {
+	private renderLaterButton(newsId: NewsId) {
 		return m(Button, {
 			label: "decideLater_action",
 			type: ButtonType.Secondary,
@@ -55,7 +55,7 @@ export class PinBiometricsNews implements NewsListItem {
 		})
 	}
 
-	private renderDismissButton(newsId: tutanotaTypeRefs.NewsId) {
+	private renderDismissButton(newsId: NewsId) {
 		return m(Button, {
 			label: "noThanks_action",
 			type: ButtonType.Secondary,
@@ -67,7 +67,7 @@ export class PinBiometricsNews implements NewsListItem {
 		})
 	}
 
-	private renderConfirmButton(newsId: tutanotaTypeRefs.NewsId) {
+	private renderConfirmButton(newsId: NewsId) {
 		return m(Button, {
 			label: "secureNow_action",
 			click: async () => {

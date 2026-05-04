@@ -1,14 +1,14 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { lastIndex } from "@tutao/utils"
-import { formatShortTime, formatTime } from "../../misc/Formatter"
+import { formatShortTime, formatTime } from "../../../ui/utils/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
-import { layout_size, px, size } from "../../gui/size"
+import { layout_size, px, size } from "../../../ui/size"
 import { Time } from "../date/Time"
-import { styles } from "../../gui/styles"
+import { styles } from "../../../ui/styles"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
 import { TimeIndicator } from "./TimeIndicator"
-import { clone } from "@tutao/typerefs"
+import { clone } from "@tutao/meta"
 
 export interface CalendarTimeColumnAttrs {
 	intervals: Array<Time>

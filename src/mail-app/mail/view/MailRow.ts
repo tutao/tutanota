@@ -1,8 +1,7 @@
-import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
-import { getMailFolderType, tutanotaTypeRefs } from "@tutao/typerefs"
-import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
+import { FontIcons } from "../../../ui/base/icons/FontIcons"
+import { formatTimeOrDateOrYesterday } from "../../../ui/utils/Formatter.js"
 import m, { Children } from "mithril"
-import Badge from "../../../common/gui/base/Badge"
+import Badge from "../../../ui/base/Badge"
 import {
 	checkboxOpacity,
 	scaleXHide,
@@ -12,24 +11,25 @@ import {
 	SelectableRowSelectedSetter,
 	setVisibility,
 	shouldAlwaysShowMultiselectCheckbox,
-} from "../../../common/gui/SelectableRowContainer.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
+} from "../../../ui/SelectableRowContainer.js"
+import { component_size, px, size } from "../../../ui/size.js"
 import { noOp } from "@tutao/utils"
-import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../ui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../app-env/boot/ClientConstants.js"
 import { getConfidentialFontIcon } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
-import { getLabelColor } from "../../../common/gui/base/Label"
-import { colorForBg } from "../../../common/gui/base/GuiUtils"
-import { theme } from "../../../common/gui/theme"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { getLabelColor } from "../../../ui/base/Label"
+import { colorForBg } from "../../../ui/base/GuiUtils"
+import { theme } from "../../../ui/theme"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
-import { MailSetKind, ReplyType } from "@tutao/app-env"
+import { Mail, MailSet, MailSetKind, ReplyType } from "@tutao/entities/tutanota"
+import { getMailFolderType } from "../MailUtils"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.FolderFilled,
@@ -56,11 +56,11 @@ const ELLIPSIS = "\u2026"
 
 const MAX_DISPLAYED_LABELS = 6
 
-export class MailRow implements VirtualRow<tutanotaTypeRefs.Mail> {
+export class MailRow implements VirtualRow<Mail> {
 	top: number
 	private domElement: HTMLElement | null = null
 
-	entity: tutanotaTypeRefs.Mail | null = null
+	entity: Mail | null = null
 	private subjectDom!: HTMLElement
 	private senderDom!: HTMLElement
 
@@ -78,15 +78,15 @@ export class MailRow implements VirtualRow<tutanotaTypeRefs.Mail> {
 
 	constructor(
 		private readonly showFolderIcon: boolean,
-		private readonly getLabelsForMail: (mail: tutanotaTypeRefs.Mail) => ReadonlyArray<tutanotaTypeRefs.MailSet>,
-		private readonly onSelected: (mail: tutanotaTypeRefs.Mail, selected: boolean) => unknown,
+		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailSet>,
+		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
 		this.top = 0
 		this.entity = null
 	}
 
-	update(mail: tutanotaTypeRefs.Mail, selected: boolean, isInMultiSelect: boolean): void {
+	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
 		const oldEntity = this.entity
 		this.entity = mail
 		const oldHighlightedStrings = this.highlightedStrings
@@ -146,7 +146,7 @@ export class MailRow implements VirtualRow<tutanotaTypeRefs.Mail> {
 		}
 	}
 
-	private updateLabels(mail: tutanotaTypeRefs.Mail): readonly tutanotaTypeRefs.MailSet[] {
+	private updateLabels(mail: Mail): readonly MailSet[] {
 		const labels = this.getLabelsForMail(mail)
 
 		for (const [i, element] of this.labelsDom.entries()) {
@@ -400,7 +400,7 @@ export class MailRow implements VirtualRow<tutanotaTypeRefs.Mail> {
 		)
 	}
 
-	private iconsText(mail: tutanotaTypeRefs.Mail): { iconText: string; description: string } {
+	private iconsText(mail: Mail): { iconText: string; description: string } {
 		let iconText = ""
 		let description = ""
 

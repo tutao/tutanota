@@ -1,20 +1,21 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationModel } from "../../../../src/common/settings/keymanagement/KeyVerificationModel"
-import { KeyVerificationFacade } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
-import { MobileSystemFacade } from "@tutao/native-bridge"
+import { KeyVerificationFacade } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
+import { MobileSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types/MobileSystemFacade.js"
 import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/keymanagement/KeyVerificationUsageTestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { PublicKeyIdentifierType } from "../../../../src/app-env"
+
 import { Versioned } from "@tutao/utils"
-import { PermissionType } from "@tutao/native-bridge"
+import { PermissionType } from "../../../../src/native-bridge/common/generatedipc/types/PermissionType.js"
 import { QRCode } from "jsqr"
-import { PublicIdentityKeyProvider } from "../../../../src/network/crypto/facades/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../../src/base/crypto/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/local-store/IdentityKeyTrustDatabase"
 import { ProgrammingError } from "@tutao/app-env"
-import { DesktopSystemFacade } from "@tutao/native-bridge"
+import { DesktopSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types/DesktopSystemFacade.js"
 import { withOverriddenEnv } from "../../TestUtils"
 import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, IdentityKeySourceOfTrust, Mode } from "../../../../src/app-env"
 import { SigningPublicKey } from "../../../../src/crypto/encryption/Ed25519"
+import { PublicKeyIdentifierType } from "@tutao/crypto"
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade

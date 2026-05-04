@@ -7,13 +7,15 @@ import { LoginController } from "../../../src/common/api/main/LoginController"
 import { object, when } from "testdouble"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { ContactSearchFacade } from "../../../src/mail-app/workerUtils/index/ContactSearchFacade"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { TypeModelResolver } from "@tutao/typerefs"
-import { UserController } from "../../../src/common/api/main/UserController"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { DbError } from "../../../src/common/api/common/error/DbError"
-import { timestampToGeneratedId } from "@tutao/typerefs"
 
+import { UserController } from "../../../src/common/api/main/UserController"
+
+import { DbError } from "../../../src/common/api/common/error/DbError"
+import { timestampToGeneratedId } from "../../../src/meta"
+import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { TypeModelResolver } from "@tutao/instance-pipeline"
+
+import { GroupMembershipTypeRef, RootInstanceTypeRef, UserTypeRef } from "@tutao/entities/sys"
 o.spec("ContactModel", () => {
 	let entityMock: EntityRestClientMock
 	let entityClient: EntityClient
@@ -40,8 +42,8 @@ o.spec("ContactModel", () => {
 		model = new ContactModel(entityClient, loginController, eventController, contactSearchFacade)
 		when(loginController.isFullyLoggedIn()).thenReturn(true)
 		when(loginController.getUserController()).thenReturn(userController)
-		userController.user = createTestEntity(sysTypeRefs.UserTypeRef, {
-			userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+		userController.user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
 				group: userGroupId,
 			}),
 		})
@@ -55,15 +57,15 @@ o.spec("ContactModel", () => {
 		})
 
 		async function createContactList() {
-			const typeModel = await typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactListTypeRef)
+			const typeModel = await typeModelResolver.resolveClientTypeReference(ContactListTypeRef)
 			const rootId = [userGroupId, typeModel.rootId] as const
 			entityMock.addListInstances(
-				createTestEntity(sysTypeRefs.RootInstanceTypeRef, {
+				createTestEntity(RootInstanceTypeRef, {
 					_id: rootId,
 					reference: contactListEntityId,
 				}),
 			)
-			const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef, {
+			const contactList = createTestEntity(ContactListTypeRef, {
 				_id: contactListEntityId,
 				contacts: contactListId,
 			})
@@ -74,28 +76,28 @@ o.spec("ContactModel", () => {
 			when(userController.isInternalUser()).thenReturn(true)
 			await createContactList()
 
-			const exactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const exactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(1)],
 				firstName: "olderExact",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "exact@test.com",
 					}),
 				],
 			})
-			const inexactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const inexactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(2)],
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "inexact@test.com",
 					}),
 				],
 			})
-			const newerExactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const newerExactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(3)],
 				firstName: "newerExact",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "exact@test.com",
 					}),
 				],
@@ -111,28 +113,28 @@ o.spec("ContactModel", () => {
 			when(userController.isInternalUser()).thenReturn(true)
 			await createContactList()
 
-			const exactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const exactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(1)],
 				firstName: "olderExact",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "exact@test.com",
 					}),
 				],
 			})
-			const inexactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const inexactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(2)],
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "inexact@test.com",
 					}),
 				],
 			})
-			const newerExactMatch = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const newerExactMatch = createTestEntity(ContactTypeRef, {
 				_id: [contactListId, timestampToGeneratedId(3)],
 				firstName: "newerExact",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "exact@test.com",
 					}),
 				],

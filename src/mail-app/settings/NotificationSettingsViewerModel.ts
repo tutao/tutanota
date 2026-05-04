@@ -1,8 +1,7 @@
-import { sysTypeRefs } from "@tutao/typerefs"
-import { assertMainOrNode } from "@tutao/app-env"
+import { AppType, assertMainOrNode } from "@tutao/app-env"
 import { EntityClient } from "../../network/EntityClient"
 import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
-import { AppType } from "@tutao/app-env"
+import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -15,18 +14,18 @@ const MAX_DISPLAYED_PUSH_NOTIFIERS = 50
  */
 export class NotificationSettingsViewerModel {
 	private currentIdentifier: string | null = null
-	private identifiers: readonly sysTypeRefs.PushIdentifier[] = []
+	private identifiers: readonly PushIdentifier[] = []
 
 	constructor(
 		private readonly pushService: NativePushServiceApp | null,
-		private readonly user: sysTypeRefs.User,
+		private readonly user: User,
 		private readonly entityClient: EntityClient,
 	) {}
 
 	/**
 	 * Get all loaded push identifiers.
 	 */
-	public getLoadedPushIdentifiers(): readonly sysTypeRefs.PushIdentifier[] {
+	public getLoadedPushIdentifiers(): readonly PushIdentifier[] {
 		return this.identifiers
 	}
 
@@ -35,15 +34,12 @@ export class NotificationSettingsViewerModel {
 	 * @param identifiersAscending All identifiers in ascending order (i.e. oldest to newest order)
 	 * @param currentIdentifier Current identifier of the client
 	 */
-	private filterAndLimitMailIdentifiers(
-		identifiersAscending: readonly sysTypeRefs.PushIdentifier[],
-		currentIdentifier: string | null,
-	): sysTypeRefs.PushIdentifier[] {
+	private filterAndLimitMailIdentifiers(identifiersAscending: readonly PushIdentifier[], currentIdentifier: string | null): PushIdentifier[] {
 		// Filter out calendar targets
 		const validTargets = identifiersAscending.filter((identifier) => identifier.app === AppType.Mail || identifier.app === AppType.Integrated)
 
 		// The identifier may or may not be on the list depending on if the identifier was deleted
-		let currentIdentifierEntry: sysTypeRefs.PushIdentifier | null = null
+		let currentIdentifierEntry: PushIdentifier | null = null
 		if (currentIdentifier != null) {
 			const currentIdentifierIndex = validTargets.findIndex((identifier) => identifier.identifier === currentIdentifier)
 			if (currentIdentifierIndex >= 0) {
@@ -78,7 +74,7 @@ export class NotificationSettingsViewerModel {
 		const list = this.user.pushIdentifierList
 
 		if (list) {
-			const allIdentifiers = await this.entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, list.list)
+			const allIdentifiers = await this.entityClient.loadAll(PushIdentifierTypeRef, list.list)
 			this.identifiers = this.filterAndLimitMailIdentifiers(allIdentifiers, this.currentIdentifier)
 		} else {
 			this.identifiers = []

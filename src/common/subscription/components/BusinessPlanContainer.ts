@@ -1,15 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../../gui/styles"
-import { px, size } from "../../gui/size"
+import { styles } from "../../../ui/styles"
+import { px, size } from "../../../ui/size"
 import { ReplacementKey } from "../FeatureListProvider"
 import { getPriceStr } from "../utils/SubscriptionUtils"
 import { AvailablePlans } from "../PlanSelector"
 import { BusinessPlanBox } from "./BusinessPlanBox"
-import { Icons } from "../../gui/base/icons/Icons"
-import { TranslationKey } from "../../misc/LanguageViewModel"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
-import { PlanType } from "@tutao/app-env"
+
+import { PlanType } from "@tutao/entities/sys"
 
 export type PlanFeature = {
 	label: TranslationKey

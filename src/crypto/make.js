@@ -4,7 +4,7 @@ import path from "node:path"
 import fs from "fs-extra"
 
 const CRYPTO_PRIMITIVES_CRATE = "../../tuta-sdk/rust/crypto-primitives"
-const WASM_PACK_OUT_DIR = "src/crypto-primitives"
+const WASM_PACK_OUT_DIR = "src/crypto/crypto-primitives"
 export const CRYPTO_PRIMITIVES_WASM_FILE = "crypto_primitives_bg.wasm"
 
 await program

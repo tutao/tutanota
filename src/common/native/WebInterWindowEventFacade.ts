@@ -1,4 +1,4 @@
-import { InterWindowEventFacade } from "@tutao/native-bridge/common"
+import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { LoginController } from "../api/main/LoginController.js"
 import { WindowFacade } from "../misc/WindowFacade.js"
 import { DeviceConfig } from "../misc/DeviceConfig.js"

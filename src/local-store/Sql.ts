@@ -1,4 +1,5 @@
-import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue } from "@tutao/typerefs"
+import { tagSqlValue } from "./SqlValue"
+import { FormattedQuery, SqlValue, TaggedSqlValue } from "./Types"
 
 /**
  * this tagged template function exists because android doesn't allow us to define SQL functions, so we have made a way to inline

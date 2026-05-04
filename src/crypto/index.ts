@@ -79,7 +79,6 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { KeyLength, type EntropySource, type HkdfKeyDerivationDomains, UNIT_SEPARATOR_CHAR, type DomainSeparator } from "./misc/Constants.js"
 export {
 	type AbstractEncryptedKeyPair,
 	type EncryptedKeyPairs,
@@ -179,4 +178,4 @@ export {
 	MissingSessionKey,
 } from "./encryption/symmetric/SymmetricCipherFacade.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
-export * from "./CryptoTypes"
+export * from "./CryptoTypes.js"

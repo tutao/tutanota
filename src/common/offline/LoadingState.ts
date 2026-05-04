@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 
-import { isOfflineError } from "../../network/error/NetworkErrorUtils"
+import { isOfflineError } from "@tutao/rest-client/error"
 
 export enum LoadingState {
 	/** We have not tried to load anything, or the loading is complete */

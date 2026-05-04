@@ -1,19 +1,30 @@
 import o from "@tutao/otest"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object, replace } from "testdouble"
 import { sql } from "../../../../../src/local-store/Sql"
 import { assertNotNull, typedValues } from "@tutao/utils"
-import { getElementId, getListId, getTypeString } from "@tutao/typerefs"
+import { getElementId, getListId, getTypeString } from "../../../../../src/meta"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
 import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import {
+	BodyTypeRef,
+	Contact,
+	ContactMailAddressTypeRef,
+	ContactTypeRef,
+	FileTypeRef,
+	MailAddressTypeRef,
+	MailDetailsTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+} from "@tutao/entities/tutanota"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -60,25 +71,25 @@ o.spec("OfflineStorageSearchFacade", () => {
 
 	o.spec("mail search", () => {
 		const testMail1: MailWithDetailsAndAttachments = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-a"],
 				_ownerGroup: "I am a group",
 				subject: "very very very important email",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "I am a sender",
 					address: "testtesttest@test.test",
 				}),
 				receivedDate: new Date(1234),
 				sets: [["mySets", "myFavoriteSet"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "I am squishy smol text! common",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [
-						createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+						createTestEntity(MailAddressTypeRef, {
 							name: "Important Recipient",
 							address: "important.recipient@yes.com",
 						}),
@@ -86,15 +97,15 @@ o.spec("OfflineStorageSearchFacade", () => {
 					bccRecipients: [],
 				}),
 			}),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 
 		const testMail2: MailWithDetailsAndAttachments = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-b"],
 				_ownerGroup: "I am a group",
 				subject: "you do not need to worry about this email",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "I am a sender",
 					address: "testtesttest@test.test",
 				}),
@@ -104,13 +115,13 @@ o.spec("OfflineStorageSearchFacade", () => {
 					["mySets", "yourFavoriteSet"],
 				],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "Here is more body data common",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [
-						createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+						createTestEntity(MailAddressTypeRef, {
 							name: "Important Recipient",
 							address: "important.recipient@yes.com",
 						}),
@@ -119,54 +130,54 @@ o.spec("OfflineStorageSearchFacade", () => {
 					bccRecipients: [],
 				}),
 			}),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 
 		const spamMail: MailWithDetailsAndAttachments = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-c"],
 				_ownerGroup: "I am a group",
 				subject: "SPAM SPAM SPAM SPAM SPAM",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "Important spam sender",
 					address: "important.spammer@spamland.zzz",
 				}),
 				receivedDate: new Date(1236),
 				sets: [["mySets", "spamFolder"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "SPAAAAAAAAAAAAAAAAAAAAAAM common",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [],
 					bccRecipients: [],
 				}),
 			}),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 		const testMail3: MailWithDetailsAndAttachments = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-d"],
 				_ownerGroup: "I am a group",
 				subject: "this email will change your life",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "Me",
 					address: "so.many.tests.wow.this.is.amazing@test.test",
 				}),
 				receivedDate: new Date(1237),
 				sets: [["mySets", "myFavoriteSet"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "WOW! THIS IMPORTANT EMAIL IS AMAZING!",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [],
 					bccRecipients: [
-						createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+						createTestEntity(MailAddressTypeRef, {
 							name: "Important Recipient",
 							address: "important.recipient@yes.com",
 						}),
@@ -174,7 +185,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				}),
 			}),
 			attachments: [
-				createTestEntity(tutanotaTypeRefs.FileTypeRef, {
+				createTestEntity(FileTypeRef, {
 					name: "common.zip",
 				}),
 			],
@@ -185,7 +196,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"common",
 				{
-					type: tutanotaTypeRefs.MailTypeRef,
+					type: MailTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -203,7 +214,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"common",
 				{
-					type: tutanotaTypeRefs.MailTypeRef,
+					type: MailTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -240,7 +251,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultSpam = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -257,7 +268,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultMyFavoriteSet = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -274,7 +285,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultYourFavoriteSet = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -292,7 +303,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultMyFavoriteSetUppercase = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -311,7 +322,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"worr",
 				{
-					type: tutanotaTypeRefs.MailTypeRef,
+					type: MailTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -329,7 +340,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"spamme",
 				{
-					type: tutanotaTypeRefs.MailTypeRef,
+					type: MailTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -348,7 +359,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: 1235,
 						field: null,
@@ -366,7 +377,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: 1235,
 						end: null,
 						field: null,
@@ -384,7 +395,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: 1235,
 						end: 1235,
 						field: null,
@@ -404,7 +415,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"important",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: "from",
@@ -421,7 +432,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"important",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: "to",
@@ -439,7 +450,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultFound = await offlineStorageSearchFacade.search(
 					`"important spam sender"`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -454,7 +465,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultNotFound = await offlineStorageSearchFacade.search(
 					`"important sender"`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -469,7 +480,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
 					`"THIS IMPORTANT EMAIL" AMAZING`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -484,7 +495,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
 					`"`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -499,7 +510,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
 					`""`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -513,25 +524,25 @@ o.spec("OfflineStorageSearchFacade", () => {
 			})
 			o.test("when looking for Japanese text it will find any kanji", async () => {
 				const testMail1: MailWithDetailsAndAttachments = {
-					mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+					mail: createTestEntity(MailTypeRef, {
 						_id: ["I am a list", "z-z-z-z-z-z-z-z-a"],
 						_ownerGroup: "I am a group",
 						subject: "very very very important email",
-						sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+						sender: createTestEntity(MailAddressTypeRef, {
 							name: "I am a sender",
 							address: "testtesttest@test.test",
 						}),
 						receivedDate: new Date(1234),
 						sets: [["mySets", "myFavoriteSet"]],
 					}),
-					mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-						body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+					mailDetails: createTestEntity(MailDetailsTypeRef, {
+						body: createTestEntity(BodyTypeRef, {
 							compressedText: "を中心に発生した",
 						}),
-						recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+						recipients: createTestEntity(RecipientsTypeRef, {
 							toRecipients: [],
 							ccRecipients: [
-								createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+								createTestEntity(MailAddressTypeRef, {
 									name: "Important Recipient",
 									address: "important.recipient@yes.com",
 								}),
@@ -539,14 +550,14 @@ o.spec("OfflineStorageSearchFacade", () => {
 							bccRecipients: [],
 						}),
 					}),
-					attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+					attachments: [createTestEntity(FileTypeRef)],
 				}
 				await storeAndIndexMail([testMail1])
 
 				const result = await offlineStorageSearchFacade.search(
 					`発`,
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -563,7 +574,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"important",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: "subject",
@@ -580,7 +591,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"important",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: "body",
@@ -597,7 +608,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start: null,
 						end: null,
 						field: "attachment",
@@ -626,7 +637,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 					query,
 					tokens,
 					restriction: {
-						type: tutanotaTypeRefs.MailTypeRef,
+						type: MailTypeRef,
 						start,
 						end,
 						field: null,
@@ -789,52 +800,52 @@ o.spec("OfflineStorageSearchFacade", () => {
 	})
 
 	o.spec("contact search", () => {
-		const alice = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const alice = createTestEntity(ContactTypeRef, {
 			_id: ["wow a list", "alice"],
 			_ownerGroup: "AAAAAA",
 			firstName: "Alice",
 			lastName: "Robinson",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "alice@tutanota.com",
 				}),
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "alicepremium@tuta.io",
 				}),
 			],
 		})
-		const bob = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const bob = createTestEntity(ContactTypeRef, {
 			_id: ["wow a list", "bob"],
 			_ownerGroup: "AAAAAA",
 			firstName: "Bob",
 			lastName: "Smith",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "bob@tutanota.com",
 				}),
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "bobpremium@tuta.io",
 				}),
 			],
 		})
-		const carter = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const carter = createTestEntity(ContactTypeRef, {
 			_id: ["wow a list", "carter"],
 			_ownerGroup: "AAAAAA",
 			firstName: "Carter",
 			lastName: "Robinson",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "carter@nottutanota.com", // :(
 				}),
 			],
 		})
-		const drStrange = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const drStrange = createTestEntity(ContactTypeRef, {
 			_id: ["wow a list", "strange"],
 			_ownerGroup: "AAAAAA",
 			firstName: "Stephen Vincent",
 			lastName: "Strange",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "dr.strange@alsonottutanota.com", // :(
 				}),
 			],
@@ -844,7 +855,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			await storeAndIndexContact([drStrange])
 
 			const anyFieldRestriction = {
-				type: tutanotaTypeRefs.ContactTypeRef,
+				type: ContactTypeRef,
 				start: null,
 				end: null,
 				field: null,
@@ -854,7 +865,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			}
 
 			const mailAddressRestriction = {
-				type: tutanotaTypeRefs.ContactTypeRef,
+				type: ContactTypeRef,
 				start: null,
 				end: null,
 				field: "mailAddresses",
@@ -881,7 +892,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"tutanota",
 				{
-					type: tutanotaTypeRefs.ContactTypeRef,
+					type: ContactTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -899,7 +910,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"bobpremium",
 				{
-					type: tutanotaTypeRefs.ContactTypeRef,
+					type: ContactTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -917,7 +928,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"alice",
 				{
-					type: tutanotaTypeRefs.ContactTypeRef,
+					type: ContactTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -935,7 +946,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"robinson",
 				{
-					type: tutanotaTypeRefs.ContactTypeRef,
+					type: ContactTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -949,24 +960,24 @@ o.spec("OfflineStorageSearchFacade", () => {
 		})
 
 		o.test("sorts by name with first name taking precedence", async () => {
-			const noLastName = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const noLastName = createTestEntity(ContactTypeRef, {
 				_id: ["wow a list", "noLastName"],
 				_ownerGroup: "AAAAAA",
 				firstName: "NoLastName",
 				lastName: "",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "nolastname@nottutanota.com", // :(
 					}),
 				],
 			})
-			const noFirstName = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+			const noFirstName = createTestEntity(ContactTypeRef, {
 				_id: ["wow a list", "noFirstName"],
 				_ownerGroup: "AAAAAA",
 				firstName: "",
 				lastName: "noFirstName",
 				mailAddresses: [
-					createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+					createTestEntity(ContactMailAddressTypeRef, {
 						address: "nofirstname@nottutanota.com", // :(
 					}),
 				],
@@ -976,7 +987,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"com",
 				{
-					type: tutanotaTypeRefs.ContactTypeRef,
+					type: ContactTypeRef,
 					start: null,
 					end: null,
 					field: null,
@@ -993,7 +1004,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
 					`"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1008,7 +1019,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
 					`""`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1026,7 +1037,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultFound = await offlineStorageSearchFacade.search(
 					`"stephen vincent"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1041,7 +1052,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultNotFound = await offlineStorageSearchFacade.search(
 					`"stephen strange"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1056,7 +1067,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
 					`"stephen vincent" strange`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1074,7 +1085,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultFound = await offlineStorageSearchFacade.search(
 					`"dr.strange@alsonottutanota.com"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1089,7 +1100,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultNotFound = await offlineStorageSearchFacade.search(
 					`"dr.strange@alsonottutanota.co"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1104,7 +1115,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
 					`"dr.strange" "alsonottutanota.com"`,
 					{
-						type: tutanotaTypeRefs.ContactTypeRef,
+						type: ContactTypeRef,
 						start: null,
 						end: null,
 						field: null,
@@ -1118,7 +1129,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			})
 		})
 
-		async function storeAndIndexContact(contacts: tutanotaTypeRefs.Contact[]) {
+		async function storeAndIndexContact(contacts: Contact[]) {
 			for (const contactData of contacts) {
 				let listEntitiesQuery = sql`
                     INSERT INTO list_entities

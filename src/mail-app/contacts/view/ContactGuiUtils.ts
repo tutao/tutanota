@@ -1,7 +1,8 @@
-import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { EntityIdEncoding, sortCompareByReverseId, tutanotaTypeRefs } from "@tutao/typerefs"
+import type { MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { EntityIdEncoding, sortCompareByReverseId } from "../../../meta"
 import {
+	Contact,
 	ContactAddressType,
 	ContactCustomDateType,
 	ContactMessengerHandleType,
@@ -9,7 +10,7 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "@tutao/app-env"
+} from "@tutao/entities/tutanota"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",
@@ -139,7 +140,7 @@ export function getContactCustomWebsiteTypeToLabel(type: ContactWebsiteType, cus
 	}
 }
 
-export type ContactComparator = (arg0: tutanotaTypeRefs.Contact, arg1: tutanotaTypeRefs.Contact) => number
+export type ContactComparator = (arg0: Contact, arg1: Contact) => number
 
 /**
  * Sorts by the following preferences:
@@ -149,7 +150,7 @@ export type ContactComparator = (arg0: tutanotaTypeRefs.Contact, arg1: tutanotaT
  * 4. id
  * Missing fields are sorted below existing fields
  */
-export function compareContacts(contact1: tutanotaTypeRefs.Contact, contact2: tutanotaTypeRefs.Contact, sortByFirstName: boolean = true): number {
+export function compareContacts(contact1: Contact, contact2: Contact, sortByFirstName: boolean = true): number {
 	let c1First = contact1.firstName.trim()
 	let c2First = contact2.firstName.trim()
 	let c1Last = contact1.lastName.trim()

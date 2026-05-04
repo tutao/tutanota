@@ -1,8 +1,8 @@
+import { CreditCard } from "@tutao/entities/sys"
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocomplete, LegacyTextField } from "../gui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
@@ -11,9 +11,9 @@ export type SimplifiedCreditCardAttrs = {
 export interface CCViewModel {
 	validateCreditCardPaymentData(): TranslationKey | null
 
-	setCreditCardData(data: sysTypeRefs.CreditCard | null): void
+	setCreditCardData(data: CreditCard | null): void
 
-	getCreditCardData(): sysTypeRefs.CreditCard
+	getCreditCardData(): CreditCard
 }
 
 // changing the content (ie grouping) sets selection to the end, this restores it after the next redraw.

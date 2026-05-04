@@ -26,28 +26,33 @@
 		"useUnknownInCatchVariables": false,
 		"types": ["node"],
 		"incremental": true,
-		"composite": true,
 		"paths": {
 			"@tutao/utils": ["./src/utils"],
-			"@tutao/crypto-primitives": ["./src/crypto-primitives/crypto_primitives"],
 			"@tutao/crypto": ["./src/crypto"],
 			"@tutao/crypto/error": ["./src/crypto/error"],
 			"@tutao/usagetests": ["./src/usagetests"],
 			"@tutao/mimimi": ["./src/mimimi"],
 			"@tutao/mimimi/types": ["./src/mimimi/napi-out/binding.d.ts"],
 			"@tutao/rest-client": ["./src/rest-client"],
-			"@tutao/network": ["./src/network"],
 			"@tutao/rest-client/types": ["./src/rest-client/types.d.ts"],
 			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
 			"@tutao/app-env": ["./src/app-env"],
-			"@tutao/typerefs": ["./src/typerefs"],
+			"@tutao/meta": ["./src/meta"],
+			"@tutao/entities/accounting": ["./src/entities/accounting"],
+			"@tutao/entities/base": ["./src/entities/base"],
+			"@tutao/entities/drive": ["./src/entities/drive"],
+			"@tutao/entities/gossip": ["./src/entities/gossip"],
+			"@tutao/entities/monitor": ["./src/entities/monitor"],
+			"@tutao/entities/storage": ["./src/entities/storage"],
+			"@tutao/entities/sys": ["./src/entities/sys"],
+			"@tutao/entities/tutanota": ["./src/entities/tutanota"],
+			"@tutao/entities/usage": ["./src/entities/usage"],
 			"@tutao/instance-pipeline": ["./src/instance-pipeline"],
-			"@tutao/native-bridge/common": ["./src/native-bridge/common"],
-			"@tutao/native-bridge/worker": ["./src/native-bridge/worker"],
-			"@tutao/native-bridge/main": ["./src/native-bridge/main"],
-			"@tutao/native-bridge/shared": ["./src/native-bridge/shared"],
-			"@tutao/local-store": ["./src/local-store"],
-			"@tutao/local-store/types": ["./src/local-store/types.d.ts"]
+			"@tutao/network/types": ["./src/network/types.d.ts"],
+			"@tutao/native-bridge/generatedIpc/types": ["./src/native-bridge/common/generatedipc/types/index.d.ts"],
+			"@tutao/native-bridge/generatedIpc/dispatchers": [
+				"./src/native-bridge/common/generatedipc/dispatchers/index.ts"
+			]
 		}
 	}
 }

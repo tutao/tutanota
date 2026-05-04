@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { asPaymentInterval, formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/common/subscription/utils/PriceUtils.js"
 import { UpgradePriceType } from "../../../src/common/subscription/FeatureListProvider"
-import { lang } from "../../../src/common/misc/LanguageViewModel"
-import en from "../../../src/mail-app/translations/en"
+import { lang } from "../../../src/ui/utils/LanguageViewModel"
+import en from "../../../src/ui/translations/en"
 import { ProgrammingError } from "@tutao/app-env"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { UserError } from "../../../src/common/api/main/UserError.js"
-import { PlanType } from "../../../src/app-env"
-import { clone } from "@tutao/typerefs"
+import { clone } from "../../../src/meta"
+import { PlanType } from "../../../src/entities/sys"
 
 o.spec("PriceUtilsTest", function () {
 	o.before(async function () {

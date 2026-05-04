@@ -1,16 +1,17 @@
 import type { PostLoginAction } from "../../../common/api/main/LoginController"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import type { Dialog } from "../../../common/gui/base/Dialog"
+import type { Dialog } from "../../../ui/base/Dialog"
 import type { MailViewerViewModel } from "../view/MailViewerViewModel"
 import type { EntityClient } from "../../../network/EntityClient"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
 import { SessionType } from "@tutao/app-env"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
+
 import { isEditableDraft } from "../model/MailChecks"
-import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { isOfflineError } from "@tutao/rest-client/error"
+import { MailTypeRef } from "@tutao/entities/tutanota"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>
@@ -57,7 +58,7 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 			// mail has been saved, but we need to override it with our locally saved contents
 			let mailViewerViewModel: MailViewerViewModel
 			try {
-				const mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, draft.mailId)
+				const mail = await this.entityClient.load(MailTypeRef, draft.mailId)
 				if (!isEditableDraft(mail)) {
 					// mail might have been already sent or scheduled from another client
 					await this.autosaveFacade.clearAutosavedDraftData()

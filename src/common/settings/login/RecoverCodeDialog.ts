@@ -1,29 +1,31 @@
 import type { QRCode } from "jsqr"
-import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { assertNotNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, GroupType, isApp } from "@tutao/app-env"
-import { copyToClipboard } from "../../misc/ClipboardUtils.js"
+import { assertMainOrNode, isApp } from "@tutao/app-env"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils.js"
 import * as restError from "@tutao/rest-client/error"
 import { locator } from "../../api/main/CommonLocator.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { getEtId, isSameId, sysTypeRefs } from "@tutao/typerefs"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { IconButton } from "../../gui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { QrCodeScanner, QrCodeScannerErrorType } from "../../gui/QrCodeScanner.js"
-import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor.js"
+import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor.js"
 import { MoreInfoLink, renderMoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
-import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
+import { MonospaceTextDisplay } from "../../../ui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { RecoverCodeDisplay } from "../../subscription/RecoverCodeDisplay"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
+import { getEtId, isSameId } from "@tutao/meta"
+import { GroupType, User } from "@tutao/entities/sys"
+import { getHtmlSanitizer } from "../../gui/utils/HtmlSanitizer"
 
 type Action = "get" | "create"
 assertMainOrNode()
 
-export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: sysTypeRefs.User) {
+export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
 	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.some((gm) => gm.groupType === GroupType.Admin)) {
 		return
@@ -187,7 +189,7 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 	private isScanning = false
 
 	constructor() {
-		this.editor = new HtmlEditor("recoveryCode_label")
+		this.editor = new HtmlEditor(getHtmlSanitizer(), "recoveryCode_label")
 		this.editor.setMode(HtmlEditorMode.HTML)
 		this.editor.setHtmlMonospace(true)
 		this.editor.setMinHeight(80)

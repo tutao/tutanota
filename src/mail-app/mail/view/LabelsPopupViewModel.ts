@@ -1,9 +1,8 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { LabelState } from "../model/MailModel"
 import { MAX_LABELS_PER_MAIL } from "@tutao/app-env"
-import { getElementId } from "@tutao/typerefs"
+import { MailSet } from "@tutao/entities/tutanota"
+import { getElementId } from "@tutao/meta"
 
-type MailSet = tutanotaTypeRefs.MailSet
 export class LabelsPopupViewModel {
 	private labelLimitReached: boolean = false
 	private labelStateTracker: Array<{ label: MailSet; state: LabelState; startingState: LabelState }> = []

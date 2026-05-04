@@ -1,24 +1,24 @@
-import { lang } from "../../misc/LanguageViewModel"
-import { Dialog } from "../../gui/base/Dialog"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog"
 import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { Icons } from "../../gui/base/icons/Icons.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "@tutao/app-env"
 import m, { Children, Component, Vnode } from "mithril"
-import { LegacyTextField, LegacyTextFieldAttrs } from "../../gui/base/LegacyTextField.js"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
-import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showFileChooser } from "../../file/FileController.js"
-import { IconButton } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import type { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
+import { DomainInfo, WhitelabelConfig } from "@tutao/entities/sys"
+import { ThemeCustomizations } from "../../../ui/WhitelabelCustomizations"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
-	whitelabelConfig: sysTypeRefs.WhitelabelConfig
-	whitelabelDomainInfo: sysTypeRefs.DomainInfo
+	whitelabelConfig: WhitelabelConfig
+	whitelabelDomainInfo: DomainInfo
 }
 export type WhitelabelThemeSettingsAttrs = {
 	whitelabelData: null | WhitelabelData
@@ -177,7 +177,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		}
 	}
 
-	private saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: sysTypeRefs.WhitelabelConfig, whitelabelDomainInfo: sysTypeRefs.DomainInfo) {
+	private saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: DomainInfo) {
 		whitelabelConfig.jsonTheme = JSON.stringify(customTheme)
 		locator.entityClient.update(whitelabelConfig)
 		customTheme.themeId = whitelabelDomainInfo.domain

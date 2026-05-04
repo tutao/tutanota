@@ -1,0 +1,112 @@
+/* generated file, don't edit. */
+
+import { IpcClientRect } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile } from "@tutao/native-bridge/generatedIpc/types"
+import { FileFacade } from "@tutao/native-bridge/generatedIpc/types"
+
+export class FileFacadeReceiveDispatcher {
+	constructor(private readonly facade: FileFacade) {}
+	async dispatch(method: string, arg: Array<any>): Promise<any> {
+		switch (method) {
+			case "open": {
+				const location: string = arg[0]
+				const mimeType: string = arg[1]
+				return this.facade.open(location, mimeType)
+			}
+			case "openFileChooser": {
+				const boundingRect: IpcClientRect = arg[0]
+				const filter: ReadonlyArray<string> | null = arg[1]
+				const isFileOnly: boolean | null = arg[2]
+				return this.facade.openFileChooser(boundingRect, filter, isFileOnly)
+			}
+			case "openFolderChooser": {
+				return this.facade.openFolderChooser()
+			}
+			case "openMacImportFileChooser": {
+				return this.facade.openMacImportFileChooser()
+			}
+			case "deleteFile": {
+				const file: string = arg[0]
+				return this.facade.deleteFile(file)
+			}
+			case "getName": {
+				const file: string = arg[0]
+				return this.facade.getName(file)
+			}
+			case "getMimeType": {
+				const file: string = arg[0]
+				return this.facade.getMimeType(file)
+			}
+			case "getSize": {
+				const file: string = arg[0]
+				return this.facade.getSize(file)
+			}
+			case "putFileIntoDownloadsFolder": {
+				const localFileUri: string = arg[0]
+				const fileNameToUse: string = arg[1]
+				return this.facade.putFileIntoDownloadsFolder(localFileUri, fileNameToUse)
+			}
+			case "upload": {
+				const fileUrl: string = arg[0]
+				const targetUrl: string = arg[1]
+				const method: string = arg[2]
+				const headers: Record<string, string> = arg[3]
+				const fileId: string = arg[4]
+				return this.facade.upload(fileUrl, targetUrl, method, headers, fileId)
+			}
+			case "abortUpload": {
+				const fileId: string = arg[0]
+				return this.facade.abortUpload(fileId)
+			}
+			case "download": {
+				const sourceUrl: string = arg[0]
+				const filename: string = arg[1]
+				const headers: Record<string, string> = arg[2]
+				const fileId: string = arg[3]
+				return this.facade.download(sourceUrl, filename, headers, fileId)
+			}
+			case "abortDownload": {
+				const fileId: string = arg[0]
+				return this.facade.abortDownload(fileId)
+			}
+			case "hashFile": {
+				const fileUri: string = arg[0]
+				return this.facade.hashFile(fileUri)
+			}
+			case "clearFileData": {
+				return this.facade.clearFileData()
+			}
+			case "joinFiles": {
+				const filename: string = arg[0]
+				const files: ReadonlyArray<string> = arg[1]
+				return this.facade.joinFiles(filename, files)
+			}
+			case "splitFile": {
+				const fileUri: string = arg[0]
+				const maxChunkSizeBytes: number = arg[1]
+				return this.facade.splitFile(fileUri, maxChunkSizeBytes)
+			}
+			case "writeTempDataFile": {
+				const file: DataFile = arg[0]
+				return this.facade.writeTempDataFile(file)
+			}
+			case "writeToAppDir": {
+				const content: Uint8Array = arg[0]
+				const path: string = arg[1]
+				return this.facade.writeToAppDir(content, path)
+			}
+			case "readFromAppDir": {
+				const path: string = arg[0]
+				return this.facade.readFromAppDir(path)
+			}
+			case "deleteFromAppDir": {
+				const path: string = arg[0]
+				return this.facade.deleteFromAppDir(path)
+			}
+			case "readDataFile": {
+				const filePath: string = arg[0]
+				return this.facade.readDataFile(filePath)
+			}
+		}
+	}
+}

@@ -1,12 +1,18 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["crypto-primitives", "../types/*.d.ts"],
-	"exclude": ["crypto-primitives/dist"],
+	"include": ["crypto", "../types/*.d.ts"],
 	"compilerOptions": {
-		"rootDir": "crypto-primitives",
+		"rootDir": "crypto",
 		"outDir": "../build/crypto-primitives",
 		"tsBuildInfoFile": "../build/crypto-primitives/tsbuildinfo",
 		"composite": true
 	},
-	"references": []
+	"references": [
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.app-env.json"
+		}
+	]
 }

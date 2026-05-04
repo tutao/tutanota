@@ -1,7 +1,6 @@
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { sysServices } from "@tutao/typerefs"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { AffiliatePartnerKpiService, AffiliatePartnerKpiServiceGetOut } from "@tutao/entities/sys"
 
 /**
  * Class containing state of the affiliate model.
@@ -13,18 +12,18 @@ export class AffiliateViewModel {
 		return this._isLoading
 	}
 
-	get data(): sysTypeRefs.AffiliatePartnerKpiServiceGetOut | null {
+	get data(): AffiliatePartnerKpiServiceGetOut | null {
 		return this._data
 	}
 
 	private readonly serviceExecutor: IServiceExecutor = locator.serviceExecutor
 
-	private _data: sysTypeRefs.AffiliatePartnerKpiServiceGetOut | null = null
+	private _data: AffiliatePartnerKpiServiceGetOut | null = null
 	private _isLoading: boolean = true
 
 	public async load() {
 		try {
-			this._data = await this.serviceExecutor.get(sysServices.AffiliatePartnerKpiService, null)
+			this._data = await this.serviceExecutor.get(AffiliatePartnerKpiService, null)
 		} finally {
 			this._isLoading = false
 		}

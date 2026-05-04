@@ -1,9 +1,9 @@
-import { Router } from "../../../common/gui/ScopedRouter"
+import { Router } from "../../../ui/ScopedRouter"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
-import { DRIVE_PREFIX } from "../../../common/misc/RouteChange"
+import { DRIVE_PREFIX } from "../../../ui/utils/RouteChange"
 import { DriveViewModel } from "../view/DriveViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { getDetachedDropdownBounds } from "../../../ui/base/GuiUtils"
 import { DriveFilePicker } from "../view/DriveFilePicker"
 import { showNewFolderDialog } from "../view/DriveGuiUtils"
 

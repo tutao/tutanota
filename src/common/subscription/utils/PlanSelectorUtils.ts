@@ -2,12 +2,12 @@ import { PlanConfig } from "../components/BusinessPlanContainer"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { SelectedSubscriptionOptions } from "../FeatureListProvider"
-import { component_size, px, size } from "../../gui/size"
-import { styles } from "../../gui/styles"
-import { lang, Translation } from "../../misc/LanguageViewModel"
-import { isDarkTheme, Theme, theme } from "../../gui/theme"
+import { component_size, px, size } from "../../../ui/size"
+import { styles } from "../../../ui/styles"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
+import { isDarkTheme, Theme, theme } from "../../../ui/theme"
 import { getRawApplePrice, hasAppleIntroOffer } from "./SubscriptionUtils"
-import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "@tutao/app-env"
+import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "@tutao/entities/sys"
 
 export type DiscountDetail = {
 	ribbonTranslation: Translation

@@ -1,15 +1,16 @@
 import m, { Child, ChildArray, Children } from "mithril"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { ButtonType } from "../../../common/gui/base/Button.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
-import type { MousePosAndBounds } from "../../../common/gui/base/GuiUtils.js"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import type { MousePosAndBounds } from "../../../ui/base/GuiUtils.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import {
 	assert,
 	assertNotNull,
 	clamp,
+	cleanMailAddress,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -21,7 +22,7 @@ import {
 	numberRange,
 	typedValues,
 } from "@tutao/utils"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import {
 	formatDateTime,
 	formatDateWithMonth,
@@ -29,7 +30,7 @@ import {
 	formatMonthWithFullYear,
 	formatTime,
 	timeStringFromParts,
-} from "../../../common/misc/Formatter.js"
+} from "../../../ui/utils/Formatter.js"
 import {
 	AlarmInterval,
 	alarmIntervalToLuxonDurationLikeObject,
@@ -52,8 +53,6 @@ import {
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
-	AccountType,
-	CalendarAttendeeStatus,
 	DAY_IN_MILLIS,
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
@@ -66,31 +65,33 @@ import {
 	Weekday,
 	WeekStart,
 } from "@tutao/app-env"
-import { AllIcons } from "../../../common/gui/base/Icon.js"
-import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
+import { AllIcons } from "../../../ui/base/Icon.js"
+import { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
-import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
-import { layout_size } from "../../../common/gui/size.js"
-import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
+import { CalendarEventTimes, CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { layout_size } from "../../../ui/size.js"
+import { hslToHex, MAX_HUE_ANGLE } from "../../../ui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
 import { EventsOnDays, EventWrapper } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
-import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
+import { createAsyncDropdown } from "../../../ui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
-import { SelectOption } from "../../../common/gui/base/Select.js"
-import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
-import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
-import { isDarkTheme, isLightTheme } from "../../../common/gui/theme.js"
+import { SelectOption } from "../../../ui/base/Select.js"
+import { RadioGroupOption } from "../../../ui/base/RadioGroup.js"
+import { ColorPickerModel } from "../../../ui/base/colorPicker/ColorPickerModel.js"
+import { isDarkTheme, isLightTheme } from "../../../ui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
-import { Key } from "../../../common/misc/KeyManager.js"
+import { Key } from "../../../ui/utils/KeyManager.js"
 import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
+import { AdvancedRepeatRule, CalendarAttendeeStatus, CalendarEvent } from "@tutao/entities/tutanota"
+import { AccountType } from "@tutao/entities/sys"
+import { clone } from "@tutao/meta"
 
 export interface IntervalOption {
 	value: number
@@ -572,7 +573,7 @@ export const createRepetitionValuesForWeekday = (
  * this is necessary for opening the RepeatEditor for a given event that has AdvancedRules configured.
  * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
  */
-export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: tutanotaTypeRefs.AdvancedRepeatRule[]): ByDayRule | null => {
+export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): ByDayRule | null => {
 	if (advancedRepeatRules.length === 0) return null
 
 	let interval: number = 0
@@ -673,7 +674,7 @@ export function formatEventTime({ endTime, startTime }: CalendarEventTimes, show
 	}
 }
 
-export function formatEventTimes(day: Date, event: tutanotaTypeRefs.CalendarEvent, zone: string): string {
+export function formatEventTimes(day: Date, event: CalendarEvent, zone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	} else {
@@ -806,7 +807,7 @@ export function layOutEvents(
 
 /** get an event that can be rendered to the screen. in day view, the event is returned as-is, otherwise it's stretched to cover each day
  * it occurs on completely. */
-function getCalculationEvent(event: tutanotaTypeRefs.CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): tutanotaTypeRefs.CalendarEvent {
+function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): CalendarEvent {
 	if (eventLayoutMode === EventLayoutMode.DayBasedColumn) {
 		const calcEvent = clone(event)
 
@@ -845,7 +846,7 @@ function getCalculationEvent(event: tutanotaTypeRefs.CalendarEvent, zone: string
  * There could be a case where they are flipped vertically, but we don't have them because earlier events will be always first. so the "left" top edge will
  * always be "above" the "right" top edge.
  */
-export function collidesWith(a: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent, b: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent): boolean {
+export function collidesWith(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
@@ -864,7 +865,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < layout_size.calendar_line_height
 }
 
-export function getEventColor(event: tutanotaTypeRefs.CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
+export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
 	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
 	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
 	return `${color}${alpha}`
@@ -926,7 +927,7 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
  * @param userController
  */
 export function getEventType(
-	existingEvent: Partial<tutanotaTypeRefs.CalendarEvent>,
+	existingEvent: Partial<CalendarEvent>,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	ownMailAddresses: ReadonlyArray<string>,
 	userController: UserController,
@@ -988,7 +989,7 @@ export function getEventType(
 	}
 }
 
-export function shouldDisplayEvent(e: tutanotaTypeRefs.CalendarEvent, hiddenCalendars: ReadonlySet<Id>): boolean {
+export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySet<Id>): boolean {
 	return !hiddenCalendars.has(assertNotNull(e._ownerGroup, "event without ownerGroup in getEventsOnDays"))
 }
 

@@ -1,16 +1,15 @@
-import { DataFile, tutanotaTypeRefs } from "@tutao/typerefs"
 import { utf8Uint8ArrayToString } from "@tutao/utils"
 import { getTimeZone } from "../date/CalendarUtils.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../ui/base/List.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import { component_size } from "../../gui/size.js"
-import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
-import { ButtonType } from "../../gui/base/Button.js"
+import { component_size } from "../../../ui/size.js"
+import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../../ui/base/Button.js"
 import m from "mithril"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { UserController } from "../../api/main/UserController.js"
@@ -19,7 +18,9 @@ import { renderCalendarColor } from "../../../calendar-app/calendar/gui/Calendar
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
 import { handleCalendarImport } from "./CalendarImporterDialog.js"
 import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { DataFile } from "@tutao/entities/tutanota"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {
@@ -42,12 +43,12 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
  * @param title
  */
 export function showEventsImportDialog(
-	events: tutanotaTypeRefs.CalendarEvent[],
+	events: CalendarEvent[],
 	okAction: (dialog: Dialog) => unknown,
 	title: MaybeTranslation,
 	calendarInfo: CalendarInfoBase,
 ) {
-	const renderConfig: RenderConfig<tutanotaTypeRefs.CalendarEvent, KindaCalendarRow> = {
+	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
@@ -99,12 +100,12 @@ export function showEventsImportDialog(
 							selectedItems: new Set(),
 						},
 						onLoadMore() {},
-						onRangeSelectionTowards(item: tutanotaTypeRefs.CalendarEvent) {},
+						onRangeSelectionTowards(item: CalendarEvent) {},
 						onRetryLoading() {},
-						onSingleSelection(item: tutanotaTypeRefs.CalendarEvent) {},
-						onSingleTogglingMultiselection(item: tutanotaTypeRefs.CalendarEvent) {},
+						onSingleSelection(item: CalendarEvent) {},
+						onSingleTogglingMultiselection(item: CalendarEvent) {},
 						onStopLoading() {},
-					} satisfies ListAttrs<tutanotaTypeRefs.CalendarEvent, KindaCalendarRow>),
+					} satisfies ListAttrs<CalendarEvent, KindaCalendarRow>),
 				),
 			]),
 		],

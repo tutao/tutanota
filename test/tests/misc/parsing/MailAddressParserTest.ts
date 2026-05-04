@@ -6,7 +6,7 @@ import {
 	parseMailtoUrl,
 	stringToNameAndMailAddress,
 } from "../../../../src/common/misc/parsing/MailAddressParser.js"
-import { isMailAddress } from "../../../../src/common/misc/FormatValidator.js"
+import { isMailAddress } from "../../../../src/utils/FormatUtils.js"
 
 o.spec("MailAddressParser", function () {
 	o("parseMailtoUrl single address", function () {

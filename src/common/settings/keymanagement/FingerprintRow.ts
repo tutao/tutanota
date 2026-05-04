@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Card } from "../../gui/base/Card"
-import { IconButton } from "../../gui/base/IconButton"
-import { Icons } from "../../gui/base/icons/Icons"
-import { ButtonSize } from "../../gui/base/ButtonSize"
-import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
+import { Card } from "../../../ui/base/Card"
+import { IconButton } from "../../../ui/base/IconButton"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { ButtonSize } from "../../../ui/base/ButtonSize"
+import { MonospaceTextDisplay } from "../../../ui/base/MonospaceTextDisplay"
 
-import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
-import { MaybeTranslation } from "../../misc/LanguageViewModel"
-import { theme } from "../../gui/theme"
+import { AllIcons, Icon, IconSize } from "../../../ui/base/Icon"
+import { MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
+import { theme } from "../../../ui/theme"
 
 type Action = {
 	onClick: (mailAddress: string) => void

@@ -2,7 +2,7 @@ import { PostLoginAction } from "../api/main/LoginController"
 import { WindowManager } from "./DesktopWindowManager"
 import { DesktopErrorHandler } from "./DesktopErrorHandler.js"
 import { DesktopNotifier } from "./notifications/DesktopNotifier.js"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoggedInEvent } from "../../native-bridge/common/PostLoginAction.js"
 
 export class DesktopPostLoginActions implements PostLoginAction {
 	constructor(

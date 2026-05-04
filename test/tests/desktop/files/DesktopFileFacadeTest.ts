@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { createDataFile } from "@tutao/typerefs"
+
 import { DesktopFileFacade, getMimeTypeForFile } from "../../../../src/common/desktop/files/DesktopFileFacade.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -17,6 +17,7 @@ import { CommandExecutor } from "../../../../src/common/desktop/CommandExecutor"
 import stream from "node:stream"
 import nodePath from "node:path"
 import { ProgrammingError } from "@tutao/app-env"
+import { createDataFile } from "../../../../src/common/api/worker/utils/DataFile.js"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 const USER_DATA_PATH = "/path/to/user/data"

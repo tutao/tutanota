@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../misc/LanguageViewModel.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { neverNull } from "@tutao/utils"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { attachDropdown } from "../gui/base/Dropdown.js"
-import { IconButton } from "../gui/base/IconButton.js"
-import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { attachDropdown } from "../../ui/base/Dropdown.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 
 export interface IdentifierRowAttrs {
 	name: string

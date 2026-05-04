@@ -1,7 +1,7 @@
 import m from "mithril"
-import { LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import { Dialog } from "../../common/gui/base/Dialog"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import { Dialog } from "../../ui/base/Dialog"
+import { RejectedSender } from "@tutao/entities/sys"
 
 /*
 label: TranslationKey | lazy<string>,
@@ -18,7 +18,7 @@ label: TranslationKey | lazy<string>,
 	maxWidth?: number,
 	class?: string,
 */
-export function showRejectedSendersInfoDialog(rejectedSender: sysTypeRefs.RejectedSender) {
+export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
 	const actionDialogProperties = {
 		title: "details_label",
 		child: {

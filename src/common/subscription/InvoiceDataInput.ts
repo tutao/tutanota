@@ -1,16 +1,16 @@
 import m, { Children, Component } from "mithril"
-import type { TranslationKey } from "../misc/LanguageViewModel"
-import { lang } from "../misc/LanguageViewModel"
-import { countryList } from "@tutao/app-env"
-import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import { renderCountryDropdown } from "../gui/base/GuiUtils"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
-import type { InvoiceData } from "@tutao/app-env"
+import type { TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { HtmlEditor, HtmlEditorMode } from "../../ui/editor/HtmlEditor"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import type { Country, InvoiceData } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices } from "@tutao/typerefs"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { renderCountryDropdown } from "../gui/CountryDropdown"
+import { LocationService, LocationServiceGetReturn } from "@tutao/entities/sys"
+import { Countries, CountryType } from "../gui/CountryList"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -19,7 +19,7 @@ export enum InvoiceDataInputLocation {
 
 export class InvoiceDataInput implements Component {
 	private readonly invoiceAddressComponent: HtmlEditor
-	public readonly selectedCountry: Stream<countryList.Country | null>
+	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
 
 	constructor(
@@ -27,7 +27,7 @@ export class InvoiceDataInput implements Component {
 		invoiceData: InvoiceData,
 		private readonly location = InvoiceDataInputLocation.Other,
 	) {
-		this.invoiceAddressComponent = new HtmlEditor()
+		this.invoiceAddressComponent = new HtmlEditor(getHtmlSanitizer())
 			.setStaticNumberOfLines(5)
 			.showBorders()
 			.setPlaceholderId("invoiceAddress_label")
@@ -66,9 +66,9 @@ export class InvoiceDataInput implements Component {
 	}
 
 	oncreate() {
-		locator.serviceExecutor.get(sysServices.LocationService, null).then((location: sysTypeRefs.LocationServiceGetReturn) => {
+		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
-				const country = countryList.Countries.find((c) => c.a === location.country)
+				const country = Countries.find((c) => c.a === location.country)
 
 				if (country) {
 					this.selectedCountry(country)
@@ -105,13 +105,13 @@ export class InvoiceDataInput implements Component {
 		return {
 			invoiceAddress: address,
 			country: selectedCountry,
-			vatNumber: selectedCountry?.t === countryList.CountryType.EU && this.businessUse ? this.vatNumber : "",
+			vatNumber: selectedCountry?.t === CountryType.EU && this.businessUse ? this.vatNumber : "",
 		}
 	}
 
 	private isVatIdFieldVisible(): boolean {
 		const selectedCountry = this.selectedCountry()
-		return this.businessUse && selectedCountry != null && selectedCountry.t === countryList.CountryType.EU
+		return this.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
 	public getAddress(): string {

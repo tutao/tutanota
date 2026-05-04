@@ -1,25 +1,25 @@
 import o, { assertThrows } from "@tutao/otest"
 import { random } from "@tutao/crypto"
 import {
+	ClientTypeReferenceResolver,
+	ModelMapper,
+	ServerTypeReferenceResolver,
 	assertAndSupplyCorrectAssociationClientCardinality,
 	assertCorrectValueCardinality,
 	convertDbToJsType,
 	convertJsToDbType,
 	isDefaultValue,
-	ModelMapper,
 	valueToDefault,
 } from "@tutao/instance-pipeline"
 import {
 	AssociationType,
 	Cardinality,
 	ClientModelParsedInstance,
-	ClientTypeReferenceResolver,
 	GENERATED_MIN_ID,
 	ModelAssociation,
 	ServerModelParsedInstance,
-	ServerTypeReferenceResolver,
 	ValueType,
-} from "@tutao/typerefs"
+} from "../../../src/meta"
 import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { ProgrammingError } from "@tutao/app-env"

@@ -1,12 +1,12 @@
 import type { DesktopNotifier } from "./notifications/DesktopNotifier"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
 import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "@tutao/utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import electron, { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
-import { BuildConfigKey, DesktopConfigKey } from "../../app-env/ConfigKeys"
+import { BuildConfigKey, DesktopConfigKey } from "@tutao/app-env"
 import { FsExports } from "./ElectronExportTypes.js"
 
 /**

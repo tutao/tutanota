@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../../common/gui/theme"
-import { px, size } from "../../../common/gui/size"
+import { theme } from "../../../ui/theme"
+import { px, size } from "../../../ui/size"
 
 interface DriveProgressBarAttrs {
 	percentage: number

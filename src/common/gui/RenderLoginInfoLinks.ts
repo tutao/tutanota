@@ -1,12 +1,13 @@
 import m, { Children } from "mithril"
-import { ExternalLink } from "./base/ExternalLink.js"
-import { InfoLink, lang } from "../misc/LanguageViewModel.js"
-import { createDropdown } from "./base/Dropdown.js"
+import { ExternalLink } from "../../ui/base/ExternalLink.js"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel.js"
+import { createDropdown } from "../../ui/base/Dropdown.js"
 import { mapNullable } from "@tutao/utils"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
+import { getWhitelabelCustomizations } from "../../ui/utils/WhitelabelUtils.js"
 import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
-import { LanguageDropdown } from "./LanguageDropdown"
+import { LanguageDropdown } from "../settings/LanguageDropdown"
 import { isApp } from "@tutao/app-env"
+import { deviceConfig } from "../misc/DeviceConfig"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
@@ -33,7 +34,7 @@ export function renderInfoLinks(): Children {
 					})
 				: null,
 
-			m(LanguageDropdown, { variant: "Link" }),
+			m(LanguageDropdown, { variant: "Link", deviceConfig }),
 		),
 		m(
 			".mt-16.mb-16.center.small.full-width",

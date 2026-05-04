@@ -5,12 +5,13 @@ import {
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { splitArrayAt, splitUint8Array } from "@tutao/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
 import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/app-env"
+import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("SpamMailProcessor Tests", () => {
 	let spamMailProcessor: SpamMailProcessor
@@ -41,7 +42,7 @@ o.spec("SpamMailProcessor Tests", () => {
 		datum.serverClassificationData = null
 		const { uploadableVectorLegacy } = await createModelInputAndUploadableVectors(datum)
 		// clientSpamTrainingDatum uploaded by old clients has vectorNewFormat set to null
-		const clientSpamTrainingDatum: tutanotaTypeRefs.ClientSpamTrainingDatum = createTestEntity(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, {
+		const clientSpamTrainingDatum: ClientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
 			vectorLegacy: uploadableVectorLegacy,
 			vectorWithServerClassifiers: null,
 		})
@@ -57,7 +58,7 @@ o.spec("SpamMailProcessor Tests", () => {
 		datum.serverClassificationData = "1,4:0,6" // 4th classifier: spam, 6th classifier: not spam
 		// 00.00.00.11.00.01-0000000
 		const { modelInput: expectedModelInput, uploadableVectorLegacy, uploadableVector } = await createModelInputAndUploadableVectors(datum)
-		const clientSpamTrainingDatum: tutanotaTypeRefs.ClientSpamTrainingDatum = createTestEntity(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, {
+		const clientSpamTrainingDatum: ClientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
 			vectorLegacy: uploadableVectorLegacy,
 			vectorWithServerClassifiers: uploadableVector,
 		})

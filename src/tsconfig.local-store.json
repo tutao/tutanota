@@ -15,16 +15,19 @@
 			"path": "tsconfig.app-env.json"
 		},
 		{
-			"path": "tsconfig.crypto.json"
+			"path": "tsconfig.crypto-primitives.json"
 		},
 		{
-			"path": "tsconfig.typerefs.json"
-		},
-		{
-			"path": "tsconfig.native-bridge.json"
+			"path": "tsconfig.meta.json"
 		},
 		{
 			"path": "tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "tsconfig.native-bridge.json"
 		}
 	]
 }

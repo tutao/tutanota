@@ -1,15 +1,15 @@
 import { NewsListItem } from "../NewsListItem.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children } from "mithril"
 import { NewsModel } from "../NewsModel.js"
 import { NativePushServiceApp } from "../../../native/NativePushServiceApp.js"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/common"
+import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
 import { assertNotNull } from "@tutao/utils"
-import { Button, ButtonType } from "../../../gui/base/Button.js"
-import { lang } from "../../LanguageViewModel.js"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { NotificationContentSelector } from "../../../../mail-app/settings/NotificationContentSelector.js"
 import { isApp } from "@tutao/app-env"
-import { SystemPermissionHandler } from "../../../native/main/SystemPermissionHandler"
+import { NewsId } from "@tutao/entities/tutanota"
+import { SystemPermissionHandler } from "../../../native/SystemPermissionHandler"
 
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null
@@ -20,7 +20,7 @@ export class RichNotificationsNews implements NewsListItem {
 		private readonly systemPermissionHandler: SystemPermissionHandler,
 	) {}
 
-	async isShown(_newsId: tutanotaTypeRefs.NewsId): Promise<boolean> {
+	async isShown(_newsId: NewsId): Promise<boolean> {
 		return (
 			isApp() &&
 			this.pushApp != null &&
@@ -28,7 +28,7 @@ export class RichNotificationsNews implements NewsListItem {
 		)
 	}
 
-	render(newsId: tutanotaTypeRefs.NewsId): Children {
+	render(newsId: NewsId): Children {
 		// if we got here then we must have it
 		const pushApp = assertNotNull(this.pushApp)
 		const systemPermissionHandler = assertNotNull(this.systemPermissionHandler)
@@ -58,7 +58,7 @@ export class RichNotificationsNews implements NewsListItem {
 		])
 	}
 
-	private async acknowledge(newsId: tutanotaTypeRefs.NewsId) {
+	private async acknowledge(newsId: NewsId) {
 		await this.newsModel.acknowledgeNews(newsId.newsItemId)
 		m.redraw()
 	}

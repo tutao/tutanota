@@ -1,20 +1,22 @@
 import o, { mapToObject, spy } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/network/UserFacade.js"
+import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { ServiceExecutor } from "@tutao/network"
 import { matchers, object, when } from "testdouble"
 import { MailAddressFacade, TokenBucket } from "../../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { arrayEquals, freshVersioned } from "@tutao/utils"
-import { EntityRestClientLoadOptions } from "@tutao/network"
-import { AdminKeyLoaderFacade } from "../../../../../src/network/crypto/facades/AdminKeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
 import { DateProvider } from "../../../../../src/utils/DateProvider"
-import { sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 
+import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
+import { EntityRestClientLoadOptions } from "../../../../../src/network/EntityRestClient"
+import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
+
+import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade
-	let serviceExecutor: ServiceExecutor
+	let serviceExecutor: IServiceExecutor
 	let nonCachingEntityClient: EntityClient
 	let dateProvider: DateProvider
 
@@ -35,18 +37,18 @@ o.spec("MailAddressFacadeTest", function () {
 			const mailGroupId = "mailGroupId"
 			const viaUser = "viaUser"
 			const mailboxPropertiesId = "mailboxPropertiesId"
-			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: mailboxPropertiesId,
 			})
 			const mailGroupKey = freshVersioned([1, 2, 3])
-			const mailboxProperties = createTestEntity(tutanotaTypeRefs.MailboxPropertiesTypeRef, {
+			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				mailAddressProperties: [
-					createTestEntity(tutanotaTypeRefs.MailAddressPropertiesTypeRef, {
+					createTestEntity(MailAddressPropertiesTypeRef, {
 						mailAddress: "a@a.com",
 						senderName: "a",
 					}),
-					createTestEntity(tutanotaTypeRefs.MailAddressPropertiesTypeRef, {
+					createTestEntity(MailAddressPropertiesTypeRef, {
 						mailAddress: "b@b.com",
 						senderName: "b",
 					}),
@@ -54,10 +56,10 @@ o.spec("MailAddressFacadeTest", function () {
 			})
 
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
-			when(nonCachingEntityClient.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
+			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.load(
-					tutanotaTypeRefs.MailboxPropertiesTypeRef,
+					MailboxPropertiesTypeRef,
 					mailboxPropertiesId,
 					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
 						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)
@@ -77,44 +79,44 @@ o.spec("MailAddressFacadeTest", function () {
 			const mailGroupId = "mailGroupId"
 			const viaUser = "viaUser"
 			const mailboxPropertiesId = "mailboxProeprtiesId"
-			const mailboxGroupRoot = createTestEntity(tutanotaTypeRefs.MailboxGroupRootTypeRef, {
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: null,
 			})
 			const mailGroupKey = freshVersioned([1, 2, 3])
-			const mailboxProperties = createTestEntity(tutanotaTypeRefs.MailboxPropertiesTypeRef, {
+			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				_id: mailboxPropertiesId,
 				_ownerGroup: mailGroupId,
 				reportMovedMails: "",
 				mailAddressProperties: [],
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
+			const user = createTestEntity(UserTypeRef, {
 				_id: viaUser,
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef, {
 					groupInfo: userGroupInfoId,
 				}),
 			})
-			const userGroupInfo = createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+			const userGroupInfo = createTestEntity(GroupInfoTypeRef, {
 				_id: userGroupInfoId,
 				name: "User name",
 				mailAddress: "primary@example.com",
 				mailAddressAliases: [
-					createTestEntity(sysTypeRefs.MailAddressAliasTypeRef, {
+					createTestEntity(MailAddressAliasTypeRef, {
 						mailAddress: "a@a.com",
 						enabled: true,
 					}),
 				],
 			})
 
-			when(nonCachingEntityClient.load(sysTypeRefs.UserTypeRef, viaUser)).thenResolve(user)
-			when(nonCachingEntityClient.load(sysTypeRefs.GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
+			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
+			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
-			when(nonCachingEntityClient.load(tutanotaTypeRefs.MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
+			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, { ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
 			when(
 				nonCachingEntityClient.load(
-					tutanotaTypeRefs.MailboxPropertiesTypeRef,
+					MailboxPropertiesTypeRef,
 					mailboxPropertiesId,
 					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
 						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)

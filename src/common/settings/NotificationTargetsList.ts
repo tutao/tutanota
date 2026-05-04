@@ -1,5 +1,5 @@
-import { lang } from "../misc/LanguageViewModel.js"
-import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander.js"
 import m, { Child, ChildArray, Children, ClassComponent, Component, Vnode } from "mithril"
 import Stream from "mithril/stream"
 

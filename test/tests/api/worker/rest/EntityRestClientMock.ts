@@ -1,6 +1,5 @@
 import { EntityRestClient, EntityRestClientLoadOptions } from "@tutao/network"
 import {
-	_verifyType,
 	BlobElementEntity,
 	clone,
 	compareNewestFirst,
@@ -18,23 +17,23 @@ import {
 	SomeEntity,
 	timestampToGeneratedId,
 	Type,
-	TypeModelResolver,
 	TypeRef,
-} from "@tutao/typerefs"
+} from "../../../../../src/meta"
+import { _verifyType } from "@tutao/instance-pipeline"
 import * as restError from "@tutao/rest-client/error"
 import { downcast } from "@tutao/utils"
-import { AuthDataProvider } from "../../../../../src/network/UserFacade.js"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { getIdOfInstance } from "@tutao/network"
+import { LoggedInUserProvider, TypeModelResolver } from "@tutao/instance-pipeline"
+import { getIdOfInstance } from "@tutao/meta"
 
-const authDataProvider: AuthDataProvider = {
+const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {
 		return {}
 	},
 	isFullyLoggedIn(): boolean {
 		return true
 	},
-}
+})
 
 export class EntityRestClientMock extends EntityRestClient {
 	_entities: Record<Id, ElementEntity | Error> = {}
@@ -48,7 +47,15 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	constructor() {
 		const typeModelResolver = clientInitializedTypeModelResolver()
-		super(authDataProvider, downcast({}), () => downcast({}), instancePipelineFromTypeModelResolver(typeModelResolver), downcast({}), typeModelResolver)
+		super(
+			authDataProvider,
+			downcast({}),
+			() => downcast({}),
+			instancePipelineFromTypeModelResolver(typeModelResolver),
+			downcast({}),
+			typeModelResolver,
+			() => downcast({}),
+		)
 		this._lastIdTimestamp = Date.now()
 		this._typeModelResolver = typeModelResolver
 	}

@@ -1,52 +1,53 @@
 import o from "@tutao/otest"
 import { searchInTemplates } from "../../../src/mail-app/templates/model/TemplatePopupModel.js"
 import { createTestEntity } from "../TestUtils.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
+import { EmailTemplate, EmailTemplateContentTypeRef, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("TemplateSearchFilter", function () {
-	const abcTemplate = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {
+	const abcTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "aBc_tag",
 		title: "aBc_title",
 		contents: [
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "aBc english",
 			}),
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "aBc deutsch",
 			}),
 		],
 	})
-	const defTemplate = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {
+	const defTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "dEf_tag",
 		title: "dEf_title",
 		contents: [
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "dEf english",
 			}),
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "dEf deutsch",
 			}),
 		],
 	})
-	const abcdefTemplate = createTestEntity(tutanotaTypeRefs.EmailTemplateTypeRef, {
+	const abcdefTemplate = createTestEntity(EmailTemplateTypeRef, {
 		tag: "abcdef_tag",
 		title: "abcdef_title",
 		contents: [
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "en",
 				text: "abcdef english",
 			}),
-			createTestEntity(tutanotaTypeRefs.EmailTemplateContentTypeRef, {
+			createTestEntity(EmailTemplateContentTypeRef, {
 				languageCode: "de",
 				text: "abcdef deutsch",
 			}),
 		],
 	})
-	const emailTemplates: Array<tutanotaTypeRefs.EmailTemplate> = [abcTemplate, defTemplate, abcdefTemplate]
+	const emailTemplates: Array<EmailTemplate> = [abcTemplate, defTemplate, abcdefTemplate]
 	o("find nothing ", function () {
 		o(searchInTemplates("xyz", emailTemplates)).deepEquals([])
 		o(searchInTemplates("123 xyz", emailTemplates)).deepEquals([])

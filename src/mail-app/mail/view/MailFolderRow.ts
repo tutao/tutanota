@@ -1,16 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { NavButtonAttrs } from "../../../common/gui/base/NavButton.js"
-import { isNavButtonSelected, NavButton } from "../../../common/gui/base/NavButton.js"
-import { CounterBadge } from "../../../common/gui/base/CounterBadge"
-import { theme } from "../../../common/gui/theme"
-import { component_size, px, size } from "../../../common/gui/size"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
-import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { client } from "../../../app-env/boot/ClientDetector.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import type { NavButtonAttrs } from "../../../ui/base/NavButton.js"
+import { isNavButtonSelected, NavButton } from "../../../ui/base/NavButton.js"
+import { CounterBadge } from "../../../ui/base/CounterBadge"
+import { theme } from "../../../ui/theme"
+import { component_size, px, size } from "../../../ui/size"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { Icon, IconSize } from "../../../ui/base/Icon.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { client } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { getFolderIcon } from "./MailGuiUtils"
+import { MailSet } from "@tutao/entities/tutanota"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -19,7 +19,7 @@ export type MailFolderRowAttrs = {
 	expanded: boolean | null
 	indentationLevel: number
 	onExpanderClick: (event: Event) => unknown
-	folder: tutanotaTypeRefs.MailSet
+	folder: MailSet
 	hasChildren: boolean
 	onSelectedPath: boolean
 	numberOfPreviousRows: number

@@ -1,29 +1,43 @@
+import { SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import {
+	createEmailSenderListElement,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	CustomerPropertiesTypeRef,
+	CustomerServerProperties,
+	CustomerServerPropertiesTypeRef,
+	CustomerTypeRef,
+	DomainInfo,
+	GroupType,
+	GroupTypeRef,
+	RejectedSenderTypeRef,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import m, { Children } from "mithril"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
-import { InfoLink, lang } from "../../common/misc/LanguageViewModel"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { assertMainOrNode, DAY_IN_MILLIS, GroupType, OperationType, SpamRuleFieldType, SpamRuleType, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, DAY_IN_MILLIS, UpgradePromptType } from "@tutao/app-env"
 import {
-	entityUpdateUtils,
+	EntityIdEncoding,
 	GENERATED_MAX_ID,
 	generatedIdToTimestamp,
 	getElementId,
-	getSpamRuleField,
-	EntityIdEncoding,
+	OperationType,
 	sortCompareByReverseId,
-	sysTypeRefs,
 	timestampToGeneratedId,
-} from "@tutao/typerefs"
+} from "../../meta"
 import stream from "mithril/stream"
-import { formatDateTime } from "../../common/misc/Formatter"
-import { Dialog } from "../../common/gui/base/Dialog"
+import { formatDateTime } from "../../ui/utils/Formatter"
+import { Dialog } from "../../ui/base/Dialog"
 import * as restError from "@tutao/rest-client/error"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
-import { Icons } from "../../common/gui/base/icons/Icons"
-import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import type { TableAttrs, TableLineAttrs } from "../../common/gui/base/Table.js"
-import { ColumnWidth, createRowActions } from "../../common/gui/base/Table.js"
-import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../common/gui/base/Dropdown.js"
+import { Icons } from "../../ui/base/icons/Icons"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
+import type { TableAttrs, TableLineAttrs } from "../../ui/base/Table.js"
+import { ColumnWidth, createRowActions } from "../../ui/base/Table.js"
+import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../ui/base/Dropdown.js"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { showDnsCheckDialog } from "./CheckDomainDnsStatusDialog"
 import { showRejectedSendersInfoDialog } from "./RejectedSendersInfoDialog"
@@ -32,11 +46,13 @@ import { getUserGroupMemberships } from "../../network/GroupUtils"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { getDomainPart } from "../../common/misc/parsing/MailAddressParser"
 import { locator } from "../../common/api/main/CommonLocator"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { getCustomMailDomains } from "../../common/api/common/utils/CustomerUtils.js"
 import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../common/settings/AccountMaintenanceSettings.js"
 import type { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
+import { getSpamRuleField } from "../mail/MailUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -45,9 +61,9 @@ const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
 const REJECTED_SENDERS_MAX_NUMBER = 100
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
-	private readonly props = stream<Readonly<sysTypeRefs.CustomerServerProperties>>()
-	private customer: sysTypeRefs.Customer | null = null
-	private readonly customerInfo = new LazyLoaded<sysTypeRefs.CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
+	private readonly props = stream<Readonly<CustomerServerProperties>>()
+	private customer: Customer | null = null
+	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => locator.logins.getUserController().loadCustomerInfo())
 
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
@@ -62,8 +78,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly domainDnsStatus: Record<string, DomainDnsStatus> = {}
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
 	constructor() {
@@ -202,18 +218,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const senderListId = customer.rejectedSenders.items
 			const startId = timestampToGeneratedId(Date.now() - REJECTED_SENDERS_TO_LOAD_MS)
 			const loadingPromise = locator.entityClient
-				.loadRange(sysTypeRefs.RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
+				.loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
 				.then((rejectedSenders) => {
 					if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
 						// There are more entries available, we need to load from GENERATED_MAX_ID.
 						// we don't need to sort here because we load in reverse direction
-						return locator.entityClient.loadRange(
-							sysTypeRefs.RejectedSenderTypeRef,
-							senderListId,
-							GENERATED_MAX_ID,
-							REJECTED_SENDERS_MAX_NUMBER,
-							true,
-						)
+						return locator.entityClient.loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
 					} else {
 						// ensure that rejected senders are sorted in descending order
 						return rejectedSenders.sort((a, b) => sortCompareByReverseId(a, b, EntityIdEncoding.Base64Ext))
@@ -248,7 +258,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 										click: () => {
 											const domainPart = getDomainPart(rejectedSender.senderMailAddress)
 											showAddSpamRuleDialog(
-												sysTypeRefs.createEmailSenderListElement({
+												createEmailSenderListElement({
 													value: domainPart ? domainPart : "",
 													type: SpamRuleType.WHITELIST,
 													field: SpamRuleFieldType.FROM,
@@ -354,7 +364,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private async editCatchAllMailbox(domainInfo: sysTypeRefs.DomainInfo) {
+	private async editCatchAllMailbox(domainInfo: DomainInfo) {
 		const groupDatas = await showProgressDialog("pleaseWait_msg", this.loadMailboxGroupDataAndCatchAllId(domainInfo))
 		const initialValue = groupDatas.selected?.groupId ?? null
 		const selectedMailGroupId = await Dialog.showDropDownSelectionDialog(
@@ -379,7 +389,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 	}
 
-	private async loadMailboxGroupDataAndCatchAllId(domainInfo: sysTypeRefs.DomainInfo): Promise<{
+	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{
 		available: Array<GroupData>
 		selected: GroupData | null
 	}> {
@@ -389,10 +399,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		const allMailGroups = teamMailGroups.concat(userMailGroups)
 		let catchAllMailGroupId: Id | null = null
 		if (domainInfo.catchAllMailGroup) {
-			const catchAllGroup = await locator.entityClient.load(sysTypeRefs.GroupTypeRef, domainInfo.catchAllMailGroup)
+			const catchAllGroup = await locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
 			if (catchAllGroup.type === GroupType.User) {
 				// the catch all group may be a user group, so load the mail group in that case
-				const user = await locator.entityClient.load(sysTypeRefs.UserTypeRef, neverNull(catchAllGroup.user))
+				const user = await locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
 				catchAllMailGroupId = getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
 			} else {
 				catchAllMailGroupId = domainInfo.catchAllMailGroup
@@ -405,7 +415,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private deleteCustomDomain(domainInfo: sysTypeRefs.DomainInfo) {
+	private deleteCustomDomain(domainInfo: DomainInfo) {
 		Dialog.confirm(
 			lang.getTranslation("confirmCustomDomainDeletion_msg", {
 				"{domain}": domainInfo.domain,
@@ -428,17 +438,17 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		this.accountMaintenanceUpdateNotifier?.(updates)
 
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				return this.updateCustomerServerProperties()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this.customerInfo.reset()
 
 				return this.updateDomains()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerPropertiesTypeRef, update)) {
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				this.customerProperties.reset()
 				this.customerProperties.getAsync().then(m.redraw)
 			}

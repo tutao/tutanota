@@ -1,9 +1,7 @@
-import { clone, GENERATED_MIN_ID, tutanotaTypeRefs } from "@tutao/typerefs"
 import { DateTime } from "luxon"
 import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
-import { CalendarAttendeeStatus, CalendarMethod, Keys, ProgrammingError, SECOND_MS, TabIndex } from "@tutao/app-env"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
 import {
@@ -17,37 +15,34 @@ import {
 	TimeScaleTuple,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
 import { Time } from "../../../common/calendar/date/Time"
-import { theme } from "../../../common/gui/theme"
-import { styles } from "../../../common/gui/styles"
-import { layout_size, px, size } from "../../../common/gui/size"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { theme } from "../../../ui/theme"
+import { styles } from "../../../ui/styles"
+import { layout_size, px, size } from "../../../ui/size"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { collidesWith, formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { BannerButton } from "../../../common/gui/base/buttons/BannerButton"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { BannerButton } from "../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
 import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
-import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui/base/ExpandableTextArea.js"
-import { ExpanderPanel } from "../../../common/gui/base/Expander.js"
-import { formatDateTime, formatTime } from "../../../common/misc/Formatter.js"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../ui/base/ExpandableTextArea.js"
+import { ExpanderPanel } from "../../../ui/base/Expander.js"
+import { formatDateTime, formatTime } from "../../../ui/utils/Formatter.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
-import { AriaRole } from "../../../common/gui/AriaUtils"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { AriaRole } from "../../../ui/AriaUtils"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { CalendarAttendeeStatus, CalendarEvent, CalendarMethod, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
+import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-env"
+import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
-	sendResponse: (
-		event: IcsCalendarEvent,
-		recipient: string,
-		status: CalendarAttendeeStatus,
-		previousMail: tutanotaTypeRefs.Mail,
-		comment?: string,
-	) => Promise<boolean>
+	sendResponse: (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
 	usesAmPmTimeFormat: boolean
 }
 
@@ -78,7 +73,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			return m(EventBannerSkeleton)
 		}
 
-		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: tutanotaTypeRefs.Mail) => {
+		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
 			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, true)
@@ -314,7 +309,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		this.displayConflictingAgenda = !this.displayConflictingAgenda
 	}
 
-	private conflictingAgenda(agenda: InviteAgenda, event: tutanotaTypeRefs.CalendarEvent): m.Children {
+	private conflictingAgenda(agenda: InviteAgenda, event: CalendarEvent): m.Children {
 		return m(".selectable", [
 			agenda.regularEvents && agenda.regularEvents.length > 0
 				? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents, agenda.conflictCount > 1)
@@ -405,7 +400,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private buildReplySection(
 		agenda: Map<string, InviteAgenda>,
 		icsCalendarEvent: IcsCalendarEvent,
-		mail: tutanotaTypeRefs.Mail,
+		mail: Mail,
 		recipient: string,
 		method: CalendarMethod,
 		sendResponse: EventBannerImplAttrs["sendResponse"],
@@ -419,7 +414,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				console.warn("Trying to build a reply section for an event we were not invited")
 				return null
 			}
-			ownAttendee = tutanotaTypeRefs.createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
+			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
 		}
 
 		const children: Children = [] as ChildArray
@@ -489,7 +484,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		} satisfies ExpandableTextAreaAttrs)
 	}
 
-	private handleViewOnCalendarAction(event: tutanotaTypeRefs.CalendarEvent | undefined) {
+	private handleViewOnCalendarAction(event: CalendarEvent | undefined) {
 		if (!event) {
 			throw new ProgrammingError("Tried to render 'View on Calendar' button, but we are missing the corresponding event")
 		}
@@ -498,7 +493,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
-	private findShortestDuration(a: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent, b: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent): number {
+	private findShortestDuration(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): number {
 		const durationA = getDurationInMinutes(a)
 		const durationB = getDurationInMinutes(b)
 		return durationA < durationB ? durationA : durationB
@@ -641,7 +636,7 @@ export async function loadEventsAroundInvite(
 			})),
 		}
 
-		const oneHour = SECOND_MS * 3600
+		const oneHour = SECOND_IN_MILLIS * 3600
 		if (!closestConflictingEventBeforeStartTime) {
 			const eventBefore = normalEvents
 				.sort((a, b) => b.event.startTime.getTime() - a.event.startTime.getTime())
@@ -689,11 +684,11 @@ export async function loadEventsAroundInvite(
 	return eventToAgenda
 }
 
-function getDurationInMinutes(ev: tutanotaTypeRefs.CalendarEvent | IcsCalendarEvent) {
+function getDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
 	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }
 
-function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: tutanotaTypeRefs.CalendarEvent) {
+function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
 	if (!existingEvent) {
 		return
 	}

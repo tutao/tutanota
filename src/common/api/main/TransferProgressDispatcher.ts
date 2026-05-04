@@ -1,5 +1,5 @@
 import { remove } from "@tutao/utils"
-import { DownloadProgressInfo, UploadProgressInfo } from "../common/drive/DriveTypes"
+import { DownloadProgressInfo, UploadProgressInfo } from "../../../entities/drive/Utils"
 
 export type UploadListener = (info: UploadProgressInfo) => unknown
 export type DownloadListener = (info: DownloadProgressInfo) => unknown

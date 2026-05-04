@@ -1,0 +1,106 @@
+/* generated file, don't edit. */
+
+import { IpcClientRect } from "@tutao/native-bridge/generatedIpc/types"
+import { UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
+import { DownloadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile } from "@tutao/native-bridge/generatedIpc/types"
+/**
+ * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
+ */
+export interface FileFacade {
+	/**
+	 * Opens the file with the built-in viewer or external program.
+	 */
+	open(location: string, mimeType: string): Promise<void>
+
+	/**
+	 * Opens OS file picker. Returns the list of URIs for the selected files. add a list of extensions (without dot) to filter the options.
+	 */
+	openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null, isFileOnly: boolean | null): Promise<ReadonlyArray<string>>
+
+	/**
+	 * Opens OS file picker for selecting a folder. Only on desktop.
+	 */
+	openFolderChooser(): Promise<string | null>
+
+	/**
+	 * Opens OS file picker for selecting either a file or folder for Email Import. Works only on macOS
+	 */
+	openMacImportFileChooser(): Promise<ReadonlyArray<string>>
+
+	deleteFile(file: string): Promise<void>
+
+	getName(file: string): Promise<string>
+
+	getMimeType(file: string): Promise<string>
+
+	/**
+	 * get the absolute size in bytes of the file at the given location
+	 */
+	getSize(file: string): Promise<number>
+
+	/**
+	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
+	 */
+	putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string>
+
+	upload(fileUrl: string, targetUrl: string, method: string, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse>
+
+	/**
+	 * abort a transfer started by FileFacade#upload
+	 */
+	abortUpload(fileId: string): Promise<void>
+
+	/**
+	 * download an encrypted file to the file system and return the location of the data
+	 */
+	download(sourceUrl: string, filename: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse>
+
+	/**
+	 * abort a transfer started by FileFacade#download
+	 */
+	abortDownload(fileId: string): Promise<void>
+
+	/**
+	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
+	 */
+	hashFile(fileUri: string): Promise<string>
+
+	clearFileData(): Promise<void>
+
+	/**
+	 * given a list of chunk file locations, will re-join them in order to reconstruct a single file and returns the location of that file on disk.
+	 * while joining, each processed chunk will be immediately deleted
+	 */
+	joinFiles(filename: string, files: ReadonlyArray<string>): Promise<string>
+
+	/**
+	 * split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.
+	 */
+	splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<ReadonlyArray<string>>
+
+	/**
+	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
+	 */
+	writeTempDataFile(file: DataFile): Promise<string>
+
+	/**
+	 * Save given file in given path relative to app data folder
+	 */
+	writeToAppDir(content: Uint8Array, path: string): Promise<void>
+
+	/**
+	 * Read file from given path relative to app data folder
+	 */
+	readFromAppDir(path: string): Promise<Uint8Array>
+
+	/**
+	 * Delete file from given path relative to app data folder
+	 */
+	deleteFromAppDir(path: string): Promise<void>
+
+	/**
+	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
+	 */
+	readDataFile(filePath: string): Promise<DataFile | null>
+}

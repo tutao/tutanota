@@ -1,10 +1,10 @@
-import { LegacyTextField, LegacyTextFieldType } from "../../gui/base/LegacyTextField.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { lang } from "../../misc/LanguageViewModel"
+import { LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
+import { Dialog } from "../../../ui/base/Dialog"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { Icons } from "../../gui/base/icons/Icons"
-import { IconButton } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 
 export type WhitelabelCustomMetaTagsSettingsAttrs = {
 	metaTags: string

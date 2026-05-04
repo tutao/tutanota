@@ -1,0 +1,15 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["entities/base", "../types/"],
+	"compilerOptions": {
+		"rootDir": "entities/base",
+		"outDir": "../build/entities/base",
+		"tsBuildInfoFile": "../build/entities/base/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.meta.json"
+		}
+	]
+}

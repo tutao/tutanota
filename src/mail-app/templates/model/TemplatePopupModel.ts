@@ -1,6 +1,5 @@
-import type { LanguageCode } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { entityUpdateUtils, getElementId, getEtId, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import type { LanguageCode } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../network/EntityClient"
@@ -9,7 +8,10 @@ import { LazyLoaded, promiseMap, SortedArray } from "@tutao/utils"
 import type { TemplateGroupInstance } from "./TemplateGroupModel.js"
 import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 import { EventController } from "../../../common/api/main/EventController.js"
-import { OperationType } from "@tutao/app-env"
+import { EmailTemplate, EmailTemplateContent, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { getElementId, getEtId, isSameId, OperationType } from "@tutao/meta"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -21,18 +23,18 @@ export const SELECT_NEXT_TEMPLATE = "next"
 export const SELECT_PREV_TEMPLATE = "previous"
 
 // sort first by name then by tag
-function compareTemplatesForSort(template1: tutanotaTypeRefs.EmailTemplate, template2: tutanotaTypeRefs.EmailTemplate) {
+function compareTemplatesForSort(template1: EmailTemplate, template2: EmailTemplate) {
 	const titleComparison = template1.title.localeCompare(template2.title)
 	return titleComparison === 0 ? template1.tag.localeCompare(template2.tag) : titleComparison
 }
 
 export class TemplatePopupModel {
-	_allTemplates: SortedArray<tutanotaTypeRefs.EmailTemplate>
-	readonly searchResults: Stream<ReadonlyArray<tutanotaTypeRefs.EmailTemplate>>
-	readonly selectedTemplate: Stream<tutanotaTypeRefs.EmailTemplate | null>
+	_allTemplates: SortedArray<EmailTemplate>
+	readonly searchResults: Stream<ReadonlyArray<EmailTemplate>>
+	readonly selectedTemplate: Stream<EmailTemplate | null>
 	initialized: LazyLoaded<TemplatePopupModel>
 	readonly _eventController: EventController
-	readonly _entityEventReceived: entityUpdateUtils.EntityEventsListener
+	readonly _entityEventReceived: EntityEventsListener
 	readonly _logins: LoginController
 	readonly _entityClient: EntityClient
 	_groupInstances: Array<TemplateGroupInstance>
@@ -44,8 +46,8 @@ export class TemplatePopupModel {
 		this._logins = logins
 		this._entityClient = entityClient
 		this._allTemplates = SortedArray.empty(compareTemplatesForSort)
-		this.searchResults = stream<ReadonlyArray<tutanotaTypeRefs.EmailTemplate>>([])
-		this.selectedTemplate = stream<tutanotaTypeRefs.EmailTemplate | null>(null)
+		this.searchResults = stream<ReadonlyArray<EmailTemplate>>([])
+		this.selectedTemplate = stream<EmailTemplate | null>(null)
 		this._selectedContentLanguage = lang.code
 		this._searchFilter = new TemplateSearchFilter()
 		this._groupInstances = []
@@ -54,7 +56,7 @@ export class TemplatePopupModel {
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
 				return this._entityUpdate(updates, eventOwnerGroupId)
 			},
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		}
 
 		this.initialized = new LazyLoaded(() => {
@@ -90,19 +92,19 @@ export class TemplatePopupModel {
 		this._eventController.removeEntityListener(this._entityEventReceived)
 	}
 
-	isSelectedTemplate(template: tutanotaTypeRefs.EmailTemplate): boolean {
+	isSelectedTemplate(template: EmailTemplate): boolean {
 		return this.selectedTemplate() === template
 	}
 
-	getAllTemplates(): ReadonlyArray<tutanotaTypeRefs.EmailTemplate> {
+	getAllTemplates(): ReadonlyArray<EmailTemplate> {
 		return this._allTemplates.array
 	}
 
-	getSelectedTemplate(): tutanotaTypeRefs.EmailTemplate | null {
+	getSelectedTemplate(): EmailTemplate | null {
 		return this.selectedTemplate()
 	}
 
-	getSelectedContent(): tutanotaTypeRefs.EmailTemplateContent | null {
+	getSelectedContent(): EmailTemplateContent | null {
 		const selectedTemplate = this.selectedTemplate()
 		return (
 			selectedTemplate &&
@@ -120,7 +122,7 @@ export class TemplatePopupModel {
 		return this.searchResults().indexOf(selectedTemplate)
 	}
 
-	setSelectedTemplate(template: tutanotaTypeRefs.EmailTemplate | null) {
+	setSelectedTemplate(template: EmailTemplate | null) {
 		this.selectedTemplate(template)
 	}
 
@@ -156,17 +158,17 @@ export class TemplatePopupModel {
 		return false
 	}
 
-	findTemplateWithTag(selectedText: string): tutanotaTypeRefs.EmailTemplate | null {
+	findTemplateWithTag(selectedText: string): EmailTemplate | null {
 		const tag = selectedText.substring(TEMPLATE_SHORTCUT_PREFIX.length) // remove TEMPLATE_SHORTCUT_PREFIX from selected text
 
 		return this._allTemplates.array.find((template) => template.tag === tag) ?? null
 	}
 
-	_entityUpdate(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
+	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.EmailTemplateTypeRef, update)) {
+			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					return this._entityClient.load(tutanotaTypeRefs.EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
 						this._allTemplates.insert(template)
 
 						this._rerunSearch()
@@ -174,7 +176,7 @@ export class TemplatePopupModel {
 						this.setSelectedTemplate(template)
 					})
 				} else if (update.operation === OperationType.UPDATE) {
-					return this._entityClient.load(tutanotaTypeRefs.EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId]).then((template) => {
 						this._allTemplates.removeFirst((t) => isSameId(getElementId(t), update.instanceId))
 
 						this._allTemplates.insert(template)
@@ -218,14 +220,14 @@ export class TemplatePopupModel {
 	}
 }
 
-export function loadTemplateGroupInstances(memberships: Array<sysTypeRefs.GroupMembership>, entityClient: EntityClient): Promise<Array<TemplateGroupInstance>> {
+export function loadTemplateGroupInstances(memberships: Array<GroupMembership>, entityClient: EntityClient): Promise<Array<TemplateGroupInstance>> {
 	return promiseMap(memberships, (membership) => loadTemplateGroupInstance(membership, entityClient))
 }
 
-export function loadTemplateGroupInstance(groupMembership: sysTypeRefs.GroupMembership, entityClient: EntityClient): Promise<TemplateGroupInstance> {
-	return entityClient.load(sysTypeRefs.GroupInfoTypeRef, groupMembership.groupInfo).then((groupInfo) =>
-		entityClient.load(tutanotaTypeRefs.TemplateGroupRootTypeRef, groupInfo.group).then((groupRoot) =>
-			entityClient.load(sysTypeRefs.GroupTypeRef, groupInfo.group).then((group) => {
+export function loadTemplateGroupInstance(groupMembership: GroupMembership, entityClient: EntityClient): Promise<TemplateGroupInstance> {
+	return entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then((groupInfo) =>
+		entityClient.load(TemplateGroupRootTypeRef, groupInfo.group).then((groupRoot) =>
+			entityClient.load(GroupTypeRef, groupInfo.group).then((group) => {
 				return {
 					groupInfo,
 					group,
@@ -237,13 +239,13 @@ export function loadTemplateGroupInstance(groupMembership: sysTypeRefs.GroupMemb
 	)
 }
 
-function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<tutanotaTypeRefs.EmailTemplate>> {
-	return promiseMap(templateGroups, (group) => entityClient.loadAll(tutanotaTypeRefs.EmailTemplateTypeRef, group.groupRoot.templates)).then(
-		(groupedTemplates) => groupedTemplates.flat(),
+function loadTemplates(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<EmailTemplate>> {
+	return promiseMap(templateGroups, (group) => entityClient.loadAll(EmailTemplateTypeRef, group.groupRoot.templates)).then((groupedTemplates) =>
+		groupedTemplates.flat(),
 	)
 }
 
-export function searchInTemplates(input: string, allTemplates: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>): ReadonlyArray<tutanotaTypeRefs.EmailTemplate> {
+export function searchInTemplates(input: string, allTemplates: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
 	if (input.startsWith(TEMPLATE_SHORTCUT_PREFIX)) {
 		// search in tag only
 		const newQueryString = input.substring(TEMPLATE_SHORTCUT_PREFIX.length)
@@ -254,9 +256,9 @@ export function searchInTemplates(input: string, allTemplates: ReadonlyArray<tut
 }
 
 class TemplateSearchFilter {
-	lastInput: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>
+	lastInput: ReadonlyArray<EmailTemplate>
 	lastQuery: string
-	lastResults: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>
+	lastResults: ReadonlyArray<EmailTemplate>
 
 	constructor() {
 		this.lastInput = []
@@ -264,15 +266,15 @@ class TemplateSearchFilter {
 		this.lastResults = []
 	}
 
-	filter(query: string, input: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>): ReadonlyArray<tutanotaTypeRefs.EmailTemplate> {
+	filter(query: string, input: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
 		return this._doFilter(query, input)
 	}
 
-	rerunQuery(input: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>): ReadonlyArray<tutanotaTypeRefs.EmailTemplate> {
+	rerunQuery(input: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
 		return this._doFilter(this.lastQuery, input)
 	}
 
-	_doFilter(query: string, input: ReadonlyArray<tutanotaTypeRefs.EmailTemplate>): ReadonlyArray<tutanotaTypeRefs.EmailTemplate> {
+	_doFilter(query: string, input: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
 		this.lastInput = input.slice()
 		this.lastQuery = query
 		this.lastResults = query === "" ? this.lastInput : searchInTemplates(query, input)

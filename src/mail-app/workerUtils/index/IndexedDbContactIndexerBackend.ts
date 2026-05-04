@@ -1,5 +1,5 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { AttributeModel, ClientTypeModelResolver, elementIdPart, getElementId, tutanotaTypeRefs } from "@tutao/typerefs"
+import { AttributeModel, elementIdPart, getElementId } from "@tutao/meta"
 import { IndexerCore } from "./IndexerCore"
 import type { SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../network/EntityClient"
@@ -8,16 +8,18 @@ import { assertNotNull, neverNull, tokenize } from "@tutao/utils"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
+import { Contact, ContactList, ContactTypeRef } from "@tutao/entities/tutanota"
+import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 
 export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	private _core: IndexerCore
 	private _entity: EntityClient
-	private suggestionFacade: SuggestionFacade<tutanotaTypeRefs.Contact>
+	private suggestionFacade: SuggestionFacade<Contact>
 
 	constructor(
 		core: IndexerCore,
 		entity: EntityClient,
-		suggestionFacade: SuggestionFacade<tutanotaTypeRefs.Contact>,
+		suggestionFacade: SuggestionFacade<Contact>,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		this._core = core
@@ -29,15 +31,15 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await this.suggestionFacade.load()
 	}
 
-	async areContactsIndexed(contactList: tutanotaTypeRefs.ContactList): Promise<boolean> {
+	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
 		return this._core.areContactsIndexed(contactList)
 	}
 
-	async indexContactList(contactList: tutanotaTypeRefs.ContactList): Promise<void> {
+	async indexContactList(contactList: ContactList): Promise<void> {
 		const groupId = neverNull(contactList._ownerGroup)
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		try {
-			const contacts = await this._entity.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)
+			const contacts = await this._entity.loadAll(ContactTypeRef, contactList.contacts)
 			for (const contact of contacts) {
 				const keyToIndexEntries = await this._createContactIndexEntries(contact)
 				await this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
@@ -62,26 +64,26 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		}
 	}
 
-	async onContactCreated(contact: tutanotaTypeRefs.Contact): Promise<void> {
+	async onContactCreated(contact: Contact): Promise<void> {
 		const keyToIndexEntries = await this._createContactIndexEntries(contact)
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		await this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 		await Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
 	}
 
 	async onContactDeleted(contact: IdTuple): Promise<void> {
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
-		await this._core._processDeleted(tutanotaTypeRefs.ContactTypeRef, elementIdPart(contact), indexUpdate)
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
+		await this._core._processDeleted(ContactTypeRef, elementIdPart(contact), indexUpdate)
 	}
 
-	async onContactUpdated(contact: tutanotaTypeRefs.Contact): Promise<void> {
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef))
-		await Promise.all([this._core._processDeleted(tutanotaTypeRefs.ContactTypeRef, getElementId(contact), indexUpdate), this.onContactCreated(contact)])
+	async onContactUpdated(contact: Contact): Promise<void> {
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
+		await Promise.all([this._core._processDeleted(ContactTypeRef, getElementId(contact), indexUpdate), this.onContactCreated(contact)])
 	}
 
 	// @VisibleForTests
-	async _createContactIndexEntries(contact: tutanotaTypeRefs.Contact): Promise<Map<string, SearchIndexEntry[]>> {
-		const ContactModel = await this.typeModelResolver.resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+	async _createContactIndexEntries(contact: Contact): Promise<Map<string, SearchIndexEntry[]>> {
+		const ContactModel = await this.typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 		const keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{
 				id: assertNotNull(AttributeModel.getAttributeId(ContactModel, "firstName")),
@@ -133,7 +135,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		return keyToIndexEntries
 	}
 
-	private getSuggestionWords(contact: tutanotaTypeRefs.Contact): string[] {
+	private getSuggestionWords(contact: Contact): string[] {
 		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map((ma) => ma.address).join(" "))
 	}
 }

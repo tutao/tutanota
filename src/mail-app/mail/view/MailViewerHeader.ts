@@ -1,39 +1,39 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
-import { theme } from "../../../common/gui/theme.js"
-import { styles } from "../../../common/gui/styles.js"
-import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
-import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { InboxRuleType, isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, NewsletterBannerRule, TabIndex, TimeFormat } from "@tutao/app-env"
-import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
-import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
-import Badge from "../../../common/gui/base/Badge.js"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
+import { theme } from "../../../ui/theme.js"
+import { styles } from "../../../ui/styles.js"
+import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander.js"
+import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../ui/base/InfoBanner.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { RecipientButton } from "../../../ui/base/RecipientButton.js"
+import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
+import { isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "@tutao/app-env"
+import { Icon, progressIcon } from "../../../ui/base/Icon.js"
+import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../ui/utils/Formatter.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import Badge from "../../../ui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/utils"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
 import { addToggleLightModeButtonAttrs, editDraft, MailViewerMoreActions, singleMailViewerMoreActions, unsubscribe } from "./MailViewerUtils.js"
-import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
-import { isKeyPressed } from "../../../common/misc/KeyManager.js"
-import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
-import { responsiveCardHMargin, responsiveCardHPadding } from "../../../common/gui/cards.js"
+import { liveDataAttrs } from "../../../ui/AriaUtils.js"
+import { isKeyPressed } from "../../../ui/utils/KeyManager.js"
+import { AttachmentBubble, getAttachmentType } from "../../../ui/AttachmentBubble.js"
+import { responsiveCardHMargin, responsiveCardHPadding } from "../../../ui/cards.js"
 import { companyTeamLabel } from "../../../app-env/boot/ClientConstants.js"
 import { getMailAddressDisplayText, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { LabelsPopup } from "./LabelsPopup.js"
-import { Label } from "../../../common/gui/base/Label.js"
-import { px, size } from "../../../common/gui/size.js"
-import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { Label } from "../../../ui/base/Label.js"
+import { px, size } from "../../../ui/size.js"
+import { highlightTextInQueryAsChildren } from "../../../ui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import { File, InboxRuleType, NewsletterBannerRule } from "@tutao/entities/tutanota"
+import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -53,7 +53,7 @@ export interface MailViewerHeaderAttrs {
 	viewModel: MailViewerViewModel
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
-	importFile: (file: tutanotaTypeRefs.File) => void
+	importFile: (file: File) => void
 	actions: MailHeaderActions
 	moreActions: MailViewerMoreActions
 }
@@ -579,7 +579,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		])
 	}
 
-	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: tutanotaTypeRefs.File) => void): Children {
+	private renderAttachments(viewModel: MailViewerViewModel, importFile: (file: File) => void): Children {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
@@ -656,11 +656,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderAttachmentContainer(
-		viewModel: MailViewerViewModel,
-		attachments: tutanotaTypeRefs.File[],
-		importFile: (file: tutanotaTypeRefs.File) => void,
-	): Children {
+	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: File[], importFile: (file: File) => void): Children {
 		return attachments.map((attachment) => {
 			const attachmentType = getAttachmentType(attachment.mimeType ?? "")
 			return m(AttachmentBubble, {

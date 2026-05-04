@@ -1,15 +1,15 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { keyManager, Shortcut } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 export interface CalendarViewToolbarAttrs {
-	event: tutanotaTypeRefs.CalendarEvent | null
-	onEdit: (event: tutanotaTypeRefs.CalendarEvent) => unknown
-	onDelete: (event: tutanotaTypeRefs.CalendarEvent) => unknown
-	onExport: (event: tutanotaTypeRefs.CalendarEvent) => unknown
+	event: CalendarEvent | null
+	onEdit: (event: CalendarEvent) => unknown
+	onDelete: (event: CalendarEvent) => unknown
+	onExport: (event: CalendarEvent) => unknown
 }
 
 /**
@@ -87,15 +87,15 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 		keyManager.unregisterShortcuts(this.shortcuts)
 	}
 
-	private canExport(event: tutanotaTypeRefs.CalendarEvent) {
+	private canExport(event: CalendarEvent) {
 		return true
 	}
 
-	private canDelete(event: tutanotaTypeRefs.CalendarEvent) {
+	private canDelete(event: CalendarEvent) {
 		return true
 	}
 
-	private canEdit(event: tutanotaTypeRefs.CalendarEvent) {
+	private canEdit(event: CalendarEvent) {
 		return true
 	}
 }

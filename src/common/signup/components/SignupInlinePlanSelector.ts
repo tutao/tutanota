@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SignupViewModel } from "../SignupView"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { BusinessPlanBox } from "../../subscription/components/BusinessPlanBox"
 import { PlanConfig } from "../../subscription/components/BusinessPlanContainer"
 import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subscription/utils/SubscriptionUtils"
 import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
-import { px, size } from "../../gui/size"
-import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/app-env"
+import { px, size } from "../../../ui/size"
 import { SignupFlowUsageTestController } from "../../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/entities/sys"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel

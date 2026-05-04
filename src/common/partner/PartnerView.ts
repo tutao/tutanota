@@ -1,30 +1,30 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"
-import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
-import { ViewSlider } from "../gui/nav/ViewSlider.js"
+import { ColumnType, ViewColumn } from "../../ui/base/ViewColumn"
+import { ViewSlider } from "../../ui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
-import { AppHeaderAttrs, Header } from "../gui/Header.js"
-import { theme } from "../gui/theme"
+import { AppHeaderAttrs, Header } from "../../ui/Header.js"
+import { theme } from "../../ui/theme"
 import { locator } from "../api/main/CommonLocator"
-import type { NavButtonAttrs } from "../gui/base/NavButton.js"
-import { NavButtonColor } from "../gui/base/NavButton.js"
-import { layout_size } from "../gui/size"
+import type { NavButtonAttrs } from "../../ui/base/NavButton.js"
+import { NavButtonColor } from "../../ui/base/NavButton.js"
+import { layout_size } from "../../ui/size"
 import { FolderColumnView } from "../gui/FolderColumnView.js"
-import { SidebarSection } from "../gui/SidebarSection"
+import { SidebarSection } from "../../ui/SidebarSection"
 import { SettingsFolderRow } from "../settings/SettingsFolderRow.js"
 import { BottomNav } from "../../mail-app/gui/BottomNav.js"
-import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
+import { BaseTopLevelView } from "../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { BackgroundColumnLayout } from "../gui/BackgroundColumnLayout.js"
-import { styles } from "../gui/styles.js"
-import { MobileHeader } from "../gui/MobileHeader.js"
-
+import { BackgroundColumnLayout } from "../../ui/BackgroundColumnLayout.js"
+import { styles } from "../../ui/styles.js"
+import { MobileHeader } from "../../ui/MobileHeader.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
-import { Icons } from "../gui/base/icons/Icons"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import { Icons } from "../../ui/base/icons/Icons"
+import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -159,7 +159,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 				headerCenter: "settings_label",
 			},
 		)
-		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn])
+		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], windowFacade)
 	}
 
 	private replaceDetailsViewer(viewer: UpdatableSettingsDetailsViewer | null): UpdatableSettingsDetailsViewer | null {
@@ -174,11 +174,11 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		locator.eventController.removeEntityListener(this.entityListener)
 	}
 
-	private entityListener: entityUpdateUtils.EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[]) => {
+	private entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: (updates: EntityUpdateData[]) => {
 			return this.entityEventsReceived(updates)
 		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -187,6 +187,8 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 			m(this.viewSlider, {
 				header: m(Header, {
 					...attrs.header,
+					isInternalUserLoggedIn: locator.logins.isInternalUserLoggedIn(),
+					isFeatureEnabled: locator.logins.isEnabled,
 				}),
 				bottomNav: m(BottomNav),
 			}),
@@ -234,7 +236,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)

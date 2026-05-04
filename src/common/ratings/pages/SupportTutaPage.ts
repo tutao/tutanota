@@ -1,20 +1,20 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { ImageWithOptionsDialog } from "../../../ui/dialogs/ImageWithOptionsDialog.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
-import { TranslationKeyType } from "../../misc/TranslationKey.js"
+import { TranslationKeyType } from "../../../ui/utils/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
+import { UpgradePromptType } from "@tutao/app-env"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { progressIcon } from "../../gui/base/Icon.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { completeSupportTutaStage, SupportTutaButtonType } from "../UserSatisfactionUtils.js"
-import { px } from "../../gui/size.js"
+import { px } from "../../../ui/size.js"
 import { assertNotNull, last, neverNull } from "@tutao/utils"
-import { GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typerefs"
+import { GENERATED_MAX_ID } from "../../../meta"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
-import { LegacyPrivatePlans, PlanType } from "@tutao/app-env"
+import { BookingTypeRef, LegacyPrivatePlans, NewPaidPlans, PlanType } from "@tutao/entities/sys"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog
@@ -40,7 +40,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		}
 
 		return m(ImageWithOptionsDialog, {
-			image: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/off-surveillance.svg`,
+			image: `/images/dynamic-color-svg/off-surveillance.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingSupportTuta_title",
 			messageText: "ratingSupportTuta_msg",
@@ -137,7 +137,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		const customerInfo = await userController.loadCustomerInfo()
 		const customer = await userController.reloadCustomer()
 		const accountingInfo = await userController.loadAccountingInfo()
-		const bookings = await locator.entityClient.loadRange(sysTypeRefs.BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 		const lastBooking = last(bookings)
 
 		const { showSwitchDialog } = await import("../../subscription/SwitchSubscriptionDialog.js")

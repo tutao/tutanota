@@ -1,16 +1,27 @@
 import o from "@tutao/otest"
 import { IndexedGroupData, OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { SqlCipherFacade } from "@tutao/native-bridge"
+import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { assertNotNull, typedValues } from "@tutao/utils"
-import { untagSqlObject, untagSqlValue } from "../../../../../src/typerefs/SqlValue"
+import { untagSqlObject, untagSqlValue } from "../../../../../src/local-store/SqlValue"
 import { sql } from "../../../../../src/local-store/Sql"
-import { ClientModelInfo, getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding, tutanotaTypeRefs } from "@tutao/typerefs"
-import { createTestEntity } from "../../../TestUtils"
+import { getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/meta"
+import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils"
 import { object } from "testdouble"
-import { GroupType } from "@tutao/app-env"
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
 
+import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import {
+	BodyTypeRef,
+	ContactMailAddressTypeRef,
+	ContactTypeRef,
+	FileTypeRef,
+	MailAddressTypeRef,
+	MailDetailsTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+} from "@tutao/entities/tutanota"
+
+import { GroupType } from "@tutao/entities/sys"
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStoragePersistence", () => {
@@ -144,28 +155,28 @@ o.spec("OfflineStoragePersistence", () => {
 
 	o.test("updateMailLocation", async () => {
 		const data = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-z"],
 				_ownerGroup: "I am a group",
 				subject: "very very very important email",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "I am a sender",
 					address: "testtesttest@test.test",
 				}),
 				receivedDate: new Date(1234),
 				sets: [["mySets", "myFavoriteSet"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "I am squishy smol text!",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [],
 					bccRecipients: [],
 				}),
 			}),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
 		await persistence.storeMailData([data])
@@ -203,28 +214,28 @@ o.spec("OfflineStoragePersistence", () => {
 
 	o.test("storeMailData", async () => {
 		const data = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-z"],
 				_ownerGroup: "I am a group",
 				subject: "very very very important email",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "I am a sender",
 					address: "testtesttest@test.test",
 				}),
 				receivedDate: new Date(1234),
 				sets: [["mySets", "myFavoriteSet"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "I am squishy smol text!",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [],
 					bccRecipients: [],
 				}),
 			}),
-			attachments: [createTestEntity(tutanotaTypeRefs.FileTypeRef)],
+			attachments: [createTestEntity(FileTypeRef)],
 		}
 		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
 		await persistence.storeMailData([data])
@@ -271,22 +282,22 @@ o.spec("OfflineStoragePersistence", () => {
 
 	o.test("deleteMailData", async () => {
 		const data = {
-			mail: createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+			mail: createTestEntity(MailTypeRef, {
 				_id: ["I am a list", "z-z-z-z-z-z-z-z-z"],
 				_ownerGroup: "I am a group",
 				subject: "very very very important email",
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					name: "I am a sender",
 					address: "testtesttest@test.test",
 				}),
 				receivedDate: new Date(1234),
 				sets: [["mySets", "myFavoriteSet"]],
 			}),
-			mailDetails: createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, {
-				body: createTestEntity(tutanotaTypeRefs.BodyTypeRef, {
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
 					compressedText: "I am squishy smol text!",
 				}),
-				recipients: createTestEntity(tutanotaTypeRefs.RecipientsTypeRef, {
+				recipients: createTestEntity(RecipientsTypeRef, {
 					toRecipients: [],
 					ccRecipients: [],
 					bccRecipients: [],
@@ -322,16 +333,16 @@ o.spec("OfflineStoragePersistence", () => {
 	})
 
 	o.test("storeContactData", async () => {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const contact = createTestEntity(ContactTypeRef, {
 			_id: ["I am a list", "z-z-z-z-z"],
 			_ownerGroup: "I am a group",
 			firstName: "first name",
 			lastName: "last name",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "address1@domain1.tld1",
 				}),
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "address2@domain2.tld2",
 				}),
 			],
@@ -378,13 +389,13 @@ o.spec("OfflineStoragePersistence", () => {
 	})
 
 	o.test("deleteContactData", async () => {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef, {
+		const contact = createTestEntity(ContactTypeRef, {
 			_id: ["I am a list", "z-z-z-z-z"],
 			_ownerGroup: "I am a group",
 			firstName: "first name",
 			lastName: "last name",
 			mailAddresses: [
-				createTestEntity(tutanotaTypeRefs.ContactMailAddressTypeRef, {
+				createTestEntity(ContactMailAddressTypeRef, {
 					address: "address1@domain1.tld1",
 				}),
 			],
@@ -417,7 +428,7 @@ async function fakeStoreListElementEntityInOfflineDb(sqlCipherFacade: SqlCipherF
 }
 
 async function getElementIdB64ExtEnsured(l: ListElementEntity) {
-	const typeModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(l._type)
+	const typeModel = await makePopulatedClientModelInfo().resolveClientTypeReference(l._type)
 	return serverToLocalIdEncoding(typeModel, getElementId(l))
 }
 

@@ -1,10 +1,11 @@
 import o from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { createTestEntity } from "../TestUtils.js"
 import { incrementDate } from "@tutao/utils"
 import { earliestEventToShowTimeIndicator } from "../../../src/calendar-app/calendar/view/CalendarAgendaView.js"
 
 import { makeEventWrapper } from "./CalendarTestUtils"
+import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("CalendarAgendaViewTest", function () {
 	o("earliestEventToShowTimeIndicator", () => {
@@ -30,20 +31,20 @@ o.spec("CalendarAgendaViewTest", function () {
 		let nextEventEnd = new Date(allDayStartDate)
 		nextEventEnd.setUTCHours(12, 0, 0, 0)
 
-		const events: tutanotaTypeRefs.CalendarEvent[] = [
-			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
+		const events: CalendarEvent[] = [
+			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
 				startTime: allDayStartDate,
 				endTime: allDayEndDate,
 			}),
-			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
+			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
 				startTime: actualEventStart,
 				endTime: actualEventEnd,
 			}),
-			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
+			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
 				startTime: sameTimeEventStart,
 				endTime: sameTimeEventEnd,
 			}),
-			createTestEntity<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, {
+			createTestEntity<CalendarEvent>(CalendarEventTypeRef, {
 				startTime: nextEventStart,
 				endTime: nextEventEnd,
 			}),

@@ -1,14 +1,14 @@
 import o from "@tutao/otest"
-import { ThemeController } from "../../../src/common/gui/ThemeController.js"
-import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../src/common/misc/WhitelabelCustomizations.js"
+import { ThemeController } from "../../../src/ui/ThemeController.js"
 import { downcast } from "@tutao/utils"
-import { ThemeFacade } from "@tutao/native-bridge"
-import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
+import { ThemeFacade } from "../../../src/native-bridge/common/generatedipc/types/ThemeFacade.js"
+import { HtmlSanitizer } from "../../../src/common/gui/utils/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
 import { spy, verify } from "@tutao/otest"
-import { Theme } from "../../../src/common/gui/theme.js"
-import { WhitelabelThemeGenerator } from "../../../src/common/gui/WhitelabelThemeGenerator"
-import { AppType } from "../../../types/globals"
+import { Theme } from "../../../src/ui/theme.js"
+import { WhitelabelThemeGenerator } from "../../../src/ui/WhitelabelThemeGenerator"
+import { AppType } from "@tutao/app-env"
+import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../src/ui/WhitelabelCustomizations"
 
 o.spec("ThemeController", () => {
 	let themeManager: ThemeController

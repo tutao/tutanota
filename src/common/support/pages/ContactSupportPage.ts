@@ -1,29 +1,30 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
-import { DataFile } from "@tutao/typerefs"
 import { Thunk } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator.js"
-import { lang } from "../../misc/LanguageViewModel.js"
-import { Card } from "../../gui/base/Card.js"
-import { PrimaryButton } from "../../gui/base/buttons/VariantButtons.js"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { MailMethod } from "@tutao/app-env"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { Card } from "../../../ui/base/Card.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../gui/utils/HtmlSanitizer.js"
 import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
-import { convertTextToHtml } from "../../misc/Formatter.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { Switch } from "../../gui/base/Switch.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { Icon } from "../../gui/base/Icon.js"
-import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
-import { ButtonColor, getColors } from "../../gui/base/Button.js"
-import { px, size } from "../../gui/size.js"
-import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
+import { convertTextToHtml } from "../../../ui/utils/Formatter.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { Switch } from "../../../ui/base/Switch.js"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { Icon } from "../../../ui/base/Icon.js"
+import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
+import { ButtonColor, getColors } from "../../../ui/base/Button.js"
+import { px, size } from "../../../ui/size.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { PlanTypeToName } from "@tutao/typerefs"
-import { theme } from "../../gui/theme"
+import { theme } from "../../../ui/theme"
+import { MailMethod } from "@tutao/entities/tutanota"
+import { PlanTypeToName } from "../../subscription/utils/SubscriptionUtils"
+
+import { DataFile } from "../../../entities/tutanota/MailBundle"
+import type { HtmlEditor } from "../../../ui/editor/HtmlEditor"
 
 type Props = {
 	data: SupportDialogState
@@ -56,8 +57,8 @@ export class ContactSupportPage implements Component<Props> {
 	}
 
 	async oncreate({ attrs: { data } }: Vnode<Props>): Promise<void> {
-		const { HtmlEditor } = await import("../../gui/editor/HtmlEditor")
-		this.htmlEditor = new HtmlEditor().setMinHeight(250).setEnabled(true)
+		const { HtmlEditor } = await import("../../../ui/editor/HtmlEditor")
+		this.htmlEditor = new HtmlEditor(getHtmlSanitizer()).setMinHeight(250).setEnabled(true)
 
 		// "Technical Issues" -> Other -> use contactTemplate from category - "Technical Issues"
 		// "Technical Issues" -> "I cannot log in" -> use contactTemplate from topic - "I cannot log in"

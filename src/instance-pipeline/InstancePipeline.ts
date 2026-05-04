@@ -1,19 +1,13 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
-import {
-	ClientModelParsedInstance,
-	ClientModelUntypedInstance,
-	ClientTypeReferenceResolver,
-	Entity,
-	ServerModelUntypedInstance,
-	ServerTypeReferenceResolver,
-	TypeRef,
-} from "@tutao/typerefs"
+import { TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, lazy, Nullable } from "@tutao/utils"
 import { AesKey, SymmetricCipherFacade } from "@tutao/crypto"
 import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
+import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 
 assertWorkerOrNode()
 

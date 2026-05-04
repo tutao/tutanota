@@ -1,25 +1,26 @@
 import stream from "mithril/stream"
-import { LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
-import { lang } from "./LanguageViewModel"
-import { Dialog, DialogType } from "../gui/base/Dialog"
-import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import { LegacyTextField, LegacyTextFieldType } from "../../ui/base/LegacyTextField.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { Dialog, DialogType } from "../../ui/base/Dialog"
+import * as notificationOverlay from "../../ui/base/NotificationOverlay"
 import m from "mithril"
-import { Checkbox } from "../gui/base/Checkbox.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
-import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
+import { Checkbox } from "../../ui/base/Checkbox.js"
+import { Button, ButtonType } from "../../ui/base/Button.js"
+import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander"
 import { downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { AccountType, ConversationType, isApp, isDesktop, Keys, MailMethod, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
-import { copyToClipboard } from "./ClipboardUtils"
-import { px } from "../gui/size"
-import { RecipientType } from "../api/common/recipients/Recipient.js"
+import { isApp, isBrowser, isDesktop, Keys, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
+import { copyToClipboard } from "../../ui/utils/ClipboardUtils"
+import { px } from "../../ui/size"
 import { createLogFile } from "../api/common/Logger.js"
-import { DataFile, monitorServices, monitorTypeRefs } from "@tutao/typerefs"
-import { convertTextToHtml } from "./Formatter.js"
-import { ErrorReportClientType } from "../../app-env/boot/ClientConstants.js"
-import { client } from "../../app-env/boot/ClientDetector.js"
-import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
+import { convertTextToHtml } from "../../ui/utils/Formatter.js"
+import { ErrorReportClientType } from "@tutao/app-env"
+import { client } from "@tutao/app-env"
+import { BubbleButton } from "../../ui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
+import { ConversationType, DataFile, MailMethod, RecipientType } from "@tutao/entities/tutanota"
+import { AccountType } from "@tutao/entities/sys"
+import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService } from "@tutao/entities/monitor"
 
 type FeedbackContent = {
 	message: string
@@ -320,7 +321,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 
 async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
 	function getReportingClientType(): ErrorReportClientType {
-		if (env.mode === Mode.Browser) {
+		if (isBrowser()) {
 			return ErrorReportClientType.Browser
 		} else {
 			switch (env.platformId) {
@@ -342,8 +343,8 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 
 	const clientType = getReportingClientType()
 
-	const errorData = monitorTypeRefs.createReportErrorIn({
-		data: monitorTypeRefs.createErrorReportData({
+	const errorData = createReportErrorIn({
+		data: createErrorReportData({
 			clientType,
 			appVersion: env.versionNumber,
 			userId: locator.logins.getUserController().userId,
@@ -356,13 +357,13 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 		}),
 		files: logs.map((log) => {
 			const stringData = uint8ArrayToString("utf-8", log.data)
-			return monitorTypeRefs.createErrorReportFile({
+			return createErrorReportFile({
 				name: log.name,
 				content: stringData,
 			})
 		}),
 	})
-	await locator.serviceExecutor.post(monitorServices.ReportErrorService, errorData)
+	await locator.serviceExecutor.post(ReportErrorService, errorData)
 }
 
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {

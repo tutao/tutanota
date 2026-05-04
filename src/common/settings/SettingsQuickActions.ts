@@ -1,8 +1,8 @@
-import { lang } from "../misc/LanguageViewModel"
-import { Router } from "../gui/ScopedRouter"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { Router } from "../../ui/ScopedRouter"
 import { isNotNull } from "@tutao/utils"
 import { LoginController } from "../api/main/LoginController"
-import { SETTINGS_PREFIX } from "../misc/RouteChange"
+import { SETTINGS_PREFIX } from "../../ui/utils/RouteChange"
 import { QuickAction } from "../misc/quickactions/QuickActionsModel"
 import { isAdminClient, isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
 

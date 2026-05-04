@@ -1,11 +1,10 @@
 import { decode } from "cborg"
 import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
-import { WebAuthnFacade } from "@tutao/native-bridge/common"
-import { WebauthnKeyDescriptor } from "@tutao/native-bridge/common"
-import { Const } from "@tutao/app-env"
+import { WebAuthnFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { WebauthnKeyDescriptor } from "@tutao/native-bridge/generatedIpc/types"
+import { Const, getApiBaseUrl } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { getApiBaseUrl } from "@tutao/app-env"
+import { createU2fRegisteredDevice, createWebauthnResponseData, U2fChallenge, U2fKey, U2fRegisteredDevice, WebauthnResponseData } from "@tutao/entities/sys"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
@@ -20,9 +19,7 @@ export class WebauthnClient {
 	}
 
 	/** Whether it's possible to attempt a challenge. It might not be possible if there are not keys for this domain. */
-	async canAttemptChallenge(
-		challenge: sysTypeRefs.U2fChallenge,
-	): Promise<{ canAttempt: Array<sysTypeRefs.U2fKey>; cannotAttempt: Array<sysTypeRefs.U2fKey> }> {
+	async canAttemptChallenge(challenge: U2fChallenge): Promise<{ canAttempt: Array<U2fKey>; cannotAttempt: Array<U2fKey> }> {
 		// Whitelabel keys can ge registered other (whitelabel) domains.
 		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId.
 
@@ -34,7 +31,7 @@ export class WebauthnClient {
 		return { canAttempt, cannotAttempt }
 	}
 
-	async register(userId: Id, displayName: string): Promise<sysTypeRefs.U2fRegisteredDevice> {
+	async register(userId: Id, displayName: string): Promise<U2fRegisteredDevice> {
 		const challenge = this.getChallenge()
 		// this must be at most 64 bytes because the authenticators are allowed to truncate it
 		// https://www.w3.org/TR/webauthn-2/#user-handle
@@ -43,7 +40,7 @@ export class WebauthnClient {
 		const attestationObject = this.parseAttestationObject(registrationResult.attestationObject)
 		const publicKey = this.parsePublicKey(downcast(attestationObject).authData)
 
-		return sysTypeRefs.createU2fRegisteredDevice({
+		return createU2fRegisteredDevice({
 			keyHandle: new Uint8Array(registrationResult.rawId),
 			// For Webauthn keys we save rpId into appId. They do not conflict: one of them is json URL, another is domain.
 			appId: registrationResult.rpId,
@@ -65,7 +62,7 @@ export class WebauthnClient {
 	 * @throws CancelledError
 	 * @throws WebauthnError
 	 */
-	async authenticate(challenge: sysTypeRefs.U2fChallenge): Promise<{ responseData: sysTypeRefs.WebauthnResponseData; apiBaseUrl: string }> {
+	async authenticate(challenge: U2fChallenge): Promise<{ responseData: WebauthnResponseData; apiBaseUrl: string }> {
 		const allowedKeys: WebauthnKeyDescriptor[] = challenge.keys.map((key) => {
 			return {
 				id: key.keyHandle,
@@ -79,7 +76,7 @@ export class WebauthnClient {
 			domain: authenticationUrl,
 		})
 
-		const responseData = sysTypeRefs.createWebauthnResponseData({
+		const responseData = createWebauthnResponseData({
 			keyHandle: new Uint8Array(signResult.rawId),
 			clientData: new Uint8Array(signResult.clientDataJSON),
 			signature: new Uint8Array(signResult.signature),
@@ -97,7 +94,7 @@ export class WebauthnClient {
 		return this.webauthn.abortCurrentOperation()
 	}
 
-	private selectAuthenticationUrl(challenge: sysTypeRefs.U2fChallenge): string {
+	private selectAuthenticationUrl(challenge: U2fChallenge): string {
 		// We need to figure our for which page we need to open authentication based on the keys that user has added because users can register keys for our
 		// domains as well as for whitelabel domains.
 
@@ -135,7 +132,7 @@ export class WebauthnClient {
 		}
 	}
 
-	private isLegacyU2fKey(key: sysTypeRefs.U2fKey): boolean {
+	private isLegacyU2fKey(key: U2fKey): boolean {
 		return key.appId.endsWith(Const.U2f_APPID_SUFFIX)
 	}
 

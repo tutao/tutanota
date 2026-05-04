@@ -9,16 +9,19 @@
 	},
 	"references": [
 		{
-			"path": "tsconfig.typerefs.json"
+			"path": "tsconfig.meta.json"
 		},
 		{
-			"path": "tsconfig.app-env.json"
+			"path": "tsconfig.crypto-primitives.json"
 		},
 		{
-			"path": "tsconfig.crypto.json"
+			"path": "tsconfig.entities.sys.json"
 		},
 		{
-			"path": "tsconfig.utils.json"
+			"path": "tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "tsconfig.instance-pipeline.json"
 		}
 	]
 }

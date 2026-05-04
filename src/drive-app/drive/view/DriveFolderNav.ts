@@ -1,18 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveBreadcrumbs } from "./DriveBreadcrumbs"
-import { IconButton } from "../../../common/gui/base/IconButton"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { driveTypeRefs } from "@tutao/typerefs"
+import { IconButton } from "../../../ui/base/IconButton"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { isNotNull } from "@tutao/utils"
-import { theme } from "../../../common/gui/theme"
-import { component_size, px, size } from "../../../common/gui/size"
-
+import { theme } from "../../../ui/theme"
+import { component_size, px, size } from "../../../ui/size"
 import { FolderItem } from "./DriveUtils"
+import { DriveFolder } from "@tutao/entities/drive"
 
 export interface DriveFolderNavAttrs {
-	currentFolder: driveTypeRefs.DriveFolder | null
-	parents: readonly driveTypeRefs.DriveFolder[]
-	loadParents: () => Promise<driveTypeRefs.DriveFolder[]>
+	currentFolder: DriveFolder | null
+	parents: readonly DriveFolder[]
+	loadParents: () => Promise<DriveFolder[]>
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 	selectedItemsActions: DriveSelectedItemsActions
 }

@@ -1,7 +1,7 @@
 import { defer, DeferredObject } from "@tutao/utils"
 import { assertMainOrNode } from "@tutao/app-env"
 import { Transport } from "../shared/MessageTypes"
-import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "@tutao/native-bridge/common"
+import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 
 assertMainOrNode()
 

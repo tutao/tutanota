@@ -1,9 +1,9 @@
-import { Icon, IconSize, lazyIcon } from "../../common/gui/base/Icon.js"
-import { lang, MaybeTranslation } from "../../common/misc/LanguageViewModel.js"
-import { ClickHandler } from "../../common/gui/base/GuiUtils.js"
+import { Icon, IconSize, lazyIcon } from "../../ui/base/Icon.js"
+import { lang, MaybeTranslation } from "../../ui/utils/LanguageViewModel.js"
+import { ClickHandler } from "../../ui/base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { BaseButton } from "../../common/gui/base/buttons/BaseButton.js"
-import { Icons } from "../../common/gui/base/icons/Icons.js"
+import { BaseButton } from "../../ui/base/buttons/BaseButton.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
 import { lazyStringValue } from "@tutao/utils"
 
 export interface SettingsNavButtonAttrs {

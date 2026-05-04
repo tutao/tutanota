@@ -1,17 +1,24 @@
-import { KeyVerificationFacade } from "../../../network/crypto/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
 import { assertNotNull } from "@tutao/utils"
-import { IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, PublicKeyIdentifierType } from "@tutao/app-env"
-import { MobileSystemFacade } from "@tutao/native-bridge/common"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
-import { PermissionType } from "@tutao/native-bridge/common"
-import { PublicIdentityKeyProvider } from "../../../network/crypto/facades/PublicIdentityKeyProvider"
-import { ProgrammingError } from "@tutao/app-env"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKeyProvider"
+import {
+	IdentityKeyQrVerificationResult,
+	IdentityKeySourceOfTrust,
+	IdentityKeyVerificationMethod,
+	isApp,
+	isAppleDevice,
+	isDesktop,
+	ProgrammingError,
+} from "@tutao/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { TrustDBEntry } from "../../../local-store/IdentityKeyTrustDatabase"
-import { DesktopSystemFacade } from "@tutao/native-bridge/common"
-import { IdentityKeyQrVerificationResult, isApp, isAppleDevice, isDesktop } from "@tutao/app-env"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { PublicKeyIdentifierType } from "@tutao/crypto"
 
 export type PublicIdentity = {
 	fingerprint: Hex

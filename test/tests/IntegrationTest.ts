@@ -2,21 +2,29 @@ import o from "@tutao/otest"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
 import { SessionType } from "../../src/app-env/SessionType.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { GroupType } from "../../src/app-env"
+import {
+	ContactAddressTypeRef,
+	ContactListTypeRef,
+	ContactTypeRef,
+	MailBoxTypeRef,
+	MailSet,
+	MailSetEntryTypeRef,
+	MailSetTypeRef,
+} from "@tutao/entities/tutanota"
+import { GroupType } from "@tutao/entities/sys"
 
-function loadFolders(folderListId: Id): Promise<tutanotaTypeRefs.MailSet[]> {
-	return locator.cachingEntityClient.loadAll(tutanotaTypeRefs.MailSetTypeRef, folderListId)
+function loadFolders(folderListId: Id): Promise<MailSet[]> {
+	return locator.cachingEntityClient.loadAll(MailSetTypeRef, folderListId)
 }
 
-function loadMailboxSystemFolders(): Promise<tutanotaTypeRefs.MailSet[]> {
-	return locator.cachingEntityClient.loadRoot(tutanotaTypeRefs.MailBoxTypeRef, locator.user.getUserGroupId()).then((mailbox) => {
+function loadMailboxSystemFolders(): Promise<MailSet[]> {
+	return locator.cachingEntityClient.loadRoot(MailBoxTypeRef, locator.user.getUserGroupId()).then((mailbox) => {
 		return loadFolders(mailbox.mailSets.mailSets)
 	})
 }
 
 function loadContactList() {
-	return locator.cachingEntityClient.loadRoot(tutanotaTypeRefs.ContactListTypeRef, locator.user.getUserGroupId())
+	return locator.cachingEntityClient.loadRoot(ContactListTypeRef, locator.user.getUserGroupId())
 }
 
 o.spec("integration test", function () {
@@ -27,15 +35,15 @@ o.spec("integration test", function () {
 		o.timeout(20000)
 		await locator.login.createSession("map-free@tutanota.de", "map", "Linux node", SessionType.Temporary, null)
 		const folders = await loadMailboxSystemFolders()
-		const mailSetEntries = await locator.cachingEntityClient.loadAll(tutanotaTypeRefs.MailSetEntryTypeRef, folders[0].entries)
+		const mailSetEntries = await locator.cachingEntityClient.loadAll(MailSetEntryTypeRef, folders[0].entries)
 		o(mailSetEntries.length).equals(8)
 		const contactList = await loadContactList()
 		// create new contact
-		let address = createTestEntity(tutanotaTypeRefs.ContactAddressTypeRef)
+		let address = createTestEntity(ContactAddressTypeRef)
 		address.type = "0"
 		address.address = "Entenhausen"
 		address.customTypeName = "0"
-		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		let contact = createTestEntity(ContactTypeRef)
 		contact._ownerGroup = locator.user.getGroupId(GroupType.Contact)
 		contact.title = "Dr."
 		contact.firstName = "Max"
@@ -44,7 +52,7 @@ o.spec("integration test", function () {
 		contact.company = "WIW"
 		contact.addresses = [address]
 		await locator.cachingEntityClient.setup(contactList.contacts, contact)
-		const contacts = await locator.cachingEntityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)
+		const contacts = await locator.cachingEntityClient.loadAll(ContactTypeRef, contactList.contacts)
 		const firstNames = contacts.map((contact) => contact.firstName)
 		o(firstNames.indexOf("Max")).notEquals(-1)
 	})

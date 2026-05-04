@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { createWizardDialog, WizardPageWrapper } from "../../../../src/common/gui/base/WizardDialog.js"
-import { Dialog, DialogType } from "../../../../src/common/gui/base/Dialog.js"
+import { createWizardDialog, WizardPageWrapper } from "../../../../src/ui/base/WizardDialog.js"
+import { Dialog, DialogType } from "../../../../src/ui/base/Dialog.js"
 import { EnterDomainPageAttrs } from "../../../../src/mail-app/settings/emaildomain/EnterDomainPage.js"
 import stream from "mithril/stream"
 import { DomainDnsStatus } from "../../../../src/mail-app/settings/DomainDnsStatus.js"
@@ -9,12 +9,13 @@ import { MailAddressTableModel } from "../../../../src/common/settings/mailaddre
 import { object } from "testdouble"
 import { noOp } from "@tutao/utils"
 import { createTestEntity } from "../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { windowFacade } from "../../../../src/common/misc/WindowFacade"
+import { CustomerInfoTypeRef, DnsRecordTypeRef } from "@tutao/entities/sys"
 
 const data: AddDomainData = {
 	domain: stream("domain"),
-	customerInfo: createTestEntity(sysTypeRefs.CustomerInfoTypeRef),
-	expectedVerificationRecord: createTestEntity(sysTypeRefs.DnsRecordTypeRef),
+	customerInfo: createTestEntity(CustomerInfoTypeRef),
+	expectedVerificationRecord: createTestEntity(DnsRecordTypeRef),
 	editAliasFormAttrs: {
 		model: object<MailAddressTableModel>(),
 		expanded: false,
@@ -43,6 +44,7 @@ o.spec("WizardDialogN", function () {
 			data,
 			pages: [],
 			dialogType: DialogType.EditLarge,
+			windowFacade,
 		})
 		o(dialogBuilder.dialog instanceof Dialog).equals(true)
 		o(dialogBuilder.attrs.currentPage).equals(null)
@@ -55,6 +57,7 @@ o.spec("WizardDialogN", function () {
 			pages: wizardPages,
 			closeAction,
 			dialogType: DialogType.EditLarge,
+			windowFacade,
 		})
 		o(dialogBuilder.attrs.currentPage).equals(wizardPages[0])
 		o(dialogBuilder.attrs.pages.length).equals(1)
@@ -68,6 +71,7 @@ o.spec("WizardDialogN", function () {
 			data,
 			pages: wizardPages,
 			dialogType: DialogType.EditLarge,
+			windowFacade,
 		})
 		o(dialogBuilder.attrs.currentPage).equals(wizardPages[0])
 		o(dialogBuilder.attrs.pages.length).equals(1)

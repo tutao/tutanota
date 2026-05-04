@@ -14,18 +14,19 @@ import {
 import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/utils"
 import { spy } from "@tutao/otest"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { DbKey, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "@tutao/typerefs"
-import { createTestEntity, makeCore } from "../../../TestUtils.js"
+import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/meta"
+import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { AttributeModel } from "@tutao/typerefs"
-import { ClientModelInfo } from "@tutao/typerefs"
+import { AttributeModel } from "../../../../../src/meta"
+
 import { CancelledError } from "@tutao/app-env"
+import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	decryptIndexKey,
 	decryptMetaData,
@@ -35,8 +36,8 @@ import {
 	encryptMetaData,
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
-const mailTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.MailTypeRef)
-const contactTypeInfo = typeRefToTypeInfo(tutanotaTypeRefs.ContactTypeRef)
+const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
+const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 
 function makeEntries(key: Aes256Key, iv: Uint8Array, n: number, baseTimestamp: number = 0): Array<EncSearchIndexEntryWithTimestamp> {
 	const newEntries: EncSearchIndexEntryWithTimestamp[] = []
@@ -70,10 +71,10 @@ o.spec("IndexerCore", () => {
 	})
 
 	o.test("createIndexEntriesForAttributes", async function () {
-		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(tutanotaTypeRefs.ContactTypeRef)
+		const ContactModel = await makePopulatedClientModelInfo().resolveClientTypeReference(ContactTypeRef)
 
 		let core = makeCore({ encryptionData })
-		let contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		let contact = createTestEntity(ContactTypeRef)
 		contact._id = ["", "L-dNNLe----0"]
 		contact.firstName = "Max Tim"
 		contact.lastName = "Meier" // not indexed
@@ -1024,7 +1025,7 @@ o.spec("IndexerCore", () => {
 				timestamp: 1,
 			},
 		])
-		await core._processDeleted(tutanotaTypeRefs.MailTypeRef, instanceId, indexUpdate)
+		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o.check(indexUpdate.delete.encInstanceIds).deepEquals([encInstanceId])
 		o.check(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(2)
 		o.check(JSON.stringify(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(metaRowId))).equals(
@@ -1065,7 +1066,7 @@ o.spec("IndexerCore", () => {
 			transaction,
 		})
 		let encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
-		await core._processDeleted(tutanotaTypeRefs.MailTypeRef, instanceId, indexUpdate)
+		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o.check(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o.check(indexUpdate.delete.encInstanceIds.length).equals(0)
 	})

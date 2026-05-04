@@ -87,11 +87,11 @@ export function isElectronClient(): boolean {
 }
 
 export function isMainOrNode(): boolean {
-	return !worker || node || env.mode === Mode.Test
+	return !worker || node || isTest()
 }
 
 export function isWorkerOrNode(): boolean {
-	return worker || node || env.mode === Mode.Test
+	return worker || node || isTest()
 }
 
 export function isWorker(): boolean {

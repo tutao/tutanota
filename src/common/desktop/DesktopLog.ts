@@ -1,5 +1,5 @@
 import { noOp } from "@tutao/utils"
-import { Mode } from "@tutao/app-env"
+import { isTest } from "@tutao/app-env"
 
 type LogFn = (...args: any) => void
 export const log: {
@@ -8,7 +8,7 @@ export const log: {
 	error: LogFn
 	info: LogFn
 } =
-	typeof env !== "undefined" && env.mode === Mode.Test
+	typeof env !== "undefined" && isTest()
 		? {
 				debug: noOp,
 				warn: noOp,

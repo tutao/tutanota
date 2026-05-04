@@ -1,17 +1,18 @@
-import { PROGRESS_DONE } from "./ProgressBar.js"
+import { PROGRESS_DONE } from "../../../ui/base/ProgressBar.js"
 import Stream from "mithril/stream"
 import { PageContextLoginListener } from "../../api/main/PageContextLoginListener.js"
 import { LoginController } from "../../api/main/LoginController.js"
-import { OfflineIndicatorAttrs, OfflineIndicatorState } from "./OfflineIndicator.js"
+import { OfflineIndicatorAttrs, OfflineIndicatorState } from "../../../ui/base/OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
-import { styles } from "../styles.js"
+import { styles } from "../../../ui/styles.js"
 import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
+import { WsConnectionState } from "../../../network/Constants"
 
-import { WsConnectionState } from "@tutao/network"
+import { IOfflineIndicatorViewModel } from "../../../ui/IOfflineIndicatorViewModel"
 
 /**
- * the local-store indicator must take into account information
+ * the offline indicator must take into account information
  * from multiple different sources:
  * * ws connection state (connected, not connected) from the worker
  * * login state (logged out, partial login, full login)
@@ -22,7 +23,7 @@ import { WsConnectionState } from "@tutao/network"
  * previous updates from these information sources
  * is maintained in this class
  */
-export class OfflineIndicatorViewModel {
+export class OfflineIndicatorViewModel implements IOfflineIndicatorViewModel {
 	private lastProgress: number = PROGRESS_DONE
 	private lastWsState: WsConnectionState = WsConnectionState.connecting
 	private lastUpdate: Date | null = null
@@ -111,7 +112,7 @@ export class OfflineIndicatorViewModel {
 			}
 		} else {
 			// either not fully logged in or the websocket was not connected before
-			// in cases where the indicator is visible, this is just local-store login.
+			// in cases where the indicator is visible, this is just offline login.
 			if (this.loginListener.getFullLoginFailed()) {
 				return {
 					state: OfflineIndicatorState.Offline,

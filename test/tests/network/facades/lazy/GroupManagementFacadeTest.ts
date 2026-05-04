@@ -1,20 +1,20 @@
 import o from "@tutao/otest"
-import { GroupManagementFacade } from "../../../../../src/network/facades/lazy/GroupManagementFacade.js"
-import { UserFacade } from "../../../../../src/network/UserFacade.js"
-import { CounterFacade } from "../../../../../src/network/facades/CounterFacade.js"
+import { GroupManagementFacade } from "../../../../../src/base/facades/lazy/GroupManagementFacade.js"
+import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
+import { CounterFacade } from "../../../../../src/network/CounterFacade.js"
 import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { IServiceExecutor } from "../../../../../src/network/ServiceRequest.js"
-import { PQFacade } from "../../../../../src/network/crypto/facades/PQFacade.js"
-import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLoaderFacade.js"
+import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { AdminKeyLoaderFacade } from "../../../../../src/network/crypto/facades/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../../../src/network/facades/lazy/IdentityKeyCreator"
+
+import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../../../src/base/crypto/IdentityKeyCreator"
 import { freshVersioned } from "@tutao/utils"
 import { AesKey, CryptoWrapper, KeyPairType, PQKeyPairs } from "@tutao/crypto"
-import { GroupType } from "@tutao/app-env"
 
+import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupType } from "@tutao/entities/sys"
 const { anything } = matchers
 
 o.spec("GroupManagementFacadeTest", function () {
@@ -91,9 +91,9 @@ o.spec("GroupManagementFacadeTest", function () {
 
 	o("loadTeamGroupIds - success", async function () {
 		when(userFacade.getUser()).thenReturn(object())
-		when(entityClient.load(sysTypeRefs.CustomerTypeRef, anything())).thenResolve(object())
+		when(entityClient.load(CustomerTypeRef, anything())).thenResolve(object())
 		const teamGroupIds = ["teamGroup1", "teamGroup2"]
-		when(entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, anything())).thenResolve(teamGroupIds.map((group) => ({ group })) as sysTypeRefs.GroupInfo[])
+		when(entityClient.loadAll(GroupInfoTypeRef, anything())).thenResolve(teamGroupIds.map((group) => ({ group })) as GroupInfo[])
 
 		const result = await groupManagementFacade.loadTeamGroupIds()
 

@@ -3,12 +3,12 @@
  * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
  */
 import { PasswordField, PasswordFieldAttrs } from "./PasswordField.js"
-import { MaybeTranslation, TranslationKey } from "../LanguageViewModel.js"
-import { Dialog, INPUT } from "../../gui/base/Dialog.js"
+import { MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { Dialog, INPUT } from "../../../ui/base/Dialog.js"
 import m from "mithril"
-import { Autocomplete } from "../../gui/base/LegacyTextField.js"
-import { Icon } from "../../gui/base/Icon.js"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Autocomplete } from "../../../ui/base/LegacyTextField.js"
+import { Icon } from "../../../ui/base/Icon.js"
+import { Icons } from "../../../ui/base/icons/Icons"
 
 export function showRequestPasswordDialog(props: {
 	title?: MaybeTranslation

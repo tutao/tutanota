@@ -3,31 +3,31 @@ import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { DEFAULT_CALENDAR_COLOR, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "@tutao/app-env"
-import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { AlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
-import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../common/gui/base/InfoBanner.js"
+import { HtmlEditor } from "../../../../ui/editor/HtmlEditor.js"
+import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../../ui/base/InfoBanner.js"
 import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../eventeditor-model/CalendarEventModel.js"
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
-import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
-import { font_size, px, size } from "../../../../common/gui/size.js"
-import { Card } from "../../../../common/gui/base/Card.js"
-import { Select, SelectAttributes, SelectOption } from "../../../../common/gui/base/Select.js"
-import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
-import { theme } from "../../../../common/gui/theme.js"
+import { SingleLineTextField } from "../../../../ui/base/SingleLineTextField.js"
+import { font_size, px, size } from "../../../../ui/size.js"
+import { Card } from "../../../../ui/base/Card.js"
+import { Select, SelectAttributes, SelectOption } from "../../../../ui/base/Select.js"
+import { Icon, IconSize } from "../../../../ui/base/Icon.js"
+import { theme } from "../../../../ui/theme.js"
 import { deepEqual } from "@tutao/utils"
-import { ButtonColor, getColors } from "../../../../common/gui/base/Button.js"
+import { ButtonColor, getColors } from "../../../../ui/base/Button.js"
 import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatRepetitionEnd, formatRepetitionFrequency } from "../eventpopup/EventPreviewView.js"
-import { LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
-import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { SectionButton } from "../../../../common/gui/base/buttons/SectionButton.js"
+import { LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
+import { DefaultAnimationTime } from "../../../../ui/animation/Animations.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { SectionButton } from "../../../../ui/base/buttons/SectionButton.js"
+import { CalendarRepeatRule } from "@tutao/entities/tutanota"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -492,7 +492,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		} satisfies RepeatRuleEditorAttrs)
 	}
 
-	private getTranslatedRepeatRule(rule: tutanotaTypeRefs.CalendarRepeatRule | null, isAllDay: boolean): string {
+	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {
 		if (rule == null) return lang.get("calendarRepeatIntervalNoRepeat_label")
 
 		const frequency = formatRepetitionFrequency(rule)

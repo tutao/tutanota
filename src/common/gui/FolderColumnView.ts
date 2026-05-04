@@ -1,12 +1,12 @@
 import { DrawerMenu, DrawerMenuAttrs } from "./nav/DrawerMenu.js"
 import m, { Children, Component, Vnode } from "mithril"
-import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
-import type { ClickHandler } from "./base/GuiUtils.js"
-import { MainCreateButton } from "./MainCreateButton.js"
-import { styles } from "./styles.js"
+import type { MaybeTranslation, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { AriaLandmarks, landmarkAttrs } from "../../ui/AriaUtils.js"
+import type { ClickHandler } from "../../ui/base/GuiUtils.js"
+import { MainCreateButton } from "../../ui/MainCreateButton.js"
 import { isAndroidApp } from "@tutao/app-env"
+import { styles } from "../../ui/styles"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/

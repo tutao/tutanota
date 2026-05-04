@@ -1,18 +1,16 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ModelMapper } from "@tutao/instance-pipeline"
+import { ClientTypeReferenceResolver, ModelMapper, ServerTypeReferenceResolver } from "@tutao/instance-pipeline"
 import {
 	AssociationType,
 	Cardinality,
 	ClientModelParsedInstance,
 	ClientTypeModel,
-	ClientTypeReferenceResolver,
 	ServerModelParsedInstance,
 	ServerTypeModel,
-	ServerTypeReferenceResolver,
 	Type,
 	TypeRef,
 	ValueType,
-} from "@tutao/typerefs"
+} from "../../../src/meta"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { removeOriginals } from "../TestUtils"

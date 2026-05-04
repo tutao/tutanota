@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/network/crypto/facades/PQMessage.js"
+import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/base/crypto/PQMessage.js"
 import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
 
 o.spec("PQMessageTest", function () {

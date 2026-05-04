@@ -1,41 +1,53 @@
-import { entityUpdateUtils, GENERATED_MIN_ID, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "@tutao/utils"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { stringValidator } from "../../../common/gui/base/Dialog.js"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { stringValidator } from "../../../ui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import * as restError from "@tutao/rest-client/error"
 import { compareGroupInfos, getGroupInfoDisplayName } from "../../../network/GroupUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import { BookingItemFeatureType, GroupType, OperationType } from "@tutao/app-env"
-import { TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeString, parseTypeString, isSameTypeRefNullable, AppNameEnum, type AppName } from "@tutao/typerefs"
+import {
+	BookingItemFeatureType,
+	createGroupInfo,
+	CustomerTypeRef,
+	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMemberTypeRef,
+	GroupType,
+	GroupTypeRef,
+	UserTypeRef,
+} from "@tutao/entities/sys"
+import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { GENERATED_MIN_ID, isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
 
 export class GroupDetailsModel {
-	groupInfo: sysTypeRefs.GroupInfo
-	private readonly group: LazyLoaded<sysTypeRefs.Group>
+	groupInfo: GroupInfo
+	private readonly group: LazyLoaded<Group>
 	private usedStorageInBytes!: number
-	private readonly members: LazyLoaded<Array<sysTypeRefs.GroupInfo>>
+	private readonly members: LazyLoaded<Array<GroupInfo>>
 
 	private senderName!: LazyLoaded<string>
 
 	constructor(
-		groupInfo: sysTypeRefs.GroupInfo,
+		groupInfo: GroupInfo,
 		private readonly entityClient: EntityClient,
 		private readonly updateViewCallback: () => void,
 	) {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
-		this.group = new LazyLoaded(() => this.entityClient.load(sysTypeRefs.GroupTypeRef, this.groupInfo.group))
+		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, this.groupInfo.group))
 
 		this.group.getAsync().then(() => this.updateViewCallback())
 
 		this.members = new LazyLoaded(async () => {
 			const group = await this.group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups
-			const groupMembers = await this.entityClient.loadRange(sysTypeRefs.GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-			return promiseMap(groupMembers, (member) => this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, member.userGroupInfo))
+			const groupMembers = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
+			return promiseMap(groupMembers, (member) => this.entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 
 		// noinspection JSIgnoredPromiseFromCall
@@ -80,7 +92,7 @@ export class GroupDetailsModel {
 		return this.groupInfo.created
 	}
 
-	getMembersInfo(): Array<sysTypeRefs.GroupInfo> {
+	getMembersInfo(): Array<GroupInfo> {
 		return this.members.isLoaded() ? this.members.getLoaded() : []
 	}
 
@@ -95,9 +107,9 @@ export class GroupDetailsModel {
 	/**
 	 * remove the group of the given groupInfo from this group
 	 */
-	async removeGroupMember(userGroupInfo: sysTypeRefs.GroupInfo): Promise<void> {
+	async removeGroupMember(userGroupInfo: GroupInfo): Promise<void> {
 		try {
-			const userGroup = await this.entityClient.load(sysTypeRefs.GroupTypeRef, userGroupInfo.group)
+			const userGroup = await this.entityClient.load(GroupTypeRef, userGroupInfo.group)
 			return locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)
 		} catch (e) {
 			if (!(e instanceof restError.NotAuthorizedError)) throw e
@@ -120,7 +132,7 @@ export class GroupDetailsModel {
 	}
 
 	changeGroupName(newName: string): Promise<void> {
-		const newGroupInfo: sysTypeRefs.GroupInfo = sysTypeRefs.createGroupInfo(this.groupInfo)
+		const newGroupInfo: GroupInfo = createGroupInfo(this.groupInfo)
 		newGroupInfo.name = newName
 		return this.entityClient.update(newGroupInfo)
 	}
@@ -178,8 +190,8 @@ export class GroupDetailsModel {
 	}
 
 	async getPossibleMembers(): Promise<Array<{ name: string; value: Id }>> {
-		const customer = await this.entityClient.load(sysTypeRefs.CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-		const userGroupInfos = await this.entityClient.loadAll(sysTypeRefs.GroupInfoTypeRef, customer.userGroups)
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
 		let globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
 		let availableUserGroupInfos = userGroupInfos.filter((userGroupInfo) => {
@@ -198,8 +210,8 @@ export class GroupDetailsModel {
 	}
 
 	async addUserToGroup(group: Id): Promise<any> {
-		const userGroup = await this.entityClient.load(sysTypeRefs.GroupTypeRef, group)
-		const user = await this.entityClient.load(sysTypeRefs.UserTypeRef, neverNull(userGroup.user))
+		const userGroup = await this.entityClient.load(GroupTypeRef, group)
+		const user = await this.entityClient.load(UserTypeRef, neverNull(userGroup.user))
 		return locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group)
 	}
 
@@ -230,12 +242,12 @@ export class GroupDetailsModel {
 		this.updateViewCallback()
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		await promiseMap(updates, async (update) => {
 			const { instanceListId, instanceId, operation } = update
 
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
-				const updatedUserGroupInfo = await this.entityClient.load(sysTypeRefs.GroupInfoTypeRef, this.groupInfo._id)
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
+				const updatedUserGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.groupInfo._id)
 				if (isSameId(this.groupInfo._id, [assertNotNull(instanceListId, "got groupInfo update without instanceListId"), instanceId])) {
 					this.groupInfo = updatedUserGroupInfo
 					return this.updateUsedStorage()
@@ -244,17 +256,13 @@ export class GroupDetailsModel {
 					return this.updateMembers()
 				}
 			} else if (
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupMemberTypeRef, update) &&
+				isUpdateForTypeRef(GroupMemberTypeRef, update) &&
 				this.group.isLoaded() &&
 				this.group.getLoaded().members === assertNotNull(instanceListId, "got a groupMember update without instanceListId")
 			) {
 				// the members have changed
 				return this.updateMembers()
-			} else if (
-				this.isMailGroup() &&
-				entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailboxPropertiesTypeRef, update) &&
-				update.operation === OperationType.UPDATE
-			) {
+			} else if (this.isMailGroup() && isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				// the sender name belonging to this group may have changed.
 				// noinspection ES6MissingAwait
 				this.updateSenderName()

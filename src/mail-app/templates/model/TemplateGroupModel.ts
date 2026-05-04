@@ -1,9 +1,9 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { TemplateGroupRoot } from "@tutao/entities/tutanota"
+import { Group, GroupInfo, GroupMembership } from "@tutao/entities/sys"
 
 export type TemplateGroupInstance = {
-	group: sysTypeRefs.Group
-	groupInfo: sysTypeRefs.GroupInfo
-	groupRoot: tutanotaTypeRefs.TemplateGroupRoot
-	groupMembership: sysTypeRefs.GroupMembership
+	group: Group
+	groupInfo: GroupInfo
+	groupRoot: TemplateGroupRoot
+	groupMembership: GroupMembership
 }

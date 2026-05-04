@@ -1,13 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
-import { listIdPart } from "@tutao/typerefs"
+import { listIdPart } from "../../../meta"
 import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
-import { px } from "../../../common/gui/size"
-import { normalizeColorHex } from "../../../common/gui/base/GuiUtils"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { px } from "../../../ui/size"
+import { normalizeColorHex } from "../../../ui/base/GuiUtils"
+import {} from "../../../meta"
+import { User } from "@tutao/entities/sys"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper
@@ -20,7 +21,7 @@ export type LegacyContinuingCalendarEventBubbleAttrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	showTime: EventTextTimeOption | null
-	user: sysTypeRefs.User
+	user: User
 	fadeIn: boolean
 	opacity: number
 	enablePointerEvents: boolean

@@ -1,20 +1,20 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { isEmpty } from "@tutao/utils"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
-import { PosRect } from "../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../ui/utils/PosRect"
+import { Mail } from "@tutao/entities/tutanota"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
  */
 export interface MailViewerToolbarAttrs {
-	selectedMails: readonly tutanotaTypeRefs.Mail[]
+	selectedMails: readonly Mail[]
 	selectNone?: () => void
 	trashMailsAction: (() => void) | null
 	deleteMailAction: (() => void) | null

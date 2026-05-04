@@ -1,11 +1,11 @@
 import { CommandExecutor } from "../CommandExecutor"
-import { Mode } from "@tutao/app-env"
+import { isTest } from "@tutao/app-env"
 
 // In tests, we don't use a real CommandExecutor, so it's safe to instantiate there.
 //
 // But otherwise, we definitely do not want to create a WindowsRegistryFacade on
 // non-Windows.
-if (!(env.mode === Mode.Test) && process.platform !== "win32") {
+if (!isTest() && process.platform !== "win32") {
 	throw new Error(`Cannot load WindowsRegistryFacade from ${process.platform}`)
 }
 

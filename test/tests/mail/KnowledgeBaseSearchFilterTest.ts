@@ -1,45 +1,46 @@
 import o from "@tutao/otest"
 import { knowledgeBaseSearch } from "../../../src/mail-app/knowledgebase/model/KnowledgeBaseSearchFilter.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { createTestEntity } from "../TestUtils.js"
+import { KnowledgeBaseEntry, KnowledgeBaseEntryKeywordTypeRef, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("KnowledgeBaseSearchFilter", function () {
 	o("finds in title with two filtered keywords", function () {
-		const knowledgebaseEntry1: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry1: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "User forgot their password",
 			description:
 				"When a user is certain that they do not remember their password anymore, " +
 				"first, ask the user if they tried all passwords that come to mind" +
 				"if the user completed step 1, ask if they can provide proof that they own the account",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "password",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "forgotten",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "reset",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "account",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "access",
 				}),
 			],
 		})
-		const knowledgebaseEntry2: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry2: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "User cannot access account anymore",
 			description: "A general entry for when the user cannot access their account",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "access",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "account",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "lost",
 				}),
 			],
@@ -48,43 +49,43 @@ o.spec("KnowledgeBaseSearchFilter", function () {
 		o(knowledgeBaseSearch("password", allFakeEntries)).deepEquals([knowledgebaseEntry1]) // should find knowledgebaseEntry1
 	})
 	o("finds in title without filtered keywords", function () {
-		const knowledgebaseEntry1: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry1: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "User forgot their password",
 			description:
 				"When a user is certain that they do not remember their password anymore" +
 				"first, ask the user if they tried all passwords that come to mind" +
 				"if the user completed step 1, ask if they can provide proof that they own the account",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "password",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "forgotten",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "reset",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "account",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "access",
 				}),
 			],
 		})
-		const knowledgebaseEntry2: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry2: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "User cannot access account anymore",
 			description:
 				"A general entry for when the user cannot access their account" +
 				"ask user whether its because of the password or other factors as to why they cannot access their account",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "access",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "account",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "lost",
 				}),
 			],
@@ -93,46 +94,46 @@ o.spec("KnowledgeBaseSearchFilter", function () {
 		o(knowledgeBaseSearch("user", allFakeEntries)).deepEquals([knowledgebaseEntry1, knowledgebaseEntry2]) // should find in both entries
 	})
 	o("more than one filter word", function () {
-		const knowledgebaseEntry1: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry1: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "Payment has been booked but features arent accessible",
 			description:
 				"Something went wrong and the payment registered, but the user believes their features arent accessible yet" +
 				"first, check how long the time between payment and contact has been" +
 				"if it has been more than X days, ask the user to provide a bill or payment proof",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "payment",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "features",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "inaccessible",
 				}),
 			],
 		})
-		const knowledgebaseEntry2: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry2: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "Payment hasn't been booked yet, features aren't accessible either",
 			description:
 				"Something went wrong and the payment never registered" +
 				"ask user if they can provide a bill or payment proof" +
 				"if provided, re-do the booking and enable the features for the user",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "payment",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "unregistered",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "inaccessible",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "features",
 				}),
 			],
 		})
-		const knowledgebaseEntry3: tutanotaTypeRefs.KnowledgeBaseEntry = createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryTypeRef, {
+		const knowledgebaseEntry3: KnowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 			title: "Features don't work as intended, or are buggy",
 			description:
 				"The user has reported features that do not work as intended and hinder the users' experience" +
@@ -140,16 +141,16 @@ o.spec("KnowledgeBaseSearchFilter", function () {
 				"if the problem is known, explain that the team is working on a fix, or explain a temporary fix" +
 				"if its a new problem, tell the user that it has been reported to the team and will be taken care of",
 			keywords: [
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "functionality",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "not",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "working",
 				}),
-				createTestEntity(tutanotaTypeRefs.KnowledgeBaseEntryKeywordTypeRef, {
+				createTestEntity(KnowledgeBaseEntryKeywordTypeRef, {
 					keyword: "bug",
 				}),
 			],

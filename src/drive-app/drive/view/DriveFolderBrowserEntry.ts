@@ -1,11 +1,11 @@
 import m, { Component, Vnode } from "mithril"
-import { theme } from "../../../common/gui/theme"
-import { Icon, IconAttrs, IconSize } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { theme } from "../../../ui/theme"
+import { Icon, IconAttrs, IconSize } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { FolderItem } from "./DriveUtils"
 import { Keys, TabIndex } from "@tutao/app-env"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 
 export interface DriveFolderBrowserEntryAttrs {
 	item: FolderItem

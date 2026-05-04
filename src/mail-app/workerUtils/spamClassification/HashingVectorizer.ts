@@ -1,6 +1,5 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { env, PlatformStub, stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
-import { BYTES_FOR_SERVER_CLASSIFICATION_DATA } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { MAX_WORD_FREQUENCY } from "@tutao/app-env"
 
 export class HashingVectorizer {

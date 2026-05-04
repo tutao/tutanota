@@ -2,10 +2,7 @@
 	"name": "AlarmNotification",
 	"type": "typeref",
 	"location": {
-		"typescript": {
-			"package": "@tutao/typerefs",
-			"namespace": "sysTypeRefs"
-		},
+		"typescript": "@tutao/entities/sys",
 		"kotlin": "de.tutao.tutashared.alarms.EncryptedAlarmNotification"
 	}
 }

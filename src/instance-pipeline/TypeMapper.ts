@@ -1,23 +1,22 @@
+import { AssociationType, TypeRef } from "../meta"
+import { uint8ArrayToBase64 } from "@tutao/utils"
+import { isWebClient, ProgrammingError } from "@tutao/app-env"
+import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import {
-	AssociationType,
 	ClientModelEncryptedParsedInstance,
 	ClientModelUntypedInstance,
 	ClientTypeModel,
-	ClientTypeReferenceResolver,
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	ServerModelEncryptedParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
-	ServerTypeReferenceResolver,
-	TypeRef,
+	TypeModel,
 	UntypedAssociation,
 	UntypedInstance,
 	UntypedValue,
-} from "@tutao/typerefs"
-import { uint8ArrayToBase64 } from "@tutao/utils"
-import { isWebClient, ProgrammingError } from "@tutao/app-env"
-import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
+} from "../meta/EntityTypes"
 
 /**
  * takes a raw parsed JSON value as received from the server and converts its attribute values from the
@@ -131,4 +130,7 @@ export class TypeMapper {
 
 		return untypedInstance
 	}
+}
+export function typeModelToRestPath(typeModel: TypeModel): string {
+	return `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
 }

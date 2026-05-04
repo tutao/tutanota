@@ -1,14 +1,14 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { Autocapitalize, LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
-import { isDomainName } from "../../../common/misc/FormatValidator"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Autocapitalize, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { isDomainName } from "../../../utils/FormatUtils"
+import { Dialog } from "../../../ui/base/Dialog"
 import type { AddDomainData } from "./AddDomainWizard"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import type { WizardPageAttrs, WizardPageN } from "../../../common/gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../../../common/gui/base/WizardDialog.js"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import type { WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../../ui/base/WizardDialog.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 

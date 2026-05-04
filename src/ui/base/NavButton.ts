@@ -1,0 +1,239 @@
+import m, { Children, Component, RouteLinkAttrs, Vnode } from "mithril"
+import { component_size, px } from "../size"
+import type { lazy } from "@tutao/utils"
+import { lazyStringValue, neverNull } from "@tutao/utils"
+import type { lazyIcon } from "./Icon"
+import { Icon } from "./Icon"
+import { theme } from "../theme"
+import { styles } from "../styles"
+import type { MaybeTranslation } from "../utils/LanguageViewModel"
+import { lang } from "../utils/LanguageViewModel"
+import { assertMainOrNode, isDesktop, Keys } from "@tutao/app-env"
+import { isKeyPressed } from "../utils/KeyManager"
+import { DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
+import { fileListToArray } from "../utils/FileUtils.js"
+
+assertMainOrNode()
+export type NavButtonAttrs = {
+	label: MaybeTranslation
+	icon?: lazyIcon
+	href: string | lazy<string>
+	isSelectedPrefix?: string | boolean
+	click?: (event: Event, dom: HTMLElement) => unknown
+	colors?: NavButtonColor
+	dragStartHandler?: DragStartHandler
+	dropHandler?: DropHandler
+	hideLabel?: boolean
+	vertical?: boolean
+	fontSize?: number
+	small?: boolean
+	centred?: boolean
+	leftInjection?: () => Children
+	disableHoverBackground?: boolean
+	disableSelectedBackground?: boolean
+	disabled?: boolean
+	persistentBackground?: boolean
+	onfocus?: () => unknown
+	onblur?: () => unknown
+	onkeydown?: (event: KeyboardEvent) => unknown
+	fillSpaceAround?: boolean
+}
+
+export class NavButton implements Component<NavButtonAttrs> {
+	private _domButton!: HTMLElement
+	private _draggedOver: boolean
+	private _dropCounter: number // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
+
+	constructor() {
+		this._draggedOver = false
+		this._dropCounter = 0
+	}
+
+	view(vnode: Vnode<NavButtonAttrs>): Children {
+		const a = vnode.attrs
+
+		const linkAttrs = this.createButtonAttributes(a)
+		const icon = a.icon?.()
+		const children = [
+			a.leftInjection?.() ?? null,
+			icon
+				? m(Icon, {
+						icon,
+						class: this._getIconClass(a),
+						style: {
+							fill: isNavButtonSelected(a) || this._draggedOver ? theme.primary : theme.on_surface_variant,
+						},
+					})
+				: null,
+			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-8" : ""), lang.getTranslationText(a.label)) : null,
+		]
+
+		// allow nav button without label for registration button on mobile devices
+		if (this._isExternalUrl(a.href)) {
+			return m(this._getNavButtonClass(a), linkAttrs, children)
+		} else {
+			return m(m.route.Link, linkAttrs, children)
+		}
+	}
+
+	_getUrl(href: string | lazy<string>): string {
+		return lazyStringValue(href)
+	}
+
+	_getNavButtonClass(a: NavButtonAttrs): string {
+		return (
+			"a.nav-button.noselect.items-center.click.plr-8.no-text-decoration.button-height.border-radius" +
+			(a.vertical ? ".col" : "") +
+			(!a.centred ? ".flex-start" : ".flex-center") +
+			(a.disableHoverBackground ? "" : ".state-bg") +
+			(a.disabled ? ".no-hover" : "") +
+			((a.fillSpaceAround ?? true) ? ".flex-no-shrink" : "")
+		)
+	}
+
+	_getIconClass(a: NavButtonAttrs): string {
+		const isSelected = isNavButtonSelected(a)
+
+		if (a.colors === NavButtonColor.Header && !styles.isDesktopLayout()) {
+			return "flex-end items-center icon-32" + (isSelected ? " selected" : "")
+		} else if (a.small === true) {
+			return "flex-center items-center icon" + (isSelected ? " selected" : "")
+		} else {
+			return "flex-center items-center icon-24" + (isSelected ? " selected" : "")
+		}
+	}
+
+	_isExternalUrl(href: string | lazy<string>): boolean {
+		let url = this._getUrl(href)
+
+		return url != null ? url.indexOf("http") === 0 : false
+	}
+
+	createButtonAttributes(a: NavButtonAttrs): RouteLinkAttrs {
+		const hasCurrentStyle = this._draggedOver || (isNavButtonSelected(a) && !a.disableSelectedBackground)
+		let attr: RouteLinkAttrs = {
+			role: "button",
+			// aria-current should not depend on drag/background
+			"aria-current": isNavButtonSelected(a) || undefined,
+			// role button for screen readers
+			href: this._getUrl(a.href),
+			draggable: a.dragStartHandler ? "true" : undefined,
+			ondragstart: a.dragStartHandler,
+			style: {
+				"font-size": a.fontSize ? px(a.fontSize) : "",
+				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface,
+				...(hasCurrentStyle && { background: theme.state_bg_active }),
+			},
+			title: lang.getTranslationText(a.label),
+			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
+			selector: this._getNavButtonClass(a),
+			onclick: (e: MouseEvent) => this.click(e, a, e.target as HTMLElement),
+			onkeyup: (e: KeyboardEvent, dom: HTMLElement) => {
+				if (isKeyPressed(e.key, Keys.SPACE)) {
+					this.click(e, a, dom)
+				}
+			},
+			onfocus: a.onfocus,
+			onblur: a.onblur,
+			onkeydown: a.onkeydown,
+			"data-testid": `btn:${lang.getTestId(a.label)}`,
+		}
+
+		if (a.dropHandler) {
+			attr.ondragenter = (ev: DragEvent) => {
+				this._dropCounter++
+				this._draggedOver = true
+				ev.preventDefault()
+			}
+
+			attr.ondragleave = (ev: DragEvent) => {
+				this._dropCounter--
+
+				if (this._dropCounter === 0) {
+					this._draggedOver = false
+				}
+
+				ev.preventDefault()
+			}
+
+			attr.ondragover = (ev: DragEvent) => {
+				// needed to allow dropping
+				ev.preventDefault()
+			}
+
+			attr.ondrop = (ev: DragEvent) => {
+				this._dropCounter = 0
+				this._draggedOver = false
+				ev.preventDefault()
+				ev.stopPropagation()
+				if (ev.dataTransfer?.getData(DropType.Folder)) {
+					let dropData: DropData = {
+						dropType: DropType.Folder,
+						folderId: ev.dataTransfer.getData(DropType.Folder),
+					}
+					neverNull(a.dropHandler)(dropData)
+				} else if (ev.dataTransfer?.getData(DropType.Mail)) {
+					let dropData: DropData = {
+						dropType: DropType.Mail,
+						mailId: ev.dataTransfer.getData(DropType.Mail),
+					}
+					neverNull(a.dropHandler)(dropData)
+				} else if (ev.dataTransfer?.getData(DropType.DriveItems)) {
+					let dropData: DropData = {
+						dropType: DropType.DriveItems,
+						data: ev.dataTransfer.getData(DropType.DriveItems),
+					}
+					neverNull(a.dropHandler)(dropData)
+				} else if (isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+					neverNull(a.dropHandler)({
+						dropType: DropType.ExternalFile,
+						files: fileListToArray(ev.dataTransfer.files),
+					})
+				} else {
+					console.error("received onDrop DragEvent has invalid DropType or is unsupported on this platform!")
+				}
+			}
+		}
+
+		return attr
+	}
+
+	click(event: Event, a: NavButtonAttrs, dom: HTMLElement) {
+		if (!this._isExternalUrl(a.href)) {
+			m.route.set(this._getUrl(a.href))
+
+			if (a.click != null) {
+				a.click(event, dom)
+			}
+
+			event.preventDefault()
+		}
+	}
+
+	getHeight(): number {
+		return component_size.button_height
+	}
+}
+
+export const enum NavButtonColor {
+	Header = "header",
+	Nav = "nav",
+	Content = "content",
+}
+
+export function isNavButtonSelected(a: NavButtonAttrs): boolean {
+	if (typeof a.isSelectedPrefix === "boolean") {
+		return a.isSelectedPrefix
+	}
+
+	const selectedPrefix = a.isSelectedPrefix || lazyStringValue(a.href)
+	return isSelectedPrefix(selectedPrefix)
+}
+
+export function isSelectedPrefix(href: string): boolean {
+	const current = m.route.get()
+	// don't just check current.startsWith(href) because other buttons may also start with this href
+	// e.g. /path/to should match /path/to/button but not /path/topology
+	// this check is a bit ad-hoc and should probably be replaced with something more structural (URLPattern?)
+	return href !== "" && (current === href || current.startsWith(href + "/") || current.startsWith(href + "?") || current.startsWith(href + "#"))
+}

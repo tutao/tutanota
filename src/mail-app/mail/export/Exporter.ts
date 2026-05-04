@@ -1,16 +1,16 @@
 import { noOp, promiseMap, sortableTimestamp, splitInChunks } from "@tutao/utils"
-import { DataFile, elementIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { downloadMailBundle } from "./Bundler"
 import type { EntityClient } from "../../../network/EntityClient"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { FileController, zipDataFiles } from "../../../common/file/FileController"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { OperationId } from "../../../common/api/main/OperationProgressTracker.js"
-import { CancelledError } from "@tutao/app-env"
-import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
+import { CancelledError, isDesktop } from "@tutao/app-env"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade.js"
 import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
-import { isDesktop } from "@tutao/app-env"
+import { DataFile, Mail } from "@tutao/entities/tutanota"
+import { elementIdPart } from "@tutao/meta"
 
 const EXPORT_CHUNK_SIZE = 10000
 
@@ -37,14 +37,14 @@ export async function getMailExportMode(): Promise<MailExportMode> {
  * was instructed to open the new zip File containing the exported files
  */
 export async function exportMails(
-	mails: ReadonlyArray<tutanotaTypeRefs.Mail>,
+	mails: ReadonlyArray<Mail>,
 	mailFacade: MailFacade,
 	entityClient: EntityClient,
 	fileController: FileController,
 	cryptoFacade: CryptoFacade,
 	operationId?: OperationId,
 	signal?: AbortSignal,
-): Promise<{ failed: tutanotaTypeRefs.Mail[] }> {
+): Promise<{ failed: Mail[] }> {
 	let cancelled = false
 
 	const onAbort = () => {
@@ -57,7 +57,7 @@ export async function exportMails(
 		// total effort would be (mailsToBundle * 2) + filesToGenerate
 		const totalMails = mails.length * 3
 		let doneMails = 0
-		const errorMails: tutanotaTypeRefs.Mail[] = []
+		const errorMails: Mail[] = []
 
 		signal?.addEventListener("abort", onAbort)
 		const updateProgress =
@@ -72,9 +72,9 @@ export async function exportMails(
 			if (cancelled) throw new CancelledError("export cancelled")
 		}
 
-		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
 		const htmlSanitizer = getHtmlSanitizer()
-		const mailChunks = splitInChunks<tutanotaTypeRefs.Mail>(EXPORT_CHUNK_SIZE, mails)
+		const mailChunks = splitInChunks<Mail>(EXPORT_CHUNK_SIZE, mails)
 		for (const [index, mailsChunk] of mailChunks.entries()) {
 			const downloadPromise = promiseMap(mailsChunk, async (mail) => {
 				checkAbortSignal()

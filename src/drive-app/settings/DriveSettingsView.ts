@@ -1,14 +1,13 @@
 import { SettingsViewSection } from "../../common/settings/Interfaces"
 import { CredentialsProvider } from "../../common/misc/credentials/CredentialsProvider"
-import { MobileSystemFacade } from "../../common/native/common/generatedipc/MobileSystemFacade"
-import { EntityClient } from "../../common/api/common/EntityClient"
 import { LoginController } from "../../common/api/main/LoginController"
-import { ThemeController } from "../../common/gui/ThemeController"
-import { WhitelabelThemeGenerator } from "../../common/gui/WhitelabelThemeGenerator"
-import type { MobilePaymentsFacade } from "../../common/native/common/generatedipc/MobilePaymentsFacade"
-import { lang } from "../../common/misc/LanguageViewModel"
 import { adminSettingsSection, appearanceSettings, loginSettings, subscriptionSettingsSection } from "../../common/settings/standardSettings"
 import { CustomerFacade } from "../../common/api/worker/facades/lazy/CustomerFacade"
+import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { EntityClient } from "../../network/EntityClient"
+import { ThemeController } from "../../ui/ThemeController"
+import { WhitelabelThemeGenerator } from "../../ui/WhitelabelThemeGenerator"
+import { lang } from "../../ui/utils/LanguageViewModel"
 
 export function makeDriveSettings(
 	credentialsProvider: CredentialsProvider,

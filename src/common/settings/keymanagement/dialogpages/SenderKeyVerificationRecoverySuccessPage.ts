@@ -1,11 +1,11 @@
 import m, { Component, Vnode } from "mithril"
-import { lang } from "../../../misc/LanguageViewModel"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
-import { TitleSection } from "../../../gui/TitleSection"
-import { Icons } from "../../../gui/base/icons/Icons"
-import { theme } from "../../../gui/theme"
-import { Card } from "../../../gui/base/Card"
-import { ExternalLink } from "../../../gui/base/ExternalLink"
+import { TitleSection } from "../../../../ui/TitleSection"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
+import { Card } from "../../../../ui/base/Card"
+import { ExternalLink } from "../../../../ui/base/ExternalLink"
 
 type SenderRecoverySuccessPageAttrs = {
 	model: SenderKeyVerificationRecoveryModel

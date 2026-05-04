@@ -1,14 +1,15 @@
 import { CalendarSearchBarState, Entry, ShowMoreAction } from "./CalendarSearchBar.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { downcast, isEmpty } from "@tutao/utils"
-import { isSameTypeRef, tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
-import { px, size } from "../../../common/gui/size.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { px, size } from "../../../ui/size.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { formatDate } from "../../../common/misc/Formatter.js"
+import { formatDate } from "../../../ui/utils/Formatter.js"
 import { formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { isSameTypeRef, TypeRef } from "@tutao/meta"
 
 type CalendarSearchBarOverlayAttrs = {
 	state: CalendarSearchBarState
@@ -49,7 +50,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 
 		if (!type) {
 			return this.renderShowMoreAction(downcast(result))
-		} else if (isSameTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, type)) {
+		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 			return this.renderCalendarEventResult(downcast(result))
 		} else {
 			return []
@@ -85,7 +86,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
-	private renderCalendarEventResult(event: tutanotaTypeRefs.CalendarEvent): Children {
+	private renderCalendarEventResult(event: CalendarEvent): Children {
 		return [
 			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
 			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),

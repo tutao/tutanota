@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { LegacyTextField } from "../../gui/base/LegacyTextField"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField"
 import { GroupNameData } from "../model/GroupSettingsModel"
 
 interface GroupSettingNameInputFieldsAttrs {

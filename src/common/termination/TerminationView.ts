@@ -1,19 +1,20 @@
 import m, { Children, Vnode } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { AriaLandmarks, landmarkAttrs } from "../gui/AriaUtils.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { AriaLandmarks, landmarkAttrs } from "../../ui/AriaUtils.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { TerminationViewModel } from "./TerminationViewModel.js"
 import { TerminationForm } from "./TerminationForm.js"
-import { formatDateTime, formatDateWithMonth } from "../misc/Formatter.js"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
-import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
+import { formatDateTime, formatDateWithMonth } from "../../ui/utils/Formatter.js"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
+import { BaseTopLevelView } from "../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView.js"
+import { LoginScreenHeader } from "../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { client } from "../../app-env/boot/ClientDetector"
-import { sysTypeRefs } from "@tutao/typerefs"
+import {} from "../../meta"
+import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -72,7 +73,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		)
 	}
 
-	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: sysTypeRefs.CustomerAccountTerminationRequest): Children {
+	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
 		return m("", [
 			m(".h3.mt-16", "Termination successful"),
 			m(
@@ -88,7 +89,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	private async cancelWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
 		if (surveyResult && surveyResult.submitted && surveyResult.category && surveyResult.reason) {
-			const data = sysTypeRefs.createSurveyData({
+			const data = createSurveyData({
 				category: surveyResult.category,
 				reason: surveyResult.reason,
 				details: surveyResult.details,

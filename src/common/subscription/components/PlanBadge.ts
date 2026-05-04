@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../gui/size.js"
-import { lang, TranslationKey } from "../../misc/LanguageViewModel"
-import { theme } from "../../gui/theme"
+import { px, size } from "../../../ui/size.js"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { theme } from "../../../ui/theme"
 
 export type PlanBadgeAttrs = {
 	langKey: TranslationKey

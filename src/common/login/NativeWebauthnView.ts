@@ -1,13 +1,13 @@
 import type { Children, Vnode } from "mithril"
 import m from "mithril"
-import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar.js"
 import type { WebauthnNativeBridge } from "../native/WebauthnNativeBridge.js"
-import { SecondFactorImage } from "../gui/base/icons/Icons.js"
-import { progressIcon } from "../gui/base/Icon.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { ButtonType } from "../gui/base/Button.js"
+import { SecondFactorImage } from "../../ui/base/icons/Icons.js"
+import { progressIcon } from "../../ui/base/Icon.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import { ButtonType } from "../../ui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import { TopLevelView } from "../../TopLevelView.js"
+import { TopLevelView } from "../../ui/base/TopLevelView.js"
 
 /**
  * This is a special view which is not used by the web client

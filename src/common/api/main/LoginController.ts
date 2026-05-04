@@ -1,22 +1,24 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 import { assertNotNull, defer } from "@tutao/utils"
-import { assertMainOrNodeBoot, ExternalUserKeyDeriver, FeatureType, InvalidModelError, isAdminClient, KdfType, Mode, SessionType } from "@tutao/app-env"
+import { assertMainOrNodeBoot, FeatureType, InvalidModelError, isAdminClient, SessionType } from "@tutao/app-env"
 import type { UserController, UserControllerInitData } from "./UserController"
-import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { getWhitelabelCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
 import * as restError from "@tutao/rest-client/error"
-import { client } from "../../../app-env/boot/ClientDetector"
-import type { LoginFacade, NewSessionData } from "../../../network/LoginFacade"
-import { ResumeSessionErrorReason } from "../../../network/LoginFacade"
-import { LoggedInEvent, UnencryptedCredentials } from "@tutao/native-bridge/common"
+import { client } from "@tutao/app-env"
+import type { LoginFacade, NewSessionData } from "../../../base/facades/LoginFacade"
+import { ResumeSessionErrorReason } from "../../../base/facades/LoginFacade"
+import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
+import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
-import { CacheMode } from "@tutao/network"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
-import { Credentials } from "../../../network/Constants"
+import { CacheMode } from "../../../network/EntityRestClient"
+import { Credentials } from "@tutao/network/types"
+import { ExternalUserKeyDeriver, KdfType } from "../../../base/crypto/Constants"
 
 assertMainOrNodeBoot()
 
 export interface PostLoginAction {
-	/** Partial login is achieved with getting the user, can happen local-store. The login will wait for the returned promise. */
+	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
 	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 
 	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
@@ -67,11 +69,11 @@ export class LoginController {
 	}
 
 	/**
-	 * create a new session and set up stored credentials and local-store database, if applicable.
+	 * create a new session and set up stored credentials and offline database, if applicable.
 	 * @param username the mail address being used to log in
 	 * @param password the password given to log in
 	 * @param sessionType whether to store the credentials in local storage
-	 * @param databaseKey if given, will use this key for the local-store database. if not, will force a new database to be created and generate a key.
+	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
 	 */
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
 		const newSessionData = await this.loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
@@ -147,9 +149,9 @@ export class LoginController {
 
 	/**
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
-	 * @param unencryptedCredentials The stored credentials and optional database key for the local-store db
+	 * @param unencryptedCredentials The stored credentials and optional database key for the offline db
 	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
-	 * @param offlineTimeRangeDate the user configured time range for their local-store storage, used to initialize the local-store db
+	 * @param offlineTimeRangeDate the user configured time range for their offline storage, used to initialize the offline db
 	 */
 	async resumeSession(
 		unencryptedCredentials: UnencryptedCredentials,

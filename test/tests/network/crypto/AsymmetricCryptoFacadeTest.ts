@@ -1,43 +1,38 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AsymmetricCryptoFacade } from "../../../../src/network/crypto/facades/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../src/base/crypto/AsymmetricCryptoFacade.js"
 import { RsaImplementation } from "../../../../src/native-bridge/worker/RsaImplementation.js"
-import { PQFacade } from "../../../../src/network/crypto/facades/PQFacade.js"
+import { PQFacade } from "../../../../src/base/crypto/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import {
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	EncryptionKeyVerificationState,
-	PresentableKeyVerificationState,
-	ProgrammingError,
-	PublicKeyIdentifierType,
-} from "@tutao/app-env"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import {
-	aes256RandomKey,
 	AesKey,
-	cryptoUtils,
 	CryptoWrapper,
 	KeyPairType,
-	keyToUint8Array,
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,
+	PublicKeyIdentifier,
+	PublicKeyIdentifierType,
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,
-	uint8ArrayToBitArray,
 	X25519KeyPair,
+	aes256RandomKey,
+	cryptoUtils,
+	keyToUint8Array,
+	uint8ArrayToBitArray,
 } from "@tutao/crypto"
-import { KeyLoaderFacade } from "../../../../src/network/crypto/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../src/base/crypto/KeyLoaderFacade.js"
 import { IServiceExecutor } from "../../../../src/network/ServiceRequest.js"
 import { KeyVersion, Versioned } from "@tutao/utils"
-import { sysServices, sysTypeRefs } from "@tutao/typerefs"
+
 import { createTestEntity } from "../../TestUtils.js"
-import { VerifiedPublicEncryptionKey } from "../../../../src/network/crypto/facades/lazy/KeyVerificationFacade"
-import { PublicEncryptionKeyProvider } from "../../../../src/network/crypto/facades/PublicEncryptionKeyProvider.js"
-import { AdminKeyLoaderFacade } from "../../../../src/network/crypto/facades/AdminKeyLoaderFacade"
-import { PublicKeyIdentifier } from "../../../../src/crypto/CryptoTypes"
+import { VerifiedPublicEncryptionKey } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
+import PublicEncryptionKeyProvider from "../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
+import { AdminKeyLoaderFacade } from "../../../../src/base/crypto/AdminKeyLoaderFacade"
+import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation
@@ -198,7 +193,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
 			const recipientIdentifier = object<string>()
 			const recipientIdentifierType = PublicKeyIdentifierType.MAIL_ADDRESS
-			const pubEncKeyData: sysTypeRefs.PubEncKeyData = createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
 				pubEncSymKey,
 				protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 				senderKeyVersion,
@@ -244,7 +239,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("should not try authentication when protocol is not TutaCrypt", async function () {
 			const pubEncSymKey: Uint8Array = object()
-			const pubEncKeyData: sysTypeRefs.PubEncKeyData = createTestEntity(sysTypeRefs.PubEncKeyDataTypeRef, {
+			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
 				pubEncSymKey,
 				protocolVersion: CryptoProtocolVersion.RSA,
 				senderKeyVersion: null,
@@ -398,8 +393,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				})
 				verify(
 					serviceExecutor.put(
-						sysServices.PublicKeyService,
-						matchers.argThat((arg: sysTypeRefs.PublicKeyPutIn) => {
+						PublicKeyService,
+						matchers.argThat((arg: PublicKeyPutIn) => {
 							return (
 								arg.pubEccKey === newIdentityEccPair.publicKey &&
 								arg.symEncPrivEccKey === encryptedEccSenderPrivateKey &&

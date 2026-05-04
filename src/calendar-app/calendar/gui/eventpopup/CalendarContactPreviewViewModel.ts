@@ -1,5 +1,6 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import {} from "../../../../meta"
 import { isNotNull } from "@tutao/utils"
+import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -12,8 +13,8 @@ export class CalendarContactPreviewViewModel {
 	 * @param _canEdit allow editing the contact if available
 	 */
 	constructor(
-		readonly calendarEvent: Readonly<tutanotaTypeRefs.CalendarEvent>,
-		readonly contact: Readonly<tutanotaTypeRefs.Contact>,
+		readonly calendarEvent: Readonly<CalendarEvent>,
+		readonly contact: Readonly<Contact>,
 		private readonly _canEdit: boolean = false,
 	) {}
 

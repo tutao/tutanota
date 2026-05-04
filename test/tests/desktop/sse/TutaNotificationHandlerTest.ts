@@ -1,15 +1,18 @@
 import o from "@tutao/otest"
-import { TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
+import TutaNotificationHandler from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
-import { CredentialEncryptionMode, ExtendedNotificationMode, NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-bridge"
+import { CredentialEncryptionMode } from "@tutao/app-env"
+import { ExtendedNotificationMode } from "../../../../src/native-bridge/common/generatedipc/types/ExtendedNotificationMode.js"
+import { NativeCredentialsFacade } from "../../../../src/native-bridge/common/generatedipc/types/NativeCredentialsFacade.js"
+import { UnencryptedCredentials } from "../../../../src/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
 import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
-import { LanguageViewModel } from "../../../../src/common/misc/LanguageViewModel.js"
+import { LanguageViewModel } from "../../../../src/ui/utils/LanguageViewModel.js"
 import { fetch as undiciFetch } from "undici"
 import { func, matchers, object, verify, when } from "testdouble"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, mockFetchRequest } from "../../TestUtils.js"
-import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
+
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
@@ -17,8 +20,11 @@ import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull } from "@tutao/utils"
-import { sysTypeRefs, tutanotaModelInfo, tutanotaTypeRefs } from "@tutao/typerefs"
 
+import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
+import { CredentialType } from "@tutao/network/types"
+
+import { NotificationInfo, createIdTupleWrapper, createNotificationInfo } from "@tutao/entities/sys"
 type UndiciFetch = typeof undiciFetch
 
 o.spec("TutaNotificationHandler", () => {
@@ -67,11 +73,11 @@ o.spec("TutaNotificationHandler", () => {
 			when(wm.getAll()).thenReturn([])
 			when(nativeCredentialsFacade.getCredentialEncryptionMode()).thenResolve(CredentialEncryptionMode.DEVICE_LOCK)
 			when(conf.getExtendedNotificationConfig("user1")).thenResolve(ExtendedNotificationMode.NoSenderOrSubject)
-			const mailId = sysTypeRefs.createIdTupleWrapper({
+			const mailId = createIdTupleWrapper({
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = sysTypeRefs.createNotificationInfo({
+			const notificationInfo = createNotificationInfo({
 				_id: "id",
 				_ownerGroup: "ownerGroupId",
 				mailId,
@@ -100,11 +106,11 @@ o.spec("TutaNotificationHandler", () => {
 			])
 			when(nativeCredentialsFacade.getCredentialEncryptionMode()).thenResolve(CredentialEncryptionMode.DEVICE_LOCK)
 			when(conf.getExtendedNotificationConfig("user1")).thenResolve(ExtendedNotificationMode.NoSenderOrSubject)
-			const mailId = sysTypeRefs.createIdTupleWrapper({
+			const mailId = createIdTupleWrapper({
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = sysTypeRefs.createNotificationInfo({
+			const notificationInfo = createNotificationInfo({
 				_id: "id",
 				_ownerGroup: "ownerGroupId",
 				mailId,
@@ -121,11 +127,11 @@ o.spec("TutaNotificationHandler", () => {
 			when(wm.getAll()).thenReturn([])
 			when(nativeCredentialsFacade.getCredentialEncryptionMode()).thenResolve(CredentialEncryptionMode.APP_PASSWORD)
 			when(conf.getExtendedNotificationConfig("user1")).thenResolve(ExtendedNotificationMode.OnlySender)
-			const mailId = sysTypeRefs.createIdTupleWrapper({
+			const mailId = createIdTupleWrapper({
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = sysTypeRefs.createNotificationInfo({
+			const notificationInfo = createNotificationInfo({
 				_id: "id",
 				_ownerGroup: "ownerGroupId",
 				mailId,
@@ -161,11 +167,11 @@ o.spec("TutaNotificationHandler", () => {
 			when(wm.getAll()).thenReturn([])
 			when(nativeCredentialsFacade.getCredentialEncryptionMode()).thenResolve(CredentialEncryptionMode.DEVICE_LOCK)
 			when(conf.getExtendedNotificationConfig("user1")).thenResolve(ExtendedNotificationMode.OnlySender)
-			const mailId = sysTypeRefs.createIdTupleWrapper({
+			const mailId = createIdTupleWrapper({
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = sysTypeRefs.createNotificationInfo({
+			const notificationInfo = createNotificationInfo({
 				_id: "id",
 				_ownerGroup: "ownerGroupId",
 				mailId: mailId,
@@ -185,18 +191,18 @@ o.spec("TutaNotificationHandler", () => {
 				encryptedPassword: "",
 			}
 			when(nativeCredentialsFacade.loadByUserId("user1")).thenResolve(credentials)
-			const mailMetadata: tutanotaTypeRefs.Mail = createSystemMail({
+			const mailMetadata: Mail = createSystemMail({
 				_id: [mailId.listId, mailId.listElementId],
-				sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
 					address: "sender@example.com",
 				}),
-				firstRecipient: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+				firstRecipient: createTestEntity(MailAddressTypeRef, {
 					address: "recipient@example.com",
 				}),
 			})
 
 			const sk = aes256RandomKey()
-			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailTypeRef, mailMetadata, sk)
+			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -255,13 +261,13 @@ o.spec("TutaNotificationHandler", () => {
 			}
 			when(nativeCredentialsFacade.loadByUserId("user1")).thenResolve(credentials)
 
-			const notificationInfos: sysTypeRefs.NotificationInfo[] = []
+			const notificationInfos: NotificationInfo[] = []
 			for (let i = 0; i < 110; i++) {
-				const mailId = sysTypeRefs.createIdTupleWrapper({
+				const mailId = createIdTupleWrapper({
 					listId: "mailListId",
 					listElementId: `mailElementId${i}`,
 				})
-				const notificationInfo = sysTypeRefs.createNotificationInfo({
+				const notificationInfo = createNotificationInfo({
 					_id: `id${i}`,
 					_ownerGroup: "ownerGroupId",
 					mailId: mailId,
@@ -277,16 +283,16 @@ o.spec("TutaNotificationHandler", () => {
 			const sk = aes256RandomKey()
 			const mailMetadataPromises = notificationInfosSlice.map(({ mailId }) => {
 				const { listId, listElementId } = assertNotNull(mailId)
-				const mailMetadata: tutanotaTypeRefs.Mail = createSystemMail({
+				const mailMetadata: Mail = createSystemMail({
 					_id: [listId, listElementId],
-					sender: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+					sender: createTestEntity(MailAddressTypeRef, {
 						address: "sender@example.com",
 					}),
-					firstRecipient: createTestEntity(tutanotaTypeRefs.MailAddressTypeRef, {
+					firstRecipient: createTestEntity(MailAddressTypeRef, {
 						address: "recipient@example.com",
 					}),
 				})
-				return nativeInstancePipeline.mapAndEncrypt(tutanotaTypeRefs.MailTypeRef, mailMetadata, sk)
+				return nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 			})
 			const requestDefer = mockFetchRequest(
 				fetch,

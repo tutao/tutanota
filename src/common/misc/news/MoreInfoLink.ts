@@ -1,9 +1,9 @@
-import { InfoLink, lang, TranslationKey } from "../LanguageViewModel.js"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { ExternalLink, relDocument } from "../../gui/base/ExternalLink.js"
-import { Icon, IconSize } from "../../gui/base/Icon"
-import { Icons } from "../../gui/base/icons/Icons"
-import { theme } from "../../gui/theme"
+import { ExternalLink, relDocument } from "../../../ui/base/ExternalLink.js"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { theme } from "../../../ui/theme"
 
 export type MoreInfoLinkAttrs = {
 	link: InfoLink

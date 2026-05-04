@@ -1,14 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { NewsListItem } from "./NewsListItem.js"
-import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../gui/theme.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { NewsId } from "@tutao/entities/tutanota"
 
 export interface NewsListAttrs {
 	liveNewsListItems: Record<string, NewsListItem>
-	liveNewsIds: tutanotaTypeRefs.NewsId[]
+	liveNewsIds: NewsId[]
 	dialog: Dialog
 }
 

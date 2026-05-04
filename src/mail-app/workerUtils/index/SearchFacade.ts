@@ -1,5 +1,5 @@
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 
 /**
  * Local search functions

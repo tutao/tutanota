@@ -7,7 +7,7 @@ import { Platform } from "./common"
 import { Argument, Option, program } from "commander"
 import JSON5 from "json5"
 
-const PLATFORMS: Array<Platform> = ["ios", "web", "android", "desktop"]
+const PLATFORMS: Array<Platform> = [Platform.Ios, Platform.Web, Platform.Desktop, Platform.Android]
 
 const USAGE = `licc [options] from_dir to_dir
 

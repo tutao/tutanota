@@ -1,9 +1,9 @@
-import { pureComponent } from "../../common/gui/base/PureComponent"
+import { pureComponent } from "../../ui/base/PureComponent"
 import m from "mithril"
-import { styles } from "../../common/gui/styles"
-import { layout_size, px, size } from "../../common/gui/size"
-import { Skeleton } from "../../common/gui/base/Skeleton"
-import { theme } from "../../common/gui/theme.js"
+import { styles } from "../../ui/styles"
+import { layout_size, px, size } from "../../ui/size"
+import { Skeleton } from "../../ui/base/Skeleton"
+import { theme } from "../../ui/theme.js"
 
 export const EventBannerSkeleton = pureComponent(() =>
 	m(

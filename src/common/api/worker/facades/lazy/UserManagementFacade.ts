@@ -1,9 +1,8 @@
-import { assertWorkerOrNode, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "@tutao/app-env"
-import { sysServices, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
+import { assertWorkerOrNode, Const } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
-import type { GroupManagementFacade } from "../../../../../network/facades/lazy/GroupManagementFacade.js"
-import { LoginFacade } from "../../../../../network/LoginFacade.js"
-import { CounterFacade } from "../../../../../network/facades/CounterFacade.js"
+import type { GroupManagementFacade } from "../../../../../base/facades/lazy/GroupManagementFacade.js"
+import { LoginFacade } from "../../../../../base/facades/LoginFacade.js"
+import { CounterFacade } from "../../../../../network/CounterFacade.js"
 import {
 	_encryptBytes,
 	_encryptKeyWithVersionedKey,
@@ -17,13 +16,17 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
-import { UserFacade } from "../../../../../network/UserFacade.js"
+import { UserFacade } from "../../../../../base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
-import { PQFacade } from "../../../../../network/crypto/facades/PQFacade.js"
-import { KeyLoaderFacade } from "../../../../../network/crypto/facades/KeyLoaderFacade.js"
-import { RecoverCodeFacade, RecoverData } from "../../../../../network/facades/lazy/RecoverCodeFacade.js"
-import { AdminKeyLoaderFacade } from "../../../../../network/crypto/facades/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../../../network/facades/lazy/IdentityKeyCreator"
+import { PQFacade } from "../../../../../base/crypto/PQFacade.js"
+import { KeyLoaderFacade } from "../../../../../base/crypto/KeyLoaderFacade.js"
+import { RecoverCodeFacade, RecoverData } from "../../../../../base/facades/lazy/RecoverCodeFacade.js"
+import { AdminKeyLoaderFacade } from "../../../../../base/crypto/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../../../base/crypto/IdentityKeyCreator"
+import { CounterType } from "@tutao/entities/monitor"
+import { createResetPasswordPostIn, createUserDataDelete, GroupType, ResetPasswordService, User, UserService } from "@tutao/entities/sys"
+import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
+import { DEFAULT_KDF_TYPE } from "../../../../../base/crypto/Constants"
 
 assertWorkerOrNode()
 
@@ -42,14 +45,14 @@ export class UserManagementFacade {
 		private readonly identityKeyCreator: IdentityKeyCreator,
 	) {}
 
-	async changeUserPassword(user: sysTypeRefs.User, newPassword: string): Promise<void> {
+	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
-		const data = sysTypeRefs.createResetPasswordPostIn({
+		const data = createResetPasswordPostIn({
 			user: user._id,
 			salt,
 			verifier: passwordVerifier,
@@ -57,10 +60,10 @@ export class UserManagementFacade {
 			kdfVersion: kdfType,
 			userGroupKeyVersion: String(userGroupKey.version),
 		})
-		await this.serviceExecutor.post(sysServices.ResetPasswordService, data)
+		await this.serviceExecutor.post(ResetPasswordService, data)
 	}
 
-	async changeAdminFlag(user: sysTypeRefs.User, admin: boolean): Promise<void> {
+	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 
 		if (admin) {
@@ -70,18 +73,18 @@ export class UserManagementFacade {
 		}
 	}
 
-	async readUsedUserStorage(user: sysTypeRefs.User): Promise<number> {
+	async readUsedUserStorage(user: User): Promise<number> {
 		const counterValue = await this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(user.customer), user.userGroup.group)
 		return Number(counterValue)
 	}
 
-	async deleteUser(user: sysTypeRefs.User, restore: boolean): Promise<void> {
-		const data = sysTypeRefs.createUserDataDelete({
+	async deleteUser(user: User, restore: boolean): Promise<void> {
+		const data = createUserDataDelete({
 			user: user._id,
 			restore,
 			date: Const.CURRENT_DATE,
 		})
-		await this.serviceExecutor.delete(sysServices.UserService, data)
+		await this.serviceExecutor.delete(UserService, data)
 	}
 
 	async createUser(
@@ -112,7 +115,7 @@ export class UserManagementFacade {
 		)
 		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100)
 
-		let data = tutanotaTypeRefs.createUserAccountCreateData({
+		let data = createUserAccountCreateData({
 			date: Const.CURRENT_DATE,
 			userGroupData: userGroupData,
 			userData: await this.generateUserAccountData(
@@ -125,7 +128,7 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		const { userGroup } = await this.serviceExecutor.post(tutanotaServices.UserAccountService, data)
+		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,
@@ -147,7 +150,7 @@ export class UserManagementFacade {
 		passphrase: string,
 		userName: string,
 		recoverData: RecoverData,
-	): Promise<tutanotaTypeRefs.UserAccountUserData> {
+	): Promise<UserAccountUserData> {
 		const kdfType = DEFAULT_KDF_TYPE
 		const salt = generateRandomSalt()
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
@@ -177,7 +180,7 @@ export class UserManagementFacade {
 		const fileEncFileSystemSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
 		const mailEncMailBoxSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
-		return tutanotaTypeRefs.createUserAccountUserData({
+		return createUserAccountUserData({
 			mailAddress: mailAddress,
 			encryptedName: _encryptString(userGroupInfoSessionKey, userName),
 			salt: salt,

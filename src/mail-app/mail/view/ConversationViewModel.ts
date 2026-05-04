@@ -1,15 +1,14 @@
 import {
 	elementIdPart,
-	entityUpdateUtils,
 	firstBiggerThanSecondBase64Ext,
 	getElementId,
 	haveSameId,
 	isSameId,
 	isSameTypeRef,
 	listIdPart,
-	tutanotaTypeRefs,
+	OperationType,
 	TypeRef,
-} from "@tutao/typerefs"
+} from "@tutao/meta"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { assertNotNull, findLast, findLastIndex, groupBy, makeSingleUse, memoizedWithHiddenArgument, ofClass, settledThen } from "@tutao/utils"
@@ -17,18 +16,18 @@ import { EntityClient } from "../../../network/EntityClient.js"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
-
+import { ConversationEntry, ConversationEntryTypeRef, ConversationType, Mail, MailSetKind, MailTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/misc/DeviceConfig.js"
 
 import { MailModel } from "../model/MailModel.js"
 
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
-import { ConversationType, MailSetKind, OperationType } from "@tutao/app-env"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
-export type MailItem = { type_ref: TypeRef<tutanotaTypeRefs.Mail>; viewModel: MailViewerViewModel; entryId: IdTuple }
+export type MailItem = { type_ref: TypeRef<Mail>; viewModel: MailViewerViewModel; entryId: IdTuple }
 export type ConversationItem = MailItem
 
 export interface ConversationPrefProvider {
@@ -71,16 +70,13 @@ export class ConversationViewModel {
 		}
 	})
 
-	private readonly onEntityEvent: entityUpdateUtils.EntityEventsListener = {
+	private readonly onEntityEvent: EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates, eventOwnerGroupId) => {
 			// conversation entry can be created when new email arrives
 			// conversation entry can be updated when email is moved around or deleted
 			// conversation entry is deleted only when every email in the conversation is deleted (the whole conversation list will be deleted)
 			for (const update of updates) {
-				if (
-					entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ConversationEntryTypeRef, update) &&
-					update.instanceListId === this.conversationListId()
-				) {
+				if (isUpdateForTypeRef(ConversationEntryTypeRef, update) && update.instanceListId === this.conversationListId()) {
 					if (!this.showFullConversation()) {
 						// no need to handle CREATE because we only show a single item and we don't want to add new ones
 						// no need to handle UPDATE because the only update that can happen is when email gets deleted and then we should be closed from the
@@ -101,12 +97,12 @@ export class ConversationViewModel {
 				}
 			}
 		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	private async processCreateConversationEntry(ceId: IdTuple) {
 		try {
-			const entry = await this.entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, ceId)
+			const entry = await this.entityClient.load(ConversationEntryTypeRef, ceId)
 			if (entry.mail) {
 				try {
 					// first wait that we load the conversation, otherwise we might already have the email
@@ -115,15 +111,11 @@ export class ConversationViewModel {
 					return
 				}
 				const conversation = assertNotNull(this.conversation)
-				if (
-					conversation.some(
-						(item) => isSameTypeRef(item.type_ref, tutanotaTypeRefs.MailTypeRef) && isSameId(item.viewModel.mail.conversationEntry, ceId),
-					)
-				) {
+				if (conversation.some((item) => isSameTypeRef(item.type_ref, MailTypeRef) && isSameId(item.viewModel.mail.conversationEntry, ceId))) {
 					// already loaded
 					return
 				}
-				const mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, entry.mail)
+				const mail = await this.entityClient.load(MailTypeRef, entry.mail)
 				let index = findLastIndex(conversation, (i) => firstBiggerThanSecondBase64Ext(getElementId(entry), elementIdPart(i.entryId)))
 				if (index < 0) {
 					index = conversation.length
@@ -131,7 +123,7 @@ export class ConversationViewModel {
 					index = index + 1
 				}
 				conversation.splice(index, 0, {
-					type_ref: tutanotaTypeRefs.MailTypeRef,
+					type_ref: MailTypeRef,
 					viewModel: this.viewModelFactory({ ...this.options, mail }),
 					entryId: entry._id,
 				})
@@ -154,14 +146,14 @@ export class ConversationViewModel {
 			return
 		}
 		const conversation = assertNotNull(this.conversation)
-		let conversationEntry: tutanotaTypeRefs.ConversationEntry
-		let mail: tutanotaTypeRefs.Mail | null
+		let conversationEntry: ConversationEntry
+		let mail: Mail | null
 		try {
-			conversationEntry = await this.entityClient.load(tutanotaTypeRefs.ConversationEntryTypeRef, ceId)
+			conversationEntry = await this.entityClient.load(ConversationEntryTypeRef, ceId)
 			mail =
 				// ideally checking the `mail` ref should be enough but we sometimes get an update with UNKNOWN and non-existing email but still with the ref
 				conversationEntry.conversationType !== ConversationType.UNKNOWN && conversationEntry.mail
-					? await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, conversationEntry.mail).catch(
+					? await this.entityClient.load(MailTypeRef, conversationEntry.mail).catch(
 							ofClass(restError.NotFoundError, () => {
 								console.log(`Could not find updated mail ${JSON.stringify(conversationEntry.mail)}`)
 								return null
@@ -177,18 +169,16 @@ export class ConversationViewModel {
 			}
 		}
 
-		const oldItemIndex = conversation.findIndex(
-			(e) => isSameTypeRef(e.type_ref, tutanotaTypeRefs.MailTypeRef) && isSameId(e.viewModel.mail.conversationEntry, ceId),
-		)
+		const oldItemIndex = conversation.findIndex((e) => isSameTypeRef(e.type_ref, MailTypeRef) && isSameId(e.viewModel.mail.conversationEntry, ceId))
 		if (oldItemIndex === -1) {
 			return
 		}
 		const oldItem = conversation[oldItemIndex]
-		if (mail && isSameTypeRef(oldItem.type_ref, tutanotaTypeRefs.MailTypeRef) && haveSameId(oldItem.viewModel.mail, mail)) {
+		if (mail && isSameTypeRef(oldItem.type_ref, MailTypeRef) && haveSameId(oldItem.viewModel.mail, mail)) {
 			console.log("Noop entry update?", oldItem.viewModel.mail)
 			// nothing to do really, why do we get this update again?
 		} else {
-			if (isSameTypeRef(oldItem.type_ref, tutanotaTypeRefs.MailTypeRef)) {
+			if (isSameTypeRef(oldItem.type_ref, MailTypeRef)) {
 				oldItem.viewModel.dispose()
 			}
 
@@ -198,7 +188,7 @@ export class ConversationViewModel {
 					conversation.splice(oldItemIndex, 1)
 				} else {
 					conversation[oldItemIndex] = {
-						type_ref: tutanotaTypeRefs.MailTypeRef,
+						type_ref: MailTypeRef,
 						viewModel: this.viewModelFactory({ ...this.options, mail }),
 						entryId: conversationEntry._id,
 					}
@@ -224,7 +214,7 @@ export class ConversationViewModel {
 				if (!this.showFullConversation()) {
 					this.conversation = this.conversationItemsForSelectedMailOnly()
 				} else {
-					const entries = await this.entityClient.loadAll(tutanotaTypeRefs.ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
+					const entries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
 					// if the primary mail is not along conversation then only display the primary mail
 					if (!entries.some((entry) => isSameId(entry.mail, this.primaryMail._id))) {
 						this.conversation = this.conversationItemsForSelectedMailOnly()
@@ -248,14 +238,14 @@ export class ConversationViewModel {
 		}
 	}
 
-	private createConversationItems(conversationEntries: tutanotaTypeRefs.ConversationEntry[], allMails: Map<Id, tutanotaTypeRefs.Mail>) {
+	private createConversationItems(conversationEntries: ConversationEntry[], allMails: Map<Id, Mail>) {
 		const newConversation: ConversationItem[] = []
 		for (const c of conversationEntries) {
 			const mail = c.mail && allMails.get(elementIdPart(c.mail))
 
 			if (mail) {
 				newConversation.push({
-					type_ref: tutanotaTypeRefs.MailTypeRef,
+					type_ref: MailTypeRef,
 					viewModel: isSameId(mail._id, this.options.mail._id)
 						? this._primaryViewModel
 						: this.viewModelFactory({
@@ -272,13 +262,13 @@ export class ConversationViewModel {
 		return newConversation
 	}
 
-	private async loadMails(conversationEntries: tutanotaTypeRefs.ConversationEntry[]): Promise<Map<Id, tutanotaTypeRefs.Mail>> {
+	private async loadMails(conversationEntries: ConversationEntry[]): Promise<Map<Id, Mail>> {
 		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
-		const allMails: Map<Id, tutanotaTypeRefs.Mail> = new Map()
+		const allMails: Map<Id, Mail> = new Map()
 		for (const [listId, conversations] of byList.entries()) {
 			if (!listId) continue
 			const loaded = await this.entityClient.loadMultiple(
-				tutanotaTypeRefs.MailTypeRef,
+				MailTypeRef,
 				listId,
 				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
 			)
@@ -315,7 +305,7 @@ export class ConversationViewModel {
 		},
 	)
 
-	private async isInTrash(mail: tutanotaTypeRefs.Mail) {
+	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
 		const mailFolder = this.mailModel.getMailFolderForMail(mail)
 		if (mailFolder == null || mailboxDetail == null) {
@@ -325,7 +315,7 @@ export class ConversationViewModel {
 		return isOfTypeOrSubfolderOf(folders, mailFolder, MailSetKind.TRASH)
 	}
 
-	conversationMails(): readonly tutanotaTypeRefs.Mail[] {
+	conversationMails(): readonly Mail[] {
 		return this.conversationItems().map((conversationItem) => conversationItem.viewModel.mail)
 	}
 
@@ -336,14 +326,14 @@ export class ConversationViewModel {
 	private conversationItemsForSelectedMailOnly(): ConversationItem[] {
 		return [
 			{
-				type_ref: tutanotaTypeRefs.MailTypeRef,
+				type_ref: MailTypeRef,
 				viewModel: this._primaryViewModel,
 				entryId: this._primaryViewModel.mail.conversationEntry,
 			},
 		]
 	}
 
-	get primaryMail(): tutanotaTypeRefs.Mail {
+	get primaryMail(): Mail {
 		return this._primaryViewModel.mail
 	}
 
@@ -363,7 +353,7 @@ export class ConversationViewModel {
 		if (this.loadingState.isConnectionLost()) {
 			this.loadingState.trackPromise(
 				this.loadConversation().then(async () => {
-					const mails = (this.conversation?.filter((e) => isSameTypeRef(e.type_ref, tutanotaTypeRefs.MailTypeRef)) ?? []) as Array<MailItem>
+					const mails = (this.conversation?.filter((e) => isSameTypeRef(e.type_ref, MailTypeRef)) ?? []) as Array<MailItem>
 					await Promise.all(mails.map((m) => m.viewModel.loadAll(Promise.resolve())))
 				}),
 			)
@@ -378,7 +368,7 @@ export class ConversationViewModel {
 			// we may still be in the middle of loading, though, such as if the user is changing views quickly
 			settledThen(this.loadingPromise, () => {
 				for (const item of this.conversationItems()) {
-					if (isSameTypeRef(item.type_ref, tutanotaTypeRefs.MailTypeRef)) {
+					if (isSameTypeRef(item.type_ref, MailTypeRef)) {
 						item.viewModel.dispose()
 					}
 				}

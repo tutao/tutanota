@@ -1,20 +1,3 @@
-import { entityUpdateUtils, haveSameId, isPermanentDeleteAllowedMailSetKind, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
-import {
-	ArchiveDataType,
-	ConversationType,
-	EncryptionAuthStatus,
-	ExternalImageRule,
-	FeatureType,
-	isBrowser,
-	MailAuthenticationStatus,
-	MailMethod,
-	MailPhishingStatus,
-	MailReportType,
-	MailSetKind,
-	MailState,
-	NewsletterBannerRule,
-	OperationType,
-} from "@tutao/app-env"
 import { EntityClient } from "../../../network/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
@@ -36,31 +19,30 @@ import {
 	startsWith,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
-import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
-import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
+import { FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
-import { formatDateTime, urlEncodeHtmlTags } from "../../../common/misc/Formatter"
+import { formatDateTime, urlEncodeHtmlTags } from "../../../ui/utils/Formatter"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState"
-import { ProgrammingError } from "@tutao/app-env"
 import { InitAsResponseArgs } from "../../../common/mailFunctionality/SendMailModel.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
-import { AttachmentType, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade.js"
+import { AttachmentType, getAttachmentType } from "../../../ui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -69,14 +51,38 @@ import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
-import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import type { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
-import { CommonSystemFacade } from "@tutao/native-bridge/common"
+import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { CALENDAR_MIME_TYPE } from "../../../utils/FileConstants"
+import { SanitizedFragment } from "../../../ui/utils/HtmlSanitizerInterface"
+import { ArchiveDataType } from "@tutao/entities/sys"
+import {
+	ConversationType,
+	createMailAddress,
+	EncryptedMailAddress,
+	ExternalImageRule,
+	File,
+	Mail,
+	MailAddress,
+	MailDetails,
+	MailMethod,
+	MailPhishingStatus,
+	MailReportType,
+	MailSet,
+	MailSetKind,
+	MailState,
+	MailTypeRef,
+	NewsletterBannerRule,
+} from "@tutao/entities/tutanota"
+import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
+import { haveSameId, isSameId, OperationType } from "@tutao/meta"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -113,7 +119,7 @@ export class MailViewerViewModel {
 
 	private sanitizeResult: SanitizedFragment | null = null
 	private loadingAttachments: boolean = false
-	private attachments: tutanotaTypeRefs.File[] = []
+	private attachments: File[] = []
 
 	private contentBlockingStatus: ContentBlockingStatus | null = null
 
@@ -123,7 +129,7 @@ export class MailViewerViewModel {
 	private folderMailboxText: string | null
 
 	/** @see getRelevantRecipient */
-	private relevantRecipient: tutanotaTypeRefs.MailAddress | null = null
+	private relevantRecipient: MailAddress | null = null
 	private warningDismissed: boolean = false
 
 	private calendarEventAttachment: {
@@ -137,20 +143,20 @@ export class MailViewerViewModel {
 
 	readonly loadCompleteNotification = stream<null>()
 
-	private renderedMail: tutanotaTypeRefs.Mail | null = null
+	private renderedMail: Mail | null = null
 	private loading: Promise<void> | null = null
 
 	private collapsed: boolean = true
 	private newsletterBannerRule: NewsletterBannerRule | null = null
 
-	get mail(): tutanotaTypeRefs.Mail {
+	get mail(): Mail {
 		return this._mail
 	}
 
-	private mailDetails: tutanotaTypeRefs.MailDetails | null = null
+	private mailDetails: MailDetails | null = null
 
 	constructor(
-		private _mail: tutanotaTypeRefs.Mail,
+		private _mail: Mail,
 		showFolder: boolean,
 		readonly entityClient: EntityClient,
 		public readonly mailboxModel: MailboxModel,
@@ -178,14 +184,14 @@ export class MailViewerViewModel {
 		this.eventController.addEntityListener(this.entityListener)
 	}
 
-	private readonly entityListener: entityUpdateUtils.EntityEventsListener = {
-		onEntityUpdatesReceived: async (events: entityUpdateUtils.EntityUpdateData[]) => {
+	private readonly entityListener: EntityEventsListener = {
+		onEntityUpdatesReceived: async (events: EntityUpdateData[]) => {
 			for (const update of events) {
-				if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+				if (isUpdateForTypeRef(MailTypeRef, update)) {
 					const { instanceListId, instanceId, operation } = update
 					if (operation === OperationType.UPDATE && isSameId(this.mail._id, [instanceListId, instanceId])) {
 						try {
-							const updatedMail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, this.mail._id)
+							const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
 							this.updateMail({ mail: updatedMail })
 						} catch (e) {
 							if (e instanceof restError.NotFoundError) {
@@ -198,7 +204,7 @@ export class MailViewerViewModel {
 				}
 			}
 		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.HIGH,
+		priority: OnEntityUpdateReceivedPriority.HIGH,
 	}
 
 	private async determineRelevantRecipient() {
@@ -293,7 +299,7 @@ export class MailViewerViewModel {
 		return this.loadingState.isConnectionLost()
 	}
 
-	getAttachments(): Array<tutanotaTypeRefs.File> {
+	getAttachments(): Array<File> {
 		return this.attachments
 	}
 
@@ -413,21 +419,21 @@ export class MailViewerViewModel {
 		return this.mail.receivedDate
 	}
 
-	getToRecipients(): Array<tutanotaTypeRefs.MailAddress> {
+	getToRecipients(): Array<MailAddress> {
 		if (this.mailDetails === null) {
 			return []
 		}
 		return this.mailDetails.recipients.toRecipients
 	}
 
-	getCcRecipients(): Array<tutanotaTypeRefs.MailAddress> {
+	getCcRecipients(): Array<MailAddress> {
 		if (this.mailDetails === null) {
 			return []
 		}
 		return this.mailDetails.recipients.ccRecipients
 	}
 
-	getBccRecipients(): Array<tutanotaTypeRefs.MailAddress> {
+	getBccRecipients(): Array<MailAddress> {
 		if (this.mailDetails === null) {
 			return []
 		}
@@ -435,7 +441,7 @@ export class MailViewerViewModel {
 	}
 
 	/** Get the recipient which is relevant the most for the current mailboxes. */
-	getRelevantRecipient(): tutanotaTypeRefs.MailAddress | null {
+	getRelevantRecipient(): MailAddress | null {
 		return this.relevantRecipient
 	}
 
@@ -443,14 +449,14 @@ export class MailViewerViewModel {
 		return filterInt(this.mail.recipientCount)
 	}
 
-	getReplyTos(): Array<tutanotaTypeRefs.EncryptedMailAddress> {
+	getReplyTos(): Array<EncryptedMailAddress> {
 		if (this.mailDetails === null) {
 			return []
 		}
 		return this.mailDetails.replyTos
 	}
 
-	getSender(): tutanotaTypeRefs.MailAddress {
+	getSender(): MailAddress {
 		return this.mail.sender
 	}
 
@@ -870,7 +876,7 @@ export class MailViewerViewModel {
 	}
 
 	/** @return list of inline referenced cid */
-	private async loadAndProcessAdditionalMailInfo(mail: tutanotaTypeRefs.Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
+	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		let isDraftMail = isDraft(mail)
@@ -929,7 +935,7 @@ export class MailViewerViewModel {
 		return this.sanitizeResult.inlineImageCids
 	}
 
-	private async loadAttachments(mail: tutanotaTypeRefs.Mail, inlineCids: string[]): Promise<void> {
+	private async loadAttachments(mail: Mail, inlineCids: string[]): Promise<void> {
 		if (mail.attachments.length === 0) {
 			this.loadingAttachments = false
 			//Setting attachments to empty when we remove the last attachment from the list
@@ -963,7 +969,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private checkMailForPhishing(mail: tutanotaTypeRefs.Mail, links: Array<HTMLElement>) {
+	private checkMailForPhishing(mail: Mail, links: Array<HTMLElement>) {
 		if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
 			const linkObjects = links.map((link) => {
 				return {
@@ -993,7 +999,7 @@ export class MailViewerViewModel {
 	 *
 	 * (this is not true for ie google calendar, they send the invite twice in each mail, but it's always the same file twice)
 	 */
-	private handleCalendarFile(files: Array<tutanotaTypeRefs.File>, mail: tutanotaTypeRefs.Mail): void {
+	private handleCalendarFile(files: Array<File>, mail: Mail): void {
 		const calendarFile = files.find((a) => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
@@ -1017,7 +1023,7 @@ export class MailViewerViewModel {
 		return this.mailModel.getMailboxDetailsForMail(this.mail).then(async (mailboxDetails) => {
 			assertNonNull(mailboxDetails, "Mail list does not exist anymore")
 			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
-			const addressesInMail: tutanotaTypeRefs.MailAddress[] = []
+			const addressesInMail: MailAddress[] = []
 			const mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 			addressesInMail.push(...mailDetails.recipients.toRecipients)
 			addressesInMail.push(...mailDetails.recipients.ccRecipients)
@@ -1026,7 +1032,7 @@ export class MailViewerViewModel {
 			const mailAddressAndName = this.getDisplayedSender()
 			if (mailAddressAndName) {
 				addressesInMail.push(
-					tutanotaTypeRefs.createMailAddress({
+					createMailAddress({
 						name: mailAddressAndName.name,
 						address: mailAddressAndName.address,
 						contact: null,
@@ -1063,8 +1069,8 @@ export class MailViewerViewModel {
 	}
 
 	private async createResponseMailArgsForForwarding(
-		recipients: tutanotaTypeRefs.MailAddress[],
-		replyTos: tutanotaTypeRefs.EncryptedMailAddress[],
+		recipients: MailAddress[],
+		replyTos: EncryptedMailAddress[],
 		addSignature: boolean,
 	): Promise<InitAsResponseArgs> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.receivedDate) + "<br>"
@@ -1126,7 +1132,7 @@ export class MailViewerViewModel {
 			// We already know it is not an announcement email and we want to get the sender even if it
 			// is hidden. It will be replaced with replyTo() anyway
 			const mailAddressAndName = getDisplayedSender(this.mail)
-			const sender = tutanotaTypeRefs.createMailAddress({
+			const sender = createMailAddress({
 				name: mailAddressAndName.name,
 				address: mailAddressAndName.address,
 				contact: null,
@@ -1136,9 +1142,9 @@ export class MailViewerViewModel {
 			const subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
 			const infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + sender.address + ":"
 			const body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
-			const toRecipients: tutanotaTypeRefs.MailAddress[] = []
-			const ccRecipients: tutanotaTypeRefs.MailAddress[] = []
-			const bccRecipients: tutanotaTypeRefs.MailAddress[] = []
+			const toRecipients: MailAddress[] = []
+			const ccRecipients: MailAddress[] = []
+			const bccRecipients: MailAddress[] = []
 
 			if (!this.logins.getUserController().isInternalUser() && this.isReceivedMail()) {
 				toRecipients.push(sender)
@@ -1214,8 +1220,8 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async sanitizeMailBody(mail: tutanotaTypeRefs.Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
-		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
+		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
 		const rawBody = this.getMailBody()
 		const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
 			console.warn("Failed to urlify mail body!", e)
@@ -1240,7 +1246,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	getNonInlineAttachments(): tutanotaTypeRefs.File[] {
+	getNonInlineAttachments(): File[] {
 		// If we have attachments it is safe to assume that we already have body and referenced cids from it
 		const inlineFileIds = this.sanitizeResult?.inlineImageCids ?? []
 		return this.attachments.filter((a) => a.cid == null || !inlineFileIds.includes(a.cid))
@@ -1265,7 +1271,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async downloadAndOpenAttachment(file: tutanotaTypeRefs.File, open: boolean) {
+	async downloadAndOpenAttachment(file: File, open: boolean) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			if (open) {
@@ -1284,7 +1290,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async importAttachment(file: tutanotaTypeRefs.File) {
+	async importAttachment(file: File) {
 		const attachmentType = getAttachmentType(file.mimeType ?? "")
 		if (attachmentType === AttachmentType.CONTACT) {
 			await this.importContacts(file)
@@ -1293,7 +1299,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async importContacts(file: tutanotaTypeRefs.File) {
+	private async importContacts(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			const dataFile = await this.fileController.getAsDataFile(file)
@@ -1308,7 +1314,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async importCalendar(file: tutanotaTypeRefs.File) {
+	private async importCalendar(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
@@ -1321,7 +1327,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	canImportFile(file: tutanotaTypeRefs.File): boolean {
+	canImportFile(file: File): boolean {
 		if (!this.logins.isInternalUserLoggedIn() || file.mimeType == null) {
 			return false
 		}
@@ -1356,7 +1362,7 @@ export class MailViewerViewModel {
 	expandMail(delayBodyRendering: Promise<unknown>): void {
 		this.loadAll(delayBodyRendering, { notify: true })
 		if (this.isUnread()) {
-			// When we automatically mark email as read (e.g. opening it from notification) we don't want to run into local-store errors, but we still want to mark
+			// When we automatically mark email as read (e.g. opening it from notification) we don't want to run into offline errors, but we still want to mark
 			// the email as read once we log in.
 			// It is appropriate to show the error when the user marks the email as unread explicitly but less so when they open it and just didn't reach the
 			// full login yet.
@@ -1369,11 +1375,11 @@ export class MailViewerViewModel {
 		this.collapsed = true
 	}
 
-	getLabels(): readonly tutanotaTypeRefs.MailSet[] {
+	getLabels(): readonly MailSet[] {
 		return this.mailModel.getLabelsForMail(this.mail).sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 	}
 
-	private updateMail({ mail, showFolder }: { mail: tutanotaTypeRefs.Mail; showFolder?: boolean }) {
+	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {
 		if (!isSameId(mail._id, this.mail._id)) {
 			throw new ProgrammingError(
 				`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`,

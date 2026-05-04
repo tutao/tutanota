@@ -1,11 +1,11 @@
-import { Editor } from "../../../common/gui/editor/Editor"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import { Editor } from "../../../ui/editor/Editor"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { downcast, getFirstOrThrow } from "@tutao/utils"
 import { Keys } from "@tutao/app-env"
 import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
-import { lang, languageByCode, LanguageViewModel } from "../../../common/misc/LanguageViewModel"
-import { Dropdown } from "../../../common/gui/base/Dropdown.js"
-import { modal } from "../../../common/gui/base/Modal"
+import { lang, languageByCode, LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
+import { Dropdown } from "../../../ui/base/Dropdown.js"
+import { modal } from "../../../ui/base/Modal"
 import { showTemplatePopupInEditor } from "./TemplatePopup.js"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {

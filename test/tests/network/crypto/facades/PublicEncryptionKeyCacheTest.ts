@@ -1,12 +1,15 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
-import { PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/app-env"
+
 import { createTestEntity } from "../../../TestUtils"
 import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
-import { sysTypeRefs } from "@tutao/typerefs"
-import { PublicKeyIdentifier } from "../../../../../src/crypto/CryptoTypes"
 
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
+
+import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
+
+import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
 o.spec("PublicEncryptionKeyCacheTest", function () {
@@ -19,7 +22,7 @@ o.spec("PublicEncryptionKeyCacheTest", function () {
 	o.beforeEach(function () {
 		pubKeyCache = new PublicEncryptionKeyCache()
 
-		publicKey = { publicKey: { version: version, object: object() }, signature: createTestEntity(sysTypeRefs.PublicKeySignatureTypeRef) }
+		publicKey = { publicKey: { version: version, object: object() }, signature: createTestEntity(PublicKeySignatureTypeRef) }
 		publicKeyIdentifier = {
 			identifier: PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS,
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,

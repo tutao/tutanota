@@ -1,14 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../../gui/styles"
-import { px, size } from "../../gui/size"
+import { styles } from "../../../ui/styles"
+import { px, size } from "../../../ui/size"
 import { PersonalPaidPlanBox } from "./PersonalPaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
 import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
 import { PlanConfig } from "./BusinessPlanContainer"
-import { Icons } from "../../gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { anyHasGlobalFirstYearCampaign, filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
-import { PlanType } from "@tutao/app-env"
+
+import { PlanType } from "@tutao/entities/sys"
 
 export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	private paidPlanConfigs: PlanConfig[] = [

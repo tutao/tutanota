@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { scrollListDom } from "./base/GuiUtils.js"
-import { px, size } from "./size.js"
+import { scrollListDom } from "../../ui/base/GuiUtils.js"
+import { px, size } from "../../ui/size.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 
 const EntryHeight = 60

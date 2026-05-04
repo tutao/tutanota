@@ -1,19 +1,23 @@
 import m, { Children } from "mithril"
-import { lang } from "../misc/LanguageViewModel.js"
-import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
-import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
+import type { DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { DropDownSelector, SelectorItemList } from "../../ui/base/DropDownSelector.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { TimeFormat, WeekStart } from "@tutao/app-env"
 import { downcast, incrementDate, noOp, ofClass, promiseMap } from "@tutao/utils"
-import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
-import { getHourCycle } from "../../common/misc/Formatter"
-import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
+import { ThemeId, themeOptions, ThemePreference } from "../../ui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../../common/api/main/CommonLocator"
 import { client } from "../../app-env/boot/ClientDetector.js"
-import { DateTime } from "../../../libs/luxon.js"
+import { DateTime } from "luxon"
 import * as restError from "@tutao/rest-client/error"
-import { LanguageDropdown } from "../gui/LanguageDropdown"
+import { LanguageDropdown } from "./LanguageDropdown"
+import { UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../entities/tutanota/TypeRefs"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+
+export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
+	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
+}
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -90,7 +94,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m("#devicesettings.h4.mt-32", lang.get("settingsForDevice_label")),
-			m("#language", m(LanguageDropdown, { variant: "TextField" })),
+			m("#language", m(LanguageDropdown, { variant: "TextField", deviceConfig })),
 			this._renderThemeSelector(),
 			this.renderScrollTimeSelector(),
 			m("#usersettings.h4.mt-32", lang.get("userSettings_label")),
@@ -139,10 +143,10 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		return m("#weekscrolltime", m(DropDownSelector, themeDropDownAttrs))
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
-			if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update)) {
-				return locator.entityClient.load(tutanotaTypeRefs.UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
+			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				return locator.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
 					lang.updateFormats({
 						hourCycle: getHourCycle(settings),
 					})

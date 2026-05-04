@@ -1,12 +1,11 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "@tutao/app-env"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { assertMainOrNode, isBrowser, isDesktop } from "@tutao/app-env"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
-import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
-import { isDesktop, Mode } from "@tutao/app-env"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 
 assertMainOrNode()
 
@@ -57,7 +56,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 						label: "downloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (env.mode === Mode.Browser) {
+							if (isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)
@@ -68,7 +67,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 				m(
 					".flex-v-center.full-width.mt-48",
 					m("img", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/mail-import/email-import-webapp.svg`,
+						src: `/images/mail-import/email-import-webapp.svg`,
 						alt: "",
 						rel: "noreferrer",
 						loading: "lazy",

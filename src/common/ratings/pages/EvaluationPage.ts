@@ -1,15 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { client } from "../../../app-env/boot/ClientDetector.js"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { completeEvaluationStage, TriggerType } from "../UserSatisfactionUtils.js"
 import { DateTime } from "luxon"
-import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog"
+import { ImageWithOptionsDialog } from "../../../ui/dialogs/ImageWithOptionsDialog"
 import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
-import { px } from "../../gui/size.js"
+import { px } from "../../../ui/size.js"
 import { isApp, isIOSApp } from "@tutao/app-env"
-import { getCurrentDate } from "@tutao/typerefs"
+import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
 
 interface EvaluationPageAttrs {
 	triggerType: TriggerType
@@ -20,7 +19,7 @@ interface EvaluationPageAttrs {
 export class EvaluationPage implements Component<EvaluationPageAttrs> {
 	view({ attrs }: Vnode<EvaluationPageAttrs>): Children {
 		return m(ImageWithOptionsDialog, {
-			image: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/love-it.svg`,
+			image: `/images/dynamic-color-svg/love-it.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingHowAreWeDoing_title",
 			messageText: "ratingExplanation_msg",

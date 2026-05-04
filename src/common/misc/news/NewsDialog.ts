@@ -1,12 +1,12 @@
-import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import { ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
 import m, { Component } from "mithril"
-import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
-import { lang } from "../LanguageViewModel.js"
-import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { Keys } from "@tutao/app-env"
 import { NewsList } from "./NewsList.js"
 import { NewsModel } from "./NewsModel.js"
-import { progressIcon } from "../../gui/base/Icon.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {

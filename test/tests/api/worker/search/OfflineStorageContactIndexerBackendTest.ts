@@ -4,7 +4,8 @@ import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUti
 import { EntityClient } from "../../../../../src/network/EntityClient"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
+import { ContactListTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("OfflineStorageContactIndexerBackend", () => {
 	let persistence: OfflineStoragePersistence
@@ -18,13 +19,13 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("areContactsIndexed", async () => {
-		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
+		const contactList = createTestEntity(ContactListTypeRef)
 		await backend.areContactsIndexed(contactList)
 		verify(persistence.areContactsIndexed())
 	})
 
 	o.test("indexContactList does nothing when already indexed", async () => {
-		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
+		const contactList = createTestEntity(ContactListTypeRef)
 		when(persistence.areContactsIndexed()).thenResolve(true)
 		await backend.indexContactList(contactList)
 		verify(persistence.areContactsIndexed())
@@ -34,12 +35,12 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("indexContactList does something when not indexed", async () => {
-		const contactList = createTestEntity(tutanotaTypeRefs.ContactListTypeRef)
+		const contactList = createTestEntity(ContactListTypeRef)
 		when(persistence.areContactsIndexed()).thenResolve(false)
 
-		const contacts = [createTestEntity(tutanotaTypeRefs.ContactTypeRef), createTestEntity(tutanotaTypeRefs.ContactTypeRef)]
+		const contacts = [createTestEntity(ContactTypeRef), createTestEntity(ContactTypeRef)]
 
-		when(entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)).thenResolve(contacts)
+		when(entityClient.loadAll(ContactTypeRef, contactList.contacts)).thenResolve(contacts)
 		await backend.indexContactList(contactList)
 		verify(persistence.areContactsIndexed())
 		verify(persistence.storeContactData(contacts))
@@ -52,13 +53,13 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 	})
 
 	o.test("onContactUpdated", async () => {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 		await backend.onContactUpdated(contact)
 		verify(persistence.storeContactData([contact]))
 	})
 
 	o.test("onContactCreated", async () => {
-		const contact = createTestEntity(tutanotaTypeRefs.ContactTypeRef)
+		const contact = createTestEntity(ContactTypeRef)
 		await backend.onContactCreated(contact)
 		verify(persistence.storeContactData([contact]))
 	})

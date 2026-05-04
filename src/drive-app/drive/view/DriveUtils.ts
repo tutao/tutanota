@@ -1,8 +1,9 @@
 import { EntityClient, loadMultipleFromLists } from "../../../network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { getFileBaseNameAndExtensions } from "../../../common/api/common/utils/FileUtils"
-import { driveTypeRefs, getElementId } from "@tutao/typerefs"
+import { getFileBaseNameAndExtensions } from "../../../ui/utils/FileUtils"
 import { partition } from "@tutao/utils"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { getElementId } from "@tutao/meta"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -12,17 +13,17 @@ export function makeDuplicateFileName(fileName: string, indicator: string = "cop
 
 export interface FileFolderItem {
 	type: "file"
-	file: driveTypeRefs.DriveFile
+	file: DriveFile
 }
 
 export interface FolderFolderItem {
 	type: "folder"
-	folder: driveTypeRefs.DriveFolder
+	folder: DriveFolder
 }
 
 export type FolderItem = FileFolderItem | FolderFolderItem
 
-export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): driveTypeRefs.DriveFile | driveTypeRefs.DriveFolder {
+export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
 	return folderItem.type === "file" ? folderItem.file : folderItem.folder
 }
 
@@ -42,11 +43,7 @@ export interface FolderItemId {
 	id: IdTuple
 }
 
-export async function deduplicateItemNames(
-	existingItems: FolderItem[],
-	newFiles: Array<driveTypeRefs.DriveFile>,
-	newFolders: Array<driveTypeRefs.DriveFolder>,
-): Promise<Map<Id, string>> {
+export async function deduplicateItemNames(existingItems: FolderItem[], newFiles: Array<DriveFile>, newFolders: Array<DriveFolder>): Promise<Map<Id, string>> {
 	// This is for tracking filenames that are not yet part of the list model
 	// because we *just now* made them up when trying to find a free candidate name
 	// and are therefore unsuited as candidate names as well.
@@ -87,12 +84,12 @@ export function pickNewFileName(originalName: string, takenFileNames: ReadonlySe
 export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolderId: IdTuple) {
 	const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
 	const files = await loadMultipleFromLists(
-		driveTypeRefs.DriveFileTypeRef,
+		DriveFileTypeRef,
 		entityClient,
 		fileItems.map((item) => item.id),
 	)
 	const folders = await loadMultipleFromLists(
-		driveTypeRefs.DriveFolderTypeRef,
+		DriveFolderTypeRef,
 		entityClient,
 		folderItems.map((item) => item.id),
 	)

@@ -1,4 +1,4 @@
-import { Nullable } from "./index"
+import { Nullable } from "./Utils"
 
 /**
  * Metrics sum up of time periods

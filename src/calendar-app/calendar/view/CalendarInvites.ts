@@ -1,13 +1,10 @@
 import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter.js"
-import { clone, DataFile, getAsEnumValue, tutanotaTypeRefs } from "@tutao/typerefs"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { CalendarAttendeeStatus, CalendarMethod, ConversationType } from "@tutao/app-env"
 import { assert, assertNotNull, filterInt, Require } from "@tutao/utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Recipient, RecipientList } from "../../../common/api/common/recipients/Recipient.js"
 import { EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
 import { getEventType } from "../gui/CalendarGuiUtils.js"
@@ -16,10 +13,23 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
-
+import {
+	CalendarAttendeeStatus,
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarMethod,
+	ConversationType,
+	DataFile,
+	File,
+	Mail,
+	MailboxProperties,
+	Recipient,
+	RecipientList,
+} from "@tutao/entities/tutanota"
+import { clone, getAsEnumValue } from "@tutao/meta"
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
 
@@ -48,7 +58,7 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 	}
 }
 
-export async function getEventsFromFile(file: tutanotaTypeRefs.File): Promise<ParsedIcalFileContent> {
+export async function getEventsFromFile(file: File): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
 	return getParsedEvent(dataFile)
 }
@@ -58,7 +68,7 @@ export async function getEventsFromFile(file: tutanotaTypeRefs.File): Promise<Pa
  * any calendar (because it has not been stored yet, e.g. in case of invite)
  * the given event is returned.
  */
-export async function getLatestEvent(event: IcsCalendarEvent): Promise<tutanotaTypeRefs.CalendarEvent> {
+export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 	const fromIcsCalendarEvent = makeCalendarEventFromIcsCalendarEvent(event)
 	if (uid == null) {
@@ -95,7 +105,7 @@ export class CalendarInviteHandler {
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
 		private readonly calendarNotificationSender: CalendarNotificationSender,
-		private sendMailModelFactory: (mailboxDetails: MailboxDetail, mailboxProperties: tutanotaTypeRefs.MailboxProperties) => Promise<SendMailModel>,
+		private sendMailModelFactory: (mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties) => Promise<SendMailModel>,
 	) {}
 
 	/**
@@ -108,10 +118,10 @@ export class CalendarInviteHandler {
 	 * @param comment
 	 */
 	async replyToEventInvitation(
-		event: tutanotaTypeRefs.CalendarEvent,
-		attendee: tutanotaTypeRefs.CalendarEventAttendee,
+		event: CalendarEvent,
+		attendee: CalendarEventAttendee,
 		decision: CalendarAttendeeStatus,
-		previousMail: tutanotaTypeRefs.Mail | null,
+		previousMail: Mail | null,
 		mailboxDetails: MailboxDetail | null,
 		comment?: string,
 	): Promise<ReplyResult> {
@@ -164,12 +174,7 @@ export class CalendarInviteHandler {
 		}
 
 		if (eventClone.uid) {
-			return await this.handleCalendarEventAfterUserReply(
-				eventClone as Require<"uid", tutanotaTypeRefs.CalendarEvent>,
-				event.recurrenceId,
-				decision,
-				sender,
-			)
+			return await this.handleCalendarEventAfterUserReply(eventClone as Require<"uid", CalendarEvent>, event.recurrenceId, decision, sender)
 		}
 
 		return ReplyResult.ReplySent
@@ -190,7 +195,7 @@ export class CalendarInviteHandler {
 	}
 
 	private async getResponseModelForMail(
-		previousMail: tutanotaTypeRefs.Mail | null,
+		previousMail: Mail | null,
 		mailboxDetails: MailboxDetail,
 		responder: string,
 		responseDecision: CalendarAttendeeStatus,
@@ -230,7 +235,7 @@ export class CalendarInviteHandler {
 	}
 
 	private async handleCalendarEventAfterUserReply(
-		eventUserIsReplyingTo: Require<"uid", tutanotaTypeRefs.CalendarEvent>,
+		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
 		originalEventOccurrence: Date | null,
 		usersDecision: CalendarAttendeeStatus,
 		sender: string,
@@ -250,7 +255,7 @@ export class CalendarInviteHandler {
 		return ReplyResult.ReplySent
 	}
 	private async handleInvitationForExistingEntries(
-		eventUserIsReplyingTo: Require<"uid", tutanotaTypeRefs.CalendarEvent>,
+		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
 		dbEvents: CalendarEventUidIndexEntry | null,
 		originalEventOccurrence: Date | null,
 		sender: string,

@@ -1,9 +1,9 @@
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { component_size, px, size } from "../../../common/gui/size.js"
-import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
-import { IconSegmentControl } from "../../../common/gui/base/IconSegmentControl.js"
-import { AllIcons } from "../../../common/gui/base/Icon.js"
+import { component_size, px, size } from "../../../ui/size.js"
+import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel.js"
+import { IconSegmentControl } from "../../../ui/base/IconSegmentControl.js"
+import { AllIcons } from "../../../ui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 

@@ -1,12 +1,12 @@
 import m, { Children } from "mithril"
-import { WizardPageAttrs, WizardPageN } from "../../../gui/base/WizardDialog.js"
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel.js"
-import { RadioSelector, RadioSelectorAttrs } from "../../../gui/base/RadioSelector.js"
-import { themeOptions, ThemePreference } from "../../../gui/theme.js"
+import { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { RadioSelector, RadioSelectorAttrs } from "../../../../ui/base/RadioSelector.js"
+import { themeOptions, ThemePreference } from "../../../../ui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { client } from "../../../../app-env/boot/ClientDetector.js"
-import { type RadioSelectorOption } from "../../../gui/base/RadioSelectorItem"
+import { type RadioSelectorOption } from "../../../../ui/base/RadioSelectorItem"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 	// The whitelabel themes formatted as `RadioSelectorOption`s.

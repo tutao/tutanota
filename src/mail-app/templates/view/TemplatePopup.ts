@@ -1,38 +1,36 @@
 import m, { Children } from "mithril"
-import type { ModalComponent } from "../../../common/gui/base/Modal"
-import { modal } from "../../../common/gui/base/Modal"
-import { px } from "../../../common/gui/size"
-import type { Shortcut } from "../../../common/misc/KeyManager"
-import { isKeyPressed } from "../../../common/misc/KeyManager"
+import type { ModalComponent } from "../../../ui/base/Modal"
+import { modal } from "../../../ui/base/Modal"
+import { px } from "../../../ui/size"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
+import type Stream from "mithril/stream"
 import { Keys, ShareCapability } from "@tutao/app-env"
 import { TemplatePopupResultRow } from "./TemplatePopupResultRow.js"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { TemplateExpander } from "./TemplateExpander.js"
-import type { LanguageCode } from "../../../common/misc/LanguageViewModel"
-import { lang, languageByCode } from "../../../common/misc/LanguageViewModel"
-import type { windowSizeListener } from "../../../common/misc/WindowFacade"
+import type { LanguageCode } from "../../../ui/utils/LanguageViewModel"
+import { lang, languageByCode } from "../../../ui/utils/LanguageViewModel"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
+import type { ButtonAttrs } from "../../../ui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../../ui/base/Button.js"
 import { SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
-import { attachDropdown, DomRectReadOnlyPolyfilled } from "../../../common/gui/base/Dropdown.js"
+import { attachDropdown, DomRectReadOnlyPolyfilled } from "../../../ui/base/Dropdown.js"
 import { debounce, downcast, neverNull } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar.js"
-import { Editor } from "../../../common/gui/editor/Editor"
+import { Editor } from "../../../ui/editor/Editor"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils"
 import { createInitialTemplateListIfAllowed } from "../TemplateGroupUtils.js"
-import { getConfirmation } from "../../../common/gui/base/GuiUtils"
-import { ScrollSelectList } from "../../../common/gui/ScrollSelectList"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
+import { getConfirmation } from "../../../ui/base/GuiUtils"
+import { ScrollSelectList } from "../../../ui/ScrollSelectList"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH } from "./TemplateConstants.js"
 
-import { PosRect } from "../../../native-bridge/shared/PosRect"
-
-type EmailTemplate = tutanotaTypeRefs.EmailTemplate
+import { PosRect } from "../../../ui/utils/PosRect"
+import { WindowSizeListener } from "../../../ui/utils/WindowUtils"
+import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
@@ -72,7 +70,7 @@ export class TemplatePopup implements ModalComponent {
 	private _shortcuts: Shortcut[]
 	private _onSelect: (_: string) => void
 	private _initialWindowWidth: number
-	private _resizeListener: windowSizeListener
+	private _resizeListener: WindowSizeListener
 	private _redrawStream: Stream<any>
 	private readonly _templateModel: TemplatePopupModel
 	private readonly _searchBarValue: Stream<string>
@@ -359,7 +357,7 @@ export class TemplatePopup implements ModalComponent {
 							title: "editTemplate_action",
 							click: () =>
 								locator.entityClient
-									.load(tutanotaTypeRefs.TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
+									.load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
 									.then((groupRoot) => this.showTemplateEditor(selectedTemplate, groupRoot)),
 							icon: Icons.PenFilled,
 							colors: ButtonColor.DrawerNav,
@@ -472,7 +470,7 @@ export class TemplatePopup implements ModalComponent {
 		return this.focusedBeforeShown
 	}
 
-	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: tutanotaTypeRefs.TemplateGroupRoot) {
+	showTemplateEditor(templateToEdit: EmailTemplate | null, groupRoot: TemplateGroupRoot) {
 		import("../../settings/TemplateEditor.js").then((editor) => {
 			editor.showTemplateEditor(templateToEdit, groupRoot)
 		})

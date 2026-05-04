@@ -1,17 +1,17 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { component_size } from "../../../common/gui/size"
-import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
+import { component_size } from "../../../ui/size"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
 import { assertMainOrNode } from "@tutao/app-env"
-import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../common/gui/base/List.js"
+import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../ui/base/List.js"
 import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
-import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
-import { theme } from "../../../common/gui/theme.js"
-import { styles } from "../../../common/gui/styles.js"
-import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
+import { theme } from "../../../ui/theme.js"
+import { styles } from "../../../ui/styles.js"
+import { shouldAlwaysShowMultiselectCheckbox } from "../../../ui/SelectableRowContainer.js"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Contact } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -19,8 +19,6 @@ export interface ContactListViewAttrs {
 	onSingleSelection: () => unknown
 	contactViewModel: ContactViewModel
 }
-
-type Contact = tutanotaTypeRefs.Contact
 
 export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 	private contactViewModel: ContactViewModel | null = null

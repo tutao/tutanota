@@ -1,11 +1,11 @@
 import { ChildProcessExports } from "./ElectronExportTypes"
 import { Readable } from "node:stream"
-import { SECOND_MS } from "@tutao/app-env"
+import { SECOND_IN_MILLIS } from "@tutao/app-env"
 
 /**
  * Default number of seconds before timing out
  */
-export const DEFAULT_TIMEOUT = 30 * SECOND_MS
+export const DEFAULT_TIMEOUT = 30 * SECOND_IN_MILLIS
 
 /**
  * Parameters to use for executing commands.

@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { completeRatingStage, TriggerType } from "../UserSatisfactionUtils.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
-import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog"
-import { px } from "../../gui/size.js"
+import { ImageWithOptionsDialog } from "../../../ui/dialogs/ImageWithOptionsDialog"
+import { px } from "../../../ui/size.js"
 
 interface AndroidPlayStorePageAttrs {
 	triggerType: TriggerType
@@ -16,7 +16,7 @@ interface AndroidPlayStorePageAttrs {
 export class AndroidPlayStorePage implements Component<AndroidPlayStorePageAttrs> {
 	view({ attrs: { dialog, triggerType } }: Vnode<AndroidPlayStorePageAttrs>): Children {
 		return m(ImageWithOptionsDialog, {
-			image: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/rate-us.svg`,
+			image: `/images/dynamic-color-svg/rate-us.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingGooglePlay_title",
 			messageText: "ratingGooglePlay_msg",

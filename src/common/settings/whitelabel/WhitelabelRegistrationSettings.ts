@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { SelectorItemList } from "../../gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { Dialog } from "../../gui/base/Dialog"
-import { Icons } from "../../gui/base/icons/Icons"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import { IconButton } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import type { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
+import { Dialog } from "../../../ui/base/Dialog"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 
 export type WhitelabelRegistrationSettingsAttrs = {
 	whitelabelCode: string

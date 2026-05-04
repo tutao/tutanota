@@ -11,6 +11,7 @@ import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
 import { $ } from "zx"
 import { execSync, spawnSync } from "node:child_process"
+import { buildArgon2, buildLibOqs } from "../buildSrc/buildWasm.js"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
@@ -61,8 +62,11 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	})
 
 	await runStep("Rolldown", async () => {
+		const resolvedBuildDir = path.resolve(buildDir)
+		await buildArgon2(resolvedBuildDir)
+		await buildLibOqs(resolvedBuildDir)
+
 		for (const key of Object.keys(tsImportAliases)) delete tsImportAliases[key] // See: devbuild.js
-		const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",
@@ -113,23 +117,6 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 					nodeModule: "@signalapp/sqlcipher",
 					environment: "node",
 					targetName: "node_sqlcipher",
-				}),
-				rollupWasmLoader({
-					output: `${process.cwd()}/build`,
-					webassemblyLibraries: [
-						{
-							name: "liboqs.wasm",
-							command: "make -f Makefile_liboqs build",
-							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							outputPath: `${process.cwd()}/build/liboqs.wasm`,
-						},
-						{
-							name: "argon2.wasm",
-							command: "make -f Makefile_argon2 build",
-							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							outputPath: `${process.cwd()}/build/argon2.wasm`,
-						},
-					],
 				}),
 			],
 			resolve: {

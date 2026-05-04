@@ -5,8 +5,8 @@ import { assert, isKeyVersion, KeyVersion, Nullable, stringToUtf8Uint8Array } fr
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { AEAD_FACADE, AeadFacade } from "./AeadFacade.js"
 import { AeadSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver, SymmetricSubKeys } from "./SymmetricKeyDeriver.js"
-import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../misc/Constants.js"
 import { CryptoError } from "../../error.js"
+import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../CryptoTypes"
 
 const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
 const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`

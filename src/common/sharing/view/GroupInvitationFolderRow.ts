@@ -1,16 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { component_size } from "../../gui/size"
+import { component_size } from "../../../ui/size"
 import { getCapabilityText } from "../GroupUtils"
 import { downcast } from "@tutao/utils"
 import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog.js"
-import { Icons } from "../../gui/base/icons/Icons"
-import type { AllIcons } from "../../gui/base/Icon"
-import { IconButton } from "../../gui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons"
+import type { AllIcons } from "../../../ui/base/Icon"
+import { IconButton } from "../../../ui/base/IconButton.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { ReceivedGroupInvitation } from "@tutao/entities/sys"
 
 export type GroupInvitationFolderRowAttrs = {
-	invitation: sysTypeRefs.ReceivedGroupInvitation
+	invitation: ReceivedGroupInvitation
 	icon?: AllIcons
 }
 

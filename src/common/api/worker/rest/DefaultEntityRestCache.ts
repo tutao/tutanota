@@ -1,20 +1,11 @@
-import {
-	collapseId,
-	EntityRestClient,
-	EntityRestClientEraseOptions,
-	EntityRestClientLoadOptions,
-	EntityRestClientSetupOptions,
-	expandId,
-	getCacheModeBehavior,
-	OwnerEncSessionKeyProvider,
-	Range,
-} from "@tutao/network"
+import { Range } from "../../../../local-store/OfflineStorage.js"
 import {
 	AttributeModel,
+	collapseId,
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	elementIdPart,
-	entityUpdateUtils,
+	expandId,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
@@ -26,23 +17,52 @@ import {
 	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
+	OperationType,
 	ServerModelParsedInstance,
 	SomeEntity,
-	sysTypeRefs,
-	tutanotaTypeRefs,
 	TypeModel,
-	TypeModelResolver,
 	TypeRef,
 	ValueType,
-} from "@tutao/typerefs"
+} from "@tutao/meta"
 import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync } from "@tutao/utils"
-import { assertWorkerOrNode, Mode, OperationType, ProgrammingError } from "@tutao/app-env"
-import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
-import { PatchMerger } from "@tutao/instance-pipeline"
-import { LastProcessedEventBatchStorageFacade } from "../LastProcessedEventBatchStorageFacade"
-import { isExpectedErrorForSynchronization } from "../../../../network/error/NetworkErrorUtils"
+import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
+import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../network/EventBusClient.js"
+import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
+import { LastProcessedEventBatchProvider } from "../../../../network/LastProcessedEventBatchProvider.js"
 import { CacheStorage } from "../../../../local-store/CacheStorage"
 import { EntityRestCache } from "../../../../network/EntityRestCacheInterface"
+import {
+	EntityRestClient,
+	EntityRestClientEraseOptions,
+	EntityRestClientLoadOptions,
+	EntityRestClientSetupOptions,
+	getCacheModeBehavior,
+} from "../../../../network/EntityRestClient"
+import {
+	CalendarEventUidIndexTypeRef,
+	ClientSpamTrainingDatumIndexEntryTypeRef,
+	ClientSpamTrainingDatumTypeRef,
+	MailDetailsBlobTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
+import {
+	AuditLogEntryTypeRef,
+	BucketPermissionTypeRef,
+	EntityEventBatchTypeRef,
+	GroupKeyTypeRef,
+	GroupTypeRef,
+	KeyRotationTypeRef,
+	PermissionTypeRef,
+	RecoverCodeTypeRef,
+	RejectedSenderTypeRef,
+	SecondFactorTypeRef,
+	SessionTypeRef,
+	UserGroupKeyDistributionTypeRef,
+	UserGroupRootTypeRef,
+} from "@tutao/entities/sys"
+import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../instance-pipeline/EntityUpdateUtils"
+import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -54,23 +74,23 @@ assertWorkerOrNode()
  */
 export const EXTEND_RANGE_MIN_CHUNK_SIZE = 40
 const IGNORED_TYPES = [
-	sysTypeRefs.EntityEventBatchTypeRef,
-	sysTypeRefs.PermissionTypeRef,
-	sysTypeRefs.BucketPermissionTypeRef,
-	sysTypeRefs.SessionTypeRef,
-	sysTypeRefs.SecondFactorTypeRef,
-	sysTypeRefs.RecoverCodeTypeRef,
-	sysTypeRefs.RejectedSenderTypeRef,
+	EntityEventBatchTypeRef,
+	PermissionTypeRef,
+	BucketPermissionTypeRef,
+	SessionTypeRef,
+	SecondFactorTypeRef,
+	RecoverCodeTypeRef,
+	RejectedSenderTypeRef,
 	// when doing automatic calendar updates, we will miss uid index entity updates if we're using the cache.
 	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
 	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
-	tutanotaTypeRefs.CalendarEventUidIndexTypeRef,
-	sysTypeRefs.KeyRotationTypeRef,
-	sysTypeRefs.UserGroupRootTypeRef,
-	sysTypeRefs.UserGroupKeyDistributionTypeRef,
-	sysTypeRefs.AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
-	tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef,
-	tutanotaTypeRefs.ClientSpamTrainingDatumIndexEntryTypeRef,
+	CalendarEventUidIndexTypeRef,
+	KeyRotationTypeRef,
+	UserGroupRootTypeRef,
+	UserGroupKeyDistributionTypeRef,
+	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
+	ClientSpamTrainingDatumTypeRef,
+	ClientSpamTrainingDatumIndexEntryTypeRef,
 ] as const
 
 /**
@@ -81,7 +101,7 @@ const IGNORED_TYPES = [
  * EntityUtils.serverToLocalIdEncoding). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
-const CACHEABLE_CUSTOMID_TYPES = [tutanotaTypeRefs.MailSetEntryTypeRef, sysTypeRefs.GroupKeyTypeRef] as const
+const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
 
 /**
  * This implementation provides a caching mechanism to the rest chain.
@@ -108,7 +128,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		private readonly storage: CacheStorage,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly patchMerger: PatchMerger,
-		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>,
+		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 	) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
@@ -454,7 +474,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// for example because the session key was not found. This is usually happening e.g. for attachments (file type)
 		// where the _ownerEncSessionKey has not been written to the instance yet.
 		// Since this is only a temporary error, we do not want to update the full range yet, leading the client to think the instance is already cached.
-		// Entities with permanent errors (_errors but not SessionKeyNotFoundErrors) are written to the local-store storage.
+		// Entities with permanent errors (_errors but not SessionKeyNotFoundErrors) are written to the offline storage.
 		// The corrupted fields in such cases are replace with default values and causes therefore not UI issues (See CryptoMapper.decryptParsedInstance).
 
 		let allInstances = wasReverseRequest ? receivedEntities.reverse() : receivedEntities
@@ -581,16 +601,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	async entityEventsReceived(
-		events: readonly entityUpdateUtils.EntityUpdateData[],
-		batchId: Id,
-		groupId: Id,
-	): Promise<readonly entityUpdateUtils.EntityUpdateData[]> {
+	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
 		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor")
 		// we need an array of UpdateEntityData
-		const filteredUpdateEvents: entityUpdateUtils.EntityUpdateData[] = []
+		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
 			if (!this.shouldUseCache(update.typeRef)) {
 				filteredUpdateEvents.push(update)
@@ -606,18 +622,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update)) {
+					if (isUpdateForTypeRef(MailTypeRef, update)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
 							let mailDetailsId = mail.mailDetails
 							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
-								await this.storage.deleteIfExists(
-									tutanotaTypeRefs.MailDetailsBlobTypeRef,
-									listIdPart(mailDetailsId),
-									elementIdPart(mailDetailsId),
-								)
+								await this.storage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
 							}
 						}
 					} else {
@@ -677,7 +689,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return filteredUpdateEvents
 	}
 
-	private async processCreateEvent(typeRef: TypeRef<any>, update: entityUpdateUtils.EntityUpdateData): Promise<entityUpdateUtils.EntityUpdateData | null> {
+	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if there is a custom handler we follow its decision
 		let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 		// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
@@ -703,8 +715,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processUpdateEvent(update: entityUpdateUtils.EntityUpdateData): Promise<entityUpdateUtils.EntityUpdateData | null> {
-		if (isSameTypeRef(update.typeRef, sysTypeRefs.GroupTypeRef)) {
+	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
+		if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
@@ -724,9 +736,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
 				// Even for list elements this should be safe as the instance is not there anymore.
 				if (isExpectedErrorForSynchronization(e)) {
-					console.log(
-						`instance not found when processing update for ${entityUpdateUtils.getLogStringForEntityEvent(update)}, deleting from the cache`,
-					)
+					console.log(`instance not found when processing update for ${getLogStringForEntityEvent(update)}, deleting from the cache`)
 					await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 					return null
 				} else {
@@ -743,23 +753,23 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * Loads and stores an instance from an entityUpdate. If no instance is available on the entityUpdate
 	 * or the instance has _errors, the instance is re-loaded from the server.
 	 */
-	private async loadAndStoreInstanceFromUpdate(update: entityUpdateUtils.EntityUpdateData) {
+	private async loadAndStoreInstanceFromUpdate(update: EntityUpdateData) {
 		const instanceOnUpdate = update.instance
 		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
-			// we do not want to put the instance in the local-store storage if there are _errors (when decrypting)
+			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 			await this.storage.put(update.typeRef, instanceOnUpdate)
 
 			// save MailDetails blobs
 			const blobInstanceOnUpdate = update.blobInstance
-			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, tutanotaTypeRefs.MailTypeRef)) {
-				await this.storage.put(tutanotaTypeRefs.MailDetailsBlobTypeRef, blobInstanceOnUpdate)
+			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, MailTypeRef)) {
+				await this.storage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
 			}
 			return update
 		} else {
 			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)
 			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 			if (!hasError(instanceFromServer)) {
-				// we do not want to put the instance in the local-store storage if there are _errors (when decrypting)
+				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 				await this.storage.put(update.typeRef, instanceFromServer)
 				return update
 			} else {
@@ -777,7 +787,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
-		if (!(env.mode === Mode.Test) && !this.storage.isInitialized()) {
+		if (!isTest() && !this.storage.isInitialized()) {
 			return false
 		}
 

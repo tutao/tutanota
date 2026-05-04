@@ -1,6 +1,20 @@
-import { getEtId, GroupTypeNameByCode, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { GroupType, ShareCapability } from "@tutao/app-env"
-import { lang } from "../misc/LanguageViewModel"
+import { UserSettingsGroupRoot } from "@tutao/entities/tutanota"
+import {
+	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMember,
+	GroupMembership,
+	GroupMemberTypeRef,
+	GroupType,
+	ReceivedGroupInvitation,
+	ReceivedGroupInvitationTypeRef,
+	User,
+	UserGroupRootTypeRef,
+} from "@tutao/entities/sys"
+import { getEtId, isSameId } from "../../meta"
+import { reverse, ShareCapability } from "@tutao/app-env"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../../network/EntityClient"
 import * as restError from "@tutao/rest-client/error"
@@ -13,7 +27,7 @@ import { UserController } from "../api/main/UserController"
  * @param requiredCapability
  * @returns {boolean}
  */
-export function hasCapabilityOnGroup(user: sysTypeRefs.User, group: sysTypeRefs.Group, requiredCapability: ShareCapability): boolean {
+export function hasCapabilityOnGroup(user: User, group: Group, requiredCapability: ShareCapability): boolean {
 	if (!isShareableGroupType(downcast(group.type))) {
 		return false
 	}
@@ -22,7 +36,7 @@ export function hasCapabilityOnGroup(user: sysTypeRefs.User, group: sysTypeRefs.
 		return true
 	}
 
-	const membership = user.memberships.find((gm: sysTypeRefs.GroupMembership) => isSameId(gm.group, group._id))
+	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
 
 	if (membership) {
 		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
@@ -31,7 +45,7 @@ export function hasCapabilityOnGroup(user: sysTypeRefs.User, group: sysTypeRefs.
 	return false
 }
 
-export function isSharedGroupOwner(sharedGroup: sysTypeRefs.Group, user: Id | sysTypeRefs.User): boolean {
+export function isSharedGroupOwner(sharedGroup: Group, user: Id | User): boolean {
 	return !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
 }
 
@@ -52,11 +66,11 @@ export function getCapabilityText(capability: ShareCapability): string {
 }
 
 export type GroupMemberInfo = {
-	member: sysTypeRefs.GroupMember
-	info: sysTypeRefs.GroupInfo
+	member: GroupMember
+	info: GroupInfo
 }
 
-export function getMemberCapability(memberInfo: GroupMemberInfo, group: sysTypeRefs.Group): ShareCapability {
+export function getMemberCapability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
 	if (isSharedGroupOwner(group, memberInfo.member.user)) {
 		return ShareCapability.Invite
 	}
@@ -64,20 +78,22 @@ export function getMemberCapability(memberInfo: GroupMemberInfo, group: sysTypeR
 	return downcast(memberInfo.member.capability)
 }
 
-export function loadGroupMembers(group: sysTypeRefs.Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
+export function loadGroupMembers(group: Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
 	return entityClient
-		.loadAll(sysTypeRefs.GroupMemberTypeRef, group.members)
+		.loadAll(GroupMemberTypeRef, group.members)
 		.then((members) => promiseMap(members, (member) => loadGroupInfoForMember(member, entityClient)))
 }
 
-export function loadGroupInfoForMember(groupMember: sysTypeRefs.GroupMember, entityClient: EntityClient): Promise<GroupMemberInfo> {
-	return entityClient.load(sysTypeRefs.GroupInfoTypeRef, groupMember.userGroupInfo).then((userGroupInfo) => {
+export function loadGroupInfoForMember(groupMember: GroupMember, entityClient: EntityClient): Promise<GroupMemberInfo> {
+	return entityClient.load(GroupInfoTypeRef, groupMember.userGroupInfo).then((userGroupInfo) => {
 		return {
 			member: groupMember,
 			info: userGroupInfo,
 		}
 	})
 }
+
+export const GroupTypeNameByCode = reverse(GroupType)
 
 export function getDefaultGroupName(groupType: GroupType): string {
 	switch (groupType) {
@@ -94,10 +110,10 @@ export function loadReceivedGroupInvitations(
 	userController: UserController,
 	entityClient: EntityClient,
 	type: GroupType,
-): Promise<Array<sysTypeRefs.ReceivedGroupInvitation>> {
+): Promise<Array<ReceivedGroupInvitation>> {
 	return entityClient
-		.load(sysTypeRefs.UserGroupRootTypeRef, userController.userGroupInfo.group)
-		.then((userGroupRoot) => entityClient.loadAll(sysTypeRefs.ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
+		.load(UserGroupRootTypeRef, userController.userGroupInfo.group)
+		.then((userGroupRoot) => entityClient.loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
 		.then((invitations) => invitations.filter((invitation) => getInvitationGroupType(invitation) === type))
 		.catch(ofClass(restError.NotFoundError, () => []))
 }
@@ -105,7 +121,7 @@ export function loadReceivedGroupInvitations(
 // Group invitations without a type set were sent when Calendars were the only shareable kind of user group
 const DEFAULT_GROUP_TYPE = GroupType.Calendar
 
-export function getInvitationGroupType(invitation: sysTypeRefs.ReceivedGroupInvitation): ShareableGroupType {
+export function getInvitationGroupType(invitation: ReceivedGroupInvitation): ShareableGroupType {
 	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : (invitation.groupType as ShareableGroupType)
 }
 
@@ -129,11 +145,7 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
  * Get the name of a (possibly) shared group.
  * Will return custom name, if any, group name, if any or default name for the group type.
  */
-export function getSharedGroupName(
-	groupInfo: sysTypeRefs.GroupInfo,
-	userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
-	allowGroupNameOverride: boolean,
-): string {
+export function getSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string {
 	return getNullableSharedGroupName(groupInfo, userSettingsGroupRoot, allowGroupNameOverride) ?? getDefaultGroupName(downcast(groupInfo.groupType))
 }
 
@@ -141,15 +153,12 @@ export function getSharedGroupName(
  * Get shared group name or default to null.
  * Needed in order to make translations of default template group names work in SettingsView
  */
-export function getNullableSharedGroupName(
-	groupInfo: sysTypeRefs.GroupInfo,
-	userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot,
-	allowGroupNameOverride: boolean,
-): string | null {
+export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string | null {
 	return (allowGroupNameOverride && getCustomSharedGroupName(groupInfo, userSettingsGroupRoot)) || groupInfo.name || null
 }
 
 /** Get custom group name, if any is configured via GroupSettings */
-export function getCustomSharedGroupName(groupInfo: sysTypeRefs.GroupInfo, userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot): string | null {
+export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot): string | null {
 	return userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)?.name ?? null
 }
+export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)

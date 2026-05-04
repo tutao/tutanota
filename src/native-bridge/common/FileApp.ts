@@ -1,11 +1,11 @@
 import { promiseMap } from "@tutao/utils"
-import { DataFile, FileReference, MailBundle } from "@tutao/typerefs"
 import { HttpMethod } from "@tutao/rest-client/types"
-import { UploadTaskResponse } from "./generatedipc/UploadTaskResponse.js"
-import { DownloadTaskResponse } from "./generatedipc/DownloadTaskResponse.js"
-import { FileFacade } from "./generatedipc/FileFacade.js"
-import { ExportFacade } from "./generatedipc/ExportFacade.js"
-import { PosRect } from "@tutao/native-bridge/shared"
+import { UploadTaskResponse } from "./generatedipc/types/UploadTaskResponse.js"
+import { DownloadTaskResponse } from "./generatedipc/types/DownloadTaskResponse.js"
+import { FileFacade } from "./generatedipc/types/FileFacade.js"
+import { ExportFacade } from "./generatedipc/types/ExportFacade.js"
+import { FileReference } from "../../entities/tutanota/Utils"
+import { DataFile, MailBundle } from "../../entities/tutanota/MailBundle"
 
 export type FileUri = string
 
@@ -28,7 +28,11 @@ export class NativeFileApp {
 	 * @param boundingRect The file chooser is opened next to the rectangle.
 	 * @param filter an optional list of allowed file extensions
 	 */
-	async openFileChooser(boundingRect: PosRect, filter?: ReadonlyArray<string>, isFileOnly: boolean = false): Promise<Array<FileReference>> {
+	async openFileChooser(
+		boundingRect: { left: number; top: number; width: number; height: number },
+		filter?: ReadonlyArray<string>,
+		isFileOnly: boolean = false,
+	): Promise<Array<FileReference>> {
 		/* The file chooser opens next to a location specified by srcRect on larger devices (iPad).
 		 * The rectangle must be specifed using values for x, y, height and width.
 		 */

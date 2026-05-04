@@ -1,23 +1,23 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
-import { OfflineIndicator } from "../../../common/gui/base/OfflineIndicator.js"
-import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
+import { BaseMobileHeader } from "../../../ui/BaseMobileHeader.js"
+import { OfflineIndicator } from "../../../ui/base/OfflineIndicator.js"
+import { ProgressBar } from "../../../ui/base/ProgressBar.js"
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
-import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
-import { AppHeaderAttrs } from "../../../common/gui/Header.js"
-import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
-import { styles } from "../../../common/gui/styles.js"
-import { theme } from "../../../common/gui/theme.js"
-import { ClickHandler } from "../../../common/gui/base/GuiUtils.js"
+import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../ui/MobileHeader.js"
+import { AppHeaderAttrs } from "../../../ui/Header.js"
+import { attachDropdown } from "../../../ui/base/Dropdown.js"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { styles } from "../../../ui/styles.js"
+import { theme } from "../../../ui/theme.js"
+import { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { TodayIconButton } from "./TodayIconButton.js"
-import { ExpanderButton } from "../../../common/gui/base/Expander.js"
+import { ExpanderButton } from "../../../ui/base/Expander.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { NavButton } from "../../../common/gui/base/NavButton.js"
+import { NavButton } from "../../../ui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
 import { isApp } from "@tutao/app-env"
 
@@ -95,7 +95,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 		}
 
 		return m(MobileHeaderMenuButton, {
-			newsModel: attrs.newsModel,
+			newsItemsCount: () => locator.newsModel.liveNewsIds.length,
 			backAction: () => attrs.viewSlider.focusPreviousColumn(),
 		})
 	}

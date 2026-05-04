@@ -14,7 +14,7 @@ import { mockAttribute } from "@tutao/otest"
 import "@tensorflow/tfjs-backend-cpu"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+
 import { Sequential } from "@tensorflow/tfjs-layers"
 import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import {
@@ -23,9 +23,10 @@ import {
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { SpamDecision } from "../../../../../../src/app-env"
-import { GENERATED_MIN_ID } from "@tutao/typerefs"
+import { GENERATED_MIN_ID } from "../../../../../../src/meta"
 import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { SpamDecision } from "../../../../../../src/entities/tutanota"
+import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -73,15 +74,11 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 	return { spamData, hamData }
 }
 
-async function convertToClientTrainingDatum(
-	spamData: SpamMailDatum[],
-	spamProcessor: SpamMailProcessor,
-	isSpam: boolean,
-): Promise<tutanotaTypeRefs.ClientSpamTrainingDatum[]> {
-	let result: tutanotaTypeRefs.ClientSpamTrainingDatum[] = []
+async function convertToClientTrainingDatum(spamData: SpamMailDatum[], spamProcessor: SpamMailProcessor, isSpam: boolean): Promise<ClientSpamTrainingDatum[]> {
+	let result: ClientSpamTrainingDatum[] = []
 	for (const spamDatum of spamData) {
 		const { uploadableVectorLegacy, uploadableVector } = await spamProcessor.makeUploadableVectors(spamDatum, TEST_SERVER_VECTOR_SIZE)
-		const clientSpamTrainingDatum = createTestEntity(tutanotaTypeRefs.ClientSpamTrainingDatumTypeRef, {
+		const clientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
 			confidence: DEFAULT_IS_SPAM_CONFIDENCE.toString(),
 			spamDecision: isSpam ? SpamDecision.BLACKLIST : SpamDecision.WHITELIST,
 			vectorLegacy: uploadableVectorLegacy,
@@ -94,7 +91,7 @@ async function convertToClientTrainingDatum(
 	return result
 }
 
-function getTrainingDataset(trainSet: tutanotaTypeRefs.ClientSpamTrainingDatum[]) {
+function getTrainingDataset(trainSet: ClientSpamTrainingDatum[]) {
 	return {
 		trainingData: trainSet,
 		hamCount: trainSet.filter((item) => item.spamDecision === SpamDecision.WHITELIST).length,
@@ -112,9 +109,9 @@ o.spec("SpamClassifierTest", () => {
 	let metaData: SpamClassificationModelMetaData
 
 	let compressor: SparseVectorCompressor
-	let spamData: tutanotaTypeRefs.ClientSpamTrainingDatum[]
-	let hamData: tutanotaTypeRefs.ClientSpamTrainingDatum[]
-	let dataSlice: tutanotaTypeRefs.ClientSpamTrainingDatum[]
+	let spamData: ClientSpamTrainingDatum[]
+	let hamData: ClientSpamTrainingDatum[]
+	let dataSlice: ClientSpamTrainingDatum[]
 
 	o.beforeEach(async () => {
 		const spamHamData = await readMailDataFromCSV(DATASET_FILE_PATH)
@@ -142,7 +139,7 @@ o.spec("SpamClassifierTest", () => {
 	})
 
 	o("processSpam respects the classifier threshold", async function () {
-		const mail = createTestEntity(tutanotaTypeRefs.MailTypeRef, {
+		const mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			sets: [["folderList", "serverFolder"]],
 		})
@@ -474,7 +471,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 		classifier: SpamClassifier,
 		compressor: SparseVectorCompressor,
 		spamMailProcessor: SpamMailProcessor,
-		dataSlice: tutanotaTypeRefs.ClientSpamTrainingDatum[],
+		dataSlice: ClientSpamTrainingDatum[],
 		desiredSlice: number,
 	) {
 		return dataSlice
@@ -492,7 +489,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 	o.spec("SpamClassifier - Performance Analysis", () => {
 		const compressor = new SparseVectorCompressor()
 		let spamClassifier = object<SpamClassifier>()
-		let dataSlice: tutanotaTypeRefs.ClientSpamTrainingDatum[]
+		let dataSlice: ClientSpamTrainingDatum[]
 		let spamProcessor: SpamMailProcessor
 
 		o.beforeEach(async () => {
@@ -667,11 +664,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 	})
 }
 
-async function testClassifier(
-	classifier: SpamClassifier,
-	mails: tutanotaTypeRefs.ClientSpamTrainingDatum[],
-	spamMailProcessor: SpamMailProcessor,
-): Promise<void> {
+async function testClassifier(classifier: SpamClassifier, mails: ClientSpamTrainingDatum[], spamMailProcessor: SpamMailProcessor): Promise<void> {
 	let predictionArray: number[] = []
 	for (let mail of mails) {
 		const vector = await spamMailProcessor.processClientSpamTrainingDatum(mail, TEST_CLIENT_VECTOR_SIZE, TEST_SERVER_VECTOR_SIZE)

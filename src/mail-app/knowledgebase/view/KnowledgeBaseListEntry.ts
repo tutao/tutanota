@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { px } from "../../../common/gui/size.js"
+import { px } from "../../../ui/size.js"
+import { KnowledgeBaseEntry } from "@tutao/entities/tutanota"
 
 export type KnowledgebaseListEntryAttrs = {
-	entry: tutanotaTypeRefs.KnowledgeBaseEntry
+	entry: KnowledgeBaseEntry
 }
 export const KNOWLEDGEBASE_LIST_ENTRY_HEIGHT = 50
 

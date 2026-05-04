@@ -1,9 +1,9 @@
-import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../ui/base/WizardDialog.js"
 import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import m, { Vnode, VnodeDOM } from "mithril"
-import { DropDownSelector, type DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
-import { lang, type TranslationKey } from "../misc/LanguageViewModel.js"
-import { theme } from "../gui/theme.js"
+import { DropDownSelector, type DropDownSelectorAttrs } from "../../ui/base/DropDownSelector.js"
+import { lang, type TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { theme } from "../../ui/theme.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
 
 export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSurveyData> {

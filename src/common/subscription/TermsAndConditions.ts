@@ -2,12 +2,12 @@
  * The most recently published version of the terms and conditions
  */
 import m, { Children } from "mithril"
-import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { InfoLink, lang } from "../../ui/utils/LanguageViewModel"
 import { requestFromWebsite } from "../misc/Website"
-import { Dialog } from "../gui/base/Dialog"
-import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
-import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
-import { ButtonType } from "../gui/base/Button.js"
+import { Dialog } from "../../ui/base/Dialog"
+import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
+import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
+import { ButtonType } from "../../ui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { isApp } from "@tutao/app-env"
 

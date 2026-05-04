@@ -1,32 +1,38 @@
-import {
-	assertMainOrNode,
-	ContactAddressType,
-	ContactCustomDateType,
-	ContactMessengerHandleType,
-	ContactPhoneNumberType,
-	ContactRelationshipType,
-	ContactSocialType,
-	ContactWebsiteType,
-} from "@tutao/app-env"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { formatDate } from "../misc/Formatter.js"
-import { lang } from "../misc/LanguageViewModel.js"
+import { assertMainOrNode } from "@tutao/app-env"
+import { formatDate } from "../../ui/utils/Formatter.js"
+import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
-import {
-	StructuredAddress,
-	StructuredContact,
-	StructuredCustomDate,
-	StructuredMailAddress,
-	StructuredMessengerHandle,
-	StructuredPhoneNumber,
-	StructuredRelationship,
-	StructuredWebsite,
-} from "@tutao/native-bridge/common"
+import { StructuredAddress } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredCustomDate } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredMailAddress } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredMessengerHandle } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredPhoneNumber } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredRelationship } from "@tutao/native-bridge/generatedIpc/types"
+import { StructuredWebsite } from "@tutao/native-bridge/generatedIpc/types"
 import { parseUrl } from "@tutao/utils"
+import {
+	Birthday,
+	Contact,
+	ContactAddress,
+	ContactAddressType,
+	ContactCustomDate,
+	ContactCustomDateType,
+	ContactMailAddress,
+	ContactMessengerHandle,
+	ContactMessengerHandleType,
+	ContactPhoneNumber,
+	ContactPhoneNumberType,
+	ContactRelationship,
+	ContactRelationshipType,
+	ContactSocialId,
+	ContactSocialType,
+	ContactWebsite,
+	ContactWebsiteType,
+} from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
-type Contact = tutanotaTypeRefs.Contact
 export type ContactNames = Pick<Contact, "nickname" | "firstName" | "lastName">
 
 export function getContactDisplayName(contact: ContactNames): string {
@@ -47,7 +53,7 @@ export function getContactListName(contact: Contact): string {
 	return name
 }
 
-export function formatBirthdayNumeric(birthday: tutanotaTypeRefs.Birthday): string {
+export function formatBirthdayNumeric(birthday: Birthday): string {
 	if (birthday.year) {
 		return formatDate(new Date(Number(birthday.year), Number(birthday.month) - 1, Number(birthday.day)))
 	} else {
@@ -73,7 +79,7 @@ export function formatContactDate(isoDate: string | null): string {
 	return ""
 }
 
-export function getSocialUrl(contactId: tutanotaTypeRefs.ContactSocialId): string | null {
+export function getSocialUrl(contactId: ContactSocialId): string | null {
 	if (parseUrl(contactId.socialId) != null) {
 		// already a valid URL
 		return contactId.socialId
@@ -122,7 +128,7 @@ export function getWebsiteUrl(websiteUrl: string): string {
 	return `${http}${worldwidew}${websiteUrl}`.trim()
 }
 
-export function getMessengerHandleUrl(handle: tutanotaTypeRefs.ContactMessengerHandle): string {
+export function getMessengerHandleUrl(handle: ContactMessengerHandle): string {
 	const replaceNumberExp = new RegExp(/[^0-9+]/g)
 	switch (handle.type) {
 		case ContactMessengerHandleType.SIGNAL:
@@ -138,7 +144,7 @@ export function getMessengerHandleUrl(handle: tutanotaTypeRefs.ContactMessengerH
 	}
 }
 
-export function extractStructuredMailAddresses(addresses: tutanotaTypeRefs.ContactMailAddress[]): ReadonlyArray<StructuredMailAddress> {
+export function extractStructuredMailAddresses(addresses: ContactMailAddress[]): ReadonlyArray<StructuredMailAddress> {
 	return addresses.map((address) => ({
 		address: address.address,
 		type: address.type as ContactAddressType,
@@ -146,7 +152,7 @@ export function extractStructuredMailAddresses(addresses: tutanotaTypeRefs.Conta
 	}))
 }
 
-export function extractStructuredAddresses(addresses: tutanotaTypeRefs.ContactAddress[]): ReadonlyArray<StructuredAddress> {
+export function extractStructuredAddresses(addresses: ContactAddress[]): ReadonlyArray<StructuredAddress> {
 	return addresses.map((address) => ({
 		address: address.address,
 		type: address.type as ContactAddressType,
@@ -154,7 +160,7 @@ export function extractStructuredAddresses(addresses: tutanotaTypeRefs.ContactAd
 	}))
 }
 
-export function extractStructuredPhoneNumbers(numbers: tutanotaTypeRefs.ContactPhoneNumber[]): ReadonlyArray<StructuredPhoneNumber> {
+export function extractStructuredPhoneNumbers(numbers: ContactPhoneNumber[]): ReadonlyArray<StructuredPhoneNumber> {
 	return numbers.map((number) => ({
 		number: number.number,
 		type: number.type as ContactPhoneNumberType,
@@ -162,7 +168,7 @@ export function extractStructuredPhoneNumbers(numbers: tutanotaTypeRefs.ContactP
 	}))
 }
 
-export function extractStructuredCustomDates(dates: tutanotaTypeRefs.ContactCustomDate[]): ReadonlyArray<StructuredCustomDate> {
+export function extractStructuredCustomDates(dates: ContactCustomDate[]): ReadonlyArray<StructuredCustomDate> {
 	return dates.map((date) => ({
 		dateIso: date.dateIso,
 		type: date.type as ContactCustomDateType,
@@ -170,7 +176,7 @@ export function extractStructuredCustomDates(dates: tutanotaTypeRefs.ContactCust
 	}))
 }
 
-export function extractStructuredWebsites(websites: tutanotaTypeRefs.ContactWebsite[]): ReadonlyArray<StructuredWebsite> {
+export function extractStructuredWebsites(websites: ContactWebsite[]): ReadonlyArray<StructuredWebsite> {
 	return websites.map((website) => ({
 		url: website.url,
 		type: website.type as ContactWebsiteType,
@@ -178,7 +184,7 @@ export function extractStructuredWebsites(websites: tutanotaTypeRefs.ContactWebs
 	}))
 }
 
-export function extractStructuredRelationships(relationships: tutanotaTypeRefs.ContactRelationship[]): ReadonlyArray<StructuredRelationship> {
+export function extractStructuredRelationships(relationships: ContactRelationship[]): ReadonlyArray<StructuredRelationship> {
 	return relationships.map((relation) => ({
 		person: relation.person,
 		type: relation.type as ContactRelationshipType,
@@ -186,7 +192,7 @@ export function extractStructuredRelationships(relationships: tutanotaTypeRefs.C
 	}))
 }
 
-export function extractStructuredMessengerHandle(handles: tutanotaTypeRefs.ContactMessengerHandle[]): ReadonlyArray<StructuredMessengerHandle> {
+export function extractStructuredMessengerHandle(handles: ContactMessengerHandle[]): ReadonlyArray<StructuredMessengerHandle> {
 	return handles.map((handle) => ({
 		type: handle.type as ContactMessengerHandleType,
 		customTypeName: handle.customTypeName,
@@ -205,4 +211,11 @@ export function validateBirthdayOfContact(contact: StructuredContact) {
 	} else {
 		return null
 	}
+}
+export function getContactTitle(contact: Contact) {
+	const title = contact.title ? `${contact.title} ` : ""
+	const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "
+	const fullName = `${contact.firstName}${middleName}${contact.lastName} `
+	const suffix = contact.nameSuffix ?? ""
+	return (title + fullName + suffix).trim()
 }

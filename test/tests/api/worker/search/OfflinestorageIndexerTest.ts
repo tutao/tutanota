@@ -1,14 +1,14 @@
 import o from "@tutao/otest"
 import { OfflineStorageIndexer } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageIndexer"
-import { UserFacade } from "../../../../../src/network/UserFacade"
+import { UserFacade } from "../../../../../src/base/facades/UserFacade"
 import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
+import { GroupMembershipTypeRef, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade
@@ -29,9 +29,9 @@ o.spec("OfflineStorageIndexer", () => {
 	})
 
 	o.spec("fullLoginInit", () => {
-		let user: sysTypeRefs.User
+		let user: User
 		o.beforeEach(() => {
-			user = createTestEntity(sysTypeRefs.UserTypeRef, {})
+			user = createTestEntity(UserTypeRef, {})
 			when(userFacade.getUser()).thenReturn(user)
 		})
 
@@ -50,7 +50,7 @@ o.spec("OfflineStorageIndexer", () => {
 			}
 			when(persistence.getIndexedGroups()).thenResolve([removedGroup, groupThatStays])
 			user.memberships.push(
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					group: groupThatStaysId,
 					groupType: groupThatStays.type,
 				}),
@@ -78,12 +78,12 @@ o.spec("OfflineStorageIndexer", () => {
 			}
 			when(persistence.getIndexedGroups()).thenResolve([groupThatStays])
 			user.memberships.push(
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					group: groupThatStaysId,
 					groupType: groupThatStays.type,
 				}),
 			)
-			const addedGroupMembership = createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+			const addedGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 				group: addedGroupId,
 				groupType: addedGroup.type,
 			})

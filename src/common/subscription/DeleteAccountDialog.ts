@@ -1,17 +1,19 @@
 import m from "mithril"
-import { Dialog } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import * as restError from "@tutao/rest-client/error"
-import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../gui/base/LegacyTextField.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../ui/base/LegacyTextField.js"
 import { neverNull } from "@tutao/utils"
 import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
-import { getEtId, sysTypeRefs } from "@tutao/typerefs"
-import { CloseEventBusOption, isIOSApp } from "@tutao/app-env"
+import { getEtId } from "../../meta"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { client } from "../../app-env/boot/ClientDetector"
+import { SurveyData } from "@tutao/entities/sys"
+import { isIOSApp } from "@tutao/app-env"
+import { CloseEventBusOption } from "../../network/Constants"
 
-export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | null = null) {
+export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 	let takeover = ""
 	let password = ""
 	const userId = getEtId(locator.logins.getUserController().user)
@@ -53,7 +55,7 @@ export function showDeleteAccountDialog(surveyData: sysTypeRefs.SurveyData | nul
 	})
 }
 
-async function deleteAccount(takeover: string, password: string, surveyData: sysTypeRefs.SurveyData | null = null): Promise<boolean> {
+async function deleteAccount(takeover: string, password: string, surveyData: SurveyData | null = null): Promise<boolean> {
 	const cleanedTakeover = takeover === "" ? "" : getCleanedMailAddress(takeover)
 
 	if (cleanedTakeover === null) {
@@ -71,7 +73,7 @@ async function deleteAccount(takeover: string, password: string, surveyData: sys
 
 		const ok = await Dialog.confirm(message)
 		if (!ok) return false
-		// this is necessary to prevent us from applying websocket events to an already deleted/closed local-store DB
+		// this is necessary to prevent us from applying websocket events to an already deleted/closed offline DB
 		// which is an immediate crash on ios
 		await locator.connectivityModel.close(CloseEventBusOption.Terminate)
 		try {

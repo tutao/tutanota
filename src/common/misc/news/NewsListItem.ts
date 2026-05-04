@@ -1,6 +1,6 @@
 import { Children } from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { NewsId } from "@tutao/entities/tutanota"
 
 /**
  * News items must implement this interface to be rendered.
@@ -9,10 +9,10 @@ export interface NewsListItem {
 	/**
 	 * Returns the rendered NewsItem. Should display a button that acknowledges the news via NewsModel.acknowledge().
 	 */
-	render(newsId: tutanotaTypeRefs.NewsId, dialog?: Dialog): Children
+	render(newsId: NewsId, dialog?: Dialog): Children
 
 	/**
 	 * Return true iff the news should be shown to the logged-in user.
 	 */
-	isShown(newsId: tutanotaTypeRefs.NewsId): Promise<boolean>
+	isShown(newsId: NewsId): Promise<boolean>
 }

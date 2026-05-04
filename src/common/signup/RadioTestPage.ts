@@ -1,14 +1,14 @@
 import m, { ClassComponent, Vnode } from "mithril"
-import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
+import { WizardStepComponentAttrs } from "../../ui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
-import { PrimaryButton, SecondaryButton, TertiaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { lang } from "../misc/LanguageViewModel"
-import { px, size } from "../gui/size"
-import { theme } from "../gui/theme"
-import { RadioSelectorOption } from "../gui/base/RadioSelectorItem"
-import { TextField } from "../gui/base/TextField"
-import { Icons } from "../gui/base/icons/Icons"
-import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
+import { PrimaryButton, SecondaryButton, TertiaryButton } from "../../ui/base/buttons/VariantButtons.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { px, size } from "../../ui/size"
+import { theme } from "../../ui/theme"
+import { RadioSelectorOption } from "../../ui/base/RadioSelectorItem"
+import { TextField } from "../../ui/base/TextField"
+import { Icons } from "../../ui/base/icons/Icons"
+import { RadioSelector, RadioSelectorAttrs } from "../../ui/base/RadioSelector"
 
 export class RadioTestPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private currentOption = 0

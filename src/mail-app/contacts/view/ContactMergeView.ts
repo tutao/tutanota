@@ -1,32 +1,33 @@
 import m, { ChildArray, Children } from "mithril"
-import { Dialog } from "../../../common/gui/base/Dialog"
+import { Dialog } from "../../../ui/base/Dialog"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { ContactMergeAction, Keys } from "@tutao/app-env"
-import type { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { formatContactDate } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/utils"
-import { HtmlEditor, HtmlEditorMode } from "../../../common/gui/editor/HtmlEditor"
-import { ButtonType } from "../../../common/gui/base/Button.js"
-import { getContactSocialType, tutanotaTypeRefs } from "@tutao/typerefs"
+import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
+import { ButtonType } from "../../../ui/base/Button.js"
 import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
-import { LegacyTextField } from "../../../common/gui/base/LegacyTextField.js"
-import { TextDisplayArea } from "../../../common/gui/base/TextDisplayArea"
-import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { ContactAddressType } from "@tutao/app-env"
-import { PrimaryButton } from "../../../common/gui/base/buttons/VariantButtons.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { TextDisplayArea } from "../../../ui/base/TextDisplayArea"
+import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { Contact, ContactAddressType } from "@tutao/entities/tutanota"
+import { getContactSocialType } from "../ContactUtils"
+import { getHtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
 
 export class ContactMergeView {
 	dialog: Dialog
-	contact1: tutanotaTypeRefs.Contact
-	contact2: tutanotaTypeRefs.Contact
+	contact1: Contact
+	contact2: Contact
 	resolveFunction: DeferredObject<ContactMergeAction>["resolve"] | null = null // must be called after the user action
 
 	windowCloseUnsubscribe: Thunk | null = null
 
-	constructor(contact1: tutanotaTypeRefs.Contact, contact2: tutanotaTypeRefs.Contact) {
+	constructor(contact1: Contact, contact2: Contact) {
 		this.contact1 = contact1
 		this.contact2 = contact2
 
@@ -75,7 +76,12 @@ export class ContactMergeView {
 			isReadOnly: true,
 		})
 		let emptyHTMLFieldPlaceholder = m(
-			new HtmlEditor("emptyString_msg").showBorders().setValue("").setReadOnly(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
+			new HtmlEditor(getHtmlSanitizer(), "emptyString_msg")
+				.showBorders()
+				.setValue("")
+				.setReadOnly(false)
+				.setMode(HtmlEditorMode.HTML)
+				.setHtmlMonospace(false),
 		)
 
 		let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
@@ -213,7 +219,7 @@ export class ContactMergeView {
 		)
 	}
 
-	_createContactFields(contact: tutanotaTypeRefs.Contact): {
+	_createContactFields(contact: Contact): {
 		mailAddresses: ChildArray
 		phones: ChildArray
 		addresses: ChildArray

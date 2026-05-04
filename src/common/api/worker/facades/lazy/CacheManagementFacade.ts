@@ -1,9 +1,10 @@
-import { isSameId, SomeEntity, sysTypeRefs, TypeRef } from "@tutao/typerefs"
+import { isSameId, SomeEntity, TypeRef } from "@tutao/meta"
 import { EntityClient } from "../../../../../network/EntityClient.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { UserFacade } from "../../../../../network/UserFacade.js"
+import { UserFacade } from "../../../../../base/facades/UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { CacheManagementInterface } from "../../../../../local-store/CacheManagementInterface"
+import { Group, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
 
 assertWorkerOrNode()
 
@@ -22,7 +23,7 @@ export class CacheManagementFacade implements CacheManagementInterface {
 	 * Refreshes group and user (because of the memberships) in the rest cache and updates the key cache if possible.
 	 * @param groupId
 	 */
-	async refreshKeyCache(groupId: Id): Promise<{ user: sysTypeRefs.User; group: sysTypeRefs.Group }> {
+	async refreshKeyCache(groupId: Id): Promise<{ user: User; group: Group }> {
 		const group = await this.reloadGroup(groupId)
 		const user = await this.reloadUser()
 		if (isSameId(groupId, this.userFacade.getUserGroupId())) {
@@ -35,9 +36,9 @@ export class CacheManagementFacade implements CacheManagementInterface {
 	 * Refreshes a group in the rest cache.
 	 * @param groupId
 	 */
-	async reloadGroup(groupId: Id): Promise<sysTypeRefs.Group> {
-		await this.entityRestCache.deleteFromCacheIfExists(sysTypeRefs.GroupTypeRef, null, groupId)
-		return await this.cachingEntityClient.load(sysTypeRefs.GroupTypeRef, groupId)
+	async reloadGroup(groupId: Id): Promise<Group> {
+		await this.entityRestCache.deleteFromCacheIfExists(GroupTypeRef, null, groupId)
+		return await this.cachingEntityClient.load(GroupTypeRef, groupId)
 	}
 
 	/*
@@ -45,12 +46,12 @@ export class CacheManagementFacade implements CacheManagementInterface {
 	 * Is used to ensure we have the latest version, there can be times when the object becomes a little outdated, resulting in errors.
 	 * It also ensures that the key cache is updated.
 	 */
-	async reloadUser(): Promise<sysTypeRefs.User> {
+	async reloadUser(): Promise<User> {
 		const userId = this.userFacade.getLoggedInUser()._id
 
-		await this.entityRestCache.deleteFromCacheIfExists(sysTypeRefs.UserTypeRef, null, userId)
+		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
 
-		const user = await this.cachingEntityClient.load(sysTypeRefs.UserTypeRef, userId)
+		const user = await this.cachingEntityClient.load(UserTypeRef, userId)
 		await this.userFacade.updateUser(user) // updates the key cache too
 
 		return user
@@ -64,11 +65,11 @@ export class CacheManagementFacade implements CacheManagementInterface {
 		// we might not have access to the password to decrypt it, though. therefore we handle it here
 		try {
 			// Note that UserGroupKeyDistribution is never cached in the rest cache. no need to delete it
-			const userGroupKeyDistribution = await this.cachingEntityClient.load(sysTypeRefs.UserGroupKeyDistributionTypeRef, this.userFacade.getUserGroupId())
+			const userGroupKeyDistribution = await this.cachingEntityClient.load(UserGroupKeyDistributionTypeRef, this.userFacade.getUserGroupId())
 			this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
 		} catch (e) {
 			// we do not want to fail here, as this update might be an outdated entity update
-			// in case we only process updates after a longer period of being local-store
+			// in case we only process updates after a longer period of being offline
 			// in such case we should have set the correct user group key already during the regular login
 			console.log("Could not update user group key", e)
 		}

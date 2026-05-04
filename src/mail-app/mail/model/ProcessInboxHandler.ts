@@ -1,19 +1,21 @@
+import { Mail, MailSet, MailSetKind, ProcessInboxDatum } from "@tutao/entities/tutanota"
+import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
-import { isSameId, StrippedEntity, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { assertMainOrNode, MailSetKind } from "@tutao/app-env"
+import { isSameId, StrippedEntity } from "@tutao/meta"
+import { assertMainOrNode } from "@tutao/app-env"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
 export type UnencryptedProcessInboxDatum = Omit<
-	StrippedEntity<tutanotaTypeRefs.ProcessInboxDatum>,
+	StrippedEntity<ProcessInboxDatum>,
 	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"
 > & {
 	vectorLegacy: Uint8Array
@@ -62,18 +64,18 @@ export class ProcessInboxHandler {
 	sendProcessInboxServiceRequest: (mailFacade: MailFacade) => Promise<void>
 
 	public async handleIncomingMail(
-		mail: tutanotaTypeRefs.Mail,
-		sourceFolder: tutanotaTypeRefs.MailSet,
+		mail: Mail,
+		sourceFolder: MailSet,
 		mailboxDetail: MailboxDetail,
 		folderSystem: FolderSystem,
 		isLeaderClient: boolean,
-	): Promise<tutanotaTypeRefs.MailSet> {
+	): Promise<MailSet> {
 		await this.logins.loadCustomizations()
 		if (!mail.processNeeded) {
 			return sourceFolder
 		}
 
-		let instanceSessionKeys: sysTypeRefs.InstanceSessionKey[] = []
+		let instanceSessionKeys: InstanceSessionKey[] = []
 		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
 		// leader client, i.e. isLeaderClient == true
 		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance
@@ -85,7 +87,7 @@ export class ProcessInboxHandler {
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
-		let moveToFolder: tutanotaTypeRefs.MailSet = sourceFolder
+		let moveToFolder: MailSet = sourceFolder
 
 		const matchingInboxRule = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder)
 		if (!matchingInboxRule || !matchingInboxRule.excludeFromSpamFilter) {
@@ -142,16 +144,12 @@ export class ProcessInboxHandler {
 		return moveToFolder
 	}
 
-	public async processInboxRulesOnly(
-		mail: tutanotaTypeRefs.Mail,
-		sourceFolder: tutanotaTypeRefs.MailSet,
-		mailboxDetail: MailboxDetail,
-	): Promise<tutanotaTypeRefs.MailSet> {
+	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
 		// These should be in process by the regular handler and be eventually processed
 		if (mail.processNeeded) {
 			return sourceFolder
 		}
-		let moveToFolder: tutanotaTypeRefs.MailSet = sourceFolder
+		let moveToFolder: MailSet = sourceFolder
 
 		// process excluded rules first and then regular ones.
 		const result = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, true)

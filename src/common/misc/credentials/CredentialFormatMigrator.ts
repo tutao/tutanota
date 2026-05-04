@@ -1,8 +1,11 @@
 import { DeviceConfig, DeviceConfigCredentials } from "../DeviceConfig.js"
-import { AppLockMethod, MobileSystemFacade, NativeCredentialsFacade, PersistedCredentials } from "@tutao/native-bridge/common"
-import { Dialog } from "../../gui/base/Dialog.js"
+import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { base64ToUint8Array, mapNullable } from "@tutao/utils"
-import { lang } from "../LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 
 function credentialEncryptionModeToAppLockMethod(mode: CredentialEncryptionMode): AppLockMethod {

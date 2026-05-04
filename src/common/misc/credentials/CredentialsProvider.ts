@@ -1,13 +1,12 @@
-import {
-	CredentialEncryptionMode,
-	CredentialsInfo,
-	InterWindowEventFacadeSendDispatcher,
-	NativeCredentialsFacade,
-	PersistedCredentials,
-	SqlCipherFacade,
-	UnencryptedCredentials,
-} from "@tutao/native-bridge/common"
-import { CredentialType, isAdminClient, isBrowser, Mode } from "@tutao/app-env"
+import { CredentialEncryptionMode } from "@tutao/native-bridge/generatedIpc/types"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { CredentialType } from "@tutao/network/types"
+import { isAdminClient, isBrowser } from "@tutao/app-env"
 
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
@@ -79,7 +78,7 @@ export class CredentialsProvider {
 	/**
 	 * Deletes stored credentials with specified userId.
 	 * No-op if credentials are not there.
-	 * @param opts.deleteOfflineDb whether to delete local-store database. Will delete by default.
+	 * @param opts.deleteOfflineDb whether to delete offline database. Will delete by default.
 	 */
 	async deleteByUserId(userId: Id, opts: { deleteOfflineDb: boolean } = { deleteOfflineDb: true }): Promise<void> {
 		await this.interWindowEventSender?.localUserDataInvalidated(userId)

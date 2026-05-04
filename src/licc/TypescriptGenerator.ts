@@ -1,13 +1,34 @@
 import { Accumulator } from "./Accumulator.js"
-import { EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, Platform, RenderedType, StructDefinition, TypeRefDefinition } from "./common.js"
+import {
+	DefinationType,
+	EnumDefinition,
+	FacadeDefinition,
+	getArgs,
+	LangGenerator,
+	minusculize,
+	Platform,
+	RenderedType,
+	StructDefinition,
+	TypeRefDefinition,
+} from "./common.js"
 import { ParsedType, parseType } from "./Parser.js"
 import path from "node:path"
 
 export class TypescriptGenerator implements LangGenerator {
+	private enums: string[]
+	constructor() {
+		this.enums = []
+	}
+	storeEnum(enumName: string): void {
+		this.enums.push(enumName)
+	}
+	getEnumExports(): string {
+		return this.enums.map((e) => `export { ${e} } from "./${e}"`).join("\n")
+	}
 	generateGlobalDispatcher(name: string, facadeNames: Array<string>): string {
 		const acc = new Accumulator()
 		for (let facadeName of facadeNames) {
-			acc.line(`import {${facadeName}} from "./${facadeName}.js"`)
+			acc.line(`import {${facadeName}} from "@tutao/native-bridge/generatedIpc/types"`)
 			acc.line(`import {${facadeName}ReceiveDispatcher} from "./${facadeName}ReceiveDispatcher.js"`)
 		}
 		acc.line()
@@ -98,7 +119,7 @@ export class TypescriptGenerator implements LangGenerator {
 
 	generateReceiveDispatcher(definition: FacadeDefinition): string {
 		const acc = new Accumulator()
-		acc.line(`import {${definition.name}} from "./${definition.name}.js"`)
+		acc.line(`import {${definition.name}} from "@tutao/native-bridge/generatedIpc/types"`)
 		acc.line()
 		acc.line(`export class ${definition.name}ReceiveDispatcher {`)
 		acc.indent().line(`constructor(private readonly facade: ${definition.name}) {}`)
@@ -135,7 +156,7 @@ export class TypescriptGenerator implements LangGenerator {
 
 	generateSendDispatcher(definition: FacadeDefinition): string {
 		const acc = new Accumulator()
-		acc.line(`import {${definition.name}} from "./${definition.name}.js"`)
+		acc.line(`import {${definition.name}} from "@tutao/native-bridge/generatedIpc/types"`)
 		acc.line()
 		TypescriptGenerator.generateNativeInterface(acc)
 		acc.line(`export class ${definition.name}SendDispatcher implements ${definition.name} {`)
@@ -151,27 +172,35 @@ export class TypescriptGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	generateExtraFiles(platform: Platform, generatedSymbols: Array<string>): Record<string, string> {
-		const reexportAcc = new Accumulator()
-		for (const genSym of generatedSymbols) {
-			reexportAcc.line(`export * from "./${genSym}.js"`)
+	generateExtraFiles(platform: Platform, generatedSymbols: Array<{ symbol: string; defType: DefinationType }>): Record<string, string> {
+		const dispatchersReexportAcc = new Accumulator()
+		const typesReexportAcc = new Accumulator()
+		for (const { symbol, defType } of generatedSymbols) {
+			if (defType === DefinationType.Dispatcher) {
+				dispatchersReexportAcc.line(`export * from "./${symbol}.js"`)
+			} else {
+				typesReexportAcc.line(`export type {${symbol}} from "./${symbol}"`)
+			}
 		}
+
+		const dispatchersIndexReexportAcc = new Accumulator().line(`export * from "./index-web.js"`).line(`export * from "./index-desktop.js"`)
+		const typesIndexReexportAcc = new Accumulator().line(`export type * from "./index-web"`).line(`export type * from "./index-desktop"`)
+		typesIndexReexportAcc.line(this.getEnumExports())
+
 		return {
-			["index-" + platform]: reexportAcc.finish(),
+			["dispatchers/index-" + platform]: dispatchersReexportAcc.finish(),
+			["types/index-" + platform + ".d"]: typesReexportAcc.finish(),
+			["dispatchers/index"]: dispatchersIndexReexportAcc.finish(),
+			["types/index.d"]: typesIndexReexportAcc.finish(),
 		}
 	}
 
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
 		const acc = new Accumulator()
 		const tsPath = definition.location.typescript
-		if (typeof tsPath === "string") {
-			const isRelative = tsPath.startsWith(".")
-			const actualPath = isRelative ? path.relative(path.resolve(outDir), path.resolve(definitionPath, tsPath)) : tsPath
-			acc.line(`export type {${definition.name}} from "${actualPath}"`)
-		} else if (tsPath instanceof Object) {
-			acc.line(`import type {${tsPath.namespace}} from "${tsPath.package}"`)
-			acc.line(`export type ${definition.name} = ${tsPath.namespace}.${definition.name}`)
-		}
+		const isRelative = tsPath.startsWith(".")
+		const actualPath = isRelative ? path.relative(path.resolve(outDir), path.resolve(definitionPath, tsPath)) : tsPath
+		acc.line(`export {${definition.name}} from "${actualPath}"`)
 
 		return acc.finish()
 	}
@@ -233,7 +262,7 @@ function typeNameTypescript(name: string): RenderedType {
 function renderTypeAndAddImports(name: string, acc: Accumulator) {
 	const rendered = typeNameTypescript(name)
 	for (const external of rendered.externals) {
-		acc.addImport(`import {${external}} from "./${external}.js"`)
+		acc.addImport(`import {${external}} from "@tutao/native-bridge/generatedIpc/types"`)
 	}
 	return rendered.name
 }

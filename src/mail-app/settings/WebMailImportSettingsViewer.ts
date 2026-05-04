@@ -1,10 +1,10 @@
 import m, { Children } from "mithril"
-import { lang } from "../../common/misc/LanguageViewModel"
-import { PrimaryButton } from "../../common/gui/base/buttons/VariantButtons.js"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { Mode } from "@tutao/app-env"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import { isBrowser } from "@tutao/app-env"
+import { EntityUpdateData } from "../../instance-pipeline/EntityUpdateUtils"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.
@@ -29,7 +29,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (env.mode === Mode.Browser) {
+							if (isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)
@@ -40,7 +40,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 				m(
 					".flex-v-center.full-width.mt-48",
 					m("img", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/mail-import/email-import-webapp.svg`,
+						src: `/images/mail-import/email-import-webapp.svg`,
 						alt: "",
 						rel: "noreferrer",
 						loading: "lazy",
@@ -52,5 +52,5 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {}
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
 }

@@ -1,8 +1,8 @@
-import type { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
+import { ProgressMonitorId, ProgressMonitorInterface } from "../../../network/ProgressMonitorInterface"
 
 /** A wrapper that will send completed work remotely */
-export class ProgressMonitorDelegate implements IProgressMonitor {
+export class ProgressMonitorDelegate implements ProgressMonitorInterface {
 	readonly progressMonitorId: Promise<ProgressMonitorId>
 	totalWork: number
 

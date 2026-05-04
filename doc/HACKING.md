@@ -97,7 +97,7 @@ If you're listening for WebSocket updates in the worker part (and you should jus
 [EventController](../src/common/api/main/EventController.ts).
 
 `EventBus` and `EntityRestClient` make sure that entities are automatically encrypted/decrypted when needed. See
-[decryptAndMapToInstance()](../src/network/crypto/facades/CryptoFacade.ts).
+[decryptAndMapToInstance()](../src/base/crypto/CryptoFacade.ts).
 
 #### Entity updates
 

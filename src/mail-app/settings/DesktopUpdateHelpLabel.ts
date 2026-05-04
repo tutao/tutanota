@@ -1,9 +1,9 @@
 import m, { Child, Children, Vnode } from "mithril"
-import { Icon } from "../../common/gui/base/Icon"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { Icon } from "../../ui/base/Icon"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { delay } from "@tutao/utils"
 import Stream from "mithril/stream"
-import { Icons } from "../../common/gui/base/icons/Icons"
+import { Icons } from "../../ui/base/icons/Icons"
 
 export type UpdateHelpLabelAttrs = {
 	updateAvailable: Stream<boolean>

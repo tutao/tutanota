@@ -1,14 +1,15 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/common"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../local-store/Sql"
-import { SqlValue, untagSqlObject, untagSqlValue } from "../../../typerefs/SqlValue"
+import { untagSqlObject, untagSqlValue } from "../../../local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { getTypeString, TypeRef } from "@tutao/typerefs"
-import { elementIdPart, ListElementEntity, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, getTypeString, ListElementEntity, listIdPart, TypeRef } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import type { OfflineStorageTable } from "../../../local-store/OfflineStorage"
-import { GroupType } from "@tutao/app-env"
+import { GroupType } from "@tutao/entities/sys"
+import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
+import { SqlValue } from "../../../local-store/Types"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -130,7 +131,7 @@ export class OfflineStoragePersistence {
 			mailDetails: { recipients, body },
 			attachments,
 		} of mailData) {
-			const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mail._id)
+			const rowid = await this.getRowid(MailTypeRef, mail._id)
 			if (rowid == null) {
 				return
 			}
@@ -164,8 +165,8 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async updateMailLocation(mail: tutanotaTypeRefs.Mail) {
-		const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mail._id)
+	async updateMailLocation(mail: Mail) {
+		const rowid = await this.getRowid(MailTypeRef, mail._id)
 		if (rowid == null) {
 			return
 		}
@@ -175,12 +176,12 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	private formatSetsValue(mail: tutanotaTypeRefs.Mail): string {
+	private formatSetsValue(mail: Mail): string {
 		return mail.sets.map(elementIdPart).join(" ")
 	}
 
 	async deleteMailData(mailId: IdTuple): Promise<void> {
-		const rowid = await this.getRowid(tutanotaTypeRefs.MailTypeRef, mailId)
+		const rowid = await this.getRowid(MailTypeRef, mailId)
 		{
 			const { query, params } = sql`DELETE
                                         FROM mail_index
@@ -195,9 +196,9 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async storeContactData(contacts: tutanotaTypeRefs.Contact[]): Promise<void> {
+	async storeContactData(contacts: Contact[]): Promise<void> {
 		for (const contact of contacts) {
-			const rowid = await this.getRowid(tutanotaTypeRefs.ContactTypeRef, contact._id)
+			const rowid = await this.getRowid(ContactTypeRef, contact._id)
 			if (rowid == null) {
 				continue
 			}
@@ -222,7 +223,7 @@ export class OfflineStoragePersistence {
                                     WHERE rowId = (SELECT rowId
                                                    FROM list_entities
                                                    WHERE type =
-                                                         ${getTypeString(tutanotaTypeRefs.ContactTypeRef)}
+                                                         ${getTypeString(ContactTypeRef)}
                                                      AND listId
                                                        =
                                                          ${listIdPart(contactId)}
@@ -250,7 +251,7 @@ export class OfflineStoragePersistence {
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
-		// Find rowid from the local-store storage.
+		// Find rowid from the offline storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid
                                FROM list_entities
@@ -285,6 +286,6 @@ export class OfflineStoragePersistence {
 	}
 }
 
-function serializeMailAddresses(recipients: readonly tutanotaTypeRefs.MailAddress[]): string {
+function serializeMailAddresses(recipients: readonly MailAddress[]): string {
 	return recipients.map((r) => `${r.name} ${r.address}`).join(", ")
 }

@@ -1,14 +1,13 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
+import { getPosAndBoundsFromMouseEvent } from "../../../ui/base/GuiUtils"
 import { CalendarTimeColumnData, CalendarTimeGrid, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { Time } from "../date/Time"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
-import { elementIdPart } from "@tutao/typerefs"
 import { DateTime } from "luxon"
-import { px } from "../../gui/size"
+import { px } from "../../../ui/size"
 import { TimeIndicator } from "./TimeIndicator"
 
 export type CalendarDayColumnAttrs = {

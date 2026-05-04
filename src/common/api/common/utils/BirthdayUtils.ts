@@ -1,11 +1,11 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { formatSortableDate } from "@tutao/utils"
 import { ParsingError } from "../error/ParsingError"
+import { Birthday, createBirthday } from "@tutao/entities/tutanota"
 
 /**
  * Converts the birthday object to iso Date format (yyyy-mm-dd) or iso Date without year (--mm-dd)
  */
-export function birthdayToIsoDate(birthday: tutanotaTypeRefs.Birthday): string {
+export function birthdayToIsoDate(birthday: Birthday): string {
 	const month = ("0" + birthday.month).slice(-2)
 	const day = ("0" + birthday.day).slice(-2)
 	const year = birthday.year ? ("0000" + birthday.year).slice(-4) : "-"
@@ -15,9 +15,9 @@ export function birthdayToIsoDate(birthday: tutanotaTypeRefs.Birthday): string {
 /**
  * Converts iso Date (yyyy-mm-dd) or Date without year (--mm-dd) into Birthday object.
  */
-export function isoDateToBirthday(birthdayIso: string): tutanotaTypeRefs.Birthday {
+export function isoDateToBirthday(birthdayIso: string): Birthday {
 	//return new Date(Number(newBirthday.year), Number(newBirthday.month) - 1, Number(newBirthday.day))
-	const birthdayInitializer: Partial<tutanotaTypeRefs.Birthday> = {}
+	const birthdayInitializer: Partial<Birthday> = {}
 	if (birthdayIso.startsWith("--")) {
 		const monthAndDay = birthdayIso.substring(2).split("-")
 
@@ -44,10 +44,10 @@ export function isoDateToBirthday(birthdayIso: string): tutanotaTypeRefs.Birthda
 		throw new ParsingError("Invalid birthday format: " + birthdayIso)
 	}
 
-	return tutanotaTypeRefs.createBirthday(birthdayInitializer)
+	return createBirthday(birthdayInitializer)
 }
 
-export function isValidBirthday(birthday: Partial<tutanotaTypeRefs.Birthday>): birthday is tutanotaTypeRefs.Birthday {
+export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthday {
 	const day = Number(birthday.day)
 	const month = Number(birthday.month)
 	const year = birthday.year ? Number(birthday.year) : null
@@ -58,9 +58,9 @@ export function isValidBirthday(birthday: Partial<tutanotaTypeRefs.Birthday>): b
  * returns new birthday format from old birthday format
  * Export for testing
  */
-export function oldBirthdayToBirthday(oldBirthday: Date): tutanotaTypeRefs.Birthday {
+export function oldBirthdayToBirthday(oldBirthday: Date): Birthday {
 	let birthdayString = formatSortableDate(oldBirthday).split("-")
-	return tutanotaTypeRefs.createBirthday({
+	return createBirthday({
 		day: String(Number(birthdayString[2])),
 		month: String(Number(birthdayString[1])),
 		year: String(Number(birthdayString[0])),

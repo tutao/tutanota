@@ -1,18 +1,20 @@
-import { DesktopFacade } from "@tutao/native-bridge/common"
-import { showSpellcheckLanguageDialog } from "../gui/dialogs/SpellcheckLanguageDialog"
-import { ElectronResult } from "@tutao/native-bridge/common"
-import { ErrorInfo } from "@tutao/native-bridge/common"
-import { NativeShortcut } from "@tutao/native-bridge/common"
-import { Shortcut } from "../misc/KeyManager.js"
+import { DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ElectronResult } from "@tutao/native-bridge/generatedIpc/types"
+import { ErrorInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { Shortcut } from "../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import { lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
+import { SpellcheckLanguageDialog } from "../../ui/dialogs/SpellcheckLanguageDialog"
+import { SettingsFacade } from "../../native-bridge/common/generatedipc/types/SettingsFacade"
 
 export class WebDesktopFacade implements DesktopFacade {
 	constructor(
 		private logins: LoginController,
 		private nativeInterface: lazyAsync<NativeInterfaceMain>,
+		private settingsFacade: SettingsFacade,
 	) {}
 
 	print(): Promise<void> {
@@ -21,17 +23,17 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async showSpellcheckDropdown(): Promise<void> {
-		await showSpellcheckLanguageDialog()
+		await new SpellcheckLanguageDialog(this.settingsFacade).showSpellcheckLanguageDialog()
 	}
 
 	async applySearchResultToOverlay(result: ElectronResult | null): Promise<void> {
-		const { searchInPageOverlay } = await import("../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../gui/desktop/SearchInPageOverlay.js")
 		searchInPageOverlay.applyNextResult(result)
 		return Promise.resolve()
 	}
 
 	async openFindInPage(): Promise<void> {
-		const { searchInPageOverlay } = await import("../gui/SearchInPageOverlay.js")
+		const { searchInPageOverlay } = await import("../gui/desktop/SearchInPageOverlay.js")
 		searchInPageOverlay.open()
 		return Promise.resolve()
 	}
@@ -87,7 +89,7 @@ export class WebDesktopFacade implements DesktopFacade {
 			key: Keys.F,
 		}
 		const fixedShortcuts: Array<Shortcut> = shortcuts.map((nsc) => Object.assign({}, baseShortcut, nsc))
-		const { keyManager } = await import("../misc/KeyManager.js")
+		const { keyManager } = await import("../../ui/utils/KeyManager.js")
 		keyManager.registerDesktopShortcuts(fixedShortcuts)
 	}
 

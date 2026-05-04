@@ -10,19 +10,27 @@ import {
 	testTypeModel,
 	TestTypeRef,
 } from "../instance-pipeline/InstancePipelineTestUtils"
-import { ClientTypeReferenceResolver, PatchOperationType, ServerTypeReferenceResolver } from "@tutao/typerefs"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+
+import {
+	ClientTypeReferenceResolver,
+	InstancePipeline,
+	PatchOperationType,
+	ServerTypeReferenceResolver,
+	areValuesDifferent,
+	computePatches,
+} from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "@tutao/typerefs"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../src/meta"
+
 import { createTestEntityWithDummyResolver } from "../TestUtils"
-import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "@tutao/typerefs"
-import { AttributeModel } from "@tutao/typerefs"
-import { ValueType } from "@tutao/typerefs"
-import { areValuesDifferent, computePatches } from "@tutao/typerefs"
+import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "../../../src/meta"
+import { AttributeModel } from "../../../src/meta"
+import { ValueType } from "../../../src/meta"
+
 import { object } from "testdouble"
 
+import { createPatch } from "@tutao/entities/sys"
 o.spec("computePatches", function () {
 	const dummyTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver
 	const dummyInstancePipeline = new InstancePipeline(
@@ -68,7 +76,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "5",
 				value: `${date.valueOf()}`,
 				patchOperation: PatchOperationType.REPLACE,
@@ -112,7 +120,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "7",
 				value: null,
 				patchOperation: PatchOperationType.REPLACE,
@@ -139,12 +147,12 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "5",
 				value: `${date.valueOf()}`,
 				patchOperation: PatchOperationType.REPLACE,
 			}),
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "7",
 				value: null,
 				patchOperation: PatchOperationType.REPLACE,
@@ -169,7 +177,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/2",
 				value: "1234",
 				patchOperation: PatchOperationType.REPLACE,
@@ -194,7 +202,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "8",
 				value: '[["listId","elementId"],["list2Id","element2Id"]]',
 				patchOperation: PatchOperationType.ADD_ITEM,
@@ -227,7 +235,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "8",
 				value: '[["listId2","elementId2"],["listId3","elementId3"]]',
 				patchOperation: PatchOperationType.REMOVE_ITEM,
@@ -252,7 +260,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "4",
 				value: '["elementId"]',
 				patchOperation: PatchOperationType.REPLACE,
@@ -277,7 +285,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "14",
 				value: '[["listId","elementId"]]',
 				patchOperation: PatchOperationType.REPLACE,
@@ -302,7 +310,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "4",
 				value: "[]",
 				patchOperation: PatchOperationType.REPLACE,
@@ -349,7 +357,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3",
 				value: JSON.stringify([testAssociationFirstEncryptedInstance, testAssociationSecondEncryptedInstance]),
 				patchOperation: PatchOperationType.ADD_ITEM,
@@ -403,7 +411,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3",
 				value: JSON.stringify([
 					testAssociationFirstEncryptedInstance,
@@ -432,7 +440,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3",
 				value: '["aggId"]',
 				patchOperation: PatchOperationType.REMOVE_ITEM,
@@ -458,7 +466,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/9/aggOnAggId/10",
 				value: uint8ArrayToBase64(newValue),
 				patchOperation: PatchOperationType.REPLACE,
@@ -483,7 +491,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/10",
 				value: "[]",
 				patchOperation: PatchOperationType.REPLACE,
@@ -528,7 +536,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/10",
 				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
 				patchOperation: PatchOperationType.REPLACE,
@@ -570,7 +578,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/10",
 				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
 				patchOperation: PatchOperationType.REPLACE,
@@ -615,7 +623,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/9",
 				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
 				patchOperation: PatchOperationType.ADD_ITEM,
@@ -646,7 +654,7 @@ o.spec("computePatches", function () {
 			false,
 		)
 		o(objectDiff).deepEquals([
-			sysTypeRefs.createPatch({
+			createPatch({
 				attributePath: "3/aggId/9",
 				value: '["aggOnAggId"]',
 				patchOperation: PatchOperationType.REMOVE_ITEM,

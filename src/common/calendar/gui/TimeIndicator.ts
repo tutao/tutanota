@@ -1,6 +1,6 @@
 import { Time } from "../date/Time"
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { layout_size, px, size } from "../../gui/size"
+import { layout_size, px, size } from "../../../ui/size"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
 import { DAY_IN_MINUTES } from "@tutao/app-env"
 

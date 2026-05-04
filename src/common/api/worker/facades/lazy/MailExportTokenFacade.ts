@@ -1,7 +1,7 @@
-import * as restError from "@tutao/rest-client/error"
-import { tutanotaServices } from "@tutao/typerefs"
+import { AccessExpiredError } from "@tutao/rest-client/error"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest.js"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { MailExportTokenService } from "@tutao/entities/tutanota"
 
 const TAG = "[MailExportTokenFacade]"
 
@@ -35,7 +35,7 @@ export class MailExportTokenFacade {
 			return await request(token)
 		} catch (e) {
 			// We only allow one retry
-			if (e instanceof restError.AccessExpiredError) {
+			if (e instanceof AccessExpiredError) {
 				let newToken
 				if (this.currentExportToken === token) {
 					console.log(TAG, `token expired for exporting and will be renewed`)
@@ -66,20 +66,18 @@ export class MailExportTokenFacade {
 		}
 
 		this.currentExportToken = null
-		this.currentExportTokenRequest = this.serviceExecutor
-			.post(tutanotaServices.MailExportTokenService, null, { suspensionBehavior: SuspensionBehavior.Throw })
-			.then(
-				(result) => {
-					this.currentExportToken = result.mailExportToken as MailExportToken
-					this.currentExportTokenRequest = null
-					return this.currentExportToken
-				},
-				(error) => {
-					// Re-initialize in case MailExportTokenService won't fail on a future request
-					this.currentExportTokenRequest = null
-					throw error
-				},
-			)
+		this.currentExportTokenRequest = this.serviceExecutor.post(MailExportTokenService, null, { suspensionBehavior: SuspensionBehavior.Throw }).then(
+			(result) => {
+				this.currentExportToken = result.mailExportToken as MailExportToken
+				this.currentExportTokenRequest = null
+				return this.currentExportToken
+			},
+			(error) => {
+				// Re-initialize in case MailExportTokenService won't fail on a future request
+				this.currentExportTokenRequest = null
+				throw error
+			},
+		)
 		return this.currentExportTokenRequest
 	}
 

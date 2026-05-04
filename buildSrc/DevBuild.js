@@ -38,7 +38,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 		await runStep("Clean", async () => {
 			fs.rmSync(buildDir, { recursive: true, force: true })
 			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
-			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
+			fs.rmSync("src/mimimi/napi-out", { recursive: true, force: true })
 			execSync("cargo clean")
 			execSync("npx tsc --build --clean")
 		})

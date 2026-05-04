@@ -1,4 +1,5 @@
-import { clone, tutanotaTypeRefs } from "@tutao/typerefs"
+import { clone } from "@tutao/meta"
+import { CalendarAttendeeStatus, CalendarEvent, CalendarEventAttendee } from "@tutao/entities/tutanota"
 import {
 	addDaysForRecurringEvent,
 	calendarEventHasMoreThanOneOccurrencesLeft,
@@ -9,15 +10,15 @@ import {
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import * as restError from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
-import { CalendarAttendeeStatus, EndType, ProgrammingError } from "@tutao/app-env"
+import { EndType, ProgrammingError } from "@tutao/app-env"
 import m from "mithril"
 import { deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
-import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
+import { convertTextToHtml } from "../../../../ui/utils/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EventWrapper } from "../../view/CalendarViewModel"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 
@@ -44,7 +45,7 @@ export class CalendarEventPreviewViewModel {
 	private sanitizedDescription: string | null = null
 
 	private processing: boolean = false
-	private readonly _ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null
+	private readonly _ownAttendee: CalendarEventAttendee | null
 
 	/**
 	 * Comment to be sent together with the event reply
@@ -72,13 +73,13 @@ export class CalendarEventPreviewViewModel {
 	 * @param uiUpdateCallback
 	 */
 	constructor(
-		readonly calendarEvent: Readonly<tutanotaTypeRefs.CalendarEvent>,
+		readonly calendarEvent: Readonly<CalendarEvent>,
 		private readonly calendarModel: CalendarModel,
 		readonly eventType: EventType,
 		private readonly hasBusinessFeature: boolean,
-		ownAttendee: tutanotaTypeRefs.CalendarEventAttendee | null,
+		ownAttendee: CalendarEventAttendee | null,
 		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
-		private readonly eventModelFactory: (mode: CalendarOperation, event: tutanotaTypeRefs.CalendarEvent) => Promise<CalendarEventModel | null>,
+		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
 		private readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>,
 		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
@@ -117,7 +118,7 @@ export class CalendarEventPreviewViewModel {
 		return calendarEventHasMoreThanOneOccurrencesLeft(index)
 	}
 
-	get ownAttendee(): tutanotaTypeRefs.CalendarEventAttendee | null {
+	get ownAttendee(): CalendarEventAttendee | null {
 		return this._ownAttendee
 	}
 
@@ -125,7 +126,7 @@ export class CalendarEventPreviewViewModel {
 	 * note that the Promise<unknown> type on setParticipation prevents us from leaking errors when consumers call it and try to catch errors without
 	 * awaiting it (they get an async call without await warning) */
 	getParticipationSetterAndThen(action: Thunk): null | {
-		ownAttendee: tutanotaTypeRefs.CalendarEventAttendee
+		ownAttendee: CalendarEventAttendee
 		setParticipation: (status: CalendarAttendeeStatus) => Promise<unknown>
 	} {
 		if (this.ownAttendee == null || this.isOrganizer) return null
@@ -249,7 +250,7 @@ export class CalendarEventPreviewViewModel {
 	 * @param timeZone
 	 * @private
 	 */
-	private async setupNewEventModel(progenitorModel: CalendarEventModel, progenitor: tutanotaTypeRefs.CalendarEvent, timeZone: string) {
+	private async setupNewEventModel(progenitorModel: CalendarEventModel, progenitor: CalendarEvent, timeZone: string) {
 		const newEventModel = await this.eventModelFactory(CalendarOperation.Create, this.calendarEvent)
 		if (!newEventModel) {
 			throw new Error("Failed to split original series and instantiate a new event model.")
@@ -398,7 +399,7 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async sanitizeDescription(): Promise<void> {
-		const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
+		const { getHtmlSanitizer } = await import("../../../../common/gui/utils/HtmlSanitizer.js")
 		this.sanitizedDescription = prepareCalendarDescription(
 			this.calendarEvent.description,
 			(s) =>

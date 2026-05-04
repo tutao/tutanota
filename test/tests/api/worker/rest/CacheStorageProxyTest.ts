@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { func, instance, object, when } from "testdouble"
 import { verify } from "@tutao/otest"
-import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
+import { LateInitializedCacheStorageImpl } from "../../../../../src/local-store/CacheStorageProxy.js"
 import { OfflineStorage } from "../../../../../src/local-store/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
-import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
-import { OfflineStorageArgs } from "../../../../../src/local-store/types"
+import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage"
+import { OfflineStorageArgs } from "../../../../../src/local-store/Types"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"

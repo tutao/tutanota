@@ -1,7 +1,7 @@
 import { DnsRecordType } from "@tutao/app-env"
 import m, { Children } from "mithril"
-import { ColumnWidth, Table } from "../../../common/gui/base/Table.js"
-import { sysTypeRefs } from "@tutao/typerefs"
+import { ColumnWidth, Table } from "../../../ui/base/Table.js"
+import { DnsRecord } from "@tutao/entities/sys"
 
 const enum ActualDnsRecordType {
 	MX = "MX",
@@ -18,7 +18,7 @@ export const DnsRecordTable: Record<DnsRecordType, ActualDnsRecordType> = Object
 	[DnsRecordType.DNS_RECORD_TYPE_TXT_VERIFY]: ActualDnsRecordType.TXT,
 })
 
-export function createDnsRecordTable(records: sysTypeRefs.DnsRecord[]): Children {
+export function createDnsRecordTable(records: DnsRecord[]): Children {
 	return m(Table, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label"],
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],

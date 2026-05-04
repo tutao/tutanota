@@ -1,16 +1,34 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
-import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, sysServices, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
-import { OperationType } from "@tutao/app-env"
+import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart } from "@tutao/meta"
 import * as restError from "@tutao/rest-client/error"
-import { UserFacade } from "../UserFacade"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
-import { CryptoFacade } from "../../crypto/CryptoFacade"
-import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler"
-import { IServiceExecutor } from "../../../common/ServiceRequest"
+import { UserFacade } from "../../../../../base/facades/UserFacade"
+import { IServiceExecutor } from "../../../../../network/ServiceRequest"
+import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade"
+import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { OperationType } from "@tutao/meta"
+import {
+	AlarmInfo,
+	AlarmNotificationTypeRef,
+	AlarmService,
+	AlarmServicePost,
+	createAlarmInfo,
+	createAlarmNotification,
+	createAlarmServicePost,
+	createCalendarEventRef,
+	createDateWrapper,
+	createNotificationSessionKey,
+	createRepeatRule,
+	createUserAlarmInfoData,
+	PushIdentifier,
+	RepeatRule,
+	User,
+} from "@tutao/entities/sys"
+import { CalendarEvent, CalendarRepeatRule } from "@tutao/entities/tutanota"
 
 export class AlarmFacade {
 	constructor(
@@ -23,11 +41,7 @@ export class AlarmFacade {
 		private readonly infoMessageHandler: InfoMessageHandler,
 	) {}
 
-	public async createAlarms(
-		loggedInUser: sysTypeRefs.User,
-		eventAlarmsTuples: EventAlarmInfoTemplatesTuple[],
-		pushIdentifiers: sysTypeRefs.PushIdentifier[],
-	): Promise<void> {
+	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
 		const notificationSessionKey = aes256RandomKey()
 		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
 			loggedInUser._id,
@@ -40,7 +54,7 @@ export class AlarmFacade {
 		await this.postAlarmServiceRequest(notificationSessionKey, alarmServicePostRequestData)
 	}
 
-	public async scheduleAlarmsForNewDevice(pushIdentifier: sysTypeRefs.PushIdentifier, eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>): Promise<void> {
+	public async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier, eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>): Promise<void> {
 		const user = this.userFacade.getLoggedInUser()
 
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
@@ -53,7 +67,7 @@ export class AlarmFacade {
 		const encryptedNotificationsWireFormat = JSON.stringify(
 			await Promise.all(
 				alarmNotifications.map(async (an) => {
-					const untypedInstance = await this.instancePipeline.mapAndEncrypt(sysTypeRefs.AlarmNotificationTypeRef, an, sessionKey)
+					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
 					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
 				}),
 			),
@@ -67,20 +81,20 @@ export class AlarmFacade {
 		ownerGroup: Id,
 		userGroupKey: VersionedKey,
 		eventAlarmTuples: Array<EventAlarmInfoTemplatesTuple>,
-		pushIdentifiers: sysTypeRefs.PushIdentifier[],
+		pushIdentifiers: PushIdentifier[],
 		notificationSessionKey: AesKey,
-	): Promise<sysTypeRefs.AlarmServicePost> {
-		const alarmServicePost = sysTypeRefs.createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [] })
+	): Promise<AlarmServicePost> {
+		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [] })
 
 		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
-			const eventRef = sysTypeRefs.createCalendarEventRef({
+			const eventRef = createCalendarEventRef({
 				listId: listIdPart(event._id),
 				elementId: elementIdPart(event._id),
 			})
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
 				const userAlarmInfoSessionKey = aes256RandomKey()
-				const userAlarmInfoData = sysTypeRefs.createUserAlarmInfoData({
+				const userAlarmInfoData = createUserAlarmInfoData({
 					ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
 					ownerKeyVersion: userGroupKey.version.toString(),
 					encryptedTrigger: this.cryptoWrapper.encryptString(userAlarmInfoSessionKey, alarmInfoTemplate.trigger),
@@ -94,8 +108,8 @@ export class AlarmFacade {
 				// (Doesn't this mean that if you decrypt one key, you can decrypt all notifications on all devices? What security does this add?
 				// Does it mean that you can't brute force faster if you gain access to notifications from multiple devices?)
 
-				const alarmNotification = sysTypeRefs.createAlarmNotification({
-					alarmInfo: sysTypeRefs.createAlarmInfo({ ...alarmInfoTemplate, calendarRef: eventRef }),
+				const alarmNotification = createAlarmNotification({
+					alarmInfo: createAlarmInfo({ ...alarmInfoTemplate, calendarRef: eventRef }),
 					repeatRule: event.repeatRule && this.createRepeatRuleForCalendarRepeatRule(event.repeatRule),
 					notificationSessionKeys: [],
 					operation: OperationType.CREATE,
@@ -113,9 +127,9 @@ export class AlarmFacade {
 		return alarmServicePost
 	}
 
-	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: sysTypeRefs.AlarmServicePost): Promise<void> {
+	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost): Promise<void> {
 		try {
-			await this.serviceExecutor.post(sysServices.AlarmService, alarmServicePostData, { sessionKey: notificationSessionKey })
+			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { sessionKey: notificationSessionKey })
 		} catch (e) {
 			if (e instanceof restError.TooManyRequestsError) {
 				return this.infoMessageHandler.onInfoMessage({
@@ -133,8 +147,8 @@ export class AlarmFacade {
 	 */
 	private async encryptNotificationKeyForDevices(
 		notificationSessionKey: AesKey,
-		alarmNotifications: Array<sysTypeRefs.AlarmNotification>,
-		pushIdentifierList: Array<sysTypeRefs.PushIdentifier>,
+		alarmNotifications: Array<AlarmNotification>,
+		pushIdentifierList: Array<PushIdentifier>,
 	): Promise<void> {
 		// Makes copies of the notification SKs, each encrypted by a different push identifier SK
 		// PushID SK ->* Notification SK -> alarm fields
@@ -146,7 +160,7 @@ export class AlarmFacade {
 		// Each alarmNotification contains ALL push identifiers & each pushIdentifierSessionEncryptedSessionKey.  Why?
 		for (let notification of alarmNotifications) {
 			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
-				return sysTypeRefs.createNotificationSessionKey({
+				return createNotificationSessionKey({
 					pushIdentifier: esk.identifierId,
 					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
 				})
@@ -154,7 +168,7 @@ export class AlarmFacade {
 		}
 	}
 
-	private encryptNotificationSKWithPushIdentifierSKs(pushIdentifierList: Array<sysTypeRefs.PushIdentifier>, notificationSessionKey: AesKey) {
+	private encryptNotificationSKWithPushIdentifierSKs(pushIdentifierList: Array<PushIdentifier>, notificationSessionKey: AesKey) {
 		return promiseMap(pushIdentifierList, async (identifier) => {
 			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKey(identifier)
 			if (pushIdentifierSk) {
@@ -169,12 +183,8 @@ export class AlarmFacade {
 		})
 	}
 
-	private createAlarmNotificationForEvent(
-		event: tutanotaTypeRefs.CalendarEvent,
-		alarmInfo: sysTypeRefs.AlarmInfo,
-		userId: Id,
-	): sysTypeRefs.AlarmNotification {
-		return sysTypeRefs.createAlarmNotification({
+	private createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {
+		return createAlarmNotification({
 			alarmInfo: this.cloneAlarmInfo(alarmInfo),
 			repeatRule: event.repeatRule && this.createRepeatRuleForCalendarRepeatRule(event.repeatRule),
 			notificationSessionKeys: [],
@@ -186,26 +196,26 @@ export class AlarmFacade {
 		})
 	}
 
-	private cloneAlarmInfo(alarmInfo: sysTypeRefs.AlarmInfo): sysTypeRefs.AlarmInfo {
-		const calendarRef = sysTypeRefs.createCalendarEventRef({
+	private cloneAlarmInfo(alarmInfo: AlarmInfo): AlarmInfo {
+		const calendarRef = createCalendarEventRef({
 			elementId: alarmInfo.calendarRef.elementId,
 			listId: alarmInfo.calendarRef.listId,
 		})
-		return sysTypeRefs.createAlarmInfo({
+		return createAlarmInfo({
 			alarmIdentifier: alarmInfo.alarmIdentifier,
 			trigger: alarmInfo.trigger,
 			calendarRef,
 		})
 	}
 
-	private createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: tutanotaTypeRefs.CalendarRepeatRule): sysTypeRefs.RepeatRule {
-		return sysTypeRefs.createRepeatRule({
+	private createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepeatRule): RepeatRule {
+		return createRepeatRule({
 			endType: calendarRepeatRule.endType,
 			endValue: calendarRepeatRule.endValue,
 			frequency: calendarRepeatRule.frequency,
 			interval: calendarRepeatRule.interval,
 			timeZone: calendarRepeatRule.timeZone,
-			excludedDates: calendarRepeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date })),
+			excludedDates: calendarRepeatRule.excludedDates.map(({ date }) => createDateWrapper({ date })),
 			advancedRules: calendarRepeatRule.advancedRules,
 		})
 	}

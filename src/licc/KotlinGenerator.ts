@@ -1,5 +1,6 @@
 import {
 	camelCaseToSnakeCase,
+	DefinationType,
 	EnumDefinition,
 	FacadeDefinition,
 	getArgs,
@@ -194,7 +195,7 @@ export class KotlinGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	generateExtraFiles(_platform: Platform, _generatedSymbols: Array<string>): Record<string, string> {
+	generateExtraFiles(_platform: Platform, _generatedSymbols: Array<{ symbol: string; defType: DefinationType }>): Record<string, string> {
 		return {
 			NativeInterface: KotlinGenerator.generateNativeInterface(),
 		}
@@ -247,6 +248,14 @@ export class KotlinGenerator implements LangGenerator {
 
 	private formatEnumValue(value: string) {
 		return camelCaseToSnakeCase(value).toUpperCase()
+	}
+
+	storeEnum(enumName: string): void {
+		console.log("nothing to do")
+	}
+	getEnumExports(): string {
+		console.log("nothing to do")
+		return ""
 	}
 }
 

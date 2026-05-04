@@ -1,17 +1,17 @@
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { LegacyTextField, LegacyTextFieldAttrs } from "../../../common/gui/base/LegacyTextField"
+import { Dialog } from "../../../ui/base/Dialog"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField"
 import m from "mithril"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { MailViewModel } from "./MailViewModel"
-import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
+import { ColorPickerView } from "../../../ui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { UpgradePromptType } from "@tutao/app-env"
-import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
+import { MailBox, MailSet } from "@tutao/entities/tutanota"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 
-export async function showEditLabelDialog(mailbox: tutanotaTypeRefs.MailBox | null, mailViewModel: MailViewModel, label: tutanotaTypeRefs.MailSet | null) {
+export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel: MailViewModel, label: MailSet | null) {
 	let name = label ? label.name : ""
 	let color = label && label.color ? label.color : ""
 

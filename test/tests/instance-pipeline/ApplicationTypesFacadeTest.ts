@@ -2,28 +2,24 @@ import o from "@tutao/otest"
 import { ApplicationTypesFacade } from "../../../src/instance-pipeline/ApplicationTypesFacade"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	ApplicationTypesGetOut,
 	AppName,
 	AppNameEnum,
 	AssociationType,
-	baseModelInfo,
-	baseServices,
 	Cardinality,
 	getServiceRestPath,
 	ModelAssociation,
-	ServerModelInfo,
-	ServerModels,
 	ServerTypeModel,
 	ServiceDefinition,
 	Type,
-} from "@tutao/typerefs"
+} from "../../../src/meta"
 import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
-import { compressString, decompressString } from "@tutao/instance-pipeline"
+import { ApplicationTypesGetOut, ServerModelInfo, ServerModels, compressString, decompressString } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "@tutao/app-env"
-import { FileFacade } from "@tutao/native-bridge/common"
+import { FileFacade } from "../../../src/native-bridge/common/generatedipc/types/FileFacade.js"
+import { ApplicationTypesService, baseModelInfo } from "@tutao/entities/base"
 
 const { anything } = matchers
 
@@ -90,7 +86,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		o.timeout(200)
 
 		when(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -105,7 +101,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		await promise3
 
 		verify(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -120,7 +116,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		applicationTypesFacade.applicationTypesGetInTimeout = 100
 
 		when(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -134,7 +130,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		await promise2
 
 		verify(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -150,7 +146,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 	o("should attempt to write file but not propagate write error", async () => {
 		when(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -174,7 +170,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
-				restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 					headers: { v: baseModelInfo.version.toString() },
 					responseType: MediaType.Binary,
 				}),
@@ -189,7 +185,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
 			when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
 			when(
-				restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 					headers: { v: baseModelInfo.version.toString() },
 					responseType: MediaType.Binary,
 				}),
@@ -204,7 +200,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	o("AAAA Server model should be fetched from server if local copy hash does not match", async () => {
 		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array("{}"))
 		when(
-			restClient.request(getServiceRestPath(baseServices.ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),

@@ -1,20 +1,20 @@
 import m, { Children, Component, redraw, Vnode } from "mithril"
-import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import { lang } from "../../../common/misc/LanguageViewModel"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { Icons } from "../../../common/gui/base/icons/Icons"
+import { AppHeaderAttrs, Header } from "../../../ui/Header.js"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
+import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../ui/utils/KeyManager"
+import { Icons } from "../../../ui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
-import { elementIdPart, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart } from "@tutao/meta"
+import { Group, GroupInfo, GroupType, NewPaidPlans, User } from "@tutao/entities/sys"
 import {
 	DEFAULT_CALENDAR_COLOR,
-	GroupType,
 	isAndroidApp,
 	isApp,
 	isDesktop,
 	Keys,
-	NewPaidPlans,
+	reverse,
 	ProgrammingError,
 	ShareCapability,
 	TimeFormat,
@@ -32,56 +32,56 @@ import {
 	isBirthdayEvent,
 	parseAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils"
-import { ButtonColor } from "../../../common/gui/base/Button.js"
+import { ButtonColor } from "../../../ui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import * as restError from "@tutao/rest-client/error"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
-import { styles } from "../../../common/gui/styles"
+import { styles } from "../../../ui/styles"
 import { CalendarTimeBasedView, CalendarTimeBasedViewAttrs } from "./CalendarTimeBasedView"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { component_size, layout_size } from "../../../common/gui/size"
+import { Dialog } from "../../../ui/base/Dialog"
+import { component_size, layout_size } from "../../../ui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
-import { SidebarSection } from "../../../common/gui/SidebarSection"
-import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { SidebarSection } from "../../../ui/SidebarSection"
+import { HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
 import { calendarNavConfiguration, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
-import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { createDropdown, DropdownChildAttrs } from "../../../ui/base/Dropdown.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
-import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView.js"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { CalendarViewType, getEventWithDefaultTimes, serializeAlarmInterval, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { theme } from "../../../common/gui/theme.js"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
+import { theme } from "../../../ui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { client } from "../../../app-env/boot/ClientDetector.js"
-import { FloatingActionButton } from "../../../common/gui/base/FloatingActionButton.js"
-import { progressIcon } from "../../../common/gui/base/Icon.js"
+import { client } from "@tutao/app-env"
+import { FloatingActionButton } from "../../../ui/base/FloatingActionButton.js"
+import { progressIcon } from "../../../ui/base/Icon.js"
 import { getExternalCalendarName, parseCalendarStringData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
-import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
+import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { MobileHeader } from "../../../common/gui/MobileHeader.js"
+import { MobileHeader } from "../../../ui/MobileHeader.js"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
@@ -91,13 +91,22 @@ import {
 } from "./EventDetailsView.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { calendarLocator } from "../../calendarLocator.js"
-import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
-
-import { PosRect } from "../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../ui/utils/PosRect"
+import {
+	CalendarEvent,
+	CalendarGroupRoot,
+	CalendarGroupRootTypeRef,
+	Contact,
+	ContactTypeRef,
+	createDefaultAlarmInfo,
+	GroupSettings,
+	PartialRecipient,
+} from "@tutao/entities/tutanota"
+import { windowFacade } from "../../../common/misc/WindowFacade"
 
 export type GroupColors = Map<Id, string>
 
@@ -131,7 +140,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
-		this.htmlSanitizer = import("../../../common/misc/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
+		this.htmlSanitizer = import("../../../common/gui/utils/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>
@@ -466,7 +475,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			columns.push(this.eventDetails)
 		}
 
-		this.viewSlider = new ViewSlider(columns)
+		this.viewSlider = new ViewSlider(columns, windowFacade)
 
 		const shortcuts = this.setupShortcuts()
 
@@ -587,7 +596,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	private renderContactPreview(contact: tutanotaTypeRefs.Contact) {
+	private renderContactPreview(contact: Contact) {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -935,7 +944,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			}
 
 			const calendarGroup = await calendarModel.createCalendar(getExternalCalendarName(iCalStr), properties.color, [], properties.sourceUrl)
-			const calendarGroupRoot = await locator.entityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, calendarGroup._id)
+			const calendarGroupRoot = await locator.entityClient.load(CalendarGroupRootTypeRef, calendarGroup._id)
 			deviceConfig.updateLastSync(calendarGroup._id)
 
 			let calendarInfo = await this.viewModel.getCalendarModel().getCalendarInfo(calendarGroup._id)
@@ -1050,7 +1059,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private async handleEdit(calendarInfo: CalendarInfo, existingGroupSettings?: tutanotaTypeRefs.GroupSettings) {
+	private async handleEdit(calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
 		showCreateEditCalendarDialog({
 			calendarType: calendarInfo.type,
 			titleTextId: "edit_action",
@@ -1085,12 +1094,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private handleModifiedCalendar(
-		dialog: Dialog,
-		properties: CalendarProperties,
-		calendarInfo: CalendarInfo,
-		existingGroupSettings?: tutanotaTypeRefs.GroupSettings,
-	) {
+	private handleModifiedCalendar(dialog: Dialog, properties: CalendarProperties, calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
 		const { groupInfo, hasMultipleMembers, userIsOwner } = calendarInfo
 		if (userIsOwner) {
 			// if it is a shared calendar and the shared name has been changed the entity needs to be updated
@@ -1099,7 +1103,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		const shouldSyncExternal = !!(existingGroupSettings && hasSourceUrl(existingGroupSettings) && existingGroupSettings.sourceUrl !== properties.sourceUrl)
-		const alarms = properties.alarms.map((alarm) => tutanotaTypeRefs.createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+		const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
 		this.viewModel
 			.setCalendarGroupSettings(groupInfo, {
 				color: properties.color,
@@ -1137,6 +1141,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					firstColWidth: this.sidebarColumn.width,
 					searchBar: attrs.lazySearchBar,
 					...attrs.header,
+					isFeatureEnabled: locator.logins.isEnabled,
+					isInternalUserLoggedIn: locator.logins.isUserLoggedIn(),
 				}),
 				bottomNav: attrs.bottomNav?.(),
 			}),
@@ -1233,7 +1239,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private async onEventSelected(selectedEvent: tutanotaTypeRefs.CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
+	private async onEventSelected(selectedEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 		const domTarget = domEvent.currentTarget
 
 		if (domTarget == null || !(domTarget instanceof HTMLElement)) {
@@ -1270,23 +1276,19 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private duplicateEvent(calendarEvent: tutanotaTypeRefs.CalendarEvent) {
+	private duplicateEvent(calendarEvent: CalendarEvent) {
 		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos, []).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
 			eventPreviewModel?.duplicateEvent()
 		})
 	}
 
-	private openDeletePopup(calendarEvent: tutanotaTypeRefs.CalendarEvent, domEvent: KeyboardEvent) {
+	private openDeletePopup(calendarEvent: CalendarEvent, domEvent: KeyboardEvent) {
 		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos, []).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
 			showDeletePopup(eventPreviewModel, new MouseEvent("click", {}), domEvent.target as HTMLElement)
 		})
 	}
 
-	private async showCalendarEventPopup(
-		selectedEvent: tutanotaTypeRefs.CalendarEvent,
-		eventBubbleRect: PosRect,
-		htmlSanitizerPromise: Promise<HtmlSanitizer>,
-	) {
+	private async showCalendarEventPopup(selectedEvent: CalendarEvent, eventBubbleRect: PosRect, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 		let getPreviewModel: Promise<CalendarPreviewModels>
 		let popupComponent: CalendarEventPopup | ContactEventPopup
 
@@ -1296,7 +1298,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				throw new Error(`Trying to open a birthday ${selectedEvent._id} without a contact id`)
 			}
 			const contactId = decodeBase64("utf8", base64ContactId).split("/")
-			const contact = await locator.entityClient.load(tutanotaTypeRefs.ContactTypeRef, [contactId[0], contactId[1]])
+			const contact = await locator.entityClient.load(ContactTypeRef, [contactId[0], contactId[1]])
 			if (!contact) {
 				throw new restError.NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
 			}
@@ -1312,11 +1314,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		popupComponent.show()
 	}
 
-	private async showCalendarEventPopupAtEvent(
-		selectedEvent: tutanotaTypeRefs.CalendarEvent,
-		target: HTMLElement,
-		htmlSanitizerPromise: Promise<HtmlSanitizer>,
-	) {
+	private async showCalendarEventPopupAtEvent(selectedEvent: CalendarEvent, target: HTMLElement, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
 		const targetRect = target.getBoundingClientRect()
 		const rect = {
 			bottom: targetRect.bottom,
@@ -1378,7 +1376,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return false
 	}
 
-	private buildActions(calendarInfo: CalendarInfo, userController: UserController, existingGroupSettings?: tutanotaTypeRefs.GroupSettings) {
+	private buildActions(calendarInfo: CalendarInfo, userController: UserController, existingGroupSettings?: GroupSettings) {
 		const { group, groupInfo, groupRoot, isExternal, userIsOwner, hasMultipleMembers } = calendarInfo
 		const actions: Array<DropdownChildAttrs> = [
 			{
@@ -1433,7 +1431,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return actions
 	}
 
-	private canImport(group: sysTypeRefs.Group, user: sysTypeRefs.User, groupSettings?: tutanotaTypeRefs.GroupSettings) {
+	private canImport(group: Group, user: User, groupSettings?: GroupSettings) {
 		return (
 			group.type === GroupType.Calendar &&
 			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
@@ -1446,7 +1444,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return !isExternal
 	}
 
-	private canExport(group: sysTypeRefs.Group, user: sysTypeRefs.User): boolean {
+	private canExport(group: Group, user: User): boolean {
 		return !isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
 	}
 
@@ -1454,7 +1452,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return (isApp() || isDesktop()) && isExternal
 	}
 
-	private handleShare(userController: UserController, groupInfo: sysTypeRefs.GroupInfo, shared: boolean) {
+	private handleShare(userController: UserController, groupInfo: GroupInfo, shared: boolean) {
 		if (userController.isFreeAccount()) {
 			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SHARING)
 		} else {
@@ -1462,7 +1460,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private handleExport(groupInfo: sysTypeRefs.GroupInfo, groupRoot: tutanotaTypeRefs.CalendarGroupRoot, shared: boolean, userController: UserController) {
+	private handleExport(groupInfo: GroupInfo, groupRoot: CalendarGroupRoot, shared: boolean, userController: UserController) {
 		const alarmInfoList = userController.user.alarmInfoList
 		if (alarmInfoList) {
 			exportCalendar(

@@ -15,15 +15,20 @@ import {
 	Cardinality,
 	ClientModelParsedInstance,
 	ClientTypeModel,
-	ClientTypeReferenceResolver,
-	ServerTypeReferenceResolver,
 	ModelValue,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	ValueType,
-} from "@tutao/typerefs"
+} from "../../../src/meta"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import { CryptoMapper, encryptValue, ModelMapper, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
+import {
+	ClientTypeReferenceResolver,
+	CryptoMapper,
+	ModelMapper,
+	ServerTypeReferenceResolver,
+	SymmetricGroupKeyLoader,
+	encryptValue,
+} from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 

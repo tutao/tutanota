@@ -1,17 +1,17 @@
-import { modal, ModalComponent } from "../../../../common/gui/base/Modal.js"
-import { Shortcut } from "../../../../common/misc/KeyManager.js"
+import { modal, ModalComponent } from "../../../../ui/base/Modal.js"
+import { Shortcut } from "../../../../ui/utils/KeyManager.js"
 import m, { Children } from "mithril"
 import { Keys } from "@tutao/app-env"
 import { DaySelector } from "./DaySelector.js"
-import { animations, opacity, transform, TransformEnum } from "../../../../common/gui/animation/Animations.js"
-import { ease } from "../../../../common/gui/animation/Easing.js"
-import { px } from "../../../../common/gui/size.js"
-import { formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
+import { animations, opacity, transform, TransformEnum } from "../../../../ui/animation/Animations.js"
+import { ease } from "../../../../ui/animation/Easing.js"
+import { px } from "../../../../ui/size.js"
+import { formatMonthWithFullYear } from "../../../../ui/utils/Formatter.js"
 import { incrementMonth } from "@tutao/utils"
-import { styles } from "../../../../common/gui/styles.js"
-import renderSwitchMonthArrowIcon from "../../../../common/gui/base/buttons/ArrowButton.js"
+import { styles } from "../../../../ui/styles.js"
+import renderSwitchMonthArrowIcon from "../../../../ui/base/buttons/ArrowButton.js"
 
-import { PosRect } from "../../../../native-bridge/shared/PosRect"
+import { PosRect } from "../../../../ui/utils/PosRect"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date

@@ -5,13 +5,17 @@ import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "../../
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { EventController } from "../../../src/common/api/main/EventController"
 import { EntityClient } from "../../../src/network/EntityClient"
-import { elementIdPart, entityUpdateUtils, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import { elementIdPart, listIdPart } from "../../../src/meta"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel"
 import { createTestEntity } from "../TestUtils"
 import { defer } from "@tutao/utils"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
-import { OperationType } from "../../../src/app-env"
 
+import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
+import { FileTypeRef } from "@tutao/entities/sys"
+import { OperationType } from "@tutao/meta"
+
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	const MAILGROUP_ID = "mail-group"
 
@@ -21,8 +25,8 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	let eventControllerMock: EventController
 	let entityClientMock: EntityClient
 
-	let entityUpdateData: entityUpdateUtils.EntityUpdateData
-	let calendarEventUpdate: tutanotaTypeRefs.CalendarEventUpdate
+	let entityUpdateData: EntityUpdateData
+	let calendarEventUpdate: CalendarEventUpdate
 	let mailboxModel: MailboxModel
 	let mailboxDetailMock: MailboxDetail
 
@@ -52,7 +56,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		calendarEventUpdate.file = ["fileListId", "fileId"]
 
 		entityUpdateData.operation = OperationType.CREATE
-		entityUpdateData.typeRef = tutanotaTypeRefs.CalendarEventUpdateTypeRef
+		entityUpdateData.typeRef = CalendarEventUpdateTypeRef
 		// @ts-ignore
 		entityUpdateData.instanceListId = listIdPart(calendarEventUpdate._id)
 		entityUpdateData.instanceId = elementIdPart(calendarEventUpdate._id)
@@ -63,16 +67,16 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 
 	o("process entity events as leader client -- happy path", async function () {
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-		when(entityClientMock.load(tutanotaTypeRefs.CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
+		when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
 
 		await calendarEventUpdateCoordinator.entityEventsReceived([entityUpdateData], MAILGROUP_ID)
 		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
 	})
 
 	o("becoming leader client processes existing entity events and then attaches the CalendarEventUpdate listener", async function () {
-		const mockCalendarEventUpdateArray = [createTestEntity(tutanotaTypeRefs.CalendarEventUpdateTypeRef, {})]
+		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-		when(entityClientMock.loadAll(tutanotaTypeRefs.CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
+		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(true)
 
@@ -81,7 +85,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	})
 
 	o("becoming follower client removes the CalendarEventUpdate listener", async function () {
-		when(entityClientMock.loadAll(tutanotaTypeRefs.CalendarEventUpdateTypeRef, matchers.anything())).thenResolve([calendarEventUpdate])
+		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve([calendarEventUpdate])
 
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(false)
 
@@ -91,9 +95,9 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 
 	o("init() as leader processes existing entity events before attaching the listener", async function () {
 		deferredWaitSync.resolve(undefined)
-		const mockCalendarEventUpdateArray = [createTestEntity(tutanotaTypeRefs.CalendarEventUpdateTypeRef, {})]
+		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-		when(entityClientMock.loadAll(tutanotaTypeRefs.CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
+		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.init()
 
@@ -104,9 +108,9 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 
 	o("init as non leader does not register event listeners, and does not process existing calendar event updates", async function () {
 		deferredWaitSync.resolve(undefined)
-		const mockCalendarEventUpdateArray = [createTestEntity(tutanotaTypeRefs.CalendarEventUpdateTypeRef, {})]
+		const mockCalendarEventUpdateArray = [createTestEntity(CalendarEventUpdateTypeRef, {})]
 		when(wsConnectivityModelMock.isLeader()).thenReturn(false)
-		when(entityClientMock.loadAll(tutanotaTypeRefs.CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
+		when(entityClientMock.loadAll(CalendarEventUpdateTypeRef, matchers.anything())).thenResolve(mockCalendarEventUpdateArray)
 
 		await calendarEventUpdateCoordinator.init()
 
@@ -121,7 +125,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		when(calendarModelMock.handleCalendarEventUpdate(matchers.anything())).thenReject(new NoOwnerEncSessionKeyForCalendarEventError("test"))
 
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
-		when(entityClientMock.load(tutanotaTypeRefs.CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
+		when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
 
 		await calendarEventUpdateCoordinator.entityEventsReceived([entityUpdateData], MAILGROUP_ID)
 		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
@@ -133,7 +137,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
 		calendarEventUpdateCoordinator.getFileIdToSkippedCalendarEventUpdates().set(elementIdPart(calendarEventUpdate.file), calendarEventUpdate)
 
-		entityUpdateData.typeRef = tutanotaTypeRefs.FileTypeRef
+		entityUpdateData.typeRef = FileTypeRef
 		// @ts-ignore
 		entityUpdateData.instanceListId = listIdPart(calendarEventUpdate.file)
 		entityUpdateData.instanceId = elementIdPart(calendarEventUpdate.file)

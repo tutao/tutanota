@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import type { WorkerClient } from "../../../../src/common/api/main/WorkerClient.js"
 import * as restError from "@tutao/rest-client/error"
-import { Request } from "../../../../src/native-bridge/shared/MessageDispatcher.js"
+import { Request } from "../../../../src/native-bridge/shared/MessageTypes.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
 import { SessionType } from "../../../../src/app-env/SessionType.js"

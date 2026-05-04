@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { EventPreviewView } from "../gui/eventpopup/EventPreviewView.js"
-import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { createAsyncDropdown } from "../../../ui/base/Dropdown.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { styles } from "../../../common/gui/styles.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { styles } from "../../../ui/styles.js"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel

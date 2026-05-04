@@ -1,13 +1,14 @@
 import m, { ClassComponent, Vnode } from "mithril"
-import { WizardStepComponentAttrs } from "../gui/base/wizard/WizardStep"
+import { WizardStepComponentAttrs } from "../../ui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { createAccount } from "../subscription/utils/PaymentUtils"
 import { SignupFormNew } from "./components/SignupFormNew"
-import { lang } from "../misc/LanguageViewModel"
-import { theme } from "../gui/theme"
-import { layout_size, px, size } from "../gui/size"
-import { styles } from "../gui/styles"
-import { PlanType } from "@tutao/app-env"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { theme } from "../../ui/theme"
+import { layout_size, px, size } from "../../ui/size"
+import { styles } from "../../ui/styles"
+
+import { PlanType } from "@tutao/entities/sys"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {

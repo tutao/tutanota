@@ -1,21 +1,14 @@
-import { client } from "../common/misc/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
-import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
-import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { assertNotNull, neverNull } from "@tutao/utils"
+import { AppType, assertMainOrNodeBoot, bootFinished, client, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { assertNotNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
-import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import type { LoginViewModel } from "../common/login/LoginViewModel.js"
-import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
-import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { AppType } from "../common/misc/ClientConstants.js"
 import { applicationPaths } from "./drive-applicationPaths"
 import { DriveView, DriveViewAttrs } from "./drive/view/DriveView"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu"
@@ -23,7 +16,12 @@ import { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { DriveFilePicker } from "./drive/view/DriveFilePicker"
 import { MobileSettingsView } from "../common/settings/MobileSettingsView"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces"
-import { DRIVE_PREFIX } from "../common/misc/RouteChange"
+import { lang, languageCodeToTag, languages } from "../ui/utils/LanguageViewModel"
+import { root } from "../ui/base/RootView"
+import { styles } from "../ui/styles"
+import { AppHeaderAttrs } from "../ui/Header"
+import { DRIVE_PREFIX } from "../ui/utils/RouteChange"
+import { TopLevelAttrs, TopLevelView } from "../ui/base/TopLevelView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -54,18 +52,13 @@ if (!client.isSupported()) {
 // we still want to do this ASAP so we can handle other errors
 setupExceptionHandling()
 
-// If the webapp is served under some folder e.g. /build we want to consider this our root
-const urlPrefixes = extractPathPrefixes()
-// Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
-window.tutao.appState = urlPrefixes
-
 const startRoute = getStartUrl(urlQueryParams)
-history.replaceState(null, "", urlPrefixes.prefix + startRoute)
+history.replaceState(null, "", startRoute)
 
-import("../mail-app/translations/en.js")
+import("../ui/translations/en.js")
 	.then((en) => lang.init(en.default))
 	.then(async () => {
-		await import("../common/gui/main-styles.js")
+		await import("../ui/main-styles.js")
 
 		// do this after lang initialized
 		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
@@ -77,7 +70,7 @@ import("../mail-app/translations/en.js")
 		// this needs to stay after client.init
 		windowFacade.init(driveLocator.logins, driveLocator.connectivityModel)
 		if (isDesktop()) {
-			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(driveLocator.desktopSettingsFacade))
+			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(driveLocator.desktopSettingsFacade))
 		}
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
@@ -254,9 +247,7 @@ import("../mail-app/translations/en.js")
 			),
 		})
 
-		// In some cases our prefix can have non-ascii characters, depending on the path the webapp is served from
-		// see https://github.com/MithrilJS/mithril.js/issues/2659
-		m.route.prefix = neverNull(urlPrefixes.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+		m.route.prefix = ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
@@ -272,7 +263,7 @@ import("../mail-app/translations/en.js")
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path..."] = {
 			onmatch: async () => {
-				const { NotFoundPage } = await import("../common/gui/base/NotFoundPage.js")
+				const { NotFoundPage } = await import("../ui/base/NotFoundPage.js")
 				return {
 					view: () => m(root, m(NotFoundPage)),
 				}
@@ -443,12 +434,6 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	}
 }
 
-function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
-	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
-	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
-	return Object.freeze({ prefix, prefixWithoutFile })
-}
-
 function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Redirection triggered by the server or service worker (e.g. the user reloads /mail/id by pressing
 	// F5 and we want to open /login?r=mail/id).
@@ -483,7 +468,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 	// Most browsers will keep the hash around even after the redirect unless there's another one provided.
 	// In our case the hash is encoded as part of the query and is not deduplicated like described above so we have to manually do it, otherwise we end
 	// up with double hashes.
-	if (!new URL(urlPrefixes.prefix + target, window.location.href).hash) {
+	if (!new URL(target, window.location.href).hash) {
 		target += location.hash
 	}
 	return target

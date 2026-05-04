@@ -6,8 +6,8 @@ import * as restError from "@tutao/rest-client/error"
 import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache
 
@@ -22,9 +22,9 @@ o.spec("KeyCacheTest", function () {
 
 		o("new group key version for cached key", async function () {
 			let groupId = "groupId"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef),
-				memberships: [createTestEntity(sysTypeRefs.GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "1" })],
+			const user = createTestEntity(UserTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef),
+				memberships: [createTestEntity(GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "1" })],
 			})
 			// add version 0 tp cache
 			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
@@ -38,9 +38,9 @@ o.spec("KeyCacheTest", function () {
 
 		o("no version update for cached key", async function () {
 			let groupId = "groupId"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef),
-				memberships: [createTestEntity(sysTypeRefs.GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "0" })],
+			const user = createTestEntity(UserTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef),
+				memberships: [createTestEntity(GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "0" })],
 			})
 			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
 
@@ -53,8 +53,8 @@ o.spec("KeyCacheTest", function () {
 
 		o("removed membership for cached key", async function () {
 			let groupId = "groupId"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef),
+			const user = createTestEntity(UserTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef),
 				memberships: [],
 			})
 			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
@@ -71,9 +71,9 @@ o.spec("KeyCacheTest", function () {
 
 		o("ignore user group key update", async function () {
 			let groupId = "groupId"
-			const user = createTestEntity(sysTypeRefs.UserTypeRef, {
-				userGroup: createTestEntity(sysTypeRefs.GroupMembershipTypeRef, { group: "userGroupId", groupKeyVersion: "1" }),
-				memberships: [createTestEntity(sysTypeRefs.GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "0" })],
+			const user = createTestEntity(UserTypeRef, {
+				userGroup: createTestEntity(GroupMembershipTypeRef, { group: "userGroupId", groupKeyVersion: "1" }),
+				memberships: [createTestEntity(GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "0" })],
 			})
 
 			await keyCache.removeOutdatedGroupKeys(user)

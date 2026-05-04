@@ -1,15 +1,16 @@
+import { DomainInfo, WhitelabelConfig } from "@tutao/entities/sys"
 import { assertMainOrNode } from "@tutao/app-env"
-import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
+import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../../ui/theme"
 import { downcast } from "@tutao/utils"
-import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../gui/base/Color"
+import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../../ui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { CustomizationKey, ThemeCustomizations, ThemeKey, WHITELABEL_CUSTOMIZATION_VERSION } from "../../misc/WhitelabelCustomizations"
-import { ThemeController } from "../../gui/ThemeController"
+import { ThemeController } from "../../../ui/ThemeController"
 import { EntityClient } from "../../../network/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
-import { clone, sysTypeRefs } from "@tutao/typerefs"
+import type { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
+import { clone } from "@tutao/meta"
+import { CustomizationKey, ThemeCustomizations, ThemeKey, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../ui/WhitelabelCustomizations"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -21,8 +22,8 @@ export type CustomColor = {
 
 export class CustomColorsEditorViewModel {
 	private _customizations: ThemeCustomizations
-	private readonly _whitelabelConfig: sysTypeRefs.WhitelabelConfig
-	private readonly _whitelabelDomainInfo: sysTypeRefs.DomainInfo
+	private readonly _whitelabelConfig: WhitelabelConfig
+	private readonly _whitelabelDomainInfo: DomainInfo
 	private _sourceColor!: string
 	private _baseTheme!: BaseThemeId
 	private readonly _themeController: ThemeController
@@ -35,8 +36,8 @@ export class CustomColorsEditorViewModel {
 	constructor(
 		currentTheme: Theme,
 		themeCustomizations: ThemeCustomizations,
-		whitelabelConfig: sysTypeRefs.WhitelabelConfig,
-		whitelabelDomainInfo: sysTypeRefs.DomainInfo,
+		whitelabelConfig: WhitelabelConfig,
+		whitelabelDomainInfo: DomainInfo,
 		themeController: ThemeController,
 		entityClient: EntityClient,
 		loginController: LoginController,

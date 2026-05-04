@@ -1,10 +1,10 @@
-import { pureComponent } from "../gui/base/PureComponent"
-import { lang } from "../misc/LanguageViewModel"
 import m from "mithril"
-import { Dialog } from "../gui/base/Dialog"
 import { AboutDialog } from "./AboutDialog"
 import { calendarLocator } from "../../calendar-app/calendarLocator"
-import { theme } from "../gui/theme"
+import { pureComponent } from "../../ui/base/PureComponent"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { theme } from "../../ui/theme"
+import { Dialog } from "../../ui/base/Dialog"
 
 export const SettingsAboutLInk = pureComponent(() => {
 	const label = lang.getTranslationText("about_label")

@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
-import { lang } from "../misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
-import type { SegmentControlItem } from "../gui/base/SegmentControl"
-import { SegmentControl } from "../gui/base/SegmentControl"
+import type { SegmentControlItem } from "../../ui/base/SegmentControl"
+import { SegmentControl } from "../../ui/base/SegmentControl"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./utils/PriceUtils"
 import {
 	FeatureCategory,
@@ -14,23 +14,32 @@ import {
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
-import { ProgrammingError } from "@tutao/app-env"
-import { Button, ButtonType } from "../gui/base/Button.js"
+import { isIOSApp, ProgrammingError } from "@tutao/app-env"
+import { Button, ButtonType } from "../../ui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
-import { px, size } from "../gui/size.js"
+import { px, size } from "../../ui/size.js"
 import { locator } from "../api/main/CommonLocator.js"
 import {
 	getApplePriceStr,
 	getFeaturePlaceholderReplacement,
 	getPriceStr,
 	hasAppleIntroOffer,
+	PlanTypeToName,
 	shouldHideBusinessPlans,
 	shouldShowApplePrices,
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
-import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
-import { AvailablePlanType, isIOSApp, LegacyPlans, LegacyPrivatePlans, NewBusinessPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "@tutao/app-env"
-import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
+import {
+	AccountingInfo,
+	AvailablePlanType,
+	LegacyPlans,
+	LegacyPrivatePlans,
+	NewBusinessPlans,
+	NewPersonalPlans,
+	PaymentMethodType,
+	PlanType,
+} from "@tutao/entities/sys"
+import { PrimaryButton, PrimaryButtonAttrs } from "../../ui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -59,7 +68,7 @@ export type SubscriptionSelectorAttr = {
 	multipleUsersAllowed: boolean
 	msg: MaybeTranslation | null
 	upgradeType?: UpgradeType
-	accountingInfo: sysTypeRefs.AccountingInfo | null
+	accountingInfo: AccountingInfo | null
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
@@ -292,7 +301,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		accountingInfo,
 	}: {
 		priceAndConfigProvider: PriceAndConfigProvider
-		accountingInfo: sysTypeRefs.AccountingInfo | null
+		accountingInfo: AccountingInfo | null
 	}): { revoPrice: string; legendPrice: string } {
 		if (shouldShowApplePrices(accountingInfo)) {
 			const prices = priceAndConfigProvider.getMobilePrices()

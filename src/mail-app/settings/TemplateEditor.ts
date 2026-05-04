@@ -1,26 +1,27 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Autocapitalize, LegacyTextField } from "../../common/gui/base/LegacyTextField.js"
-import type { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
-import { ButtonType } from "../../common/gui/base/Button.js"
-import { Dialog } from "../../common/gui/base/Dialog"
-import { Icons } from "../../common/gui/base/icons/Icons"
-import { createDropdown, DropdownButtonAttrs } from "../../common/gui/base/Dropdown.js"
-import type { Language } from "../../common/misc/LanguageViewModel"
-import { lang } from "../../common/misc/LanguageViewModel"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Autocapitalize, LegacyTextField } from "../../ui/base/LegacyTextField.js"
+import type { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
+import { ButtonType } from "../../ui/base/Button.js"
+import { Dialog } from "../../ui/base/Dialog"
+import { Icons } from "../../ui/base/icons/Icons"
+import { createDropdown, DropdownButtonAttrs } from "../../ui/base/Dropdown.js"
+import type { Language } from "../../ui/utils/LanguageViewModel"
+import { lang } from "../../ui/utils/LanguageViewModel"
 import { getLanguageName, TemplateEditorModel } from "./TemplateEditorModel"
 import { locator } from "../../common/api/main/CommonLocator"
 import { showUserError } from "../../common/misc/ErrorHandlerImpl"
 import { UserError } from "../../common/api/main/UserError"
-import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
+import { HtmlEditor } from "../../ui/editor/HtmlEditor"
 import { ofClass } from "@tutao/utils"
-import { IconButton } from "../../common/gui/base/IconButton.js"
-import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
+import { IconButton } from "../../ui/base/IconButton.js"
+import { ButtonSize } from "../../ui/base/ButtonSize.js"
+import { EmailTemplate, TemplateGroupRoot } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
 
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one
  */
-export function showTemplateEditor(template: tutanotaTypeRefs.EmailTemplate | null, templateGroupRoot: tutanotaTypeRefs.TemplateGroupRoot): void {
+export function showTemplateEditor(template: EmailTemplate | null, templateGroupRoot: TemplateGroupRoot): void {
 	const entityClient = locator.entityClient
 	const editorModel = new TemplateEditorModel(template, templateGroupRoot, entityClient)
 
@@ -70,7 +71,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	constructor(vnode: Vnode<TemplateEditorAttrs>) {
 		this.model = vnode.attrs.model
-		this.templateContentEditor = new HtmlEditor("content_label").showBorders().setMinHeight(500).enableToolbar()
+		this.templateContentEditor = new HtmlEditor(getHtmlSanitizer(), "content_label").showBorders().setMinHeight(500).enableToolbar()
 
 		this.model.setContentProvider(() => {
 			return this.templateContentEditor.getValue()

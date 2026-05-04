@@ -11,9 +11,11 @@ import { noOp } from "@tutao/utils"
 import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
 import { UserError } from "../../../../src/common/api/main/UserError.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { clone, sysTypeRefs } from "@tutao/typerefs"
-import { PlanType } from "../../../../src/app-env"
+import { clone } from "../../../../src/meta"
 
+import { PlanType } from "../../../../src/entities/sys"
+
+import { MailAddressAliasTypeRef } from "@tutao/entities/sys"
 o.spec("MailAddressTableModel", function () {
 	let model: MailAddressTableModel
 	let nameChanger: MailAddressNameChanger
@@ -42,7 +44,7 @@ o.spec("MailAddressTableModel", function () {
 
 	o("suggest buying plans with more mail addresses - some new paid plans provide more aliases", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new restError.TooManyRequestsError("limit reached"))
-		const alias1 = createTestEntity(sysTypeRefs.MailAddressAliasTypeRef)
+		const alias1 = createTestEntity(MailAddressAliasTypeRef)
 		userInfo.userGroupInfo.mailAddressAliases = Array(15).fill(alias1)
 		const error = await assertThrows(UpgradeRequiredError, () => model.addAlias("overthelimit@tuta.com", "Over, the Limit"))
 		o(error.constructor.name).equals(UpgradeRequiredError.name)
@@ -51,14 +53,14 @@ o.spec("MailAddressTableModel", function () {
 
 	o("suggest buying plans with more mail addresses - no other plans available", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new restError.TooManyRequestsError("limit reached"))
-		const alias1 = createTestEntity(sysTypeRefs.MailAddressAliasTypeRef)
+		const alias1 = createTestEntity(MailAddressAliasTypeRef)
 		userInfo.userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
 		await o(() => model.addAlias("overthelimit@tuta.com", "Over, the Limit")).asyncThrows(UserError)
 	})
 
 	o("suggest buying plans with more mail addresses - inactive email aliases", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new restError.TooManyRequestsError("limit reached"))
-		const alias1 = createTestEntity(sysTypeRefs.MailAddressAliasTypeRef, { enabled: false })
+		const alias1 = createTestEntity(MailAddressAliasTypeRef, { enabled: false })
 		userInfo.userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
 		await o(() => model.addAlias("overthelimit@tuta.com", "Over, the Limit")).asyncThrows(UserError)
 	})

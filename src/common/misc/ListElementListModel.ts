@@ -1,8 +1,8 @@
-import { ListFilter, ListModel, ListModelConfig } from "./ListModel"
-import { getElementId, isSameId, ListElement } from "@tutao/typerefs"
+import { ListFilter, ListModel, ListModelConfig } from "./ListModel.js"
+import { getElementId, isSameId, ListElement, OperationType } from "../../meta"
 import Stream from "mithril/stream"
-import { ListLoadingState, ListState } from "../gui/base/List"
-import { OperationType } from "@tutao/app-env"
+import { ListLoadingState, ListState } from "../../ui/base/List"
+import { ListSelectionCallbacks } from "../../ui/base/ListUtils"
 
 /**
  * Specifies methods for fetching and sorting list elements for a ListElementListModel.
@@ -27,7 +27,7 @@ export interface ListElementListModelConfig<ElementType> {
  *
  * Internally wraps around a ListModel<ElementType, Id>.
  */
-export class ListElementListModel<ElementType extends ListElement> {
+export class ListElementListModel<ElementType extends ListElement> implements ListSelectionCallbacks {
 	private readonly listModel: ListModel<ElementType, Id>
 	private readonly config: ListElementListModelConfig<ElementType>
 

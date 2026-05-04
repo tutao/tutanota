@@ -1,7 +1,7 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { EntityClient } from "../../../network/EntityClient"
+import { Contact, ContactList, ContactTypeRef } from "@tutao/entities/tutanota"
 
 export class OfflineStorageContactIndexerBackend implements ContactIndexerBackend {
 	constructor(
@@ -11,21 +11,21 @@ export class OfflineStorageContactIndexerBackend implements ContactIndexerBacken
 
 	async init(): Promise<void> {}
 
-	async areContactsIndexed(_contactList: tutanotaTypeRefs.ContactList): Promise<boolean> {
+	async areContactsIndexed(_contactList: ContactList): Promise<boolean> {
 		return this.persistence.areContactsIndexed()
 	}
 
-	async indexContactList(contactList: tutanotaTypeRefs.ContactList): Promise<void> {
+	async indexContactList(contactList: ContactList): Promise<void> {
 		if (await this.persistence.areContactsIndexed()) {
 			return
 		}
 
-		const allContacts = await this.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactList.contacts)
+		const allContacts = await this.entityClient.loadAll(ContactTypeRef, contactList.contacts)
 		await this.persistence.storeContactData(allContacts)
 		await this.persistence.setContactsIndexed(true)
 	}
 
-	async onContactCreated(contact: tutanotaTypeRefs.Contact): Promise<void> {
+	async onContactCreated(contact: Contact): Promise<void> {
 		await this.persistence.storeContactData([contact])
 	}
 
@@ -33,7 +33,7 @@ export class OfflineStorageContactIndexerBackend implements ContactIndexerBacken
 		await this.persistence.deleteContactData(contact)
 	}
 
-	async onContactUpdated(contact: tutanotaTypeRefs.Contact): Promise<void> {
+	async onContactUpdated(contact: Contact): Promise<void> {
 		await this.persistence.storeContactData([contact])
 	}
 }

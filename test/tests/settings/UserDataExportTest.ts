@@ -4,25 +4,28 @@ import { EntityClient } from "../../../src/network/EntityClient.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { matchers, object, when } from "testdouble"
 import { formatDateTimeUTC } from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
-import { CounterFacade } from "../../../src/network/facades/CounterFacade.js"
-import { CounterType } from "../../../src/app-env"
+import { CounterFacade } from "../../../src/network/CounterFacade.js"
 import { createTestEntity } from "../TestUtils.js"
-import { monitorTypeRefs, sysTypeRefs, TypeRef } from "@tutao/typerefs"
 
+import { CounterType } from "../../../src/entities/monitor"
+import { CounterValueTypeRef } from "@tutao/entities/monitor"
+import { TypeRef } from "@tutao/meta"
+
+import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
 o.spec("user data export", function () {
 	const customerId = "customerId"
 	const userGroupsId = "userGroupsId"
 	const user = {
 		_id: "userId",
 		customer: customerId,
-	} as sysTypeRefs.User
+	} as User
 
-	let allUserGroupInfos: sysTypeRefs.GroupInfo[]
+	let allUserGroupInfos: GroupInfo[]
 
 	let entityClientMock: EntityClient
 	let counterFacadeMock: CounterFacade
 	let loginsMock: LoginController
-	let allGroups: sysTypeRefs.Group[]
+	let allGroups: Group[]
 
 	o.beforeEach(function () {
 		allUserGroupInfos = []
@@ -31,7 +34,7 @@ o.spec("user data export", function () {
 		when(loginsMock.getUserController()).thenReturn({
 			reloadCustomer: () =>
 				Promise.resolve(
-					createTestEntity(sysTypeRefs.CustomerTypeRef, {
+					createTestEntity(CustomerTypeRef, {
 						userGroups: userGroupsId,
 						_id: customerId,
 					}),
@@ -41,9 +44,9 @@ o.spec("user data export", function () {
 		})
 
 		entityClientMock = object()
-		when(entityClientMock.loadAll(sysTypeRefs.GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
-		when(entityClientMock.loadMultiple(sysTypeRefs.GroupTypeRef, null, matchers.anything())).thenDo(
-			(_typeref: TypeRef<sysTypeRefs.Group>, _list: Id | null, groups: readonly Id[]) => {
+		when(entityClientMock.loadAll(GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
+		when(entityClientMock.loadMultiple(GroupTypeRef, null, matchers.anything())).thenDo(
+			(_typeref: TypeRef<Group>, _list: Id | null, groups: readonly Id[]) => {
 				return Promise.resolve(allGroups.filter((g) => groups.includes(g._id)))
 			},
 		)
@@ -60,8 +63,8 @@ o.spec("user data export", function () {
 		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2", "storage2")
 
 		when(counterFacadeMock.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customerId)).thenResolve([
-			createTestEntity(monitorTypeRefs.CounterValueTypeRef, { counterId: "storage1", value: "100" }),
-			createTestEntity(monitorTypeRefs.CounterValueTypeRef, { counterId: "wrongId", value: "42" }), // some other counter
+			createTestEntity(CounterValueTypeRef, { counterId: "storage1", value: "100" }),
+			createTestEntity(CounterValueTypeRef, { counterId: "wrongId", value: "42" }), // some other counter
 			// missing counter for second user!
 		])
 
@@ -108,7 +111,7 @@ o.spec("user data export", function () {
 
 	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId, storageCounterId) {
 		allUserGroupInfos.push(
-			createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+			createTestEntity(GroupInfoTypeRef, {
 				name,
 				mailAddress,
 				created,
@@ -118,7 +121,7 @@ o.spec("user data export", function () {
 			}),
 		)
 
-		const group = createTestEntity(sysTypeRefs.GroupTypeRef, { storageCounter: storageCounterId, _id: groupId })
+		const group = createTestEntity(GroupTypeRef, { storageCounter: storageCounterId, _id: groupId })
 		allGroups.push(group)
 	}
 })

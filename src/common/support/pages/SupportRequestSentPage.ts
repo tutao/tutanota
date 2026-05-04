@@ -1,16 +1,16 @@
 import m from "mithril"
 import Mithril, { Children, Component } from "mithril"
-import { Card } from "../../gui/base/Card.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { Card } from "../../../ui/base/Card.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { client } from "../../../app-env/boot/ClientDetector.js"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
 import { TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { SupportDialogState } from "../SupportDialog.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { isIOSApp } from "@tutao/app-env"
-import { DynamicColorSvg } from "../../gui/base/DynamicColorSvg.js"
+import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 
 type SupportRequestSentPageAttrs = {
 	data: SupportDialogState
@@ -47,7 +47,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 						m(
 							".pb-16.block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.svg`,
+								path: `/images/leaving-wizard/other.svg`,
 							}),
 						),
 					),

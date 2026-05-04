@@ -2,12 +2,12 @@ import { assert, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
-import { GENERATED_ID_MIN_TIMESTAMP, isAdminClient, isBrowser, Mode } from "@tutao/app-env"
-import { getOfflineStorageDefaultTimeRangeDays } from "@tutao/typerefs"
+import { GENERATED_ID_MIN_TIMESTAMP, isAdminClient, isBrowser } from "@tutao/app-env"
+import { getOfflineStorageDefaultTimeRangeDays } from "../../mail-app/mail/MailUtils"
 
 /**
- * A model for handling local-store storage configuration
- * Accessing setters and getters will throw if you are not in a context where an local-store database is available
+ * A model for handling offline storage configuration
+ * Accessing setters and getters will throw if you are not in a context where an offline database is available
  * Some logic is duplicated from OfflineStorage
  */
 export class OfflineStorageSettingsModel {

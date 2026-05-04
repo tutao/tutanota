@@ -1,22 +1,23 @@
+import { EntityUpdateData } from "@tutao/instance-pipeline"
 import m, { ChildArray, Children } from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
-import { formatDateWithMonth, formatStorageSize } from "../../misc/Formatter.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { getFirstOrThrow, neverNull } from "@tutao/utils"
-import type { TableAttrs } from "../../gui/base/Table.js"
-import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { LegacyTextField } from "../../gui/base/LegacyTextField.js"
-import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
-import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import { assertMainOrNode, GroupType } from "@tutao/app-env"
-import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
-import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import type { TableAttrs } from "../../../ui/base/Table.js"
+import { ColumnWidth, Table, TableLineAttrs } from "../../../ui/base/Table.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import type { DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
+import { assertMainOrNode } from "@tutao/app-env"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetailsModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
-import { entityUpdateUtils } from "@tutao/typerefs"
+import { GroupType } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -181,7 +182,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return this.model.entityEventsReceived(updates)
 	}
 

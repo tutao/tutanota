@@ -12,7 +12,8 @@ import path from "node:path"
 import { DateProvider } from "../../../../src/utils/DateProvider.js"
 import { ExportError } from "../../../../src/common/api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "../../../../src/common/desktop/export/DesktopExportLock"
-import { elementIdPart, MailboxExportState } from "@tutao/typerefs"
+import { elementIdPart } from "../../../../src/meta"
+import { MailboxExportState } from "@tutao/entities/tutanota"
 
 function enoentError() {
 	const err = new Error()

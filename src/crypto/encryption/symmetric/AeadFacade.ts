@@ -4,8 +4,9 @@ import { concat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify, DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "../../hashes/Blake3.js"
-import { MacTag } from "../../misc/Constants"
 import { CryptoError } from "../../error.js"
+
+import { MacTag } from "../../CryptoTypes"
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80

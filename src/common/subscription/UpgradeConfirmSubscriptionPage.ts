@@ -1,35 +1,36 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang, MaybeTranslation, type TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { AccountType, Const, PaymentMethodType } from "@tutao/app-env"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { Const } from "@tutao/app-env"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import * as restError from "@tutao/rest-client/error"
 import {
 	appStorePlanName,
 	getPreconditionFailedPaymentMsg,
 	SubscriptionApp,
+	UpgradePromptTypeByName,
 	UpgradeType,
 	waitUntilCustomerInfoPlanTypeIsCorrect,
 } from "./utils/SubscriptionUtils"
-import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
-import { LegacyTextField } from "../gui/base/LegacyTextField.js"
+import type { WizardPageAttrs, WizardPageN } from "../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../ui/base/WizardDialog.js"
+import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { sysServices, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typerefs"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { PrimaryButton } from "../gui/base/buttons/VariantButtons.js"
-import { MobilePaymentResultType } from "@tutao/native-bridge/common"
+import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
+import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/types"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../../app-env/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../../app-env/boot/ClientDetector.js"
 import { DateTime } from "luxon"
-import { formatDate } from "../misc/Formatter.js"
+import { formatDate } from "../../ui/utils/Formatter.js"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
+import { AccountType, createSwitchAccountTypePostIn, PaymentMethodType, SwitchAccountTypeService } from "@tutao/entities/sys"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -55,7 +56,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			}
 		}
 
-		const serviceData = sysTypeRefs.createSwitchAccountTypePostIn({
+		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: data.targetPlanType,
@@ -65,7 +66,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(sysServices.SwitchAccountTypeService, serviceData))
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			.then(() => {
 				const stage = data.upgradeUsageTest?.getStage(1)
 

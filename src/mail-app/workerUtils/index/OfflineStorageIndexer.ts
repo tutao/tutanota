@@ -1,4 +1,4 @@
-import { UserFacade } from "../../../network/UserFacade"
+import { UserFacade } from "../../../base/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
 import { assertNotNull, difference } from "@tutao/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
@@ -8,8 +8,8 @@ import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 import { ProgrammingError } from "@tutao/app-env"
-import { entityUpdateUtils } from "@tutao/typerefs"
-import { GroupType } from "@tutao/app-env"
+import { GroupType } from "@tutao/entities/sys"
+import { EntityUpdateData } from "../../../instance-pipeline/EntityUpdateUtils"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
@@ -63,7 +63,7 @@ export class OfflineStorageIndexer implements Indexer {
 		throw new ProgrammingError("Operation not supported for sqlite search index")
 	}
 
-	async processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id) {
+	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
 		await this.mailIndexer.processEntityEvents(updates, groupId, batchId)
 		await this.contactIndexer.processEntityEvents(updates, groupId, batchId)
 	}

@@ -1,21 +1,19 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { elementIdPart, entityUpdateUtils, getElementId, getMailSetKind, isPermanentDeleteAllowedForFolder, isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/utils"
-import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
+import { ListLoadingState, ListState } from "../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
-import { MailSetKind, OperationType, ProgrammingError, SystemFolderType } from "@tutao/app-env"
 import Stream from "mithril/stream"
-import { Router } from "../../../common/gui/ScopedRouter.js"
+import { Router } from "../../../ui/ScopedRouter.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
-import { CacheMode, WsConnectionState } from "@tutao/network"
 import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
@@ -30,9 +28,14 @@ import { UndoModel } from "../../UndoModel"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { isOfflineError } from "../../../network/error/NetworkErrorUtils"
 import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
-
-type Mail = tutanotaTypeRefs.Mail
-type MailSet = tutanotaTypeRefs.MailSet
+import { WsConnectionState } from "../../../network/Constants"
+import { CacheMode } from "../../../network/EntityRestClient"
+import { ImportMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailSetKind, MailTypeRef, SystemFolderType } from "@tutao/entities/tutanota"
+import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { ProgrammingError } from "@tutao/app-env"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -56,7 +59,7 @@ const SYNC_RELOAD_DEBOUNCE_MS = 1000
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	/** Beware: this can be a label. */
-	private _folder: tutanotaTypeRefs.MailSet | null = null
+	private _folder: MailSet | null = null
 	private _listModel: MailSetListModel | null = null
 	/** id of the mail requested to be displayed, independent of the list state. */
 	private stickyMailId: IdTuple | null = null
@@ -254,7 +257,7 @@ export class MailViewModel {
 		}
 
 		// Load the cached mail, if available, to display it sooner
-		const cached = await this.cacheStorage.get(tutanotaTypeRefs.MailTypeRef, listId, mailId)
+		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
 		if (this.didStickyMailChange(expectedStickyMailId, "after loading mail from cache")) {
 			return
 		} else if (cached) {
@@ -265,7 +268,7 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, [listId, mailId], { cacheMode: CacheMode.WriteOnly })
+			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.WriteOnly })
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
@@ -448,7 +451,7 @@ export class MailViewModel {
 	private readonly onceInit = lazyMemoized(() => {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates, _, isInitialSyncDone) => this.entityEventsReceived(updates, isInitialSyncDone),
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.HIGH,
+			priority: OnEntityUpdateReceivedPriority.HIGH,
 		})
 	})
 
@@ -704,7 +707,7 @@ export class MailViewModel {
 		return movedMailIds.flat()
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, isInitialSyncDone: boolean) {
+	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean) {
 		// capturing the state so that if we switch mailSets, we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel
@@ -714,20 +717,17 @@ export class MailViewModel {
 		}
 
 		for (const update of updates) {
-			if (update.operation === OperationType.CREATE && entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 			} else if (update.operation === OperationType.UPDATE) {
-				if (
-					entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.MailTypeRef, update) &&
-					isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])
-				) {
+				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
-					const mail = await this.entityClient.load(tutanotaTypeRefs.MailTypeRef, mailId)
+					const mail = await this.entityClient.load(MailTypeRef, mailId)
 					const folderForMail = this.mailModel.getMailFolderForMail(mail)
 					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {
 						this.setListId(folderForMail)
 					}
-				} else if (entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ImportMailStateTypeRef, update)) {
+				} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 				}
 			}
@@ -739,16 +739,16 @@ export class MailViewModel {
 		}
 	}
 
-	private async deleteMailSetEntryRangeForImportTargetFolder(update: entityUpdateUtils.EntityUpdateData) {
+	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData) {
 		// We delete the range of MailSetEntries for the targetFolder entries list of the import.
 		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
 		// and ensures that all imported mails are searchable immediately.
-		const importMailState = await this.entityClient.load(tutanotaTypeRefs.ImportMailStateTypeRef, [update.instanceListId!, update.instanceId])
+		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId!, update.instanceId])
 		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
 		if (targetFolder) {
 			const targetFolderEntriesListId = targetFolder.entries
-			await this.cacheStorage.deleteRange(tutanotaTypeRefs.MailSetEntryTypeRef, targetFolderEntriesListId)
+			await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
 
 			const selectedMailSet = this.getFolder()
 			if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
@@ -888,7 +888,7 @@ export class MailViewModel {
 		this.listModel?.onSingleExclusiveSelection(mail)
 	}
 
-	async createLabel(mailbox: tutanotaTypeRefs.MailBox, labelData: { name: string; color: string }) {
+	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
 

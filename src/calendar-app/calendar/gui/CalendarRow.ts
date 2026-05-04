@@ -1,19 +1,15 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children, VnodeDOM } from "mithril"
-
-import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../../common/gui/SelectableRowContainer.js"
-import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../../ui/SelectableRowContainer.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../ui/base/ListUtils.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
-import { ViewHolder } from "../../../common/gui/base/List.js"
-import { styles } from "../../../common/gui/styles.js"
-import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
-
+import { ViewHolder } from "../../../ui/base/List.js"
+import { styles } from "../../../ui/styles.js"
+import { DefaultAnimationTime } from "../../../ui/animation/Animations.js"
 import { formatEventDuration, getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
-import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 import { CalendarInfoBase } from "../model/CalendarModel"
-
-type CalendarEvent = tutanotaTypeRefs.CalendarEvent
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number

@@ -1,4 +1,4 @@
-import { CommonSystemFacade } from "@tutao/native-bridge/common"
+import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { defer, DeferredObject } from "@tutao/utils"
 import { Logger } from "../api/common/Logger.js"

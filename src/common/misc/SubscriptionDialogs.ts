@@ -1,13 +1,12 @@
 import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/utils"
-import { Dialog } from "../gui/base/Dialog"
-import { lang, TranslationKey } from "./LanguageViewModel"
-import type { ClickHandler } from "../gui/base/GuiUtils"
+import { Dialog } from "../../ui/base/Dialog"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import type { ClickHandler } from "../../ui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
-import { GENERATED_MAX_ID, sysTypeRefs } from "@tutao/typerefs"
-import { Const, NewPaidPlans, UpgradePromptType } from "@tutao/app-env"
-import { ProgrammingError } from "@tutao/app-env"
-import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType } from "@tutao/app-env"
+import { GENERATED_MAX_ID } from "../../meta"
+import { Const, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { AvailablePlanType, BookingTypeRef, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "@tutao/entities/sys"
 
 let upgradeDialogShowing = false
 
@@ -141,7 +140,7 @@ export async function showUpgradeWizardOrSwitchSubscriptionDialog(
 
 async function showSwitchPlanDialog(userController: UserController, acceptedPlans: readonly AvailablePlanType[], reason?: TranslationKey): Promise<void> {
 	let customerInfo = await userController.loadCustomerInfo()
-	const bookings = await locator.entityClient.loadRange(sysTypeRefs.BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")
 	return showSwitchDialog({
 		customer: await userController.reloadCustomer(),

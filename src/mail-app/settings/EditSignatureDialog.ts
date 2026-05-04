@@ -1,21 +1,22 @@
 import m from "mithril"
-import { Dialog, DialogType } from "../../common/gui/base/Dialog"
-import { lang } from "../../common/misc/LanguageViewModel"
-import { assertMainOrNode, EmailSignatureType, FeatureType, isApp } from "@tutao/app-env"
-import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { Dialog, DialogType } from "../../ui/base/Dialog"
+import { lang } from "../../ui/utils/LanguageViewModel"
+import { assertMainOrNode, FeatureType, isApp } from "@tutao/app-env"
+import { HtmlEditor } from "../../ui/editor/HtmlEditor"
 import * as restError from "@tutao/rest-client/error"
-import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
+import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import { downcast, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
+import { EmailSignatureType, TutanotaProperties } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
 const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 
-export function show(props: tutanotaTypeRefs.TutanotaProperties) {
+export function show(props: TutanotaProperties) {
 	import("../mail/signature/Signature").then(({ getDefaultSignature }) => {
 		const defaultSignature = getDefaultSignature()
 		let currentCustomSignature = locator.logins.getUserController().props.customEmailSignature
@@ -25,7 +26,7 @@ export function show(props: tutanotaTypeRefs.TutanotaProperties) {
 		}
 
 		let selectedType = locator.logins.getUserController().props.emailSignatureType as EmailSignatureType
-		const editor = new HtmlEditor("preview_label")
+		const editor = new HtmlEditor(getHtmlSanitizer(), "preview_label")
 			.showBorders()
 			.setMinHeight(200)
 			.setValue(getSignature(selectedType, defaultSignature, currentCustomSignature))
@@ -124,7 +125,7 @@ export function show(props: tutanotaTypeRefs.TutanotaProperties) {
 	})
 }
 
-export function getSignatureTypes(props: tutanotaTypeRefs.TutanotaProperties): {
+export function getSignatureTypes(props: TutanotaProperties): {
 	name: string
 	value: string
 }[] {
@@ -159,7 +160,7 @@ function getSignature(type: string, defaultSignature: string, currentCustomSigna
 	}
 }
 
-export function getSignatureType(props: tutanotaTypeRefs.TutanotaProperties): {
+export function getSignatureType(props: TutanotaProperties): {
 	name: string
 	value: string
 } {

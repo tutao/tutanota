@@ -1,7 +1,7 @@
 /// <reference lib="dom" /> // fixes MouseEvent conflict with react
 import { assertMainOrNode } from "@tutao/app-env"
 import type { EntropySource } from "@tutao/crypto"
-import type { EntropyDataChunk, EntropyFacade } from "../../../network/crypto/facades/EntropyFacade.js"
+import type { EntropyDataChunk, EntropyFacade } from "../../../base/facades/EntropyFacade.js"
 import { Scheduler } from "../common/utils/Scheduler.js"
 
 assertMainOrNode()

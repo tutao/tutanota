@@ -1,18 +1,22 @@
-import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, SECOND_MS } from "@tutao/app-env"
+import { CalendarAttendeeStatus, CalendarEvent, CalendarMethod, DataFile, createFile } from "@tutao/entities/tutanota"
+import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
+import { EndType, RepeatPeriod, reverse, SECOND_IN_MILLIS } from "@tutao/app-env"
 import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "@tutao/utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
-import { assertEnumValue, convertToDataFile, DataFile, getLetId, reverse, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { DateTime } from "luxon"
-import { CALENDAR_MIME_TYPE } from "../../../common/file/FileController.js"
+
+import { CALENDAR_MIME_TYPE } from "../../../utils/FileConstants"
+import { convertToDataFile } from "../../../common/api/worker/utils/DataFile"
+import { assertEnumValue, getLetId } from "@tutao/meta"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */
-export function makeInvitationCalendarFile(event: tutanotaTypeRefs.CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
+export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethod, now: Date, zone: string): DataFile {
 	const stringValue = makeInvitationCalendar(env.versionNumber, event, method, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const date = new Date()
-	const tmpFile = tutanotaTypeRefs.createFile({
+	const tmpFile = createFile({
 		name: `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`,
 		mimeType: CALENDAR_MIME_TYPE,
 		size: String(data.byteLength),
@@ -28,8 +32,8 @@ export function makeInvitationCalendarFile(event: tutanotaTypeRefs.CalendarEvent
 export function serializeCalendar(
 	versionNumber: string,
 	events: Array<{
-		event: tutanotaTypeRefs.CalendarEvent
-		alarms: Array<sysTypeRefs.UserAlarmInfo>
+		event: CalendarEvent
+		alarms: Array<UserAlarmInfo>
 	}>,
 	now: Date,
 	zone: string,
@@ -42,7 +46,7 @@ export function serializeCalendar(
 //
 
 /** importer internals exported for testing, should always be used through serializeCalendar */
-export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Array<sysTypeRefs.UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	const localZone = getTimeZone()
@@ -88,7 +92,7 @@ export function serializeEvent(event: tutanotaTypeRefs.CalendarEvent, alarms: Ar
 		.concat("END:VEVENT")
 }
 
-function serializeAdvancedRepeatRules(advancedRules: sysTypeRefs.CalendarAdvancedRepeatRule[]): string {
+function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[]): string {
 	let advancedRepeatRules = ""
 
 	if (isNotEmpty(advancedRules)) {
@@ -107,7 +111,7 @@ function serializeAdvancedRepeatRules(advancedRules: sysTypeRefs.CalendarAdvance
 }
 
 /** importer internals exported for testing */
-export function serializeRepeatRule(repeatRule: sysTypeRefs.RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
+export function serializeRepeatRule(repeatRule: RepeatRule | null, isAllDayEvent: boolean, localTimeZone: string) {
 	if (repeatRule) {
 		let endType = ""
 
@@ -138,7 +142,7 @@ export function serializeRepeatRule(repeatRule: sysTypeRefs.RepeatRule | null, i
 			// We also differ in a way that we define end as exclusive (because it's so
 			// hard to find anything in this RFC).
 			const date = new Date(Number(repeatRule.endValue))
-			const value = isAllDayEvent ? formatDate(incrementDate(date, -1), localTimeZone) : formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
+			const value = isAllDayEvent ? formatDate(incrementDate(date, -1), localTimeZone) : formatDateTimeUTC(new Date(date.getTime() - SECOND_IN_MILLIS))
 			endType = `;UNTIL=${value}`
 		}
 
@@ -157,7 +161,7 @@ export function serializeRepeatRule(repeatRule: sysTypeRefs.RepeatRule | null, i
 }
 
 /** importer internals exported for testing */
-export function serializeExcludedDates(excludedDates: sysTypeRefs.DateWrapper[], timeZone: string): string[] {
+export function serializeExcludedDates(excludedDates: DateWrapper[], timeZone: string): string[] {
 	if (excludedDates.length > 0) {
 		let dates = ""
 		for (let i = 0; i < excludedDates.length; i++) {
@@ -193,7 +197,7 @@ function formatDate(date: Date, timeZone: string): string {
 	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }
 
-function makeInvitationCalendar(versionNumber: string, event: tutanotaTypeRefs.CalendarEvent, method: string, now: Date, zone: string): string {
+function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
 	const eventSerialized = serializeEvent(event, [], now, zone)
 	return wrapIntoCalendar(versionNumber, method, eventSerialized)
 }
@@ -210,7 +214,7 @@ export function serializeTrigger(dbAlarmInterval: string): string {
 	return "-P" + timeMarker + alarmInterval.value.toString() + alarmInterval.unit
 }
 
-function serializeParticipants(event: tutanotaTypeRefs.CalendarEvent): Array<string> {
+function serializeParticipants(event: CalendarEvent): Array<string> {
 	const { organizer, attendees } = event
 
 	if (attendees.length === 0 && organizer == null) {
@@ -265,7 +269,7 @@ function wrapIntoCalendar(versionNumber: string, method: string, contents: Array
 	return value.join("\r\n")
 }
 
-function serializeAlarm(event: tutanotaTypeRefs.CalendarEvent, alarm: sysTypeRefs.UserAlarmInfo): Array<string> {
+function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
 	// prettier-ignore
 	return [
 		"BEGIN:VALARM",

@@ -1,24 +1,24 @@
-import { tutanotaTypeRefs } from "@tutao/typerefs"
 import m, { Children, Component, Vnode } from "mithril"
-import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
-import { theme } from "../../../../common/gui/theme.js"
-import { Icons } from "../../../../common/gui/base/icons/Icons.js"
+import { AllIcons, Icon, IconSize } from "../../../../ui/base/Icon.js"
+import { theme } from "../../../../ui/theme.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { calculateContactsAge, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
 import { memoized, noOp } from "@tutao/utils"
-import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
-import { BannerButton, BannerButtonAttrs } from "../../../../common/gui/base/buttons/BannerButton.js"
-import { pureComponent } from "../../../../common/gui/base/PureComponent.js"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { BannerButton, BannerButtonAttrs } from "../../../../ui/base/buttons/BannerButton.js"
+import { pureComponent } from "../../../../ui/base/PureComponent.js"
 import { formatEventDuration } from "../CalendarGuiUtils.js"
 import { getLocationUrl } from "./EventPreviewView.js"
-import { getContactTitle } from "../../../../common/gui/base/GuiUtils.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
-import { createDropdown } from "../../../../common/gui/base/Dropdown.js"
+import { createDropdown } from "../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
-import { client } from "../../../../app-env/boot/ClientDetector.js"
+import { client } from "@tutao/app-env"
+import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
+import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 
 export type ContactPreviewViewAttrs = {
-	event: tutanotaTypeRefs.CalendarEvent
-	contact: tutanotaTypeRefs.Contact
+	event: CalendarEvent
+	contact: Contact
 }
 
 export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
@@ -70,7 +70,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		})
 	}
 
-	private renderActions(contact: tutanotaTypeRefs.Contact): Children {
+	private renderActions(contact: Contact): Children {
 		return m(".flex.pb-8", m(ActionButtons, contact))
 	}
 }
@@ -82,7 +82,7 @@ export function simulateMailToClick(mailAddress: string) {
 	anchorElement.click()
 }
 
-const ActionButtons = pureComponent((contact: tutanotaTypeRefs.Contact) => {
+const ActionButtons = pureComponent((contact: Contact) => {
 	interface ButtonColors {
 		borderColor: string
 		color: string

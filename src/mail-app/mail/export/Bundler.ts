@@ -1,21 +1,17 @@
-import { DataFile, getLetId, tutanotaTypeRefs } from "@tutao/typerefs"
 import type { EntityClient } from "../../../network/EntityClient"
-import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import type { HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
 import { promiseMap } from "@tutao/utils"
 import { FileController } from "../../../common/file/FileController"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { CryptoFacade } from "../../../network/crypto/facades/CryptoFacade.js"
+import { CryptoFacade } from "../../../base/crypto/CryptoFacade.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { loadMailDetails } from "../view/MailViewerUtils.js"
 import { MailBundle } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { isDraft } from "../model/MailChecks.js"
+import { DataFile, FileTypeRef, Mail, MailDetails } from "@tutao/entities/tutanota"
+import { getLetId } from "@tutao/meta"
 
-export function makeMailBundle(
-	sanitizer: HtmlSanitizer,
-	mail: tutanotaTypeRefs.Mail,
-	mailDetails: tutanotaTypeRefs.MailDetails,
-	attachments: Array<DataFile>,
-): MailBundle {
+export function makeMailBundle(sanitizer: HtmlSanitizer, mail: Mail, mailDetails: MailDetails, attachments: Array<DataFile>): MailBundle {
 	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })
 	const body = sanitizer.sanitizeHTML(getMailBodyText(mailDetails.body), {
 		blockExternalContent: false,
@@ -45,7 +41,7 @@ export function makeMailBundle(
  * Downloads the mail body and the attachments for an email, to prepare for exporting
  */
 export async function downloadMailBundle(
-	mail: tutanotaTypeRefs.Mail,
+	mail: Mail,
 	mailFacade: MailFacade,
 	entityClient: EntityClient,
 	fileController: FileController,
@@ -54,7 +50,7 @@ export async function downloadMailBundle(
 ): Promise<MailBundle> {
 	const mailDetails = await loadMailDetails(mailFacade, mail)
 
-	const files = await promiseMap(mail.attachments, async (fileId) => await entityClient.load(tutanotaTypeRefs.FileTypeRef, fileId))
+	const files = await promiseMap(mail.attachments, async (fileId) => await entityClient.load(FileTypeRef, fileId))
 	const attachments = await promiseMap(
 		await cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, files),
 		async (file) => await fileController.getAsDataFile(file),

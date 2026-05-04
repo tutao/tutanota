@@ -1,16 +1,17 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { isSameTypeRef, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
+import { isSameTypeRef, listIdPart } from "../../../meta"
 import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNonNull, assertNotNull, incrementMonth, lazyAsync, ofClass, tokenize } from "@tutao/utils"
-import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
+import { ProgressMonitorInterface } from "../../../network/ProgressMonitorInterface"
+import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -105,7 +106,7 @@ export class SearchModel {
 			}
 			this.result(result)
 			this.lastSearchPromise = Promise.resolve(result)
-		} else if (isSameTypeRef(tutanotaTypeRefs.CalendarEventTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
 			// we interpret restriction.start as the start of the first day of the first month we want to search
 			// restriction.end is the end of the last day of the last month we want to search
 			let currentDate = new Date(assertNotNull(restriction.start))
@@ -136,7 +137,7 @@ export class SearchModel {
 			}
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
-			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
+			const monitor: ProgressMonitorInterface = assertNotNull(progressTracker.getMonitor(monitorHandle))
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
@@ -168,7 +169,7 @@ export class SearchModel {
 				return this.lastSearchPromise
 			}
 
-			const followCommonRestrictions = (key: string, event: tutanotaTypeRefs.CalendarEvent) => {
+			const followCommonRestrictions = (key: string, event: CalendarEvent) => {
 				if (alreadyAdded.has(key)) {
 					// we only need the first event in the series, the view will load & then generate
 					// the series for the searched time range.
@@ -278,7 +279,7 @@ export class SearchModel {
 
 			this.result(calendarResult)
 			this.lastSearchPromise = Promise.resolve(calendarResult)
-		} else if (isSameTypeRef(tutanotaTypeRefs.MailTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
 			// we set search end when null to be able to tell when the same search is extended
 			const indexState = this.indexState()
 
@@ -290,7 +291,7 @@ export class SearchModel {
 			}
 
 			// We modify the query because we need SearchFacade to not give us mails older than the current
-			// timestamp, as the local-store cleaner may not have purged all emails yet.
+			// timestamp, as the offline cleaner may not have purged all emails yet.
 			//
 			// We can only be certain about mails up to currentTimestamp.
 			const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
@@ -310,7 +311,7 @@ export class SearchModel {
 						throw e
 					}),
 				)
-		} else if (isSameTypeRef(tutanotaTypeRefs.ContactTypeRef, restriction.type)) {
+		} else if (isSameTypeRef(ContactTypeRef, restriction.type)) {
 			// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
 			this.lastSearchPromise = this._searchFacade
 				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
@@ -383,7 +384,7 @@ export class SearchModel {
 	}
 
 	private isSearchResultExtendableForType(type: SearchRestriction["type"]): boolean {
-		return isSameTypeRef(tutanotaTypeRefs.MailTypeRef, type)
+		return isSameTypeRef(MailTypeRef, type)
 	}
 
 	isSameSearchWithExtendedRange(query: string, restriction: SearchRestriction): boolean {

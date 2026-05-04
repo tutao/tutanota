@@ -1,19 +1,29 @@
-import { EventBusListener } from "./EventBusClient.js"
-import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
+import { EventBusListener } from "../../../network/EventBusClient.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
-import { UserFacade } from "../../../network/UserFacade.js"
+import { UserFacade } from "../../../base/facades/UserFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { isAdminClient, RolloutType, Mode, OperationType } from "@tutao/app-env"
+import { isAdminClient, isTest, RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, Nullable } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
-import { KeyRotationFacade } from "../../../network/crypto/facades/KeyRotationFacade.js"
+import { KeyRotationFacade } from "../../../base/crypto/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
-import { RolloutFacade } from "../../../network/crypto/facades/RolloutFacade"
-import { GroupManagementFacade } from "../../../network/facades/lazy/GroupManagementFacade"
+import { RolloutFacade } from "../../../base/facades/RolloutFacade"
+import { GroupManagementFacade } from "../../../base/facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
-import { IdentityKeyCreator } from "../../../network/facades/lazy/IdentityKeyCreator"
-import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { IdentityKeyCreator } from "../../../base/crypto/IdentityKeyCreator"
+import { ProgressMonitorId } from "../../../network/ProgressMonitorInterface.js"
+import { ReportedMailFieldMarker } from "@tutao/entities/tutanota"
+import {
+	GroupKeyUpdateTypeRef,
+	OperationStatusUpdate,
+	UserGroupKeyDistributionTypeRef,
+	UserGroupRootTypeRef,
+	UserTypeRef,
+	WebsocketCounterData,
+} from "@tutao/entities/sys"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { isSameId, OperationType } from "@tutao/meta"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -26,12 +36,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly keyRotationFacade: KeyRotationFacade,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
 		private readonly sendError: (error: Error) => Promise<void>,
-		private readonly appSpecificBatchHandling: (
-			events: readonly entityUpdateUtils.EntityUpdateData[],
-			batchId: Id,
-			groupId: Id,
-			isInitialSyncDone: boolean,
-		) => void,
+		private readonly appSpecificBatchHandling: (events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean) => void,
 		private readonly rolloutFacade: RolloutFacade,
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly identityKeyCreator: lazyAsync<IdentityKeyCreator>,
@@ -39,7 +44,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	) {}
 
 	async onEntityEventsReceived(
-		events: readonly entityUpdateUtils.EntityUpdateData[],
+		events: readonly EntityUpdateData[],
 		batchId: Id,
 		groupId: Id,
 		progressMonitorId: Nullable<ProgressMonitorId>,
@@ -50,7 +55,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		await this.eventController.onEntityUpdateReceived(events, groupId, progressMonitorId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
-		if (!(env.mode === Mode.Test) && !isAdminClient()) {
+		if (!isTest() && !isAdminClient()) {
 			const configurationDatabase = await this.configurationDatabase()
 			await configurationDatabase.onEntityEventsReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
@@ -60,7 +65,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	/**
 	 * @param markers only phishing (not spam) marker will be sent as websocket updates
 	 */
-	async onPhishingMarkersReceived(markers: tutanotaTypeRefs.ReportedMailFieldMarker[]) {
+	async onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]) {
 		;(await this.mailFacade?.())?.phishingMarkersUpdateReceived(markers)
 	}
 
@@ -68,7 +73,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.sendError(tutanotaError)
 	}
 
-	onCounterChanged(counter: sysTypeRefs.WebsocketCounterData) {
+	onCounterChanged(counter: WebsocketCounterData) {
 		this.eventController.onCountersUpdateReceived(counter)
 	}
 
@@ -108,11 +113,8 @@ export class EventBusEventCoordinator implements EventBusListener {
 			const processGroupKeyUpdates = {
 				execute: async () => {
 					try {
-						const userGroupRoot = await this.entityClient.load(sysTypeRefs.UserGroupRootTypeRef, this.userFacade.getUserGroupId())
-						const groupKeyUpdates = await this.entityClient.loadAll(
-							sysTypeRefs.GroupKeyUpdateTypeRef,
-							assertNotNull(userGroupRoot.groupKeyUpdates).list,
-						)
+						const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, this.userFacade.getUserGroupId())
+						const groupKeyUpdates = await this.entityClient.loadAll(GroupKeyUpdateTypeRef, assertNotNull(userGroupRoot.groupKeyUpdates).list)
 						await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
 					} catch (error) {
 						console.log("error when processing a pending group key update", error)
@@ -130,29 +132,25 @@ export class EventBusEventCoordinator implements EventBusListener {
 		}
 	}
 
-	onOperationStatusUpdate(update: sysTypeRefs.OperationStatusUpdate) {
+	onOperationStatusUpdate(update: OperationStatusUpdate) {
 		this.eventController.onOperationStatusUpdate(update)
 	}
 
-	private async entityEventsReceived(data: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
+	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
 		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
 		const user = this.userFacade.getUser()
 		if (user == null) return
 		for (const update of data) {
-			if (
-				update.operation === OperationType.UPDATE &&
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserTypeRef, update) &&
-				isSameId(user._id, update.instanceId)
-			) {
-				await this.userFacade.updateUser(await this.entityClient.load(sysTypeRefs.UserTypeRef, user._id))
+			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, update.instanceId)) {
+				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 			} else if (
 				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
-				entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.UserGroupKeyDistributionTypeRef, update) &&
+				isUpdateForTypeRef(UserGroupKeyDistributionTypeRef, update) &&
 				isSameId(user.userGroup.group, update.instanceId)
 			) {
 				await (await this.cacheManagementFacade()).tryUpdatingUserGroupKey()
-			} else if (update.operation === OperationType.CREATE && entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.GroupKeyUpdateTypeRef, update)) {
+			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(GroupKeyUpdateTypeRef, update)) {
 				groupKeyUpdates.push([update.instanceListId, update.instanceId])
 			}
 		}

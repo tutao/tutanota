@@ -1,11 +1,9 @@
-import {
-	CommonNativeFacade,
-	CommonNativeFacadeSendDispatcher,
-	DesktopFacade,
-	DesktopFacadeSendDispatcher,
-	DesktopGlobalDispatcher,
-	InterWindowEventFacadeSendDispatcher,
-} from "@tutao/native-bridge/common"
+import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/CommonNativeFacadeSendDispatcher.js"
+import { DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/DesktopFacadeSendDispatcher.js"
+import { DesktopGlobalDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/DesktopGlobalDispatcher.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { Request } from "../../../native-bridge/shared/MessageTypes"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { ElectronWebContentsTransport, IpcConfig } from "./ElectronWebContentsTransport.js"

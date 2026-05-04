@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
+import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/rest/CustomUserCacheHandler"
 import { SpamClassifierStorageFacade } from "../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { GroupType } from "../../../../../src/app-env"
-import { sysTypeRefs } from "@tutao/typerefs"
+
 import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
 
 o.spec("CustomUserCacheHandler", () => {
 	let storage: CacheStorage
@@ -21,14 +21,14 @@ o.spec("CustomUserCacheHandler", () => {
 	o.test("no membership change does not call deleteAllOwnedBy", async function () {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
-		const initialUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const initialUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					groupType: GroupType.Mail,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
 					group: calendarGroupId,
 					groupType: GroupType.Calendar,
@@ -37,7 +37,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		when(storage.getUserId()).thenReturn(userId)
-		when(storage.get(sysTypeRefs.UserTypeRef, null, userId)).thenResolve(initialUser)
+		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
 		await cache.onBeforeCacheUpdate(initialUser)
 
@@ -48,14 +48,14 @@ o.spec("CustomUserCacheHandler", () => {
 	o.test("membership change deletes calls deleteAllOwnedBy", async function () {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
-		const initialUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const initialUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					groupType: GroupType.Mail,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
 					group: calendarGroupId,
 					groupType: GroupType.Calendar,
@@ -63,10 +63,10 @@ o.spec("CustomUserCacheHandler", () => {
 			],
 		})
 
-		const updatedUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const updatedUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					groupType: GroupType.Mail,
 				}),
@@ -74,7 +74,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		when(storage.getUserId()).thenReturn(userId)
-		when(storage.get(sysTypeRefs.UserTypeRef, null, userId)).thenResolve(initialUser)
+		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
 		await cache.onBeforeCacheUpdate(updatedUser)
 
@@ -85,15 +85,15 @@ o.spec("CustomUserCacheHandler", () => {
 	o.test("mail membership change deletes calls deleteSpamClassificationModel", async function () {
 		const userId = "userId"
 		const mailGroupId = "mailGroupId"
-		const initialUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const initialUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					group: mailGroupId,
 					groupType: GroupType.Mail,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
 					group: "calendarGroupId",
 					groupType: GroupType.Calendar,
@@ -101,10 +101,10 @@ o.spec("CustomUserCacheHandler", () => {
 			],
 		})
 
-		const updatedUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const updatedUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
 					group: "calendarGroupId",
 					groupType: GroupType.Calendar,
@@ -113,7 +113,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		when(storage.getUserId()).thenReturn(userId)
-		when(storage.get(sysTypeRefs.UserTypeRef, null, userId)).thenResolve(initialUser)
+		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
 		await cache.onBeforeCacheUpdate(updatedUser)
 
@@ -124,14 +124,14 @@ o.spec("CustomUserCacheHandler", () => {
 	o.test("membership change but for another user does nothing", async function () {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
-		const initialUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const initialUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					groupType: GroupType.Mail,
 				}),
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
 					group: calendarGroupId,
 					groupType: GroupType.Calendar,
@@ -139,10 +139,10 @@ o.spec("CustomUserCacheHandler", () => {
 			],
 		})
 
-		const updatedUser = createTestEntity(sysTypeRefs.UserTypeRef, {
+		const updatedUser = createTestEntity(UserTypeRef, {
 			_id: userId,
 			memberships: [
-				createTestEntity(sysTypeRefs.GroupMembershipTypeRef, {
+				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
 					groupType: GroupType.Mail,
 				}),
@@ -150,7 +150,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		when(storage.getUserId()).thenReturn("anotherUser")
-		when(storage.get(sysTypeRefs.UserTypeRef, null, userId)).thenResolve(initialUser)
+		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
 		await cache.onBeforeCacheUpdate(updatedUser)
 

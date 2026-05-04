@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
-import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
 import { takeFromMap } from "@tutao/utils"
+import { ProgressMonitorId, ProgressMonitorInterface } from "../../../network/ProgressMonitorInterface"
 
 export type ExposedProgressTracker = Pick<
 	ProgressTracker,
@@ -77,7 +77,7 @@ export class ProgressTracker {
 		takeFromMap(this.monitors, id).item?.completed()
 	}
 
-	getMonitor(id: ProgressMonitorId): IProgressMonitor | null {
+	getMonitor(id: ProgressMonitorId): ProgressMonitorInterface | null {
 		return this.monitors.get(id) ?? null
 	}
 

@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
-import { lang } from "../../misc/LanguageViewModel.js"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { getCategoryIntroduction, getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { TitleSection } from "../../gui/TitleSection"
-import { AllIcons } from "../../gui/base/Icon"
+import { TitleSection } from "../../../ui/TitleSection"
+import { AllIcons } from "../../../ui/base/Icon"
 
 type Props = {
 	data: SupportDialogState

@@ -9,16 +9,17 @@ import {
 } from "../../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast, KeyVersion } from "@tutao/utils"
 import { DbStub } from "../search/DbStub.js"
-import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/app-env"
 import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random, VersionedKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/network/crypto/facades/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../../../src/network/UserFacade.js"
+import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
 import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota"
+
+import { UserTypeRef } from "@tutao/entities/sys"
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 
@@ -37,7 +38,7 @@ o.spec("ConfigurationDbTest", function () {
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const logins = downcast({
 			getLoggedInUser() {
-				return createTestEntity(sysTypeRefs.UserTypeRef)
+				return createTestEntity(UserTypeRef)
 			},
 
 			getUserGroupKey() {},
@@ -79,7 +80,7 @@ o.spec("ConfigurationDbTest", function () {
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const logins = downcast({
 			getLoggedInUser() {
-				return createTestEntity(sysTypeRefs.UserTypeRef)
+				return createTestEntity(UserTypeRef)
 			},
 
 			getUserGroupKey() {},

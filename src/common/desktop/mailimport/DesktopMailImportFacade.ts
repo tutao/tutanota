@@ -1,12 +1,13 @@
 import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/mimimi"
-import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge/common"
-import { CredentialType, ProgrammingError } from "@tutao/app-env"
+import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { assertNotNull, clear, defer, DeferredObject } from "@tutao/utils"
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { DesktopNotifier } from "../notifications/DesktopNotifier.js"
-import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
+import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel.js"
 import path from "node:path"
+import { ProgrammingError } from "@tutao/app-env"
+import { CredentialType } from "@tutao/network/types"
 
 const TAG = "[DesktopMailImportFacade]"
 type Listener = DeferredObject<MailImportErrorMessage>["reject"]

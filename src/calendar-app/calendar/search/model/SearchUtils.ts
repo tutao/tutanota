@@ -1,10 +1,10 @@
 import m from "mithril"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, filterInt, getEndOfDay, getStartOfDay, incrementMonth, stringToBase64 } from "@tutao/utils"
-import { RouteSetFn, throttleRoute } from "../../../../common/misc/RouteChange"
+import { RouteSetFn, throttleRoute } from "../../../../ui/utils/RouteChange"
 import type { SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
 import { assertMainOrNode } from "@tutao/app-env"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { getElementId } from "@tutao/typerefs"
+import { getElementId } from "../../../../meta"
+import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -60,7 +60,7 @@ export function getSearchUrl(
  */
 export function createRestriction(start: number | null, end: number | null, folderIds: Array<string>, eventSeries: boolean): SearchRestriction {
 	return {
-		type: tutanotaTypeRefs.CalendarEventTypeRef,
+		type: CalendarEventTypeRef,
 		start: start,
 		end: end,
 		field: null,
@@ -137,7 +137,7 @@ export function decodeCalendarSearchKey(searchKey: string): { id: Id; start: num
 	return JSON.parse(decodeBase64("utf-8", base64UrlToBase64(searchKey))) as { id: Id; start: number }
 }
 
-export function encodeCalendarSearchKey(event: tutanotaTypeRefs.CalendarEvent): string {
+export function encodeCalendarSearchKey(event: CalendarEvent): string {
 	const eventStartTime = event.startTime.getTime()
 	return base64ToBase64Url(stringToBase64(JSON.stringify({ start: eventStartTime, id: getElementId(event) })))
 }

@@ -1,34 +1,33 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { ButtonColor } from "../base/Button.js"
+import { ButtonColor } from "../../../ui/base/Button.js"
 import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
-import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
-import { getSafeAreaInsetLeft } from "../HtmlUtils"
-import { Icons } from "../base/icons/Icons"
-import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
-import { createDropdown } from "../base/Dropdown.js"
-import { keyManager } from "../../misc/KeyManager"
-import { CounterBadge } from "../base/CounterBadge.js"
-import { px, size } from "../size.js"
-import { theme } from "../theme.js"
+import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
+import { getSafeAreaInsetLeft } from "../../../ui/HtmlUtils"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils"
+import { createDropdown } from "../../../ui/base/Dropdown.js"
+import { keyManager } from "../../../ui/utils/KeyManager"
+import { CounterBadge } from "../../../ui/base/CounterBadge.js"
+import { px, size } from "../../../ui/size.js"
+import { theme } from "../../../ui/theme.js"
 import { showNewsDialog } from "../../misc/news/NewsDialog.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
-import { DesktopSystemFacade } from "@tutao/native-bridge/common"
-import { styles } from "../styles.js"
-import { IconButton } from "../base/IconButton.js"
-import { locator } from "../../api/main/CommonLocator"
-import { FeatureType, UpgradePromptType } from "@tutao/app-env"
-import { isIOSApp, Mode } from "@tutao/app-env"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { styles } from "../../../ui/styles.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { FeatureType, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
 	newsModel: NewsModel
 	desktopSystemFacade: DesktopSystemFacade | null
+	isPartnerEnabled: boolean
 }
 
 export class DrawerMenu implements Component<DrawerMenuAttrs> {
 	view(vnode: Vnode<DrawerMenuAttrs>): Children {
-		const { logins, newsModel, desktopSystemFacade } = vnode.attrs
+		const { logins, newsModel, desktopSystemFacade, isPartnerEnabled } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
 
 		const isInternalUser = logins.isInternalUserLoggedIn()
@@ -120,7 +119,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 						})(e, dom),
 					colors: ButtonColor.DrawerNav,
 				}),
-				isPartnerEnabled(locator.logins)
+				isPartnerEnabled
 					? m(IconButton, {
 							icon: Icons.HeartFilled,
 							title: { testId: "partner_label", text: "Partner" },
@@ -150,7 +149,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 export function isPartnerEnabled(loginController: LoginController): boolean {
 	return (
 		loginController.isInternalUserLoggedIn() &&
-		env.mode === Mode.Browser &&
+		isBrowser() &&
 		loginController.isEnabled(FeatureType.SolutionPartner) &&
 		loginController.getUserController().isGlobalAdmin()
 	)

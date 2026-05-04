@@ -2,12 +2,13 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, lazyAsync, tokenize } from "@tutao/utils"
-import { isSameTypeRef, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertMainOrNode } from "@tutao/app-env"
-import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import { EventWrapper } from "../../view/CalendarViewModel.js"
+import { ProgressMonitorInterface } from "../../../../network/ProgressMonitorInterface"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { isSameTypeRef, listIdPart } from "@tutao/meta"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -92,7 +93,7 @@ export class CalendarSearchModel {
 			}
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
-			const monitor: IProgressMonitor = assertNotNull(progressTracker.getMonitor(monitorHandle))
+			const monitor: ProgressMonitorInterface = assertNotNull(progressTracker.getMonitor(monitorHandle))
 
 			if (this.cancelSignal()) {
 				this.result(calendarResult)
@@ -124,7 +125,7 @@ export class CalendarSearchModel {
 				return this.lastSearchPromise
 			}
 
-			const followCommonRestrictions = (key: string, event: tutanotaTypeRefs.CalendarEvent) => {
+			const followCommonRestrictions = (key: string, event: CalendarEvent) => {
 				if (alreadyAdded.has(key)) {
 					// we only need the first event in the series, the view will load & then generate
 					// the series for the searched time range.

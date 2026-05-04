@@ -1,24 +1,19 @@
 import m from "mithril"
-import { CancelledError } from "@tutao/app-env"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, CancelledError, SECOND_IN_MILLIS, UpgradePromptType } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
-import { modal } from "../gui/base/Modal"
+import { modal } from "../../ui/base/Modal"
 import { showUpgradeDialog } from "../gui/nav/NavFunctions.js"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../misc/RouteChange"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../ui/utils/RouteChange"
 import { last } from "@tutao/utils"
-import { CloseEventBusOption, SECOND_MS, UpgradePromptType } from "@tutao/app-env"
-import { MobileFacade } from "@tutao/native-bridge/common"
-import { styles } from "../gui/styles"
+import { MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { styles } from "../../ui/styles"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
-import { TopLevelView } from "../../TopLevelView.js"
+import { TopLevelView } from "../../ui/base/TopLevelView.js"
 import stream from "mithril/stream"
+import { CloseEventBusOption } from "../../network/Constants"
 
 assertMainOrNode()
 
-/**
- * Handles press of the android back button. Returns true if the action has been processed by the application.
- * False if the caller must handle the button press (quit the application)
- */
 export class WebMobileFacade implements MobileFacade {
 	private disconnectTimeoutId: TimeoutID | null
 
@@ -33,6 +28,10 @@ export class WebMobileFacade implements MobileFacade {
 		return this.isAppVisible
 	}
 
+	/**
+	 * Handles press of the android back button. Returns true if the action has been processed by the application.
+	 * False if the caller must handle the button press (quit the application)
+	 */
 	async handleBackPress(): Promise<boolean> {
 		await Promise.resolve()
 		const lastModalComponent = last(modal.components)
@@ -94,7 +93,7 @@ export class WebMobileFacade implements MobileFacade {
 		} else {
 			this.disconnectTimeoutId = setTimeout(() => {
 				this.connectivityModel.close(CloseEventBusOption.Pause)
-			}, 30 * SECOND_MS)
+			}, 30 * SECOND_IN_MILLIS)
 		}
 	}
 

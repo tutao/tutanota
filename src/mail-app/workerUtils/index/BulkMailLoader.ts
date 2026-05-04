@@ -1,12 +1,32 @@
 import { assertNotNull, findLastIndex, groupBy, groupByAndMap, isEmpty, last, lastThrow, neverNull, promiseMap, splitInChunks } from "@tutao/utils"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { constructMailSetEntryId, deconstructMailSetEntryId, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, listIdPart } from "@tutao/typerefs"
-import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } from "@tutao/network"
-import { tutanotaTypeRefs, TypeRef } from "@tutao/typerefs"
-import { SomeEntity } from "@tutao/typerefs"
+import {
+	constructMailSetEntryId,
+	deconstructMailSetEntryId,
+	elementIdPart,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	listIdPart,
+	SomeEntity,
+	TypeRef,
+} from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
 import { ProgrammingError } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
+import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
+import { CacheMode, EntityRestClientLoadOptions } from "../../../network/EntityRestClient"
+import {
+	File,
+	FileTypeRef,
+	Mail,
+	MailDetails,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailSetEntry,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -19,8 +39,8 @@ export const MAIL_INDEXER_CHUNK = 100
 export type TimeRange = [number, number]
 
 export interface MailWithMailDetails {
-	mail: tutanotaTypeRefs.Mail
-	mailDetails: tutanotaTypeRefs.MailDetails
+	mail: Mail
+	mailDetails: MailDetails
 }
 
 export class BulkMailLoader {
@@ -30,14 +50,14 @@ export class BulkMailLoader {
 		private readonly mail: MailFacade,
 	) {}
 
-	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<tutanotaTypeRefs.Mail[]> {
-		return this.mailEntityClient.loadRange(tutanotaTypeRefs.MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
+	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
+		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
 			...options,
 			cacheMode: CacheMode.ReadOnly,
 		})
 	}
 
-	async loadMailDetails(mails: readonly tutanotaTypeRefs.Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
 		const result: Array<MailWithMailDetails> = []
 		// mailDetails stored as blob
 		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
@@ -54,7 +74,7 @@ export class BulkMailLoader {
 					encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
-			const mailDetailsBlobs = await this.loadInChunks(tutanotaTypeRefs.MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
+			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
 			result.push(
 				...mailDetailsBlobs.map((mailDetailsBlob) => {
 					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)))
@@ -77,7 +97,7 @@ export class BulkMailLoader {
 					encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
-			const mailDetailsDrafts = await this.loadInChunks(tutanotaTypeRefs.MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
+			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
 			result.push(
 				...mailDetailsDrafts.map((draftDetails) => {
 					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)))
@@ -88,7 +108,7 @@ export class BulkMailLoader {
 		return result
 	}
 
-	async loadAttachments(mails: readonly tutanotaTypeRefs.Mail[], options: EntityRestClientLoadOptions = {}): Promise<tutanotaTypeRefs.File[]> {
+	async loadAttachments(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<File[]> {
 		const attachmentIds: IdTuple[] = []
 
 		for (const mail of mails) {
@@ -100,9 +120,9 @@ export class BulkMailLoader {
 
 		const sessionKeyProvider = await this.mail.createOwnerEncSessionKeyProviderForAttachments(mails)
 		const filesByList = groupBy(attachmentIds, listIdPart)
-		const fileLoadingPromises: Array<Promise<Array<tutanotaTypeRefs.File>>> = []
+		const fileLoadingPromises: Array<Promise<Array<File>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {
-			fileLoadingPromises.push(this.loadInChunks(tutanotaTypeRefs.FileTypeRef, listId, fileIds.map(elementIdPart), sessionKeyProvider, options))
+			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), sessionKeyProvider, options))
 		}
 
 		const filesResults = await Promise.all(fileLoadingPromises)
@@ -151,7 +171,7 @@ export class BulkMailLoader {
 	 * cases where there is a gap between invocations but there is no attempt to fix or check for loading newer chunks
 	 * after loading older chunks, it is responsibility of the caller.
 	 */
-	async loadMailSetEntriesForTimeRange(mailSetListData: MailSetListData, timeRange: TimeRange): Promise<tutanotaTypeRefs.MailSetEntry[]> {
+	async loadMailSetEntriesForTimeRange(mailSetListData: MailSetListData, timeRange: TimeRange): Promise<MailSetEntry[]> {
 		const [rangeStart, rangeEnd] = timeRange
 		if (rangeStart < rangeEnd) {
 			throw new ProgrammingError("Range start must be bigger (after) the range end")
@@ -200,13 +220,7 @@ export class BulkMailLoader {
 			// We would rather do few bigger requests than a lot of small ones.
 			// If start id is not there the indexing might have been just started or restarted. Approximate the start id.
 			const startId = mailSetListData.lastLoadedId ?? constructMailSetEntryId(new Date(rangeStart), GENERATED_MAX_ID)
-			const newItems = await this.mailEntityClient.loadRange(
-				tutanotaTypeRefs.MailSetEntryTypeRef,
-				mailSetListData.listId,
-				startId,
-				MAIL_INDEXER_CHUNK,
-				true,
-			)
+			const newItems = await this.mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)
 			if (newItems.length > 0) {
 				mailSetListData.lastLoadedId = getElementId(lastThrow(newItems))
 			}
@@ -224,11 +238,9 @@ export class BulkMailLoader {
 		}
 	}
 
-	async loadMailsFromMultipleLists(mailIds: readonly IdTuple[]): Promise<tutanotaTypeRefs.Mail[]> {
+	async loadMailsFromMultipleLists(mailIds: readonly IdTuple[]): Promise<Mail[]> {
 		const mailIdsByFolder = groupByAndMap(mailIds, listIdPart, elementIdPart)
-		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) =>
-			this.mailEntityClient.loadMultiple(tutanotaTypeRefs.MailTypeRef, listId, mailIds),
-		)
+		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) => this.mailEntityClient.loadMultiple(MailTypeRef, listId, mailIds))
 		return mails.flat()
 	}
 }
@@ -236,7 +248,7 @@ export class BulkMailLoader {
 export interface MailSetListData {
 	listId: Id
 	lastLoadedId: Id | null
-	loadedButUnusedEntries: tutanotaTypeRefs.MailSetEntry[]
+	loadedButUnusedEntries: MailSetEntry[]
 	loadedCompletely: boolean
 }
 

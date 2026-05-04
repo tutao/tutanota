@@ -1,6 +1,5 @@
-import { elementIdPart, entityUpdateUtils, getElementId, StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/utils"
-import { StructuredContact } from "@tutao/native-bridge/common"
+import { StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
 import {
 	extractStructuredAddresses,
 	extractStructuredCustomDates,
@@ -16,17 +15,31 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError.js"
-import { MobileContactsFacade } from "@tutao/native-bridge/common"
-import { ContactSyncResult } from "@tutao/native-bridge/common"
-import { assertMainOrNode, GroupType, isApp, isIOSApp, OperationType } from "@tutao/app-env"
+import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ContactSyncResult } from "@tutao/native-bridge/generatedIpc/types"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
 import * as restError from "@tutao/rest-client/error"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { PermissionType } from "@tutao/native-bridge/common"
-import { ProgrammingError } from "@tutao/app-env"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { assertMainOrNode, isApp, isIOSApp, ProgrammingError } from "@tutao/app-env"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import {
+	Contact,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactCustomDate,
+	createContactMailAddress,
+	createContactMessengerHandle,
+	createContactPhoneNumber,
+	createContactRelationship,
+	createContactWebsite,
+} from "@tutao/entities/tutanota"
+import { elementIdPart, getElementId, OperationType, StrippedEntity } from "@tutao/meta"
+import { GroupType } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -43,17 +56,17 @@ export class NativeContactsSyncManager {
 	) {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.nativeContactEntityEventsListener(updates),
-			priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 	}
 
-	private async nativeContactEntityEventsListener(events: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	private async nativeContactEntityEventsListener(events: ReadonlyArray<EntityUpdateData>) {
 		await this.entityUpdateLock
 
 		await this.processContactEventUpdate(events)
 	}
 
-	private async processContactEventUpdate(events: ReadonlyArray<entityUpdateUtils.EntityUpdateData>) {
+	private async processContactEventUpdate(events: ReadonlyArray<EntityUpdateData>) {
 		const loginUsername = this.loginController.getUserController().loginUsername
 		const userId = this.loginController.getUserController().userId
 		const allowSync = this.deviceConfig.getUserSyncContactsWithPhonePreference(userId) ?? false
@@ -64,7 +77,7 @@ export class NativeContactsSyncManager {
 		const contactsIdToCreateOrUpdate: Map<Id, Array<Id>> = new Map()
 
 		for (const event of events) {
-			if (!entityUpdateUtils.isUpdateForTypeRef(tutanotaTypeRefs.ContactTypeRef, event)) continue
+			if (!isUpdateForTypeRef(ContactTypeRef, event)) continue
 			if (event.operation === OperationType.CREATE) {
 				getFromMap(contactsIdToCreateOrUpdate, event.instanceListId, () => []).push(event.instanceId)
 			} else if (event.operation === OperationType.UPDATE) {
@@ -80,7 +93,7 @@ export class NativeContactsSyncManager {
 		const contactsToInsertOrUpdate: StructuredContact[] = []
 
 		for (const [listId, elementIds] of contactsIdToCreateOrUpdate.entries()) {
-			const contactList = await this.entityClient.loadMultiple(tutanotaTypeRefs.ContactTypeRef, listId, elementIds)
+			const contactList = await this.entityClient.loadMultiple(ContactTypeRef, listId, elementIds)
 			contactList.map((contact) => {
 				contactsToInsertOrUpdate.push({
 					id: getElementId(contact),
@@ -129,7 +142,7 @@ export class NativeContactsSyncManager {
 		const loginUsername = this.loginController.getUserController().loginUsername
 		const contactListId = await this.contactModel.getContactListId()
 		if (contactListId == null) return false
-		const contacts = await this.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactListId)
+		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
 		const structuredContacts = contacts.map((c) => this.toStructuredContact(c))
 		try {
 			await this.mobileContactsFacade.syncContacts(loginUsername, structuredContacts)
@@ -211,7 +224,7 @@ export class NativeContactsSyncManager {
 
 		const userId = this.loginController.getUserController().userId
 		const loginUsername = this.loginController.getUserController().loginUsername
-		const contacts = await this.entityClient.loadAll(tutanotaTypeRefs.ContactTypeRef, contactListId)
+		const contacts = await this.entityClient.loadAll(ContactTypeRef, contactListId)
 		const structuredContacts: ReadonlyArray<StructuredContact> = contacts.map((contact) => this.toStructuredContact(contact))
 
 		try {
@@ -244,7 +257,7 @@ export class NativeContactsSyncManager {
 		}
 	}
 
-	private toStructuredContact(contact: tutanotaTypeRefs.Contact): StructuredContact {
+	private toStructuredContact(contact: Contact): StructuredContact {
 		return {
 			id: getElementId(contact),
 			firstName: contact.firstName,
@@ -288,7 +301,7 @@ export class NativeContactsSyncManager {
 		this.deviceConfig.setUserSyncContactsWithPhonePreference(userId, false)
 	}
 
-	private async applyDeviceChangesToServerContacts(contacts: ReadonlyArray<tutanotaTypeRefs.Contact>, syncResult: ContactSyncResult, listId: string) {
+	private async applyDeviceChangesToServerContacts(contacts: ReadonlyArray<Contact>, syncResult: ContactSyncResult, listId: string) {
 		// Update lock state so the entity listener doesn't process any
 		// new event. They'll be handled by the end of this function
 		const entityUpdateDefer = defer<void>()
@@ -297,7 +310,7 @@ export class NativeContactsSyncManager {
 		// We need to wait until the user is fully logged in to handle encrypted entities
 		await this.loginController.waitForFullLogin()
 		for (const contact of syncResult.createdOnDevice) {
-			const newContact = tutanotaTypeRefs.createContact(this.createContactFromNative(contact))
+			const newContact = createContact(this.createContactFromNative(contact))
 			const entityId = await this.entityClient.setup(listId, newContact)
 			const loginUsername = this.loginController.getUserController().loginUsername
 			// save the contact right away so that we don't lose the server id to native contact mapping if we don't process entity update quickly enough
@@ -347,7 +360,7 @@ export class NativeContactsSyncManager {
 		entityUpdateDefer.resolve()
 	}
 
-	private createContactFromNative(contact: StructuredContact): StrippedEntity<tutanotaTypeRefs.Contact> {
+	private createContactFromNative(contact: StructuredContact): StrippedEntity<Contact> {
 		return {
 			_ownerGroup: getFirstOrThrow(
 				this.loginController.getUserController().user.memberships.filter((membership) => membership.groupType === GroupType.Contact),
@@ -359,30 +372,30 @@ export class NativeContactsSyncManager {
 			socialIds: [],
 			firstName: contact.firstName,
 			lastName: contact.lastName,
-			mailAddresses: contact.mailAddresses.map((mail) => tutanotaTypeRefs.createContactMailAddress(mail)),
-			phoneNumbers: contact.phoneNumbers.map((phone) => tutanotaTypeRefs.createContactPhoneNumber(phone)),
+			mailAddresses: contact.mailAddresses.map((mail) => createContactMailAddress(mail)),
+			phoneNumbers: contact.phoneNumbers.map((phone) => createContactPhoneNumber(phone)),
 			nickname: contact.nickname,
 			company: contact.company,
 			birthdayIso: contact.birthday,
-			addresses: contact.addresses.map((address) => tutanotaTypeRefs.createContactAddress(address)),
-			customDate: contact.customDate.map((date) => tutanotaTypeRefs.createContactCustomDate(date)),
+			addresses: contact.addresses.map((address) => createContactAddress(address)),
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
 			department: contact.department,
-			messengerHandles: contact.messengerHandles.map((handle) => tutanotaTypeRefs.createContactMessengerHandle(handle)),
+			messengerHandles: contact.messengerHandles.map((handle) => createContactMessengerHandle(handle)),
 			middleName: contact.middleName,
 			nameSuffix: contact.nameSuffix,
 			phoneticFirst: contact.phoneticFirst,
 			phoneticLast: contact.phoneticLast,
 			phoneticMiddle: contact.phoneticMiddle,
 			pronouns: [],
-			relationships: contact.relationships.map((relation) => tutanotaTypeRefs.createContactRelationship(relation)),
-			websites: contact.websites.map((website) => tutanotaTypeRefs.createContactWebsite(website)),
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
 			comment: contact.notes,
 			title: contact.title ?? "",
 			role: contact.role,
 		}
 	}
 
-	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: tutanotaTypeRefs.Contact): tutanotaTypeRefs.Contact {
+	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: Contact): Contact {
 		// TODO: iOS requires a special entitlement from Apple to access these fields
 		const canMergeCommentField = !isIOSApp()
 
@@ -390,22 +403,22 @@ export class NativeContactsSyncManager {
 			...partialContact,
 			firstName: contact.firstName,
 			lastName: contact.lastName,
-			mailAddresses: contact.mailAddresses.map((mail) => tutanotaTypeRefs.createContactMailAddress(mail)),
-			phoneNumbers: contact.phoneNumbers.map((phone) => tutanotaTypeRefs.createContactPhoneNumber(phone)),
+			mailAddresses: contact.mailAddresses.map((mail) => createContactMailAddress(mail)),
+			phoneNumbers: contact.phoneNumbers.map((phone) => createContactPhoneNumber(phone)),
 			nickname: contact.nickname,
 			company: contact.company,
 			birthdayIso: contact.birthday,
-			addresses: contact.addresses.map((address) => tutanotaTypeRefs.createContactAddress(address)),
-			customDate: contact.customDate.map((date) => tutanotaTypeRefs.createContactCustomDate(date)),
+			addresses: contact.addresses.map((address) => createContactAddress(address)),
+			customDate: contact.customDate.map((date) => createContactCustomDate(date)),
 			department: contact.department,
-			messengerHandles: contact.messengerHandles.map((handle) => tutanotaTypeRefs.createContactMessengerHandle(handle)),
+			messengerHandles: contact.messengerHandles.map((handle) => createContactMessengerHandle(handle)),
 			middleName: contact.middleName,
 			nameSuffix: contact.nameSuffix,
 			phoneticFirst: contact.phoneticFirst,
 			phoneticLast: contact.phoneticLast,
 			phoneticMiddle: contact.phoneticMiddle,
-			relationships: contact.relationships.map((relation) => tutanotaTypeRefs.createContactRelationship(relation)),
-			websites: contact.websites.map((website) => tutanotaTypeRefs.createContactWebsite(website)),
+			relationships: contact.relationships.map((relation) => createContactRelationship(relation)),
+			websites: contact.websites.map((website) => createContactWebsite(website)),
 			comment: canMergeCommentField ? contact.notes : partialContact.comment,
 			title: contact.title ?? "",
 			role: contact.role,

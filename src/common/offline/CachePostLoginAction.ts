@@ -1,16 +1,16 @@
 import { LoginController, PostLoginAction } from "../api/main/LoginController.js"
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { CUSTOM_MIN_ID } from "@tutao/typerefs"
+import { CUSTOM_MIN_ID } from "../../meta"
 import { EntityClient } from "../../network/EntityClient.js"
 import { ProgressTracker } from "../api/main/ProgressTracker.js"
 import { promiseMap } from "@tutao/utils"
-import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
 import { SessionType } from "@tutao/app-env"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
 import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
-import { LoggedInEvent } from "@tutao/native-bridge/common"
+import { LoggedInEvent } from "../../native-bridge/common/PostLoginAction.js"
 import { ExposedCacheStorage } from "../../local-store/CacheStorage"
+import { NoopProgressMonitor } from "../../network/ProgressMonitorInterface"
+import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(
@@ -37,8 +37,8 @@ export class CachePostLoginAction implements PostLoginAction {
 
 		await promiseMap(calendarInfos.values(), async ({ groupRoot }) => {
 			await Promise.all([
-				this.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.longEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
-				this.entityClient.loadAll(tutanotaTypeRefs.CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
+				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
+				this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents, CUSTOM_MIN_ID).then(() => progressMonitor.workDone(1)),
 			])
 		})
 		progressMonitor.completed()
@@ -50,7 +50,7 @@ export class CachePostLoginAction implements PostLoginAction {
 				onSyncDone: async () => {
 					if (this.offlineStorageSettings !== null) {
 						await this.offlineStorageSettings.init()
-						// Clear the excluded data (i.e. trash and spam lists, old data) in the local-store storage.
+						// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
 						await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
 					}
 				},

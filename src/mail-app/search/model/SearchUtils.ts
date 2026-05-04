@@ -13,6 +13,13 @@ import {
 	isEmpty,
 	stringToBase64,
 } from "@tutao/utils"
+import { RouteSetFn, throttleRoute } from "../../../ui/utils/RouteChange"
+import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { assertMainOrNode } from "@tutao/app-env"
+import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { locator } from "../../../common/api/main/CommonLocator.js"
+import { SearchQuery } from "./SearchModel"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import {
 	ATTACHMENTS_ID,
 	getElementId,
@@ -23,16 +30,8 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	SENDER_ID,
 	SUBJECT_ID,
-	tutanotaTypeModels,
-	tutanotaTypeRefs,
 	TypeRef,
-} from "@tutao/typerefs"
-import { RouteSetFn, throttleRoute } from "../../../common/misc/RouteChange"
-import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "@tutao/app-env"
-import { TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { locator } from "../../../common/api/main/CommonLocator.js"
-import { SearchQuery } from "./SearchModel"
+} from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -47,20 +46,20 @@ export const enum SearchCategoryTypes {
 const SEARCH_CATEGORIES = [
 	{
 		name: SearchCategoryTypes.mail,
-		typeRef: tutanotaTypeRefs.MailTypeRef,
+		typeRef: MailTypeRef,
 	},
 	{
 		name: SearchCategoryTypes.contact,
-		typeRef: tutanotaTypeRefs.ContactTypeRef,
+		typeRef: ContactTypeRef,
 	},
 	{
 		name: SearchCategoryTypes.calendar,
-		typeRef: tutanotaTypeRefs.CalendarEventTypeRef,
+		typeRef: CalendarEventTypeRef,
 	},
 ] as const
 
 /** get the TypeRef that corresponds to the selected category (as taken from the URL: <host>/search/<category>?<query> */
-export function getSearchType(category: string): TypeRef<tutanotaTypeRefs.CalendarEvent> | TypeRef<tutanotaTypeRefs.Mail> | TypeRef<tutanotaTypeRefs.Contact> {
+export function getSearchType(category: string): TypeRef<CalendarEvent> | TypeRef<Mail> | TypeRef<Contact> {
 	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category)).typeRef
 }
 
@@ -79,7 +78,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "subject_label",
 		field: "subject",
-		attributeIds: [tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId].values[SUBJECT_ID] as number],
+		attributeIds: [tutanotaTypeModels[MailTypeRef.typeId].values[SUBJECT_ID] as number],
 	},
 	{
 		textId: "mailBody_label",
@@ -89,7 +88,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "from_label",
 		field: "from",
-		attributeIds: [tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId].associations[SENDER_ID].id as number],
+		attributeIds: [tutanotaTypeModels[MailTypeRef.typeId].associations[SENDER_ID].id as number],
 	},
 	{
 		textId: "to_label",
@@ -103,7 +102,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "attachmentName_label",
 		field: "attachment",
-		attributeIds: [tutanotaTypeModels[tutanotaTypeRefs.MailTypeRef.typeId].associations[ATTACHMENTS_ID].id as number],
+		attributeIds: [tutanotaTypeModels[MailTypeRef.typeId].associations[ATTACHMENTS_ID].id as number],
 	},
 ]
 
@@ -211,13 +210,13 @@ export function createRestriction(
 		if (field === "recipient") {
 			r.field = field
 			r.attributeIds = [
-				tutanotaTypeModels[tutanotaTypeRefs.ContactTypeRef.typeId].values["firstName"].id,
-				tutanotaTypeModels[tutanotaTypeRefs.ContactTypeRef.typeId].values["lastName"].id,
-				tutanotaTypeModels[tutanotaTypeRefs.ContactTypeRef.typeId].associations["mailAddresses"].id,
+				tutanotaTypeModels[ContactTypeRef.typeId].values["firstName"].id,
+				tutanotaTypeModels[ContactTypeRef.typeId].values["lastName"].id,
+				tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id,
 			]
 		} else if (field === "mailAddress") {
 			r.field = field
-			r.attributeIds = [tutanotaTypeModels[tutanotaTypeRefs.ContactTypeRef.typeId].associations["mailAddresses"].id]
+			r.attributeIds = [tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id]
 		}
 	}
 
@@ -322,7 +321,7 @@ export function decodeCalendarSearchKey(searchKey: string): { id: Id; start: num
 	return JSON.parse(decodeBase64("utf-8", base64UrlToBase64(searchKey))) as { id: Id; start: number }
 }
 
-export function encodeCalendarSearchKey(event: tutanotaTypeRefs.CalendarEvent): string {
+export function encodeCalendarSearchKey(event: CalendarEvent): string {
 	const eventStartTime = event.startTime.getTime()
 	return base64ToBase64Url(stringToBase64(JSON.stringify({ start: eventStartTime, id: getElementId(event) })))
 }

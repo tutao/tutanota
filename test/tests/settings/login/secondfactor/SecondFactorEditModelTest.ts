@@ -10,11 +10,11 @@ import { EntityClient } from "../../../../../src/network/EntityClient.js"
 import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
 import { TotpSecret, TotpVerifier } from "@tutao/crypto"
 import { noOp } from "@tutao/utils"
-import { LoginFacade } from "../../../../../src/network/LoginFacade.js"
+import { LoginFacade } from "../../../../../src/base/facades/LoginFacade.js"
 import { SecondFactorType } from "../../../../../src/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
-import { sysTypeRefs } from "@tutao/typerefs"
 
+import { GroupInfoTypeRef, User } from "@tutao/entities/sys"
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
 	const readableKey = TotpVerifier.readableKey(key)
@@ -23,7 +23,7 @@ function createTotpKeys(): TotpSecret {
 
 o.spec("SecondFactorEditModel", function () {
 	let entityClientMock: EntityClient
-	let userMock: sysTypeRefs.User
+	let userMock: User
 	let webAuthnClientMock: WebauthnClient
 	let loginFacadeMock: LoginFacade
 	const totpKeys = createTotpKeys()
@@ -50,8 +50,8 @@ o.spec("SecondFactorEditModel", function () {
 
 	o.beforeEach(function () {
 		entityClientMock = object()
-		when(entityClientMock.load(sysTypeRefs.GroupInfoTypeRef, matchers.anything())).thenResolve(
-			createTestEntity(sysTypeRefs.GroupInfoTypeRef, {
+		when(entityClientMock.load(GroupInfoTypeRef, matchers.anything())).thenResolve(
+			createTestEntity(GroupInfoTypeRef, {
 				mailAddress: "testaddress@tutanota.de",
 			}),
 		)

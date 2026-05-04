@@ -6,8 +6,8 @@ import { CryptoError } from "@tutao/crypto/error"
 import { CancelledError } from "@tutao/app-env"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { CommonNativeFacade } from "@tutao/native-bridge/common"
-import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
+import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel.js"
 import { DesktopCredentialsMode } from "./CredentialCommons.js"
 
 export class AppPassHandler {

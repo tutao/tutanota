@@ -2,22 +2,22 @@ import m, { Children } from "mithril"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
-import { isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
+import { AppType, isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/app-env"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
-import { AppType } from "@tutao/app-env"
+import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
 	private readonly expanded: Stream<boolean>
-	private readonly user: sysTypeRefs.User
-	private identifiers: sysTypeRefs.PushIdentifier[]
+	private readonly user: User
+	private identifiers: PushIdentifier[]
 
 	constructor() {
 		this.expanded = stream<boolean>(false)
@@ -26,7 +26,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		this.loadPushIdentifiers()
 	}
 
-	private togglePushIdentifier(identifier: sysTypeRefs.PushIdentifier) {
+	private togglePushIdentifier(identifier: PushIdentifier) {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
@@ -81,7 +81,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		const list = this.user.pushIdentifierList
 
 		if (list) {
-			this.identifiers = (await calendarLocator.entityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, list.list)).filter(
+			this.identifiers = (await calendarLocator.entityClient.loadAll(PushIdentifierTypeRef, list.list)).filter(
 				(identifier) => identifier.app === AppType.Calendar,
 			) // Filter out mail targets
 
@@ -94,9 +94,9 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		return (isApp() || isDesktop()) && identifier ? identifier : null
 	}
 
-	async entityEventsReceived(updates: readonly entityUpdateUtils.EntityUpdateData[]): Promise<void> {
+	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
 		for (let update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.PushIdentifierTypeRef, update)) {
+			if (isUpdateForTypeRef(PushIdentifierTypeRef, update)) {
 				await this.loadPushIdentifiers()
 			}
 		}

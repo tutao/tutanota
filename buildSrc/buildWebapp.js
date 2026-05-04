@@ -55,7 +55,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	console.log("Building app", app)
 
 	await runStep(`Cleaning build dir ${measure()}`, () => {
-		fs.emptyDirSync(buildDir)
+		// FIXME
+		// fs.emptyDirSync(buildDir)
 	})
 
 	await runStep(`Bundeling polyfill ${measure()}`, async () => {
@@ -112,7 +113,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			minify && terser(),
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
-			bundleDependencyCheckPlugin(),
+			// bundleDependencyCheckPlugin(),
 			replace({
 				// see AppType in src/common/misc/ClientConstants.ts
 				APP_TYPE: appTypeForApp(app),

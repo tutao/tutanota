@@ -1,41 +1,39 @@
-import { assertNotNull, defer, Hex } from "@tutao/utils"
-import {
-	assertMainOrNode,
-	AvailablePlans,
-	AvailablePlanType,
-	countryList,
-	InvoiceData,
-	isIOSApp,
-	NewPaidPlans,
-	PlanType,
-	SubscriptionType,
-	UpgradePromptType,
-} from "@tutao/app-env"
+import { defer } from "@tutao/utils"
+import { InvoiceData, UpgradePromptType } from "@tutao/app-env"
 import stream from "mithril/stream"
-import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../misc/LanguageViewModel"
-import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
+import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../ui/utils/LanguageViewModel"
+import { createWizardDialog, wizardPageWrapper } from "../../ui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
 import { SignupPage, SignupPageAttrs } from "./SignupPage"
+import { assertMainOrNode, isIOSApp } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./utils/SubscriptionUtils"
+import {
+	getDefaultPaymentMethod,
+	getPaymentMethodType,
+	PaymentData,
+	queryAppStoreSubscriptionOwnership,
+	UpgradePromptTypeByName,
+	UpgradeType,
+} from "./utils/SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/common"
-import { DialogType } from "../gui/base/Dialog.js"
+import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/types"
+import { DialogType } from "../../ui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
-import { styles } from "../gui/styles.js"
+import { styles } from "../../ui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
 import type { UsageTest } from "@tutao/usagetests"
-import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, sysTypeRefs, UpgradePromptTypeByName } from "@tutao/typerefs"
+import { AccountingInfo, AvailablePlans, AvailablePlanType, Customer, NewPaidPlans, PlanType, SubscriptionType } from "@tutao/entities/sys"
+import { getByAbbreviation } from "../gui/CountryList"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -58,9 +56,9 @@ export type UpgradeSubscriptionData = {
 	targetPlanType: PlanType
 	price: SubscriptionPrice | null
 	nextYearPrice: SubscriptionPrice | null
-	accountingInfo: sysTypeRefs.AccountingInfo | null
+	accountingInfo: AccountingInfo | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
-	customer: sysTypeRefs.Customer | null
+	customer: Customer | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	newAccountData: NewAccountData | null
 	registrationDataId: string | null
@@ -125,7 +123,7 @@ export async function showUpgradeWizard({
 		},
 		invoiceData: {
 			invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-			country: accountingInfo.invoiceCountry ? countryList.getByAbbreviation(accountingInfo.invoiceCountry) : null,
+			country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
 		},
 		paymentData: {
@@ -173,6 +171,7 @@ export async function showUpgradeWizard({
 			deferred.resolve()
 		},
 		dialogType: DialogType.EditLarge,
+		windowFacade,
 	})
 	wizardBuilder.dialog.show()
 	return deferred.promise
@@ -293,6 +292,7 @@ export async function loadSignupWizard(
 			}
 		},
 		dialogType: DialogType.EditLarge,
+		windowFacade,
 	})
 
 	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)

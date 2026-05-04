@@ -1,37 +1,23 @@
 import {
 	AttributeModel,
-	BlobElementEntity,
 	collapseId,
 	CUSTOM_MIN_ID,
-	ElementEntity,
 	elementIdPart,
-	Entity,
 	expandId,
 	firstBiggerThanSecond,
 	firstBiggerThanSecondBase64Ext,
-	FormattedQuery,
 	GENERATED_MIN_ID,
 	getElementId,
 	getServerIdEncodingForType,
 	getTypeString,
 	isCustomIdType,
-	ListElementEntity,
 	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
-	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
-	SomeEntity,
-	SqlValue,
-	TaggedSqlValue,
-	tagSqlValue,
 	Type as TypeId,
-	TypeModel,
-	TypeModelResolver,
 	TypeRef,
-	untagSqlObject,
-	untagSqlValue,
-} from "@tutao/typerefs"
+} from "../meta"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import {
@@ -47,18 +33,22 @@ import {
 	typedEntries,
 	typedValues,
 } from "@tutao/utils"
-import { DateProvider } from "../utils/DateProvider.js"
+import { DateProvider } from "@tutao/utils"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { InterWindowEventFacadeSendDispatcher, SqlCipherFacade } from "@tutao/native-bridge/common"
-import { OutOfSyncError } from "./OutOfSyncError.js"
+import { OutOfSyncError } from "../app-env/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "@tutao/instance-pipeline"
-import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { isAdminClient, isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { Category, syncMetrics } from "@tutao/utils"
+import { isAdminClient, isBrowser, isDesktop, isTest, Mode } from "@tutao/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
-import { OfflineStorageInitArgs } from "./types"
+import { FormattedQuery, OfflineStorageInitArgs, TaggedSqlValue } from "./Types"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/meta"
+import { TypeModelResolver } from "@tutao/instance-pipeline"
+import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
+import type { SqlValue } from "./Types.ts"
+import { SqlCipherFacade } from "../native-bridge/common/generatedipc/types/SqlCipherFacade"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -111,7 +101,8 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 export interface OfflineDbMeta {
 	lastUpdateTime: number
 	timeRangeDays: number
-	// local-store db schema version
+	//
+	//  db schema version
 	"offline-version": number
 	lastTrainedTime: number
 	lastTrainedFromScratchTime: number
@@ -159,7 +150,7 @@ export const TableDefinitions = Object.freeze({
 export type Range = { lower: Id; upper: Id }
 
 /**
- * Describes an externally-defined table to be stored in local-store storage.
+ * Describes an externally-defined table to be stored in offline storage.
  *
  * Table definitions should be passed into the additionalTables record of OfflineStorage's constructor, setting the key
  * to the name of the table (as written in the {@link definition} statement).
@@ -180,7 +171,7 @@ export interface OfflineStorageTable {
 	 *
 	 * If true, then the table is dropped whenever purgeStorage is called, such as due to an out-of-sync error
 	 *
-	 * If false, this will only be deleted if the local-store database is completely deleted, such as when credentials are
+	 * If false, this will only be deleted if the offline database is completely deleted, such as when credentials are
 	 * deleted.
 	 */
 	purgedWithCache: boolean
@@ -201,7 +192,7 @@ export class OfflineStorage implements CacheStorage {
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
+		private readonly interWindowEventSender: LocalUserDataInvalidator,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
 		private readonly cleaner: OfflineStorageCleaner,
@@ -210,7 +201,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly customCacheHandler: CustomCacheHandlerMap,
 		additionalTables: Record<string, OfflineStorageTable>,
 	) {
-		assert((!isBrowser() && !isAdminClient()) || env.mode === Mode.Test, "Offline storage is not available.")
+		assert((!isBrowser() && !isAdminClient()) || isTest(), "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 
@@ -260,12 +251,12 @@ export class OfflineStorage implements CacheStorage {
 		await this.createTables()
 
 		try {
-			await this.migrator.migrate(this, this.sqlCipherFacade)
+			await this.migrator.migrate(this)
 		} catch (e) {
 			if (e instanceof OutOfSyncError) {
 				console.warn("Offline db is out of sync!", e)
 				await this.recreateDbFile(userId, databaseKey)
-				await this.migrator.migrate(this, this.sqlCipherFacade)
+				await this.migrator.migrate(this)
 			} else {
 				throw e
 			}
@@ -872,7 +863,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	/**
-	 * Clear out unneeded data from the local-store database (i.e. old data).
+	 * Clear out unneeded data from the offline database (i.e. old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
 	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
 	 * @param userId id of the current user. default, last stored userId
@@ -995,7 +986,7 @@ export class OfflineStorage implements CacheStorage {
 			const id = mapNullable(entities[0], getElementId)
 			// !!IMPORTANT!!
 			// Ids on entities with a customId are always base64Url encoded,
-			// !!however ids for entities with a customId used to QUERY the local-store database
+			// !!however ids for entities with a customId used to QUERY the offline database
 			// MUST always be base64Ext encoded
 			// Therefore, we need to compare against the rawCutoffId here!
 			const rangeWontBeModified = id != null && (id === rawCutoffId || firstBiggerThanSecond(id, rawCutoffId, getServerIdEncodingForType(typeModel)))
@@ -1123,4 +1114,7 @@ export async function tableExists(sqlCipherFacade: SqlCipherFacade, table: strin
 								  WHERE name = ${table}`
 	const result = assertNotNull(await sqlCipherFacade.get(query, params))
 	return untagSqlValue(result["metadata_exists"]) === 1
+}
+export interface LocalUserDataInvalidator {
+	localUserDataInvalidated(userId: Id): Promise<any>
 }
