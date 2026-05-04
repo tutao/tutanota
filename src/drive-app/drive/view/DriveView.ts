@@ -74,16 +74,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			return
 		}
 
-		// /drive/folderId/listElementId
-		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
+		this.driveViewModel.waitForInit().then(() => {
+			// /drive/folderId/listElementId
+			const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 
-		if (folderListId && folderElementId) {
-			this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
-		} else {
-			// /drive
-			// No folder given, load the drive root
-			this.driveViewModel.navigateToRootFolder()
-		}
+			if (folderListId && folderElementId) {
+				this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
+			} else {
+				// /drive
+				// No folder given, load the drive root
+				this.driveViewModel.navigateToRootFolder()
+			}
+		})
 	}
 
 	private driveViewModel: DriveViewModel

@@ -37,8 +37,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
@@ -325,16 +323,16 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 			// Start observing SSE users in the background.
 			// If there are no users we need to tell web part to invalidate alarms.
-			launch {
-				sseStorage.observeUsers()
-					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-					.collect { userInfos ->
-						if (userInfos.isEmpty()) {
-							Log.d(TAG, "invalidateAlarms")
-							commonNativeFacade.invalidateAlarms()
-						}
-					}
-			}
+//			launch {
+//				sseStorage.observeUsers()
+//					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+//					.collect { userInfos ->
+//						if (userInfos.isEmpty()) {
+//							Log.d(TAG, "invalidateAlarms")
+//							commonNativeFacade.invalidateAlarms()
+//						}
+//					}
+//			}
 
 			startWebApp(queryParameters)
 		}
