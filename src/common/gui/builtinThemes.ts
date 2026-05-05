@@ -52,6 +52,7 @@ const semanticColorsDark = {
  */
 export const themes = (): Themes => {
 	const isCalendarApp = client.isCalendarApp()
+	const isDriveApp = client.isDriveApp()
 	const lightRed = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isCalendarApp ? "light_secondary" : "light",
@@ -317,11 +318,81 @@ export const themes = (): Themes => {
 		drive_audio: "#F3BD6E",
 	})
 
+	const lightGreen = Object.freeze<Theme>({
+		...semanticColorsLight,
+		themeId: isDriveApp ? "light" : "light_secondary",
+		logo: getAppLogo(isDriveApp ? undefined : "#C4C6D0EE"),
+		// Basic color tokens
+		primary: "#1A6B52",
+		on_primary: "#FFFFFF",
+		primary_container: "#A6F2D2",
+		on_primary_container: "#00513C",
+		primary_fixed: "#A6F2D2",
+		on_primary_fixed: "#002409",
+		primary_fixed_dim: "#8AD6B7",
+		on_primary_fixed_variant: "#00513C",
+		secondary: "#4A662C",
+		on_secondary: "#FFFFFF",
+		secondary_container: "#CCEDA5",
+		on_secondary_container: "#344E17",
+		secondary_fixed: "#CCEDA5",
+		on_secondary_fixed: "#192300",
+		secondary_fixed_dim: "#B0D18B",
+		on_secondary_fixed_variant: "#344E17",
+		tertiary: "#625690",
+		on_tertiary: "#FFFFFF",
+		tertiary_container: "#E7DEFF",
+		on_tertiary_container: "#4A3E76",
+		tertiary_fixed: "#E7DEFF",
+		on_tertiary_fixed: "#1F1048",
+		tertiary_fixed_dim: "#CCBEFF",
+		on_tertiary_fixed_variant: "#4A3E76",
+		surface: "#FFFFFF",
+		surface_container: "#F8FCF9",
+		surface_container_high: "#E4EAE4",
+		surface_container_highest: "#DEE4DF",
+		on_surface: "#171D1A",
+		on_surface_variant: "#404944",
+		outline: "#707974",
+		outline_variant: "#BFC9C2",
+		scrim: "#000000",
+		experimental_primary_container: "#FFF2EA",
+		experimental_on_primary_container: "#001641",
+		experimental_tertiary: "#0040FF",
+		// state colors; based on outline_variant, with alpha
+		state_bg_hover: "#C5D0C444",
+		state_bg_focus: "#C5D0C455",
+		state_bg_active: "#C5D0C466",
+		// Campaign colors
+		tuta_color_nota: "#d93951",
+		content_accent_tuta_bday: "#AC3E80", // FIXME: No token in design system
+		content_accent_secondary_tuta_bday: "#FCBFDE", // FIXME: No token in design system
+		content_bg_tuta_bday: "#222222", // FIXME: No token in design system
+		go_european: goEuropeanBlue,
+		on_go_european: "#FFFFFF",
+		// SVG illust colors
+		il_outline: "#101418",
+		il_ne_outline: "#101418",
+		il_highlight: "#DFF4EB",
+		il_sign_up_flow_switch: "#C4C6D0",
+		il_sign_up_flow_switch_2: "#F7F9FC",
+		il_sign_up_flow_switch_4: "#F7F9FC", // FIXME: No token in design system
+		// Drive icon colors
+		drive_folder: "#4A662C",
+		drive_document: "#8F4A4E",
+		drive_image: "#006A65",
+		drive_video: "#7F4D7B",
+		drive_audio: "#A2752F",
+	})
+
+	// FIXME
+	const darkGreen = lightGreen
+
 	return {
-		light: isCalendarApp ? lightBlue : lightRed,
-		dark: isCalendarApp ? darkBlue : darkRed,
-		light_secondary: isCalendarApp ? lightRed : lightBlue,
-		dark_secondary: isCalendarApp ? darkRed : darkBlue,
+		light: isCalendarApp ? lightBlue : isDriveApp ? lightGreen : lightRed,
+		dark: isCalendarApp ? darkBlue : isDriveApp ? darkGreen : darkRed,
+		light_secondary: isCalendarApp ? lightRed : isDriveApp ? lightGreen : lightBlue,
+		dark_secondary: isCalendarApp ? darkRed : isDriveApp ? darkGreen : darkBlue,
 	}
 }
 
