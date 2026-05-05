@@ -247,6 +247,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
 			)
 			if (receivedNotification) {
+				ctx.goNext()
 				return
 			}
 		}
