@@ -56,7 +56,7 @@ android {
 		debug {
 			resValue("string", "package_name", "de.tutao.drive.debug")
 			manifestPlaceholders.clear()
-			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.debug"
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.drive.fileprovider.debug"
 			applicationIdSuffix = ".debug"
 			isJniDebuggable = true
 		}
@@ -64,7 +64,7 @@ android {
 			manifestPlaceholders += mapOf()
 			isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.drive")
-			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider"
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.drive.fileprovider"
 
 		}
 		create("releaseTest") {
@@ -72,7 +72,7 @@ android {
 			isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.drive.test")
 			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
-			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.fileprovider.test"
+			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.drive.fileprovider.test"
 			applicationIdSuffix = ".test"
 		}
 	}

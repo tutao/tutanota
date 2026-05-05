@@ -40,6 +40,15 @@ which might still be served or HTTP. The only alternative is to proxy all of it.
 			android:exported="true"
 			android:dataExtractionRules="@xml/data_extraction_rules"
 			android:appCategory="social">
+		<provider
+				android:name="androidx.core.content.FileProvider"
+				android:authorities="${contentProviderAuthority}"
+				android:exported="false"
+				android:grantUriPermissions="true">
+			<meta-data
+					android:name="android.support.FILE_PROVIDER_PATHS"
+					android:resource="@xml/paths"/>
+		</provider>
 		<!-- we do not want to restart activity for most of the things. uiMode changes with dark mode. -->
 		<activity
 				android:name=".MainActivity"
