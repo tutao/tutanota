@@ -27,14 +27,13 @@ import { getDetachedDropdownBounds } from "../../../common/gui/base/GuiUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { styles } from "../../../common/gui/styles"
-import { BottomNav } from "../../../mail-app/gui/BottomNav"
 import { MobileHeader } from "../../../common/gui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../common/gui/EnterMultiselectIconButton"
 import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import Stream from "mithril/stream"
-import { assertNotNull, isNotEmpty } from "@tutao/utils"
+import { assertNotNull, isNotEmpty, isNotNull } from "@tutao/utils"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { MoveItems } from "./DriveMoveItemDialog"
 import { driveTypeRefs } from "@tutao/typerefs"
@@ -267,11 +266,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					rightView: null,
 					...attrs.header,
 				}),
-				bottomNav: styles.isUsingBottomNavigation()
-					? this.driveViewModel.listState().inMultiselect
-						? this.renderMobileActionBar(attrs.showMoveItemDialog)
-						: m(BottomNav)
-					: null,
+				bottomNav:
+					styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
+						? this.driveViewModel.listState().inMultiselect
+							? this.renderMobileActionBar(attrs.showMoveItemDialog)
+							: attrs.bottomNav()
+						: null,
 			}),
 		])
 	}

@@ -44,7 +44,7 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform, AppType.Calendar)
+client.init(navigator.userAgent, navigator.platform, AppType.Drive)
 
 if (!client.isSupported()) {
 	throw new Error("Unsupported")
@@ -277,6 +277,7 @@ import("../mail-app/translations/en.js")
 					driveViewModel: DriveViewModel
 					lazySearchBar: () => Children
 					filePicker: DriveFilePicker
+					bottomNav: () => Children
 				}
 			>(
 				{
@@ -296,16 +297,18 @@ import("../mail-app/translations/en.js")
 										placeholder: "stub",
 									}),
 								filePicker,
+								bottomNav: () => null,
 							},
 						}
 					},
-					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, lazySearchBar, filePicker }) => ({
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, lazySearchBar, filePicker, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						driveViewModel,
 						lazySearchBar,
 						showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
+						bottomNav,
 					}),
 				},
 				driveLocator.logins,

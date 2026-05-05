@@ -146,7 +146,7 @@ export class PostLoginActions implements PostLoginAction {
 			// the dialog anyway.
 			// After dialog is finished or dismissed the setup is "complete".
 			//FIXME
-			if ((isApp() && deviceConfig.getIsSetupComplete() && !client.isCalendarApp()) || isDesktop()) {
+			if ((isApp() && deviceConfig.getIsSetupComplete() && !client.isDriveApp()) || isDesktop()) {
 				// Await the push service registration so `storePushIdentifierLocally()` can set the extended notification mode on Android
 				// before `loadNewsIds()` runs the `isShown()` check of the `RichNotificationsNews` news item
 				await locator.pushService.register()
