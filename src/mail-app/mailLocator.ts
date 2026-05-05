@@ -1,4 +1,4 @@
-import { assertMainOrNode, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode } from "@tutao/app-env"
+import { assertMainOrNode, Const, FeatureType, GroupType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -61,7 +61,6 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { Const, FeatureType } from "@tutao/app-env"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
@@ -86,7 +85,6 @@ import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { EntropyCollector } from "../common/api/main/EntropyCollector.js"
 import { notifications } from "../common/gui/Notifications.js"
 import { windowFacade } from "../common/misc/WindowFacade.js"
@@ -1007,7 +1005,7 @@ class MailLocator implements CommonLocator {
 				}
 				case "richNotifications": {
 					const { RichNotificationsNews } = await import("../common/misc/news/items/RichNotificationsNews.js")
-					return new RichNotificationsNews(this.newsModel, isApp() || isDesktop() ? this.pushService : null)
+					return new RichNotificationsNews(this.newsModel, isApp() || isDesktop() ? this.pushService : null, this.systemPermissionHandler)
 				}
 				case "colorCustomizationUpdate": {
 					const { UpdateColorCustomizationNews } = await import("../common/misc/news/items/UpdateColorCustomizationNews.js")
@@ -1241,6 +1239,7 @@ class MailLocator implements CommonLocator {
 			const { showSetupWizard } = await import("../common/native/main/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
+				this.pushService,
 				this.webMobileFacade,
 				await this.contactImporter(),
 				this.systemFacade,

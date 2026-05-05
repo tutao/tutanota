@@ -52,7 +52,6 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
-import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
@@ -130,22 +129,13 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
 
-		// FIXME
-		val fileNotificationSender = object : FileNotificationSender {
-			override fun sendDownloadFinishedNotification(fileName: String?) {
-				TODO("Not yet implemented")
-			}
+		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 
-			override fun showDownloadNotification(file: File) {
-				TODO("Not yet implemented")
-			}
-
-		}
 		val fileFacade =
 			AndroidFileFacade(
 				this,
 				this,
-				fileNotificationSender,
+				localNotificationsFacade,
 				SecureRandom(),
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->

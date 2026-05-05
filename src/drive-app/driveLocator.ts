@@ -931,6 +931,7 @@ class DriveLocator implements CommonLocator {
 			const { showSetupWizard } = await import("../common/native/main/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
+				null,
 				this.webMobileFacade,
 				null,
 				this.systemFacade,

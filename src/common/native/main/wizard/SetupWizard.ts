@@ -15,9 +15,11 @@ import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/N
 import { locator } from "../../../api/main/CommonLocator.js"
 import { PermissionType } from "../../common/generatedipc/PermissionType.js"
 import { CredentialsProvider } from "../../../misc/credentials/CredentialsProvider.js"
+import { NativePushServiceApp } from "../NativePushServiceApp"
 
 export async function showSetupWizard(
 	systemPermissionHandler: SystemPermissionHandler,
+	pushService: NativePushServiceApp | null,
 	webMobileFacade: WebMobileFacade,
 	contactImporter: ContactImporter | null,
 	systemFacade: MobileSystemFacade,
@@ -41,9 +43,10 @@ export async function showSetupWizard(
 				{
 					isNotificationPermissionGranted: permissionStatus.get(PermissionType.Notification) ?? false,
 					isBatteryPermissionGranted: permissionStatus.get(PermissionType.IgnoreBatteryOptimization) ?? false,
+					systemPermissionHandler,
+					pushService,
 				},
 				webMobileFacade.getIsAppVisible(),
-				systemPermissionHandler,
 			),
 		),
 	)
