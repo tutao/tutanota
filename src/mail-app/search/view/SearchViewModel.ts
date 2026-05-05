@@ -6,10 +6,10 @@ import {
 	assertIsEntity,
 	assertIsEntity2,
 	elementIdPart,
+	EntityIdEncoding,
 	entityUpdateUtils,
 	GENERATED_MAX_ID,
 	getElementId,
-	EntityIdEncoding,
 	isPermanentDeleteAllowedForFolder,
 	isSameId,
 	ListElement,
@@ -846,9 +846,11 @@ export class SearchViewModel {
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
-		let unsetConversationViewModel = this._conversationViewModel != null
+		let unsetConversationViewModel = false
 
-		if (isSameTypeRef(this.searchedType, tutanotaTypeRefs.MailTypeRef) && !newState.inMultiselect && newState.selectedItems.size === 1) {
+		if (newState.inMultiselect || newState.activeIndex === null || newState.selectedItems.size === 0) {
+			unsetConversationViewModel = true
+		} else if (isSameTypeRef(this.searchedType, tutanotaTypeRefs.MailTypeRef) && !newState.inMultiselect && newState.selectedItems.size === 1) {
 			const mail = first(this.getSelectedMails())
 
 			// Sometimes a stale state is passed through, resulting in no mail
@@ -859,10 +861,11 @@ export class SearchViewModel {
 					!isSameId(listIdPart(this._conversationViewModel.primaryMail._id), listIdPart(mail._id)) ||
 					!isSameId(elementIdPart(this._conversationViewModel.primaryMail._id), elementIdPart(mail._id))
 				) {
-					unsetConversationViewModel = false
 					this.updateDisplayedConversation(mail)
 					this.updateSearchUrl()
 				}
+			} else {
+				unsetConversationViewModel = true
 			}
 		}
 
