@@ -577,6 +577,7 @@ o.spec("IndexedDbIndexer", () => {
 				events,
 				groupId,
 				batchId,
+				isInitialSyncDone: true,
 			}
 			await indexer._processEntityEvents(batch)
 			verify(core.putLastBatchIdForGroup(groupId, batchId))
@@ -606,7 +607,7 @@ o.spec("IndexedDbIndexer", () => {
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
 			const queue = indexer.eventQueue
 			queue.addBatches = func<EventQueue["addBatches"]>()
-			await indexer.processEntityEvents(entityUpdateData, newestBatchId, groupId)
+			await indexer.processEntityEvents(entityUpdateData, newestBatchId, groupId, true)
 			verify(queue.addBatches(matchers.anything()), { times: 1 })
 			verify(
 				queue.addBatches([
@@ -614,6 +615,7 @@ o.spec("IndexedDbIndexer", () => {
 						groupId,
 						batchId: newestBatchId,
 						events: entityUpdateData,
+						isInitialSyncDone: true,
 					},
 				]),
 			)
@@ -679,6 +681,7 @@ o.spec("IndexedDbIndexer", () => {
 				events: events1,
 				groupId: groupId,
 				batchId: batchId1,
+				isInitialSyncDone: true,
 			}
 
 			const events2: entityUpdateUtils.EntityUpdateData[] = [
@@ -695,9 +698,10 @@ o.spec("IndexedDbIndexer", () => {
 				events: events2,
 				groupId: groupId,
 				batchId: batchId2,
+				isInitialSyncDone: true,
 			}
-			await indexer.processEntityEvents(batch1.events, batch1.batchId, batch1.groupId)
-			await indexer.processEntityEvents(batch2.events, batch2.batchId, batch2.groupId)
+			await indexer.processEntityEvents(batch1.events, batch1.batchId, batch1.groupId, true)
+			await indexer.processEntityEvents(batch2.events, batch2.batchId, batch2.groupId, true)
 
 			indexer.eventQueue.resume()
 
@@ -716,7 +720,7 @@ o.spec("IndexedDbIndexer", () => {
 		o.spec("handles mail updates", () => {
 			let indexer: IndexedDbIndexer
 
-			const testBatch: { batchId: Id; groupId: Id; events: readonly entityUpdateUtils.EntityUpdateData[] } = {
+			const testBatch: QueuedBatch = {
 				events: [
 					{
 						typeRef: tutanotaTypeRefs.MailTypeRef,
@@ -786,6 +790,7 @@ o.spec("IndexedDbIndexer", () => {
 				],
 				groupId: "blah",
 				batchId: "asdf",
+				isInitialSyncDone: true,
 			}
 
 			o.beforeEach(() => {
@@ -989,7 +994,7 @@ o.spec("IndexedDbIndexer", () => {
 
 				await initialIndexingCalled.promise
 				// dispatch an event while initial indexing is running and see that it is not immediately processed
-				await indexer.processEntityEvents(updates, "batchId", userGroupId)
+				await indexer.processEntityEvents(updates, "batchId", userGroupId, true)
 				// not processed yet
 				verify(mailIndexer.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
@@ -1028,7 +1033,7 @@ o.spec("IndexedDbIndexer", () => {
 				indexer.extendMailIndex(time.getTime())
 
 				await extendingMailIndexingCalled.promise
-				await indexer.processEntityEvents(updates, "batchId", userGroupId)
+				await indexer.processEntityEvents(updates, "batchId", userGroupId, true)
 				// not processed yet
 				verify(mailIndexer.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 

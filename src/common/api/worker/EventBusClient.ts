@@ -13,9 +13,8 @@ import {
 	tutanotaModelInfo,
 	tutanotaTypeRefs,
 	TypeModelResolver,
-	GENERATED_MIN_ID,
 } from "@tutao/typerefs"
-import { AppName, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
+import { AppName, assertNotNull, delay, identity, isSameTypeRef, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CancelledError } from "../common/error/CancelledError"
 import { WsConnectionState } from "../main/WorkerClient"
@@ -33,6 +32,7 @@ import { DateProvider } from "../common/DateProvider"
 import { ExposedProgressTracker } from "../main/ProgressTracker"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 import { filterIndexMemberships } from "../common/utils/IndexUtils"
+import { EventQueue, QueuedBatch } from "./EventQueue"
 
 assertWorkerOrNode()
 
@@ -107,6 +107,8 @@ export class EventBusClient {
 
 	private lastAntiphishingMarkersId: Id | null = null
 
+	/** Queue to process all events. */
+	private readonly eventQueue: EventQueue
 	private reconnectTimer: TimeoutID | null
 	private connectTimer: TimeoutID | null
 
@@ -127,11 +129,9 @@ export class EventBusClient {
 	private readonly initialWorkDone = 25
 
 	/**
-	 * Represents multiple retried executions due to a ServiceUnavailableError
-	 * We store the retry promise of connection as GENERATED_MIN_ID and for other retries of batch processing as BatchId
+	 * Represents a currently retried execution due to a ServiceUnavailableError
 	 */
-	private batchIdToServiceUnavailableRetryMap: Map<Id, Promise<void>> = new Map()
-
+	private serviceUnavailableRetry: Promise<void> | null = null
 	/**
 	 * The message queue is used to ensure that messages are processed in the correct order.
 	 * The messages are sent from the server in a correct order, but if they are not awaited,
@@ -160,13 +160,17 @@ export class EventBusClient {
 		this.socket = null
 		this.reconnectTimer = null
 		this.connectTimer = null
+		this.eventQueue = new EventQueue("ws", (modification) => this.eventQueueCallback(modification))
 		this.reset()
 	}
 
 	private reset() {
 		this.immediateReconnect = false
 
-		this.batchIdToServiceUnavailableRetryMap = new Map()
+		this.eventQueue.pause()
+		this.eventQueue.clear()
+
+		this.serviceUnavailableRetry = null
 	}
 
 	/**
@@ -176,7 +180,7 @@ export class EventBusClient {
 	async connect(connectMode: ConnectMode) {
 		console.log("ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
-		this.batchIdToServiceUnavailableRetryMap = new Map()
+		this.serviceUnavailableRetry = null
 
 		this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 
@@ -329,7 +333,13 @@ export class EventBusClient {
 					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
 					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
 				}
-				await this.processEventBatch(updates, batchId, groupId, this.isInitialSyncDone)
+				// if the updates were not added to the queue, since the array is empty because it was optimized away,
+				// we need to complete the work for the batch here, since the processEventBatch function
+				// (and therefore the EventController) will not be called for this particular batch.
+				const wasAdded = this.eventQueue.add(batchId, groupId, updates, this.isInitialSyncDone)
+				if (!wasAdded && !this.progressMonitor?.isDone()) {
+					await this.progressMonitor?.workDone(1)
+				}
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -507,6 +517,7 @@ export class EventBusClient {
 
 	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
 		return this.initConnection()
+			.then(() => this.eventQueue.resume())
 			.catch(
 				ofClass(restError.ConnectionError, (e) => {
 					console.log("ws not connected in connect(), close websocket", e)
@@ -525,16 +536,14 @@ export class EventBusClient {
 					console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
 					let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 						// if we have a websocket reconnect we have to stop retrying
-						if (this.batchIdToServiceUnavailableRetryMap.has(GENERATED_MIN_ID)) {
+						if (this.serviceUnavailableRetry === promise) {
 							console.log("ws retry initializing entity events")
 							return this.initEntityEvents(connectMode)
 						} else {
 							console.log("ws cancel initializing entity events")
 						}
 					})
-					// Since this is the initial connect, overriding a previous connect in case of failure may not
-					// cause any problems, thus GENERATED_MIN_ID is used as a placeholder for initial connection.
-					this.batchIdToServiceUnavailableRetryMap.set(GENERATED_MIN_ID, promise)
+					this.serviceUnavailableRetry = promise
 					return promise
 				}),
 			)
@@ -548,6 +557,7 @@ export class EventBusClient {
 				}),
 			)
 			.catch((e) => {
+				this.eventQueue.resume()
 				this.listener.onError(e)
 			})
 	}
@@ -594,6 +604,16 @@ export class EventBusClient {
 		if (await this.cache.isOutOfSync()) {
 			// We handle it where we initialize the connection and purge the cache there.
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
+		}
+	}
+
+	private async eventQueueCallback(modification: QueuedBatch): Promise<void> {
+		try {
+			await this.processEventBatch(modification)
+		} catch (e) {
+			console.log("ws error while processing event batches", e)
+			this.listener.onError(e)
+			throw e
 		}
 	}
 
@@ -648,13 +668,19 @@ export class EventBusClient {
 		}
 	}
 
-	private async processEventBatch(entityUpdates: entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
+	private async processEventBatch(batch: QueuedBatch): Promise<void> {
 		try {
 			if (this.isTerminated()) return
-			const filteredEvents = await this.cache.entityEventsReceived(entityUpdates, batchId, groupId)
+			const filteredEvents = await this.cache.entityEventsReceived(batch.events, batch.batchId, batch.groupId)
 			if (!this.isTerminated()) {
 				const progressMonitorId = (await this.progressMonitor?.progressMonitorId) ?? null
-				await this.listener.onEntityEventsReceived(filteredEvents, batchId, groupId, progressMonitorId, isInitialSyncDone)
+				await this.listener.onEntityEventsReceived(
+					filteredEvents,
+					batch.batchId,
+					batch.groupId,
+					progressMonitorId,
+					assertNotNull(batch.isInitialSyncDone),
+				)
 			}
 		} catch (e) {
 			if (e instanceof restError.ServiceUnavailableError) {
@@ -662,13 +688,13 @@ export class EventBusClient {
 				console.log("ws retry processing event in 30s", e)
 				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 					// if we have a websocket reconnect we have to stop retrying
-					if (this.batchIdToServiceUnavailableRetryMap.has(batchId)) {
-						return this.processEventBatch(entityUpdates, batchId, groupId, isInitialSyncDone)
+					if (this.serviceUnavailableRetry === retryPromise) {
+						return this.processEventBatch(batch)
 					} else {
 						throw new CancelledError("stop retry processing after service unavailable due to reconnect")
 					}
 				})
-				this.batchIdToServiceUnavailableRetryMap.set(batchId, retryPromise)
+				this.serviceUnavailableRetry = retryPromise
 				return retryPromise
 			} else {
 				if (!isExpectedErrorForSynchronization(e)) {

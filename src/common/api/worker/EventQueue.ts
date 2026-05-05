@@ -7,6 +7,7 @@ export type QueuedBatch = {
 	events: readonly entityUpdateUtils.EntityUpdateData[]
 	groupId: Id
 	batchId: Id
+	isInitialSyncDone: boolean
 }
 
 type WritableQueuedBatch = QueuedBatch & { events: entityUpdateUtils.EntityUpdateData[] }
@@ -38,7 +39,7 @@ export class EventQueue {
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
 		for (const batch of batches) {
-			this.add(batch.batchId, batch.groupId, batch.events)
+			this.add(batch.batchId, batch.groupId, batch.events, batch.isInitialSyncDone)
 		}
 	}
 
@@ -50,11 +51,12 @@ export class EventQueue {
 	/**
 	 * @return whether the batch was added (not optimized away)
 	 */
-	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<entityUpdateUtils.EntityUpdateData>): boolean {
+	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, isInitialSyncDone: boolean): boolean {
 		const newBatch: WritableQueuedBatch = {
 			events: [],
 			groupId,
 			batchId,
+			isInitialSyncDone,
 		}
 
 		newBatch.events.push(...newEvents)

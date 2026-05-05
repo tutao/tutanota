@@ -294,7 +294,7 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.resume()
 	}
 
-	async processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
+	async processEntityEvents(updates: readonly entityUpdateUtils.EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		try {
 			await this.throwIfOutOfDate()
 			await this.writeServerTimestamp()
@@ -303,7 +303,7 @@ export class IndexedDbIndexer implements Indexer {
 				await this.disableMailIndexing()
 			}
 		}
-		this.eventQueue.addBatches([{ events: updates, batchId, groupId }])
+		this.eventQueue.addBatches([{ events: updates, batchId, groupId, isInitialSyncDone }])
 		// Trigger event queue processing in case it was stopped due to an error
 		// Realtime queue won't be automatically paused and doesn't need a trigger here. It will be resumed when
 		// we loaded all events.

@@ -3,7 +3,7 @@ import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/Ev
 import { defer, delay } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { entityUpdateUtils, tutanotaTypeRefs } from "@tutao/typerefs"
-import { OperationType } from "../../../../../src/app-env"
+import { OperationType } from "@tutao/app-env"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
@@ -43,6 +43,7 @@ o.spec("EventQueueTest", function () {
 			events: [newUpdate(OperationType.DELETE, "1")],
 			groupId,
 			batchId: "1",
+			isInitialSyncDone: true,
 		}
 		queue.addBatches([batchWithOnlyDelete])
 
@@ -61,6 +62,7 @@ o.spec("EventQueueTest", function () {
 			events: [newUpdate(OperationType.DELETE, "1")],
 			groupId,
 			batchId: "1",
+			isInitialSyncDone: true,
 		}
 		queue.addBatches([batchWithOnlyDelete])
 
@@ -75,11 +77,13 @@ o.spec("EventQueueTest", function () {
 			events: [newUpdate(OperationType.CREATE, "2"), newUpdate(OperationType.DELETE, "2")],
 			groupId,
 			batchId: "2",
+			isInitialSyncDone: true,
 		}
 		const batchWithOnlyCreate: QueuedBatch = {
 			events: [newUpdate(OperationType.CREATE, "3")],
 			groupId,
 			batchId: "3",
+			isInitialSyncDone: true,
 		}
 
 		lastProcess = defer()
