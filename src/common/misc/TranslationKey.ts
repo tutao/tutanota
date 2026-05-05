@@ -2272,3 +2272,5 @@ export type TranslationKeyType =
 	| "light_green_label"
 	| "dark_green_label"
 	| "emptyString_msg"
+	| "light_green_label"
+	| "dark_green_label"
