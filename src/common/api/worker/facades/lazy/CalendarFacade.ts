@@ -206,6 +206,18 @@ export class CalendarFacade {
 		eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>,
 		progressUpdater: (percent: number) => Promise<void> = () => Promise.resolve(),
 	): Promise<CalendarEventPersistenceResult> {
+		const results: CalendarEventPersistenceResult = {
+			successfulEvents: [],
+			failedEvents: [],
+			failedEventErrors: [],
+			failedAlarms: [],
+			failedAlarmErrors: [],
+		}
+
+		if (isEmpty(eventAlarmInfoTemplatesTuples)) {
+			return results
+		}
+
 		let currentProgress = 10
 		await progressUpdater(currentProgress)
 
@@ -227,14 +239,6 @@ export class CalendarFacade {
 		currentProgress = 15
 		await progressUpdater(currentProgress)
 		const remainingProgress = 100 - currentProgress
-
-		const results: CalendarEventPersistenceResult = {
-			successfulEvents: [],
-			failedEvents: [],
-			failedEventErrors: [],
-			failedAlarms: [],
-			failedAlarmErrors: [],
-		}
 
 		for (const [listId, eventAlarmsTuples] of eventAlarmsTupleByListId.entries()) {
 			const calendarEventsToPersist: tutanotaTypeRefs.CalendarEvent[] = eventAlarmsTuples.map((e: EventAlarmInfoTemplatesTuple) => e.event)
