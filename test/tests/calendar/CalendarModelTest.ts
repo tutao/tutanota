@@ -2,7 +2,7 @@ import o, { verify } from "@tutao/otest"
 import { elementIdPart, entityUpdateUtils, getListId, listIdPart, sysTypeRefs, tutanotaTypeRefs } from "@tutao/typerefs"
 import { clone, getFirstOrThrow, neverNull, Require } from "@tutao/utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, RepeatPeriod } from "../../../src/app-env"
+import { CalendarAttendeeStatus, CalendarMethod, GroupType, RepeatPeriod } from "../../../src/app-env"
 import { DateTime } from "luxon"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
@@ -30,7 +30,7 @@ import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"
-import { GroupType } from "../../../src/app-env"
+import { OperationProgressTracker } from "../../../src/common/api/main/OperationProgressTracker"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -65,6 +65,7 @@ o.spec("CalendarModel", function () {
 	let serviceExecutorMock: IServiceExecutor
 	let loginControllerMock: LoginController
 	let progressTrackerMock: ProgressTracker
+	let operationProgressTracker: OperationProgressTracker
 	let entityClientMock: EntityClient
 	let mailboxModelMock: MailboxModel
 	let calendarFacadeMock: CalendarFacade
@@ -99,6 +100,7 @@ o.spec("CalendarModel", function () {
 		loginControllerMock = object()
 		userControllerMock = object()
 		progressTrackerMock = object()
+		operationProgressTracker = object()
 		entityClientMock = object()
 		mailboxModelMock = object()
 		calendarFacadeMock = object()
@@ -166,7 +168,7 @@ o.spec("CalendarModel", function () {
 		when(entityClientMock.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, calendarGroupRoot._id)).thenResolve(calendarGroupRoot)
 		when(entityClientMock.load(sysTypeRefs.GroupTypeRef, calendarGroup._id)).thenResolve(calendarGroup)
 		when(entityClientMock.load(sysTypeRefs.GroupInfoTypeRef, calendarGroupInfo._id)).thenResolve(calendarGroupInfo)
-		when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(undefined)
+		when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve({})
 
 		calendarModel = new CalendarModel(
 			notificationsMock,
@@ -175,6 +177,7 @@ o.spec("CalendarModel", function () {
 			serviceExecutorMock,
 			loginControllerMock,
 			progressTrackerMock,
+			operationProgressTracker,
 			entityClientMock,
 			mailboxModelMock,
 			calendarFacadeMock,
