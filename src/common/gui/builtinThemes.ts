@@ -317,7 +317,6 @@ export const themes = (): Themes => {
 		drive_video: "#F0B3E8",
 		drive_audio: "#F3BD6E",
 	})
-
 	const lightGreen = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isDriveApp ? "light" : "light_secondary",
@@ -384,9 +383,72 @@ export const themes = (): Themes => {
 		drive_video: "#7F4D7B",
 		drive_audio: "#A2752F",
 	})
-
-	// FIXME
-	const darkGreen = lightGreen
+	const darkGreen = Object.freeze<Theme>({
+		...semanticColorsDark,
+		themeId: isDriveApp ? "dark" : "dark_secondary",
+		logo: getAppLogo("#C4C6D0EE"),
+		// Basic color tokens
+		primary: "#8AD6B7",
+		on_primary: "#003828",
+		primary_container: "#00513C",
+		on_primary_container: "#A6F2D2",
+		primary_fixed: "#A6F2D2",
+		on_primary_fixed: "#002409",
+		primary_fixed_dim: "#8AD6B7",
+		on_primary_fixed_variant: "#00513C",
+		secondary: "#B0D18B",
+		on_secondary: "#1E3702",
+		secondary_container: "#344E17",
+		on_secondary_container: "#CCEDA5",
+		secondary_fixed: "#CCEDA5",
+		on_secondary_fixed: "#192300",
+		secondary_fixed_dim: "#B0D18B",
+		on_secondary_fixed_variant: "#344E17",
+		tertiary: "#CCBEFF",
+		on_tertiary: "#34275E",
+		tertiary_container: "#4A3E76",
+		on_tertiary_container: "#E7DEFF",
+		tertiary_fixed: "#E7DEFF",
+		on_tertiary_fixed: "#1F1048",
+		tertiary_fixed_dim: "#CCBEFF",
+		on_tertiary_fixed_variant: "#4A3E76",
+		surface: "#0F1512",
+		surface_container: "#1B211E",
+		surface_container_high: "#252B28",
+		surface_container_highest: "#303633",
+		on_surface: "#DEE4DF",
+		on_surface_variant: "#BFC9C2",
+		outline: "#89938D",
+		outline_variant: "#404944",
+		scrim: "#000000",
+		experimental_primary_container: "#C9C6C5",
+		experimental_on_primary_container: "#232323",
+		experimental_tertiary: "#0040FF",
+		// state colors; based on outline_variant, with alpha
+		state_bg_hover: "#444E4A77",
+		state_bg_focus: "#444E4A99",
+		state_bg_active: "#444E4AAA",
+		// Campaign colors
+		tuta_color_nota: "#D93951",
+		content_accent_tuta_bday: "#FCBFDE", // FIXME: No token in design system
+		content_accent_secondary_tuta_bday: "#AC3E80", // FIXME: No token in design system
+		content_bg_tuta_bday: "#FFFFFF", // FIXME: No token in design system
+		go_european: goEuropeanLightBlue,
+		on_go_european: "#111111",
+		// SVG illust colors
+		il_outline: "#101418",
+		il_ne_outline: "#DFF4EB",
+		il_highlight: "#DFF4EB",
+		il_sign_up_flow_switch: "#C4C6D0",
+		il_sign_up_flow_switch_2: "#C4C6D0",
+		il_sign_up_flow_switch_4: "#C4C6D0", // FIXME: No token in design system
+		// Drive icon colors
+		drive_folder: "#B0D18B",
+		drive_document: "#FFB3B5",
+		drive_image: "#81D5CE",
+		drive_video: "#F0B3E8",
+		drive_audio: "#F3BD6E",
+	})
 
 	return {
 		light: isCalendarApp ? lightBlue : isDriveApp ? lightGreen : lightRed,
