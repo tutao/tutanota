@@ -48,6 +48,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { MessageBanner } from "../../../common/gui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
+import { DriveMobileSortButton } from "./DriveMobileSortButton"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -469,6 +470,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				title: this.driveViewModel.currentFolder ? driveFolderName(this.driveViewModel.currentFolder.folder) : undefined,
 				columnType: "first",
 				actions: [
+					m(DriveMobileSortButton, {
+						currentSort: this.driveViewModel.getCurrentColumnSortOrder(),
+						onSort: (property) => this.driveViewModel.sort(property),
+					}),
 					onPaste
 						? m(IconButton, {
 								title: "paste_action",
