@@ -2271,6 +2271,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"light_green_label": "Hellgrün",
+		"dark_green_label": "Dunkelgrün",
 	}
 }

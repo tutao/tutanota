@@ -2271,6 +2271,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"light_green_label": "Light Green",
+		"dark_green_label": "Dark Green",
 	}
 }
