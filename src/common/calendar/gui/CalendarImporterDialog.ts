@@ -8,13 +8,14 @@ import { serializeCalendar } from "../../../calendar-app/calendar/export/Calenda
 import { parseCalendarFile, showEventsImportDialog } from "./CalendarImporter.js"
 import { convertToDataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
+import { isNotEmpty, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { EventAlarmInfoTemplatesTuple, EventImportRejectionReason, ParsedEvent, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 import { isApp } from "@tutao/app-env"
+import { showInfoSnackbar } from "../../gui/base/SnackBar"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -97,7 +98,11 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 
 async function importEvents(eventsForCreation: Array<EventAlarmInfoTemplatesTuple>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
-	return showProgressDialog("importCalendar_label", locator.calendarFacade.createCalendarEvents(eventsForCreation, operation.id), operation.progress)
+	const result = await showProgressDialog(
+		"importCalendar_label",
+		locator.calendarFacade.createCalendarEvents(eventsForCreation, operation.id),
+		operation.progress,
+	)
 		.catch(
 			ofClass(ImportError, (e) =>
 				Dialog.message(
@@ -112,6 +117,14 @@ async function importEvents(eventsForCreation: Array<EventAlarmInfoTemplatesTupl
 			),
 		)
 		.finally(() => operation.done())
+
+	if (result && isNotEmpty(result.failedEventErrors)) {
+		showInfoSnackbar("unknownError_msg")
+	}
+
+	if (result && isNotEmpty(result.failedAlarmErrors)) {
+		showInfoSnackbar("unknownError_msg")
+	}
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */
