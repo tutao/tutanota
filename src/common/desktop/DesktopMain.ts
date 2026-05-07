@@ -476,7 +476,7 @@ function manageDownloadsForSession(session: Session, dictUrl: string, conf: Desk
 			// The spellcheck language is set to a different language at startup, and then here it is switched to the correct language
 			conf.getVar(DesktopConfigKey.spellcheck).then((l) => {
 				if (lcode !== l) {
-					session.setSpellCheckerLanguages([l])
+					session.setSpellCheckerLanguages(l === "" ? [] : [l])
 				}
 			})
 			log.debug(TAG, "spellcheck-dictionary-initialized", lcode)
