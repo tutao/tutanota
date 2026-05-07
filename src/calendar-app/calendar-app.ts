@@ -190,7 +190,15 @@ import("../mail-app/translations/en.js")
 							cache: { header: await calendarLocator.appHeaderAttrs() },
 						}
 					},
-					prepareAttrs: (cache) => ({ header: cache.header, logins: calendarLocator.logins }),
+					prepareAttrs: (cache) => ({
+						header: cache.header,
+						logins: calendarLocator.logins,
+						domainConfigProvider: calendarLocator.domainConfigProvider(),
+						mobilePaymentsFacade: calendarLocator.mobilePaymentsFacade,
+						credentialsProvider: calendarLocator.credentialsProvider,
+						systemFacade: calendarLocator.systemFacade,
+						eventController: calendarLocator.eventController,
+					}),
 				},
 				calendarLocator.logins,
 			),
