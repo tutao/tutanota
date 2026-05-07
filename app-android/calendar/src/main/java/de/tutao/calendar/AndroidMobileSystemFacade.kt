@@ -28,11 +28,13 @@ import de.tutao.tutashared.SystemUtils
 import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
-import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.file.AndroidFileFacade
+import de.tutao.tutashared.ipc.AppLockMethod
+import de.tutao.tutashared.ipc.MobileSystemFacade
+import de.tutao.tutashared.ipc.PermissionType
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
