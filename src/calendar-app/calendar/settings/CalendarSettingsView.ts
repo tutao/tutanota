@@ -25,8 +25,6 @@ import { SubscriptionViewer } from "../../../common/subscription/SubscriptionVie
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
 import { ReferralSettingsViewer } from "../../../common/settings/ReferralSettingsViewer.js"
 import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
-import { Dialog } from "../../../common/gui/base/Dialog.js"
-import { AboutDialog } from "../../../common/settings/AboutDialog.js"
 import { CalendarSettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
@@ -40,6 +38,7 @@ import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTe
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { SettingsList } from "../../../common/settings/SettingsList"
+import { SettingsAboutLInk } from "../../../common/settings/SettingsAboutLInk"
 
 assertMainOrNode()
 
@@ -243,8 +242,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					void showSupportDialog(locator.logins)
 				},
 			}),
-			// About button
-			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
+			isFirstPartyDomain ? m(SettingsAboutLInk) : null,
 		])
 	}
 
@@ -462,54 +460,6 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 	getViewSlider(): ViewSlider | null {
 		return this.viewSlider
-	}
-
-	_aboutThisSoftwareLink(): Children {
-		const label = lang.get("about_label")
-		const versionLabel = `Tuta v${env.versionNumber}`
-		return m("", [
-			m(
-				"button.text-center.small.no-text-decoration",
-				{
-					style: {
-						backgroundColor: "transparent",
-					},
-					href: "#",
-					"aria-label": label,
-					"aria-description": versionLabel,
-					"aria-haspopup": "dialog",
-					onclick: () => {
-						setTimeout(() => {
-							const dialog = Dialog.showActionDialog({
-								title: "about_label",
-								child: () =>
-									m(AboutDialog, {
-										onShowSetupWizard: () => {
-											dialog.close()
-											calendarLocator.showSetupWizard()
-										},
-									}),
-								allowOkWithReturn: true,
-								okAction: (dialog: Dialog) => dialog.close(),
-								allowCancel: false,
-							})
-						}, 200)
-					},
-				},
-				[
-					m("", versionLabel),
-					m(
-						".b",
-						{
-							style: {
-								color: theme.primary,
-							},
-						},
-						label,
-					),
-				],
-			),
-		])
 	}
 
 	handleBackButton() {
