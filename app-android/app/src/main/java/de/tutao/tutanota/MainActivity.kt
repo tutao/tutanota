@@ -17,6 +17,7 @@ import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
+import android.print.PrintDocumentAdapter
 import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
@@ -38,6 +39,7 @@ import androidx.activity.addCallback
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -58,8 +60,11 @@ import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
+import de.tutao.tutashared.AndroidMobileSystemFacade
+import de.tutao.tutashared.AndroidMobileSystemFacade.Companion.TUTA_INTENT_ACTION
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidThemeFacade
+import de.tutao.tutashared.AppType
 import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
@@ -209,7 +214,15 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
-			AndroidMobileSystemFacade(fileFacade, this, db),
+			AndroidMobileSystemFacade(
+				fileFacade,
+				this,
+				this,
+				db,
+				BuildConfig.FILE_PROVIDER_AUTHORITY,
+				AppType.MAIL,
+				null
+			),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
 			nativePushFacade,
@@ -546,6 +559,7 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 
 		val isInteropCall = intent.action == ACTION_EDIT && intent.getStringExtra(TUTA_INTENT_ACTION) == "interop"
+		// FIXME support drive
 		val isTrustedCaller = callingPackage == BuildConfig.APPLICATION_ID.replace(
 			"tutanota",
 			"calendar"
@@ -589,12 +603,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 	}
 
-	fun hasBatteryOptimizationPermission(): Boolean {
+	override fun hasBatteryOptimizationPermission(): Boolean {
 		val pm = ContextCompat.getSystemService(this, PowerManager::class.java)!!
 		return pm.isIgnoringBatteryOptimizations(this.packageName)
 	}
 
-	suspend fun requestBatteryOptimizationPermission() {
+	override suspend fun requestBatteryOptimizationPermission() {
 		withContext(Dispatchers.Main) {
 			@SuppressLint("BatteryLife")
 			val intent = Intent(
@@ -635,8 +649,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		get() = BuildConfig.RES_ADDRESS
 
 
-	fun hasPermission(permission: String): Boolean {
+	override fun hasPermission(permission: String): Boolean {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+	}
+
+	override fun createPrintDocumentAdapter(jobName: String): PrintDocumentAdapter {
+		return webView.createPrintDocumentAdapter(jobName)
 	}
 
 	override suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
@@ -645,7 +663,7 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		} else {
 			val requestCode = getNextRequestCode()
 			permissionsRequests[requestCode] = continuation
-			requestPermissions(arrayOf(permission), requestCode)
+			ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
 		}
 	}
 
@@ -908,7 +926,6 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
 		const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
-		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
 
 		private const val TAG = "MainActivity"
 		private var requestId = 0

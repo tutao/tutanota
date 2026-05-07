@@ -1,6 +1,7 @@
-package de.tutao.tutanota
+package de.tutao.tutashared
 
 import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
@@ -12,29 +13,39 @@ import android.util.Base64
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.core.app.ActivityCompat.startActivityForResult
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
-import de.tutao.tutashared.CredentialAuthenticationException
-import de.tutao.tutashared.SystemUtils
-import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
-import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.ipc.AppLockMethod
+import de.tutao.tutashared.ipc.MobileSystemFacade
+import de.tutao.tutashared.ipc.PermissionType
 import de.tutao.tutashared.remote.RemoteStorage
+import de.tutao.tutashared.widget.WidgetRefreshable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
 
+enum class AppType {
+	MAIL,
+	CALENDAR,
+	DRIVE
+}
+
+data class AppDetails(val packageName: String, val scheme: String)
 
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
-	private val activity: MainActivity,
-	private val db: AppDatabase
+	private val activity: Activity,
+	private val activityUtils: AsyncActivityUtils,
+	private val db: AppDatabase,
+	private val providerAuthority: String,
+	private val appType: AppType,
+	private val widgetRefresher: WidgetRefreshable?,
 ) : MobileSystemFacade {
 	private val authenticationPrompt = AuthenticationPrompt()
 
@@ -42,7 +53,6 @@ class AndroidMobileSystemFacade(
 		private const val TAG = "SystemFacade"
 		const val APP_LOCK_METHOD = "AppLockMethod"
 		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
-		const val TUTA_INTENT_INTEROP_DATA = "TUTA_INTEROP_DATA"
 	}
 
 	override suspend fun openLink(uri: String): Boolean {
@@ -65,7 +75,7 @@ class AndroidMobileSystemFacade(
 				Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
 				Uri.parse("package:${activity.packageName}")
 			)
-			startActivity(activity, intent, null)
+			ContextCompat.startActivity(activity, intent, null)
 		}
 	}
 
@@ -87,7 +97,7 @@ class AndroidMobileSystemFacade(
 				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
 				val logoFile = File(fileFacade.tempDir.decrypt, imageName)
 				fileFacade.writeFileStream(logoFile, logoInputStream)
-				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
+				val logoUri = FileProvider.getUriForFile(activity, providerAuthority, logoFile)
 				val thumbnail = ClipData.newUri(
 					activity.contentResolver,
 					"tutanota_logo",
@@ -109,31 +119,32 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun hasPermission(permission: PermissionType): Boolean {
 		return when (permission) {
-			PermissionType.CONTACTS -> activity.hasPermission(Manifest.permission.READ_CONTACTS) && activity.hasPermission(
+			PermissionType.CONTACTS -> activityUtils.hasPermission(Manifest.permission.READ_CONTACTS) && activityUtils.hasPermission(
 				Manifest.permission.WRITE_CONTACTS
 			)
 
-			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.hasBatteryOptimizationPermission()
-			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.hasPermission(Manifest.permission.POST_NOTIFICATIONS) else true
-			PermissionType.CAMERA -> activity.hasPermission(Manifest.permission.CAMERA)
+			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activityUtils.hasBatteryOptimizationPermission()
+			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activityUtils.hasPermission(Manifest.permission.POST_NOTIFICATIONS) else true
+			PermissionType.CAMERA -> activityUtils.hasPermission(Manifest.permission.CAMERA)
 		}
 	}
 
 	override suspend fun requestPermission(permission: PermissionType) {
 		when (permission) {
 			PermissionType.CONTACTS -> {
-				activity.getPermission(Manifest.permission.READ_CONTACTS)
-				activity.getPermission(Manifest.permission.WRITE_CONTACTS)
+				activityUtils.getPermission(Manifest.permission.READ_CONTACTS)
+				activityUtils.getPermission(Manifest.permission.WRITE_CONTACTS)
 			}
 
-			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.requestBatteryOptimizationPermission()
-			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.getPermission(Manifest.permission.POST_NOTIFICATIONS)
-			PermissionType.CAMERA -> activity.getPermission(Manifest.permission.CAMERA)
+			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activityUtils.requestBatteryOptimizationPermission()
+			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activityUtils.getPermission(Manifest.permission.POST_NOTIFICATIONS)
+			PermissionType.CAMERA -> activityUtils.getPermission(Manifest.permission.CAMERA)
 		}
 	}
 
 	override suspend fun getAppLockMethod(): AppLockMethod {
-		return db.keyValueDao().getString(APP_LOCK_METHOD)?.let { AppLockMethod.fromValue(it) } ?: AppLockMethod.NONE
+		return db.keyValueDao().getString(APP_LOCK_METHOD)?.let { AppLockMethod.fromValue(it) }
+			?: AppLockMethod.NONE
 	}
 
 	override suspend fun setAppLockMethod(method: AppLockMethod) {
@@ -176,38 +187,59 @@ class AndroidMobileSystemFacade(
 		}
 	}
 
-	override suspend fun openMailApp(query: String) {
-		Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
+	fun getAppDetails(appType: AppType): AppDetails {
+		return when (appType) {
+			AppType.MAIL -> AppDetails("tutanota", "tutamail")
+			AppType.CALENDAR -> AppDetails("calendar", "tutacalendar")
+			AppType.DRIVE -> AppDetails("drive", "tutadrive")
+		}
 	}
 
-	private fun tryToLaunchStore() {
+	suspend fun openTutaApp(query: String, appType: AppType) {
+		val appDetails = getAppDetails(appType)
+
+		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
+		val targetPackageId = activity.packageName.replace("tutashared", appDetails.packageName)
+
+		val intent = Intent()
+		intent.setPackage(targetPackageId)
+		intent.setAction(Intent.ACTION_EDIT)
+		intent.putExtra(TUTA_INTENT_ACTION, "interop")
+		intent.setData(Uri.parse("${appDetails.scheme}://interop?$decodedQuery"))
+
 		try {
-			val packageId = activity.getString(R.string.package_name).replace("tutanota", "calendar")
-			startActivity(
+			activity.startActivity(intent)
+		} catch (e: Exception) {
+			Log.d(TAG, e.toString())
+			tryToLaunchStore(targetPackageId)
+		}
+	}
+
+	override suspend fun openMailApp(query: String) {
+		if (appType === AppType.MAIL) {
+			Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
+		} else {
+			openTutaApp(query, appType)
+		}
+	}
+
+	override suspend fun openCalendarApp(query: String) {
+		if (appType === AppType.CALENDAR) {
+			Log.e(TAG, "Trying to open Tuta Calendar from Tuta Calendar")
+		} else {
+			openTutaApp(query, appType)
+		}
+	}
+
+	private fun tryToLaunchStore(packageId: String) {
+		try {
+			ContextCompat.startActivity(
 				activity,
 				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageId")),
 				null
 			)
 		} catch (e: Exception) {
 			Log.d(TAG, "Failed to launch store $e")
-		}
-	}
-
-	override suspend fun openCalendarApp(query: String) {
-		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
-		val targetPackageId = activity.getString(R.string.package_name).replace("calendar", "tutanota")
-
-		val intent = Intent()
-		intent.setPackage(targetPackageId)
-		intent.setAction(Intent.ACTION_EDIT)
-		intent.putExtra(TUTA_INTENT_ACTION, "interop")
-		intent.setData(Uri.parse("tutacalendar://interop?$decodedQuery"))
-
-		try {
-			startActivityForResult(activity, intent, 0, null)
-		} catch (e: Exception) {
-			Log.d(TAG, e.toString())
-			tryToLaunchStore()
 		}
 	}
 
@@ -224,7 +256,16 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun requestWidgetRefresh() {
-		throw NotImplementedError("requestWidgetRefresh")
+		if (widgetRefresher == null) {
+			Log.e(TAG, "widgetRefresher is null, should not happen")
+			return
+		}
+
+		try {
+			widgetRefresher.refresh(activity)
+		} catch (e: Exception) {
+			Log.e(TAG, "Failed to refresh widgets state ${e.message}")
+		}
 	}
 
 	override suspend fun storeServerRemoteOrigin(origin: String) {
@@ -233,12 +274,16 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun print() {
+		if (appType != AppType.MAIL) {
+			throw NotImplementedError("print() is only implemented for mail")
+		}
+
 		withContext(Dispatchers.Main) {
 			val printManager = activity.getSystemService(PrintManager::class.java)
 			val jobName = "${activity.getString(R.string.app_name)} Document"
 
 			// Get a print adapter instance
-			val printAdapter = activity.webView.createPrintDocumentAdapter(jobName)
+			val printAdapter = activityUtils.createPrintDocumentAdapter(jobName)
 
 			// Create a print job with name and adapter instance
 			printManager.print(

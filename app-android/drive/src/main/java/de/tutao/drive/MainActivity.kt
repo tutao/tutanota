@@ -13,6 +13,7 @@ import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
+import android.print.PrintDocumentAdapter
 import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
@@ -42,8 +43,10 @@ import androidx.lifecycle.lifecycleScope
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
+import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidThemeFacade
+import de.tutao.tutashared.AppType
 import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils
@@ -172,7 +175,15 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacadeStub,
-			AndroidMobileSystemFacade(fileFacade, this, db),
+			AndroidMobileSystemFacade(
+				fileFacade,
+				this,
+				this,
+				db,
+				BuildConfig.FILE_PROVIDER_AUTHORITY,
+				AppType.DRIVE,
+				null
+			),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
 			AndroidNativePushFacadeStub,
@@ -494,12 +505,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 	}
 
-	fun hasBatteryOptimizationPermission(): Boolean {
+	override fun hasBatteryOptimizationPermission(): Boolean {
 		val pm = ContextCompat.getSystemService(this, PowerManager::class.java)!!
 		return pm.isIgnoringBatteryOptimizations(this.packageName)
 	}
 
-	suspend fun requestBatteryOptimizationPermission() {
+	override suspend fun requestBatteryOptimizationPermission() {
 		withContext(Dispatchers.Main) {
 			@SuppressLint("BatteryLife")
 			val intent = Intent(
@@ -540,8 +551,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		get() = BuildConfig.RES_ADDRESS
 
 
-	fun hasPermission(permission: String): Boolean {
+	override fun hasPermission(permission: String): Boolean {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+	}
+
+	override fun createPrintDocumentAdapter(jobName: String): PrintDocumentAdapter {
+		throw NotImplementedError("createDocumentPrintAdapter")
 	}
 
 	override suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->

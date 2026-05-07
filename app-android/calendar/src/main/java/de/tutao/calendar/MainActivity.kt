@@ -16,6 +16,7 @@ import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
+import android.print.PrintDocumentAdapter
 import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
@@ -52,8 +53,13 @@ import de.tutao.calendar.push.AndroidNativePushFacade
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.PushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
+import de.tutao.calendar.widget.WidgetRefresher
+import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.AndroidCalendarFacade
+import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.AppType
+import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
@@ -62,6 +68,7 @@ import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
@@ -103,7 +110,7 @@ interface WebauthnHandler {
 	fun onNoResult()
 }
 
-class MainActivity : FragmentActivity() {
+class MainActivity : FragmentActivity(), AsyncActivityUtils {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -142,6 +149,7 @@ class MainActivity : FragmentActivity() {
 		val fileFacade =
 			AndroidFileFacade(
 				this,
+				this,
 				localNotificationsFacade,
 				SecureRandom(),
 				NetworkUtils.defaultClient,
@@ -154,7 +162,8 @@ class MainActivity : FragmentActivity() {
 					lifecycleScope.launch {
 						commonNativeFacade.uploadProgress(fileId, bytes)
 					}
-				})
+				}, "unused"
+			)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
@@ -190,7 +199,15 @@ class MainActivity : FragmentActivity() {
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
-			AndroidMobileSystemFacade(fileFacade, this, db),
+			AndroidMobileSystemFacade(
+				fileFacade,
+				this,
+				this,
+				db,
+				BuildConfig.FILE_PROVIDER_AUTHORITY,
+				AppType.CALENDAR,
+				WidgetRefresher()
+			),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
 			nativePushFacade,
@@ -548,12 +565,12 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	fun hasBatteryOptimizationPermission(): Boolean {
+	override fun hasBatteryOptimizationPermission(): Boolean {
 		val pm = ContextCompat.getSystemService(this, PowerManager::class.java)!!
 		return pm.isIgnoringBatteryOptimizations(this.packageName)
 	}
 
-	suspend fun requestBatteryOptimizationPermission() {
+	override suspend fun requestBatteryOptimizationPermission() {
 		withContext(Dispatchers.Main) {
 			@SuppressLint("BatteryLife")
 			val intent = Intent(
@@ -594,11 +611,15 @@ class MainActivity : FragmentActivity() {
 		get() = BuildConfig.RES_ADDRESS
 
 
-	fun hasPermission(permission: String): Boolean {
+	override fun hasPermission(permission: String): Boolean {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
-	suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
+	override fun createPrintDocumentAdapter(jobName: String): PrintDocumentAdapter {
+		throw NotImplementedError("createPrintDocumentAdapter")
+	}
+
+	override suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
 		if (hasPermission(permission)) {
 			continuation.resume(Unit)
 		} else {
@@ -622,7 +643,7 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
