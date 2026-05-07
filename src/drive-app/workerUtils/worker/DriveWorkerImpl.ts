@@ -88,10 +88,6 @@ export class DriveWorkerImpl implements NativeInterface {
 				throw new Error("not implemented")
 			},
 
-			async alarmFacade() {
-				throw new Error("not implemented")
-			},
-
 			async mailFacade() {
 				throw new Error("not implemented")
 			},

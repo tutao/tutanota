@@ -65,7 +65,11 @@ import {
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import {
+	findAttendeeInAddresses,
+	isAllDayEvent,
+	serializeAlarmInterval
+} from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -109,6 +113,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { formatNotificationForDisplay } from "../../../common/misc/Formatter"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
 
 type CalendarEvent = tutanotaTypeRefs.CalendarEvent
 type CalendarGroupRoot = tutanotaTypeRefs.CalendarGroupRoot
@@ -687,7 +692,15 @@ export class CalendarModel {
 		}
 		if (isNotEmpty(eventsForCreation)) {
 			let eventCreationOperation = this.operationProgressTracker.startNewOperation()
-			await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
+			const result = await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
+
+			if (isNotEmpty(result.failedEventErrors)) {
+				showInfoSnackbar("unknownError_msg")
+			}
+
+			if (isNotEmpty(result.failedAlarmErrors)) {
+				showInfoSnackbar("unknownError_msg")
+			}
 			eventCreationOperation.done()
 		}
 		console.log(TAG, `${operationsLog.created} events created`)
@@ -764,7 +777,15 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
+		const result = await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
+
+		if (isNotEmpty(result.failedEventErrors)) {
+			showInfoSnackbar("unknownError_msg")
+		}
+
+		if (isNotEmpty(result.failedAlarmErrors)) {
+			showInfoSnackbar("unknownError_msg")
+		}
 		return this.requestWidgetRefresh()
 	}
 
@@ -793,7 +814,15 @@ export class CalendarModel {
 		downcast(newEvent)._permissions = null
 		newEvent._ownerGroup = groupRoot._id
 
-		await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
+		const result = await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
+
+		if (isNotEmpty(result.failedEventErrors)) {
+			showInfoSnackbar("unknownError_msg")
+		}
+
+		if (isNotEmpty(result.failedAlarmErrors)) {
+			showInfoSnackbar("unknownError_msg")
+		}
 		return this.requestWidgetRefresh()
 	}
 
