@@ -9,12 +9,12 @@ import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn.js"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder.js"
-import { LazyLoaded, lazyStringValue } from "@tutao/utils"
+import { LazyLoaded } from "@tutao/utils"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
 import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
-import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -33,13 +33,13 @@ import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
-import { SettingsNavButton, SettingsNavButtonAttrs } from "../../gui/SettingsNavButton.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
 import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { SettingsList } from "../../../common/settings/SettingsList"
 
 assertMainOrNode()
 
@@ -119,8 +119,28 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
 						columnLayout: m(".flex.flex-grow.col.fill-absolute.scroll", [
-							this.renderSettingsNavigation(this.userFolders, "userSettings_label"),
-							this.renderLoggedInNavigationLinks(),
+							m(SettingsList, {
+								sections: [
+									{
+										name: lang.getTranslation("userSettings_label"),
+										items: this.userFolders.filter((f) => f.isVisible()).map((f) => this._createSettingsFolderNavButton(f)),
+									},
+									...(this.logins.isUserLoggedIn()
+										? [
+												{
+													name: lang.getTranslation("adminSettings_label"),
+													items: this.userFolders.filter((f) => f.isVisible()).map((f) => this._createSettingsFolderNavButton(f)),
+												},
+												{
+													name: lang.getTranslation("subscriptionSettings_label"),
+													items: this.subscriptionFolders
+														.filter((f) => f.isVisible())
+														.map((f) => this._createSettingsFolderNavButton(f)),
+												},
+											]
+										: []),
+								],
+							}),
 							this.bottomSection(),
 						]),
 						mobileHeader: () =>
@@ -225,17 +245,6 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			}),
 			// About button
 			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
-		])
-	}
-
-	private renderLoggedInNavigationLinks() {
-		if (!this.logins.isUserLoggedIn()) {
-			return m.fragment({}, [])
-		}
-
-		return m.fragment({}, [
-			this.renderSettingsNavigation(this.adminFolders, "adminSettings_label"),
-			this.renderSettingsNavigation(this.subscriptionFolders, "subscriptionSettings_label"),
 		])
 	}
 
@@ -360,38 +369,6 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			click: () => this.viewSlider.focus(this.settingsColumn),
 			persistentBackground: true,
 		}
-	}
-
-	renderSettingsNavigation(folders: SettingsFolder<unknown>[], title: MaybeTranslation): Children {
-		if (folders.length === 0) {
-			return null
-		}
-
-		return m(
-			".flex.col.pl-16.pt-8.pb-8",
-			{
-				class: styles.isSingleColumnLayout() ? "pr-16" : "pr-8",
-			},
-			[
-				m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
-				m(
-					".flex.col.border-radius-8.list-bg",
-					folders
-						.filter((folder) => folder.isVisible())
-						.map((folder) => {
-							const buttonAttrs = this._createSettingsFolderNavButton(folder)
-
-							return m(SettingsNavButton, {
-								label: buttonAttrs.label,
-								click: buttonAttrs.click ?? (() => null),
-								icon: buttonAttrs.icon,
-								href: lazyStringValue(buttonAttrs.href),
-								class: "settings-item",
-							} satisfies SettingsNavButtonAttrs)
-						}),
-				),
-			],
-		)
 	}
 
 	_getCurrentViewer(): UpdatableSettingsViewer | null {
