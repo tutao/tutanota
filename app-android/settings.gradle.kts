@@ -24,6 +24,7 @@ includeBuild("../tuta-sdk/android") {
 
 include(":app")
 include(":calendar")
+include(":drive")
 // FIXME
 //project(":calendar").projectDir = File(rootDir, 'calendar/')
 include(":tutashared")
