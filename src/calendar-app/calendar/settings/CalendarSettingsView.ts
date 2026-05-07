@@ -31,14 +31,11 @@ import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
-import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
-import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
-import { showSupportDialog } from "../../../common/support/SupportDialog.js"
-import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { SettingsList } from "../../../common/settings/SettingsList"
 import { SettingsAboutLInk } from "../../../common/settings/SettingsAboutLInk"
+import { SettingsSupportButton } from "../../../common/settings/SettingsSupportButton"
 
 assertMainOrNode()
 
@@ -218,30 +215,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16.pb-safe-inset", [
 			// Support button
-			m(BaseButton, {
-				class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
-				style: {
-					marginInline: "auto",
-					border: `1px solid ${theme.outline}`,
-					color: theme.on_surface_variant,
-				},
-				label: "supportMenu_label",
-				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
-				icon: m(Icon, {
-					icon: Icons.ChatbubbleFilled,
-					size: IconSize.PX24,
-					class: "center-h",
-					container: "div",
-					style: { fill: theme.on_surface_variant },
-				}),
-				onclick: () => {
-					const triggerStage = getSupportUsageTestStage(0)
-					triggerStage.setMetric({ name: "Trigger", value: "Settings" })
-					void triggerStage.complete()
-
-					void showSupportDialog(locator.logins)
-				},
-			}),
+			m(SettingsSupportButton, { logins: this.logins }),
 			isFirstPartyDomain ? m(SettingsAboutLInk) : null,
 		])
 	}
