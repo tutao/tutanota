@@ -346,11 +346,17 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	onSingleInclusiveSelection(mail: Mail, clearSelectionOnMultiSelectStart?: boolean): void {
-		this.listModel.onSingleInclusiveSelection(assertNotNull(this.getConversationForMail(mail)), clearSelectionOnMultiSelectStart)
+		const conversation = this.getConversationForMail(mail)
+		if (conversation) {
+			this.listModel.onSingleInclusiveSelection(conversation, clearSelectionOnMultiSelectStart)
+		}
 	}
 
 	onSingleSelection(mail: Mail): void {
-		this.listModel.onSingleSelection(assertNotNull(this.getConversationForMail(mail)))
+		const conversation = this.getConversationForMail(mail)
+		if (conversation) {
+			this.listModel.onSingleSelection(conversation)
+		}
 	}
 
 	async retryLoading() {
@@ -381,7 +387,10 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	selectRangeTowards(mail: Mail): void {
-		this.listModel.selectRangeTowards(assertNotNull(this.getConversationForMail(mail)))
+		const conversation = this.getConversationForMail(mail)
+		if (conversation) {
+			this.listModel.selectRangeTowards(conversation)
+		}
 	}
 
 	setFilter(filterTypes: ReadonlyArray<ListFilter<Mail>>): void {
@@ -442,7 +451,10 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	onSingleExclusiveSelection(mail: Mail): void {
-		this.listModel.onSingleExclusiveSelection(assertNotNull(this.getConversationForMail(mail)))
+		const conversation = this.getConversationForMail(mail)
+		if (conversation) {
+			this.listModel.onSingleExclusiveSelection(conversation)
+		}
 	}
 
 	getDisplayedMail(): Mail | null {
