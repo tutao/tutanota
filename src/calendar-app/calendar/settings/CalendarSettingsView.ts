@@ -1,9 +1,8 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import stream from "mithril/stream"
-import { assertMainOrNode, FeatureType, GroupType, isAndroidApp, isApp, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType, isAndroidApp, isIOSApp } from "@tutao/app-env"
 
 import { TopLevelView } from "../../../TopLevelView.js"
-import { Header } from "../../../common/gui/Header.js"
+import { Header, HeaderAttrs } from "../../../common/gui/Header.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
@@ -29,43 +28,47 @@ import { CalendarSettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSet
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
 import { calendarLocator } from "../../calendarLocator.js"
-import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 import { SettingsList } from "../../../common/settings/SettingsList"
 import { SettingsAboutLInk } from "../../../common/settings/SettingsAboutLInk"
 import { SettingsSupportButton } from "../../../common/settings/SettingsSupportButton"
+import type { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
+import type { MobilePaymentsFacade } from "../../../common/native/common/generatedipc/MobilePaymentsFacade"
 
 assertMainOrNode()
 
 export class CalendarSettingsView extends BaseTopLevelView implements TopLevelView<CalendarSettingsViewAttrs> {
+	private readonly mobilePaymentsFacade: MobilePaymentsFacade
 	viewSlider: ViewSlider
 	private readonly settingsCategoriesColumn: ViewColumn
+	private readonly settingsColumn: ViewColumn
+
+	/** the component for the details column. can be set by settings views */
+	private detailsViewer: UpdatableSettingsDetailsViewer | null = null
 	private readonly userFolders: SettingsFolder<unknown>[]
 	private readonly adminFolders: SettingsFolder<unknown>[]
 	private readonly subscriptionFolders: SettingsFolder<unknown>[]
 	private readonly logins: LoginController
 	private selectedFolder: SettingsFolder<unknown>
 	private currentViewer: UpdatableSettingsViewer | null = null
-	private showBusinessSettings: stream<boolean> = stream(false)
+	private showBusinessSettings: boolean = false
 	private readonly targetFolder: string
 	private readonly targetRoute: string
 
-	private settingsColumn: ViewColumn
-	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
-
-	customDomains: LazyLoaded<string[]>
-
-	constructor(vnode: Vnode<CalendarSettingsViewAttrs>) {
+	constructor({
+		attrs: { header, logins, credentialsProvider, systemFacade, mobilePaymentsFacade, domainConfigProvider },
+	}: Vnode<CalendarSettingsViewAttrs>) {
 		super()
-		this.logins = vnode.attrs.logins
+		this.logins = logins
+		this.mobilePaymentsFacade = mobilePaymentsFacade
 		this.userFolders = [
 			new SettingsFolder(
 				() => "login_label",
 				() => Icons.PersonFilled,
 				"login",
-				() => new LoginSettingsViewer(calendarLocator.credentialsProvider, isApp() ? calendarLocator.systemFacade : null),
+				() => new LoginSettingsViewer(credentialsProvider, systemFacade),
 				undefined,
 			),
 			new SettingsFolder(
@@ -89,26 +92,19 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.selectedFolder = this.userFolders[0]
 
-		this.settingsCategoriesColumn = this.renderSettingsCategoriesColumn(vnode)
-		this.settingsColumn = this.renderSettingsColumn(vnode)
+		this.settingsCategoriesColumn = this.makeSettingsCategoriesColumn(header, domainConfigProvider)
+		this.settingsColumn = this.makeSettingsColumn(header)
 		this.viewSlider = new ViewSlider([this.settingsCategoriesColumn, this.settingsColumn], false)
-
-		this.customDomains = new LazyLoaded(async () => {
-			const domainInfos = await getAvailableDomains(this.logins, true)
-			return domainInfos.map((info) => info.domain)
-		})
-
-		this.customDomains.getAsync().then(() => m.redraw())
 
 		this.targetFolder = m.route.param("folder")
 		this.targetRoute = m.route.get()
 	}
 
-	private isTabletView() {
+	private isTabletView(): boolean {
 		return (styles.isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !styles.isSingleColumnLayout()
 	}
 
-	private renderSettingsCategoriesColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
+	private makeSettingsCategoriesColumn(header: HeaderAttrs, domainConfigProvider: DomainConfigProvider): ViewColumn {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -119,29 +115,29 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								sections: [
 									{
 										name: lang.getTranslation("userSettings_label"),
-										items: this.userFolders.filter((f) => f.isVisible()).map((f) => this._createSettingsFolderNavButton(f)),
+										items: this.userFolders.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
 									},
 									...(this.logins.isUserLoggedIn()
 										? [
 												{
 													name: lang.getTranslation("adminSettings_label"),
-													items: this.userFolders.filter((f) => f.isVisible()).map((f) => this._createSettingsFolderNavButton(f)),
+													items: this.userFolders.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
 												},
 												{
 													name: lang.getTranslation("subscriptionSettings_label"),
 													items: this.subscriptionFolders
 														.filter((f) => f.isVisible())
-														.map((f) => this._createSettingsFolderNavButton(f)),
+														.map((f) => this.createSettingsFolderNavButton(f)),
 												},
 											]
 										: []),
 								],
 							}),
-							this.bottomSection(),
+							this.bottomSection(domainConfigProvider),
 						]),
 						mobileHeader: () =>
 							m(MobileHeader, {
-								...vnode.attrs.header,
+								...header,
 								backAction: () => m.route.set(CALENDAR_PREFIX),
 								columnType: "first",
 								title: "settings_label",
@@ -162,7 +158,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		)
 	}
 
-	private renderSettingsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
+	private makeSettingsColumn(header: HeaderAttrs): ViewColumn {
 		return new ViewColumn(
 			{
 				// the CSS improves the situation on devices with notches (no control elements
@@ -181,14 +177,14 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 										}
 									: {},
 							},
-							m(this._getCurrentViewer()!),
+							m(this.getCurrentViewer()),
 						),
 						mobileHeader: () =>
 							!this.isTabletView()
 								? m(MobileHeader, {
-										...vnode.attrs.header,
+										...header,
 										backAction: () => {
-											this._setUrl(SETTINGS_PREFIX)
+											this.setUrl(SETTINGS_PREFIX)
 											this.viewSlider.focusPreviousColumn()
 										},
 										columnType: "first",
@@ -210,13 +206,10 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		)
 	}
 
-	private bottomSection() {
-		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-
+	private bottomSection(domainConfigProvider: DomainConfigProvider): Children {
 		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16.pb-safe-inset", [
-			// Support button
 			m(SettingsSupportButton, { logins: this.logins }),
-			isFirstPartyDomain ? m(SettingsAboutLInk) : null,
+			domainConfigProvider.getCurrentDomainConfig().firstPartyDomain ? m(SettingsAboutLInk) : null,
 		])
 	}
 
@@ -232,7 +225,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				() => "adminSubscription_action",
 				() => Icons.TrophyFilled,
 				"subscription",
-				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? locator.mobilePaymentsFacade : null),
+				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? this.mobilePaymentsFacade : null),
 				undefined,
 			),
 		)
@@ -254,7 +247,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				"referral",
 				() => new ReferralSettingsViewer(),
 				undefined,
-			).setIsVisibleHandler(() => !this.showBusinessSettings()),
+			).setIsVisibleHandler(() => !this.showBusinessSettings),
 		)
 
 		m.redraw()
@@ -297,8 +290,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		m.redraw()
 	}
 
-	oncreate(vnode: Vnode<CalendarSettingsViewAttrs>) {
-		calendarLocator.eventController.addEntityListener(this.entityListener)
+	oncreate({ attrs: { eventController } }: Vnode<CalendarSettingsViewAttrs>) {
+		eventController.addEntityListener(this.entityListener)
 		Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()]).then(() => {
 			// We have to wait for the mailSets to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
@@ -310,8 +303,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		})
 	}
 
-	onremove(vnode: VnodeDOM<CalendarSettingsViewAttrs>) {
-		calendarLocator.eventController.removeEntityListener(this.entityListener)
+	onremove({ attrs: { eventController } }: VnodeDOM<CalendarSettingsViewAttrs>) {
+		eventController.removeEntityListener(this.entityListener)
 	}
 
 	private entityListener: entityUpdateUtils.EntityEventsListener = {
@@ -332,7 +325,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		)
 	}
 
-	_createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
+	private createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
 		return {
 			label: folder.name(),
 			icon: folder.icon,
@@ -343,7 +336,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 	}
 
-	_getCurrentViewer(): UpdatableSettingsViewer | null {
+	private getCurrentViewer(): UpdatableSettingsViewer {
 		if (!this.currentViewer) {
 			this.detailsViewer = null
 			this.currentViewer = this.selectedFolder.viewerCreator()
@@ -355,10 +348,10 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	/**
 	 * Notifies the current view about changes of the url within its scope.
 	 */
-	onNewUrl(args: Record<string, any>, requestedPath: string) {
+	onNewUrl(args: Record<string, any>, _requestedPath: string) {
 		if (args.folder || !m.route.get().startsWith(SETTINGS_PREFIX)) {
 			// ensure that current viewer will be reinitialized
-			const folder = this._allSettingsFolders().find((folder) => folder.matches(args.folder, args.id))
+			const folder = this.allSettingsFolders().find((folder) => folder.matches(args.folder, args.id))
 
 			if (folder && this.selectedFolder.isSameFolder(folder)) {
 				// folder path has not changed
@@ -369,13 +362,13 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				// folder path has changed
 				// to avoid misleading information, set the url to the folder's url, so the browser url
 				// is changed to correctly represents the displayed content
-				this._setUrl(folder.url)
+				this.setUrl(folder.url)
 				this.selectedFolder = folder
 				this.currentViewer = null
 				this.detailsViewer = null
 
 				// make sure the currentViewer is available
-				this._getCurrentViewer()
+				this.getCurrentViewer()
 				this.viewSlider.focus(this.settingsColumn)
 
 				m.redraw()
@@ -385,44 +378,37 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 	}
 
-	_allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
+	private allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
 		return [...this.userFolders, ...this.adminFolders, ...this.subscriptionFolders]
 	}
 
-	_setUrl(url: string) {
+	private setUrl(url: string) {
 		m.route.set(url + location.hash)
 	}
 
-	_isGlobalAdmin(user: sysTypeRefs.User): boolean {
-		return user.memberships.some((m) => m.groupType === GroupType.Admin)
-	}
-
 	private async updateShowBusinessSettings() {
-		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse)
+		this.showBusinessSettings = (await this.logins.getUserController().reloadCustomer()).businessUse
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
-				const user = this.logins.getUserController().user
-
 				// the user admin status might have changed
 				if (
-					!this._isGlobalAdmin(user) &&
+					!this.logins.getUserController().isGlobalAdmin() &&
 					this.currentViewer &&
 					(this.adminFolders.some((f) => f.isActive()) || this.subscriptionFolders.some((f) => f.isActive()))
 				) {
-					this._setUrl(this.userFolders[0].url)
+					this.setUrl(this.userFolders[0].url)
 				}
 				m.redraw()
 			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
-				this.customDomains.reset()
 				this.adminFolders.length = 0
 				this.subscriptionFolders.length = 0
 				// When switching a plan we hide/show certain admin settings.
-				await Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders(), this.customDomains.getAsync()])
+				await Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()])
 				m.redraw()
 			}
 		}
@@ -436,7 +422,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		return this.viewSlider
 	}
 
-	handleBackButton() {
+	handleBackButton(): boolean {
 		if (m.route.get().endsWith(SETTINGS_PREFIX)) {
 			m.route.set(CALENDAR_PREFIX)
 		} else {
