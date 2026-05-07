@@ -46,7 +46,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 				".flex.gap-16",
 				m(".flex.col.flex-grow.gap-32", [
 					m(
-						".p-32.border-radius-16",
+						".p-24.border-radius-16",
 						{
 							style: {
 								"background-color": theme.surface_container_high,
