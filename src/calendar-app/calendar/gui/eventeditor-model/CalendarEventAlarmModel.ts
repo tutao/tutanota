@@ -5,8 +5,7 @@ import { DateProvider } from "../../../../common/api/common/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Duration } from "luxon"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { isSameId } from "@tutao/typerefs"
-import { tutanotaTypeRefs } from "@tutao/typerefs"
+import { isSameId, tutanotaTypeRefs } from "@tutao/typerefs"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfoTemplate>
@@ -95,15 +94,13 @@ export class CalendarEventAlarmModel {
 	/**
 	 * Removes the default alarms for a given calendar.
 	 *
-	 * This function looks up the group settings associated with the provided `calendarId`
-	 * and removes all alarms listed in `defaultAlarmsList`.
+	 * This function looks up the {@link GroupSettings} associated with the provided {@link calendarId}
+	 * and removes all alarms listed in {@link GroupSettings.defaultAlarmsList}.
 	 *
 	 * If the current model has no alarms or the `calendarId` is invalid, the function exits early.
 	 *
-	 * @param {Id} calendarId - The unique identifier of the calendar whose alarms should be removed.
-	 * @param {GroupSettings[]} groupSettings - Array of group settings to search for matching calendar group.
-	 *
-	 * @throws {Error} If no group settings are found for the specified calendarId.
+	 * @param {Id} calendarId The unique identifier of the calendar whose alarms should be removed.
+	 * @param {GroupSettings[]} groupSettings Array of group settings to search for matching calendar group.
 	 *
 	 * @example
 	 * await myEventAlarmModel.removeCalendarDefaultAlarms('calendar123', allGroupSettings)
@@ -116,7 +113,7 @@ export class CalendarEventAlarmModel {
 		const calendarGroupSettings = groupSettings.find((groupSettings) => isSameId(groupSettings.group, calendarId))
 
 		if (!calendarGroupSettings) {
-			throw new Error(`Failed to remove default alarms - Missing groupSettings for calendar ${calendarId}`)
+			return // If the calendar doenst have default reminders there is nothing to do
 		}
 
 		for (const alarm of calendarGroupSettings.defaultAlarmsList) {
