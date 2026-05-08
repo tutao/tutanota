@@ -1216,7 +1216,7 @@ export type Booking = {
 	renewalEnabled: boolean;
 
 	items: BookingItem[];
-	subscriptionReference: null | SubscriptionReference;
+	subscriptionReference: SubscriptionReference;
 }
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", 722)
 
@@ -1368,7 +1368,7 @@ export type PaymentDataServicePutData = {
 	_format: NumberString;
 	invoiceName: string;
 	invoiceAddress: string;
-	invoiceCountry: string;
+	invoiceCountry: null | string;
 	invoiceVatIdNo: string;
 	paymentMethod: NumberString;
 	paymentMethodInfo: null | string;
@@ -1476,6 +1476,7 @@ export type PriceServiceReturn = {
 	currentPriceThisPeriod: null | PriceData;
 	currentPriceNextPeriod: null | PriceData;
 	futurePriceNextPeriod: null | PriceData;
+	futurePriceThisPeriod: null | PriceData;
 }
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", 867)
 
@@ -4253,4 +4254,18 @@ export type SubscriptionReference = {
 	subscriptionProvider: NumberString;
 	foreignKey: null | string;
 	subscriptionApp: NumberString;
+}
+export const RenewalPreferenceServicePostInTypeRef: TypeRef<RenewalPreferenceServicePostIn> = new TypeRef("sys", 2740)
+
+export function createRenewalPreferenceServicePostIn(values: StrippedEntity<RenewalPreferenceServicePostIn>): RenewalPreferenceServicePostIn {
+    return Object.assign(create(typeModels[RenewalPreferenceServicePostInTypeRef.typeId], RenewalPreferenceServicePostInTypeRef), values)
+}
+
+export type RenewalPreferenceServicePostIn = {
+	_type: TypeRef<RenewalPreferenceServicePostIn>;
+	_original?: RenewalPreferenceServicePostIn
+
+	_format: NumberString;
+	isEnabled: boolean;
+	customerId: Id;
 }

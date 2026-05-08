@@ -70,6 +70,7 @@ import { RegistrationCaptchaServiceReturnTypeRef } from "./TypeRefs.js"
 import { RegistrationCaptchaServiceDataTypeRef } from "./TypeRefs.js"
 import { RegistrationServiceDataTypeRef } from "./TypeRefs.js"
 import { RegistrationReturnTypeRef } from "./TypeRefs.js"
+import { RenewalPreferenceServicePostInTypeRef } from "./TypeRefs.js"
 import { ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
 import { ResetPasswordPostInTypeRef } from "./TypeRefs.js"
 import { RolloutGetOutTypeRef } from "./TypeRefs.js"
@@ -411,6 +412,15 @@ export const RegistrationService = Object.freeze({
 	name: "RegistrationService",
 	get: { data: null, return: RegistrationServiceDataTypeRef },
 	post: { data: RegistrationServiceDataTypeRef, return: RegistrationReturnTypeRef },
+	put: null,
+	delete: null,
+} as const)
+
+export const RenewalPreferenceService = Object.freeze({
+	app: "sys",
+	name: "RenewalPreferenceService",
+	get: null,
+	post: { data: RenewalPreferenceServicePostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)

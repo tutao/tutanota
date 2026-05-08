@@ -1897,7 +1897,7 @@ pub struct Booking {
 	#[serde(rename = "721")]
 	pub items: Vec<BookingItem>,
 	#[serde(rename = "2738")]
-	pub subscriptionReference: Option<SubscriptionReference>,
+	pub subscriptionReference: SubscriptionReference,
 }
 
 impl Entity for Booking {
@@ -2115,7 +2115,7 @@ pub struct PaymentDataServicePutData {
 	#[serde(rename = "797")]
 	pub invoiceAddress: String,
 	#[serde(rename = "798")]
-	pub invoiceCountry: String,
+	pub invoiceCountry: Option<String>,
 	#[serde(rename = "799")]
 	pub invoiceVatIdNo: String,
 	#[serde(rename = "800")]
@@ -2275,6 +2275,8 @@ pub struct PriceServiceReturn {
 	pub currentPriceNextPeriod: Option<PriceData>,
 	#[serde(rename = "865")]
 	pub futurePriceNextPeriod: Option<PriceData>,
+	#[serde(rename = "2745")]
+	pub futurePriceThisPeriod: Option<PriceData>,
 }
 
 impl Entity for PriceServiceReturn {
@@ -6429,6 +6431,26 @@ impl Entity for SubscriptionReference {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2733),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RenewalPreferenceServicePostIn {
+	#[serde(rename = "2741")]
+	pub _format: i64,
+	#[serde(rename = "2742")]
+	pub isEnabled: bool,
+	#[serde(rename = "2743")]
+	pub customerId: GeneratedId,
+}
+
+impl Entity for RenewalPreferenceServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2740),
 		}
 	}
 }

@@ -378,7 +378,7 @@ export class CustomerFacade {
 			paymentInterval: paymentInterval.toString(),
 			invoiceName: "",
 			invoiceAddress: invoiceData.invoiceAddress,
-			invoiceCountry: invoiceData.country ? invoiceData.country.a : "",
+			invoiceCountry: invoiceData.country != null ? invoiceData.country.a : null,
 			invoiceVatIdNo: invoiceData.vatNumber ? invoiceData.vatNumber : "",
 			paymentMethod: paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "",
 			paymentMethodInfo: null,
