@@ -456,6 +456,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.crypto,
 			locator.base.blobAccessToken,
 			mainInterface.uploadProgressListener,
+			locator.base.typeModelResolver,
 		)
 	})
 
