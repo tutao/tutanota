@@ -1,6 +1,7 @@
 package de.tutao.tutanota
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ActivityNotFoundException
@@ -568,6 +569,9 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		if (data != null && isInteropCall && isTrustedCaller) {
 			openContactEditor(data)
 		}
+		if (isInteropCall) {
+			setResult(RESULT_OK)
+		}
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
 			when (intent.action) {
@@ -882,7 +886,14 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 	}
 
 	private fun goBack() {
-		moveTaskToBack(false)
+		// If the app is on the root of the stack (started by the user) then we put the app in the background
+		// Otherwise we finish the activity to pop the stack and go back to the calling app (e.g. interop call from
+		// Calendar or share action)
+		if (isTaskRoot) {
+			moveTaskToBack(true)
+		} else {
+			finish()
+		}
 	}
 
 	override fun reload(parameters: Map<String, String>) {

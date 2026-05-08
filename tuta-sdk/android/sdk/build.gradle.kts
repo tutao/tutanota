@@ -183,10 +183,10 @@ tasks.register<Sync>("copyRustLibs") {
 
 tasks.whenTaskAdded {
 	when (name) {
-		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
-			dependsOn("clean")
-			mustRunAfter("clean")
-		}
+//		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
+//			dependsOn("clean")
+//			mustRunAfter("clean")
+//		}
 
 		"compileDebugKotlin", "compileReleaseKotlin", "compileReleaseTestKotlin" -> {
 			dependsOn("generateBinding")
