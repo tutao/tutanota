@@ -188,7 +188,7 @@ export const themes = (): Themes => {
 	const lightBlue = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isCalendarApp ? "light" : "light_secondary",
-		logo: getAppLogo(isCalendarApp ? undefined : "#C4C6D0EE"),
+		logo: getAppLogo("#C4C6D0EE"),
 		// Basic color tokens
 		primary: "#435E91",
 		on_primary: "#FFFFFF",
@@ -320,7 +320,7 @@ export const themes = (): Themes => {
 	const lightGreen = Object.freeze<Theme>({
 		...semanticColorsLight,
 		themeId: isDriveApp ? "light" : "light_secondary",
-		logo: getAppLogo(isDriveApp ? undefined : "#C4C6D0EE"),
+		logo: getAppLogo("#c8d0c4"),
 		// Basic color tokens
 		primary: "#1A6B52",
 		on_primary: "#FFFFFF",
@@ -386,7 +386,7 @@ export const themes = (): Themes => {
 	const darkGreen = Object.freeze<Theme>({
 		...semanticColorsDark,
 		themeId: isDriveApp ? "dark" : "dark_secondary",
-		logo: getAppLogo("#C4C6D0EE"),
+		logo: getAppLogo("#959F8CAA"),
 		// Basic color tokens
 		primary: "#8AD6B7",
 		on_primary: "#003828",

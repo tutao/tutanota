@@ -14,7 +14,7 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.tutashared.AsyncActivityUtils
+import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.ProgressResponseBody
@@ -72,7 +72,7 @@ interface FileNotificationSender {
 
 class AndroidFileFacade(
 	private val context: Context,
-	private val activityUtils: AsyncActivityUtils,
+	private val activityUtils: ActivityUtils,
 	private val notificationSender: FileNotificationSender,
 	private val random: SecureRandom,
 	private val defaultClient: OkHttpClient,

@@ -34,7 +34,6 @@ import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.annotation.MainThread
-import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -55,11 +54,11 @@ import de.tutao.calendar.push.PushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.calendar.widget.WidgetRefresher
 import de.tutao.tutashared.ActivityResult
+import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AppType
-import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
@@ -110,7 +109,7 @@ interface WebauthnHandler {
 	fun onNoResult()
 }
 
-class MainActivity : FragmentActivity(), AsyncActivityUtils {
+class MainActivity : FragmentActivity(), ActivityUtils {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -643,14 +642,13 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils {
 		}
 	}
 
-	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(intent: Intent): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
-			if (intent != null) {
-				super.startActivityForResult(intent, requestCode)
-			}
+			@Suppress("DEPRECATION")
+			super.startActivityForResult(intent, requestCode)
 		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

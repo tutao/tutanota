@@ -2,6 +2,7 @@ import fs from "node:fs"
 import { Option, program } from "commander"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
+import { buildDirForApp } from "./DevBuild.js"
 
 const TAG = "prepareMobileBuild:"
 
@@ -19,11 +20,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
  * @param opts.app {"mail"|"calendar"}
  */
 export async function prepareMobileBuild({ app }) {
-	if (app !== "mail" && app !== "calendar") {
+	if (app !== "mail" && app !== "calendar" && app !== "drive") {
 		throw new Error("Required option app: " + app)
 	}
 	console.log(TAG, "prepare mobile build for app", app)
-	const prefix = app === "mail" ? "build/" : "build-calendar-app/"
+	const prefix = buildDirForApp(app)
 	if (!fs.existsSync(prefix)) {
 		throw new Error(`Prefix dir does not exist, likely an error!: ${prefix}`)
 	}
