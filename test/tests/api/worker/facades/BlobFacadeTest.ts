@@ -6,11 +6,11 @@ import {
 	pipelineEncryptAndUpload,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kit/rest-client"
-import { HttpMethod, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../../../src/platform-kit/rest-client/types"
 import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.js"
 import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
-import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kit/meta"
+import { ClientTypeModel, elementIdPart, getElementId, listIdPart, ServerTypeModel } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey } from "../../../../../src/platform-kit/crypto"
 import {
@@ -26,7 +26,7 @@ import {
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
-import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	BlobGetIn,
@@ -35,13 +35,14 @@ import {
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
 	createBlobPostOut,
+	createBlobServerUrl,
 	storageTypeModels,
 } from "@tutao/entities/storage"
 
 import { BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 
-import { File, FileTypeRef } from "@tutao/entities/tutanota"
+import { File, FileTypeRef, MailDetailsBlobTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
 import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
@@ -69,6 +70,7 @@ o.spec("BlobFacade", function () {
 	let file: File
 	let anotherFile: File
 	let previousNetworkDebugging
+	let typeModelResolver: TypeModelResolver
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
@@ -78,6 +80,7 @@ o.spec("BlobFacade", function () {
 		instancePipelineMock = instance(InstancePipeline)
 		cryptoFacadeMock = object<CryptoFacade>()
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
+		typeModelResolver = object<TypeModelResolver>()
 
 		const mimeType = "text/plain"
 		const name = "fileName"
@@ -93,6 +96,7 @@ o.spec("BlobFacade", function () {
 			cryptoFacadeMock,
 			blobAccessTokenFacade,
 			object(),
+			typeModelResolver,
 		)
 		previousNetworkDebugging = env.networkDebugging
 	})
@@ -116,6 +120,7 @@ o.spec("BlobFacade", function () {
 				cryptoFacadeMock,
 				blobAccessTokenFacade,
 				object(),
+				typeModelResolver,
 			)
 
 			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
@@ -1074,6 +1079,57 @@ o.spec("BlobFacade", function () {
 			verify(encryptChunk(item3))
 
 			item2.resolve(2)
+		})
+	})
+
+	o.spec("downloadFullEncryptedBlobElementEntityArchive", () => {
+		o.test("downloads all encrypted entities", async () => {
+			const archiveId = "some-archive"
+			const clientTypeModel = {
+				app: MailDetailsBlobTypeRef.app,
+				name: "MailDetailsBlob",
+				version: 123,
+				dependsOnVersion: 456,
+			} as ClientTypeModel
+			when(typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)).thenResolve(clientTypeModel)
+
+			const blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				servers: [
+					createBlobServerUrl({
+						url: "https://blobworld.net",
+					}),
+				],
+			})
+			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
+
+			const someQueryParams = {
+				"whoooo query params": "let's go!!!!",
+			}
+			when(blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, MailDetailsBlobTypeRef)).thenResolve(someQueryParams)
+
+			Object.assign(instancePipelineMock, { typeMapper: object() })
+
+			const serverTypeModel = {
+				app: MailDetailsBlobTypeRef.app,
+				name: "MailDetailsBlob",
+			} as ServerTypeModel
+			when(typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)).thenResolve(serverTypeModel)
+			when(instancePipelineMock.typeMapper.applyJsTypes(serverTypeModel, anything())).thenDo(async (_, b) => b)
+
+			const expected = [{ "i am an instance": "wow!! so cool!" }, { "i am another instance": "oooh neat!" }, { "i, too, am an instance": "amazing!!!" }]
+
+			when(
+				restClientMock.request(
+					`/rest/tutanota/maildetailsblob/${archiveId}`,
+					HttpMethod.GET,
+					matchers.argThat(
+						(arg) => arg.baseUrl === "https://blobworld.net" && arg.responseType === MediaType.Json && arg.queryParams === someQueryParams,
+					),
+				),
+			).thenResolve(`[{"i am an instance": "wow!! so cool!"}, {"i am another instance": "oooh neat!"}, {"i, too, am an instance": "amazing!!!"}]`)
+
+			const blobs = await blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
+			o.check(blobs as any[]).deepEquals(expected)
 		})
 	})
 })
