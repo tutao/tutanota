@@ -572,6 +572,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.crypto,
 			locator.blobAccessToken,
 			mainInterface.uploadProgressListener,
+			typeModelResolver,
 		)
 	})
 	locator.mail = lazyMemoized(async () => {
