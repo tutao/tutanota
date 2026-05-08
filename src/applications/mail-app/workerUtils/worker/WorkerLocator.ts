@@ -77,7 +77,6 @@ import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
-import { random } from "../../../../platform-kit/crypto"
 import { MailLoginListener } from "./MailLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
@@ -446,6 +445,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.crypto,
 			locator.base.blobAccessToken,
 			mainInterface.uploadProgressListener,
+			locator.base.typeModelResolver,
 		)
 	})
 
