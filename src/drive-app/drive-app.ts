@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
@@ -12,10 +12,6 @@ import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import type { LoginViewModel } from "../common/login/LoginViewModel.js"
-import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
-import { TerminationViewModel } from "../common/termination/TerminationViewModel.js"
-import { MobileWebauthnAttrs, MobileWebauthnView } from "../common/login/MobileWebauthnView.js"
-import { BrowserWebauthn } from "../common/misc/2fa/webauthn/BrowserWebauthn.js"
 import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { LoginController } from "../common/api/main/LoginController.js"
@@ -91,10 +87,6 @@ import("../mail-app/translations/en.js")
 			lang.setLanguage(language).catch((e) => {
 				console.error("Failed to fetch translation: " + userLanguage.code, e)
 			})
-
-			// if (isDesktop()) {
-			// 	driveLocator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
-			// }
 		}
 
 		driveLocator.logins.addPostLoginAction(() => driveLocator.postLoginActions())
@@ -108,22 +100,6 @@ import("../mail-app/translations/en.js")
 				async onFullLoginSuccess() {},
 			}
 		})
-
-		if (!isBrowser() && !(env.mode === Mode.Admin)) {
-			// const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
-			// driveLocator.logins.addPostLoginAction(
-			// 	async () =>
-			// 		new CachePostLoginAction(
-			// 			await driveLocator.calendarModel(),
-			// 			driveLocator.entityClient,
-			// 			driveLocator.progressTracker,
-			// 			driveLocator.cacheStorage,
-			// 			driveLocator.logins,
-			// 			null,
-			// 			driveLocator.syncTracker,
-			// 		),
-			// )
-		}
 
 		styles.init(driveLocator.themeController)
 		const paths = applicationPaths({
@@ -147,38 +123,6 @@ import("../mail-app/translations/en.js")
 				},
 				driveLocator.logins,
 			),
-			termination: makeViewResolver<
-				TerminationViewAttrs,
-				TerminationView,
-				{
-					makeViewModel: () => TerminationViewModel
-					header: AppHeaderAttrs
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { TerminationViewModel } = await import("../common/termination/TerminationViewModel.js")
-						const { TerminationView } = await import("../common/termination/TerminationView.js")
-						return {
-							component: TerminationView,
-							cache: {
-								makeViewModel: () =>
-									new TerminationViewModel(
-										driveLocator.logins,
-										driveLocator.secondFactorHandler,
-										driveLocator.serviceExecutor,
-										driveLocator.entityClient,
-									),
-								header: await driveLocator.appHeaderAttrs(),
-							},
-						}
-					},
-					prepareAttrs: ({ makeViewModel, header }) => ({ makeViewModel, header }),
-					requireLogin: false,
-				},
-				driveLocator.logins,
-			),
-
 			/**
 			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
@@ -225,49 +169,6 @@ import("../mail-app/translations/en.js")
 					return null
 				},
 			},
-			webauthn: makeOldViewResolver(
-				async () => {
-					const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
-					const { NativeWebauthnView } = await import("../common/login/NativeWebauthnView.js")
-					const { WebauthnNativeBridge } = await import("../common/native/main/WebauthnNativeBridge.js")
-					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
-					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
-					// it is the same client build.
-					const domainConfig = driveLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
-					const creds = navigator.credentials
-					return new NativeWebauthnView(new BrowserWebauthn(creds, domainConfig), new WebauthnNativeBridge())
-				},
-				{
-					requireLogin: false,
-					cacheView: false,
-				},
-				driveLocator.logins,
-			),
-			webauthnmobile: makeViewResolver<
-				MobileWebauthnAttrs,
-				MobileWebauthnView,
-				{
-					browserWebauthn: BrowserWebauthn
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { MobileWebauthnView } = await import("../common/login/MobileWebauthnView.js")
-						const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
-						// see /webauthn view resolver for the explanation
-						const domainConfig = driveLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
-						return {
-							component: MobileWebauthnView,
-							cache: {
-								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
-							},
-						}
-					},
-					prepareAttrs: (cache) => cache,
-					requireLogin: false,
-				},
-				driveLocator.logins,
-			),
 			drive: makeViewResolver<
 				DriveViewAttrs,
 				DriveView,
@@ -484,52 +385,6 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 					},
 				}),
 			)
-		},
-	}
-}
-
-// This is only used for non-mobile webauthn, so this may need to be removed if we do not have a separate calendar web/desktop app
-function makeOldViewResolver(
-	makeView: (args: object, requestedPath: string) => Promise<TopLevelView>,
-	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},
-	logins: LoginController,
-): RouteResolver {
-	requireLogin = requireLogin ?? true
-	cacheView = cacheView ?? true
-
-	const viewCache: { view: TopLevelView | null } = { view: null }
-	return {
-		onmatch: async (args, requestedPath) => {
-			if (requireLogin && !logins.isUserLoggedIn()) {
-				forceLogin(args, requestedPath)
-			} else if (!requireLogin && logins.isUserLoggedIn()) {
-				await disableErrorHandlingDuringLogout()
-				await logins.logout(false)
-				windowFacade.reload(args)
-			} else {
-				let promise: Promise<TopLevelView>
-
-				if (viewCache.view == null) {
-					promise = makeView(args, requestedPath).then((view) => {
-						if (cacheView) {
-							viewCache.view = view
-						}
-
-						return view
-					})
-				} else {
-					promise = Promise.resolve(viewCache.view)
-				}
-
-				Promise.all([promise]).then(([view]) => {
-					view.updateUrl?.(args, requestedPath)
-					window.tutao.currentView = view
-				})
-				return promise
-			}
-		},
-		render: (vnode) => {
-			return m(root, vnode)
 		},
 	}
 }

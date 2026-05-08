@@ -4,8 +4,6 @@ import { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClie
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { CacheStorage, DefaultEntityRestCache, EntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import type { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
-import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
 import { EventBusClient } from "../../../common/api/worker/EventBusClient.js"
@@ -21,7 +19,6 @@ import {
 	ProgrammingError,
 } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
-import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
 import { RestClient, restSuspension } from "@tutao/rest-client"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -46,7 +43,6 @@ import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
-import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
 import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
@@ -66,7 +62,6 @@ import { DomainConfigProvider } from "../../../common/api/common/DomainConfigPro
 import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../common/api/worker/facades/PQFacade.js"
 import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
-import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyRotationFacade } from "../../../common/api/worker/facades/KeyRotationFacade.js"
 import { KeyCache } from "../../../common/api/worker/facades/KeyCache.js"
@@ -105,7 +100,7 @@ import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
 
 assertWorkerOrNode()
 
-export type CalendarWorkerLocatorType = {
+export type DriveWorkerLocatorType = {
 	// network & encryption
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
@@ -141,8 +136,6 @@ export type CalendarWorkerLocatorType = {
 
 	// domains
 	blob: lazyAsync<BlobFacade>
-	mail: lazyAsync<MailFacade>
-	calendar: lazyAsync<CalendarFacade>
 	counters: lazyAsync<CounterFacade>
 	Const: Record<string, any>
 
@@ -153,7 +146,6 @@ export type CalendarWorkerLocatorType = {
 	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
-	mailAddress: lazyAsync<MailAddressFacade>
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 	cacheManagement: lazyAsync<CacheManagementFacade>
@@ -171,15 +163,12 @@ export type CalendarWorkerLocatorType = {
 	_worker: DriveWorkerImpl
 	_browserData: BrowserData
 
-	//contact
-	contactFacade: lazyAsync<ContactFacade>
-
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
 
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchStorageFacade>
 }
-export const locator: CalendarWorkerLocatorType = {} as any
+export const locator: DriveWorkerLocatorType = {} as any
 
 export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserData) {
 	locator._worker = worker
@@ -564,49 +553,6 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			mainInterface.uploadProgressListener,
 		)
 	})
-	locator.mail = lazyMemoized(async () => {
-		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
-		return new MailFacade(
-			locator.user,
-			locator.cachingEntityClient,
-			locator.crypto,
-			locator.cryptoWrapper,
-			locator.serviceExecutor,
-			await locator.blob(),
-			fileApp,
-			locator.login,
-			locator.keyLoader,
-			locator.publicEncryptionKeyProvider,
-		)
-	})
-	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
-	locator.calendar = lazyMemoized(async () => {
-		const { CalendarFacade } = await import("../../../common/api/worker/facades/lazy/CalendarFacade.js")
-		return new CalendarFacade(
-			locator.user,
-			await locator.groupManagement(),
-			locator.cache as DefaultEntityRestCache,
-			nonCachingEntityClient, // without cache
-			nativePushFacade,
-			mainInterface.operationProgressTracker,
-			locator.serviceExecutor,
-			locator.crypto,
-			mainInterface.infoMessageHandler,
-			locator.instancePipeline,
-			locator.cachingEntityClient,
-		)
-	})
-
-	locator.mailAddress = lazyMemoized(async () => {
-		const { MailAddressFacade } = await import("../../../common/api/worker/facades/lazy/MailAddressFacade.js")
-		return new MailAddressFacade(
-			locator.user,
-			locator.adminKeyLoader,
-			locator.serviceExecutor,
-			nonCachingEntityClient, // without cache,
-			dateProvider,
-		)
-	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
@@ -615,7 +561,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
-		locator.mail,
+		null,
 		locator.user,
 		locator.cachingEntityClient,
 		mainInterface.eventController,
@@ -661,10 +607,6 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")
 		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto, locator.keyLoader)
 	})
-	locator.contactFacade = lazyMemoized(async () => {
-		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
-		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
-	})
 	locator.driveFacade = lazyMemoized(async () => {
 		const { DriveFacade } = await import("../../../common/api/worker/facades/lazy/DriveFacade.js")
 		return new DriveFacade(
@@ -686,11 +628,4 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-/*
- * @returns true if webassembly is supported
- */
-export function isWebAssemblySupported() {
-	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }

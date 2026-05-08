@@ -23,7 +23,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param desktop
  * @param clean
  * @param networkDebugging
- * @param app {"mail"|"calendar"}
+ * @param app {"mail"|"calendar"|"drive"}
  * @returns {Promise<void>}
  */
 export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
@@ -325,8 +325,8 @@ function getStaticUrl(stage, mode, host) {
  * @return {Promise<void>}
  */
 export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
+	await fs.emptyDir(path.join(root, `${buildDir}/images`))
 	await Promise.all([
-		await fs.emptyDir(path.join(root, `${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/images/"), path.join(root, `/${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/pdf/"), path.join(root, `/${buildDir}/pdf`)),
@@ -345,7 +345,7 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	}
 }
 
-function buildDirForApp(app) {
+export function buildDirForApp(app) {
 	switch (app) {
 		case "mail":
 			return "build"
@@ -380,10 +380,10 @@ function appTypeForApp(app) {
 	// see ClientConstants
 	switch (app) {
 		case "mail":
-			return "1"
+			return `"1"`
 		case "calendar":
-			return "2"
+			return `"2"`
 		case "drive":
-			return "3"
+			return `"3"`
 	}
 }

@@ -183,7 +183,6 @@ tasks.register<Sync>("copyRustLibs") {
 
 tasks.whenTaskAdded {
 	when (name) {
-		// FIXME
 		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
 			dependsOn("clean")
 			mustRunAfter("clean")

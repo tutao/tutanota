@@ -85,11 +85,11 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async calendarFacade() {
-				return locator.calendar()
+				throw new Error("not implemented")
 			},
 
 			async mailFacade() {
-				return locator.mail()
+				throw new Error("not implemented")
 			},
 
 			async shareFacade() {
@@ -109,7 +109,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async mailAddressFacade() {
-				return locator.mailAddress()
+				throw new Error("not implemented")
 			},
 
 			async keyVerificationFacade() {
@@ -181,7 +181,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async contactFacade() {
-				return locator.contactFacade()
+				throw new Error("not implemented")
 			},
 
 			async applicationTypesFacade() {

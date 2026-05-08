@@ -3,7 +3,7 @@ import { entityUpdateUtils, isSameId, sysTypeRefs, tutanotaTypeRefs } from "@tut
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
-import { RolloutType } from "@tutao/app-env"
+import { Mode, OperationType, RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, Nullable } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -14,12 +14,11 @@ import { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { ProgressMonitorId } from "../common/utils/ProgressMonitor"
-import { Mode, OperationType } from "@tutao/app-env"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
-		private readonly mailFacade: lazyAsync<MailFacade>,
+		private readonly mailFacade: lazyAsync<MailFacade> | null,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
@@ -47,7 +46,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		isInitialSyncDone: boolean,
 	): Promise<void> {
 		await this.entityEventsReceived(events)
-		await (await this.mailFacade()).entityEventsReceived(events)
+		await (await this.mailFacade?.())?.entityEventsReceived(events)
 		await this.eventController.onEntityUpdateReceived(events, groupId, progressMonitorId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
@@ -62,7 +61,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	 * @param markers only phishing (not spam) marker will be sent as websocket updates
 	 */
 	async onPhishingMarkersReceived(markers: tutanotaTypeRefs.ReportedMailFieldMarker[]) {
-		;(await this.mailFacade()).phishingMarkersUpdateReceived(markers)
+		;(await this.mailFacade?.())?.phishingMarkersUpdateReceived(markers)
 	}
 
 	onError(tutanotaError: Error) {

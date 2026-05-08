@@ -27,8 +27,6 @@ which might still be served or HTTP. The only alternative is to proxy all of it.
 		android:allowBackup="false" disabled backup for Android < 12
 		android:dataExtractionRules disables backup for Android >= 12
 	-->
-	<!-- FIXME: dataExtractionRules -->
-	<!-- FIXME: appCategory -->
 	<application
 			android:allowBackup="false"
 			android:icon="@mipmap/ic_logo"
@@ -39,7 +37,7 @@ which might still be served or HTTP. The only alternative is to proxy all of it.
 			android:usesCleartextTraffic="true"
 			android:exported="true"
 			android:dataExtractionRules="@xml/data_extraction_rules"
-			android:appCategory="social">
+			android:appCategory="productivity">
 		<provider
 				android:name="androidx.core.content.FileProvider"
 				android:authorities="${contentProviderAuthority}"

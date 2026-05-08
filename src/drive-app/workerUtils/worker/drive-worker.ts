@@ -1,4 +1,3 @@
-// FIXME
 import { Logger, replaceNativeLogger } from "../../../common/api/common/Logger.js"
 import { DriveWorkerImpl } from "./DriveWorkerImpl.js"
 

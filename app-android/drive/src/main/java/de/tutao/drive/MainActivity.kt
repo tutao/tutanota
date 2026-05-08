@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
-import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
@@ -32,27 +31,30 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
-import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
+import androidx.core.view.WindowInsetsCompat.Type.displayCutout
+import androidx.core.view.WindowInsetsCompat.Type.ime
+import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutashared.ActivityResult
+import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidThemeFacade
 import de.tutao.tutashared.AppType
-import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.Theme
 import de.tutao.tutashared.WebViewReloader
-import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
@@ -64,9 +66,8 @@ import de.tutao.tutashared.ipc.MobileFacade
 import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
-import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.remote.RemoteBridge
-import de.tutao.tutashared.remote.RemoteExecutionException
+import de.tutao.tutashared.toDp
 import de.tutao.tutashared.toPx
 import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
 import de.tutao.tutashared.webauthn.WebauthnFlowRunner
@@ -75,8 +76,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -98,10 +97,8 @@ interface WebauthnHandler {
 	fun onNoResult()
 }
 
-class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, WebauthnFlowRunner {
-	lateinit var webView: WebView
-		private set
-	private lateinit var sseStorage: SseStorage
+class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
+	private lateinit var webView: WebView
 	private lateinit var themeFacade: AndroidThemeFacade
 	private lateinit var remoteBridge: RemoteBridge
 	private lateinit var mobileFacade: MobileFacade
@@ -125,17 +122,13 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 
 		val db = AppDatabase.getDatabase(this, false)
-		sseStorage = SseStorage(
-			db,
-			createAndroidKeyStoreFacade()
-		)
 
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
 
 		enableEdgeToEdge()
 
-		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val localNotificationsFacade = LocalNotificationsFacade(this)
 
 		val fileFacade =
 			AndroidFileFacade(
@@ -231,6 +224,35 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 		webView.clearCache(true)
 
+		ViewCompat.setOnApplyWindowInsetsListener(webView) { _, windowInsets ->
+			// Retrieve insets as raw pixels
+			val safeDrawingInsets = windowInsets.getInsets(
+				//we are handling keyboard separately below
+				systemBars() or displayCutout()
+			)
+			val imeHeight = windowInsets.getInsets(ime()).bottom
+			lifecycleScope.launch {
+				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
+			}
+
+			// Convert raw pixels to density independent pixels
+			val top = safeDrawingInsets.top.toDp()
+			val right = safeDrawingInsets.right.toDp()
+			val bottom = safeDrawingInsets.bottom.toDp()
+			val left = safeDrawingInsets.left.toDp()
+
+			val safeAreaJs = """
+      		document.documentElement.style.setProperty('--safe-area-inset-left', '${left}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-right', '${right}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-top', '${top}px');
+        	document.documentElement.style.setProperty('--safe-area-inset-bottom', '${bottom}px');
+        """.trimIndent()
+			webView.evaluateJavascript(safeAreaJs, null)
+
+			windowInsets
+		}
+
+
 		// Reject cookies by external content
 		CookieManager.getInstance().setAcceptCookie(false)
 		CookieManager.getInstance().removeAllCookies(null)
@@ -242,7 +264,7 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 				if (url.startsWith(BASE_WEB_VIEW_URL)) {
 					return false
 				}
-				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+				val intent = Intent(Intent.ACTION_VIEW, url.toUri())
 				try {
 					startActivity(intent)
 				} catch (e: ActivityNotFoundException) {
@@ -250,6 +272,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 						.show()
 				}
 				return true
+			}
+
+			override fun onPageFinished(view: WebView, url: String) {
+				super.onPageFinished(webView, url)
+				// dispatch insets because insets aren't applied when the webpage first loads.
+				webView.requestApplyInsets()
 			}
 
 			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -323,20 +351,6 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
 			}
-
-
-			// Start observing SSE users in the background.
-			// If there are no users we need to tell web part to invalidate alarms.
-//			launch {
-//				sseStorage.observeUsers()
-//					.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-//					.collect { userInfos ->
-//						if (userInfos.isEmpty()) {
-//							Log.d(TAG, "invalidateAlarms")
-//							commonNativeFacade.invalidateAlarms()
-//						}
-//					}
-//			}
 
 			startWebApp(queryParameters)
 		}
@@ -473,19 +487,8 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 
 		if (intent.action != null && !intent.getBooleanExtra(ALREADY_HANDLED_INTENT, false)) {
 			when (intent.action) {
-				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO -> share(
-					intent
-				)
-
 				OPEN_LOGS_ACTION -> sendLogs(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
-				Intent.ACTION_VIEW -> {
-					when (intent.scheme) {
-						"mailto" -> share(intent)
-						"file" -> view(intent)
-						"content" -> view(intent)
-					}
-				}
 			}
 		}
 	}
@@ -583,14 +586,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 	}
 
-	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(intent: Intent): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
-			if (intent != null) {
-				super.startActivityForResult(intent, requestCode)
-			}
+			super.startActivityForResult(intent, requestCode)
 		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -601,111 +602,6 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		} else {
 			Log.w(TAG, "No deferred for activity request$requestCode")
 		}
-	}
-
-	/**
-	 * The viewing file activity. Either invoked from MainActivity (if the app was not active when the
-	 * view action occurred) or from onCreate.
-	 */
-	private suspend fun view(intent: Intent) {
-		val files: List<String> = getFilesFromIntent(intent)
-
-		try {
-			commonNativeFacade.handleFileImport(files)
-		} catch (e: Exception) {
-			Log.e(TAG, "Falied to read files $files -> $e")
-		}
-	}
-
-	/**
-	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
-	 * share occurred) or from onCreate.
-	 */
-	private suspend fun share(intent: Intent) {
-		val action = intent.action
-		val clipData = intent.clipData
-		val files: List<String>
-		var text: String? = null
-		val addresses: List<String> = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)?.toList() ?: listOf()
-		val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
-		if (Intent.ACTION_SEND == action) {
-			// Try to read text from the clipboard before fall back on intent.getStringExtra
-			if (clipData != null && clipData.itemCount > 0) {
-				if (clipData.description.getMimeType(0).startsWith("text")) {
-					text = clipData.getItemAt(0).htmlText
-				}
-				if (text == null && clipData.getItemAt(0).text != null) {
-					text = clipData.getItemAt(0).text.toString()
-				}
-			}
-			if (text == null) {
-				text = intent.getStringExtra(Intent.EXTRA_TEXT)
-			}
-			files = getFilesFromIntent(intent)
-		} else if (Intent.ACTION_SEND_MULTIPLE == action) {
-			files = getFilesFromIntent(intent)
-		} else {
-			files = listOf()
-		}
-		val mailToUrlString: String = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
-			intent.dataString ?: ""
-		} else {
-			""
-		}
-		try {
-			commonNativeFacade.createMailEditor(
-				files,
-				text ?: "",
-				addresses,
-				subject ?: "",
-				mailToUrlString
-			)
-		} catch (e: RemoteExecutionException) {
-			val name = e.message?.let { message ->
-				val element = Json.parseToJsonElement(message)
-				element.jsonObject["name"]?.jsonPrimitive?.content
-			}
-			Log.d(TAG, "failed to create a mail editor because of a ${name ?: "unknown error"}")
-		}
-	}
-
-	private fun getFilesFromIntent(intent: Intent): List<String> {
-		val clipData = intent.clipData
-		val filesArray: MutableList<String> = mutableListOf()
-		if (clipData != null) {
-			for (i in 0 until clipData.itemCount) {
-				val item = clipData.getItemAt(i)
-				val uri = item.uri
-				if (uri != null) {
-					filesArray.add(uri.toString())
-				}
-			}
-		} else {
-			// Intent documentation claims that data is copied to ClipData if it's not there
-			// but we want to be sure
-			if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
-				// unchecked_cast: we could just check for null instead?
-				// deprecation: the alternative requires API 33
-				@Suppress("UNCHECKED_CAST", "DEPRECATION")
-				val uris = intent.extras!!.getParcelableArrayList<Uri>(Intent.EXTRA_STREAM)
-				if (uris != null) {
-					for (uri in uris) {
-						filesArray.add(uri.toString())
-					}
-				}
-			} else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
-				// depreciation: the alternative requires API 33
-				@Suppress("DEPRECATION")
-				val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-				filesArray.add(uri.toString())
-			} else if (intent.data != null) {
-				val uri = intent.data
-				filesArray.add(uri.toString())
-			} else {
-				Log.w(TAG, "Did not find files in the intent")
-			}
-		}
-		return filesArray
 	}
 
 	private suspend fun openCalendar(intent: Intent) {
@@ -743,8 +639,8 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		moveTaskToBack(false)
 	}
 
-	override fun reload(parameters: Map<String, String>) {
-		runOnUiThread { startWebApp(parameters.toMutableMap()) }
+	override fun reload(query: Map<String, String>) {
+		runOnUiThread { startWebApp(query.toMutableMap()) }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {

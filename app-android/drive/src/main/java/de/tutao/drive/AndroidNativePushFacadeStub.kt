@@ -6,7 +6,7 @@ import de.tutao.tutashared.ipc.NativePushFacade
 
 object AndroidNativePushFacadeStub : NativePushFacade {
 	override suspend fun getPushIdentifier(): String? {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun storePushIdentifierLocally(
@@ -16,42 +16,42 @@ object AndroidNativePushFacadeStub : NativePushFacade {
 		pushIdentifierId: String,
 		pushIdentifierSessionKey: DataWrapper
 	) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun removeUser(userId: String) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun initPushNotifications() {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun closePushNotifications(addressesArray: List<String>) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun scheduleAlarms(alarmNotificationsWireFormat: String, newDeviceSessionKey: String) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun invalidateAlarmsForUser(userId: String) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun setExtendedNotificationConfig(userId: String, mode: ExtendedNotificationMode) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun getExtendedNotificationConfig(userId: String): ExtendedNotificationMode {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override suspend fun getReceiveCalendarNotificationConfig(pushIdentifier: String): Boolean {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 }

@@ -1,7 +1,6 @@
 package de.tutao.tutanota
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ActivityNotFoundException
@@ -60,6 +59,7 @@ import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutashared.ActivityResult
+import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade
@@ -67,7 +67,6 @@ import de.tutao.tutashared.AndroidMobileSystemFacade.Companion.TUTA_INTENT_ACTIO
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidThemeFacade
 import de.tutao.tutashared.AppType
-import de.tutao.tutashared.AsyncActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
@@ -126,7 +125,7 @@ interface WebauthnHandler {
 }
 
 
-class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, WebauthnFlowRunner {
+class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -564,11 +563,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 
 		val isInteropCall = intent.action == ACTION_EDIT && intent.getStringExtra(TUTA_INTENT_ACTION) == "interop"
-		// FIXME support drive
-		val isTrustedCaller = callingPackage == BuildConfig.APPLICATION_ID.replace(
-			"tutanota",
-			"calendar"
+
+		val allowedCallers = arrayOf(
+			BuildConfig.APPLICATION_ID.replace("tutanota", "calendar"),
+			BuildConfig.APPLICATION_ID.replace("tutanota", "drive")
 		)
+		val isTrustedCaller = allowedCallers.contains(callingPackage)
 
 		if (data != null && isInteropCall && isTrustedCaller) {
 			openContactEditor(data)
@@ -689,14 +689,12 @@ class MainActivity : FragmentActivity(), AsyncActivityUtils, WebViewReloader, We
 		}
 	}
 
-	override suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
+	override suspend fun startActivityForResult(@RequiresPermission intent: Intent): ActivityResult =
 		suspendCoroutine { continuation ->
 			val requestCode = getNextRequestCode()
 			activityRequests[requestCode] = continuation
 			// we need requestCode to identify the request which is not possible with new API
-			if (intent != null) {
-				super.startActivityForResult(intent, requestCode)
-			}
+			super.startActivityForResult(intent, requestCode)
 		}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

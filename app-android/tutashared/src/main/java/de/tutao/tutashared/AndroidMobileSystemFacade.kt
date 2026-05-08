@@ -40,7 +40,7 @@ data class AppDetails(val packageName: String, val scheme: String)
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
 	private val activity: Activity,
-	private val activityUtils: AsyncActivityUtils,
+	private val activityUtils: ActivityUtils,
 	private val db: AppDatabase,
 	private val providerAuthority: String,
 	private val appType: AppType,

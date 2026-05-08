@@ -1,10 +1,13 @@
 package de.tutao.drive
 
 import android.Manifest
+import android.app.DownloadManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,7 +22,7 @@ import kotlin.math.abs
 
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 
-class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
+class LocalNotificationsFacade(private val context: Context) :
 	FileNotificationSender {
 	private fun driveNotificationId(identifier: String): Int = abs(1 + identifier.hashCode())
 
@@ -31,8 +34,14 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			NotificationManager.IMPORTANCE_DEFAULT
 		)
 		notificationManager.createNotificationChannel(channel)
+		val pendingIntent = PendingIntent.getActivity(
+			context,
+			1,
+			Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
+			PendingIntent.FLAG_IMMUTABLE
+		)
 		val notification = Notification.Builder(context, channel.id)
-			// TODO .setContentIntent(...)
+			.setContentIntent(pendingIntent)
 			.setContentTitle(fileName)
 			.setContentText(context.getText(R.string.downloadCompleted_msg))
 			.setSmallIcon(R.drawable.ic_download)
@@ -48,12 +57,19 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 		val uri = FileProvider.getUriForFile(context, BuildConfig.FILE_PROVIDER_AUTHORITY, file)
 		val mimeType = getMimeType(file.toUri(), context)
+		val intent = Intent(Intent.ACTION_VIEW).apply {
+			flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+			setDataAndType(uri, mimeType)
+		}
+
+		val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 		notificationManager.notify(
 			System.currentTimeMillis().toInt(),
 			NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_download)
 				.setContentTitle(context.getString(R.string.downloadCompleted_msg))
 				.setContentText(file.name)
+				.setContentIntent(pendingIntent)
 				.setAutoCancel(true)
 				.build()
 		)
