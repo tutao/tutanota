@@ -253,35 +253,38 @@ import("./translations/en.js")
 		})
 
 		if (!isBrowser() && !(env.mode === Mode.Admin)) {
-			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
-			mailLocator.logins.addPostLoginAction(
-				async () =>
-					new CachePostLoginAction(
-						await mailLocator.calendarModel(),
-						mailLocator.entityClient,
-						mailLocator.progressTracker,
-						mailLocator.cacheStorage,
-						mailLocator.logins,
-						assertNotNull(await mailLocator.offlineStorageSettingsModel()),
-						mailLocator.syncTracker,
-					),
-			)
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction")
+				const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
+				return new CachePostLoginAction(
+					await mailLocator.calendarModel(),
+					mailLocator.entityClient,
+					mailLocator.progressTracker,
+					mailLocator.cacheStorage,
+					mailLocator.logins,
+					assertNotNull(await mailLocator.offlineStorageSettingsModel()),
+					mailLocator.syncTracker,
+				)
+			})
+			mailLocator.logins.addPostLoginAction(async () => {
+				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction.js")
 				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
 				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade, mailLocator.syncTracker)
+			})
+			mailLocator.logins.addPostLoginAction(async () => {
+				const { RegisterPushServicePostLoginAction } = await import("../common/native/main/RegisterPushServicePostLoginAction.js")
+				return new RegisterPushServicePostLoginAction(deviceConfig, mailLocator.pushService)
 			})
 		}
 
 		mailLocator.logins.addPostLoginAction(async () => {
-			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction")
+			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
 			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})
 
 		mailLocator.logins.addPostLoginAction(async () => {
 			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
-			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils")
+			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils.js")
 			return new OpenLocallySavedDraftAction(mailLocator.autosaveFacade, mailLocator.mailboxModel, mailLocator.entityClient, {
 				newMailEditorFromLocalDraftData,
 				createEditDraftDialog,
