@@ -32,6 +32,7 @@ import android.webkit.WebView.HitTestResult
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.browser.customtabs.CustomTabsIntent
@@ -137,6 +138,9 @@ class MainActivity : FragmentActivity() {
 
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
+
+		//we need to manually enable edge-to-edge to get `windowInsets` in Android ≤ 14
+		enableEdgeToEdge()
 
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
