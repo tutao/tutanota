@@ -4,12 +4,12 @@ import {
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarTimeRange,
 	getStartOfDayWithZone,
+	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import * as restError from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { CalendarAttendeeStatus, EndType } from "@tutao/app-env"
+import { CalendarAttendeeStatus, EndType, ProgrammingError } from "@tutao/app-env"
 import m from "mithril"
 import { clone, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -207,54 +207,15 @@ export class CalendarEventPreviewViewModel {
 	async editThisAndFutureOccurrences() {
 		try {
 			const { progenitorModel, progenitor } = await this.resolveSeriesModificationProperties()
-
 			if (deepEqual(this.calendarEvent, progenitor)) {
 				return await this.editAll()
 			}
 
-			const newEventModel = await this.eventModelFactory(CalendarOperation.Create, this.calendarEvent)
-			if (!newEventModel) {
-				throw new Error("Failed to split original series and instantiate a new event model.")
-			}
-			newEventModel.editModels.whenModel.deleteExcludedDates()
-			newEventModel.editModels.whoModel.resetGuestsStatus()
-
-			if (newEventModel.editModels.whenModel.repeatEndType === EndType.Count) {
-				const generationRange: CalendarTimeRange = {
-					start: progenitor.startTime.getTime(),
-					end: getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone).getTime(),
-				}
-				const occurrencesPerDay = new Map()
-				const calendar = await this.calendar.getAsync()
-				if (!calendar) {
-					throw new Error(`Missing calendar for eventId ${progenitor._id}`)
-				}
-				const progenitorWrapper: EventWrapper = {
-					event: progenitor,
-					color: calendar.color,
-					flags: {
-						hasAlarms: isNotEmpty(newEventModel.editModels.alarmModel.alarms),
-						isAlteredInstance: false,
-					},
-				}
-				addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)
-
-				const occurrencesLeft =
-					newEventModel.editModels.whenModel.repeatEndOccurrences -
-					progenitorModel.editModels.whenModel.excludedDates.length -
-					Array.from(occurrencesPerDay.values()).flat().length
-				newEventModel.editModels.whenModel.repeatEndOccurrences = occurrencesLeft > 0 ? occurrencesLeft : 1
-			}
+			const timeZone = this.calendarEvent.repeatRule?.timeZone ?? getTimeZone()
+			const newEventModel = await this.setupNewEventModel(progenitorModel, progenitor, timeZone)
 
 			const eventEditor = new EventEditorDialog()
-			await eventEditor.showNewCalendarEventEditDialog(newEventModel, async () => {
-				progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
-				progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(
-					getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone),
-					-1,
-				)
-				await progenitorModel.apply()
-			})
+			await eventEditor.showNewCalendarEventEditDialog(newEventModel, async () => await this.finishThisAndFutureUpdate(progenitorModel, timeZone))
 		} catch (err) {
 			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
@@ -267,17 +228,10 @@ export class CalendarEventPreviewViewModel {
 	async deleteThisAndFutureOccurrences() {
 		try {
 			const { progenitorModel, progenitor } = await this.resolveSeriesModificationProperties()
-
 			if (deepEqual(this.calendarEvent, progenitor)) {
 				return await this.deleteAll()
 			}
-
-			progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
-			progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(
-				getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone),
-				-1,
-			)
-			await progenitorModel.apply()
+			await this.finishThisAndFutureUpdate(progenitorModel, this.calendarEvent.repeatRule?.timeZone ?? getTimeZone())
 		} catch (err) {
 			if (err instanceof restError.NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
@@ -285,6 +239,76 @@ export class CalendarEventPreviewViewModel {
 				throw err
 			}
 		}
+	}
+
+	/**
+	 * Set up the {@link CalendarEventModel} for the new event created from a "EditThisAndFuture" operation
+	 *
+	 * @param progenitorModel
+	 * @param progenitor
+	 * @param timeZone
+	 * @private
+	 */
+	private async setupNewEventModel(progenitorModel: CalendarEventModel, progenitor: tutanotaTypeRefs.CalendarEvent, timeZone: string) {
+		const newEventModel = await this.eventModelFactory(CalendarOperation.Create, this.calendarEvent)
+		if (!newEventModel) {
+			throw new Error("Failed to split original series and instantiate a new event model.")
+		}
+
+		this.copyRepeatRuleValues(progenitorModel, newEventModel)
+
+		newEventModel.editModels.whenModel.deleteExcludedDates()
+		newEventModel.editModels.whoModel.resetGuestsStatus()
+
+		if (newEventModel.editModels.whenModel.repeatEndType === EndType.Count) {
+			const generationRange: CalendarTimeRange = {
+				start: progenitor.startTime.getTime(),
+				end: getStartOfDayWithZone(this.calendarEvent.startTime, timeZone).getTime(),
+			}
+			const occurrencesPerDay = new Map()
+			const calendar = await this.calendar.getAsync()
+			if (!calendar) {
+				throw new Error(`Missing calendar for eventId ${progenitor._id}`)
+			}
+			const progenitorWrapper: EventWrapper = {
+				event: progenitor,
+				color: calendar.color,
+				flags: {
+					hasAlarms: isNotEmpty(newEventModel.editModels.alarmModel.alarms),
+					isAlteredInstance: false,
+				},
+			}
+			addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)
+
+			const occurrencesLeft =
+				newEventModel.editModels.whenModel.repeatEndOccurrences -
+				progenitorModel.editModels.whenModel.excludedDates.length -
+				Array.from(occurrencesPerDay.values()).flat().length
+			newEventModel.editModels.whenModel.repeatEndOccurrences = occurrencesLeft > 0 ? occurrencesLeft : 1
+		}
+
+		return newEventModel
+	}
+
+	private async finishThisAndFutureUpdate(progenitorModel: CalendarEventModel, timeZone: string) {
+		progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
+		progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(getStartOfDayWithZone(this.calendarEvent.startTime, timeZone), -1)
+		await progenitorModel.apply()
+	}
+
+	/**
+	 * Copy one to one the values used to define a repeat rule from {@link sourceModel} to {@link targetModel}
+	 * @param targetModel
+	 * @param sourceModel
+	 * @private
+	 */
+	private copyRepeatRuleValues(sourceModel: CalendarEventModel, targetModel: CalendarEventModel) {
+		targetModel.editModels.whenModel.repeatEndType = sourceModel.editModels.whenModel.repeatEndType
+		targetModel.editModels.whenModel.repeatEndOccurrences = sourceModel.editModels.whenModel.repeatEndOccurrences
+		targetModel.editModels.whenModel.repeatEndDateForDisplay = sourceModel.editModels.whenModel.repeatEndDateForDisplay
+		targetModel.editModels.whenModel.repeatInterval = sourceModel.editModels.whenModel.repeatInterval
+		targetModel.editModels.whenModel.repeatPeriod = sourceModel.editModels.whenModel.repeatPeriod
+		targetModel.editModels.whenModel.advancedRules = sourceModel.editModels.whenModel.advancedRules
 	}
 
 	async duplicateEvent() {
@@ -321,7 +345,7 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async resolveSeriesModificationProperties() {
-		if (!this.calendarEvent.repeatRule) {
+		if (!this.calendarEvent.recurrenceId && !this.calendarEvent.repeatRule) {
 			throw new Error("Editing a series without repeat rule")
 		}
 

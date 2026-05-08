@@ -3,10 +3,10 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { getAsEnumValue, tutanotaTypeRefs } from "@tutao/typerefs"
+import { getAsEnumValue, StrippedEntity, tutanotaTypeRefs } from "@tutao/typerefs"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, clone, identity, incrementDate, isNotEmpty } from "@tutao/utils"
+import { assertNotNull, clone, identity, isNotEmpty } from "@tutao/utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
@@ -17,7 +17,6 @@ import {
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { StrippedEntity } from "@tutao/typerefs"
 import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../../common/calendar/date/Time"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
@@ -325,8 +324,7 @@ export class CalendarEventApplyStrategies {
 	async stopSeriesAtDate(editModels: CalendarEventEditModels, existingEvent: tutanotaTypeRefs.CalendarEvent) {
 		editModels.whoModel.shouldSendUpdates = true
 
-		const repeatRule = clone(existingEvent.repeatRule)
-		if (!repeatRule) {
+		if (!existingEvent.repeatRule) {
 			throw new Error("Trying to stop the Event Series of an event that does not have a Repeat Rule")
 		}
 
@@ -337,13 +335,12 @@ export class CalendarEventApplyStrategies {
 		const repeatRule = editModels.whenModel.assertHasAValidEndDateCondition()
 		const repeatRuleEndDate = new Date(parseInt(repeatRule.endValue!))
 		const originalExcludedDates = clone(repeatRule.excludedDates)
-		const inclusiveRecurrenceEndDate = incrementDate(repeatRuleEndDate, 1)
 
 		const uidIndexEntry = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
 		const alteredInstances = uidIndexEntry?.alteredInstances
 		if (alteredInstances) {
 			for (const occurrence of alteredInstances) {
-				if (isBefore(occurrence.startTime, inclusiveRecurrenceEndDate, "date")) {
+				if (isBefore(occurrence.startTime, repeatRuleEndDate, "date")) {
 					continue
 				}
 				if (isNotEmpty(occurrence.attendees)) {
@@ -364,7 +361,9 @@ export class CalendarEventApplyStrategies {
 		if (!newEvent.repeatRule) {
 			throw new Error("Derivative series from original progenitor is missing its Repeating Rule. ")
 		}
-		newEvent.repeatRule.excludedDates = originalExcludedDates.flatMap((date) => (date.date.getTime() < inclusiveRecurrenceEndDate.getTime() ? [date] : []))
+		newEvent.repeatRule.excludedDates = originalExcludedDates.flatMap((dateWrapper) =>
+			isBefore(dateWrapper.date, repeatRuleEndDate, "date") ? [dateWrapper] : [],
+		)
 
 		await this.showProgress(
 			(async () => {
