@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
-import android.net.Uri
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.provider.Settings
@@ -13,8 +12,8 @@ import android.util.Base64
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
@@ -56,7 +55,7 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun openLink(uri: String): Boolean {
-		val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+		val intent = Intent(Intent.ACTION_VIEW, uri.toUri())
 		return withContext(Dispatchers.Main) {
 			try {
 				activity.startActivity(intent)
@@ -73,9 +72,9 @@ class AndroidMobileSystemFacade(
 		withContext(Dispatchers.Main) {
 			val intent = Intent(
 				Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-				Uri.parse("package:${activity.packageName}")
+				"package:${activity.packageName}".toUri()
 			)
-			ContextCompat.startActivity(activity, intent, null)
+			activity.startActivity(intent)
 		}
 	}
 
@@ -195,20 +194,24 @@ class AndroidMobileSystemFacade(
 		}
 	}
 
-	suspend fun openTutaApp(query: String, appType: AppType) {
+	fun openTutaApp(query: String, appType: AppType) {
 		val appDetails = getAppDetails(appType)
 
 		val decodedQuery = Base64.decode(query.toByteArray(), Base64.DEFAULT).toString(Charset.defaultCharset())
-		val targetPackageId = activity.packageName.replace("tutashared", appDetails.packageName)
+		// replace de.tutao.tutashared with de.tutao.tutanota and similarly for different build configurations
+		val targetPackageId = BuildConfig.PACKAGE_NAME.replace("tutashared", appDetails.packageName)
 
-		val intent = Intent()
-		intent.setPackage(targetPackageId)
-		intent.setAction(Intent.ACTION_EDIT)
-		intent.putExtra(TUTA_INTENT_ACTION, "interop")
-		intent.setData(Uri.parse("${appDetails.scheme}://interop?$decodedQuery"))
+		val intent = Intent().apply {
+			setPackage(targetPackageId)
+			action = Intent.ACTION_EDIT
+			putExtra(TUTA_INTENT_ACTION, "interop")
+			data = "${appDetails.scheme}://interop?$decodedQuery".toUri()
+		}
 
 		try {
-			activity.startActivity(intent)
+			// We check the calling package on the receiving end and for that we have to use startActivityForResult
+			// event though we don't care about the result.
+			activity.startActivityForResult(intent, 0)
 		} catch (e: Exception) {
 			Log.d(TAG, e.toString())
 			tryToLaunchStore(targetPackageId)
@@ -219,7 +222,7 @@ class AndroidMobileSystemFacade(
 		if (appType === AppType.MAIL) {
 			Log.e(TAG, "Trying to open Tuta Mail from Tuta Mail")
 		} else {
-			openTutaApp(query, appType)
+			openTutaApp(query, AppType.MAIL)
 		}
 	}
 
@@ -227,16 +230,14 @@ class AndroidMobileSystemFacade(
 		if (appType === AppType.CALENDAR) {
 			Log.e(TAG, "Trying to open Tuta Calendar from Tuta Calendar")
 		} else {
-			openTutaApp(query, appType)
+			openTutaApp(query, AppType.CALENDAR)
 		}
 	}
 
 	private fun tryToLaunchStore(packageId: String) {
 		try {
-			ContextCompat.startActivity(
-				activity,
-				Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageId")),
-				null
+			activity.startActivity(
+				Intent(Intent.ACTION_VIEW, "market://details?id=$packageId".toUri())
 			)
 		} catch (e: Exception) {
 			Log.d(TAG, "Failed to launch store $e")

@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.LibraryBuildType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -42,23 +43,22 @@ android {
 
 	buildTypes {
 		debug {
-			resValue("string", "package_name", "de.tutao.tutashared.debug")
+			generatePackageName("de.tutao.tutashared.debug")
 			manifestPlaceholders.clear()
 			manifestPlaceholders += mapOf("contentProviderAuthority" to "de.tutao.fileprovider.debug")
 			isJniDebuggable = true
 		}
 		release {
+			generatePackageName("de.tutao.tutashared")
 			isMinifyEnabled = false
 			manifestPlaceholders.clear()
 			manifestPlaceholders += mapOf("contentProviderAuthority" to "de.tutao.fileprovider")
-			resValue("string", "package_name", "de.tutao.tutashared")
-
 		}
 		create("releaseTest") {
+			generatePackageName("de.tutao.tutashared.test")
 			isMinifyEnabled = false
 			manifestPlaceholders.clear()
 			manifestPlaceholders += mapOf("contentProviderAuthority" to "de.tutao.fileprovider.test")
-			resValue("string", "package_name", "de.tutao.tutashared. ")
 		}
 	}
 
@@ -189,4 +189,9 @@ dependencies {
 	androidTestImplementation(libs.androidx.test.rules)
 	androidTestImplementation(libs.jackson.databind)
 	androidTestImplementation(libs.androidx.room.testing)
+}
+
+fun LibraryBuildType.generatePackageName(packageName: String) {
+	buildConfigField("String", "PACKAGE_NAME", "\"${packageName}\"")
+	resValue("string", "package_name", packageName)
 }
