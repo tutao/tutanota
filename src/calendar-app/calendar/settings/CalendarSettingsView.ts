@@ -8,7 +8,6 @@ import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn.js"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder.js"
-import { LazyLoaded } from "@tutao/utils"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
@@ -18,7 +17,6 @@ import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayo
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { WhitelabelSettingsViewer } from "../../../common/settings/whitelabel/WhitelabelSettingsViewer.js"
 import { SubscriptionViewer } from "../../../common/subscription/SubscriptionViewer.js"
 import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
@@ -27,7 +25,6 @@ import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButt
 import { CalendarSettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
-import { calendarLocator } from "../../calendarLocator.js"
 import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
 import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
@@ -36,6 +33,9 @@ import { SettingsAboutLInk } from "../../../common/settings/SettingsAboutLInk"
 import { SettingsSupportButton } from "../../../common/settings/SettingsSupportButton"
 import type { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import type { MobilePaymentsFacade } from "../../../common/native/common/generatedipc/MobilePaymentsFacade"
+import { EntityClient } from "../../../common/api/common/EntityClient"
+import { ThemeController } from "../../../common/gui/ThemeController"
+import { WhitelabelThemeGenerator } from "../../../common/gui/WhitelabelThemeGenerator"
 
 assertMainOrNode()
 
@@ -51,6 +51,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	private readonly adminFolders: SettingsFolder<unknown>[]
 	private readonly subscriptionFolders: SettingsFolder<unknown>[]
 	private readonly logins: LoginController
+	private readonly entityClient: EntityClient
+	private readonly themeController: ThemeController
+	private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator
 	private selectedFolder: SettingsFolder<unknown>
 	private currentViewer: UpdatableSettingsViewer | null = null
 	private showBusinessSettings: boolean = false
@@ -58,11 +61,24 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	private readonly targetRoute: string
 
 	constructor({
-		attrs: { header, logins, credentialsProvider, systemFacade, mobilePaymentsFacade, domainConfigProvider },
+		attrs: {
+			header,
+			logins,
+			credentialsProvider,
+			systemFacade,
+			mobilePaymentsFacade,
+			domainConfigProvider,
+			themeController,
+			whitelabelThemeGenerator,
+			entityClient,
+		},
 	}: Vnode<CalendarSettingsViewAttrs>) {
 		super()
 		this.logins = logins
 		this.mobilePaymentsFacade = mobilePaymentsFacade
+		this.entityClient = entityClient
+		this.themeController = themeController
+		this.whitelabelThemeGenerator = whitelabelThemeGenerator
 		this.userFolders = [
 			new SettingsFolder(
 				() => "login_label",
@@ -276,13 +292,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					() => "whitelabel_label",
 					() => Icons.ColorwandFilled,
 					"whitelabel",
-					() =>
-						new WhitelabelSettingsViewer(
-							calendarLocator.entityClient,
-							this.logins,
-							calendarLocator.themeController,
-							calendarLocator.whitelabelThemeGenerator,
-						),
+					() => new WhitelabelSettingsViewer(this.entityClient, this.logins, this.themeController, this.whitelabelThemeGenerator),
 					undefined,
 				),
 			)

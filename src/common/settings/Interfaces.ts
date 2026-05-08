@@ -9,6 +9,9 @@ import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFa
 import { EventController } from "../api/main/EventController"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { DomainConfigProvider } from "../api/common/DomainConfigProvider"
+import { EntityClient } from "../api/common/EntityClient"
+import { ThemeController } from "../gui/ThemeController"
+import { WhitelabelThemeGenerator } from "../gui/WhitelabelThemeGenerator"
 
 /** UI component shown in the second column of settings. */
 export interface UpdatableSettingsViewer extends Component {
@@ -36,4 +39,7 @@ export interface CalendarSettingsViewAttrs extends TopLevelAttrs {
 	eventController: EventController
 	mobilePaymentsFacade: MobilePaymentsFacade
 	domainConfigProvider: DomainConfigProvider
+	entityClient: EntityClient
+	themeController: ThemeController
+	whitelabelThemeGenerator: WhitelabelThemeGenerator
 }
