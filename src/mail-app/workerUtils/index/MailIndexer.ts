@@ -566,7 +566,7 @@ export class MailIndexer {
 		const mailSets = await this.loadMailSets(mailbox)
 		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
 
-		const importedMailSetEntryListId = getListId(importedMailSet)
+		const importedMailSetEntryListId = importedMailSet.entries
 		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp
 		const dateRangeFilteredMailSetEntryIds = importedMailEntries
 			.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
