@@ -3,7 +3,7 @@ import { Icons } from "./icons/Icons"
 import type { Editor, Listing, Style } from "../editor/Editor"
 import { Alignment } from "../editor/Editor"
 import { numberRange } from "@tutao/utils"
-import { font_size } from "../size"
+import { font_size, px } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
@@ -194,7 +194,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 							return {
 								label: lang.makeTranslation("font_size_" + n, n.toString()),
 								click: () => {
-									editor.squire!.setFontSize(String(n))
+									editor.squire!.setFontSize(px(n))
 									this.selectedSize = n
 									setTimeout(() => editor.squire!.focus(), 100) // blur for the editor is fired after the handler for some reason
 									m.redraw()
