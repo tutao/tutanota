@@ -15,7 +15,7 @@ import { theme } from "../../gui/theme"
 import { PasswordGenerator } from "../../misc/passwords/PasswordGenerator"
 import { locator } from "../../api/main/CommonLocator"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
-import { delay } from "@tutao/utils"
+import { delay, noOp } from "@tutao/utils"
 import { showSnackBar } from "../../gui/base/SnackBar"
 import { Icons } from "../../gui/base/icons/Icons"
 import { styles } from "../../gui/styles"
@@ -225,6 +225,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	private dictionary: string[] = []
 	private pwGenerator: PasswordGenerator | undefined
 	private hasGeneratedPassword = false
+	private snackBarShown = false
 
 	async oncreate() {
 		const appState = window.tutao.appState
@@ -315,11 +316,17 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 						{
 							onclick: () => {
 								copyToClipboard(attrs.model.getNewPassword())
-								void showSnackBar({
-									message: "copied_msg",
-									showingTime: 3000,
-									leadingIcon: Icons.ClipboardFilled,
-								})
+								if (!this.snackBarShown) {
+									this.snackBarShown = true
+									void showSnackBar({
+										message: "copied_msg",
+										showingTime: 3000,
+										leadingIcon: Icons.ClipboardFilled,
+										onClose: () => (this.snackBarShown = false),
+									})
+								} else {
+									noOp()
+								}
 							},
 						},
 						lang.getTranslationText("copy_action"),
