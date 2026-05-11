@@ -1,9 +1,8 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
 import { isSelectedPrefix, NavButton, NavButtonColor } from "./base/NavButton.js"
-import { FeatureType } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType } from "@tutao/app-env"
 import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
-import { assertMainOrNode } from "@tutao/app-env"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
@@ -12,7 +11,7 @@ import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 import { layout_size } from "./size"
 import { Icons } from "./base/icons/Icons"
-import { isDriveEnabled } from "../api/common/drive/DriveUtils"
+import { isDriveEnabled } from "../misc/DriveUtils"
 
 assertMainOrNode()
 

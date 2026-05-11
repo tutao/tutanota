@@ -1,6 +1,6 @@
-import type { LoginController } from "../../main/LoginController"
+import type { LoginController } from "../api/main/LoginController"
 import { FeatureType, Mode } from "@tutao/app-env"
-import { client } from "../../../misc/ClientDetector"
+import { client } from "./ClientDetector"
 
 export function isDriveEnabled(loginController: LoginController): boolean {
 	return (

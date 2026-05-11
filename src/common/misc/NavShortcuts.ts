@@ -6,7 +6,7 @@ import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
 import { SessionType } from "../api/common/SessionType"
-import { isDriveEnabled } from "../api/common/drive/DriveUtils"
+import { isDriveEnabled } from "./DriveUtils"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	function hasInAppNavigation() {

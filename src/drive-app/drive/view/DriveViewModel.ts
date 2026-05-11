@@ -18,7 +18,7 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { isDriveEnabled } from "../../../common/api/common/drive/DriveUtils"
+import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../common/api/common/drive/DriveTypes"
 import {

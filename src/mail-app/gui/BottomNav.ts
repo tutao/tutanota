@@ -4,7 +4,7 @@ import { font_size } from "../../common/gui/size"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
 import { FeatureType } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator.js"
-import { isDriveEnabled } from "../../common/api/common/drive/DriveUtils"
+import { isDriveEnabled } from "../../common/misc/DriveUtils"
 import { Icons } from "../../common/gui/base/icons/Icons"
 
 type Attrs = void
