@@ -2274,5 +2274,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
+		"driveNotEnabled_msg": "Drive ist für dieses Konto nicht aktiviert"
 	}
 }

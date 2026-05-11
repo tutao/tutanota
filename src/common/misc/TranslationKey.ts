@@ -2274,3 +2274,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "light_green_label"
 	| "dark_green_label"
+	| "driveNotEnabled_msg"

@@ -67,8 +67,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		if (!this.driveViewModel.isDriveEnabledForCustomer()) {
-			// FIXME
-			Dialog.message(lang.makeTranslation("test_driveNotEnabledMessage", "Drive is not enabled for this account")).then(() => {
+			Dialog.message("driveNotEnabled_msg").then(() => {
 				windowFacade.reload({})
 			})
 			return
