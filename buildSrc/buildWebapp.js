@@ -17,6 +17,7 @@ import replace from "@rollup/plugin-replace"
 import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
+import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
 
 /**
  * Builds the web app for production.
@@ -32,13 +33,9 @@ import typescript from "@rollup/plugin-typescript"
  */
 
 export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
-	const isCalendarApp = app === "calendar"
-	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
+	const buildDir = buildDirForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
-	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
-	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
-	const powWorkerFile = "src/common/api/common/pow-worker.ts"
-	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
+	const { entry: entryFile, worker: workerFile } = entryPointsForApp(app)
 	const { restUrl, networkDebugging } = (() => {
 		switch (stage) {
 			case "test":
@@ -97,7 +94,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const { rollupWasmLoader } = await import("../src/wasm-loader/dist/index.js")
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: [entryFile, workerFile, powWorkerFile],
+		input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
@@ -117,7 +114,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			bundleDependencyCheckPlugin(),
 			replace({
 				// see AppType in src/common/misc/ClientConstants.ts
-				APP_TYPE: JSON.stringify(app === "calendar" ? "2" : "1"),
+				APP_TYPE: appTypeForApp(app),
 			}),
 			nodeResolve({
 				preferBuiltins: true,
@@ -166,7 +163,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await fs.promises.writeFile(
 		`${buildDir}/worker-bootstrap.js`,
 		`import "./polyfill.js"
-import "./${builtWorkerFile}"`,
+import "./worker.js"`,
 	)
 
 	await createHtml(

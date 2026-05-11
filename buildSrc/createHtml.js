@@ -5,6 +5,7 @@ import fs from "fs-extra"
 import { renderHtml } from "./LaunchHtml.js"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
+import { buildDirForApp } from "./DevBuild.js"
 
 /**
  *
@@ -19,7 +20,7 @@ import path from "node:path"
 export async function createHtml(env, app = "mail") {
 	let jsFileName
 	let htmlFileName
-	const buildDir = app === "calendar" ? "build-calendar-app" : "build"
+	const buildDir = buildDirForApp(app)
 	switch (env.mode) {
 		case "App":
 			jsFileName = "index-app.js"
@@ -36,8 +37,6 @@ export async function createHtml(env, app = "mail") {
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 	let indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
-
-	if (app === "calendar") indexTemplate = indexTemplate.replaceAll("app.js", "calendar-app.js")
 
 	const index = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}

@@ -355,7 +355,7 @@ export function buildDirForApp(app) {
 	}
 }
 
-function entryPointsForApp(app) {
+export function entryPointsForApp(app) {
 	switch (app) {
 		case "mail":
 			return {
@@ -375,7 +375,7 @@ function entryPointsForApp(app) {
 	}
 }
 
-function appTypeForApp(app) {
+export function appTypeForApp(app) {
 	// see ClientConstants
 	switch (app) {
 		case "mail":

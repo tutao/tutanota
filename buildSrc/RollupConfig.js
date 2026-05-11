@@ -286,7 +286,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/native/worker") ||
 		isIn("src/mail-app/workerUtils/worker") ||
 		isIn("src/calendar-app/worker") ||
-		isIn("src/mail-app/workerUtils/offline")
+		isIn("src/mail-app/workerUtils/offline") ||
+		isIn("src/drive-app/workerUtils")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
