@@ -9,10 +9,11 @@ import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStor
 import { NativePushFacade } from "../common/generatedipc/NativePushFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
 import { AppType } from "../../misc/ClientConstants.js"
 import { isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/app-env"
+import { AlarmFacade } from "../../api/worker/facades/lazy/AlarmFacade"
+import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
@@ -40,6 +41,7 @@ export class NativePushServiceApp {
 		private readonly entityClient: EntityClient,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarFacade: CalendarFacade,
+		private readonly alarmFacade: AlarmFacade,
 		private readonly app: AppType,
 	) {}
 
@@ -183,7 +185,8 @@ export class NativePushServiceApp {
 		if (scheduledAlarmsModelVersion == null || scheduledAlarmsModelVersion < effectiveModelVersion()) {
 			console.log(`Alarms not scheduled for user ${userId} (stored v ${scheduledAlarmsModelVersion}), scheduling`)
 			await this.nativePushFacade.invalidateAlarmsForUser(userId)
-			await this.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
+			const eventsWithAlarms = await this.calendarFacade.loadAlarmEvents()
+			await this.alarmFacade.scheduleAlarmsForNewDevice(pushIdentifier, eventsWithAlarms)
 			// tell native to delete all alarms for the user
 			this.deviceConfig.setScheduledAlarmsModelVersion(userId, effectiveModelVersion())
 		}

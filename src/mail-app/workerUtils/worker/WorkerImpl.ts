@@ -48,6 +48,7 @@ import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/Pu
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 
 assertWorkerOrNode()
 
@@ -59,6 +60,7 @@ export interface WorkerInterface {
 	readonly groupManagementFacade: GroupManagementFacade
 	readonly configFacade: ConfigurationDatabase
 	readonly calendarFacade: CalendarFacade
+	readonly alarmFacade: AlarmFacade
 	readonly mailFacade: MailFacade
 	readonly shareFacade: ShareFacade
 	readonly cacheManagementFacade: CacheManagementFacade
@@ -177,6 +179,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async calendarFacade() {
 				return locator.calendar()
+			},
+
+			async alarmFacade() {
+				return locator.alarmFacade()
 			},
 
 			async mailFacade() {

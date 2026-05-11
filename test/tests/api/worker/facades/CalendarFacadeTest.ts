@@ -1,30 +1,27 @@
-import o, { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/otest"
+import o from "@tutao/otest"
+import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError"
+import { clone, downcast, first } from "@tutao/utils"
+import { elementIdPart, getElementId, getLetId, getListId, sysServices, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
+import { matchers, object, verify, when } from "testdouble"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
+import { GroupType } from "@tutao/app-env"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
+import { ExposedOperationProgressTracker } from "../../../../../src/common/api/main/OperationProgressTracker"
+import { AlarmFacade } from "../../../../../src/common/api/worker/facades/lazy/AlarmFacade"
+import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
+import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
+import { EntityRestClientMock } from "../rest/EntityRestClientMock"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import {
+	AlarmInfoTemplate,
 	CachingMode,
 	CalendarEventAlteredInstance,
 	CalendarFacade,
 	EventWithUserAlarmInfos,
 	sortByRecurrenceId,
-} from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
-import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, clone, downcast, isSameTypeRef, neverNull } from "@tutao/utils"
-import { getElementId, getLetId, getListId, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
-import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
-import { matchers, object, verify, when } from "testdouble"
+} from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
-import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
-import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import * as restError from "@tutao/rest-client/error"
-import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
-import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
-import { InstancePipeline } from "@tutao/instance-pipeline"
-import { base64ToKey } from "@tutao/crypto"
-import { GroupType, OperationType } from "../../../../../src/app-env"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -34,19 +31,10 @@ o.spec("CalendarFacadeTest", function () {
 	let restClientMock: EntityRestClientMock
 	let entityRestCache: DefaultEntityRestCache
 	let calendarFacade: CalendarFacade
-	let entityRequest: EntityRestClient["setupMultiple"]
-	let requestSpy: any
-	let sendAlarmNotificationsMock
-	let loadAllMock
-	let enitityClientLoadAllMock
-	let entityRequestMock
-	let workerMock
-	let nativeMock
 	let serviceExecutor: IServiceExecutor
-	let cryptoFacade: CryptoFacade
-	let infoMessageHandler: InfoMessageHandler
 	let typeModelResolver: TypeModelResolver
-	let instancePipeline: InstancePipeline
+	let exposedOperationProgressTracker: ExposedOperationProgressTracker
+	let alarmFacadeMock: AlarmFacade
 
 	const PRIVATE_CALENDAR_ID = "privateCalendarId"
 	const SUBSCRIPTION_CALENDAR_ID = "subscriptionCalendarId"
@@ -67,11 +55,18 @@ o.spec("CalendarFacadeTest", function () {
 		o(sortEventsWithAlarmInfos(actual)).deepEquals(sortEventsWithAlarmInfos(expected))
 	}
 
-	function makeEvent(listId: Id, elementId?: Id): tutanotaTypeRefs.CalendarEvent {
+	function makeCalendarEvent(listId: Id, elementId?: Id): tutanotaTypeRefs.CalendarEvent {
 		return createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
 			_id: [listId, elementId || restClientMock.getNextId()],
 			uid: `${listId}-${elementId}`,
 		})
+	}
+
+	function makeAlarmInfoTemplate(alarmIdentifier: string, trigger: string = "1D"): AlarmInfoTemplate {
+		return {
+			alarmIdentifier,
+			trigger,
+		}
 	}
 
 	function makeUserAlarmInfo(event: tutanotaTypeRefs.CalendarEvent): sysTypeRefs.UserAlarmInfo {
@@ -116,219 +111,242 @@ o.spec("CalendarFacadeTest", function () {
 		})
 		userFacade = downcast({
 			getLoggedInUser: () => user,
+			getUserGroupId: () => user.userGroup.group,
+			getCurrentUserGroupKey: () => object(),
 		})
 		groupManagementFacade = downcast({})
 
 		entityRestCache = downcast(restClientMock)
-		workerMock = downcast({
-			sendProgress: () => Promise.resolve(),
-		})
-		nativeMock = object()
 		serviceExecutor = object()
-		cryptoFacade = object()
-		infoMessageHandler = object()
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		exposedOperationProgressTracker = object()
+		alarmFacadeMock = object()
+
 		calendarFacade = new CalendarFacade(
 			userFacade,
 			groupManagementFacade,
 			entityRestCache,
 			new EntityClient(entityRestCache, typeModelResolver),
-			nativeMock,
-			workerMock,
+			exposedOperationProgressTracker,
 			serviceExecutor,
-			cryptoFacade,
-			infoMessageHandler,
-			instancePipeline,
 			new EntityClient(entityRestCache, typeModelResolver),
+			alarmFacadeMock,
 		)
 	})
 
 	o.spec("saveCalendarEvents", function () {
+		// Calendar Events
+		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let workCalendarEvent: tutanotaTypeRefs.CalendarEvent
+
+		// Calendar Event Lists
+		const shortListId = "shortListId"
+
+		// Dependencies
+		let nonCachingEntityClientMock: EntityClient
+		let cachingEntityClientMock: EntityClient
+
 		o.beforeEach(async function () {
-			loadAllMock = function (typeRef, listId, start) {
-				if (isSameTypeRef(typeRef, sysTypeRefs.PushIdentifierTypeRef)) {
-					return Promise.resolve(neverNull(user.pushIdentifierList).list)
-				}
-				throw new Error("should not be called with typeRef: " + typeRef)
-			}
-			entityRequest = async function () {
-				throw new Error("not implemented")
-			} //dummy overwrite in test
-			requestSpy = spy(function (...args) {
-				return entityRequest.apply(this, args)
+			personalCalendarEvent = makeCalendarEvent(shortListId)
+			workCalendarEvent = makeCalendarEvent(shortListId)
+
+			entityRestCache = object()
+			nonCachingEntityClientMock = object()
+			cachingEntityClientMock = object()
+
+			calendarFacade = new CalendarFacade(
+				userFacade,
+				groupManagementFacade,
+				entityRestCache,
+				nonCachingEntityClientMock,
+				exposedOperationProgressTracker,
+				serviceExecutor,
+				cachingEntityClientMock,
+				alarmFacadeMock,
+			)
+		})
+
+		o.spec("SetupMultipleError", function () {
+			o.test("when all events fail, all events are in failedEvents and we collect the error message", async function () {
+				const calendarEvents = [personalCalendarEvent, workCalendarEvent]
+
+				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], calendarEvents),
+				)
+
+				const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+
+				o.check(result.successfulEvents.length).equals(0)
+				o.check(result.failedEventsResult.failedEvents).deepEquals(calendarEvents)
+				o.check(result.failedEventsResult.errors.length).equals(1)
 			})
 
-			// @ts-ignore
-			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade.sendAlarmNotifications, () => Promise.resolve())
-			enitityClientLoadAllMock = mockAttribute(calendarFacade.cachingEntityClient, calendarFacade.cachingEntityClient.loadAll, loadAllMock)
-			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
-		})
-		o.afterEach(async function () {
-			unmockAttribute(enitityClientLoadAllMock)
-			unmockAttribute(entityRequestMock)
-			unmockAttribute(sendAlarmNotificationsMock)
+			o.test("when there is a partial failure, we still collect the successful events and we collect the error message", async function () {
+				const calendarEvents = [personalCalendarEvent, workCalendarEvent]
+
+				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], [workCalendarEvent]),
+				)
+
+				const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+
+				o.check(result.successfulEvents).deepEquals([personalCalendarEvent])
+				o.check(result.failedEventsResult.failedEvents).deepEquals([workCalendarEvent])
+				o.check(result.failedEventsResult.errors.length).equals(1)
+			})
 		})
 
-		o("save events with alarms posts all alarms in one post multiple", async function () {
-			entityRequest = function (listId, instances) {
-				const typeRef = instances[0]?._type
-				if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
-					const calendarInstances = instances as unknown as tutanotaTypeRefs.CalendarEvent[]
-					o(calendarInstances.length).equals(2)
-					o(calendarInstances[0].alarmInfos).deepEquals([[userAlarmInfoListId, "1"]])
-					o(calendarInstances[1].alarmInfos).deepEquals([
-						[userAlarmInfoListId, "2"],
-						[userAlarmInfoListId, "3"],
-					])
-					return Promise.resolve(["eventId1", "eventId2"])
-				} else if (isSameTypeRef(typeRef, sysTypeRefs.UserAlarmInfoTypeRef)) {
-					o(instances.length).equals(3)
-					return Promise.resolve(["1", "2", "3"])
-				} else {
-					throw new Error()
-				}
-			}
+		o.test("when event save fails with a non-SetupMultipleError, all events are in failedEvents and we collect the error message", async function () {
+			const calendarEvents = [personalCalendarEvent, workCalendarEvent]
 
-			const listId = "listID"
-			const event1 = makeEvent(listId, "eventId1")
-			const event2 = makeEvent(listId, "eventId2")
-			const eventsWrapper = [
-				{
-					event: event1,
-					alarms: [makeAlarmInfo(event1)],
-				},
-				{
-					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
-				},
+			const unexpectedErrorMessage = "Another unexpected error"
+			when(cachingEntityClientMock.setupMultipleEntities(shortListId, calendarEvents)).thenReject(new Error(unexpectedErrorMessage))
+
+			const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+
+			o.check(result.successfulEvents.length).equals(0)
+			o.check(result.failedEventsResult.failedEvents).deepEquals(calendarEvents)
+			o.check(result.failedEventsResult.errors.length).equals(1)
+			o.check(first(result.failedEventsResult.errors)?.message).equals(unexpectedErrorMessage)
+		})
+
+		o.test("when all events succeed, all events are in successfulEvents and no errors are present", async function () {
+			const calendarEvents = [personalCalendarEvent, workCalendarEvent]
+
+			when(cachingEntityClientMock.setupMultipleEntities(shortListId, calendarEvents)).thenResolve(
+				calendarEvents.map((event) => elementIdPart(event._id)),
+			)
+
+			const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+
+			o.check(result.successfulEvents).deepEquals(calendarEvents)
+			o.check(result.failedEventsResult.failedEvents.length).equals(0)
+			o.check(result.failedEventsResult.errors.length).equals(0)
+		})
+	})
+
+	o.spec("saveCalendarEventsAndAlarms", function () {
+		// Function input
+		let eventAlarmInfoTemplatesTuples: EventAlarmInfoTemplatesTuple[]
+
+		// Calendar Events
+		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let personalAlarmTemplate: AlarmInfoTemplate
+		let workCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let workAlarmTemplate: AlarmInfoTemplate
+		let vacationsCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let vacationsAlarmTemplate: AlarmInfoTemplate
+
+		// Calendar Event Lists
+		const shortListId = "shortListId"
+		let shortListEvents: tutanotaTypeRefs.CalendarEvent[] = []
+		const longListId = "longListId"
+		let longListEvents: tutanotaTypeRefs.CalendarEvent[] = []
+
+		// Dependencies
+		let nonCachingEntityClientMock: EntityClient
+		let cachingEntityClientMock: EntityClient
+
+		o.beforeEach(async function () {
+			personalCalendarEvent = makeCalendarEvent(shortListId)
+			personalAlarmTemplate = makeAlarmInfoTemplate("personalAlarm")
+			workCalendarEvent = makeCalendarEvent(shortListId)
+			workAlarmTemplate = makeAlarmInfoTemplate("workAlarm")
+			shortListEvents.push(personalCalendarEvent, workCalendarEvent)
+
+			vacationsCalendarEvent = makeCalendarEvent(longListId)
+			vacationsAlarmTemplate = makeAlarmInfoTemplate("vacationsAlarm")
+			longListEvents.push(vacationsCalendarEvent)
+
+			eventAlarmInfoTemplatesTuples = [
+				{ event: personalCalendarEvent, alarmInfoTemplates: [personalAlarmTemplate] },
+				{ event: workCalendarEvent, alarmInfoTemplates: [workAlarmTemplate] },
+				{ event: vacationsCalendarEvent, alarmInfoTemplates: [vacationsAlarmTemplate] },
 			]
-			// @ts-ignore
-			await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve())
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(3)
-			// @ts-ignore
-			o(entityRestCache.setupMultiple.callCount).equals(2)
+
+			entityRestCache = object()
+			nonCachingEntityClientMock = object()
+			cachingEntityClientMock = object()
+
+			calendarFacade = new CalendarFacade(
+				userFacade,
+				groupManagementFacade,
+				entityRestCache,
+				nonCachingEntityClientMock,
+				exposedOperationProgressTracker,
+				serviceExecutor,
+				cachingEntityClientMock,
+				alarmFacadeMock,
+			)
 		})
 
-		o("If alarms cannot be saved a user error is thrown and events are not created", async function () {
-			entityRequest = function (listId, instances) {
-				const typeRef = instances[0]?._type
-				if (isSameTypeRef(typeRef, sysTypeRefs.UserAlarmInfoTypeRef)) {
-					return Promise.reject(new SetupMultipleError("could not create alarms", [new Error("failed")], instances))
-				} else {
-					throw new Error("Wrong typeref")
-				}
-			}
+		o.spec("saveCalendarEvents failure", function () {
+			o.test("when all events fail, all events are in failedEvents and alarms are not attempted", async function () {
+				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], shortListEvents),
+				)
+				when(cachingEntityClientMock.setupMultipleEntities(longListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], longListEvents),
+				)
 
-			const listId = "listID"
-			const event1 = makeEvent(listId, "eventId1")
-			const event2 = makeEvent(listId, "eventId2")
-			const eventsWrapper = [
-				{
-					event: event1,
-					alarms: [makeAlarmInfo(event1)],
-				},
-				{
-					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
-				},
-			]
-			// @ts-ignore
-			const result = await assertThrows(ImportError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
-			o(result.numFailed).equals(2)
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.callCount).equals(0)
-			// @ts-ignore
-			o(entityRestCache.setupMultiple.callCount).equals(1)
+				const expectedFailedEvents = eventAlarmInfoTemplatesTuples.map((tuple) => tuple.event)
+
+				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+
+				o.check(result.failedEvents).deepEquals(expectedFailedEvents)
+				o.check(result.failedEventErrors.length).equals(2) // One error per list
+				verify(serviceExecutor.post(sysServices.AlarmService, matchers.anything()), { times: 0 })
+			})
+
+			o.test("when some events fail, only successful events have alarms saved", async function () {
+				const expectedFailedEvents = [workCalendarEvent]
+				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], expectedFailedEvents),
+				)
+
+				when(cachingEntityClientMock.setupMultipleEntities(longListId, matchers.anything())).thenResolve([elementIdPart(vacationsCalendarEvent._id)])
+
+				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+
+				o.check(result.failedEvents).deepEquals(expectedFailedEvents)
+				o.check(result.failedEventErrors.length).equals(1) // We had one error when saving the shortList
+				verify(serviceExecutor.post(sysServices.AlarmService, matchers.anything()), { times: 2 })
+			})
+
+			o.test("when one list fails entirely, the other list is still processed", async function () {
+				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
+					new SetupMultipleError("Mock error message", [new Error("Inner error message")], shortListEvents),
+				)
+
+				when(cachingEntityClientMock.setupMultipleEntities(longListId, matchers.anything())).thenResolve([elementIdPart(vacationsCalendarEvent._id)])
+
+				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+
+				o.check(result.successfulEvents).deepEquals(longListEvents)
+				o.check(result.failedEvents).deepEquals(shortListEvents)
+				o.check(result.failedEventErrors.length).equals(1) // We had one error when saving the shortList
+				verify(serviceExecutor.post(sysServices.AlarmService, matchers.anything()), { times: 1 })
+			})
 		})
 
-		o("If not all events can be saved and no connection error is present, an ImportError is thrown", async function () {
-			const listId1 = "listID1"
-			const listId2 = "listID2"
-			entityRequest = function (listId, instances) {
-				const typeRef = instances[0]?._type
-				if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
-					if (listId === listId1) {
-						return Promise.reject(new SetupMultipleError("could not save event", [new Error("failed")], instances))
-					} else if (listId === listId2) {
-						return Promise.resolve(["eventId2"])
-					} else {
-						throw new Error("Unknown id")
-					}
-				} else if (isSameTypeRef(typeRef, sysTypeRefs.UserAlarmInfoTypeRef)) {
-					o(instances.length).equals(3)
-					return Promise.resolve(["1", "2", "3"])
-				}
-				throw new Error("should not be reached")
-			}
+		o.spec("saveAlarms failure", function () {
+			o.test("when alarm save fails, the affected events remain in successfulEvents but are also reported in failedAlarms", async function () {
+				throw new Error("NotImplemented")
+			})
 
-			const event1 = makeEvent(listId1, "eventId1")
-			const event2 = makeEvent(listId2, "eventId2")
-			const eventsWrapper = [
-				{
-					event: event1,
-					alarms: [makeAlarmInfo(event1)],
-				},
-				{
-					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
-				},
-			]
-			// @ts-ignore
-			const result = await assertThrows(ImportError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
-			o(result.numFailed).equals(1)
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(2)
-			// @ts-ignore
-			o(entityRestCache.setupMultiple.callCount).equals(3)
+			o.test("when a connection error occurs during alarm save, it is collected in failedAlarms and not thrown", async function () {
+				throw new Error("NotImplemented")
+			})
 		})
-		o("If not all events can be saved and a connection error is present, it is thrown", async function () {
-			const listId1 = "listID1"
-			const listId2 = "listID2"
-			entityRequest = function (listId, instances) {
-				const typeRef = instances[0]?._type
-				if (isSameTypeRef(typeRef, tutanotaTypeRefs.CalendarEventTypeRef)) {
-					if (listId === listId1) {
-						return Promise.reject(
-							new SetupMultipleError("could not save event", [new Error("failed"), new restError.ConnectionError("no connection")], instances),
-						)
-					} else if (listId === listId2) {
-						return Promise.resolve(["eventId2"])
-					} else {
-						throw new Error("Unknown id")
-					}
-				} else if (isSameTypeRef(typeRef, sysTypeRefs.UserAlarmInfoTypeRef)) {
-					o(instances.length).equals(3)
-					return Promise.resolve(["1", "2", "3"])
-				}
-				throw new Error("should not be reached")
-			}
 
-			const event1 = makeEvent(listId1, "eventId1")
-			const event2 = makeEvent(listId2, "eventId2")
-			const eventsWrapper = [
-				{
-					event: event1,
-					alarms: [makeAlarmInfo(event1)],
-				},
-				{
-					event: event2,
-					alarms: [makeAlarmInfo(event2), makeAlarmInfo(event2)],
-				},
-			]
-			// @ts-ignore
-			await assertThrows(restError.ConnectionError, async () => await calendarFacade.saveCalendarEvents(eventsWrapper, () => Promise.resolve()))
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.callCount).equals(1)
-			// @ts-ignore
-			o(calendarFacade.sendAlarmNotifications.args[0].length).equals(2)
-			// @ts-ignore
-			o(entityRestCache.setupMultiple.callCount).equals(3)
+		o.spec("success scenario", function () {
+			o.test("when input is empty, an empty result is returned", async function () {
+				throw new Error("NotImplemented")
+			})
+
+			o.test("when all events and alarms succeed, all events are in successfulEvents and no failures are reported", async function () {
+				throw new Error("NotImplemented")
+			})
 		})
 	})
 
@@ -338,7 +356,7 @@ o.spec("CalendarFacadeTest", function () {
 		})
 		o("one alarm", async function () {
 			const calendarId = restClientMock.getNextId()
-			const event = makeEvent(calendarId)
+			const event = makeCalendarEvent(calendarId)
 			const alarm = makeUserAlarmInfo(event)
 			restClientMock.addListInstances(event, alarm)
 			const actual = await calendarFacade.loadAlarmEvents()
@@ -347,7 +365,7 @@ o.spec("CalendarFacadeTest", function () {
 		})
 		o("multiple alarms, same event", async function () {
 			const calendarId = restClientMock.getNextId()
-			const event = makeEvent(calendarId)
+			const event = makeCalendarEvent(calendarId)
 			const alarm1 = makeUserAlarmInfo(event)
 			const alarm2 = makeUserAlarmInfo(event)
 			restClientMock.addListInstances(event, alarm1, alarm2)
@@ -357,8 +375,8 @@ o.spec("CalendarFacadeTest", function () {
 		})
 		o("multiple alarms, different events", async function () {
 			const calendarId = restClientMock.getNextId()
-			const event1 = makeEvent(calendarId)
-			const event2 = makeEvent(calendarId)
+			const event1 = makeCalendarEvent(calendarId)
+			const event2 = makeCalendarEvent(calendarId)
 			const alarm1 = makeUserAlarmInfo(event1)
 			const alarm2 = makeUserAlarmInfo(event2)
 			const alarm3 = makeUserAlarmInfo(event2)
@@ -373,9 +391,9 @@ o.spec("CalendarFacadeTest", function () {
 		o("multiple alarms, different calendar", async function () {
 			const calendarId1 = restClientMock.getNextId()
 			const calendarId2 = restClientMock.getNextId()
-			const event1 = makeEvent(calendarId1)
-			const event2 = makeEvent(calendarId2)
-			const event3 = makeEvent(calendarId2)
+			const event1 = makeCalendarEvent(calendarId1)
+			const event2 = makeCalendarEvent(calendarId2)
+			const event3 = makeCalendarEvent(calendarId2)
 			const alarm1 = makeUserAlarmInfo(event1)
 			const alarm2 = makeUserAlarmInfo(event2)
 			const alarm3 = makeUserAlarmInfo(event2)
@@ -396,10 +414,10 @@ o.spec("CalendarFacadeTest", function () {
 			const calendarId2 = restClientMock.getNextId()
 			const clashingEventId = restClientMock.getNextId()
 
-			const event1 = makeEvent(calendarId1)
-			const event2 = makeEvent(calendarId2)
-			const clashEvent1 = makeEvent(calendarId1, clashingEventId)
-			const clashEvent2 = makeEvent(calendarId2, clashingEventId)
+			const event1 = makeCalendarEvent(calendarId1)
+			const event2 = makeCalendarEvent(calendarId2)
+			const clashEvent1 = makeCalendarEvent(calendarId1, clashingEventId)
+			const clashEvent2 = makeCalendarEvent(calendarId2, clashingEventId)
 
 			const alarm1 = makeUserAlarmInfo(event1)
 			const alarm2 = makeUserAlarmInfo(event2)
@@ -423,8 +441,8 @@ o.spec("CalendarFacadeTest", function () {
 		// missing event should not be an error
 		o("multiple alarms, not all events found", async function () {
 			const calendarId = restClientMock.getNextId()
-			const event = makeEvent(calendarId)
-			const missingEvent = makeEvent(calendarId)
+			const event = makeCalendarEvent(calendarId)
+			const missingEvent = makeCalendarEvent(calendarId)
 			const alarm = makeUserAlarmInfo(event)
 			const missingAlarm = makeUserAlarmInfo(missingEvent)
 			restClientMock.addListInstances(event, alarm, missingAlarm)
@@ -464,51 +482,6 @@ o.spec("CalendarFacadeTest", function () {
 		})
 	})
 
-	o.spec("NetworkDebugging", () => {
-		let loadAlarmEventsMock
-		let previousNetworkDebugging
-		let allAlarmEvents
-
-		o.beforeEach(async function () {
-			previousNetworkDebugging = env.networkDebugging
-
-			const calendarRef = createTestEntity(sysTypeRefs.CalendarEventRefTypeRef, { elementId: "elementId", listId: "listId" })
-			allAlarmEvents = [
-				{
-					event: createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef),
-					userAlarmInfos: [
-						createTestEntity(sysTypeRefs.UserAlarmInfoTypeRef, { alarmInfo: createTestEntity(sysTypeRefs.AlarmInfoTypeRef, { calendarRef }) }),
-					],
-				},
-			]
-			loadAlarmEventsMock = mockAttribute(calendarFacade, calendarFacade.loadAlarmEvents, () => Promise.resolve(allAlarmEvents))
-		})
-		o.afterEach(() => {
-			env.networkDebugging = previousNetworkDebugging
-			unmockAttribute(loadAlarmEventsMock)
-		})
-
-		o("scheduleAlarms should receive instance without network debugging info", async () => {
-			env.networkDebugging = true
-
-			const pushIdentifier = createTestEntity(sysTypeRefs.PushIdentifierTypeRef, { _id: ["listId", "pushId"] })
-
-			const instanceCaptor = matchers.captor()
-			const sessionKeyCaptor = matchers.captor()
-			when(nativeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyCaptor.capture())).thenResolve(Promise.resolve())
-
-			await calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
-
-			const sessionKey = base64ToKey(sessionKeyCaptor.value)
-			const allInstanceSentToFacade = instanceCaptor.value
-			const instanceLiteralSentToFacade = assertNotNull(JSON.parse(allInstanceSentToFacade)[0])
-
-			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
-			const instanceSentToFacade = await instancePipeline.decryptAndMap(sysTypeRefs.AlarmNotificationTypeRef, instanceLiteralSentToFacade, sessionKey)
-			o(instanceSentToFacade.operation).equals(OperationType.CREATE)
-		})
-	})
-
 	o.spec("getEventsByUid", function () {
 		let noncachingEntityClient: EntityClient
 		const privateCalendarGroupRoot = createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef, {
@@ -520,19 +493,7 @@ o.spec("CalendarFacadeTest", function () {
 
 		o.beforeEach(() => {
 			noncachingEntityClient = object()
-			calendarFacade = new CalendarFacade(
-				userFacade,
-				object(),
-				object(),
-				noncachingEntityClient,
-				object(),
-				object(),
-				object(),
-				object(),
-				object(),
-				object(),
-				object(),
-			)
+			calendarFacade = new CalendarFacade(userFacade, object(), object(), noncachingEntityClient, object(), object(), object(), alarmFacadeMock)
 
 			when(noncachingEntityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, PRIVATE_CALENDAR_ID)).thenResolve(privateCalendarGroupRoot)
 			when(noncachingEntityClient.load(tutanotaTypeRefs.CalendarGroupRootTypeRef, SUBSCRIPTION_CALENDAR_ID)).thenResolve(subscriptionGroupRoot)
