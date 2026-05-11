@@ -9,9 +9,10 @@ type ViewResolvers = {
 	giftcard: RouteResolver
 	recover: RouteResolver
 	drive: RouteResolver
+	settings: RouteResolver
 }
 
-export function applicationPaths({ login, signup, giftcard, recover, drive }: ViewResolvers): ApplicationPaths {
+export function applicationPaths({ login, signup, giftcard, recover, drive, settings }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
 		"/signup": signup,
@@ -19,6 +20,9 @@ export function applicationPaths({ login, signup, giftcard, recover, drive }: Vi
 		"/giftcard/": giftcard,
 		"/drive": drive,
 		"/drive/:folderListId/:folderElementId": drive,
+		"/settings": settings,
+		"/settings/:folder": settings,
+		"/settings/:folder/:id": settings,
 	}
 }
 

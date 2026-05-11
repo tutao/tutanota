@@ -1,6 +1,6 @@
 import { BaseTopLevelView } from "../gui/BaseTopLevelView"
 import { TopLevelView } from "../../TopLevelView"
-import { CalendarSettingsViewAttrs, SettingsViewSection, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./Interfaces"
+import { MobileSettingsViewAttrs, SettingsViewSection, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "./Interfaces"
 import { ViewSlider } from "../gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../gui/base/ViewColumn"
 import { LoginController } from "../api/main/LoginController"
@@ -14,7 +14,7 @@ import { theme } from "../gui/theme"
 import { SettingsList } from "./SettingsList"
 import { isNotEmpty } from "@tutao/utils"
 import { MobileHeader } from "../gui/MobileHeader"
-import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../misc/RouteChange"
+import { SETTINGS_PREFIX } from "../misc/RouteChange"
 import { component_size, layout_size, px, size } from "../gui/size"
 import { isAndroidApp } from "@tutao/app-env"
 import { SettingsSupportButton } from "./SettingsSupportButton"
@@ -22,7 +22,7 @@ import { SettingsAboutLInk } from "./SettingsAboutLInk"
 import { NavButtonAttrs, NavButtonColor } from "../gui/base/NavButton"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
 
-export class MobileSettingsView extends BaseTopLevelView implements TopLevelView<CalendarSettingsViewAttrs> {
+export class MobileSettingsView extends BaseTopLevelView implements TopLevelView<MobileSettingsViewAttrs> {
 	viewSlider: ViewSlider
 	private readonly settingsCategoriesColumn: ViewColumn
 	private readonly settingsColumn: ViewColumn
@@ -37,7 +37,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 	private settingSections: readonly SettingsViewSection[]
 	private backUrl: string
 
-	constructor({ attrs: { header, logins, domainConfigProvider, settingSections, backUrl } }: Vnode<CalendarSettingsViewAttrs>) {
+	constructor({ attrs: { header, logins, domainConfigProvider, settingSections, backUrl } }: Vnode<MobileSettingsViewAttrs>) {
 		super()
 		this.logins = logins
 		this.settingSections = settingSections
@@ -82,7 +82,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 						mobileHeader: () =>
 							m(MobileHeader, {
 								...header,
-								backAction: () => m.route.set(CALENDAR_PREFIX),
+								backAction: () => m.route.set(this.backUrl),
 								columnType: "first",
 								title: "settings_label",
 								actions: [],
@@ -157,13 +157,13 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		])
 	}
 
-	oncreate({ attrs: { eventController } }: Vnode<CalendarSettingsViewAttrs>) {
+	oncreate({ attrs: { eventController } }: Vnode<MobileSettingsViewAttrs>) {
 		eventController.addEntityListener(this.entityListener)
 
 		this.onNewUrl({ folder: this.targetFolder }, this.targetRoute)
 	}
 
-	onremove({ attrs: { eventController } }: VnodeDOM<CalendarSettingsViewAttrs>) {
+	onremove({ attrs: { eventController } }: VnodeDOM<MobileSettingsViewAttrs>) {
 		eventController.removeEntityListener(this.entityListener)
 	}
 
@@ -174,7 +174,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
-	view({ attrs: { settingSections, header, backUrl } }: Vnode<CalendarSettingsViewAttrs>): Children {
+	view({ attrs: { settingSections, header, backUrl } }: Vnode<MobileSettingsViewAttrs>): Children {
 		this.settingSections = settingSections
 		this.backUrl = backUrl
 		return m(

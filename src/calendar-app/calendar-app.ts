@@ -23,7 +23,7 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { CalendarSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
+import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -183,7 +183,7 @@ import("../mail-app/translations/en.js")
 				calendarLocator.logins,
 			),
 			settings: makeViewResolver<
-				CalendarSettingsViewAttrs,
+				MobileSettingsViewAttrs,
 				MobileSettingsView,
 				{ header: AppHeaderAttrs; settingSections: readonly SettingsViewSection[] }
 			>(
@@ -199,6 +199,7 @@ import("../mail-app/translations/en.js")
 							calendarLocator.themeController,
 							calendarLocator.whitelabelThemeGenerator,
 							calendarLocator.mobilePaymentsFacade,
+							calendarLocator.customerFacade,
 						)
 						return {
 							component: MobileSettingsView,

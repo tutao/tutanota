@@ -119,6 +119,21 @@ export const allowedImports = {
 		"settings",
 		"ui-extra",
 	],
+	"drive-settings": [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"sanitizer",
+		"date",
+		"date-gui",
+		"login",
+		"sharing",
+		"settings",
+		"ui-extra",
+	],
 	"ui-extra": [
 		"polyfill-helpers",
 		"common-min",
@@ -342,6 +357,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "mail-settings"
 	} else if (isIn("src/calendar-app/calendar/settings")) {
 		return "calendar-settings"
+	} else if (isIn("src/drive-app/settings")) {
+		return "drive-settings"
 	} else if (isIn("src/common/sharing")) {
 		return "sharing"
 	} else if (isIn("src/common/api/worker/facades/lazy")) {

@@ -5,8 +5,6 @@ import { theme } from "../gui/theme"
 import { lang } from "../misc/LanguageViewModel"
 import { Icon, IconSize } from "../gui/base/Icon"
 import { Icons } from "../gui/base/icons/Icons"
-import { getSupportUsageTestStage } from "../support/SupportUsageTestUtils"
-import { showSupportDialog } from "../support/SupportDialog"
 import { LoginController } from "../api/main/LoginController"
 
 export const SettingsSupportButton = pureComponent(function SettingsSupportButton({ logins }: { logins: LoginController }) {
@@ -25,7 +23,10 @@ export const SettingsSupportButton = pureComponent(function SettingsSupportButto
 			container: "div",
 			style: { fill: theme.on_surface_variant },
 		}),
-		onclick: () => {
+		onclick: async () => {
+			const { getSupportUsageTestStage } = await import("../support/SupportUsageTestUtils.js")
+			const { showSupportDialog } = await import("../support/SupportDialog.js")
+
 			const triggerStage = getSupportUsageTestStage(0)
 			triggerStage.setMetric({ name: "Trigger", value: "Settings" })
 			void triggerStage.complete()

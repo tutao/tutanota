@@ -67,6 +67,7 @@ import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.remote.RemoteBridge
+import de.tutao.tutashared.remote.RemoteExecutionException
 import de.tutao.tutashared.toDp
 import de.tutao.tutashared.toPx
 import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
@@ -125,7 +126,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		// On top before CalendarFacade because we need the user agent to sync external calendars
 		webView = WebView(this)
-
+		//we need to manually enable edge-to-edge to get `windowInsets` in Android ≤ 14
 		enableEdgeToEdge()
 
 		val localNotificationsFacade = LocalNotificationsFacade(this)
