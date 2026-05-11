@@ -181,9 +181,8 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	})
 }
 
-async function buildDesktopPart({ version, networkDebugging, app }) {
-	// FIXME: do we need an "app" switch for Desktop?
-	const buildDir = buildDirForApp(app)
+async function buildDesktopPart({ version, networkDebugging }) {
+	const buildDir = buildDirForApp("mail")
 
 	await runStep("Desktop: Rolldown", async () => {
 		const platform = getCanonicalPlatformName(process.platform)
