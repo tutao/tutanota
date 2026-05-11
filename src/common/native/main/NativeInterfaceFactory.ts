@@ -1,7 +1,7 @@
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { NativeFileApp } from "../common/FileApp.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import { DesktopFacade } from "../common/generatedipc/DesktopFacade.js"
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
@@ -40,7 +40,7 @@ import { ExternalCalendarFacadeSendDispatcher } from "../common/generatedipc/Ext
 import { NativeMailImportFacadeSendDispatcher } from "../common/generatedipc/NativeMailImportFacadeSendDispatcher"
 import { NativeMailImportFacade } from "../common/generatedipc/NativeMailImportFacade"
 import { ExportFacade } from "../common/generatedipc/ExportFacade.js"
-import { isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { AlarmFacade } from "../../api/worker/facades/lazy/AlarmFacade"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -75,6 +75,7 @@ export function createNativeInterfaces(
 	commonNativeFacade: CommonNativeFacade,
 	cryptoFacade: CryptoFacade,
 	calendarFacade: CalendarFacade,
+	alarmFacade: AlarmFacade,
 	entityClient: EntityClient,
 	logins: LoginController,
 	app: AppType,
@@ -86,7 +87,16 @@ export function createNativeInterfaces(
 	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, mobileFacade)
 	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
-	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade, app)
+	const pushService = new NativePushServiceApp(
+		nativePushFacadeSendDispatcher,
+		logins,
+		cryptoFacade,
+		entityClient,
+		deviceConfig,
+		calendarFacade,
+		alarmFacade,
+		app,
+	)
 	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
 	const commonSystemFacade = new CommonSystemFacadeSendDispatcher(native)
 	const mobileSystemFacade = new MobileSystemFacadeSendDispatcher(native)

@@ -1,9 +1,8 @@
 import type { Commands } from "../../../common/api/common/threading/MessageDispatcher.js"
 import { errorToObj, MessageDispatcher, Request } from "../../../common/api/common/threading/MessageDispatcher.js"
 import * as restError from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./CalendarWorkerLocator.js"
-import { assertWorkerOrNode, isMainOrNode } from "@tutao/app-env"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"
@@ -87,6 +86,10 @@ export class CalendarWorkerImpl implements NativeInterface {
 
 			async calendarFacade() {
 				return locator.calendar()
+			},
+
+			async alarmFacade() {
+				return locator.alarmFacade()
 			},
 
 			async mailFacade() {

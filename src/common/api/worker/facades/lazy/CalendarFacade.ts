@@ -1,26 +1,12 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, OperationType, ProgrammingError } from "@tutao/app-env"
-import {
-	AttributeModel,
-	ClientModelUntypedInstance,
-	elementIdPart,
-	getLetId,
-	getListId,
-	isSameId,
-	listIdPart,
-	sysServices,
-	sysTypeRefs,
-	tutanotaServices,
-	tutanotaTypeRefs,
-} from "@tutao/typerefs"
+import { assertWorkerOrNode, DAY_IN_MILLIS, GroupType, ProgrammingError } from "@tutao/app-env"
+import { getLetId, getListId, isSameId, listIdPart, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import {
 	assertNotNull,
-	flatMap,
 	getFromMap,
 	groupBy,
 	groupByAndMapUniquely,
 	isEmpty,
 	isNotEmpty,
-	isNotNull,
 	neverNull,
 	ofClass,
 	promiseMap,
@@ -28,18 +14,15 @@ import {
 	stringToUtf8Uint8Array,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import * as restError from "@tutao/rest-client/error"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
-import { aes256RandomKey, AesKey, CryptoWrapper, encryptKey, keyToBase64, sha256Hash, VersionedKey } from "@tutao/crypto"
+import { sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
-import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
-import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
 import {
 	addDaysForEventInstance,
 	addDaysForRecurringEvent,
@@ -53,8 +36,8 @@ import { CalendarInfo } from "../../../../../calendar-app/calendar/model/Calenda
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils.js"
-import { InstancePipeline } from "@tutao/instance-pipeline"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { AlarmFacade } from "./AlarmFacade"
 
 assertWorkerOrNode()
 
@@ -95,15 +78,11 @@ export class CalendarFacade {
 		// We inject cache directly because we need to delete user from it for a hack
 		private readonly entityRestCache: DefaultEntityRestCache,
 		private readonly noncachingEntityClient: EntityClient,
-		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly cryptoFacade: CryptoFacade,
-		private readonly infoMessageHandler: InfoMessageHandler,
-		private readonly instancePipeline: InstancePipeline,
 		// visible for testing
 		public readonly cachingEntityClient: EntityClient,
-		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly alarmFacade: AlarmFacade,
 	) {}
 
 	async createCalendarEvents(
@@ -220,8 +199,10 @@ export class CalendarFacade {
 	 * @param progressUpdater
 	 *
 	 * @returns {@link CalendarEventPersistenceResult}
+	 *
+	 * @VisibleForTesting
 	 */
-	private async saveCalendarEventsAndAlarms(
+	public async saveCalendarEventsAndAlarms(
 		eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>,
 		progressUpdater: (percent: number) => Promise<void> = () => Promise.resolve(),
 	): Promise<CalendarEventPersistenceResult> {
@@ -278,7 +259,7 @@ export class CalendarFacade {
 			await progressUpdater(currentProgress)
 
 			const eventAlarmTupleToPersist = eventAlarmsTuples.filter((tuple) => successfulIds.has(tuple.event._id))
-			await this.saveAlarms(loggedInUser, eventAlarmTupleToPersist, pushIdentifiers).catch((e) => {
+			await this.alarmFacade.saveAlarms(loggedInUser, eventAlarmTupleToPersist, pushIdentifiers).catch((e) => {
 				results.failedAlarms.push(...eventAlarmTupleToPersist)
 				results.failedAlarmErrors.push(e)
 			})
@@ -290,7 +271,19 @@ export class CalendarFacade {
 		return results
 	}
 
-	private async saveCalendarEvents(calendarEvents: Array<tutanotaTypeRefs.CalendarEvent>, listId: string): Promise<SaveCalendarEventsResult> {
+	/**
+	 * Persist {@link calendarEvents} in our database using {@link EntityClient.setupMultipleEntities}
+	 *
+	 * In case of failure, we collect and return the successful and failed events.
+	 *
+	 * @param calendarEvents
+	 * @param listId
+	 *
+	 * @returns {@link SaveCalendarEventsResult}
+	 *
+	 * @VisibleForTesting
+	 */
+	public async saveCalendarEvents(calendarEvents: Array<tutanotaTypeRefs.CalendarEvent>, listId: string): Promise<SaveCalendarEventsResult> {
 		let successfulEvents: tutanotaTypeRefs.CalendarEvent[] = []
 		let failedEvents: tutanotaTypeRefs.CalendarEvent[] = []
 
@@ -311,23 +304,6 @@ export class CalendarFacade {
 		}
 
 		return { successfulEvents, failedEventsResult: { failedEvents, errors: [] } }
-	}
-
-	private async saveAlarms(
-		loggedInUser: sysTypeRefs.User,
-		eventAlarmsTuples: EventAlarmInfoTemplatesTuple[],
-		pushIdentifiers: sysTypeRefs.PushIdentifier[],
-	): Promise<void> {
-		const notificationSessionKey = aes256RandomKey()
-		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
-			loggedInUser._id,
-			this.userFacade.getUserGroupId(),
-			this.userFacade.getCurrentUserGroupKey(),
-			eventAlarmsTuples,
-			pushIdentifiers,
-			notificationSessionKey,
-		)
-		await this.postAlarmServiceRequest(notificationSessionKey, alarmServicePostRequestData)
 	}
 
 	/**
@@ -384,8 +360,6 @@ export class CalendarFacade {
 	 * @param newAlarms
 	 * @param existingEvent
 	 */
-	// are UserAlarmInfos ever being deleted when Alarms get removed from a calendar?
-
 	async updateCalendarEvent(
 		event: tutanotaTypeRefs.CalendarEvent,
 		newAlarms: ReadonlyArray<AlarmInfoTemplate>,
@@ -417,7 +391,7 @@ export class CalendarFacade {
 
 			const pushIdentifiers = await this.cachingEntityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, neverNull(loggedInUser.pushIdentifierList).list)
 
-			await this.saveAlarms(loggedInUser, [eventAlarmTuple], pushIdentifiers)
+			await this.alarmFacade.saveAlarms(loggedInUser, [eventAlarmTuple], pushIdentifiers)
 		}
 	}
 
@@ -437,29 +411,6 @@ export class CalendarFacade {
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
 		await this.serviceExecutor.delete(tutanotaServices.CalendarService, tutanotaTypeRefs.createCalendarDeleteIn({ groupRootId }))
-	}
-
-	async scheduleAlarmsForNewDevice(pushIdentifier: sysTypeRefs.PushIdentifier): Promise<void> {
-		const user = this.userFacade.getLoggedInUser()
-
-		const eventsWithAlarmInfos = await this.loadAlarmEvents()
-		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
-			userAlarmInfos.map((userAlarmInfo) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
-		)
-
-		const sessionKey = aes256RandomKey()
-		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
-
-		const encryptedNotificationsWireFormat = JSON.stringify(
-			await Promise.all(
-				alarmNotifications.map(async (an) => {
-					const untypedInstance = await this.instancePipeline.mapAndEncrypt(sysTypeRefs.AlarmNotificationTypeRef, an, sessionKey)
-					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
-				}),
-			),
-		)
-
-		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, keyToBase64(sessionKey))
 	}
 
 	/**
@@ -561,113 +512,6 @@ export class CalendarFacade {
 		return null
 	}
 
-	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: sysTypeRefs.AlarmServicePost): Promise<void> {
-		try {
-			await this.serviceExecutor.post(sysServices.AlarmService, alarmServicePostData, { sessionKey: notificationSessionKey })
-		} catch (e) {
-			if (e instanceof restError.TooManyRequestsError) {
-				return this.infoMessageHandler.onInfoMessage({
-					translationKey: "calendarAlarmsTooBigError_msg",
-					args: {},
-				})
-			} else {
-				throw e
-			}
-		}
-	}
-
-	/**
-	 * Encrypts {@link notificationSessionKey} for every alarmNotification with the sessionKey of each pushIdentifier.
-	 */
-	private async encryptNotificationKeyForDevices(
-		notificationSessionKey: AesKey,
-		alarmNotifications: Array<sysTypeRefs.AlarmNotification>,
-		pushIdentifierList: Array<sysTypeRefs.PushIdentifier>,
-	): Promise<void> {
-		// Makes copies of the notification SKs, each encrypted by a different push identifier SK
-		// PushID SK ->* Notification SK -> alarm fields
-		const maybeEncSessionKeys = await this.encryptNotificationSKWithPushIdentifierSKs(pushIdentifierList, notificationSessionKey)
-
-		// rate limiting against blocking while resolving session keys (necessary)
-		const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
-
-		// Each alarmNotification contains ALL push identifiers & each pushIdentifierSessionEncryptedSessionKey.  Why?
-		for (let notification of alarmNotifications) {
-			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
-				return sysTypeRefs.createNotificationSessionKey({
-					pushIdentifier: esk.identifierId,
-					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
-				})
-			})
-		}
-	}
-
-	private encryptNotificationSKWithPushIdentifierSKs(pushIdentifierList: Array<sysTypeRefs.PushIdentifier>, notificationSessionKey: AesKey) {
-		return promiseMap(pushIdentifierList, async (identifier) => {
-			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKey(identifier)
-			if (pushIdentifierSk) {
-				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
-				return {
-					identifierId: identifier._id,
-					pushIdentifierSessionEncSessionKey,
-				}
-			} else {
-				return null
-			}
-		})
-	}
-
-	private async prepareAlarmServicePostData(
-		userId: Id,
-		ownerGroup: Id,
-		userGroupKey: VersionedKey,
-		eventAlarmTuples: Array<EventAlarmInfoTemplatesTuple>,
-		pushIdentifiers: sysTypeRefs.PushIdentifier[],
-		notificationSessionKey: AesKey,
-	): Promise<sysTypeRefs.AlarmServicePost> {
-		const alarmServicePost = sysTypeRefs.createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [] })
-
-		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
-			const eventRef = sysTypeRefs.createCalendarEventRef({
-				listId: listIdPart(event._id),
-				elementId: elementIdPart(event._id),
-			})
-
-			for (const alarmInfoTemplate of alarmInfoTemplates) {
-				const userAlarmInfoSessionKey = aes256RandomKey()
-				const userAlarmInfoData = sysTypeRefs.createUserAlarmInfoData({
-					ownerEncSessionKey: encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
-					ownerKeyVersion: userGroupKey.version.toString(),
-					encryptedTrigger: this.cryptoWrapper.encryptString(userAlarmInfoSessionKey, alarmInfoTemplate.trigger),
-					alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
-					ownerGroup: ownerGroup,
-					calendarEventRef: eventRef,
-				})
-				alarmServicePost.userAlarmInfoData.push(userAlarmInfoData)
-
-				// one session key is used for all notifications of a single alarmInfo, but is encrypted separately for each device.
-				// (Doesn't this mean that if you decrypt one key, you can decrypt all notifications on all devices? What security does this add?
-				// Does it mean that you can't brute force faster if you gain access to notifications from multiple devices?)
-
-				const alarmNotification = sysTypeRefs.createAlarmNotification({
-					alarmInfo: sysTypeRefs.createAlarmInfo({ ...alarmInfoTemplate, calendarRef: eventRef }),
-					repeatRule: event.repeatRule && createRepeatRuleForCalendarRepeatRule(event.repeatRule),
-					notificationSessionKeys: [],
-					operation: OperationType.CREATE,
-					summary: event.summary,
-					eventStart: event.startTime,
-					eventEnd: event.endTime,
-					user: userId,
-				})
-				alarmServicePost.alarmNotifications.push(alarmNotification)
-			}
-		}
-
-		await this.encryptNotificationKeyForDevices(notificationSessionKey, alarmServicePost.alarmNotifications, pushIdentifiers)
-
-		return alarmServicePost
-	}
-
 	private getEntityClient(cacheMode: CachingMode): EntityClient {
 		if (cacheMode === CachingMode.Cached) {
 			return this.cachingEntityClient
@@ -684,45 +528,6 @@ export class CalendarFacade {
 export type EventWithUserAlarmInfos = {
 	event: tutanotaTypeRefs.CalendarEvent
 	userAlarmInfos: Array<sysTypeRefs.UserAlarmInfo>
-}
-
-// TODO: decide if we need this
-function createAlarmNotificationForEvent(event: tutanotaTypeRefs.CalendarEvent, alarmInfo: sysTypeRefs.AlarmInfo, userId: Id): sysTypeRefs.AlarmNotification {
-	return sysTypeRefs.createAlarmNotification({
-		alarmInfo: cloneAlarmInfo(alarmInfo),
-		repeatRule: event.repeatRule && createRepeatRuleForCalendarRepeatRule(event.repeatRule),
-		notificationSessionKeys: [],
-		operation: OperationType.CREATE,
-		summary: event.summary,
-		eventStart: event.startTime,
-		eventEnd: event.endTime,
-		user: userId,
-	})
-}
-
-// TODO: decide if we need this. WHY DOES THIS REQUIRE A FULL ALARM INFO TO CREATE AN ALARM INFO? Should it really be an AlarmInfoTemplate?
-function cloneAlarmInfo(alarmInfo: sysTypeRefs.AlarmInfo): sysTypeRefs.AlarmInfo {
-	const calendarRef = sysTypeRefs.createCalendarEventRef({
-		elementId: alarmInfo.calendarRef.elementId,
-		listId: alarmInfo.calendarRef.listId,
-	})
-	return sysTypeRefs.createAlarmInfo({
-		alarmIdentifier: alarmInfo.alarmIdentifier,
-		trigger: alarmInfo.trigger,
-		calendarRef,
-	})
-}
-
-function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: tutanotaTypeRefs.CalendarRepeatRule): sysTypeRefs.RepeatRule {
-	return sysTypeRefs.createRepeatRule({
-		endType: calendarRepeatRule.endType,
-		endValue: calendarRepeatRule.endValue,
-		frequency: calendarRepeatRule.frequency,
-		interval: calendarRepeatRule.interval,
-		timeZone: calendarRepeatRule.timeZone,
-		excludedDates: calendarRepeatRule.excludedDates.map(({ date }) => sysTypeRefs.createDateWrapper({ date })),
-		advancedRules: calendarRepeatRule.advancedRules,
-	})
 }
 
 function getEventIdFromUserAlarmInfo(userAlarmInfo: sysTypeRefs.UserAlarmInfo): IdTuple {

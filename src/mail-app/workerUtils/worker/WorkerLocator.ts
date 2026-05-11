@@ -118,6 +118,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage"
 import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
+import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 
 assertWorkerOrNode()
 
@@ -162,6 +163,7 @@ export type WorkerLocatorType = {
 	calendar: lazyAsync<CalendarFacade>
 	counters: lazyAsync<CounterFacade>
 	Const: Record<string, any>
+	alarmFacade: lazyAsync<AlarmFacade>
 
 	// search & indexing
 	indexer: lazyAsync<Indexer>
@@ -806,22 +808,33 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new SpamClassifier(await locator.spamClassifierStorageFacade(), spamClassificationDataDealer)
 	})
 
-	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
+	locator.alarmFacade = lazyMemoized(async () => {
+		const { AlarmFacade } = await import("../../../common/api/worker/facades/lazy/AlarmFacade.js")
+		const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
+
+		return new AlarmFacade(
+			locator.user,
+			locator.serviceExecutor,
+			locator.cryptoWrapper,
+			locator.crypto,
+			nativePushFacade,
+			locator.instancePipeline,
+			mainInterface.infoMessageHandler,
+		)
+	})
+
 	locator.calendar = lazyMemoized(async () => {
 		const { CalendarFacade } = await import("../../../common/api/worker/facades/lazy/CalendarFacade.js")
+
 		return new CalendarFacade(
 			locator.user,
 			await locator.groupManagement(),
-			assertNotNull(cache),
+			locator.cache as DefaultEntityRestCache,
 			nonCachingEntityClient, // without cache
-			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.serviceExecutor,
-			locator.crypto,
-			mainInterface.infoMessageHandler,
-			locator.instancePipeline,
 			locator.cachingEntityClient,
-			locator.cryptoWrapper,
+			await locator.alarmFacade(),
 		)
 	})
 

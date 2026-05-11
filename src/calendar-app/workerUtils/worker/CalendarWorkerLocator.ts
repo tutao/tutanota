@@ -102,6 +102,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { UpdateAppTypesHashMiddleware } from "../../../common/api/common/UpdateTypesHashMiddleware"
+import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 
 assertWorkerOrNode()
 
@@ -145,6 +146,7 @@ export type CalendarWorkerLocatorType = {
 	calendar: lazyAsync<CalendarFacade>
 	counters: lazyAsync<CounterFacade>
 	Const: Record<string, any>
+	alarmFacade: lazyAsync<AlarmFacade>
 
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
@@ -579,22 +581,34 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.publicEncryptionKeyProvider,
 		)
 	})
-	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
+
+	locator.alarmFacade = lazyMemoized(async () => {
+		const { AlarmFacade } = await import("../../../common/api/worker/facades/lazy/AlarmFacade.js")
+		const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
+
+		return new AlarmFacade(
+			locator.user,
+			locator.serviceExecutor,
+			locator.cryptoWrapper,
+			locator.crypto,
+			nativePushFacade,
+			locator.instancePipeline,
+			mainInterface.infoMessageHandler,
+		)
+	})
+
 	locator.calendar = lazyMemoized(async () => {
 		const { CalendarFacade } = await import("../../../common/api/worker/facades/lazy/CalendarFacade.js")
+
 		return new CalendarFacade(
 			locator.user,
 			await locator.groupManagement(),
 			locator.cache as DefaultEntityRestCache,
 			nonCachingEntityClient, // without cache
-			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.serviceExecutor,
-			locator.crypto,
-			mainInterface.infoMessageHandler,
-			locator.instancePipeline,
 			locator.cachingEntityClient,
-			locator.cryptoWrapper,
+			await locator.alarmFacade(),
 		)
 	})
 
