@@ -12,9 +12,20 @@ type ViewResolvers = {
 	webauthn: RouteResolver
 	webauthnmobile: RouteResolver
 	drive: RouteResolver
+	settings: RouteResolver
 }
 
-export function applicationPaths({ login, termination, signup, giftcard, recover, webauthn, webauthnmobile, drive }: ViewResolvers): ApplicationPaths {
+export function applicationPaths({
+	login,
+	termination,
+	signup,
+	giftcard,
+	recover,
+	webauthn,
+	webauthnmobile,
+	drive,
+	settings,
+}: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
 		"/termination": termination,
@@ -25,6 +36,9 @@ export function applicationPaths({ login, termination, signup, giftcard, recover
 		"/webauthnmobile": webauthnmobile,
 		"/drive": drive,
 		"/drive/:folderListId/:folderElementId": drive,
+		"/settings": settings,
+		"/settings/:folder": settings,
+		"/settings/:folder/:id": settings,
 	}
 }
 

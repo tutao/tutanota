@@ -17,6 +17,8 @@ import { EntityClient } from "../api/common/EntityClient"
 import { ThemeController } from "../gui/ThemeController"
 import { WhitelabelThemeGenerator } from "../gui/WhitelabelThemeGenerator"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
+import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade"
+import { MobileGlobalSettingsViewer } from "./MobileGlobalSettingsViewer"
 
 export function loginSettings(credentialsProvider: CredentialsProvider, systemFacade: MobileSystemFacade): SettingsFolder<unknown> {
 	return new SettingsFolder(
@@ -86,6 +88,27 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 					// until we load the customer assume it could be business and hide the setting
 					!(logins.getUserController().getCustomer()?.businessUse ?? true),
 			),
+		],
+	}
+}
+export function adminSettingsSection(
+	logins: LoginController,
+	entityClient: EntityClient,
+	themeController: ThemeController,
+	whitelabelThemeGenerator: WhitelabelThemeGenerator,
+	customerFacade: CustomerFacade,
+): SettingsViewSection {
+	return {
+		name: lang.getTranslation("adminSettings_label"),
+		settings: [
+			new SettingsFolder(
+				() => "globalSettings_label",
+				() => Icons.GearWheelFilled,
+				"global",
+				() => new MobileGlobalSettingsViewer(entityClient, logins, customerFacade),
+				undefined,
+			).setIsVisibleHandler(() => logins.getUserController().isGlobalAdmin()),
+			whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator),
 		],
 	}
 }

@@ -25,6 +25,9 @@ import { DriveView, DriveViewAttrs } from "./drive/view/DriveView"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu"
 import { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { DriveFilePicker } from "./drive/view/DriveFilePicker"
+import { MobileSettingsView } from "../common/settings/MobileSettingsView"
+import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces"
+import { DRIVE_PREFIX } from "../common/misc/RouteChange"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -309,6 +312,41 @@ import("../mail-app/translations/en.js")
 						showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						bottomNav,
+					}),
+				},
+				driveLocator.logins,
+			),
+			settings: makeViewResolver<
+				MobileSettingsViewAttrs,
+				MobileSettingsView,
+				{ header: AppHeaderAttrs; settingSections: readonly SettingsViewSection[] }
+			>(
+				{
+					prepareRoute: async () => {
+						const { MobileSettingsView } = await import("../common/settings/MobileSettingsView.js")
+						const { makeDriveSettings } = await import("./settings/DriveSettingsView.js")
+						const settingSections = makeDriveSettings(
+							driveLocator.credentialsProvider,
+							driveLocator.systemFacade,
+							driveLocator.entityClient,
+							driveLocator.logins,
+							driveLocator.themeController,
+							driveLocator.whitelabelThemeGenerator,
+							driveLocator.mobilePaymentsFacade,
+							driveLocator.customerFacade,
+						)
+						return {
+							component: MobileSettingsView,
+							cache: { header: await driveLocator.appHeaderAttrs(), settingSections },
+						}
+					},
+					prepareAttrs: (cache) => ({
+						header: cache.header,
+						logins: driveLocator.logins,
+						domainConfigProvider: driveLocator.domainConfigProvider(),
+						eventController: driveLocator.eventController,
+						settingSections: cache.settingSections,
+						backUrl: DRIVE_PREFIX,
 					}),
 				},
 				driveLocator.logins,

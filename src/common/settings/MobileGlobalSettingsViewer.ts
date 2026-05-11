@@ -1,25 +1,31 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, OperationType } from "@tutao/app-env"
-import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "../../../common/settings/AccountMaintenanceSettings.js"
-import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
+import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "./AccountMaintenanceSettings.js"
+import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import stream from "mithril/stream"
-import { calendarLocator } from "../../calendarLocator.js"
 import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
+import { EntityClient } from "../api/common/EntityClient"
+import { LoginController } from "../api/main/LoginController"
+import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade"
 
 assertMainOrNode()
 
-export class GlobalSettingsViewer implements UpdatableSettingsViewer {
+export class MobileGlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly props = stream<Readonly<sysTypeRefs.CustomerServerProperties>>()
 	private accountMaintenanceUpdateNotifier: AccountMaintenanceUpdateNotifier | null = null
 
 	private readonly customerProperties = new LazyLoaded(() =>
-		calendarLocator.entityClient
-			.load(sysTypeRefs.CustomerTypeRef, neverNull(calendarLocator.logins.getUserController().user.customer))
-			.then((customer) => calendarLocator.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))),
+		this.entityClient
+			.load(sysTypeRefs.CustomerTypeRef, neverNull(this.logins.getUserController().user.customer))
+			.then((customer) => this.entityClient.load(sysTypeRefs.CustomerPropertiesTypeRef, neverNull(customer.properties))),
 	)
 
-	constructor() {
+	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
+		private readonly customerFacade: CustomerFacade,
+	) {
 		this.customerProperties.getAsync().then(m.redraw)
 		this.updateCustomerServerProperties()
 		this.view = this.view.bind(this)
@@ -37,7 +43,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private updateCustomerServerProperties(): Promise<void> {
-		return calendarLocator.customerFacade.loadCustomerServerProperties().then((props) => {
+		return this.customerFacade.loadCustomerServerProperties().then((props) => {
 			this.props(props)
 			m.redraw()
 		})

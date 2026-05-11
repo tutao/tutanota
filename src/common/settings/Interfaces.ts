@@ -32,7 +32,7 @@ export interface SettingsViewSection {
 	settings: readonly SettingsFolder<unknown>[]
 }
 
-export interface CalendarSettingsViewAttrs extends TopLevelAttrs {
+export interface MobileSettingsViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	logins: LoginController
 	eventController: EventController
