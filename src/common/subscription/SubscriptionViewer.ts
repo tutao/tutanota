@@ -96,16 +96,20 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _accountingInfo: sysTypeRefs.AccountingInfo | null = null
 	private _lastBooking: sysTypeRefs.Booking | null = null
 	private _orderAgreement: sysTypeRefs.OrderProcessingAgreement | null = null
-	private currentPlanType: PlanType
+	private currentPlanType: PlanType | null = null
 	private _isCancelled: boolean | null = null
 	private _giftCards: Map<Id, sysTypeRefs.GiftCard>
 	private _shownSatisfactionDialog = false
 
-	constructor(
-		currentPlanType: PlanType,
-		private readonly mobilePaymentsFacade: MobilePaymentsFacade | null,
-	) {
-		this.currentPlanType = currentPlanType
+	constructor(private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
+		locator.logins
+			.getUserController()
+			.getPlanType()
+			.then((currentPlanType) => {
+				this.currentPlanType = currentPlanType
+				m.redraw()
+			})
+
 		const isPremiumPredicate = () => locator.logins.getUserController().isPaidAccount()
 
 		this._giftCards = new Map()
@@ -166,7 +170,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					},
 					renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate),
 				),
-				LegacyPlans.includes(this.currentPlanType)
+				this.currentPlanType && LegacyPlans.includes(this.currentPlanType)
 					? [
 							m(".h4.mt-32", lang.get("adminPremiumFeatures_action")),
 							m(LegacyTextField, {
@@ -555,7 +559,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._shownSatisfactionDialog = true
 		const oldPlanType = this.currentPlanType
 		this.currentPlanType = await locator.logins.getUserController().getPlanType()
-		await showUserSatisfactionDialogAfterUpgrade(oldPlanType, this.currentPlanType)
+		if (oldPlanType) {
+			await showUserSatisfactionDialogAfterUpgrade(oldPlanType, this.currentPlanType)
+		}
 	}
 
 	private async updateUserField(): Promise<void> {

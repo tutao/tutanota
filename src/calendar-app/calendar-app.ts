@@ -4,14 +4,13 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertMainOrNodeBoot, bootFinished } from "@tutao/app-env"
+import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, Mode, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./calendar-applicationPaths.js"
-import { ProgrammingError } from "@tutao/app-env"
 import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
 import type { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
@@ -24,13 +23,13 @@ import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
 import { AppHeaderAttrs } from "../common/gui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
-import { CalendarSettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { CalendarSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
-import { CalendarSettingsView } from "./calendar/settings/CalendarSettingsView.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
-import { isApp, isBrowser, isDesktop, Mode } from "@tutao/app-env"
+import { CALENDAR_PREFIX } from "../common/misc/RouteChange"
+import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -184,26 +183,36 @@ import("../mail-app/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			settings: makeViewResolver<CalendarSettingsViewAttrs, CalendarSettingsView, { header: AppHeaderAttrs }>(
+			settings: makeViewResolver<
+				CalendarSettingsViewAttrs,
+				MobileSettingsView,
+				{ header: AppHeaderAttrs; settingSections: readonly SettingsViewSection[] }
+			>(
 				{
 					prepareRoute: async () => {
-						const { CalendarSettingsView } = await import("./calendar/settings/CalendarSettingsView.js")
+						const { MobileSettingsView } = await import("../common/settings/MobileSettingsView.js")
+						const { makeCalendarSettings } = await import("./calendar/settings/CalendarSettingsView.js")
+						const settingSections = makeCalendarSettings(
+							calendarLocator.credentialsProvider,
+							calendarLocator.systemFacade,
+							calendarLocator.entityClient,
+							calendarLocator.logins,
+							calendarLocator.themeController,
+							calendarLocator.whitelabelThemeGenerator,
+							calendarLocator.mobilePaymentsFacade,
+						)
 						return {
-							component: CalendarSettingsView,
-							cache: { header: await calendarLocator.appHeaderAttrs() },
+							component: MobileSettingsView,
+							cache: { header: await calendarLocator.appHeaderAttrs(), settingSections },
 						}
 					},
 					prepareAttrs: (cache) => ({
 						header: cache.header,
 						logins: calendarLocator.logins,
 						domainConfigProvider: calendarLocator.domainConfigProvider(),
-						mobilePaymentsFacade: calendarLocator.mobilePaymentsFacade,
-						credentialsProvider: calendarLocator.credentialsProvider,
-						systemFacade: calendarLocator.systemFacade,
 						eventController: calendarLocator.eventController,
-						entityClient: calendarLocator.entityClient,
-						themeController: calendarLocator.themeController,
-						whitelabelThemeGenerator: calendarLocator.whitelabelThemeGenerator,
+						settingSections: cache.settingSections,
+						backUrl: CALENDAR_PREFIX,
 					}),
 				},
 				calendarLocator.logins,

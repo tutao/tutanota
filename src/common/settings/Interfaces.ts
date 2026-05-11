@@ -4,14 +4,10 @@ import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu.js"
 import { AppHeaderAttrs } from "../gui/Header.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { entityUpdateUtils } from "@tutao/typerefs"
-import { CredentialsProvider } from "../misc/credentials/CredentialsProvider"
-import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade"
 import { EventController } from "../api/main/EventController"
-import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { DomainConfigProvider } from "../api/common/DomainConfigProvider"
-import { EntityClient } from "../api/common/EntityClient"
-import { ThemeController } from "../gui/ThemeController"
-import { WhitelabelThemeGenerator } from "../gui/WhitelabelThemeGenerator"
+import { Translation } from "../misc/LanguageViewModel"
+import { SettingsFolder } from "./SettingsFolder"
 
 /** UI component shown in the second column of settings. */
 export interface UpdatableSettingsViewer extends Component {
@@ -31,15 +27,16 @@ export interface SettingsViewAttrs extends TopLevelAttrs {
 	logins: LoginController
 }
 
+export interface SettingsViewSection {
+	name: Translation
+	settings: readonly SettingsFolder<unknown>[]
+}
+
 export interface CalendarSettingsViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	logins: LoginController
-	credentialsProvider: CredentialsProvider
-	systemFacade: MobileSystemFacade
 	eventController: EventController
-	mobilePaymentsFacade: MobilePaymentsFacade
 	domainConfigProvider: DomainConfigProvider
-	entityClient: EntityClient
-	themeController: ThemeController
-	whitelabelThemeGenerator: WhitelabelThemeGenerator
+	settingSections: readonly SettingsViewSection[]
+	backUrl: string
 }

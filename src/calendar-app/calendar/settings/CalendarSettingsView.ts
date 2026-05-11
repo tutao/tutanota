@@ -1,445 +1,65 @@
-import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { assertMainOrNode, FeatureType, isAndroidApp, isIOSApp } from "@tutao/app-env"
-
-import { TopLevelView } from "../../../TopLevelView.js"
-import { Header, HeaderAttrs } from "../../../common/gui/Header.js"
+import { assertMainOrNode } from "@tutao/app-env"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
-import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn.js"
-import { SettingsFolder } from "../../../common/settings/SettingsFolder.js"
-import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
-import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
-import { theme } from "../../../common/gui/theme.js"
-import { styles } from "../../../common/gui/styles.js"
-import { MobileHeader } from "../../../common/gui/MobileHeader.js"
-import { WhitelabelSettingsViewer } from "../../../common/settings/whitelabel/WhitelabelSettingsViewer.js"
-import { SubscriptionViewer } from "../../../common/subscription/SubscriptionViewer.js"
-import { PaymentViewer } from "../../../common/subscription/PaymentViewer.js"
-import { ReferralSettingsViewer } from "../../../common/settings/ReferralSettingsViewer.js"
-import { NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
-import { CalendarSettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
-import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
-import { GlobalSettingsViewer } from "./GlobalSettingsViewer.js"
-import { CALENDAR_PREFIX, SETTINGS_PREFIX } from "../../../common/misc/RouteChange.js"
-import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
-import { entityUpdateUtils, sysTypeRefs } from "@tutao/typerefs"
-import { SettingsList } from "../../../common/settings/SettingsList"
-import { SettingsAboutLInk } from "../../../common/settings/SettingsAboutLInk"
-import { SettingsSupportButton } from "../../../common/settings/SettingsSupportButton"
-import type { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
+import { SettingsViewSection } from "../../../common/settings/Interfaces.js"
 import type { MobilePaymentsFacade } from "../../../common/native/common/generatedipc/MobilePaymentsFacade"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ThemeController } from "../../../common/gui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../common/gui/WhitelabelThemeGenerator"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
+import { MobileSystemFacade } from "../../../common/native/common/generatedipc/MobileSystemFacade"
+import { appearanceSettings, loginSettings, subscriptionSettingsSection, whitelabelSettings } from "../../../common/settings/standardSettings"
+import { SettingsFolder } from "../../../common/settings/SettingsFolder"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
+import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 
 assertMainOrNode()
 
-export class CalendarSettingsView extends BaseTopLevelView implements TopLevelView<CalendarSettingsViewAttrs> {
-	private readonly mobilePaymentsFacade: MobilePaymentsFacade
-	viewSlider: ViewSlider
-	private readonly settingsCategoriesColumn: ViewColumn
-	private readonly settingsColumn: ViewColumn
-
-	/** the component for the details column. can be set by settings views */
-	private detailsViewer: UpdatableSettingsDetailsViewer | null = null
-	private readonly userFolders: SettingsFolder<unknown>[]
-	private readonly adminFolders: SettingsFolder<unknown>[]
-	private readonly subscriptionFolders: SettingsFolder<unknown>[]
-	private readonly logins: LoginController
-	private readonly entityClient: EntityClient
-	private readonly themeController: ThemeController
-	private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator
-	private selectedFolder: SettingsFolder<unknown>
-	private currentViewer: UpdatableSettingsViewer | null = null
-	private showBusinessSettings: boolean = false
-	private readonly targetFolder: string
-	private readonly targetRoute: string
-
-	constructor({
-		attrs: {
-			header,
-			logins,
-			credentialsProvider,
-			systemFacade,
-			mobilePaymentsFacade,
-			domainConfigProvider,
-			themeController,
-			whitelabelThemeGenerator,
-			entityClient,
+export function makeCalendarSettings(
+	credentialsProvider: CredentialsProvider,
+	systemFacade: MobileSystemFacade,
+	entityClient: EntityClient,
+	logins: LoginController,
+	themeController: ThemeController,
+	whitelabelThemeGenerator: WhitelabelThemeGenerator,
+	mobilePaymentsFacade: MobilePaymentsFacade,
+): readonly SettingsViewSection[] {
+	return [
+		{
+			name: lang.getTranslation("userSettings_label"),
+			settings: [loginSettings(credentialsProvider, systemFacade), appearanceSettings(), notificationSettings()],
 		},
-	}: Vnode<CalendarSettingsViewAttrs>) {
-		super()
-		this.logins = logins
-		this.mobilePaymentsFacade = mobilePaymentsFacade
-		this.entityClient = entityClient
-		this.themeController = themeController
-		this.whitelabelThemeGenerator = whitelabelThemeGenerator
-		this.userFolders = [
-			new SettingsFolder(
-				() => "login_label",
-				() => Icons.PersonFilled,
-				"login",
-				() => new LoginSettingsViewer(credentialsProvider, systemFacade),
-				undefined,
-			),
-			new SettingsFolder(
-				() => "appearanceSettings_label",
-				() => Icons.ColorpaletteFilled,
-				"appearance",
-				() => new AppearanceSettingsViewer(),
-				undefined,
-			),
-			new SettingsFolder(
-				() => "notificationSettings_action",
-				() => Icons.BellFilled,
-				"notifications",
-				() => new NotificationSettingsViewer(),
-				undefined,
-			),
-		]
-
-		this.adminFolders = []
-		this.subscriptionFolders = []
-
-		this.selectedFolder = this.userFolders[0]
-
-		this.settingsCategoriesColumn = this.makeSettingsCategoriesColumn(header, domainConfigProvider)
-		this.settingsColumn = this.makeSettingsColumn(header)
-		this.viewSlider = new ViewSlider([this.settingsCategoriesColumn, this.settingsColumn], false)
-
-		this.targetFolder = m.route.param("folder")
-		this.targetRoute = m.route.get()
-	}
-
-	private isTabletView(): boolean {
-		return (styles.isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !styles.isSingleColumnLayout()
-	}
-
-	private makeSettingsCategoriesColumn(header: HeaderAttrs, domainConfigProvider: DomainConfigProvider): ViewColumn {
-		return new ViewColumn(
-			{
-				view: () => {
-					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.surface_container,
-						columnLayout: m(".flex.flex-grow.col.fill-absolute.scroll", [
-							m(SettingsList, {
-								sections: [
-									{
-										name: lang.getTranslation("userSettings_label"),
-										items: this.userFolders.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
-									},
-									...(this.logins.isUserLoggedIn()
-										? [
-												{
-													name: lang.getTranslation("adminSettings_label"),
-													items: this.userFolders.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
-												},
-												{
-													name: lang.getTranslation("subscriptionSettings_label"),
-													items: this.subscriptionFolders
-														.filter((f) => f.isVisible())
-														.map((f) => this.createSettingsFolderNavButton(f)),
-												},
-											]
-										: []),
-								],
-							}),
-							this.bottomSection(domainConfigProvider),
-						]),
-						mobileHeader: () =>
-							m(MobileHeader, {
-								...header,
-								backAction: () => m.route.set(CALENDAR_PREFIX),
-								columnType: "first",
-								title: "settings_label",
-								actions: [],
-								useBackButton: true,
-								primaryAction: () => null,
-							}),
-						desktopToolbar: () => null,
-					})
-				},
-			},
-			ColumnType.Background,
-			{
-				minWidth: layout_size.first_col_min_width,
-				maxWidth: layout_size.first_col_max_width,
-				headerCenter: "settings_label",
-			},
-		)
-	}
-
-	private makeSettingsColumn(header: HeaderAttrs): ViewColumn {
-		return new ViewColumn(
-			{
-				// the CSS improves the situation on devices with notches (no control elements
-				// are concealed), but there's still room for improvement for scrollbars
-				view: () =>
-					m(BackgroundColumnLayout, {
-						backgroundColor: theme.surface_container,
-						classes: (this.isTabletView() ? "pr-16 pl-8 " : "") + (isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
-						columnLayout: m(
-							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-8.border-radius-top-right-8",
-							{
-								class: this.isTabletView() ? "border-radius-top-left-12" : "",
-								style: this.isTabletView()
-									? {
-											"margin-top": px(component_size.navbar_height_mobile + size.spacing_8),
-										}
-									: {},
-							},
-							m(this.getCurrentViewer()),
-						),
-						mobileHeader: () =>
-							!this.isTabletView()
-								? m(MobileHeader, {
-										...header,
-										backAction: () => {
-											this.setUrl(SETTINGS_PREFIX)
-											this.viewSlider.focusPreviousColumn()
-										},
-										columnType: "first",
-										title: this.selectedFolder.name(),
-										actions: [],
-										useBackButton: true,
-										primaryAction: () => null,
-									})
-								: null,
-						desktopToolbar: () => null,
-					}),
-			},
-			ColumnType.Background,
-			{
-				minWidth: layout_size.third_col_min_width,
-				maxWidth: layout_size.third_col_max_width,
-				headerCenter: this.selectedFolder.name,
-			},
-		)
-	}
-
-	private bottomSection(domainConfigProvider: DomainConfigProvider): Children {
-		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16.pb-safe-inset", [
-			m(SettingsSupportButton, { logins: this.logins }),
-			domainConfigProvider.getCurrentDomainConfig().firstPartyDomain ? m(SettingsAboutLInk) : null,
-		])
-	}
-
-	private async populateSubscriptionFolders() {
-		if (this.logins.isEnabled(FeatureType.WhitelabelChild) || !this.logins.getUserController().isGlobalAdmin()) {
-			return
-		}
-
-		const currentPlanType = await this.logins.getUserController().getPlanType()
-
-		this.subscriptionFolders.push(
-			new SettingsFolder<void>(
-				() => "adminSubscription_action",
-				() => Icons.TrophyFilled,
-				"subscription",
-				() => new SubscriptionViewer(currentPlanType, isIOSApp() ? this.mobilePaymentsFacade : null),
-				undefined,
-			),
-		)
-
-		this.subscriptionFolders.push(
-			new SettingsFolder<void>(
-				() => "adminPayment_action",
-				() => Icons.CreditcardFilled,
-				"invoice",
-				() => new PaymentViewer(),
-				undefined,
-			),
-		)
-
-		this.subscriptionFolders.push(
-			new SettingsFolder(
-				() => "referralSettings_label",
-				() => Icons.ShareFilled,
-				"referral",
-				() => new ReferralSettingsViewer(),
-				undefined,
-			).setIsVisibleHandler(() => !this.showBusinessSettings),
-		)
-
-		m.redraw()
-	}
-
-	private async populateAdminFolders() {
-		await this.updateShowBusinessSettings()
-
-		if (!this.logins.getUserController().isGlobalAdmin()) {
-			return
-		}
-
-		this.adminFolders.push(
+		adminSettingsSection(logins, entityClient, themeController, whitelabelThemeGenerator),
+		subscriptionSettingsSection(logins, mobilePaymentsFacade),
+	]
+}
+export function notificationSettings(): SettingsFolder<unknown> {
+	return new SettingsFolder(
+		() => "notificationSettings_action",
+		() => Icons.BellFilled,
+		"notifications",
+		() => new NotificationSettingsViewer(),
+		undefined,
+	)
+}
+export function adminSettingsSection(
+	logins: LoginController,
+	entityClient: EntityClient,
+	themeController: ThemeController,
+	whitelabelThemeGenerator: WhitelabelThemeGenerator,
+): SettingsViewSection {
+	return {
+		name: lang.getTranslation("adminSettings_label"),
+		settings: [
 			new SettingsFolder(
 				() => "globalSettings_label",
 				() => Icons.GearWheelFilled,
 				"global",
 				() => new GlobalSettingsViewer(),
 				undefined,
-			),
-		)
-
-		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !shouldHideBusinessPlans()) {
-			this.adminFolders.push(
-				new SettingsFolder(
-					() => "whitelabel_label",
-					() => Icons.ColorwandFilled,
-					"whitelabel",
-					() => new WhitelabelSettingsViewer(this.entityClient, this.logins, this.themeController, this.whitelabelThemeGenerator),
-					undefined,
-				),
-			)
-		}
-		m.redraw()
-	}
-
-	oncreate({ attrs: { eventController } }: Vnode<CalendarSettingsViewAttrs>) {
-		eventController.addEntityListener(this.entityListener)
-		Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()]).then(() => {
-			// We have to wait for the mailSets to be initialized before setting the URL,
-			// otherwise we won't find the requested folder and will just pick the default folder
-			const stillAtDefaultUrl =
-				m.route.get() === this.userFolders[0].url || (m.route.get() === this.targetRoute && this.selectedFolder.url !== this.targetRoute)
-			if (stillAtDefaultUrl) {
-				this.onNewUrl({ folder: this.targetFolder }, this.targetRoute)
-			}
-		})
-	}
-
-	onremove({ attrs: { eventController } }: VnodeDOM<CalendarSettingsViewAttrs>) {
-		eventController.removeEntityListener(this.entityListener)
-	}
-
-	private entityListener: entityUpdateUtils.EntityEventsListener = {
-		onEntityUpdatesReceived: (updates: entityUpdateUtils.EntityUpdateData[], eventOwnerGroupId: Id) => {
-			return this.entityEventsReceived(updates, eventOwnerGroupId)
-		},
-		priority: entityUpdateUtils.OnEntityUpdateReceivedPriority.NORMAL,
-	}
-
-	view({ attrs }: Vnode<CalendarSettingsViewAttrs>): Children {
-		return m(
-			"#settings.main-view",
-			m(this.viewSlider, {
-				header: m(Header, {
-					...attrs.header,
-				}),
-			}),
-		)
-	}
-
-	private createSettingsFolderNavButton(folder: SettingsFolder<unknown>): NavButtonAttrs {
-		return {
-			label: folder.name(),
-			icon: folder.icon,
-			href: folder.url,
-			colors: NavButtonColor.Nav,
-			click: () => this.viewSlider.focus(this.settingsColumn),
-			persistentBackground: true,
-		}
-	}
-
-	private getCurrentViewer(): UpdatableSettingsViewer {
-		if (!this.currentViewer) {
-			this.detailsViewer = null
-			this.currentViewer = this.selectedFolder.viewerCreator()
-		}
-
-		return this.currentViewer
-	}
-
-	/**
-	 * Notifies the current view about changes of the url within its scope.
-	 */
-	onNewUrl(args: Record<string, any>, _requestedPath: string) {
-		if (args.folder || !m.route.get().startsWith(SETTINGS_PREFIX)) {
-			// ensure that current viewer will be reinitialized
-			const folder = this.allSettingsFolders().find((folder) => folder.matches(args.folder, args.id))
-
-			if (folder && this.selectedFolder.isSameFolder(folder)) {
-				// folder path has not changed
-				this.selectedFolder = folder // instance of SettingsFolder might have been changed in membership update, so replace this instance
-
-				m.redraw()
-			} else if (folder) {
-				// folder path has changed
-				// to avoid misleading information, set the url to the folder's url, so the browser url
-				// is changed to correctly represents the displayed content
-				this.setUrl(folder.url)
-				this.selectedFolder = folder
-				this.currentViewer = null
-				this.detailsViewer = null
-
-				// make sure the currentViewer is available
-				this.getCurrentViewer()
-				this.viewSlider.focus(this.settingsColumn)
-
-				m.redraw()
-			} else {
-				this.viewSlider.focus(this.settingsCategoriesColumn)
-			}
-		}
-	}
-
-	private allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
-		return [...this.userFolders, ...this.adminFolders, ...this.subscriptionFolders]
-	}
-
-	private setUrl(url: string) {
-		m.route.set(url + location.hash)
-	}
-
-	private async updateShowBusinessSettings() {
-		this.showBusinessSettings = (await this.logins.getUserController().reloadCustomer()).businessUse
-	}
-
-	async entityEventsReceived(updates: ReadonlyArray<entityUpdateUtils.EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		for (const update of updates) {
-			if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerTypeRef, update)) {
-				await this.updateShowBusinessSettings()
-			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
-				// the user admin status might have changed
-				if (
-					!this.logins.getUserController().isGlobalAdmin() &&
-					this.currentViewer &&
-					(this.adminFolders.some((f) => f.isActive()) || this.subscriptionFolders.some((f) => f.isActive()))
-				) {
-					this.setUrl(this.userFolders[0].url)
-				}
-				m.redraw()
-			} else if (entityUpdateUtils.isUpdateForTypeRef(sysTypeRefs.CustomerInfoTypeRef, update)) {
-				this.adminFolders.length = 0
-				this.subscriptionFolders.length = 0
-				// When switching a plan we hide/show certain admin settings.
-				await Promise.all([this.populateAdminFolders(), this.populateSubscriptionFolders()])
-				m.redraw()
-			}
-		}
-
-		await this.currentViewer?.entityEventsReceived(updates)
-
-		await this.detailsViewer?.entityEventsReceived(updates)
-	}
-
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
-	}
-
-	handleBackButton(): boolean {
-		if (m.route.get().endsWith(SETTINGS_PREFIX)) {
-			m.route.set(CALENDAR_PREFIX)
-		} else {
-			m.route.set(SETTINGS_PREFIX)
-			this.viewSlider.focus(this.settingsCategoriesColumn)
-		}
-
-		return true
+			).setIsVisibleHandler(() => logins.getUserController().isGlobalAdmin()),
+			whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator),
+		],
 	}
 }
