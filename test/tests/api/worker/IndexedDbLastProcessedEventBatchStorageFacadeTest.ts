@@ -31,12 +31,14 @@ o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 		})
 
 		o.test("getLastEntityEventBatchForGroup doesn't do anything when mail indexing is disabled", async () => {
+			// @ts-ignore
 			mailIndexerMock._mailIndexingEnabled = false
 			o.check(await indexedDbLastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(groupId1)).equals(null)
 			verify(coreMock.getLastProcessedEventBatchIdForGroup(groupId1), { times: 0 })
 			verify(ephemeralCacheMock.getLastBatchIdForGroup(groupId1), { times: 0 })
 		})
 		o.test("putLastEntityEventBatchForGroup doesn't do anything when mail indexing is disabled", async () => {
+			// @ts-ignore
 			mailIndexerMock._mailIndexingEnabled = false
 			await indexedDbLastProcessedEventBatchStorageFacade.putLastEntityEventBatchForGroup(groupId1, lastProcessedEventBatchId1)
 			verify(ephemeralCacheMock.putLastBatchIdForGroup(groupId1, lastProcessedEventBatchId1), { times: 0 })

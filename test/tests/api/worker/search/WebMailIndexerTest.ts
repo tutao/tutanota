@@ -12,9 +12,9 @@ import {
 import {
 	_getCurrentIndexTimestamp,
 	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	MailIndexer,
 	MboxIndexData,
-} from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer.js"
+	WebMailIndexer,
+} from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
@@ -72,7 +72,7 @@ class FixedDateProvider implements DateProvider {
 
 const mailId = "L-dNNLe----0"
 
-o.spec("MailIndexer", () => {
+o.spec("WebMailIndexer", () => {
 	const now = 1554720827674 // 2019-04-08T10:53:47.674Z
 	let entityMock: EntityRestClientMock
 	let entityClient: EntityClient
@@ -82,7 +82,7 @@ o.spec("MailIndexer", () => {
 	let mailFacade: MailFacade
 	let clientTypeModelResolver: ClientTypeModelResolver
 	let infoMessageHandler: InfoMessageHandler
-	let indexer: MailIndexer
+	let indexer: WebMailIndexer
 	const userId = "userId1"
 	const mailGroup1 = "mailGroup1"
 	let user: User
@@ -105,7 +105,7 @@ o.spec("MailIndexer", () => {
 			],
 		})
 
-		indexer = new MailIndexer(
+		indexer = new WebMailIndexer(
 			infoMessageHandler,
 			() => Promise.resolve(bulkMailLoader),
 			entityClient,
@@ -312,7 +312,7 @@ o.spec("MailIndexer", () => {
 				const timestamps: Map<Id, number> = new Map([[mailGroup, FULL_INDEXED_TIMESTAMP]])
 				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
 				// dirty partial mock
-				indexer._indexMailListsInTimeBatches = func<MailIndexer["_indexMailListsInTimeBatches"]>()
+				indexer._indexMailListsInTimeBatches = func<WebMailIndexer["_indexMailListsInTimeBatches"]>()
 
 				await indexer.indexMailboxes(user, rangeEnd)
 
@@ -786,7 +786,7 @@ o.spec("MailIndexer", () => {
 			const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
 			await initWithEnabled(true)
 			// dirty partial mock
-			indexer.indexMailboxes = func<MailIndexer["indexMailboxes"]>()
+			indexer.indexMailboxes = func<WebMailIndexer["indexMailboxes"]>()
 
 			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
 
@@ -836,7 +836,7 @@ o.spec("MailIndexer", () => {
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
 			await initWithEnabled(true)
 			// dirty partial mock
-			indexer.indexMailboxes = func<MailIndexer["indexMailboxes"]>()
+			indexer.indexMailboxes = func<WebMailIndexer["indexMailboxes"]>()
 			await indexer.resizeMailIndex(user, newOldTimestamp)
 			verify(indexer.indexMailboxes(user, newOldTimestamp))
 		})
