@@ -54,6 +54,7 @@ import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { ProgressMonitor } from "../../../../../src/platform-kit/network/ProgressMonitorInterface"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { MailState } from "../../../../../src/entities/tutanota/Utils"
+import { defaultMailIndexerNewMailDownloader, MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -83,6 +84,7 @@ o.spec("WebMailIndexer", () => {
 	let clientTypeModelResolver: ClientTypeModelResolver
 	let infoMessageHandler: InfoMessageHandler
 	let indexer: WebMailIndexer
+	let newMailDownloader: MailIndexerNewMailDownloader
 	const userId = "userId1"
 	const mailGroup1 = "mailGroup1"
 	let user: User
@@ -104,14 +106,15 @@ o.spec("WebMailIndexer", () => {
 				}),
 			],
 		})
+		newMailDownloader = defaultMailIndexerNewMailDownloader(entityClient, mailFacade)
 
 		indexer = new WebMailIndexer(
 			infoMessageHandler,
 			() => Promise.resolve(bulkMailLoader),
 			entityClient,
 			dateProvider,
-			mailFacade,
 			() => backend,
+			newMailDownloader,
 		)
 		when(backend.getCurrentIndexTimestamps(matchers.anything())).thenResolve(new Map())
 	})

@@ -69,12 +69,11 @@ import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/M
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
 import type { ContactIndexer } from "../index/ContactIndexer"
-import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
-import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
+import { EntityAdapter, NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
@@ -88,6 +87,7 @@ import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntit
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { ImapImporter } from "../imapimport/ImapImporter"
 import { CustomContactEventCacheHandler } from "./CustomContactEventCacheHandler"
+import { WebMailIndexer } from "../index/WebMailIndexer"
 
 assertWorkerOrNode()
 
@@ -187,31 +187,40 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 
 	// These lazy closures reference locator.base.* — safe because they're only called after createBaseLocator returns
 	const mailIndexer = lazyMemoized(async () => {
-		const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
-		const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend")
-		const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
-		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-		const mailDateProvider = new LocalTimeDateProvider()
+		const { defaultMailIndexerNewMailDownloader } = await import("../index/MailIndexer.js")
 		const mailFacade = await locator.mail()
+		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.base.cachingEntityClient, mailFacade)
+
 		if (isOfflineStorageAvailable()) {
+			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
-			return new WebMailIndexer(
-				mainInterface.infoMessageHandler,
-				bulkLoaderFactory,
+			const blob = await locator.blob()
+			const modelMapper = locator.base.instancePipeline.modelMapper
+			return new OfflineMailIndexer(
+				persistence,
+				blob,
 				locator.base.cachingEntityClient,
-				mailDateProvider,
 				mailFacade,
-				() => new OfflineStorageMailIndexerBackend(persistence),
+				locator.base.crypto,
+				locator.base.typeModelResolver,
+				modelMapper,
+				mainInterface.infoMessageHandler,
+				newMailDownloader,
+				locator.base.instancePipeline.cryptoMapper,
+				(model, blob) => EntityAdapter.from(model, blob, modelMapper),
 			)
 		} else {
+			const dateProvider = new LocalTimeDateProvider()
+			const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
+			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
 			const core = await indexerCore()
 			return new WebMailIndexer(
 				mainInterface.infoMessageHandler,
 				locator.bulkMailLoader,
 				locator.base.cachingEntityClient,
-				mailDateProvider,
-				mailFacade,
+				dateProvider,
 				(userId) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
+				newMailDownloader,
 			)
 		}
 	})
@@ -306,9 +315,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				dateProvider,
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
-				new MailOfflineCleaner(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
 				customCacheHandler,
@@ -564,7 +571,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				core,
 				mainInterface.infoMessageHandler,
 				locator.base.cachingEntityClient,
-				await mailIndexer(),
+				(await mailIndexer()) as WebMailIndexer,
 				contact,
 				locator.base.typeModelResolver,
 				locator.base.keyLoader,
@@ -723,11 +730,4 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-/*
- * @returns true if webassembly is supported
- */
-export function isWebAssemblySupported() {
-	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }

@@ -23,7 +23,7 @@ import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvi
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { UpgradePriceType } from "../FeatureListProvider"
@@ -38,7 +38,6 @@ import { renderCountryDropdown } from "../../gui/CountryDropdown"
 import { elementIdPart, isSameId } from "@tutao/meta"
 import { getByAbbreviation } from "../../gui/CountryList"
 import { windowFacade } from "../../misc/WindowFacade"
-import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -114,7 +113,7 @@ class RedeemGiftCardModel {
 			const credentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(encryptedCredentials.userId)
 
 			if (credentials) {
-				await this.logins.resumeSession(credentials, null, null)
+				await this.logins.resumeSession(credentials, null)
 				await this.postLogin()
 			}
 		}
