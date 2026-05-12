@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Während der Beta-Phase von Drive kann es ohne Vorwarnung zu Datenverlusten kommen.",
 		"driveHome_label": "Start",
 		"driveNotEmpty_msg": "Dein Drive enthält noch Dateien oder Ordner. Bitte entferne diese zuerst.",
+		"driveNotEnabled_msg": "Tuta Drive ist für dieses Konto nicht aktiviert",
 		"driveTrash_label": "Papierkorb",
 		"driveView_action": "Drive",
 		"dropFilesHere_msg": "Dateien oder Ordner hierhin ziehen",
@@ -2273,7 +2274,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"driveNotEnabled_msg": "Drive ist für dieses Konto nicht aktiviert"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

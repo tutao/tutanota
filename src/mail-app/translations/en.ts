@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "While Drive is in beta data loss without prior warning might be possible.",
 		"driveHome_label": "Home",
 		"driveNotEmpty_msg": "There are still files or folders left in your Drive. Please remove them first.",
+		"driveNotEnabled_msg": "Tuta Drive is not enabled for this account",
 		"driveTrash_label": "Trash",
 		"driveView_action": "Drive",
 		"dropFilesHere_msg": "Drop files or folders here",
@@ -2273,7 +2274,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"driveNotEnabled_msg": "Drive is not enabled for this account"
+		"zoomOut_action": "Zoom Out"
 	}
 }

@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Drive on vielä beetaversio. Tietoja voi menettää ilman minkäänlaista varoitusta.",
 		"driveHome_label": "Koti",
 		"driveNotEmpty_msg": "Drivessäsi on vielä tiedostoja tai kansioita. Poista ne ensin.",
+		"driveNotEnabled_msg": "Tuta Driveä ei voi käyttää tällä tilillä",
 		"driveTrash_label": "Poistetut",
 		"driveView_action": "Drive",
 		"dropFilesHere_msg": "Pudota tiedostoja tai kansioita tähän",

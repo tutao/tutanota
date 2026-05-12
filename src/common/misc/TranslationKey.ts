@@ -2271,7 +2271,5 @@ export type TranslationKeyType =
 	| "incorrectRecoveryCodeFormat_msg"
 	| "light_green_label"
 	| "dark_green_label"
-	| "emptyString_msg"
-	| "light_green_label"
-	| "dark_green_label"
 	| "driveNotEnabled_msg"
+	| "emptyString_msg"
