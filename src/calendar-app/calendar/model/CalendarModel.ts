@@ -10,6 +10,7 @@ import {
 	filterInt,
 	findAndRemove,
 	getFromMap,
+	isEmpty,
 	isNotEmpty,
 	LazyLoaded,
 	splitInChunks,
@@ -62,14 +63,11 @@ import {
 	CalendarEventProgenitor,
 	CalendarEventUidIndexEntry,
 	CalendarFacade,
+	CreateCalendarEventsResult,
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { FileController } from "../../../common/file/FileController"
-import {
-	findAttendeeInAddresses,
-	isAllDayEvent,
-	serializeAlarmInterval
-} from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -113,7 +111,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { formatNotificationForDisplay } from "../../../common/misc/Formatter"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
-import { showInfoSnackbar } from "../../../common/gui/base/SnackBar"
+import { errorsToString } from "../../../utils/Utils"
 
 type CalendarEvent = tutanotaTypeRefs.CalendarEvent
 type CalendarGroupRoot = tutanotaTypeRefs.CalendarGroupRoot
@@ -342,6 +340,28 @@ export class CalendarModel {
 			this.requestWidgetRefresh()
 			return newEvent
 		}
+	}
+
+	/**
+	 * Checks the return type for the save calendar events call. Throws an error containing all collected errors.
+	 *
+	 * @param result The result of a save calendar events call
+	 * @throws Error in case the result contains an error.
+	 */
+	private handleSaveCalendarEventsErrorIfNeeded(result: CreateCalendarEventsResult) {
+		if (this.isSuccessfullResult(result)) {
+			// when there are no failed events or alarms there
+			return
+		}
+		let errorMessage = "Failed events: " + result.failedEvents.length + "\n"
+		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors))
+		errorMessage = "\nFailed alarms: " + result.failedAlarms.length + "\n"
+		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors))
+		throw new Error(errorMessage)
+	}
+
+	private isSuccessfullResult(result: CreateCalendarEventsResult) {
+		return isEmpty(result.failedEvents) && isEmpty(result.failedAlarms)
 	}
 
 	/** Load map from group/groupRoot ID to the calendar info */
@@ -693,14 +713,7 @@ export class CalendarModel {
 		if (isNotEmpty(eventsForCreation)) {
 			let eventCreationOperation = this.operationProgressTracker.startNewOperation()
 			const result = await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
-
-			if (isNotEmpty(result.failedEventErrors)) {
-				showInfoSnackbar("unknownError_msg")
-			}
-
-			if (isNotEmpty(result.failedAlarmErrors)) {
-				showInfoSnackbar("unknownError_msg")
-			}
+			this.handleSaveCalendarEventsErrorIfNeeded(result)
 			eventCreationOperation.done()
 		}
 		console.log(TAG, `${operationsLog.created} events created`)
@@ -778,14 +791,8 @@ export class CalendarModel {
 		event._ownerGroup = groupRoot._id
 
 		const result = await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
+		this.handleSaveCalendarEventsErrorIfNeeded(result)
 
-		if (isNotEmpty(result.failedEventErrors)) {
-			showInfoSnackbar("unknownError_msg")
-		}
-
-		if (isNotEmpty(result.failedAlarmErrors)) {
-			showInfoSnackbar("unknownError_msg")
-		}
 		return this.requestWidgetRefresh()
 	}
 
@@ -815,14 +822,7 @@ export class CalendarModel {
 		newEvent._ownerGroup = groupRoot._id
 
 		const result = await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
-
-		if (isNotEmpty(result.failedEventErrors)) {
-			showInfoSnackbar("unknownError_msg")
-		}
-
-		if (isNotEmpty(result.failedAlarmErrors)) {
-			showInfoSnackbar("unknownError_msg")
-		}
+		this.handleSaveCalendarEventsErrorIfNeeded(result)
 		return this.requestWidgetRefresh()
 	}
 

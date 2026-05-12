@@ -58,7 +58,7 @@ o.spec("AlarmFacadeTest", function () {
 		)
 	})
 
-	o.spec("saveAlarms", function () {
+	o.spec("createAlarms", function () {
 		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
 		let personalAlarmInfoTemplate: AlarmInfoTemplate
 
@@ -117,7 +117,7 @@ o.spec("AlarmFacadeTest", function () {
 			}
 			const pushIdentifier: sysTypeRefs.PushIdentifier = object()
 
-			await alarmFacade.saveAlarms(user, [eventAlarmsTuple], [pushIdentifier])
+			await alarmFacade.createAlarms(user, [eventAlarmsTuple], [pushIdentifier])
 
 			verify(serviceExecutorMock.post(sysServices.AlarmService, alarmServicePostData, matchers.anything()), { times: 1 })
 		})

@@ -53,7 +53,7 @@ export type CalendarEventUidIndexEntry = {
 	alteredInstances: Array<CalendarEventAlteredInstance>
 }
 
-type SaveCalendarEventsResult = {
+type SetupMultipleCalendarEventsResult = {
 	successfulEvents: Array<tutanotaTypeRefs.CalendarEvent>
 	failedEventsResult: FailedEventsResult
 }
@@ -63,7 +63,7 @@ type FailedEventsResult = {
 	errors: Array<Error>
 }
 
-export type CalendarEventPersistenceResult = {
+export type CreateCalendarEventsResult = {
 	successfulEvents: tutanotaTypeRefs.CalendarEvent[]
 	failedEvents: tutanotaTypeRefs.CalendarEvent[]
 	failedEventErrors: Error[]
@@ -85,12 +85,14 @@ export class CalendarFacade {
 		private readonly alarmFacade: AlarmFacade,
 	) {}
 
-	async createCalendarEvents(
+	public async createCalendarEvents(
 		eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>,
 		operationId: OperationId,
-	): Promise<CalendarEventPersistenceResult> {
+	): Promise<CreateCalendarEventsResult> {
 		// it is safe to assume that all event uids are set at this time
-		return this.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
+		return this.setupMultipleCalendarEventsAndSaveAlarms(eventAlarmInfoTemplatesTuples, (percent) =>
+			this.operationProgressTracker.onProgress(operationId, percent),
+		)
 	}
 
 	/**
@@ -198,15 +200,13 @@ export class CalendarFacade {
 	 * @param eventAlarmInfoTemplatesTuples the events and alarmNotifications to be created.
 	 * @param progressUpdater
 	 *
-	 * @returns {@link CalendarEventPersistenceResult}
-	 *
-	 * @VisibleForTesting
+	 * @returns {@link CreateCalendarEventsResult}
 	 */
-	public async saveCalendarEventsAndAlarms(
+	private async setupMultipleCalendarEventsAndSaveAlarms(
 		eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>,
 		progressUpdater: (percent: number) => Promise<void> = () => Promise.resolve(),
-	): Promise<CalendarEventPersistenceResult> {
-		const results: CalendarEventPersistenceResult = {
+	): Promise<CreateCalendarEventsResult> {
+		const results: CreateCalendarEventsResult = {
 			successfulEvents: [],
 			failedEvents: [],
 			failedEventErrors: [],
@@ -245,7 +245,7 @@ export class CalendarFacade {
 
 			const progressForThisList = (calendarEventsToPersist.length * remainingProgress) / eventAlarmInfoTemplatesTuples.length
 
-			const { successfulEvents, failedEventsResult } = await this.saveCalendarEvents(calendarEventsToPersist, listId)
+			const { successfulEvents, failedEventsResult } = await this.setupMultipleCalendarEventsForOneList(calendarEventsToPersist, listId)
 
 			results.successfulEvents.push(...successfulEvents)
 			if (isNotEmpty(failedEventsResult.failedEvents)) {
@@ -263,11 +263,10 @@ export class CalendarFacade {
 			await progressUpdater(currentProgress)
 
 			const eventAlarmTupleToPersist = eventAlarmsTuples.filter((tuple) => successfulIds.has(tuple.event._id))
-			await this.alarmFacade.saveAlarms(loggedInUser, eventAlarmTupleToPersist, pushIdentifiers).catch((e) => {
+			await this.alarmFacade.createAlarms(loggedInUser, eventAlarmTupleToPersist, pushIdentifiers).catch((e) => {
 				results.failedAlarms.push(...eventAlarmTupleToPersist)
 				results.failedAlarmErrors.push(e)
 			})
-
 			currentProgress += progressForThisList / 2
 			await progressUpdater(currentProgress)
 		}
@@ -283,11 +282,15 @@ export class CalendarFacade {
 	 * @param calendarEvents
 	 * @param listId
 	 *
-	 * @returns {@link SaveCalendarEventsResult}
+	 * @returns {@link SetupMultipleCalendarEventsResult}
 	 *
-	 * @VisibleForTesting
+	 * @VisbleForTesting
+	 *
 	 */
-	public async saveCalendarEvents(calendarEvents: Array<tutanotaTypeRefs.CalendarEvent>, listId: string): Promise<SaveCalendarEventsResult> {
+	public async setupMultipleCalendarEventsForOneList(
+		calendarEvents: Array<tutanotaTypeRefs.CalendarEvent>,
+		listId: string,
+	): Promise<SetupMultipleCalendarEventsResult> {
 		let successfulEvents: tutanotaTypeRefs.CalendarEvent[] = []
 		let failedEvents: tutanotaTypeRefs.CalendarEvent[] = []
 
@@ -316,12 +319,12 @@ export class CalendarFacade {
 	 * @param event
 	 * @param alarmInfos
 	 */
-	async createCalendarEvent(event: tutanotaTypeRefs.CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>): Promise<CalendarEventPersistenceResult> {
+	public async createCalendarEvent(event: tutanotaTypeRefs.CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>): Promise<CreateCalendarEventsResult> {
 		if (event._id == null) throw new Error("No id set on the event")
 		if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 		if (event.uid == null) throw new Error("no uid set on the event")
 
-		return await this.saveCalendarEventsAndAlarms([
+		return await this.setupMultipleCalendarEventsAndSaveAlarms([
 			{
 				event,
 				alarmInfoTemplates: alarmInfos,
@@ -337,11 +340,11 @@ export class CalendarFacade {
 	 * @param newEvent
 	 * @param alarmInfos
 	 */
-	async replaceCalendarEvent(
+	public async replaceCalendarEvent(
 		oldEvent: tutanotaTypeRefs.CalendarEvent,
 		newEvent: tutanotaTypeRefs.CalendarEvent,
 		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
-	): Promise<CalendarEventPersistenceResult> {
+	): Promise<CreateCalendarEventsResult> {
 		if (newEvent._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 		if (newEvent._id == null) throw new Error("No id set on the event")
 		if (newEvent.uid == null) throw new Error("no uid set on the event")
@@ -349,7 +352,7 @@ export class CalendarFacade {
 		await this.cachingEntityClient
 			.erase(oldEvent)
 			.catch(ofClass(restError.NotFoundError, () => console.log("could not delete old event when saving new one")))
-		return await this.saveCalendarEventsAndAlarms([
+		return await this.setupMultipleCalendarEventsAndSaveAlarms([
 			{
 				event: newEvent,
 				alarmInfoTemplates: alarmInfos,
@@ -364,7 +367,7 @@ export class CalendarFacade {
 	 * @param newAlarms
 	 * @param existingEvent
 	 */
-	async updateCalendarEvent(
+	public async updateCalendarEvent(
 		event: tutanotaTypeRefs.CalendarEvent,
 		newAlarms: ReadonlyArray<AlarmInfoTemplate>,
 		existingEvent: tutanotaTypeRefs.CalendarEvent,
@@ -392,10 +395,8 @@ export class CalendarFacade {
 				event,
 				alarmInfoTemplates: newAlarms,
 			}
-
 			const pushIdentifiers = await this.cachingEntityClient.loadAll(sysTypeRefs.PushIdentifierTypeRef, neverNull(loggedInUser.pushIdentifierList).list)
-
-			await this.alarmFacade.saveAlarms(loggedInUser, [eventAlarmTuple], pushIdentifiers)
+			await this.alarmFacade.createAlarms(loggedInUser, [eventAlarmTuple], pushIdentifiers)
 		}
 	}
 
