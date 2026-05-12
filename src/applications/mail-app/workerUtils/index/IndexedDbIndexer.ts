@@ -8,7 +8,7 @@ import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUt
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { WebMailIndexer } from "./WebMailIndexer.js"
+import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
 import type { QueuedBatch } from "../../../../app-kit/local-store/event/EventQueue.js"
@@ -129,7 +129,7 @@ export class IndexedDbIndexer implements Indexer {
 		private readonly core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly entity: EntityClient,
-		private readonly mailIndexer: WebMailIndexer,
+		private readonly mailIndexer: MailIndexer,
 		private readonly contactIndexer: ContactIndexer,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 		private readonly keyLoaderFacade: KeyLoaderFacade,

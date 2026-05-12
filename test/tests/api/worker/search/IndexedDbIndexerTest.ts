@@ -15,7 +15,7 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
-import { WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
+import { MailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer.js"
 import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore"
 import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "./DbStub"
@@ -55,7 +55,7 @@ o.spec("IndexedDbIndexer", () => {
 	}
 
 	let keyLoaderFacade: KeyLoaderFacade
-	let mailIndexer: WebMailIndexer
+	let mailIndexer: MailIndexer
 	let contactIndexer: ContactIndexer
 	let idbStub = new DbStub()
 	let dbWithStub: EncryptedDbWrapper
@@ -72,7 +72,7 @@ o.spec("IndexedDbIndexer", () => {
 		key = aes256RandomKey()
 		initializationVector = FIXED_INITIALIZATION_VECTOR
 		mailIndexer = object()
-		;(mailIndexer as Writeable<WebMailIndexer>).mailIndexingEnabled = false
+		;(mailIndexer as Writeable<MailIndexer>).mailIndexingEnabled = false
 
 		idbStub = new DbStub()
 		initSearchIndexObjectStores(downcast(idbStub))
