@@ -3,23 +3,23 @@
 export default {
 	RootInvoice: `
 		<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-					 xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-					 xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-			<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0</cbc:CustomizationID>
+					xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+					xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+			<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>
 			{slotMain}
 		</ubl:Invoice>`,
 
 	RootCreditNote: `
 		<ubl:CreditNote xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2"
-						xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-						xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+					xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+					xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
 			<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>
 			{slotMain}
 		</ubl:CreditNote>`,
 
 	// language=HTML
 	Main: `
-		<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+		<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:3.0</cbc:ProfileID>
 		<cbc:ID>{invoiceNumber}</cbc:ID>
 		<cbc:IssueDate>{issueDate}</cbc:IssueDate>
 		{slotInvoiceType}
@@ -67,7 +67,7 @@ export default {
 				</cac:PartyTaxScheme>
 				<cac:PartyLegalEntity>
 					<cbc:RegistrationName>Tutao GmbH</cbc:RegistrationName>
-					<cbc:CompanyID>208014</cbc:CompanyID>
+					<cbc:CompanyID>HRB 208014</cbc:CompanyID>
 				</cac:PartyLegalEntity>
 				<cac:Contact>
 					<cbc:Name>Tutao GmbH</cbc:Name>
@@ -114,6 +114,7 @@ export default {
 		<cac:AllowanceCharge>
 			<cbc:ChargeIndicator>false</cbc:ChargeIndicator>
 			<cbc:AllowanceChargeReasonCode>95</cbc:AllowanceChargeReasonCode>
+			<cbc:AllowanceChargeReason>Discount</cbc:AllowanceChargeReason>
 			<cbc:Amount currencyID="EUR">{totalDiscount}</cbc:Amount>
 			<cac:TaxCategory>
 				<cbc:ID>{vatType}</cbc:ID>
@@ -158,7 +159,7 @@ export default {
 	InvoiceLine: `
 		<cac:InvoiceLine>
 			<cbc:ID>{invoiceLineId}</cbc:ID>
-			<cbc:InvoicedQuantity unitCode="XPP">{invoiceLineQuantity}</cbc:InvoicedQuantity>
+			<cbc:InvoicedQuantity unitCode="C62">{invoiceLineQuantity}</cbc:InvoicedQuantity>
 			<cbc:LineExtensionAmount currencyID="EUR">{invoiceLineTotal}</cbc:LineExtensionAmount>
 			<cac:InvoicePeriod>
 				<cbc:StartDate>{invoiceLineStartDate}</cbc:StartDate>
@@ -183,12 +184,8 @@ export default {
 	CreditNoteLine: `
 		<cac:CreditNoteLine>
 			<cbc:ID>{invoiceLineId}</cbc:ID>
-			<cbc:CreditedQuantity unitCode="XPP">{invoiceLineQuantity}</cbc:CreditedQuantity>
+			<cbc:CreditedQuantity unitCode="C62">{invoiceLineQuantity}</cbc:CreditedQuantity>
 			<cbc:LineExtensionAmount currencyID="EUR">{invoiceLineTotal}</cbc:LineExtensionAmount>
-			<cac:InvoicePeriod>
-				<cbc:StartDate>{invoiceLineStartDate}</cbc:StartDate>
-				<cbc:EndDate>{invoiceLineEndDate}</cbc:EndDate>
-			</cac:InvoicePeriod>
 			<cac:Item>
 				<cbc:Name>{invoiceLineItemName}</cbc:Name>
 				<cac:ClassifiedTaxCategory>
