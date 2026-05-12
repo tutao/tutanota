@@ -541,13 +541,7 @@ export class BlobFacade {
 						const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
 						for (const blob of blobs) {
 							controller.signal.throwIfAborted()
-							const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey).catch(async (e: Error) => {
-								// cleanup every temporary file in the native part in case an error occurred when downloading chun
-								for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
-									await this.fileApp.deleteFile(decryptedChunkFileUri)
-								}
-								throw e
-							})
+							const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey)
 							blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
 							// after blob is downloaded set the progress to the overall blob size. This is safeguard if the last
 							// chunk is not reported.
@@ -555,10 +549,8 @@ export class BlobFacade {
 						}
 					}
 				} catch (e) {
-					if (e.name === "CancelledError") {
-						for (const fileUri of blobIdToDecryptedFileUri.values()) {
-							this.fileApp.deleteFile(fileUri)
-						}
+					for (const fileUri of blobIdToDecryptedFileUri.values()) {
+						await this.fileApp.deleteFile(fileUri)
 					}
 
 					throw e
