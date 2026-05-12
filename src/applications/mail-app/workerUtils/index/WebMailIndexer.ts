@@ -1,4 +1,4 @@
-import { CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
+import { assertWorkerOrNode, CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -12,8 +12,8 @@ import {
 	newPromise,
 	promiseMap,
 } from "../../../../platform-kit/utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
-import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -25,6 +25,9 @@ import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { cryptoUtils } from "../../../../platform-kit/crypto"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
+import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { isFolder } from "../../mail/MailUtils"
+import { User } from "@tutao/entities/sys"
 import {
 	File,
 	ImportedFileMailTypeRef,
@@ -41,22 +44,22 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
-import { User } from "@tutao/entities/sys"
-import { isFolder } from "../../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { MailIndexer } from "./MailIndexer"
+
+assertWorkerOrNode()
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
-
-const TAG = "MailIndexer"
 
 const enum MailIndexingAbortReason {
 	Cancelled = "MailIndexingCancelled",
 	Restarting = "MailIndexingRestarting",
 }
 
-export class WebMailIndexer {
+const TAG = "WebMailIndexer"
+
+export class WebMailIndexer implements MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
 	// There are two scenarios in which new mails are indexed:
 	// a) a new mail (internal/external) is received from our mail server
@@ -72,15 +75,18 @@ export class WebMailIndexer {
 		return this._currentIndexTimestamp
 	}
 
-	/** @private visibleForTesting */
-	_mailIndexingEnabled: boolean
+	private _mailIndexingEnabled: boolean
 	private initialized: DeferredObject<void> = defer()
 
 	get mailIndexingEnabled(): boolean {
 		return this._mailIndexingEnabled
 	}
 
-	mailboxIndexingPromise: DeferredObject<void>
+	private _mailboxIndexingPromise: DeferredObject<void>
+	get mailboxIndexingPromise(): Promise<void> {
+		return this._mailboxIndexingPromise.promise
+	}
+
 	/** @private visibleForTesting */
 	_isIndexing: boolean = false
 	_dateProvider: DateProvider
@@ -97,8 +103,8 @@ export class WebMailIndexer {
 	) {
 		this._currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._mailIndexingEnabled = false
-		this.mailboxIndexingPromise = defer()
-		this.mailboxIndexingPromise.resolve()
+		this._mailboxIndexingPromise = defer()
+		this._mailboxIndexingPromise.resolve()
 		this._dateProvider = dateProvider
 	}
 
@@ -251,11 +257,11 @@ export class WebMailIndexer {
 
 		if (this._isIndexing) {
 			this.cancelMailIndexingBeforeRestart()
-			await this.mailboxIndexingPromise.promise
+			await this._mailboxIndexingPromise.promise
 		}
 
 		this.abortController = new AbortController()
-		this.mailboxIndexingPromise = defer()
+		this._mailboxIndexingPromise = defer()
 		this._isIndexing = true
 
 		const searchIndexStageInfo = this.createSearchIndexStageInfo(oldestTimestamp)
@@ -298,7 +304,7 @@ export class WebMailIndexer {
 			await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo(updatedIndexState))
 		} finally {
 			this._isIndexing = false
-			this.mailboxIndexingPromise.resolve()
+			this._mailboxIndexingPromise.resolve()
 		}
 	}
 
@@ -308,7 +314,7 @@ export class WebMailIndexer {
 	 */
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-			await this.mailboxIndexingPromise.promise.then(() => this.indexMailboxes(user, newOldestTimestamp))
+			await this._mailboxIndexingPromise.promise.then(() => this.indexMailboxes(user, newOldestTimestamp))
 		}
 	}
 
@@ -598,7 +604,7 @@ export class WebMailIndexer {
 	/**
 	 * Prepare IndexUpdate in response to the new entity events.
 	 */
-	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
+	async processEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
@@ -712,7 +718,7 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 
 type TimeRange = [number, number]
 
-interface MailSetListData {
+export interface MailSetListData {
 	listId: Id
 	lastLoadedId: Id | null
 	loadedButUnusedEntries: MailSetEntry[]

@@ -12,8 +12,8 @@ import {
 import {
 	_getCurrentIndexTimestamp,
 	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	WebMailIndexer,
 	MboxIndexData,
+	WebMailIndexer,
 } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
