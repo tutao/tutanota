@@ -60,7 +60,6 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
-import { getByAbbreviation } from "../../../../gui/CountryList"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
 import {
@@ -68,6 +67,7 @@ import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { getByAbbreviation, CountryType } from "../../../../gui/CountryList"
 
 assertWorkerOrNode()
 
@@ -451,7 +451,15 @@ export class CustomerFacade {
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }), null)
 		const { XRechnungInvoiceGenerator } = await import("../../invoicegen/XRechnungInvoiceGenerator.js")
-		const xRechnungGenerator = new XRechnungInvoiceGenerator(invoiceData, invoiceNumber, this.getCustomerId(), customerInfo.registrationMailAddress)
+		const { urlEncodeHtmlTags } = await import("../../../../../../platform-kit/utils")
+		const xRechnungGenerator = new XRechnungInvoiceGenerator(
+			invoiceData,
+			invoiceNumber,
+			this.getCustomerId(),
+			customerInfo.registrationMailAddress,
+			getByAbbreviation(invoiceData.country)!.t === CountryType.EU,
+			(html) => urlEncodeHtmlTags(html),
+		)
 		const xRechnungFile = xRechnungGenerator.generate()
 		return {
 			_type: "DataFile",
