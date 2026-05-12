@@ -23,7 +23,7 @@ export class AlarmFacade {
 		private readonly infoMessageHandler: InfoMessageHandler,
 	) {}
 
-	public async saveAlarms(
+	public async createAlarms(
 		loggedInUser: sysTypeRefs.User,
 		eventAlarmsTuples: EventAlarmInfoTemplatesTuple[],
 		pushIdentifiers: sysTypeRefs.PushIdentifier[],

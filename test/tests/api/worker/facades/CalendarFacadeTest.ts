@@ -134,7 +134,7 @@ o.spec("CalendarFacadeTest", function () {
 		)
 	})
 
-	o.spec("saveCalendarEvents", function () {
+	o.spec("setupMultipleCalendarEventsForOneList", function () {
 		// Calendar Events
 		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
 		let workCalendarEvent: tutanotaTypeRefs.CalendarEvent
@@ -174,7 +174,7 @@ o.spec("CalendarFacadeTest", function () {
 					new SetupMultipleError("Mock error message", [new Error("Inner error message")], calendarEvents),
 				)
 
-				const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+				const result = await calendarFacade.setupMultipleCalendarEventsForOneList(calendarEvents, shortListId)
 
 				o.check(result.successfulEvents.length).equals(0)
 				o.check(result.failedEventsResult.failedEvents).deepEquals(calendarEvents)
@@ -188,7 +188,7 @@ o.spec("CalendarFacadeTest", function () {
 					new SetupMultipleError("Mock error message", [new Error("Inner error message")], [workCalendarEvent]),
 				)
 
-				const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+				const result = await calendarFacade.setupMultipleCalendarEventsForOneList(calendarEvents, shortListId)
 
 				o.check(result.successfulEvents).deepEquals([personalCalendarEvent])
 				o.check(result.failedEventsResult.failedEvents).deepEquals([workCalendarEvent])
@@ -202,7 +202,7 @@ o.spec("CalendarFacadeTest", function () {
 			const unexpectedErrorMessage = "Another unexpected error"
 			when(cachingEntityClientMock.setupMultipleEntities(shortListId, calendarEvents)).thenReject(new Error(unexpectedErrorMessage))
 
-			const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+			const result = await calendarFacade.setupMultipleCalendarEventsForOneList(calendarEvents, shortListId)
 
 			o.check(result.successfulEvents.length).equals(0)
 			o.check(result.failedEventsResult.failedEvents).deepEquals(calendarEvents)
@@ -217,7 +217,7 @@ o.spec("CalendarFacadeTest", function () {
 				calendarEvents.map((event) => elementIdPart(event._id)),
 			)
 
-			const result = await calendarFacade.saveCalendarEvents(calendarEvents, shortListId)
+			const result = await calendarFacade.setupMultipleCalendarEventsForOneList(calendarEvents, shortListId)
 
 			o.check(result.successfulEvents).deepEquals(calendarEvents)
 			o.check(result.failedEventsResult.failedEvents.length).equals(0)
@@ -225,7 +225,7 @@ o.spec("CalendarFacadeTest", function () {
 		})
 	})
 
-	o.spec("saveCalendarEventsAndAlarms", function () {
+	o.spec("createCalendarEvents", function () {
 		// Function input
 		let eventAlarmInfoTemplatesTuples: EventAlarmInfoTemplatesTuple[]
 
@@ -280,7 +280,7 @@ o.spec("CalendarFacadeTest", function () {
 			)
 		})
 
-		o.spec("saveCalendarEvents failure", function () {
+		o.spec("save calendar events failure", function () {
 			o.test("when all events fail, all events are in failedEvents and alarms are not attempted", async function () {
 				when(cachingEntityClientMock.setupMultipleEntities(shortListId, matchers.anything())).thenReject(
 					new SetupMultipleError("Mock error message", [new Error("Inner error message")], shortListEvents),
@@ -291,11 +291,11 @@ o.spec("CalendarFacadeTest", function () {
 
 				const expectedFailedEvents = eventAlarmInfoTemplatesTuples.map((tuple) => tuple.event)
 
-				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
 
 				o.check(result.failedEvents).deepEquals(expectedFailedEvents)
 				o.check(result.failedEventErrors.length).equals(2) // One error per list
-				verify(alarmFacadeMock.saveAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			})
 
 			o.test("when some events fail, only successful events have alarms saved", async function () {
@@ -307,14 +307,14 @@ o.spec("CalendarFacadeTest", function () {
 					new SetupMultipleError("Mock error message", [new Error("Inner error message")], expectedFailedEvents),
 				)
 				when(cachingEntityClientMock.setupMultipleEntities(longListId, matchers.anything())).thenResolve([elementIdPart(vacationsCalendarEvent._id)])
-				when(alarmFacadeMock.saveAlarms(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
+				when(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 
-				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
 
 				o.check(result.failedEvents).deepEquals(expectedFailedEvents)
 				o.check(result.failedEventErrors.length).equals(1) // We had one error when saving the shortList
-				verify(alarmFacadeMock.saveAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
-				verify(alarmFacadeMock.saveAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
 			})
 
 			o.test("when one list fails entirely, the other list is still processed", async function () {
@@ -324,24 +324,24 @@ o.spec("CalendarFacadeTest", function () {
 					new SetupMultipleError("Mock error message", [new Error("Inner error message")], shortListEvents),
 				)
 				when(cachingEntityClientMock.setupMultipleEntities(longListId, matchers.anything())).thenResolve([elementIdPart(vacationsCalendarEvent._id)])
-				when(alarmFacadeMock.saveAlarms(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
+				when(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 
-				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
 
 				o.check(result.successfulEvents).deepEquals(longListEvents)
 				o.check(result.failedEvents).deepEquals(shortListEvents)
 				o.check(result.failedEventErrors.length).equals(1) // We had one error when saving the shortList
-				verify(alarmFacadeMock.saveAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
 			})
 		})
 
-		o.spec("saveAlarms failure", function () {
+		o.spec("create alarms failure", function () {
 			o.test("when alarm save fails, the affected events remain in successfulEvents but are also reported in failedAlarms", async function () {
 				const expectedSuccessfulEvents = shortListEvents.concat(longListEvents)
 
-				when(alarmFacadeMock.saveAlarms(user, matchers.anything(), matchers.anything())).thenReject(new Error("Save alarms mock error"))
+				when(alarmFacadeMock.createAlarms(user, matchers.anything(), matchers.anything())).thenReject(new Error("Save alarms mock error"))
 
-				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
 
 				o.check(result.successfulEvents).deepEquals(expectedSuccessfulEvents)
 				o.check(result.failedAlarmErrors.length).equals(2) // One error per list
@@ -349,9 +349,9 @@ o.spec("CalendarFacadeTest", function () {
 			})
 		})
 
-		o.spec("success scenario", function () {
+		o.spec("success scenarios", function () {
 			o.test("when input is empty, an empty result is returned", async function () {
-				const result = await calendarFacade.saveCalendarEventsAndAlarms([], () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents([], 0)
 
 				o.check(result.successfulEvents.length).equals(0)
 				o.check(result.failedEvents.length).equals(0)
@@ -361,7 +361,7 @@ o.spec("CalendarFacadeTest", function () {
 
 				verify(cachingEntityClientMock.loadAll(sysTypeRefs.PushIdentifierTypeRef, matchers.anything()), { times: 0 })
 				verify(cachingEntityClientMock.setupMultipleEntities(matchers.anything(), matchers.anything()), { times: 0 })
-				verify(alarmFacadeMock.saveAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			})
 
 			o.test("when all events and alarms succeed, all events are in successfulEvents and no failures are reported", async function () {
@@ -371,10 +371,10 @@ o.spec("CalendarFacadeTest", function () {
 					{ event: workCalendarEvent, alarmInfoTemplates: [workAlarmTemplate] },
 				]
 				const longListSuccessTuples = [{ event: vacationsCalendarEvent, alarmInfoTemplates: [vacationsAlarmTemplate] }]
-				when(alarmFacadeMock.saveAlarms(user, shortListSuccessTuples, matchers.anything())).thenResolve()
-				when(alarmFacadeMock.saveAlarms(user, longListSuccessTuples, matchers.anything())).thenResolve()
+				when(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything())).thenResolve()
+				when(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything())).thenResolve()
 
-				const result = await calendarFacade.saveCalendarEventsAndAlarms(eventAlarmInfoTemplatesTuples, () => Promise.resolve())
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
 
 				o.check(result.successfulEvents).deepEquals(expectedSuccessfulEvents)
 				o.check(result.failedEvents.length).equals(0)
@@ -382,8 +382,8 @@ o.spec("CalendarFacadeTest", function () {
 				o.check(result.failedAlarms.length).equals(0)
 				o.check(result.failedAlarmErrors.length).equals(0)
 
-				verify(alarmFacadeMock.saveAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
-				verify(alarmFacadeMock.saveAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
 			})
 		})
 	})

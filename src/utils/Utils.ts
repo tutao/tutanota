@@ -393,6 +393,10 @@ export function errorToString(error: ErrorInfo): string {
 	return errorString
 }
 
+export function errorsToString(errors: Array<ErrorInfo>): string {
+	return errors.join("\n--- next error ---\n")
+}
+
 /**
  * Like {@link Object.entries} but preserves the type of the key and value
  */

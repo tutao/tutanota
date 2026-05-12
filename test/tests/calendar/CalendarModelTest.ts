@@ -15,6 +15,7 @@ import {
 	CalendarEventProgenitor,
 	CalendarEventUidIndexEntry,
 	CalendarFacade,
+	CreateCalendarEventsResult,
 } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { FileController } from "../../../src/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
@@ -312,6 +313,12 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			}
+
+			const createCalendarEventsResult: CreateCalendarEventsResult = object()
+			createCalendarEventsResult.failedEvents = []
+			createCalendarEventsResult.failedAlarms = []
+
+			when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(createCalendarEventsResult)
 		})
 
 		o.spec("Pending events", function () {
@@ -554,6 +561,10 @@ o.spec("CalendarModel", function () {
 			expectedNewEvent.sequence = icsEvent.sequence
 
 			when(entityClientMock.load<tutanotaTypeRefs.CalendarEvent>(tutanotaTypeRefs.CalendarEventTypeRef, anything())).thenResolve(expectedNewEvent)
+			const replaceCalendarEventResult: CreateCalendarEventsResult = object()
+			replaceCalendarEventResult.failedEvents = []
+			replaceCalendarEventResult.failedAlarms = []
+			when(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything())).thenResolve(replaceCalendarEventResult)
 			// Act
 			await calendarModel.processParsedCalendarDataFromIcs(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
