@@ -27,7 +27,7 @@ await program
 	.description("Utility to build the web part of tuta")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("prod").argOptional())
 	.addArgument(new Argument("host").argOptional())
-	.addOption(new Option("--app <app>", "app to build").choices(["mail", "calendar"]))
+	.addOption(new Option("--app <app>", "app to build").choices(["mail", "calendar", "drive"]))
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
 	.option("--mobile-build", "Whether the current build is for the mobile app")

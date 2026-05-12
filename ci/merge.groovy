@@ -9,7 +9,8 @@ ArrayList<String> linuxWorkspaceClones = [
 		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-4',
 		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-5',
 		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-6',
-		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-7'
+		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-7',
+		'/opt/jenkins/jobs/bootleg-ci-merge/workspace-8'
 ]
 String macWorkspace = '/Users/jenkins/jenkins/workspace/bootleg-ci-merge/'
 
@@ -199,31 +200,31 @@ pipeline {
 			}
 		}
 		stage("Build preps") {
-		    parallel {
-		        stage("make crypto") {
-		            agent {
-		                node {
-		                    label 'linux'
-		                    customWorkspace linuxWorkspaceClones[0]
-		                }
-                    }
-                    steps {
-                        sh 'cd src/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../test/build && cd -'
-                   }
-                }
+			parallel {
+				stage("make crypto") {
+					agent {
+						node {
+							label 'linux'
+							customWorkspace linuxWorkspaceClones[0]
+						}
+					}
+					steps {
+						sh 'cd src/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../build-drive-app && node make ../../test/build && cd -'
+					}
+				}
 
-                stage("make mimimi") {
-                    agent {
-		                node {
-		                    label 'linux'
-		                    customWorkspace linuxWorkspaceClones[1]
-		                }
-                    }
-                    steps {
-                        sh 'cd src/mimimi && node make --release && cd -'
-                   }
-                }
-		    }
+				stage("make mimimi") {
+					agent {
+						node {
+							label 'linux'
+							customWorkspace linuxWorkspaceClones[1]
+						}
+					}
+					steps {
+						sh 'cd src/mimimi && node make --release && cd -'
+					}
+				}
+			}
 		}
 		stage("Testing and Building") {
 			parallel {
@@ -290,11 +291,22 @@ pipeline {
 						sh 'node webapp --disable-minify --app calendar'
 					}
 				}
-				stage("sdk tests") {
+				stage("build drive web app") {
 					agent {
 						node {
 							label 'linux'
 							customWorkspace linuxWorkspaceClones[5]
+						}
+					}
+					steps {
+						sh 'node webapp --disable-minify --app drive'
+					}
+				}
+				stage("sdk tests") {
+					agent {
+						node {
+							label 'linux'
+							customWorkspace linuxWorkspaceClones[6]
 						}
 					}
 					when {
@@ -311,7 +323,7 @@ pipeline {
 					agent {
 						node {
 							label 'linux'
-							customWorkspace linuxWorkspaceClones[6]
+							customWorkspace linuxWorkspaceClones[7]
 						}
 					}
 					when {
@@ -538,6 +550,7 @@ void testAndroid() {
 		export TZ=Europe/Berlin
 		mkdir -p build
 		mkdir -p build-calendar-app
+		mkdir -p build-drive-app
 		cd app-android
 		./gradlew lint -PtargetABI=x86_64 --quiet
 		./gradlew test -PtargetABI=x86_64

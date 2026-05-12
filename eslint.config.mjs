@@ -117,6 +117,7 @@ export default defineConfig([
 			"**/node_modules/",
 			"**/build/",
 			"**/build-calendar-app/",
+			"**/build-drive-app/",
 			"**/dist/",
 			"**/libs/",
 		]),

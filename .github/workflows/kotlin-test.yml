@@ -42,7 +42,7 @@ jobs:
         with:
           submodules: 'true'
       - name: Create dummy build folder
-        run: mkdir build && mkdir build-calendar-app # We need this because gradlew lint searches for the app assets
+        run: mkdir build && mkdir build-calendar-app && mkdir build-drive-app # We need this because gradlew lint searches for the app assets
       - name: Set up JDK ${{ env.java-version }}
         uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 #4.2.1
         with:
