@@ -20,7 +20,7 @@ export class MailIndexerPostLoginAction implements PostLoginAction {
 			this.syncTracker.addSyncDoneListener({
 				onSyncDone: async () => {
 					await this.offlineStorageSettings.init()
-					await this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
+					await this.indexer.extendMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
 				},
 				priority: SyncDonePriority.HIGH,
 			})

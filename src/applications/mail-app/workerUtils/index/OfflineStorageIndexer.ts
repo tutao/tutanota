@@ -22,7 +22,6 @@ export class OfflineStorageIndexer implements Indexer {
 	async partialLoginInit() {
 		const user = assertNotNull(this.userFacade.getUser())
 		await this.mailIndexer.init(user)
-		await this.mailIndexer.enableMailIndexing()
 
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
@@ -67,20 +66,16 @@ export class OfflineStorageIndexer implements Indexer {
 		await this.contactIndexer.processEntityEvents(updates, groupId, batchId)
 	}
 
-	async extendMailIndex(time: number) {
-		await this.mailIndexer.indexMailboxes(assertNotNull(this.userFacade.getUser(), "extendMailIndex user"), time)
+	async extendMailIndex() {
+		await this.mailIndexer.extendMailIndex(assertNotNull(this.userFacade.getUser()))
 	}
 
-	async resizeMailIndex(time: number): Promise<void> {
-		await this.mailIndexer.resizeMailIndex(assertNotNull(this.userFacade.getUser(), "resizeMailIndex user"), time)
-	}
-
-	async deleteIndex(userId: string) {
+	async deleteIndex() {
 		/* no-op */
 	}
 
 	cancelMailIndexing() {
-		this.mailIndexer.cancelMailIndexing()
+		throw new ProgrammingError("cancelMailIndexing is not implemented for OfflineStorageIndexer")
 	}
 
 	async rebuildMailIndex() {

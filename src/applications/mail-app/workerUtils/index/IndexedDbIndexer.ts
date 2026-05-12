@@ -1,4 +1,4 @@
-import { CancelledError, daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
+import { CancelledError, daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -8,7 +8,6 @@ import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUt
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
 import type { QueuedBatch } from "../../../../platform-kit/network/EventQueue.js"
@@ -50,6 +49,7 @@ import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipel
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { decryptKey } from "../../../../platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { WebMailIndexer } from "./WebMailIndexer.js"
 
 export type InitParams = {
 	user: User
@@ -129,7 +129,7 @@ export class IndexedDbIndexer implements Indexer {
 		private readonly core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly entity: EntityClient,
-		private readonly mailIndexer: MailIndexer,
+		private readonly mailIndexer: WebMailIndexer,
 		private readonly contactIndexer: ContactIndexer,
 		private readonly typeModelResolver: ClientTypeModelResolver,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -474,7 +474,7 @@ export class IndexedDbIndexer implements Indexer {
 
 			await this._processUserEntityEvents(events)
 			await this.processMailEntityEvents(events)
-			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
+			await this.mailIndexer.processEntityEvents(events)
 			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
 			await this.core.putLastBatchIdForGroup(groupId, batchId)
 		} catch (e) {
@@ -573,10 +573,6 @@ export class IndexedDbIndexer implements Indexer {
 		const now = this.serverDateProvider.now()
 
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, now)
-	}
-
-	async resizeMailIndex(_: number) {
-		throw new ProgrammingError("resizeMailIndex can only be called with offline storage")
 	}
 
 	async rebuildMailIndex() {

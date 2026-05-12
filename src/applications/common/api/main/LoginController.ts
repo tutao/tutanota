@@ -143,21 +143,11 @@ export class LoginController {
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
 	 * @param unencryptedCredentials The stored credentials and optional database key for the offline db
 	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
-	 * @param offlineTimeRangeDate the user configured time range for their offline storage, used to initialize the offline db
 	 */
-	async resumeSession(
-		unencryptedCredentials: UnencryptedCredentials,
-		externalUserKeyDeriver?: ExternalUserKeyDeriver | null,
-		offlineTimeRangeDate?: Date | null,
-	): Promise<ResumeSessionResult> {
+	async resumeSession(unencryptedCredentials: UnencryptedCredentials, externalUserKeyDeriver?: ExternalUserKeyDeriver | null): Promise<ResumeSessionResult> {
 		const { unencryptedToCredentials } = await import("../../misc/credentials/Credentials.js")
 		const credentials = unencryptedToCredentials(unencryptedCredentials)
-		const resumeResult = await this.loginFacade.resumeSession(
-			credentials,
-			externalUserKeyDeriver ?? null,
-			unencryptedCredentials.databaseKey ?? null,
-			offlineTimeRangeDate ?? null,
-		)
+		const resumeResult = await this.loginFacade.resumeSession(credentials, externalUserKeyDeriver ?? null, unencryptedCredentials.databaseKey ?? null)
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {

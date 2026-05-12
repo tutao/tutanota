@@ -5,24 +5,21 @@ import {
 	defer,
 	DeferredObject,
 	findAllAndRemove,
-	first,
 	isEmpty,
 	isNotEmpty,
 	isNotNull,
 	newPromise,
 	promiseMap,
 } from "../../../../platform-kit/utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, OperationType } from "@tutao/meta"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
-import { cryptoUtils } from "../../../../platform-kit/crypto"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
@@ -37,14 +34,13 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetails,
-	MailDetailsBlobTypeRef,
-	MailDetailsDraftTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
 
 assertWorkerOrNode()
 
@@ -58,7 +54,7 @@ const enum MailIndexingAbortReason {
 
 const TAG = "WebMailIndexer"
 
-export class WebMailIndexer {
+export class WebMailIndexer implements MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
 	// There are two scenarios in which new mails are indexed:
 	// a) a new mail (internal/external) is received from our mail server
@@ -97,8 +93,8 @@ export class WebMailIndexer {
 		private readonly bulkLoaderFactory: () => Promise<BulkMailLoader>,
 		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
-		private readonly mailFacade: MailFacade,
 		private readonly backendFactory: (user: Id) => MailIndexerBackend,
+		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 	) {
 		this._currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._mailIndexingEnabled = false
@@ -112,62 +108,6 @@ export class WebMailIndexer {
 		this._mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 		await this.updateCurrentIndexTimestamp(user)
 		this.initialized.resolve()
-	}
-
-	/** @private visibleForTesting */
-	async downloadNewMailData(mailId: IdTuple): Promise<MailWithDetailsAndAttachments | null> {
-		try {
-			const mail = await this.entityClient.load(MailTypeRef, mailId)
-			// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
-			const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
-			let mailDetails: MailDetails
-			if (isDraft(mail)) {
-				const mailDetailsDraftId = assertNotNull(mail.mailDetailsDraft)
-				mailDetails = await this.entityClient
-					.loadMultiple(MailDetailsDraftTypeRef, listIdPart(mailDetailsDraftId), [elementIdPart(mailDetailsDraftId)], async () => ({
-						key: mailOwnerEncSessionKey,
-						encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
-					}))
-					.then((d) => {
-						const draft = first(d)
-						if (draft == null) {
-							throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
-						}
-						return draft.details
-					})
-			} else {
-				const mailDetailsBlobId = assertNotNull(mail.mailDetails)
-				mailDetails = await this.entityClient
-					.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsBlobId), [elementIdPart(mailDetailsBlobId)], async () => ({
-						key: mailOwnerEncSessionKey,
-						encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
-					}))
-					.then((d) => {
-						const blob = first(d)
-						if (blob == null) {
-							throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
-						}
-						return blob.details
-					})
-			}
-			// we do not use BulkMailLoader here because we actually do want to rely on cache
-			const attachments = await this.mailFacade.loadAttachments(mail)
-			return {
-				mail,
-				mailDetails,
-				attachments,
-			}
-		} catch (e) {
-			if (e instanceof NotFoundError) {
-				console.log("tried to index non existing mail", mailId)
-				return null
-			} else if (e instanceof NotAuthorizedError) {
-				console.log("tried to index mail without permission", mailId)
-				return null
-			} else {
-				throw e
-			}
-		}
 	}
 
 	private async getMailboxIndexDatasForGroups(mailGroups: readonly Id[], oldestTimestamp: number): Promise<MboxIndexData[]> {
@@ -638,7 +578,7 @@ export class WebMailIndexer {
 		}
 
 		// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
-		const newMailData = await this.downloadNewMailData(mailId)
+		const newMailData = await this.newMailDownloader(mailId)
 		if (newMailData) {
 			await this.backend.onMailCreated(newMailData)
 		}
@@ -659,7 +599,7 @@ export class WebMailIndexer {
 		}
 
 		if (isDraft(updatedMail)) {
-			const newMailData = await this.downloadNewMailData(mailId)
+			const newMailData = await this.newMailDownloader(mailId)
 			if (newMailData) {
 				await this.backend.onMailUpdated(newMailData)
 			}
@@ -688,6 +628,10 @@ export class WebMailIndexer {
 		await this.backend.resetIndex()
 		await this.updateCurrentIndexTimestamp(user)
 		await this.indexMailboxes(user, currentIndexTimestamp)
+	}
+
+	async extendMailIndex(): Promise<void> {
+		// no-op on web
 	}
 }
 
