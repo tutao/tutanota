@@ -327,8 +327,7 @@ export class LoginViewModel implements ILoginViewModel {
 				credentials = await this.unlockAppAndGetCredentials(this.autoLoginCredentials.userId)
 
 				if (credentials) {
-					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDate(this.autoLoginCredentials.userId)
-					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
+					const result = await this.loginController.resumeSession(credentials, null)
 					if (result.type === "success") {
 						await this.onLogin()
 					} else {
