@@ -4,13 +4,13 @@ import { IndexerCore } from "../../../../src/applications/mail-app/workerUtils/i
 import { EphemeralCacheStorage } from "../../../../src/app-kit/local-store/EphemeralCacheStorage"
 import { IndexedDbLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { IndexingNotSupportedError } from "../../../../src/applications/common/api/common/error/IndexingNotSupportedError"
-import { WebMailIndexer } from "../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer"
+import { MailIndexer } from "../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 
 o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 	o.spec("IndexedDbLastProcessedEventBatchStorageFacade", () => {
 		let coreMock: IndexerCore
 		let ephemeralCacheMock: EphemeralCacheStorage
-		let mailIndexerMock: WebMailIndexer
+		let mailIndexerMock: MailIndexer
 		let indexedDbLastProcessedEventBatchStorageFacade: IndexedDbLastProcessedEventBatchStorageFacade
 		const groupId1 = "groupId1"
 		const lastProcessedEventBatchId1 = "lastProcessedEventBatchId1"
@@ -22,7 +22,7 @@ o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 				get mailIndexingEnabled() {
 					return this._mailIndexingEnabled
 				},
-			} as unknown as WebMailIndexer
+			} as unknown as MailIndexer
 			indexedDbLastProcessedEventBatchStorageFacade = new IndexedDbLastProcessedEventBatchStorageFacade(
 				() => Promise.resolve(coreMock),
 				() => Promise.resolve(ephemeralCacheMock),
@@ -31,12 +31,14 @@ o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 		})
 
 		o.test("getLastEntityEventBatchForGroup doesn't do anything when mail indexing is disabled", async () => {
+			// @ts-ignore
 			mailIndexerMock._mailIndexingEnabled = false
 			o.check(await indexedDbLastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(groupId1)).equals(null)
 			verify(coreMock.getLastProcessedEventBatchIdForGroup(groupId1), { times: 0 })
 			verify(ephemeralCacheMock.getLastBatchIdForGroup(groupId1), { times: 0 })
 		})
 		o.test("putLastEntityEventBatchForGroup doesn't do anything when mail indexing is disabled", async () => {
+			// @ts-ignore
 			mailIndexerMock._mailIndexingEnabled = false
 			await indexedDbLastProcessedEventBatchStorageFacade.putLastEntityEventBatchForGroup(groupId1, lastProcessedEventBatchId1)
 			verify(ephemeralCacheMock.putLastBatchIdForGroup(groupId1, lastProcessedEventBatchId1), { times: 0 })
