@@ -25,7 +25,7 @@ import { LateInitializedCacheStorageImpl } from "../../../../app-kit/local-store
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase.js"
+import { KeyVerificationTableDefinitions, LocalIdentityKeyTrustDatabase } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase.js"
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
@@ -44,7 +44,6 @@ import type { ConfigurationDatabase } from "../../../common/api/worker/facades/l
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "../worker/CalendarWorkerImpl.js"
-import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	NoOpLastProcessedEventBatchStorageFacade,
@@ -60,7 +59,6 @@ import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
-import { random } from "../../../../platform-kit/crypto"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
@@ -148,9 +146,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				dateProvider,
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
-				new CalendarOfflineCleaner(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
 				customCacheHandler,
@@ -422,11 +418,4 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-/*
- * @returns true if webassembly is supported
- */
-export function isWebAssemblySupported() {
-	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }

@@ -89,6 +89,8 @@ import "./api/worker/search/IndexerCoreTest.js"
 import "./api/worker/search/IndexerPromiseUtilsTest.js"
 import "./api/worker/search/IndexedDbIndexerTest.js"
 import "./api/worker/search/WebMailIndexerTest.js"
+import "./api/worker/search/OfflineMailIndexerTest.js"
+import "./api/worker/search/MailIndexerTest.js"
 import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
 import "./api/worker/search/IndexedDbSearchFacadeTest.js"
 import "./api/worker/search/SearchIndexEncodingTest.js"
@@ -326,7 +328,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/sse/SseClientTest.js")
 		await import("./desktop/sse/TutaNotificationHandlerTest.js")
 		await import("./desktop/sse/TutaSseFacadeTest.js")
-		await import("./api/worker/search/OfflineStorageMailIndexerBackendTest.js")
 		await import("./api/worker/search/OfflineStoragePersistenceTest.js")
 		await import("./api/worker/search/OfflineStorageSearchFacadeTest.js")
 		await import("./api/worker/facades/OfflineStorageAutosaveFacadeTest.js")
