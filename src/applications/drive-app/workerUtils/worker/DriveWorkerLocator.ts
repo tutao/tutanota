@@ -41,7 +41,6 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DriveWorkerImpl } from "./DriveWorkerImpl"
-import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
 import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade"
@@ -253,9 +252,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				dateProvider,
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.applicationTypesFacade)),
-				new DriveOfflineCleanerStub(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,

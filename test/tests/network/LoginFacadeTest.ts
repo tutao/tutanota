@@ -128,7 +128,6 @@ o.spec("LoginFacadeTest", function () {
 	let typeModelResolver: TypeModelResolver
 	let rolloutFacade: RolloutFacade
 
-	const timeRangeDate = new Date("2025-03-21T12:33:40.972Z")
 	const login = "born.slippy@tuta.io"
 
 	o.beforeEach(function () {
@@ -152,7 +151,6 @@ o.spec("LoginFacadeTest", function () {
 			cacheStorageInitializerMock.initialize({
 				userId: anything(),
 				databaseKey: anything(),
-				timeRangeDate: anything(),
 				forceNewDatabase: anything(),
 				type: "offline",
 			}),
@@ -228,7 +226,6 @@ o.spec("LoginFacadeTest", function () {
 						type: "offline",
 						databaseKey: dbKey,
 						userId,
-						timeRangeDate: null,
 						forceNewDatabase: false,
 					}),
 				)
@@ -244,7 +241,6 @@ o.spec("LoginFacadeTest", function () {
 						type: "offline",
 						userId,
 						databaseKey,
-						timeRangeDate: null,
 						forceNewDatabase: true,
 					}),
 				)
@@ -344,13 +340,12 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("When resuming a session and there is a database key, it is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
+				await facade.resumeSession(credentials, null, dbKey)
 				verify(
 					cacheStorageInitializerMock.initialize({
 						type: "offline",
 						databaseKey: dbKey,
 						userId,
-						timeRangeDate,
 						forceNewDatabase: false,
 					}),
 				)
@@ -358,7 +353,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("When resuming a session and there is no database key, nothing is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, null, timeRangeDate)
+				await facade.resumeSession(credentials, null, null)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 			})
 
@@ -370,7 +365,6 @@ o.spec("LoginFacadeTest", function () {
 						type: "offline",
 						databaseKey: dbKey,
 						userId,
-						timeRangeDate,
 						forceNewDatabase: false,
 					}),
 				).thenResolve({
@@ -378,7 +372,7 @@ o.spec("LoginFacadeTest", function () {
 					isNewOfflineDb: true,
 				})
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
+				await facade.resumeSession(credentials, null, dbKey)
 
 				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
@@ -393,7 +387,6 @@ o.spec("LoginFacadeTest", function () {
 						type: "offline",
 						databaseKey: dbKey,
 						userId,
-						timeRangeDate,
 						forceNewDatabase: false,
 					}),
 				).thenResolve({
@@ -401,7 +394,7 @@ o.spec("LoginFacadeTest", function () {
 					isNewOfflineDb: false,
 				})
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
+				await facade.resumeSession(credentials, null, dbKey)
 
 				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
 			})
@@ -423,7 +416,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-					timeRangeDate,
 				)
 				await res.asyncResumeCompleted
 				verify(loginListener.onLoginFailure(LoginFailReason.SessionExpired))
@@ -431,7 +423,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("when resuming a session with credentials that don't have encryptedPassphraseKey it is assigned", async () => {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, null, timeRangeDate)
+				await facade.resumeSession(credentials, null, null)
 
 				verify(
 					loginListener.onFullLoginSuccess(
@@ -549,7 +541,6 @@ o.spec("LoginFacadeTest", function () {
 									kdfType: DEFAULT_KDF_TYPE,
 								},
 						dbKey,
-						timeRangeDate,
 					)
 					.finally(() => {
 						calls.push("return")
@@ -571,7 +562,6 @@ o.spec("LoginFacadeTest", function () {
 							kdfType: DEFAULT_KDF_TYPE,
 						},
 						dbKey,
-						timeRangeDate,
 					),
 				).asyncThrows(restError.ConnectionError)
 				o(calls).deepEquals(["sessionService"])
@@ -593,7 +583,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-					timeRangeDate,
 				)
 
 				o(result.type).equals("success")
@@ -623,7 +612,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-					timeRangeDate,
 				)
 
 				// wait for async resume session
@@ -698,7 +686,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-					timeRangeDate,
 				)
 
 				await fullLoginDeferred.promise
@@ -728,7 +715,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-					timeRangeDate,
 				)
 
 				verify(userFacade.setAccessToken("accessToken"))
@@ -806,7 +792,7 @@ o.spec("LoginFacadeTest", function () {
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
+				await facade.resumeSession(credentials, null, dbKey)
 
 				await fullLoginDeferred.promise
 
@@ -860,7 +846,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					null,
-					timeRangeDate,
 				)
 
 				o(result.type).equals("success")
@@ -878,7 +863,6 @@ o.spec("LoginFacadeTest", function () {
 							kdfType: DEFAULT_KDF_TYPE,
 						},
 						null,
-						timeRangeDate,
 					),
 				).asyncThrows(restError.AccessExpiredError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), { times: 0 })
@@ -896,7 +880,6 @@ o.spec("LoginFacadeTest", function () {
 							kdfType: DEFAULT_KDF_TYPE,
 						},
 						null,
-						timeRangeDate,
 					),
 				).asyncThrows(restError.NotAuthenticatedError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
@@ -950,7 +933,6 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: KdfType.Bcrypt,
 					},
 					null,
-					timeRangeDate,
 				)
 
 				o(result.type).equals("success")

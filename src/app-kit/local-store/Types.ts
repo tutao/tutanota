@@ -7,7 +7,6 @@ export interface SessionTypeProvider {
 export interface OfflineStorageInitArgs {
 	userId: Id
 	databaseKey: Uint8Array
-	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 

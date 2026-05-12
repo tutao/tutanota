@@ -23,8 +23,7 @@ import {
 } from "../../../../../src/platform-kit/meta"
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
-import { NoZoneDateProvider } from "../../../../../src/applications/common/api/common/utils/NoZoneDateProvider.js"
+import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
 import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
 import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
@@ -90,14 +89,11 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbRefCounter)
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
 	const typeModelResolver = clientInitializedTypeModelResolver()
 	const offlineStorage = new OfflineStorage(
 		sqlCipherFacade,
 		interWindowEventSender,
-		new NoZoneDateProvider(),
 		migratorMock,
-		offlineStorageCleanerMock,
 		modelMapperFromTypeModelResolver(typeModelResolver),
 		typeModelResolver,
 		handlerMap,
@@ -106,7 +102,6 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	await offlineStorage.init({
 		userId,
 		databaseKey: offlineDatabaseTestKey,
-		timeRangeDate: new Date("2025-03-21T12:33:40.972Z"),
 		forceNewDatabase: false,
 	})
 	return offlineStorage

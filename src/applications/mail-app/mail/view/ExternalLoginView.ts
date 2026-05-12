@@ -95,14 +95,10 @@ export class ExternalLoginViewModel {
 	}
 
 	private async resumeSession(credentials: UnencryptedCredentials): Promise<void> {
-		const result = await locator.logins.resumeSession(
-			credentials,
-			{
-				salt: this.urlData.salt,
-				kdfType: this.urlData.kdfType,
-			},
-			null,
-		)
+		const result = await locator.logins.resumeSession(credentials, {
+			salt: this.urlData.salt,
+			kdfType: this.urlData.kdfType,
+		})
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:

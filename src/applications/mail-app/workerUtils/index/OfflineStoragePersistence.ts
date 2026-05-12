@@ -261,7 +261,7 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async storeEncryptedBlobs(serverTypeModel: ServerTypeModel, blobs: readonly ServerModelEncryptedParsedInstance[]): Promise<void> {
+	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly ServerModelEncryptedParsedInstance[]): Promise<void> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
@@ -284,7 +284,7 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async retrieveEncryptedBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<ServerModelEncryptedParsedInstance | null> {
+	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<ServerModelEncryptedParsedInstance | null> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
@@ -309,7 +309,7 @@ export class OfflineStoragePersistence {
 		return decode(data, { tags: customTypeDecoders })
 	}
 
-	async deleteEncryptedBlob(blobId: Id): Promise<void> {
+	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
 		{
 			const { query, params } = sql`DELETE
 										  FROM encrypted_mail_details_blobs WHERE blobId = ${blobId}`
@@ -317,7 +317,7 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async clearEncryptedBlobs(): Promise<void> {
+	async clearEncryptedMailDetailsBlobs(): Promise<void> {
 		{
 			const { query, params } = sql`DELETE
 										  FROM encrypted_mail_details_blobs`

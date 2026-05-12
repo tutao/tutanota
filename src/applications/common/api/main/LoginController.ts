@@ -3,7 +3,7 @@ import { assertNotNull, defer } from "@tutao/utils"
 import { assertMainOrNodeBoot, FeatureType, InvalidModelError, isAdminClient, SessionType } from "@tutao/app-env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import type { LoginFacade, NewSessionData } from "../../../../platform-kit/base/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../../../../platform-kit/base/facades/LoginFacade"
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
@@ -14,7 +14,6 @@ import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { NotFoundError } from "@tutao/rest-client/error"
 
 assertMainOrNodeBoot()
 
@@ -144,21 +143,11 @@ export class LoginController {
 	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
 	 * @param unencryptedCredentials The stored credentials and optional database key for the offline db
 	 * @param externalUserKeyDeriver The KDF type and salt to resume a session
-	 * @param offlineTimeRangeDate the user configured time range for their offline storage, used to initialize the offline db
 	 */
-	async resumeSession(
-		unencryptedCredentials: UnencryptedCredentials,
-		externalUserKeyDeriver?: ExternalUserKeyDeriver | null,
-		offlineTimeRangeDate?: Date | null,
-	): Promise<ResumeSessionResult> {
+	async resumeSession(unencryptedCredentials: UnencryptedCredentials, externalUserKeyDeriver?: ExternalUserKeyDeriver | null): Promise<ResumeSessionResult> {
 		const { unencryptedToCredentials } = await import("../../misc/credentials/Credentials.js")
 		const credentials = unencryptedToCredentials(unencryptedCredentials)
-		const resumeResult = await this.loginFacade.resumeSession(
-			credentials,
-			externalUserKeyDeriver ?? null,
-			unencryptedCredentials.databaseKey ?? null,
-			offlineTimeRangeDate ?? null,
-		)
+		const resumeResult = await this.loginFacade.resumeSession(credentials, externalUserKeyDeriver ?? null, unencryptedCredentials.databaseKey ?? null)
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {
