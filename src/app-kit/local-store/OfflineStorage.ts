@@ -31,7 +31,6 @@ import {
 	assert,
 	assertNotNull,
 	Category,
-	DateProvider,
 	getFirstOrThrow,
 	groupBy,
 	groupByAndMap,
@@ -194,15 +193,12 @@ export interface OfflineStorageTable {
 export class OfflineStorage implements CacheStorage {
 	private userId: Id | null = null
 	private databaseKey: Uint8Array | null = null
-	private timeRangeDate: Date | null = null
 	private readonly allTables: Record<string, OfflineStorageTable>
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly interWindowEventSender: LocalUserDataInvalidator,
-		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
-		private readonly cleaner: OfflineStorageCleaner,
 		private readonly modelMapper: ModelMapper,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly customCacheHandler: CustomCacheHandlerMap,
@@ -243,10 +239,9 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * @return {boolean} whether the database was newly created or not
 	 */
-	async init({ userId, databaseKey, timeRangeDate, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
+	async init({ userId, databaseKey, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
 		this.userId = userId
 		this.databaseKey = databaseKey
-		this.timeRangeDate = timeRangeDate
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
@@ -289,7 +284,6 @@ export class OfflineStorage implements CacheStorage {
 	async deinit() {
 		this.userId = null
 		this.databaseKey = null
-		this.timeRangeDate = null
 		await this.sqlCipherFacade.closeDb()
 	}
 
@@ -872,11 +866,9 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Clear out unneeded data from the offline database (i.e. old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
-	 * @param userId id of the current user. default, last stored userId
 	 */
-	async clearExcludedData(timeRangeDate: Date | null = this.timeRangeDate, userId: Id = this.getUserId()): Promise<void> {
-		await this.cleaner.cleanOfflineDb(this, timeRangeDate, userId, this.dateProvider.now())
+	async clearExcludedData(): Promise<void> {
+		// no-op for now
 	}
 
 	private async createTables() {
@@ -1105,13 +1097,6 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 		l = "?"
 	}
 	return new SqlFragment(`(CASE WHEN length(${l}) > length(${r}) THEN 1 WHEN length(${l}) < length(${r}) THEN 0 ELSE ${l} > ${r} END)`, [v, v, v])
-}
-
-export interface OfflineStorageCleaner {
-	/**
-	 * Delete instances from db that are older than timeRangeDays.
-	 */
-	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void>
 }
 
 export async function tableExists(sqlCipherFacade: SqlCipherFacade, table: string): Promise<boolean> {

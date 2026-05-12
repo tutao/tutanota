@@ -140,7 +140,6 @@ export const enum ResumeSessionErrorReason {
 export type InitCacheOptions = {
 	userId: Id
 	databaseKey: Uint8Array | null
-	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 
@@ -304,7 +303,6 @@ export class LoginFacade implements SessionTypeProvider {
 			userId: sessionData.userId,
 			// don't create a persistent storage just yet if we're just storing credentials after signup
 			databaseKey: createSessionOnly ? null : databaseKey,
-			timeRangeDate: null,
 			forceNewDatabase,
 		})
 		const { user, userGroupInfo, accessToken } = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey)
@@ -431,7 +429,6 @@ export class LoginFacade implements SessionTypeProvider {
 		const cacheInfo = await this.initCache({
 			userId,
 			databaseKey: null,
-			timeRangeDate: null,
 			forceNewDatabase: true,
 		})
 		const { user, userGroupInfo, accessToken } = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey)
@@ -508,13 +505,11 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @param credentials the saved credentials to use
 	 * @param externalUserKeyDeriver information for deriving a key (if external user)
 	 * @param databaseKey key to unlock the local database (if enabled)
-	 * @param timeRangeDate the user configured time range for the offline database
 	 */
 	async resumeSession(
 		credentials: Credentials,
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
 		databaseKey: Uint8Array | null,
-		timeRangeDate: Date | null,
 	): Promise<ResumeSessionResult> {
 		if (this.userFacade.getUser() != null) {
 			throw new ProgrammingError(
@@ -529,7 +524,6 @@ export class LoginFacade implements SessionTypeProvider {
 		const cacheInfo = await this.initCache({
 			userId: credentials.userId,
 			databaseKey,
-			timeRangeDate,
 			forceNewDatabase: false,
 		})
 		const sessionId = this.getSessionId(credentials)
@@ -1104,13 +1098,12 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @param forceNewDatabase true if the old database should be deleted if there is one
 	 * @private
 	 */
-	private async initCache({ userId, databaseKey, timeRangeDate, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
+	private async initCache({ userId, databaseKey, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
 			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize({
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate,
 				forceNewDatabase,
 			})
 			return {

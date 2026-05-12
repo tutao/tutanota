@@ -41,7 +41,6 @@ o.spec("CacheStorageProxy", function () {
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate: null,
 				forceNewDatabase: false,
 			})
 
@@ -63,7 +62,6 @@ o.spec("CacheStorageProxy", function () {
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate: null,
 				forceNewDatabase: false,
 			})
 
@@ -84,7 +82,6 @@ o.spec("CacheStorageProxy", function () {
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate: null,
 				forceNewDatabase: false,
 			}
 			when(offlineStorageMock.init(args)).thenResolve(true)
@@ -100,7 +97,6 @@ o.spec("CacheStorageProxy", function () {
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate: null,
 				forceNewDatabase: false,
 			}
 			when(offlineStorageMock.init(args)).thenResolve(false)
@@ -119,7 +115,6 @@ o.spec("CacheStorageProxy", function () {
 				type: "offline",
 				userId,
 				databaseKey,
-				timeRangeDate: null,
 				forceNewDatabase: false,
 			})
 
