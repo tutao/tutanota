@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { OfflineStorageIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageIndexer"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer"
+import { MailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
 import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
@@ -14,7 +14,7 @@ import { GroupType } from "../../../../../src/entities/sys/Utils"
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade
 	let persistence: OfflineStoragePersistence
-	let mailIndexer: WebMailIndexer
+	let mailIndexer: MailIndexer
 	let infoMessageHandler: InfoMessageHandler
 	let contactIndexer: ContactIndexer
 

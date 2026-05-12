@@ -54,7 +54,7 @@ import {
 	TypeInfo,
 	typeRefToTypeInfo,
 } from "../../../common/api/common/utils/IndexUtils.js"
-import { WebMailIndexer } from "./WebMailIndexer.js"
+import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
 import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
@@ -81,7 +81,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly db: EncryptedDbWrapper,
-		private readonly mailIndexer: WebMailIndexer,
+		private readonly mailIndexer: MailIndexer,
 		private readonly contactSuggestionFacade: SuggestionFacade<Contact>,
 		browserData: BrowserData,
 		private readonly entityClient: EntityClient,
