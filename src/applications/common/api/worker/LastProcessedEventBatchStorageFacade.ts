@@ -5,7 +5,7 @@ import { lazyAsync, noOp } from "@tutao/utils"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
 import { IndexingNotSupportedError } from "../common/error/IndexingNotSupportedError"
 import { InvalidDatabaseStateError } from "../common/error/InvalidDatabaseStateError"
-import { WebMailIndexer } from "../../../mail-app/workerUtils/index/WebMailIndexer"
+import { MailIndexer } from "../../../mail-app/workerUtils/index/MailIndexer"
 import { OfflineDbClosedError } from "../common/error/OfflineDbClosedError"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { TaggedSqlValue } from "../../../../app-kit/local-store/Types"
@@ -14,7 +14,7 @@ export class IndexedDbLastProcessedEventBatchStorageFacade implements LastProces
 	constructor(
 		private readonly core: lazyAsync<IndexerCore>,
 		private readonly ephemeralCacheStorage: lazyAsync<EphemeralCacheStorage>,
-		private readonly mailIndexer: lazyAsync<WebMailIndexer>,
+		private readonly mailIndexer: lazyAsync<MailIndexer>,
 	) {}
 
 	async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
