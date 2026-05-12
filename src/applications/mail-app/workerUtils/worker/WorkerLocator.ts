@@ -69,6 +69,7 @@ import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLo
 import { KeyRotationFacade } from "../../../../platform-kit/base/base-crypto/KeyRotationFacade.js"
 import {
 	ApplicationTypesFacade,
+	EntityAdapter,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
@@ -78,7 +79,6 @@ import {
 } from "../../../../platform-kit/instance-pipeline"
 import { RecoverCodeFacade } from "../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import PublicEncryptionKeyProvider from "../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
@@ -306,31 +306,40 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	})
 
 	const mailIndexer = lazyMemoized(async () => {
-		const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
-		const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend")
-		const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
-		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-		const dateProvider = new LocalTimeDateProvider()
+		const { defaultMailIndexerNewMailDownloader } = await import("../index/MailIndexer.js")
 		const mailFacade = await locator.mail()
+		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.cachingEntityClient, mailFacade)
+
 		if (isOfflineStorageAvailable()) {
+			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
-			return new WebMailIndexer(
-				mainInterface.infoMessageHandler,
-				bulkLoaderFactory,
+			const blob = await locator.blob()
+			const modelMapper = locator.instancePipeline.modelMapper
+			return new OfflineMailIndexer(
+				persistence,
+				blob,
 				locator.cachingEntityClient,
-				dateProvider,
 				mailFacade,
-				() => new OfflineStorageMailIndexerBackend(persistence),
+				locator.crypto,
+				typeModelResolver,
+				modelMapper,
+				mainInterface.infoMessageHandler,
+				newMailDownloader,
+				locator.instancePipeline.cryptoMapper,
+				(model, blob) => EntityAdapter.from(model, blob, modelMapper),
 			)
 		} else {
+			const dateProvider = new LocalTimeDateProvider()
+			const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
+			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
 			const core = await indexerCore()
 			return new WebMailIndexer(
 				mainInterface.infoMessageHandler,
 				locator.bulkMailLoader,
 				locator.cachingEntityClient,
 				dateProvider,
-				mailFacade,
 				(userId) => new IndexedDbMailIndexerBackend(core, userId, typeModelResolver),
+				newMailDownloader,
 			)
 		}
 	})
@@ -387,9 +396,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				dateProvider,
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.applicationTypesFacade)),
-				new MailOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
@@ -503,13 +510,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
 			const core = await indexerCore()
+			const indexer = await mailIndexer()
+
+			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
+			if (!(indexer instanceof WebMailIndexer)) {
+				throw new ProgrammingError("indexeddbindexer must use web mail indexer")
+			}
+
 			return new IndexedDbIndexer(
 				serverDateProvider,
 				await db(),
 				core,
 				mainInterface.infoMessageHandler,
 				locator.cachingEntityClient,
-				await mailIndexer(),
+				indexer,
 				contact,
 				typeModelResolver,
 				locator.keyLoader,
@@ -992,11 +1006,4 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-/*
- * @returns true if webassembly is supported
- */
-export function isWebAssemblySupported() {
-	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }
