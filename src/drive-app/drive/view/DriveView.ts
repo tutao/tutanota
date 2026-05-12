@@ -12,7 +12,7 @@ import { layout_size } from "../../../common/gui/size"
 import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
-import { createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
+import { attachDropdown, createDropdown, Dropdown } from "../../../common/gui/base/Dropdown"
 import { DriveTransferStack } from "./DriveTransferStack"
 import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
@@ -49,6 +49,7 @@ import { FabMenu, FabMenuAttrs } from "../../../common/gui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
+import { AppType } from "../../../common/misc/ClientConstants"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -449,7 +450,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private renderFab(): Children {
-		if (!isMobileDriveLayout()) {
+		if (!isMobileDriveLayout() || APP_TYPE !== AppType.Drive) {
 			return null
 		}
 		return m(FabMenu, {
@@ -494,6 +495,19 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					m(EnterMultiselectIconButton, {
 						clickAction: () => this.driveViewModel.enterMultiselect(),
 					}),
+					APP_TYPE === AppType.Drive
+						? null
+						: m(
+								IconButton,
+								attachDropdown({
+									mainButtonAttrs: { icon: Icons.Plus, title: "newDriveItem_action" },
+									childAttrs: () =>
+										newItemActions({
+											onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
+											onNewFolder: () => this.onNewFolder(),
+										}),
+								}),
+							),
 				],
 				primaryAction: () => null,
 				backAction: () => (useBackButton ? this.driveViewModel.goToParentFolder() : this.viewSlider.focusPreviousColumn()),
