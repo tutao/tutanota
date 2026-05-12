@@ -279,7 +279,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should succeed with valid stored credentials", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
-			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null, offlineTimeRangeDate)).thenResolve({
+			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
 				type: "success",
 			})
 			const viewModel = await getViewModel()
@@ -291,7 +291,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
-			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null, offlineTimeRangeDate)).thenResolve({
+			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
 				type: "success",
 			})
 			const viewModel = await getViewModel()
@@ -304,7 +304,7 @@ o.spec("LoginViewModelTest", () => {
 		o("login should fail with invalid stored credentials", async function () {
 			const credentialsAndKey = credentialsToUnencrypted(testCredentials, null)
 			await credentialsProviderMock.store(credentialsAndKey)
-			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new restError.NotAuthenticatedError("test"))
+			when(loginControllerMock.resumeSession(anything(), null)).thenReject(new restError.NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -319,7 +319,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should fail for expired stored credentials", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
-			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDate)).thenReject(new restError.AccessExpiredError("test"))
+			when(loginControllerMock.resumeSession(anything(), null)).thenReject(new restError.AccessExpiredError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -341,7 +341,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("should handle error result", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
-			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null, offlineTimeRangeDate)).thenResolve({
+			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
 				type: "error",
 				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
 			})

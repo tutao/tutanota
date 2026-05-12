@@ -12,7 +12,6 @@ export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 export interface OfflineStorageInitArgs {
 	userId: Id
 	databaseKey: Uint8Array
-	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 
