@@ -28,16 +28,6 @@ export interface Indexer {
 	 */
 	extendMailIndex(time: number): Promise<void>
 
-	/**
-	 * Sets the mail index to the given timestamp.
-	 *
-	 * If the mail index would extend, then this will have the same effect as calling extendMailIndex.
-	 *
-	 * Otherwise, it sets the current timestamp to the new one.
-	 * @param time timestamp
-	 */
-	resizeMailIndex(time: number): Promise<void>
-
 	deleteIndex(userId: string): Promise<void>
 
 	rebuildMailIndex(): Promise<void>

@@ -19,7 +19,6 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DriveWorkerImpl } from "./DriveWorkerImpl"
-import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
 import { KeyVerificationTableDefinitions, LocalIdentityKeyTrustDatabase } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -129,9 +128,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				dateProvider,
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
-				new DriveOfflineCleanerStub(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
 				customCacheHandler,

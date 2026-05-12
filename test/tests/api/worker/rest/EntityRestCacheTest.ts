@@ -21,19 +21,42 @@ import {
 	SomeEntity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
-import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
-import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
-import { NoZoneDateProvider } from "../../../../../src/platform-kit/utils/NoZoneDateProvider.js"
+import {
+	arrayOf,
+	assertNotNull,
+	deepEqual,
+	downcast,
+	last,
+	Nullable,
+	promiseMap,
+	stringToBase64UrlCustomId
+} from "../../../../../src/platform-kit/utils"
+import {
+	DefaultEntityRestCache,
+	EXTEND_RANGE_MIN_CHUNK_SIZE
+} from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
 import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
 import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import {
+	InterWindowEventFacadeSendDispatcher
+} from "../../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	modelMapperFromTypeModelResolver,
+	removeOriginals
+} from "../../../TestUtils.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kit/local-store/CustomCacheHandler"
-import { ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import {
+	ModelMapper,
+	PatchMerger,
+	PatchOperationType,
+	TypeModelResolver
+} from "../../../../../src/platform-kit/instance-pipeline"
 
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
@@ -62,10 +85,18 @@ import {
 	PermissionTypeRef,
 	RootInstanceTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	EntityUpdateData,
+	entityUpdateToUpdateData
+} from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
-import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import {
+	LastProcessedEventBatchProvider
+} from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
+import {
+	CacheMode,
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS
+} from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 
@@ -91,14 +122,11 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbRefCounter)
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
 	const typeModelResolver = clientInitializedTypeModelResolver()
 	const offlineStorage = new OfflineStorage(
 		sqlCipherFacade,
 		interWindowEventSender,
-		new NoZoneDateProvider(),
 		migratorMock,
-		offlineStorageCleanerMock,
 		modelMapperFromTypeModelResolver(typeModelResolver),
 		typeModelResolver,
 		handlerMap,
@@ -107,7 +135,6 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	await offlineStorage.init({
 		userId,
 		databaseKey: offlineDatabaseTestKey,
-		timeRangeDate: new Date("2025-03-21T12:33:40.972Z"),
 		forceNewDatabase: false,
 	})
 	return offlineStorage
