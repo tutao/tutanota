@@ -1,64 +1,62 @@
 import XRechnungUBLTemplate from "./XRechnungUBLTemplate.js"
 import InvoiceTexts from "./InvoiceTexts.js"
-import { countryUsesGerman, getInvoiceItemTypeName, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
 import { InvoiceDataGetOut, InvoiceDataItem } from "@tutao/entities/sys"
+import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils"
 
 const DE_POSTAL_CODE_REGEX = new RegExp(/\d{5}/)
 const CITY_NAME_REGEX = new RegExp(/\d{5}/)
 
+// https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL4461/
 const PaymentMethodTypeCodes: Record<PaymentMethod, NumberString> = Object.freeze({
-	[PaymentMethod.INVOICE]: "31",
-	[PaymentMethod.CREDIT_CARD]: "97",
+	[PaymentMethod.INVOICE]: "58",
+	[PaymentMethod.CREDIT_CARD]: "54",
 	[PaymentMethod.SEPA_UNUSED]: "59",
-	[PaymentMethod.PAYPAL]: "68",
+	[PaymentMethod.PAYPAL]: "48", // no actual code for Paypal, no common recommendation for a good code
 	[PaymentMethod.ACCOUNT_BALANCE]: "97",
 })
 
-const VatTypeCategoryCodes: Record<VatType, string> = Object.freeze({
-	[VatType.NO_VAT]: "E",
-	[VatType.ADD_VAT]: "S",
-	[VatType.VAT_INCLUDED_SHOWN]: "S",
-	[VatType.VAT_INCLUDED_HIDDEN]: "S",
-	[VatType.NO_VAT_CHARGE_TUTAO]: "AE",
-})
+// https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305
+const enum TaxCategory {
+	STANDARD_RATE = "S",
+	OUTSIDE_SCOPE_OF_TAX = "O",
+	VAT_REVERSE_CHARGE = "AE",
+}
 
 /**
- * Object for generating XRechnung invoices.
+ * Class for generating XRechnung invoices.
  * These are electronic invoices conforming to the European standard EN16931 and the German CIUS+Extension XRechnung standard.
  * They are a legal requirement and also improve the billing process for business users.
  * The resulting invoice is an XML file in UBL syntax.
  *
  * This generator is ONLY responsible for processing the data it gets and formatting it in a way that does not change anything about it.
  * If adjustments to the data must be made prior to generation, then these should take place within the RenderInvoice service.
+ * XRechnung invoice are only supported for business customers and accepted rather only inside the EU.
  */
 export class XRechnungInvoiceGenerator {
 	private readonly languageCode: "de" | "en" = "en"
-	private readonly invoiceNumber: string
-	private readonly customerId: string
-	private readonly buyerMailAddress: string
-	private invoice: InvoiceDataGetOut
-	private itemIndex: number = 0
-	private discountItems: InvoiceDataItem[] = []
-	private totalDiscountSum: number = -1
 
-	constructor(invoice: InvoiceDataGetOut, invoiceNumber: string, customerId: string, buyerMailAddress: string) {
-		this.invoice = invoice
-		this.invoiceNumber = invoiceNumber
-		this.customerId = customerId
+	constructor(
+		private readonly invoice: InvoiceDataGetOut,
+		private readonly invoiceNumber: string,
+		private readonly customerId: string,
+		private readonly buyerMailAddress: string,
+		private readonly isInEuCountry: boolean,
+		private readonly urlEncoder: (html: string) => string,
+	) {
 		this.languageCode = countryUsesGerman(this.invoice.country)
-		this.buyerMailAddress = buyerMailAddress
 	}
 
 	/**
 	 * Generate the XRechnung xml file
 	 */
 	generate(): Uint8Array {
+		let taxCategory = this.getTaxCategory(this.invoice.vatType as VatType, this.isInEuCountry)
 		let stringTemplate =
 			`<?xml version="1.0" encoding="UTF-8"?>\n` +
 			(this.invoice.invoiceType === InvoiceType.INVOICE ? XRechnungUBLTemplate.RootInvoice : XRechnungUBLTemplate.RootCreditNote)
 		stringTemplate = stringTemplate
 			.replace("{slotMain}", XRechnungUBLTemplate.Main)
-			.replace("{slotInvoiceLines}", this.resolveInvoiceLines()) // Must run first to calculate potential discounts
+			.replace("{slotInvoiceLines}", this.resolveInvoiceLines(taxCategory))
 			.replace("{invoiceNumber}", this.invoiceNumber)
 			.replace("{issueDate}", formatDate(this.invoice.date))
 			.replace("{slotInvoiceType}", this.resolveInvoiceType())
@@ -67,11 +65,25 @@ export class XRechnungInvoiceGenerator {
 			.replace("{slotBuyer}", this.resolveBuyer())
 			.replace("{paymentMeansCode}", PaymentMethodTypeCodes[this.invoice.paymentMethod as PaymentMethod])
 			.replace("{slotPaymentTerms}", this.resolvePaymentTerms())
-			.replace("{slotAllowanceCharge}", this.resolveAllowanceCharge())
-			.replace("{slotTotalTax}", this.resolveTotalTax())
+			.replace("{slotAllowanceCharge}", this.resolveAllowanceCharge(taxCategory))
+			.replace("{slotTotalTax}", this.resolveTotalTax(taxCategory))
 			.replace("{slotDocumentTotals}", this.resolveDocumentsTotal())
 			.replaceAll(/^\t\t/gm, "")
 		return new TextEncoder().encode(stringTemplate)
+	}
+
+	private getTaxCategory(vatType: VatType, isEuCountry: boolean): TaxCategory {
+		switch (vatType) {
+			case VatType.NO_VAT: {
+				return isEuCountry ? TaxCategory.VAT_REVERSE_CHARGE : TaxCategory.OUTSIDE_SCOPE_OF_TAX
+			}
+			case VatType.ADD_VAT:
+				return TaxCategory.STANDARD_RATE
+			case VatType.NO_VAT_CHARGE_TUTAO:
+				return TaxCategory.VAT_REVERSE_CHARGE
+			default:
+				throw Error("vat type not supported")
+		}
 	}
 
 	/**
@@ -98,13 +110,13 @@ export class XRechnungInvoiceGenerator {
 	private resolveBuyer(): string {
 		const addressParts = this.invoice.address.split("\n")
 		return XRechnungUBLTemplate.Buyer.replace("{buyerMail}", this.buyerMailAddress)
-			.replace("{buyerStreetName}", addressParts[1] ?? "STREET NAME UNKNOWN")
-			.replace("{buyerCityName}", extractCityName(addressParts[2] ?? ""))
-			.replace("{buyerPostalZone}", extractPostalCode(addressParts[2] ?? ""))
-			.replace("{buyerCountryCode}", this.invoice.country)
-			.replace("{buyerAddressLine}", this.invoice.address.replaceAll("\n", " "))
+			.replace("{buyerStreetName}", this.urlEncoder(addressParts[1] ?? "STREET NAME UNKNOWN"))
+			.replace("{buyerCityName}", this.urlEncoder(extractCityName(addressParts[2] ?? "")))
+			.replace("{buyerPostalZone}", this.urlEncoder(extractPostalCode(addressParts[2] ?? "")))
+			.replace("{buyerCountryCode}", this.urlEncoder(this.invoice.country))
+			.replace("{buyerAddressLine}", this.urlEncoder(this.invoice.address.replaceAll("\n", " ")))
 			.replace("{slotBuyerVatInfo}", this.resolveBuyerVatInfo())
-			.replace("{buyerName}", addressParts[0] ?? "BUYER NAME UNKNOWN")
+			.replace("{buyerName}", this.urlEncoder(addressParts[0] ?? "BUYER NAME UNKNOWN"))
 	}
 
 	/**
@@ -158,12 +170,7 @@ export class XRechnungInvoiceGenerator {
 	 */
 	private resolvePaymentTerms(): string {
 		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
-			// language=HTML
-			return `
-				<cac:PaymentTerms>
-					<cbc:Note>${this.resolvePaymentNote()}</cbc:Note>
-				</cac:PaymentTerms>
-			`
+			return "<cac:PaymentTerms><cbc:Note>" + this.resolvePaymentNote() + "</cbc:Note></cac:PaymentTerms>"
 		}
 		return ""
 	}
@@ -177,13 +184,15 @@ export class XRechnungInvoiceGenerator {
 	 * vatAmount - The amount of the tax. This is equal to "taxableAmount * vatPercent"
 	 * @private
 	 */
-	private resolveAllowanceCharge(): string {
-		return XRechnungUBLTemplate.AllowanceCharge.replace("{totalDiscount}", this.calculateTotalDiscount().toFixed(2))
-			.replace("{vatType}", VatTypeCategoryCodes[this.invoice.vatType as VatType])
-			.replace("{vatPercent}", this.invoice.vatRate)
-			.replace("{slotTaxExemptionReason}", this.resolveTaxExemptionReason())
-			.replace("{taxableAmount}", this.getVatExcludedPrice(this.invoice.subTotal))
-			.replaceAll("{vatAmount}", this.invoice.vat)
+	private resolveAllowanceCharge(taxCategory: TaxCategory): string {
+		if (this.calculateTotalDiscount() !== 0) {
+			return XRechnungUBLTemplate.AllowanceCharge.replace("{totalDiscount}", this.calculateTotalDiscount().toFixed(2))
+				.replace("{vatType}", taxCategory)
+				.replace("{vatPercent}", this.invoice.vatRate)
+				.replace("{slotTaxExemptionReason}", this.resolveTaxExemptionReason(taxCategory))
+		} else {
+			return ""
+		}
 	}
 
 	/**
@@ -194,11 +203,11 @@ export class XRechnungInvoiceGenerator {
 	 * vatAmount - The amount of the tax. This is equal to "taxableAmount * vatPercent"
 	 * @private
 	 */
-	private resolveTotalTax(): string {
-		return XRechnungUBLTemplate.TaxTotal.replace("{vatType}", VatTypeCategoryCodes[this.invoice.vatType as VatType])
+	private resolveTotalTax(taxCategory: TaxCategory): string {
+		return XRechnungUBLTemplate.TaxTotal.replace("{vatType}", taxCategory)
 			.replace("{vatPercent}", this.invoice.vatRate)
-			.replace("{slotTaxExemptionReason}", this.resolveTaxExemptionReason())
-			.replace("{taxableAmount}", this.getVatExcludedPrice(this.invoice.subTotal))
+			.replace("{slotTaxExemptionReason}", this.resolveTaxExemptionReason(taxCategory))
+			.replace("{taxableAmount}", this.invoice.subTotal)
 			.replaceAll("{vatAmount}", this.invoice.vat)
 	}
 
@@ -206,17 +215,17 @@ export class XRechnungInvoiceGenerator {
 	 * Resolves the textual reason why taxes are exempt. Only resolved if the vat type is reverse-charge
 	 * @private
 	 */
-	private resolveTaxExemptionReason(): string {
-		// Needs fix @arm, @jug, @jop
-		if (this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO) {
-			return `<cbc:TaxExemptionReason>Umkehrung der Steuerschuldnerschaft</cbc:TaxExemptionReason>`
+	private resolveTaxExemptionReason(taxCategory: TaxCategory): string {
+		if (taxCategory === TaxCategory.VAT_REVERSE_CHARGE) {
+			return `<cbc:TaxExemptionReasonCode>VATEX-EU-AE</cbc:TaxExemptionReasonCode>
+<cbc:TaxExemptionReason>Steuerschuld des Leistungsempfängers (reverse charge)</cbc:TaxExemptionReason>`
 		}
 		return ""
 	}
 
 	/**
 	 * Resolves the document total slot: summarized information of the pricing
-	 * sumOfInvoiceLines - The total amount of all invoice items summed up alongside their quantity (amount): subTotal
+	 * sumOfInvoiceLines - The total amount of all invoice items summed up without discounts and without vat (all business prices are net already)
 	 * invoiceExclusiveVat - The total amount of the entire invoice without vat: subTotal
 	 * invoiceInclusiveVat - The total amount of the entire invoice with vat: grandTotal
 	 * amountDueForPayment - The final amount the buyer is billed with: grandTotal
@@ -225,9 +234,9 @@ export class XRechnungInvoiceGenerator {
 	private resolveDocumentsTotal(): string {
 		return XRechnungUBLTemplate.DocumentTotals.replace(
 			"{sumOfInvoiceLines}",
-			this.getVatExcludedPrice((parseFloat(this.invoice.subTotal) + this.calculateTotalDiscount()).toFixed(2)),
+			(parseFloat(this.invoice.subTotal) + this.calculateTotalDiscount()).toFixed(2),
 		)
-			.replace("{invoiceExclusiveVat}", this.getVatExcludedPrice(this.invoice.subTotal))
+			.replace("{invoiceExclusiveVat}", this.invoice.subTotal)
 			.replace("{invoiceInclusiveVat}", this.invoice.grandTotal)
 			.replace("{amountDueForPayment}", this.invoice.grandTotal)
 			.replace("{totalDiscount}", this.calculateTotalDiscount().toFixed(2))
@@ -237,15 +246,16 @@ export class XRechnungInvoiceGenerator {
 	 * Resolves all invoice items (invoiceLines) by iterating over every invoice item and resolving a list for it
 	 * @private
 	 */
-	private resolveInvoiceLines(): string {
+	private resolveInvoiceLines(taxCategory: TaxCategory): string {
 		let invoiceLines = ""
+		let itemIndex = 1
 		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			for (const invoiceItem of this.invoice.items) {
-				invoiceLines += this.resolveInvoiceLine(invoiceItem)
+				invoiceLines += this.resolveInvoiceLine(invoiceItem, taxCategory, itemIndex++)
 			}
 		} else {
 			for (const invoiceItem of this.invoice.items) {
-				invoiceLines += this.resolveCreditNoteLine(invoiceItem)
+				invoiceLines += this.resolveCreditNoteLine(invoiceItem, taxCategory, itemIndex++)
 			}
 		}
 		return invoiceLines
@@ -264,23 +274,21 @@ export class XRechnungInvoiceGenerator {
 	 * @param invoiceItem
 	 * @private
 	 */
-	private resolveInvoiceLine(invoiceItem: InvoiceDataItem): string {
-		this.itemIndex++
+	private resolveInvoiceLine(invoiceItem: InvoiceDataItem, taxCategory: TaxCategory, itemIndex: number): string {
 		// If the invoice has a negative price it is some form of credit or discount.
-		// This is not the definition of an "invoice item" in the traditional sense, and therefore we treat it as a discount later applied to the whole invoice.
-		if (parseFloat(invoiceItem.totalPrice) < 0) {
-			this.discountItems.push(invoiceItem)
+		if (parseFloat(invoiceItem.totalPrice) > 0) {
+			return XRechnungUBLTemplate.InvoiceLine.replace("{invoiceLineId}", itemIndex.toString())
+				.replace("{invoiceLineQuantity}", invoiceItem.amount)
+				.replace("{invoiceLineTotal}", invoiceItem.totalPrice)
+				.replace("{invoiceLineStartDate}", formatDate(invoiceItem.startDate))
+				.replace("{invoiceLineEndDate}", formatDate(invoiceItem.endDate))
+				.replace("{invoiceLineItemName}", getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode))
+				.replace("{invoiceLineItemVatType}", taxCategory)
+				.replace("{invoiceLineItemVatPercent}", this.invoice.vatRate)
+				.replace("{invoiceLineItemPrice}", getInvoiceItemPrice(invoiceItem))
+		} else {
 			return ""
 		}
-		return XRechnungUBLTemplate.InvoiceLine.replace("{invoiceLineId}", this.itemIndex.toString())
-			.replace("{invoiceLineQuantity}", invoiceItem.amount)
-			.replace("{invoiceLineTotal}", this.getVatExcludedPrice(invoiceItem.totalPrice))
-			.replace("{invoiceLineStartDate}", formatDate(invoiceItem.startDate))
-			.replace("{invoiceLineEndDate}", formatDate(invoiceItem.endDate))
-			.replace("{invoiceLineItemName}", getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode))
-			.replace("{invoiceLineItemVatType}", VatTypeCategoryCodes[this.invoice.vatType as VatType])
-			.replace("{invoiceLineItemVatPercent}", this.invoice.vatRate)
-			.replace("{invoiceLineItemPrice}", this.getVatExcludedPrice(getInvoiceItemPrice(invoiceItem)))
 	}
 
 	/**
@@ -288,17 +296,14 @@ export class XRechnungInvoiceGenerator {
 	 * @param invoiceItem
 	 * @private
 	 */
-	private resolveCreditNoteLine(invoiceItem: InvoiceDataItem): string {
-		this.itemIndex++
-		return XRechnungUBLTemplate.CreditNoteLine.replace("{invoiceLineId}", this.itemIndex.toString())
+	private resolveCreditNoteLine(invoiceItem: InvoiceDataItem, taxCategory: TaxCategory, itemIndex: number): string {
+		return XRechnungUBLTemplate.CreditNoteLine.replace("{invoiceLineId}", itemIndex.toString())
 			.replace("{invoiceLineQuantity}", invoiceItem.amount)
-			.replace("{invoiceLineTotal}", this.getVatExcludedPrice(invoiceItem.totalPrice))
-			.replace("{invoiceLineStartDate}", formatDate(invoiceItem.startDate))
-			.replace("{invoiceLineEndDate}", formatDate(invoiceItem.endDate))
+			.replace("{invoiceLineTotal}", invoiceItem.totalPrice)
 			.replace("{invoiceLineItemName}", getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode))
-			.replace("{invoiceLineItemVatType}", VatTypeCategoryCodes[this.invoice.vatType as VatType])
+			.replace("{invoiceLineItemVatType}", taxCategory)
 			.replace("{invoiceLineItemVatPercent}", this.invoice.vatRate)
-			.replace("{invoiceLineItemPrice}", this.getVatExcludedPrice(getInvoiceItemPrice(invoiceItem)))
+			.replace("{invoiceLineItemPrice}", getInvoiceItemPrice(invoiceItem))
 	}
 
 	/**
@@ -307,35 +312,11 @@ export class XRechnungInvoiceGenerator {
 	 * @private
 	 */
 	private calculateTotalDiscount(): number {
-		if (this.totalDiscountSum !== -1) {
-			return this.totalDiscountSum
-		}
-		this.totalDiscountSum = 0
-		for (const discountItem of this.discountItems) {
-			this.totalDiscountSum += parseFloat(discountItem.totalPrice)
-		}
-		this.totalDiscountSum *= -1
-		return this.totalDiscountSum
-	}
-
-	/**
-	 * Recalculates a price if the vat is already included. I.e. subtracts the applied vat
-	 * Returns the price with vat excluded
-	 * @param priceValue
-	 * @private
-	 */
-	private getVatExcludedPrice(priceValue: NumberString): NumberString {
-		switch (this.invoice.vatType) {
-			case VatType.VAT_INCLUDED_SHOWN:
-			case VatType.VAT_INCLUDED_HIDDEN: {
-				const nPriceValue = parseFloat(priceValue)
-				const nVat = parseFloat(this.invoice.vat)
-				return (nPriceValue - nVat).toFixed(2)
-			}
-			default:
-				break
-		}
-		return priceValue
+		const sum = this.invoice.items
+			.filter((item) => item.itemType === InvoiceItemType.Discount)
+			.map((item) => parseFloat(item.totalPrice))
+			.reduce((prev, current) => prev + current, 0)
+		return -sum
 	}
 }
 
