@@ -12,13 +12,13 @@ import { layout_size } from "../../../../ui/size"
 import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
-import { createDropdown, Dropdown } from "../../../../ui/base/Dropdown"
+import { attachDropdown, createDropdown, Dropdown } from "../../../../ui/base/Dropdown"
 import { DriveTransferStack } from "./DriveTransferStack"
 import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { Keys, OperationStatus, UpgradePromptType } from "@tutao/app-env"
+import { AppType, Keys, OperationStatus, UpgradePromptType } from "@tutao/app-env"
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
@@ -452,7 +452,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private renderFab(): Children {
-		if (!isMobileDriveLayout()) {
+		if (!isMobileDriveLayout() || APP_TYPE !== AppType.Drive) {
 			return null
 		}
 		return m(FabMenu, {
@@ -497,6 +497,19 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					m(EnterMultiselectIconButton, {
 						clickAction: () => this.driveViewModel.enterMultiselect(),
 					}),
+					APP_TYPE === AppType.Drive
+						? null
+						: m(
+								IconButton,
+								attachDropdown({
+									mainButtonAttrs: { icon: Icons.Plus, title: "newDriveItem_action" },
+									childAttrs: () =>
+										newItemActions({
+											onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
+											onNewFolder: () => this.onNewFolder(),
+										}),
+								}),
+							),
 				],
 				primaryAction: () => null,
 				backAction: () => (useBackButton ? this.driveViewModel.goToParentFolder() : this.viewSlider.focusPreviousColumn()),
