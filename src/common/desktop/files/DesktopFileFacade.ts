@@ -65,6 +65,16 @@ export class DesktopFileFacade implements FileFacade {
 		return await this.fs.promises.unlink(filePath)
 	}
 
+	private async deleteFileQuietly(filePath: string): Promise<void> {
+		try {
+			await this.fs.promises.unlink(filePath)
+		} catch (e) {
+			if (e.code !== "ENOENT") {
+				throw e
+			}
+		}
+	}
+
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
 		const abortController = new AbortController()
 		this.activeRequests.set(fileId, abortController)
@@ -177,7 +187,11 @@ export class DesktopFileFacade implements FileFacade {
 		} catch (e) {
 			// clean up if we couldn't finish writing
 			await closeFileStream(outStream)
-			await this.fs.promises.unlink(filePath)
+
+			// The file might not exist yet if we didn't get to write anything,
+			// so let's delete it if it exists.
+			await this.deleteFileQuietly(filePath)
+			throw e
 		}
 
 		return filePath
