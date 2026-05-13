@@ -33,10 +33,47 @@ o.spec("FolderSystem", function () {
 		parentFolder: customSubfolder._id,
 		name: "A",
 	})
+	const orphanFolder = createTestEntity(MailSetTypeRef, {
+		_id: [listId, "orphan"],
+		folderType: MailSetKind.CUSTOM,
+		parentFolder: [listId, "deletedParent"],
+		name: "Orphan",
+	})
+	const subOrphanFolder1 = createTestEntity(MailSetTypeRef, {
+		_id: [listId, "subOrphan1"],
+		folderType: MailSetKind.CUSTOM,
+		parentFolder: orphanFolder._id,
+		name: "Sub-Orphan 1",
+	})
+	const subOrphanFolder2 = createTestEntity(MailSetTypeRef, {
+		_id: [listId, "subOrphan2"],
+		folderType: MailSetKind.CUSTOM,
+		parentFolder: orphanFolder._id,
+		name: "Sub-Orphan 2",
+	})
+	const subSubOrphanFolder = createTestEntity(MailSetTypeRef, {
+		_id: [listId, "subSubOrphan"],
+		folderType: MailSetKind.CUSTOM,
+		parentFolder: subOrphanFolder2._id,
+		name: "Sub-Sub-Orphan",
+	})
 
 	const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "inbox"], sets: [customSubfolder._id] })
+	const mailInOrphanFolder = createTestEntity(MailTypeRef, { _id: ["mailListId", "orphanMail"], sets: [orphanFolder._id] })
+	const mailInSubOrphanFolder = createTestEntity(MailTypeRef, { _id: ["mailListId", "subOrphanMail"], sets: [subOrphanFolder1._id] })
 
-	const allFolders = [archive, inbox, customFolder, customSubfolder, customSubSubfolder, customSubSubfolderAnother]
+	const allFolders = [
+		archive,
+		inbox,
+		customFolder,
+		customSubfolder,
+		customSubSubfolder,
+		customSubSubfolderAnother,
+		orphanFolder,
+		subOrphanFolder1,
+		subOrphanFolder2,
+		subSubOrphanFolder,
+	]
 
 	o("correctly builds the subtrees", function () {
 		const system = new FolderSystem(allFolders)
@@ -59,6 +96,21 @@ o.spec("FolderSystem", function () {
 				],
 			},
 		])("custom subtrees")
+		o(system.orphanSubtrees).deepEquals([
+			{
+				folder: orphanFolder,
+				children: [
+					{
+						folder: subOrphanFolder1,
+						children: [],
+					},
+					{
+						folder: subOrphanFolder2,
+						children: [{ folder: subSubOrphanFolder, children: [] }],
+					},
+				],
+			},
+		])("orphan subtrees")
 	})
 
 	o("indented list sorts mailSets correctly on the same level", function () {
@@ -120,6 +172,8 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem(allFolders)
 
 		o(system.getFolderById(getElementId(archive))).deepEquals(archive)
+		o(system.getFolderById(getElementId(orphanFolder))).deepEquals(orphanFolder)
+		o(system.getFolderById(getElementId(subSubOrphanFolder))).deepEquals(subSubOrphanFolder)
 	})
 
 	o("getFolderById not there returns null", function () {
@@ -131,17 +185,21 @@ o.spec("FolderSystem", function () {
 	o("getFolderByMail", function () {
 		const system = new FolderSystem(allFolders)
 		o(system.getFolderByMail(mail)).equals(customSubfolder)
+		o(system.getFolderByMail(mailInOrphanFolder)).equals(orphanFolder)
+		o(system.getFolderByMail(mailInSubOrphanFolder)).equals(subOrphanFolder1)
 	})
 
 	o("getCustomFoldersOfParent", function () {
 		const system = new FolderSystem(allFolders)
 
 		o(system.getCustomFoldersOfParent(customSubfolder._id)).deepEquals([customSubSubfolderAnother, customSubSubfolder])
+		o(system.getCustomFoldersOfParent(orphanFolder._id)).deepEquals([subOrphanFolder1, subOrphanFolder2])
 	})
 
 	o("getPathToFolder", function () {
 		const system = new FolderSystem(allFolders)
 
 		o(system.getPathToFolder(customSubSubfolder._id)).deepEquals([customFolder, customSubfolder, customSubSubfolder])
+		o(system.getPathToFolder(subSubOrphanFolder._id)).deepEquals([orphanFolder, subOrphanFolder2, subSubOrphanFolder])
 	})
 })
