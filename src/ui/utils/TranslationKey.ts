@@ -2274,3 +2274,4 @@ export type TranslationKeyType =
 	| "driveNotEnabled_msg"
 	| "emptyString_msg"
 	| "showQuickActionsBar_action"
+	| "failedToDeleteFolders_label"
