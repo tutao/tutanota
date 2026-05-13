@@ -2290,3 +2290,4 @@ export type TranslationKeyType =
 	| "referAFriendBothBenefit_label"
 	| "emptyString_msg"
 	| "showQuickActionsBar_action"
+	| "failedToDeleteFolders_label"

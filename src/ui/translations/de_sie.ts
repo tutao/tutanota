@@ -2292,5 +2292,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"showQuickActionsBar_action": "Show quick actions bar",
+		"failedToDeleteFolders_label": "Failed-to-delete folders"
 	}
 }
