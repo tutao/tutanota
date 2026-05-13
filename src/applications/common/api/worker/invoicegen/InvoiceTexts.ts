@@ -52,7 +52,7 @@ export default {
 		thankYou: "Thank you very much!",
 
 		legalNoSigned: "This document was created automatically and is not signed.",
-		legalRepresented: "Tuta® is a service of Tutao GmbH, represented by: Arne Möhle, Matthias Pfau, Hanna Bozakov",
+		legalRepresented: "Tuta® is a service of Tutao GmbH, represented by: Arne Möhle, Hanna Bozakov, Matthias Pfau",
 		legalRegistration: "Company domiciled in: Hannover, Germany; Register court: Court of first instance Hannover ",
 		legalVatIdentification: "Register number: HRB 208014, VATIN: DE280903265; Creditor Identifier: DE48TTT00001013919",
 		legalBankAccount: "Bank account: Commerzbank Hannover, IBAN: DE67 2508 0020 0138 0400 01, BIC: DRESDEFF250",
@@ -131,7 +131,7 @@ export default {
 		thankYou: "Vielen Dank!",
 
 		legalNoSigned: "Dieses Schreiben wurde maschinell erstellt und enthält keine Unterschrift.",
-		legalRepresented: "Tuta® ist ein Service der Tutao GmbH, vertreten durch: Arne Möhle, Matthias Pfau, Hanna Bozakov",
+		legalRepresented: "Tuta® ist ein Service der Tutao GmbH, vertreten durch: Arne Möhle, Hanna Bozakov, Matthias Pfau",
 		legalRegistration: "Sitz der Gesellschaft: Hannover, Registergericht: Amtsgericht Hannover, Registernummer: HRB 208014",
 		legalVatIdentification: "Umsatzsteuer-Identifikationsnummer (USt-IdNr.): DE280903265, Gläubiger-Identifikationsnummer:",
 		legalBankAccount: "DE48TTT00001013919, Bankverbindung: Commerzbank Hannover, IBAN: DE67 2508 0020 0138 0400 01",
