@@ -2309,3 +2309,4 @@ export type TranslationKeyType =
 	| "uploadFolders_action"
 	| "emptyString_msg"
 	| "showQuickActionsBar_action"
+	| "failedToDeleteFolders_label"
