@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Unlock credentials";
 TutaoPushNewMail = "New email received.";
 TutaoDeleteAction = "Delete";
 TutaoMarkReadAction = "Mark read";
+TutaoArchiveAction = "Archive";
 TutaoWidgetOpenAppAction = "Open the app";
 TutaoWidgetUnexpectedErrorMsg = "Oops! Something went wrong.";
 TutaoWidgetSendLogsAction = "Send Logs";
