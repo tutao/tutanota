@@ -115,6 +115,16 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 					PendingIntent.FLAG_IMMUTABLE
 				)
 
+			val intentArchiveMailAction: Intent =
+				MailNotificationActionReceiver.makeArchiveIntent(context, notificationId, notificationInfo)
+			val pendingArchiveAction: PendingIntent =
+				PendingIntent.getBroadcast(
+					context,
+					generateNotificationId(),
+					intentArchiveMailAction,
+					PendingIntent.FLAG_IMMUTABLE
+				)
+
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
 				.setLights(redColor, 1000, 1000)
@@ -162,6 +172,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				})
 				.addAction(R.drawable.ic_sync, context.getString(R.string.delete_action), pendingDeleteAction)
 				.addAction(R.drawable.ic_sync, context.getString(R.string.markRead_action), pendingReadAction)
+				.addAction(R.drawable.ic_sync, context.getString(R.string.archive_action), pendingArchiveAction)
 
 			notificationManager.notify(notificationId, notificationBuilder.build())
 			sendSummaryNotification(notificationInfo)
