@@ -50,10 +50,11 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 				when (action) {
 					TRASH_ACTION -> sendMailToTrash(sdk, notificationInfo)
 					READ_ACTION -> markMailAsRead(sdk, notificationInfo)
+					ARCHIVE_ACTION -> sendMailToArchive(sdk, notificationInfo)
 					else -> {
 						Log.e(
 							TAG,
-							"Invalid notification action received: $action (valid actions are $TRASH_ACTION and $READ_ACTION)"
+							"Invalid notification action received: $action (valid actions are $TRASH_ACTION, $READ_ACTION, and $ARCHIVE_ACTION)"
 						)
 					}
 				}
@@ -76,6 +77,10 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 		sdk.mailFacade().setUnreadStatusForMails(listOf(notificationInfo.mailId!!.toSdkIdTupleGenerated()), false)
 	}
 
+	private suspend fun sendMailToArchive(sdk: LoggedInSdk, notificationInfo: NotificationInfo) {
+		sdk.mailFacade().archiveMails(listOf(notificationInfo.mailId!!.toSdkIdTupleGenerated()))
+	}
+
 	private fun dismissNotification(notificationManager: NotificationManager, notificationIdToDismiss: Int) {
 		notificationManager.cancel(notificationIdToDismiss)
 		// Filter manually because cancel might not be quick enough
@@ -93,6 +98,7 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 		private const val TAG = "NotifAction"
 		private const val TRASH_ACTION = "trash"
 		private const val READ_ACTION = "read"
+		private const val ARCHIVE_ACTION = "archive"
 		private const val NOTIFICATION_INFO_EXTRA = "NotifInfo"
 
 		fun makeTrashIntent(context: Context, notificationId: Int, notificationInfo: NotificationInfo): Intent {
@@ -102,6 +108,10 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 
 		fun makeReadIntent(context: Context, notificationId: Int, notificationInfo: NotificationInfo): Intent {
 			return makeIntent(READ_ACTION, context, notificationId, notificationInfo)
+		}
+
+		fun makeArchiveIntent(context: Context, notificationId: Int, notificationInfo: NotificationInfo): Intent {
+			return makeIntent(ARCHIVE_ACTION, context, notificationId, notificationInfo)
 		}
 
 		private fun makeIntent(
