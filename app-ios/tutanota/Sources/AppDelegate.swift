@@ -186,6 +186,7 @@ public let MAILTO_SCHEME = "mailto"
 		switch response.actionIdentifier {
 		case MAIL_READ_ACTION: Task { try await handleWithSdk(mailId: mailId, userId: userId, actionIdentifier: MAIL_READ_ACTION) }
 		case MAIL_TRASH_ACTION: Task { try await handleWithSdk(mailId: mailId, userId: userId, actionIdentifier: MAIL_TRASH_ACTION) }
+		case MAIL_ARCHIVE_ACTION: Task { try await handleWithSdk(mailId: mailId, userId: userId, actionIdentifier: MAIL_ARCHIVE_ACTION) }
 		case UNNotificationDefaultActionIdentifier:
 			let mailIdTuple = (mailId[0], mailId[1])
 			let address = userInfo["firstRecipient"] as? String ?? ""
@@ -221,6 +222,7 @@ public let MAILTO_SCHEME = "mailto"
 		switch actionIdentifier {
 		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])
 		case MAIL_READ_ACTION: try await sdk.mailFacade().setUnreadStatusForMails(mails: [mail], unread: false)
+		case MAIL_ARCHIVE_ACTION: try await sdk.mailFacade().archiveMails(mails: [mail])
 		default: TUTSLog("Invalid Notification Action")
 		}
 	}
@@ -235,9 +237,10 @@ public let MAILTO_SCHEME = "mailto"
 	private func registerNotificationCategories() {
 		let readAction = UNNotificationAction(identifier: MAIL_READ_ACTION, title: translate("TutaoMarkReadAction", default: "Mark Read"), options: [])
 		let trashAction = UNNotificationAction(identifier: MAIL_TRASH_ACTION, title: translate("TutaoDeleteAction", default: "Delete"), options: [.destructive])
+		let archiveAction = UNNotificationAction(identifier: MAIL_ARCHIVE_ACTION, title: translate("TutaoArchiveAction", default: "Archive"), options: [])
 		let mailActionsCategory = UNNotificationCategory(
 			identifier: MAIL_ACTIONS_CATEGORY,
-			actions: [readAction, trashAction],
+			actions: [readAction, trashAction, archiveAction],
 			intentIdentifiers: [],
 			options: .customDismissAction
 		)
