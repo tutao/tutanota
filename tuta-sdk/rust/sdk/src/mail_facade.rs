@@ -49,7 +49,8 @@ const MAX_MAIL_UPDATE_LIMIT: usize = 50;
 /// All allowed targets for the SimpleMoveMailService.
 ///
 /// This should be kept up-to-date with the server if any more targets are desired.
-const ALLOWED_SIMPLE_MOVE_MAIL_TARGETS: &[MailSetKind] = &[MailSetKind::Trash];
+const ALLOWED_SIMPLE_MOVE_MAIL_TARGETS: &[MailSetKind] =
+	&[MailSetKind::Trash, MailSetKind::Archive];
 
 impl MailFacade {
 	pub async fn load_user_mailbox(&self) -> Result<MailBox, ApiCallError> {
@@ -217,6 +218,11 @@ impl MailFacade {
 	/// Trash mailSets.
 	pub async fn trash_mails(&self, mails: Vec<IdTupleGenerated>) -> Result<(), ApiCallError> {
 		self.simple_move_mail(mails, MailSetKind::Trash).await
+	}
+
+	/// Move the given mails to the archive folder of their respective mailboxes.
+	pub async fn archive_mails(&self, mails: Vec<IdTupleGenerated>) -> Result<(), ApiCallError> {
+		self.simple_move_mail(mails, MailSetKind::Archive).await
 	}
 }
 
@@ -449,6 +455,106 @@ mod tests {
 			Arc::new(executor),
 		);
 		facade.trash_mails(mails).await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn archive_mail_split() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails = generate_id_tuples(100);
+		let first_invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails[..50].to_vec(),
+			destinationSetType: MailSetKind::Archive as i64,
+			moveReason: None,
+		};
+		let second_invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails[50..].to_vec(),
+			destinationSetType: MailSetKind::Archive as i64,
+			moveReason: None,
+		};
+
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(first_invocation), always())
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
+
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(second_invocation), always())
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
+
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.archive_mails(mails).await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn archive_mail_dedupe() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails: Vec<IdTupleGenerated> = std::iter::repeat(IdTupleGenerated::new(
+			GeneratedId::test_random(),
+			GeneratedId::test_random(),
+		))
+		.take(100)
+		.collect();
+		let invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: vec![mails[0].clone()],
+			destinationSetType: MailSetKind::Archive as i64,
+			moveReason: None,
+		};
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(invocation), always())
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.archive_mails(mails).await.unwrap();
+	}
+
+	#[tokio::test]
+	async fn archive_mail_one() {
+		let mut executor = MockResolvingServiceExecutor::default();
+		let mails = generate_id_tuples(1);
+		let invocation = SimpleMoveMailPostIn {
+			_format: 0,
+			mails: mails.clone(),
+			destinationSetType: MailSetKind::Archive as i64,
+			moveReason: None,
+		};
+		executor
+			.expect_post::<SimpleMoveMailService>()
+			.with(eq(invocation), always())
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
+		let facade = MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+		);
+		facade.archive_mails(mails).await.unwrap();
 	}
 
 	fn generate_id_tuples(amt: usize) -> Vec<IdTupleGenerated> {
