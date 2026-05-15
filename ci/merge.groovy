@@ -102,6 +102,7 @@ pipeline {
 							currentBuild.displayName = "${params.DRY_RUN ? "DRY_RUN " : ""}${params.SOURCE_BRANCH} -> ${params.TARGET_BRANCH}"
 						}
 						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
+						installNpmPackages()
 
 						// building sqlcipher is not parallelizable on the same directory and doesn't lock; so we
 						// pre-build it while we're not parallel yet. the browser and node tests will pick up the binary
@@ -127,8 +128,16 @@ pipeline {
 						}
 					}
 					steps {
-						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
-						prepareSwift()
+						script {
+							// must be done before we can load libraries
+							initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
+							def util = load "ci/jenkins-lib/util.groovy"
+							def NODE_MAC_PATH = util.findNodeMacPath("22")
+							withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
+								installNpmPackages()
+								prepareSwift()
+							}
+						}
 					}
 				}
 
@@ -409,9 +418,6 @@ void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBra
 	submodules()
 	sh "pwd && git status && git remote -v && git submodule status"
 	getChangeset(changeset, targetBranch)
-	if (shouldRunNpmCi()) {
-		sh "npm ci"
-	}
 }
 
 void duplicateWorkspace(String source, ArrayList<String> targets) {
@@ -581,5 +587,11 @@ void finalize(boolean dryRun) {
 		"""
 	} else {
 		sh "git push origin HEAD:${params.TARGET_BRANCH}"
+	}
+}
+
+void installNpmPackages() {
+	if (shouldRunNpmCi()) {
+		sh "npm ci"
 	}
 }
