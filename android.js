@@ -9,14 +9,18 @@
  *  'ANDROID_HOME'
  */
 import { Argument, Option, program } from "commander"
-import { runDevBuild } from "./buildSrc/DevBuild.js"
+import { buildDirForApp, runDevBuild } from "./buildSrc/DevBuild.js"
 import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
-import { $, cd } from "zx"
+import { $ } from "zx"
+import fs from "node:fs/promises"
 
+// chalk is in scope because of zx
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
+
+$.verbose = true
 
 await program
 	.usage("[options] [test|prod|local|host <url>] ")
@@ -27,7 +31,7 @@ await program
 			.argOptional(),
 	)
 	.addArgument(new Argument("host").argOptional())
-	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
+	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar", "drive"]).default("mail"))
 	.addOption(
 		new Option(
 			"-b, --buildtype <type>",
@@ -69,71 +73,6 @@ await program
 	})
 	.parseAsync(process.argv)
 
-async function buildCalendarBundle({ buildType }) {
-	const { version } = JSON.parse(await $`cat package.json`.quiet())
-
-	const bundleName = `calendar-tutao-${buildType}-${version}.aab`
-	const bundlePath = `app-android/calendar/build/outputs/bundle/tutao${buildType.charAt(0).toUpperCase() + buildType.slice(1)}/${bundleName}`
-	const outPath = `./build-calendar-app/app-android/${bundleName}`
-
-	cd("./app-android")
-
-	await $`./gradlew :calendar:bundleTutao${buildType}`
-
-	cd("..")
-
-	await $`mkdir -p build-calendar-app/app-android`
-	await $`mv ${bundlePath} ${outPath}`
-
-	log(`Build complete. The AAB is located at: ${outPath}`)
-
-	return outPath
-}
-
-async function buildCalendarApk({ buildType }) {
-	const { version } = JSON.parse(await $`cat package.json`.quiet())
-
-	const bundleName = `calendar-tutao-${buildType}-${version}`
-	const bundlePath = `app-android/calendar/build/outputs/apk/tutao/${buildType}/${bundleName}`
-	const outPath = `./build-calendar-app/app-android/${bundleName}`
-
-	cd("./app-android")
-
-	await $`if [ -f .${outPath}.aab ]; then mkdir ../temp; mv .${outPath}.aab ../temp/${bundleName}.aab; fi`
-
-	await $`./gradlew :calendar:assembleTutao${buildType}`
-
-	cd("..")
-
-	await $`mkdir -p build-calendar-app/app-android`
-	await $`mv ${bundlePath}.apk ${outPath}.apk`
-
-	await $`if [ -f ./temp/${bundleName}.aab ]; then mv ./temp/${bundleName}.aab ${outPath}.aab; rm -d ./temp; fi`
-
-	log(`Build complete. The APK is located at: ${outPath}`)
-
-	return outPath
-}
-
-async function buildMailApk({ buildType }) {
-	const { version } = JSON.parse(await $`cat package.json`.quiet())
-	const apkName = `tutanota-app-tutao-${buildType}-${version}.apk`
-	const apkPath = `app-android/app/build/outputs/apk/tutao/${buildType}/${apkName}`
-
-	const outPath = `./build/app-android/${apkName}`
-
-	cd("./app-android")
-	await $({ stdio: "inherit" })`./gradlew :app:assembleTutao${buildType}`
-
-	cd("..")
-	await $`mkdir -p build/app-android`
-	await $`mv ${apkPath} ${outPath}`
-
-	log(`Build complete. The APK is located at: ${outPath}`)
-
-	return outPath
-}
-
 async function buildAndroid({ stage, host, buildType, existing, webClient, app }) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 
@@ -167,17 +106,94 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 	}
 
 	await prepareMobileBuild({ app })
-	const buildDir = app === "mail" ? "build" : "build-calendar-app"
+	const buildDir = buildDirForApp(app)
 	try {
 		await $`rm -r ${buildDir}/app-android`
 	} catch (e) {
 		// Ignoring the error if the folder is not there
 	}
 
-	if (app === "mail") {
-		return await buildMailApk({ buildType })
-	} else {
-		await buildCalendarBundle({ buildType })
-		return await buildCalendarApk({ buildType })
+	switch (app) {
+		case "mail":
+			return await buildMailApk({ buildType })
+		case "calendar": {
+			await buildCalendarBundle({ buildType })
+			return await buildCalendarApk({ buildType })
+		}
+		case "drive": {
+			await buildDriveBundle({ buildType })
+			return await buildDriveApk({ buildType })
+		}
 	}
+}
+
+async function buildCalendarBundle({ buildType }) {
+	return await buildBundle({ baseBundleName: "calendar", gradleModule: "calendar", buildType })
+}
+
+async function buildDriveBundle({ buildType }) {
+	return await buildBundle({ baseBundleName: "drive", gradleModule: "drive", buildType })
+}
+
+async function buildBundle({ baseBundleName, gradleModule, buildType }) {
+	const version = await getTutanotaAppVersion()
+	const aabFileName = `${baseBundleName}-tutao-${buildType}-${version}.aab`
+	const aabPath = `app-android/${gradleModule}/build/outputs/bundle/tutao${capitalize(buildType)}/${aabFileName}`
+	const outDirPath = `./artifacts/app-android`
+	const outAabPath = `${outDirPath}/${aabFileName}`
+
+	await fs.rm(outAabPath, { force: true })
+
+	const $inAppDir = $({ cwd: "app-android" })
+	await $inAppDir`./gradlew :${gradleModule}:bundleTutao${buildType}`
+
+	await fs.mkdir(outDirPath, { recursive: true })
+
+	await fs.rename(aabPath, outAabPath)
+
+	log(`Build complete. The AAB is located at ${outAabPath}`)
+
+	return outAabPath
+}
+
+async function buildCalendarApk({ buildType }) {
+	return await buildApk({ buildType, gradleModule: "calendar", baseBundleName: "calendar" })
+}
+
+async function buildMailApk({ buildType }) {
+	return await buildApk({ app: "mail", buildType, gradleModule: "app", baseBundleName: "tutanota-app" })
+}
+
+async function buildDriveApk({ buildType }) {
+	return await buildApk({ app: "drive", buildType, gradleModule: "drive", baseBundleName: "drive" })
+}
+
+/**
+ * @param baseBundleName {string}
+ * @param gradleModule {string}
+ * @param buildType {"debug"|"release"|"releaseTest"}
+ */
+async function buildApk({ baseBundleName, gradleModule, buildType }) {
+	const version = await getTutanotaAppVersion()
+	const apkFileName = `${baseBundleName}-tutao-${buildType}-${version}.apk`
+	const apkPath = `app-android/${gradleModule}/build/outputs/apk/tutao/${buildType}/${apkFileName}`
+	const outDirPath = `./artifacts/app-android`
+	const outApkPath = `${outDirPath}/${apkFileName}`
+
+	await fs.rm(outApkPath, { force: true })
+
+	const $inAppDir = $({ cwd: "app-android" })
+	await $inAppDir`./gradlew :${gradleModule}:assembleTutao${buildType}`
+
+	await fs.mkdir(outDirPath, { recursive: true })
+
+	await fs.rename(apkPath, outApkPath)
+
+	log(`Build complete. The APK is located at ${outApkPath}`)
+
+	return outApkPath
+}
+
+function capitalize(buildType) {
+	return buildType.charAt(0).toUpperCase() + buildType.slice(1)
 }

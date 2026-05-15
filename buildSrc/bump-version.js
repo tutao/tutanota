@@ -45,8 +45,11 @@ async function run({ platform }) {
 	if (platform === "all" || platform === "android") {
 		await bumpAndroidVersion("app-android/app/build.gradle.kts")
 		await bumpAndroidVersion("app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersion("app-android/drive/build.gradle.kts")
+
 		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/app/build.gradle.kts")
 		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/calendar/build.gradle.kts")
+		await bumpAndroidVersionName(currentVersion, newVersionString, "app-android/drive/build.gradle.kts")
 	}
 
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
