@@ -135,7 +135,7 @@ interface RunningOperation {
 	count: number
 }
 
-interface OperationUpdate {
+export interface OperationUpdate {
 	type: DriveOperationType
 	count: number
 	status: OperationStatus
@@ -163,7 +163,8 @@ export class DriveViewModel {
 	private storage: DriveStorage | null = null
 	private readonly runningOperations: Map<Id, RunningOperation> = new Map()
 
-	public readonly operationUpdates: Stream<OperationUpdate> = stream()
+	public operationUpdates: Stream<OperationUpdate | null> = stream(null)
+
 	public readonly initialized: Promise<void>
 	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
 
