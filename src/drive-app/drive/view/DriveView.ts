@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header, HeaderAttrs } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveOperationType, DriveViewModel } from "./DriveViewModel"
+import { DriveOperationType, DriveViewModel, OperationUpdate } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { getFileBaseNameAndExtensions, WebFile } from "../../../common/api/common/utils/FileUtils"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
@@ -94,37 +94,42 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
-		this.operationUpdatesSubscription = this.driveViewModel.operationUpdates.map(({ type, count, status, error }) => {
-			switch (status) {
-				case OperationStatus.SUCCESS: {
-					let message: TranslationKey
-					switch (type) {
-						case DriveOperationType.Copy:
-							message = "copyItemsSuccess_msg"
-							break
-						case DriveOperationType.Delete:
-							message = "deleteItemsSuccess_msg"
-							break
-						case DriveOperationType.Move:
-							message = "moveItemsSuccess_msg"
-							break
-						case DriveOperationType.Trash:
-							message = "trashItemsSuccess_msg"
-							break
-						case DriveOperationType.Restore:
-							message = "restoreItemsSuccess_msg"
+		this.operationUpdatesSubscription = this.driveViewModel.operationUpdates.map((maybeOperationUpdate: OperationUpdate | null) => {
+			if (isNotNull(maybeOperationUpdate)) {
+				const { type, count, status, error } = maybeOperationUpdate
+
+				switch (status) {
+					case OperationStatus.SUCCESS: {
+						let message: TranslationKey
+						switch (type) {
+							case DriveOperationType.Copy:
+								message = "copyItemsSuccess_msg"
+								break
+							case DriveOperationType.Delete:
+								message = "deleteItemsSuccess_msg"
+								break
+							case DriveOperationType.Move:
+								message = "moveItemsSuccess_msg"
+								break
+							case DriveOperationType.Trash:
+								message = "trashItemsSuccess_msg"
+								break
+							case DriveOperationType.Restore:
+								message = "restoreItemsSuccess_msg"
+						}
+						showSnackBar({
+							message: lang.getTranslation(message, {
+								"{count}": String(count),
+							}),
+						})
+						break
 					}
-					showSnackBar({
-						message: lang.getTranslation(message, {
-							"{count}": String(count),
-						}),
-					})
-					break
+					case OperationStatus.FAILURE: {
+						handleUncaughtError(assertNotNull(error))
+						break
+					}
 				}
-				case OperationStatus.FAILURE: {
-					handleUncaughtError(assertNotNull(error))
-					break
-				}
+				this.driveViewModel.operationUpdates(null)
 			}
 		})
 	}
