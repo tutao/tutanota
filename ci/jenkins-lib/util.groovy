@@ -76,5 +76,19 @@ def runFastlane(String app_identifier, String lane) {
 	}
 }
 
+def findNodeMacPath(String majorVersion) {
+	// We don't know which node version is installed exactly and it's not on PATH by default
+
+	// write the little script to a file so that we can force glob expansion
+	writeFile(file: "find-node.sh", text: "set -x\necho /opt/homebrew/Cellar/node@${majorVersion}/*/bin/node")
+	def nodePath = sh(script: "zsh find-node.sh", returnStdout: true)
+	// we don't need the path ending with node binary, we want it's parent
+	def parentPath = sh(script: "dirname $nodePath", returnStdout: true)
+	// there's a newline at the end of it and dirname on macos doesn't have a -z option
+	def trimmedParentPath = parentPath.trim()
+	println "Found node at: $trimmedParentPath"
+	return trimmedParentPath
+}
+
 // required in order to be able to use "load" to include this script in a jenkins pipleline
 return this
