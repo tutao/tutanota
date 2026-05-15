@@ -9,24 +9,24 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'RELEASE',
-			defaultValue: false,
-			description: "Upload staging/prod to Nexus and send staging version to testflight. " +
-				"The production version must be sent to appstore using the publish job"
+				name: 'RELEASE',
+				defaultValue: false,
+				description: "Upload staging/prod to Nexus and send staging version to testflight. " +
+						"The production version must be sent to appstore using the publish job"
 		)
 		booleanParam(
-			name: 'PROD',
-			defaultValue: true
+				name: 'PROD',
+				defaultValue: true
 		)
 		booleanParam(
-			name: 'STAGING',
-			defaultValue: true
+				name: 'STAGING',
+				defaultValue: true
 		)
-        string(
-            name: 'branch',
-            defaultValue: "*/master",
-            description: "the branch to build the release from"
-        )
+		string(
+				name: 'branch',
+				defaultValue: "*/master",
+				description: "the branch to build the release from"
+		)
 	}
 
 	stages {
@@ -40,7 +40,7 @@ pipeline {
 //     	}
 		stage("Build and upload to Testflight") {
 			environment {
-				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+				PATH = "${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
 				LC_ALL = "en_US.UTF-8"
 				LANG = "en_US.UTF-8"
@@ -57,8 +57,12 @@ pipeline {
 						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
+								def NODE_MAC_PATH = util.findNodeMacPath("22")
 
-								buildWebapp("test")
+								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
+									buildWebapp("test")
+								}
+
 								generateXCodeProjects()
 
 								util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
@@ -78,8 +82,12 @@ pipeline {
 						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
+								def NODE_MAC_PATH = util.findNodeMacPath("22")
 
-								buildWebapp("prod")
+								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
+									buildWebapp("prod")
+								}
+
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
 
@@ -122,7 +130,7 @@ pipeline {
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
 							if (params.RELEASE) {
 								publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
-                                publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
+								publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 							} else {
 								publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "ipa")
 							}
@@ -138,8 +146,8 @@ void ensureWebappDirectories() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-    	sh "mkdir -p build"
-    	sh "mkdir -p build-calendar-app"
+		sh "mkdir -p build"
+		sh "mkdir -p build-calendar-app"
 	}
 }
 
@@ -147,9 +155,9 @@ void buildWebapp(String stage) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-    	sh "npm ci"
-    	sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
-    	sh "node buildSrc/prepareMobileBuild.js --app calendar"
+		sh "npm ci"
+		sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
+		sh "node buildSrc/prepareMobileBuild.js --app calendar"
 	}
 }
 
@@ -164,8 +172,8 @@ void generateXCodeProject(String projectPath, String spec) {
 
 // Runs xcodegen on all of our project specs
 void generateXCodeProjects() {
-    ensureWebappDirectories()
-    generateXCodeProject("app-ios", "mail-project")
+	ensureWebappDirectories()
+	generateXCodeProject("app-ios", "mail-project")
 	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
 }

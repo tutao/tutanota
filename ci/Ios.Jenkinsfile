@@ -9,45 +9,45 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'UPLOAD',
-			defaultValue: false,
-			description: "Upload staging/prod to Nexus"
+				name: 'UPLOAD',
+				defaultValue: false,
+				description: "Upload staging/prod to Nexus"
 		)
 		booleanParam(
-			name: 'PROD',
-			defaultValue: true
+				name: 'PROD',
+				defaultValue: true
 		)
 		booleanParam(
-			name: 'STAGING',
-			defaultValue: true
+				name: 'STAGING',
+				defaultValue: true
 		)
-        string(
-            name: 'branch',
-            defaultValue: "*/master",
-            description: "the branch to build the release from"
-        )
+		string(
+				name: 'branch',
+				defaultValue: "*/master",
+				description: "the branch to build the release from"
+		)
 	}
 
 	stages {
-        stage("Checking params") {
-            steps {
-                script{
-                    if(!params.STAGING && !params.PROD) {
-                        currentBuild.result = 'ABORTED'
-                        error('No artifacts were selected.')
-                    }
-                }
-                echo "Params OKAY"
-            }
-        } // stage checking params
-    	stage('Check Github') {
+		stage("Checking params") {
+			steps {
+				script {
+					if (!params.STAGING && !params.PROD) {
+						currentBuild.result = 'ABORTED'
+						error('No artifacts were selected.')
+					}
+				}
+				echo "Params OKAY"
+			}
+		} // stage checking params
+		stage('Check Github') {
 			steps {
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
-    	}
+		}
 		stage("Run tests") {
 			agent {
 				label 'mac'
@@ -76,8 +76,8 @@ pipeline {
 				stage('Staging') {
 					when { expression { return params.STAGING } }
 					environment {
-						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
-						EM_CACHE="${env.HOME}/emcache"
+						PATH = "${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+						EM_CACHE = "${env.HOME}/emcache"
 					}
 					agent {
 						label 'mac-m1'
@@ -86,7 +86,10 @@ pipeline {
 						lock("ios-build-m1") {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
-								buildWebapp("test")
+								def NODE_MAC_PATH = util.findNodeMacPath("22")
+								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
+									buildWebapp("test")
+								}
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
 								if (params.UPLOAD) {
@@ -101,8 +104,8 @@ pipeline {
 				stage('Production') {
 					when { expression { return params.PROD } }
 					environment {
-						PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
-						EM_CACHE="${env.HOME}/emcache"
+						PATH = "${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
+						EM_CACHE = "${env.HOME}/emcache"
 					}
 					agent {
 						label 'mac-m1'
@@ -111,7 +114,10 @@ pipeline {
 						lock("ios-build-m1") {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
-								buildWebapp("prod")
+								def NODE_MAC_PATH = util.findNodeMacPath("22")
+								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
+									buildWebapp("prod")
+								}
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.tutanota", "adhoc_prod")
 								if (params.UPLOAD) {
@@ -142,8 +148,8 @@ pipeline {
 						unstash 'ipa-adhoc-staging'
 						unstash 'ipa-staging'
 
-                        uploadToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
-                        uploadToNexus("ios-test", "tutanota-${VERSION}-test.ipa", "ipa")
+						uploadToNexus("ios-test", "tutanota-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
+						uploadToNexus("ios-test", "tutanota-${VERSION}-test.ipa", "ipa")
 					}
 				}
 				stage("Production") {
@@ -156,9 +162,9 @@ pipeline {
 						unstash 'ipa-production'
 						unstash 'dsym-production'
 
-                        uploadToNexus("ios", "tutanota-${VERSION}-adhoc.ipa", "adhoc.ipa")
-                        uploadToNexus("ios", "tutanota-${VERSION}.ipa", "ipa")
-                        uploadToNexus("ios", "tutanota-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
+						uploadToNexus("ios", "tutanota-${VERSION}-adhoc.ipa", "adhoc.ipa")
+						uploadToNexus("ios", "tutanota-${VERSION}.ipa", "ipa")
+						uploadToNexus("ios", "tutanota-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 					}
 				}
 			} // parallel
@@ -170,8 +176,8 @@ def ensureWebappDirectories() {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-        sh "mkdir -p build-calendar-app"
-    	sh "mkdir -p build"
+		sh "mkdir -p build-calendar-app"
+		sh "mkdir -p build"
 	}
 }
 
@@ -179,9 +185,9 @@ def buildWebapp(String stage) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
-    	sh "npm ci"
-    	sh "node --max-old-space-size=8192 webapp ${stage} --app mail"
-    	sh "node buildSrc/prepareMobileBuild.js --app mail"
+		sh "npm ci"
+		sh "node --max-old-space-size=8192 webapp ${stage} --app mail"
+		sh "node buildSrc/prepareMobileBuild.js --app mail"
 	}
 }
 
