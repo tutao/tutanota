@@ -83,7 +83,7 @@ platform :ios do
 	end
 
 
-	desc "Push a new staging release to TestFlight"
+	desc "Build a new Mail staging release (for TestFlight/AppStore)"
 	lane :build_mail_staging do
 		match(
 			app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
@@ -295,7 +295,7 @@ platform :ios do
    		)
    end
 
-   desc "Build and push a new staging calendar release to TestFlight"
+   desc "Build staging Calendar release for TestFlight/AppStore"
    lane :calendar_testflight_staging do
    		match(
    			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
@@ -316,8 +316,14 @@ platform :ios do
    			output_name: "calendar-" + get_version_number(target: "calendar", xcodeproj: "calendar.xcodeproj")  + "-test",
    			verbose: true
    		)
+    end
+
+   desc "Publish Calendar staging to TestFlight"
+   lane :publish_calendar_staging do
+       sh 'echo "Uploading Calendar staging to TestFlight ' + options[:file] + '"'
 
    		upload_to_testflight(
+   		    ipa: options[:file],
    			app_identifier: "de.tutao.calendar.test",
    			skip_submission: true,
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]

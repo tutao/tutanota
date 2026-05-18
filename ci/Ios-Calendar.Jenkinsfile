@@ -9,10 +9,9 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'RELEASE',
+				name: 'UPLOAD',
 			defaultValue: false,
-			description: "Upload staging/prod to Nexus and send staging version to testflight. " +
-				"The production version must be sent to appstore using the publish job"
+				description: "Upload staging/prod to Nexus"
 		)
 		booleanParam(
 			name: 'PROD',
@@ -30,15 +29,26 @@ pipeline {
 	}
 
 	stages {
-//     	stage('Check Github') {
-// 			steps {
-// 				script {
-// 					def util = load "ci/jenkins-lib/util.groovy"
-// 					util.checkGithub()
-// 				}
-// 			}
-//     	}
-		stage("Build and upload to Testflight") {
+		stage("Checking params") {
+			steps {
+				script {
+					if (!params.STAGING && !params.PROD) {
+						currentBuild.result = 'ABORTED'
+						error('No artifacts were selected.')
+					}
+				}
+				echo "Params OKAY"
+			}
+		} // stage checking params
+     	stage('Check Github') {
+ 			steps {
+ 				script {
+ 					def util = load "ci/jenkins-lib/util.groovy"
+ 					util.checkGithub()
+ 				}
+ 			}
+     	}
+		stage("Build") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
@@ -53,6 +63,9 @@ pipeline {
 					when {
 						expression { params.STAGING }
 					}
+					environment {
+						EM_CACHE = "${env.HOME}/emcache"
+					}
 					steps {
 						lock('ios-build-m1') {
 							script {
@@ -62,7 +75,7 @@ pipeline {
 								generateXCodeProjects()
 
 								util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
-								if (params.RELEASE) {
+								if (params.UPLOAD) {
 									util.runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
 								}
 								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
@@ -83,7 +96,7 @@ pipeline {
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
 
-								if (params.RELEASE) {
+								if (params.UPLOAD) {
 									util.runFastlane("de.tutao.calendar", "build_calendar_prod")
 									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
 									stash includes: "app-ios/releases/calendar-${VERSION}.app.dSYM.zip", name: 'dsym-production'
@@ -102,7 +115,7 @@ pipeline {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
-				expression { params.RELEASE }
+				expression { params.UPLOAD }
 			}
 			agent {
 				label 'linux'
@@ -120,7 +133,7 @@ pipeline {
 						unstash 'ipa-production'
 						unstash 'dsym-production'
 						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
-							if (params.RELEASE) {
+							if (params.UPLOAD) {
 								publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
                                 publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 							} else {
