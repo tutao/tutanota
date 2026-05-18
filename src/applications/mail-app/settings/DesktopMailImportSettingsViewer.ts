@@ -21,7 +21,7 @@ import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { MailSet } from "@tutao/entities/tutanota"
 import { ImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
-import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "../../../entities/sys/Utils"
+import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../entities/sys/Utils"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
@@ -67,7 +67,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const userController = mailLocator.logins.getUserController()
 		const currentPlanType = await userController.getPlanType()
 		if (!isHighestTierPlan(currentPlanType)) {
-			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController, LegacyPrivatePlans as readonly AvailablePlanType[])
+			await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController, HighestTierPlans as readonly AvailablePlanType[])
 			return
 		}
 
