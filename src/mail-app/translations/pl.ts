@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Ponieważ usługa Drive jest w fazie beta, może dojść do utraty danych bez wcześniejszego ostrzeżenia.",
 		"driveHome_label": "Katalog główny",
 		"driveNotEmpty_msg": "Na twoim dysku nadal znajdują się pliki lub katalogi. Najpierw je usuń.",
+		"driveNotEnabled_msg": "Tuta Drive nie został włączony na tym koncie",
 		"driveTrash_label": "Kosz",
 		"driveView_action": "Dysk",
 		"dropFilesHere_msg": "Przeciągnij tutaj pliki lub katalogi",

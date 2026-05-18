@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Mentras Drive estea en beta podería haber perda de datos sen previo aviso.",
 		"driveHome_label": "Inicio",
 		"driveNotEmpty_msg": "Aínda hai ficheiros ou cartafoles en Drive. Primeiro debes eliminalos.",
+		"driveNotEnabled_msg": "Tuta Drive non está activado para esta conta",
 		"driveTrash_label": "Lixo",
 		"driveView_action": "Almacenaxe",
 		"dropFilesHere_msg": "Solta aquí ficheiros e cartafoles",

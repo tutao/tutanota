@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Ενώ το Drive βρίσκεται σε beta έκδοση, ενδέχεται να υπάρξει απώλεια δεδομένων χωρίς προηγούμενη προειδοποίηση.",
 		"driveHome_label": "Σπίτι",
 		"driveNotEmpty_msg": "Υπάρχουν ακόμα αρχεία ή φάκελοι στον Drive σας. Παρακαλούμε πρώτα να τα καταργήσετε.",
+		"driveNotEnabled_msg": "Ο Tuta Drive δεν είναι ενεργοποιημένος σε αυτό τον λογαριασμό",
 		"driveTrash_label": "Σκουπίδια",
 		"driveView_action": "Σκληρός",
 		"dropFilesHere_msg": "Αποθέστε αρχεία ή φακέλους εδώ",

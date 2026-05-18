@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Eftersom Drive fortfarande är i betafas kan data gå förlorade utan förvarning.",
 		"driveHome_label": "Hem",
 		"driveNotEmpty_msg": "Det finns fortfarande filer eller mappar kvar i Drive. Ta bort dem först.",
+		"driveNotEnabled_msg": "Tuta Drive är inte aktiverat för det här kontot",
 		"driveTrash_label": "Papperskorg",
 		"driveView_action": "Drive",
 		"dropFilesHere_msg": "Släpp filer eller mappar här",

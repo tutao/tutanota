@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Medtem ko je Pogon še v beta različici, lahko pride do izgube podatkov brez predhodnega opozorila.",
 		"driveHome_label": "Domača mapa",
 		"driveNotEmpty_msg": "V vašem Pogonu so še vedno datoteke ali mape. Najprej jih odstranite.",
+		"driveNotEnabled_msg": "Tuta Pogon ni vklopljen na tem računu",
 		"driveTrash_label": "Smeti",
 		"driveView_action": "Pogon",
 		"dropFilesHere_msg": "Spustite datoteke ali mape sem",

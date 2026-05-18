@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Drive處於beta測試階段時，數據遺失可能會在未事先警告下發生。",
 		"driveHome_label": "主資料夾",
 		"driveNotEmpty_msg": "您的Drive中仍然有檔案或資料夾。請先移除它們。",
+		"driveNotEnabled_msg": "Tuta Drive於此帳戶沒有啟用",
 		"driveTrash_label": "垃圾桶",
 		"driveView_action": "硬碟",
 		"dropFilesHere_msg": "將檔案或資料夾拖放到這裡",

@@ -587,6 +587,7 @@ export default {
 		"driveBetaWarning_msg": "Drive étant en version bêta, une perte de données sans avertissement préalable est possible.",
 		"driveHome_label": "Accueil",
 		"driveNotEmpty_msg": "Il reste encore des fichiers ou des dossiers dans votre Drive. Veuillez d’abord les supprimer.",
+		"driveNotEnabled_msg": "Tuta Drive n’est pas activé pour ce compte",
 		"driveTrash_label": "Corbeille",
 		"driveView_action": "Disque",
 		"dropFilesHere_msg": "Déposez des fichiers ou des dossiers ici",

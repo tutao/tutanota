@@ -585,6 +585,7 @@ export default {
 		"dragAndDrop_action": "Přesuňte vybrané e-maily do souborového systému nebo do jiné aplikace.",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Přetahování (Drag & drop) není dostupné pro události obsahující pokročilá pravidla opakování",
 		"driveBetaWarning_msg": "Vzhledem k tomu, že je Drive v beta verzi, může dojít ke ztrátě dat bez předchozího varování.",
+		"driveNotEnabled_msg": "Pro tento účet není služba Tuta Drive povolena",
 		"driveTrash_label": "Koš",
 		"dropFilesHere_msg": "Přetáhněte sem soubory nebo složky",
 		"duplicatedMailAddressInUserList_msg": "Tato emailová adresa byla vložena vícekrát než jednou.",
