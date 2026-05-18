@@ -109,7 +109,7 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 		this.updater(WORK_MAX_PERCENTAGE)
 	}
 
-	public isDone(): boolean {
-		return this.workCompleted >= this.totalWork
+	public isDone(): Promise<boolean> {
+		return Promise.resolve(this.workCompleted >= this.totalWork)
 	}
 }

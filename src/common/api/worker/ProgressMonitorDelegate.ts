@@ -31,7 +31,7 @@ export class ProgressMonitorDelegate implements IProgressMonitor {
 		await this.progressTracker.workDoneForMonitor(await this.progressMonitorId, this.totalWork)
 	}
 
-	isDone(): boolean {
-		return this.progressTracker.isDone()
+	async isDone(): Promise<boolean> {
+		return await this.progressTracker.isDoneForMonitor(await this.progressMonitorId)
 	}
 }

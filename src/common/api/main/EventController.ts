@@ -71,7 +71,7 @@ export class EventController {
 				await listener.onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId, isInitialSyncDone)
 			}
 
-			if (progressMonitorId !== null && !this.progressTracker.getMonitor(progressMonitorId)?.isDone()) {
+			if (progressMonitorId !== null && !(await this.progressTracker.getMonitor(progressMonitorId)?.isDone())) {
 				await this.progressTracker.workDoneForMonitor(progressMonitorId, 1)
 			}
 		}

@@ -18,7 +18,7 @@ export interface IProgressMonitor {
 
 	completed(): void
 
-	isDone(): boolean
+	isDone(): Promise<boolean>
 }
 
 /**
@@ -63,8 +63,8 @@ export class ProgressMonitor implements IProgressMonitor {
 		this.updater(100)
 	}
 
-	isDone(): boolean {
-		return this.workCompleted >= this.totalWork
+	isDone(): Promise<boolean> {
+		return Promise.resolve(this.workCompleted >= this.totalWork)
 	}
 }
 
@@ -79,8 +79,8 @@ export class NoopProgressMonitor implements IProgressMonitor {
 
 	completed() {}
 
-	isDone(): boolean {
-		return true
+	isDone(): Promise<boolean> {
+		return Promise.resolve(true)
 	}
 }
 

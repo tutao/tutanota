@@ -328,7 +328,7 @@ export class EventBusClient {
 				const groupId = entityUpdateData.eventBatchOwner
 				const batchId = entityUpdateData.eventBatchId
 
-				if (this.isInitialSyncDone && !this.progressMonitor?.isDone()) {
+				if (this.isInitialSyncDone && !(await this.progressMonitor?.isDone())) {
 					// the initial sync is done; this is to add work for entity updates we receive right after the initial sync is done,
 					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
 					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
@@ -337,7 +337,7 @@ export class EventBusClient {
 				// we need to complete the work for the batch here, since the processEventBatch function
 				// (and therefore the EventController) will not be called for this particular batch.
 				const wasAdded = this.eventQueue.add(batchId, groupId, updates, this.isInitialSyncDone)
-				if (!wasAdded && !this.progressMonitor?.isDone()) {
+				if (!wasAdded && !(await this.progressMonitor?.isDone())) {
 					await this.progressMonitor?.workDone(1)
 				}
 				break
