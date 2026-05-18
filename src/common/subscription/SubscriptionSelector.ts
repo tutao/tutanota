@@ -14,7 +14,17 @@ import {
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
-import { ProgrammingError } from "@tutao/app-env"
+import {
+	AvailablePlanType,
+	HighlightedPlans,
+	isIOSApp,
+	LegacyPlans,
+	NewBusinessPlans,
+	NewPersonalPlans,
+	PaymentMethodType,
+	PlanType,
+	ProgrammingError,
+} from "@tutao/app-env"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import { px, size } from "../gui/size.js"
@@ -29,7 +39,6 @@ import {
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
 import { PlanTypeToName, sysTypeRefs } from "@tutao/typerefs"
-import { AvailablePlanType, isIOSApp, LegacyPlans, LegacyPrivatePlans, NewBusinessPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "@tutao/app-env"
 import { PrimaryButton, PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -358,7 +367,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
 		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
-		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && LegacyPrivatePlans.includes(targetSubscription))
+		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
 
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
