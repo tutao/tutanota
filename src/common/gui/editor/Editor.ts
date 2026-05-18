@@ -1,6 +1,6 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer } from "@tutao/utils"
+import { defer, first, isNotNull } from "@tutao/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
@@ -21,6 +21,8 @@ type Styles = {
 	alignment: Alignment
 	listing: Listing | null
 }
+
+const ALIGN_CLASS_SELECTOR_PREFIX = ".align-"
 
 export class Editor implements ImageHandler, Component {
 	squire: SquireEditor | null = null
@@ -243,28 +245,29 @@ export class Editor implements ImageHandler, Component {
 
 		//links
 		this.styles.a = pathSegments.includes("A")
+
 		// alignment
-		let alignment = pathSegments.find((f) => f.includes("align"))
+		const alignment = pathSegments
+			.map((f) => {
+				const alignClassLocation = f.indexOf(ALIGN_CLASS_SELECTOR_PREFIX)
+				if (alignClassLocation >= 0) {
+					return first(f.substring(alignClassLocation + ALIGN_CLASS_SELECTOR_PREFIX.length).split(/[^a-z]/))
+				} else {
+					return null
+				}
+			})
+			.find(isNotNull)
+		switch (alignment) {
+			case "right":
+			case "justify":
+			case "center":
+			case "left":
+				this.styles.alignment = alignment
+				break
 
-		if (alignment !== undefined) {
-			switch (alignment.split(".")[1].substring(6)) {
-				case "left":
-					this.styles.alignment = "left"
-					break
-
-				case "right":
-					this.styles.alignment = "right"
-					break
-
-				case "center":
-					this.styles.alignment = "center"
-					break
-
-				default:
-					this.styles.alignment = "justify"
-			}
-		} else {
-			this.styles.alignment = "left"
+			default:
+				// null (or otherwise invalid)
+				this.styles.alignment = "left"
 		}
 
 		// font
