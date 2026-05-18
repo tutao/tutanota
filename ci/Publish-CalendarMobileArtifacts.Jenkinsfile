@@ -232,7 +232,7 @@ pipeline {
 									dir("${env.WORKSPACE}") {
 										unstash 'ipa'
 									}
-									util.runFastlane("de.tutao.calendar", "publish_calendar_prod file:${env.WORKSPACE}/${env.FILE_PATH}")
+									util.runFastlane("de.tutao.calendar", "publish_calendar_appstore_prod_to_app_store file:${env.WORKSPACE}/${env.FILE_PATH}")
 								}
 							}
 						}
