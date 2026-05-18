@@ -30,15 +30,7 @@ import {
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
 import { AccountingInfo } from "@tutao/entities/sys"
-import {
-	AvailablePlanType,
-	LegacyPlans,
-	LegacyPrivatePlans,
-	NewBusinessPlans,
-	NewPersonalPlans,
-	PaymentMethodType,
-	PlanType,
-} from "../../../entities/sys/Utils"
+import { AvailablePlanType, HighlightedPlans, LegacyPlans, NewBusinessPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { PrimaryButton, PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -127,7 +119,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isFirstMonthForFree) {
-			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.spacing_16), marginBottom: px(size.spacing_16) })
+			return wrapInDiv(lang.get("firstMonthForFree_msg"), {
+				marginTop: px(size.spacing_16),
+				marginBottom: px(size.spacing_16),
+			})
 		}
 
 		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
@@ -367,7 +362,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
 		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
-		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && LegacyPrivatePlans.includes(targetSubscription))
+		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
 
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
