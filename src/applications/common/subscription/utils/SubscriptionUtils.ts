@@ -27,7 +27,7 @@ import {
 	BookingItemFeatureType,
 	CustomDomainType,
 	CustomDomainTypeCount,
-	LegacyPrivatePlans,
+	LegacyBusinessPlans,
 	NewBusinessPlans,
 	NewPaidPlans,
 	PaymentMethodType,
@@ -538,7 +538,7 @@ export function getFeaturePlaceholderReplacement(
  * @return true if the given plan is a business plan
  */
 export function isBusinessPlan(plan: AvailablePlanType): boolean {
-	return NewBusinessPlans.includes(plan) || LegacyPrivatePlans.includes(plan)
+	return NewBusinessPlans.includes(plan) || LegacyBusinessPlans.includes(plan)
 }
 
 /**
@@ -563,6 +563,7 @@ export function canSubscribeToPlan(plan: AvailablePlanType): boolean {
 export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null): PaymentInterval | undefined {
 	return accountingInfo ? (parseInt(accountingInfo.paymentInterval) as PaymentInterval) : undefined
 }
+
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 export function getDefaultPaymentMethod(): PaymentMethodType {
