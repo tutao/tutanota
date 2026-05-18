@@ -34,9 +34,9 @@ pipeline {
 		PATH="${env.NODE_PATH}:${env.PATH}"
 		PACKAGE_VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		VERSION = "${params.appVersion.trim() ?: PACKAGE_VERSION}"
-		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-ios-release-${VERSION}"
-		FILE_PATH_STAGING = "build/app-ios/releases/tutanota-${VERSION}-test.ipa"
-		FILE_PATH_PROD = "build/app-ios/releases/tutanota-${VERSION}.ipa"
+		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-ios-release-${VERSION}"
+		FILE_PATH_STAGING = "build/app-ios/releases/calendar-ios-test-${VERSION}.ipa"
+		FILE_PATH_PROD = "build/app-ios/releases/calendar-ios-${VERSION}.ipa"
 	}
 
     agent {
@@ -60,14 +60,14 @@ pipeline {
 				stage("Staging") {
 					when { expression { return params.STAGING } }
 					steps {
-						downloadIOSApp("ios-test", FILE_PATH_STAGING)
+						downloadIOSApp("calendar-ios-test", FILE_PATH_STAGING)
 						stash includes: FILE_PATH_STAGING, name: 'ipa-staging'
 					}
 				}
 				stage("Production") {
 					when { expression { return params.PROD } }
 					steps {
-						downloadIOSApp("ios", FILE_PATH_PROD)
+						downloadIOSApp("calendar-ios", FILE_PATH_PROD)
 						stash includes: FILE_PATH_PROD, name: 'ipa-prod'
 					}
 				}
@@ -93,7 +93,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.tutanota.test", "publish_mail_appstore_staging_to_testflight file:${WORKSPACE}/${FILE_PATH_STAGING}")
+							util.runFastlane("de.tutao.calendar.test", "publish_calendar_appstore_staging_to_testflight file:${WORKSPACE}/${FILE_PATH_STAGING}")
 						}
 					} // steps
 				} // stage staging
@@ -104,7 +104,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.tutanota", "publish_mail_appstore_prod_to_app_store file:${WORKSPACE}/${FILE_PATH_PROD}")
+							util.runFastlane("de.tutao.calendar", "publish_calendar_appstore_prod_to_app_store file:${WORKSPACE}/${FILE_PATH_PROD}")
 						}
 					} // steps
 				} // stage production
@@ -118,8 +118,8 @@ pipeline {
 
 					writeFile file: "notes.txt", text: params.releaseNotes
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (iOS)' \
-																--tag 'tutanota-ios-release-${VERSION}' \
+						sh """node buildSrc/createReleaseDraft.js --name '[Calendar] ${VERSION} (iOS)' \
+																--tag 'tuta-calendar-ios-release-${VERSION}' \
 																--notes notes.txt"""
 					} // withCredentials
 					sh "rm notes.txt"

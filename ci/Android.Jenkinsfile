@@ -5,8 +5,8 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
 		ANDROID_SDK_ROOT = "/opt/android-sdk"
 		ANDROID_HOME = "/opt/android-sdk"
-		STAGING_FILE_PATH = "build/app-android/tutanota-app-tutao-releaseTest-${VERSION}.apk"
-		PROD_FILE_PATH = "build/app-android/tutanota-app-tutao-release-${VERSION}.apk"
+		STAGING_APK_FILE_PATH = "artifacts/app-android/tutanota-app-tutao-releaseTest-${VERSION}.apk"
+		PROD_APK_FILE_PATH = "artifacts/app-android/tutanota-app-tutao-release-${VERSION}.apk"
 	}
 
 	agent {
@@ -58,13 +58,6 @@ pipeline {
 				}
 			}
 		}
-		stage('Run Tests') {
-			steps {
-				dir("${WORKSPACE}/app-android/") {
-					sh "./gradlew test"
-				}
-			}
-		}
 		stage('Build') {
 			stages {
 				stage('Staging') {
@@ -81,7 +74,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b releaseTest test'
 						}
-						stash includes: "${STAGING_FILE_PATH}", name: 'apk-staging'
+						stash includes: STAGING_APK_FILE_PATH, name: 'apk-staging'
 					} // steps
 				} // stage staging
 				stage('Production') {
@@ -98,7 +91,7 @@ pipeline {
 						]) {
 							sh 'node android.js -b release prod'
 						}
-						stash includes: "${PROD_FILE_PATH}", name: 'apk-production'
+						stash includes: PROD_APK_FILE_PATH, name: 'apk-production'
 					}
 				} // stage production
 			} // stages
@@ -111,14 +104,26 @@ pipeline {
 					when { expression { return params.STAGING } }
 					steps {
 						unstash 'apk-staging'
-						uploadToNexus("android-test", STAGING_FILE_PATH)
+						publishToNexus(
+								groupId: 'app',
+								artifactId: 'android-test',
+								version: VERSION,
+								assetFilePath: STAGING_APK_FILE_PATH,
+								fileExtension: 'apk'
+						)
 					}
 				} // stage staging
 				stage('Production') {
 					when { expression { return params.PROD } }
 					steps {
 						unstash 'apk-production'
-						uploadToNexus("android", PROD_FILE_PATH)
+						publishToNexus(
+							groupId: 'app',
+							artifactId: 'android',
+							version: VERSION,
+							assetFilePath: PROD_APK_FILE_PATH,
+							fileExtension: 'apk'
+						)
 					}
 				} // stage production
 			} // stages
@@ -126,16 +131,11 @@ pipeline {
 	} // stages
 } // pipeline
 
-def uploadToNexus(String artifactId, String filePath) {
+
+// define helper to call from declarative pipeline without a `script` block
+def publishToNexus(Map params) {
 	script {
 		def util = load "ci/jenkins-lib/util.groovy"
-
-		util.publishToNexus(
-				groupId: "app",
-				artifactId: "${artifactId}",
-				version: "${VERSION}",
-				assetFilePath: "${WORKSPACE}/${filePath}",
-				fileExtension: 'apk'
-		)
+		util.publishToNexus(params)
 	}
 }

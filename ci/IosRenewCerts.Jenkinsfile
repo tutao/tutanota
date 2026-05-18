@@ -84,8 +84,8 @@ pipeline {
 						// Be careful with fastlane! It likes to pull in random env variables and override parameters
 						// that we explicitly specify. Some of the env variables we use explicitly in app-ios/Fastfile,
 						// some are used implicitly by fastlane.
-						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_adhoc_cert_prod force:${params.force}"
-						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_appstore_cert_prod force:${params.force}"
+						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_mail_adhoc_prod_cert force:${params.force}"
+						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_mail_appstore_prod_cert force:${params.force}"
 					}
 				}
 			}
@@ -141,8 +141,8 @@ pipeline {
 						// Be careful with fastlane! It likes to pull in random env variables and override parameters
 						// that we explicitly specify. Some of the env variables we use explicitly in app-ios/Fastfile,
 						// some are used implicitly by fastlane.
-						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_adhoc_cert_staging force:${params.force}"
-						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_appstore_cert_staging force:${params.force}"
+						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_mail_adhoc_staging_cert force:${params.force}"
+						sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane renew_mail_appstore_staging_cert force:${params.force}"
 					}
 				}
 			}
