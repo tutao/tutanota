@@ -114,7 +114,7 @@ styles.registerStyle("main", () => {
 		},
 		" @font-face": {
 			"font-family": "'MDIO'",
-			src: `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2') format('woff2')`,
+			src: `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2') format('woff2'), url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff') format('woff'), url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.otf') format('opentype')`,
 			"font-style": "normal",
 			"font-weight": 600,
 			"font-display": "block",
