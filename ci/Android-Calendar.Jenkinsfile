@@ -5,6 +5,11 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
 		ANDROID_SDK_ROOT = "/opt/android-sdk"
 		ANDROID_HOME = "/opt/android-sdk"
+		// FIXME
+		STAGING_APK_FILE_PATH = "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk"
+		STAGING_AAB_FILE_PATH = "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab"
+		PROD_APK_FILE_PATH = "build/app-android/tutanota-app-tutao-release-${VERSION}.apk"
+		PROD_AAB_FILE_PATH = ""
 	}
 
 	agent {
@@ -17,25 +22,45 @@ pipeline {
 
 	parameters {
 		booleanParam(
-			name: 'RELEASE', defaultValue: false,
-			description: "Build a test and release version of the app. Uploads both to Nexus."
+				name: 'UPLOAD',
+				defaultValue: false,
+				description: "Upload staging/prod to Nexus"
 		)
-        string(
-            name: 'branch',
-            defaultValue: "*/master",
-            description: "the branch to build the release from."
-        )
+		booleanParam(
+				name: 'STAGING',
+				defaultValue: true
+		)
+		booleanParam(
+				name: 'PROD',
+				defaultValue: true
+		)
+		string(
+				name: 'branch',
+				defaultValue: "*/master",
+				description: "the branch to build the release from."
+		)
 	}
 
 	stages {
-//     	stage('Check Github') {
-// 			steps {
-// 				script {
-// 					def util = load "ci/jenkins-lib/util.groovy"
-// 					util.checkGithub()
-// 				}
-// 			}
-//     	}
+		stage("Checking params") {
+			steps {
+				script {
+					if (!params.STAGING && !params.PROD) {
+						currentBuild.result = 'ABORTED'
+						error('No artifacts were selected.')
+					}
+				}
+				echo "Params OKAY"
+			}
+		} // stage checking params
+    	stage('Check Github') {
+			steps {
+				script {
+					def util = load "ci/jenkins-lib/util.groovy"
+					util.checkGithub()
+				}
+			}
+    	}
 		stage('Run Tests') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {
@@ -45,14 +70,12 @@ pipeline {
 		}
 		stage('Build') {
 			stages {
-				stage('Testing') {
+				stage('Staging') {
 					environment {
 						APK_SIGN_ALIAS = "test.tutao.de"
 					}
-					agent {
-						label 'linux'
-					}
 					steps {
+						echo "Building STAGING ${VERSION}"
 						sh 'npm ci'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
@@ -66,13 +89,13 @@ pipeline {
 				} // stage testing
 				stage('Production') {
 					when {
-						expression { return params.RELEASE }
+						expression { return params.PROD }
 					}
 					environment {
 						APK_SIGN_ALIAS = "tutao.de"
 					}
 					steps {
-						echo "Building ${VERSION}"
+						echo "Building PROD ${VERSION}"
 						sh 'npm ci'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),

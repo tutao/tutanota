@@ -311,7 +311,7 @@ pipeline {
 									when { expression { return BUILD.toBoolean() } }
 									steps {
 										script {
-											build job: 'tutanota-3-android', parameters: [
+											build job: 'tuta-calendar-android', parameters: [
 													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
 													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
 													booleanParam(name: "PROD", value: true),
