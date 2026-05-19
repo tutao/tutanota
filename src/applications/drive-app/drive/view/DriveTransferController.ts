@@ -1,17 +1,17 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { filterInt } from "../../../../platform-kit/utils"
+import { filterInt } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import { CancelledError, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
+import { CancelledError } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
-import { ArchiveDataType } from "../../../../entities/sys/Utils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { DriveFile } from "@tutao/entities/drive"
 import { TransferId } from "../../../../entities/drive/Utils"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
 
-type DriveTransferType = "upload" | "download"
+export type DriveTransferType = "upload" | "download"
 
 export interface DriveTransferState {
 	id: TransferId
@@ -43,9 +43,6 @@ type QueuedTransfer =
 	  }
 
 type FileId = TransferId
-
-/** @private visibleForTesting */
-export const FINISHED_TRANSFER_RETAIN_TIMEOUT_MS = 4 * SECOND_IN_MILLIS
 
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []
@@ -186,12 +183,16 @@ export class DriveTransferController {
 		}
 	}
 
+	async flush() {
+		const activeTransfers = this.queue.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
+		this.queue.splice(0, this.queue.length, ...activeTransfers)
+	}
+
 	private finishUpload(fileId: FileId) {
 		const stateForThisFile = this.transferForId(fileId)
 		if (stateForThisFile) {
 			stateForThisFile.state = "finished"
 			this.updateUi()
-			this.cleanupTransfer(fileId)
 		}
 	}
 
@@ -200,7 +201,6 @@ export class DriveTransferController {
 		if (fileState) {
 			fileState.state = "failed"
 			this.updateUi()
-			this.cleanupTransfer(fileId)
 		}
 	}
 
@@ -239,13 +239,9 @@ export class DriveTransferController {
 		if (stateForThisFile) {
 			stateForThisFile.state = "finished"
 			this.updateUi()
-			this.cleanupTransfer(transferId)
 		}
 	}
 
-	private cleanupTransfer(transferId: TransferId) {
-		this.scheduler.scheduleAfter(() => this.removeTransfer(transferId), FINISHED_TRANSFER_RETAIN_TIMEOUT_MS)
-	}
 	private removeTransfer(fileId: TransferId) {
 		const index = this.queue.findIndex((item) => item.id === fileId)
 		if (index !== -1) {
