@@ -2299,3 +2299,5 @@ export type TranslationKeyType =
 	| "confirmCancelTransfers_msg"
 	| "confirmCancelTransfers_action"
 	| "nativeFileUploadTooLarge_msg"
+	| "selectAllFiles_action"
+	| "clearFileSelection_action"
