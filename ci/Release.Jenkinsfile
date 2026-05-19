@@ -324,7 +324,7 @@ pipeline {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
 										script {
-											build job: 'tutanota-3-android-publish', parameters: params.target.equals("publishToProd") ? [
+											build job: 'tuta-calendar-android-publish', parameters: params.target.equals("publishToProd") ? [
 													booleanParam(name: "STAGING", value: false),
 													booleanParam(name: "PROD", value: true),
 													booleanParam(name: "GITHUB_RELEASE", value: true),
