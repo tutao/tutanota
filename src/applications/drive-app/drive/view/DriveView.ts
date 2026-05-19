@@ -13,7 +13,7 @@ import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
 import { attachDropdown, createDropdown, Dropdown } from "../../../../ui/base/Dropdown"
-import { DriveTransferStack } from "./DriveTransferStack"
+import { DriveTransferStack, DriveTransferStackAttrs } from "./DriveTransferStack"
 import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
@@ -437,7 +437,26 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							m(DriveTransferStack, {
 								transfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
-							}),
+								cancelAllTransfers: async () => {
+									const transfers = this.driveViewModel.transfers()
+									const activeTransfers = transfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
+									if (isNotEmpty(activeTransfers)) {
+										const ok =
+											transfers.length === 1
+												? true
+												: await Dialog.confirm(
+														lang.getTranslation("confirmCancelTransfers_msg", { "{count}": activeTransfers.length }),
+														"confirmCancelTransfers_action",
+													)
+										if (ok) {
+											for (const { id } of transfers) {
+												this.driveViewModel.cancelTransfer(id)
+											}
+										}
+									}
+									this.driveViewModel.flushTransfers()
+								},
+							} satisfies DriveTransferStackAttrs),
 						],
 						mobileHeader: () => this.renderMobileHeader(headerAttrs, showMoveItemDialog),
 					})

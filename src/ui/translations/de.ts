@@ -2290,6 +2290,15 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"transfersDone_label": "Fertig",
+		"transfersCompleted_msg": "{done} of {total} completed",
+		"transfersFailed_label": "Error",
+		"transfersFailed_msg": "Something went wrong",
+		"transferring_label": "Transferring …",
+		"expandTransferStack_label": "Expand transfers",
+		"collapseTransferStack_label": "Collapse transfers",
+		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
+		"confirmCancelTransfers_action": "Cancel transfers",
 	}
 }
