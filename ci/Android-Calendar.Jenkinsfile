@@ -5,11 +5,10 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
 		ANDROID_SDK_ROOT = "/opt/android-sdk"
 		ANDROID_HOME = "/opt/android-sdk"
-		// FIXME
-		STAGING_APK_FILE_PATH = "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk"
-		STAGING_AAB_FILE_PATH = "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab"
-		PROD_APK_FILE_PATH = "build/app-android/tutanota-app-tutao-release-${VERSION}.apk"
-		PROD_AAB_FILE_PATH = ""
+		STAGING_APK_FILE_PATH = "artifacts/app-android/calendar-tutao-releaseTest-${VERSION}.apk"
+		STAGING_AAB_FILE_PATH = "artifacts/app-android/calendar-tutao-releaseTest-${VERSION}.aab"
+		PROD_APK_FILE_PATH = "artifacts/app-android/calendar-tutao-release-${VERSION}.apk"
+		PROD_AAB_FILE_PATH = "artifacts/app-android/calendar-tutao-release-${VERSION}.aab"
 	}
 
 	agent {
@@ -61,13 +60,6 @@ pipeline {
 				}
 			}
     	}
-		stage('Run Tests') {
-			steps {
-				dir("${WORKSPACE}/app-android/") {
-					sh "./gradlew test"
-				}
-			}
-		}
 		stage('Build') {
 			stages {
 				stage('Staging') {
@@ -83,8 +75,8 @@ pipeline {
 						]) {
 							sh 'node android.js -b releaseTest test -a calendar'
 						}
-						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab", name: 'aab-testing'
-						stash includes: "build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk", name: 'apk-testing'
+						stash includes: STAGING_AAB_FILE_PATH, name: 'aab-testing'
+						stash includes: STAGING_APK_FILE_PATH, name: 'apk-testing'
                     }
 				} // stage testing
 				stage('Production') {
@@ -103,72 +95,69 @@ pipeline {
 						]) {
 							sh 'node android.js -b release prod -a calendar'
 						}
-						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.aab", name: 'aab-production'
-						stash includes: "build-calendar-app/app-android/calendar-tutao-release-${VERSION}.apk", name: 'apk-production'
+						stash includes: PROD_AAB_FILE_PATH, name: 'aab-production'
+						stash includes: PROD_APK_FILE_PATH, name: 'apk-production'
 					}
 				} // stage production
 			}
 		}
 
-		stage('Publish') {
-			when {
-				expression { return params.RELEASE }
-			}
-			stages {
-				stage('Testing') {
+		stage('Upload to Nexus') {
+			when { expression { return params.UPLOAD } }
+			parallel {
+				stage('Staging') {
+					when { expression { return params.STAGING } }
 					steps {
-						script {
-							def util = load "ci/jenkins-lib/util.groovy"
-							unstash 'aab-testing'
+						unstash 'aab-testing'
+						publishToNexus(
+								groupId: "app",
+								artifactId: "calendar-android-test",
+								version: VERSION,
+								assetFilePath: STAGING_AAB_FILE_PATH,
+								fileExtension: 'aab'
+						)
 
-							util.publishToNexus(
-									groupId: "app",
-									artifactId: "calendar-android-test",
-									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.aab",
-									fileExtension: 'aab'
-							)
-							unstash 'apk-testing'
-
-							util.publishToNexus(
-									groupId: "app",
-									artifactId: "calendar-android-test-apk",
-									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/build-calendar-app/app-android/calendar-tutao-releaseTest-${VERSION}.apk",
-									fileExtension: 'apk'
-							)
-						}
+						unstash 'apk-staging'
+						publishToNexus(
+								groupId: "app",
+								artifactId: "calendar-android-test-apk",
+								version: VERSION,
+								assetFilePath: STAGING_APK_FILE_PATH,
+								fileExtension: 'apk'
+						)
 					}
-				} // stage testing
+				} // stage staging
 				stage('Production') {
+					when { expression { return params.PROD } }
 					steps {
-						sh 'npm ci'
 						unstash 'aab-production'
+						publishToNexus(
+								groupId: "app",
+								artifactId: "calendar-android",
+								version: VERSION,
+								assetFilePath: PROD_AAB_FILE_PATH,
+								fileExtension: 'aab'
+						)
+
 						unstash 'apk-production'
-
-						script {
-							def filePath = "build-calendar-app/app-android/calendar-tutao-release-${VERSION}"
-							def util = load "ci/jenkins-lib/util.groovy"
-
-							util.publishToNexus(
-									groupId: "app",
-									artifactId: "calendar-android",
-									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/${filePath}.aab",
-									fileExtension: 'aab'
-							)
-
-							util.publishToNexus(
-									groupId: "app",
-									artifactId: "calendar-android-apk",
-									version: "${VERSION}",
-									assetFilePath: "${WORKSPACE}/${filePath}.apk",
-									fileExtension: 'apk'
-							)
-						}
+						publishToNexus(
+								groupId: "app",
+								artifactId: "calendar-android-apk",
+								version: VERSION,
+								assetFilePath: PROD_APK_FILE_PATH,
+								fileExtension: 'apk'
+						)
 					}
 				} // stage production
-			}
-		}
+			} // stages
+		} // stage upload to nexus
+	} // stages
+}
+
+// define helper to call from declarative pipeline without a `script` block
+def publishToNexus(Map params) {
+	script {
+		def util = load "ci/jenkins-lib/util.groovy"
+		util.publishToNexus(params)
 	}
 }
