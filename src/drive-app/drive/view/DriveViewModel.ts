@@ -700,6 +700,10 @@ export class DriveViewModel {
 		this.transferController.cancelTransfer(transferId)
 	}
 
+	flushTransfers() {
+		this.transferController.flush()
+	}
+
 	/**
 	 * Update the used storage. Debounce it so that we don't request it too frequently.
 	 */

@@ -2274,6 +2274,15 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"driveNotEnabled_msg": "Drive ist für dieses Konto nicht aktiviert"
+		"driveNotEnabled_msg": "Drive ist für dieses Konto nicht aktiviert",
+		"transfersDone_label": "Fertig",
+		"transfersCompleted_msg": "{done} of {total} completed",
+		"transfersFailed_label": "Error",
+		"transfersFailed_msg": "Something went wrong",
+		"transferring_label": "Transferring …",
+		"expandTransferStack_label": "Expand transfers",
+		"collapseTransferStack_label": "Collapse transfers",
+		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
+		"confirmCancelTransfers_action": "Cancel transfers",
 	}
 }
