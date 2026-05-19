@@ -2285,5 +2285,7 @@ export default {
 		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
 		"confirmCancelTransfers_action": "Cancel transfers",
 		"nativeFileUploadTooLarge_msg": "Diese Datei ist zu groß, um aus der App hochgeladen zu werden. Bitte versuchen Sie es in der Web-App erneut.",
+		"selectAllFiles_action": "Alle Dateien und Ordner auswählen",
+		"clearFileSelection_action": "Datei- und Ordnerauswahl leeren",
 	}
 }

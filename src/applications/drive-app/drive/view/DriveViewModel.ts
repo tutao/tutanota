@@ -650,12 +650,16 @@ export class DriveViewModel {
 		return this.listModel.areAllSelected()
 	}
 
-	selectAll() {
+	toggleSelectAll() {
 		if (this.listModel.isSelectionEmpty()) {
 			this.listModel.selectAll()
 		} else {
 			this.listModel.selectNone()
 		}
+	}
+
+	selectAll() {
+		this.listModel.selectAll()
 	}
 
 	selectNone() {
