@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { LegacyTextFieldType } from "../../../../common/gui/base/LegacyTextField.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { EndType, Keys, RepeatPeriod, TabIndex, Weekday } from "@tutao/app-env"
+import { EndType, isApp, Keys, RepeatPeriod, TabIndex, Weekday } from "@tutao/app-env"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
@@ -29,7 +29,6 @@ import { Divider } from "../../../../common/gui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
-import { isApp } from "@tutao/app-env"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -199,10 +198,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					? [
 							m(Divider, { color: theme.outline_variant }),
 							m(WeekRepetitionSelector, {
-								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(
-									DateTime.fromJSDate(attrs.model.startDate).weekday,
-									this.calculateWeekdayOccurrencesInMonth(attrs.model.startDate),
-								),
+								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(DateTime.fromJSDate(attrs.model.startDate).weekday),
 								interval: this.byDayRules?.interval ?? 0,
 								gatherSelectedDay: attrs.writeWeekdaysToModel,
 							}),
@@ -406,17 +402,5 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					),
 			} satisfies SelectAttributes<IntervalOption, number>),
 		)
-	}
-
-	/**
-	 * Calculates the amount of occurrences of the given weekday in the month.
-	 * The amount of occurrences in the entire month is a sum of:
-	 *  o difference of Days between given date and first day of month, rounded down
-	 *  o remaining days in month, rounded down
-	 *  o the date itself
-	 */
-	private calculateWeekdayOccurrencesInMonth(date: Date) {
-		const numberOfDaysInMonth: number = DateTime.fromJSDate(date).daysInMonth as number
-		return Math.floor((date.getDate() - 1) / 7) + Math.floor((numberOfDaysInMonth - date.getDate()) / 7) + 1
 	}
 }

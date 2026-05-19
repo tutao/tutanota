@@ -53,12 +53,15 @@ import {
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
+	AccountType,
 	CalendarAttendeeStatus,
 	DAY_IN_MILLIS,
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
 	EventTextTimeOption,
+	isAppleDevice,
 	Keys,
+	ProgrammingError,
 	RepeatPeriod,
 	ShareCapability,
 	Weekday,
@@ -69,7 +72,6 @@ import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
-import { ProgrammingError } from "@tutao/app-env"
 import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
@@ -90,7 +92,6 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../common/misc/KeyManager.js"
 import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
-import { AccountType, isAppleDevice } from "@tutao/app-env"
 
 export interface IntervalOption {
 	value: number
@@ -503,11 +504,9 @@ export const createIntervalValues = (): IntervalOption[] =>
  * (1 = Monday, ..., 7 = Sunday). Since our internal format Starts with 0 = Monday, we have to decrement the weekday number.
  *
  * @param weekday
- * @param numberOfWeekdaysInMonth how many times this Weekday occurs in the current month. Per default assume 4.
  */
 export const createRepetitionValuesForWeekday = (
 	weekday: number,
-	numberOfWeekdaysInMonth: number = 4,
 ): {
 	options: IntervalOption[]
 	weekday: number
@@ -547,6 +546,15 @@ export const createRepetitionValuesForWeekday = (
 			}),
 		},
 		{
+			value: 4,
+			ariaValue: lang.get("fourthOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+			name: lang.get("fourthOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
+		},
+		{
 			value: -1,
 			ariaValue: lang.get("lastOfPeriod_label", {
 				"{day}": weekdayLabel,
@@ -556,18 +564,6 @@ export const createRepetitionValuesForWeekday = (
 			}),
 		},
 	]
-
-	if (numberOfWeekdaysInMonth > 4) {
-		options.splice(4, 0, {
-			value: 4,
-			ariaValue: lang.get("fourthOfPeriod_label", {
-				"{day}": weekdayLabel,
-			}),
-			name: lang.get("fourthOfPeriod_label", {
-				"{day}": weekdayLabel,
-			}),
-		})
-	}
 
 	return { options, weekday }
 }
