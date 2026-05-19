@@ -161,6 +161,24 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.shortcuts = [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel),
 			{
+				key: Keys.ESC,
+				enabled: () => true,
+				help: "clearFileSelection_action",
+				ctrlOrCmd: false,
+				exec: () => {
+					this.driveViewModel.selectNone()
+				},
+			},
+			{
+				key: Keys.A,
+				enabled: () => true,
+				help: "selectAllFiles_action",
+				ctrlOrCmd: true,
+				exec: () => {
+					this.driveViewModel.selectAll()
+				},
+			},
+			{
 				key: Keys.C,
 				enabled: () => true,
 				help: "copy_action",
@@ -490,7 +508,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			return m(MultiselectMobileHeader, {
 				message: lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }),
 				selected: listState.selectedItems.size === listState.items.length,
-				selectAll: () => this.driveViewModel.selectAll(),
+				selectAll: () => this.driveViewModel.toggleSelectAll(),
 				selectNone: () => this.driveViewModel.selectNone(),
 			})
 		} else {
@@ -558,7 +576,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			listState: listState,
 			selectionEvents: {
 				onSelectAll: () => {
-					this.driveViewModel.selectAll()
+					this.driveViewModel.toggleSelectAll()
 				},
 				onSelectNone: () => {
 					this.driveViewModel.selectNone()
