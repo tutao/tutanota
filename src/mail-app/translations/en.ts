@@ -2274,6 +2274,15 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"transfersDone_label": "Done",
+		"transfersCompleted_msg": "{done} of {total} completed",
+		"transfersFailed_label": "Error",
+		"transfersFailed_msg": "Something went wrong",
+		"transferring_label": "Transferring …",
+		"expandTransferStack_label": "Expand transfers",
+		"collapseTransferStack_label": "Collapse transfers",
+		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
+		"confirmCancelTransfers_action": "Cancel transfers",
 	}
 }

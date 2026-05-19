@@ -23,10 +23,10 @@ import Stream from "mithril/stream"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Button, ButtonType } from "../../../common/gui/base/Button"
 import { mailLocator } from "../../mailLocator"
-import { CircleLoadingBar } from "../../../common/gui/ProgressSnackBar"
 import { formatDate } from "../../../common/misc/Formatter"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { CircleLoadingBar } from "../../../common/gui/CircleLoadingBar"
 
 assertMainOrNode()
 
