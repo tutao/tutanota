@@ -149,7 +149,7 @@ platform :ios do
 	#
 	desc "Publish Mail staging artifact to TestFlight"
 	lane :publish_mail_appstore_staging_to_testflight do |options|
-		sh 'echo "Uploading mail staging to TestFlight ' + options[:file] + '"'
+		UI.message "Uploading Mail staging app to TestFlight #{options[:file]}"
 
 		upload_to_testflight(
 			ipa: options[:file],
@@ -162,7 +162,7 @@ platform :ios do
 
 	desc "Publish Mail production artifact to AppStore"
 	lane :publish_mail_appstore_prod_to_app_store do |options|
-		sh 'echo "Uploading mail artifact ' + options[:file] + '"'
+		UI.message "Uploading Mail production app to App Store #{options[:file]}"
 
 		upload_to_app_store(
 			ipa: options[:file],
@@ -426,7 +426,7 @@ platform :ios do
 	#
 	desc "Publish Calendar production artifact to TestFlight"
 	lane :publish_calendar_appstore_staging_to_testflight do
-	   sh 'echo "Uploading Calendar staging to TestFlight ' + options[:file] + '"'
+		UI.message "Uploading Calendar staging app to TestFlight #{options[:file]}"
 
 		upload_to_testflight(
 			ipa: options[:file],
@@ -438,7 +438,7 @@ platform :ios do
 
 	desc "Publish Calendar production artifact to AppStore"
 	lane :publish_calendar_appstore_prod_to_app_store do |options|
-		sh 'echo "Uploading calendar artifact ' + options[:file] + '"'
+		UI.message "Uploading Calendar staging app to App Store #{options[:file]}"
 
 		upload_to_app_store(
 			ipa: options[:file],
