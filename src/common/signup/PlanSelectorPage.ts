@@ -14,6 +14,7 @@ import { MessageBanner } from "../gui/base/MessageBanner"
 import { Icons } from "../gui/base/icons/Icons"
 import { PlanTypeToName } from "@tutao/typerefs"
 import { AvailablePlanType, PlanType } from "@tutao/app-env"
+import { PaymentInterval } from "../subscription/utils/PriceUtils"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -89,7 +90,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								availablePlans: availablePlans!,
 								isApplePrice,
 								currentPlan: data.currentPlan ?? undefined,
-								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo!),
+								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo) ?? PaymentInterval.Yearly,
 								allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 								showMultiUser: false,
 								discountDetails,

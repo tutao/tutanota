@@ -8,6 +8,7 @@ import {
 	AvailablePlanType,
 	BookingFailureReason,
 	Const,
+	countryList,
 	GroupType,
 	InvoiceData,
 	isIOSApp,
@@ -29,7 +30,6 @@ import * as restError from "@tutao/rest-client/error"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
-import { countryList } from "@tutao/app-env"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../gui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
@@ -90,7 +90,7 @@ export async function showSwitchDialog({
 
 	const currentPlanInfo = model.currentPlanInfo
 	const businessUse = stream(currentPlanInfo.businessUse)
-	const paymentInterval = stream(PaymentInterval.Yearly) // always default to yearly
+	const paymentInterval = stream(parseInt(accountingInfo.paymentInterval)) // always default to yearly
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
 	const isApplePrice = shouldShowApplePrices(accountingInfo)
@@ -146,7 +146,7 @@ export async function showSwitchDialog({
 					currentPlan: currentPlanInfo.planType,
 					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 					// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
-					allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
+					allowSwitchingPaymentInterval: isApplePrice || !!currentPlanInfo.paymentInterval,
 					showMultiUser: multipleUsersAllowed,
 					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 					discountDetails,
