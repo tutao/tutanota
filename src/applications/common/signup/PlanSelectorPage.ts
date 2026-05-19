@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { getCurrentPaymentInterval, PlanTypeToName, shouldShowApplePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "../subscription/utils/PlanSelectorUtils"
+import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle } from "../subscription/utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../subscription/PlanSelector"
@@ -11,8 +11,8 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px } from "../../../ui/size"
 import { styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
-import { Icons } from "../../../ui/base/icons/Icons"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
+import { PaymentInterval } from "../subscription/utils/PriceUtils"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
@@ -88,7 +88,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								availablePlans: availablePlans!,
 								isApplePrice,
 								currentPlan: data.currentPlan ?? undefined,
-								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo!),
+								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo) ?? PaymentInterval.Yearly,
 								allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 								showMultiUser: false,
 								discountDetails,

@@ -49,9 +49,8 @@ import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
+import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
-import { Icons } from "../../../ui/base/icons/Icons"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
@@ -92,7 +91,7 @@ export async function showSwitchDialog({
 
 	const currentPlanInfo = model.currentPlanInfo
 	const businessUse = stream(currentPlanInfo.businessUse)
-	const paymentInterval = stream(PaymentInterval.Yearly) // always default to yearly
+	const paymentInterval = stream(parseInt(accountingInfo.paymentInterval)) // always default to yearly
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
 	const isApplePrice = shouldShowApplePrices(accountingInfo)
@@ -148,7 +147,7 @@ export async function showSwitchDialog({
 					currentPlan: currentPlanInfo.planType,
 					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 					// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
-					allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
+					allowSwitchingPaymentInterval: isApplePrice || !!currentPlanInfo.paymentInterval,
 					showMultiUser: multipleUsersAllowed,
 					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 					discountDetails,
