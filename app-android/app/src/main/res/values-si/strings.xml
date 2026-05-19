@@ -10,6 +10,11 @@
     <string name="markRead_action">කියවූ ලෙස ලකුණු කරන්න</string>
     <string name="sendLogs_action">සටහන් යවන්න</string>
     <string name="account_label">පරිශ්‍රීලක</string>
+    <string name="calendars_label">දිනදසුන්</string>
+    <string name="widgetNoCredentialsInfo_msg">අක්තපත්‍ර නොතිබේ</string>
+    <string name="widgetCredentialsError_msg">දිනදසුන යෙදුමෙන් පිවිසෙන්න</string>
+    <string name="widgetOpenApp_action">යෙදුම අරින්න</string>
+    <string name="widgetNoEvents_msg">සිදුවීම් නැත</string>
     <string name="birthdayCalendar_label">උපන් දින</string>
     <string name="birthdayEvent_title">{name}ගේ උපන් දිනය</string>
     <string name="birthdayEventAge_title">වයස අවුරුදු {age}</string>
