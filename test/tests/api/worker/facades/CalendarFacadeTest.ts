@@ -315,6 +315,7 @@ o.spec("CalendarFacadeTest", function () {
 				o.check(result.failedEventErrors.length).equals(1) // We had one error when saving the shortList
 				verify(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
 				verify(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
+				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
 			})
 
 			o.test("when one list fails entirely, the other list is still processed", async function () {
@@ -384,6 +385,44 @@ o.spec("CalendarFacadeTest", function () {
 
 				verify(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
 				verify(alarmFacadeMock.createAlarms(user, longListSuccessTuples, matchers.anything()), { times: 1 })
+			})
+			o.test("when events are successful and have no alarms, alarm service is NOT called, to prevent unnecessary server requests", async function () {
+				const expectedSuccessfulEvents = shortListEvents.concat(longListEvents)
+
+				// remove alarms from tuples
+				eventAlarmInfoTemplatesTuples = eventAlarmInfoTemplatesTuples.map((tuple) => {
+					tuple.alarmInfoTemplates = []
+					return tuple
+				})
+
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
+
+				o.check(result.successfulEvents).deepEquals(expectedSuccessfulEvents)
+				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			})
+
+			o.test("when events are successful and only 1 event has an alarm, the alarm service is called, only for the relevant event", async function () {
+				const expectedSuccessfulEvents = shortListEvents.concat(longListEvents)
+				const shortListSuccessTuples = [{ event: workCalendarEvent, alarmInfoTemplates: [workAlarmTemplate] }]
+
+				eventAlarmInfoTemplatesTuples = [
+					{ event: personalCalendarEvent, alarmInfoTemplates: [] },
+					{ event: workCalendarEvent, alarmInfoTemplates: [workAlarmTemplate] },
+					{ event: vacationsCalendarEvent, alarmInfoTemplates: [] },
+				]
+				when(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything())).thenResolve()
+
+				const result = await calendarFacade.createCalendarEvents(eventAlarmInfoTemplatesTuples, 0)
+
+				o.check(result.successfulEvents).deepEquals(expectedSuccessfulEvents)
+				o.check(result.failedEvents.length).equals(0)
+				o.check(result.failedEventErrors.length).equals(0)
+				o.check(result.failedAlarms.length).equals(0)
+				o.check(result.failedAlarmErrors.length).equals(0)
+
+				verify(alarmFacadeMock.createAlarms(user, shortListSuccessTuples, matchers.anything()), { times: 1 })
+				// verify not called additional times with any other inputs (e.g. for long list)
+				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
 			})
 		})
 	})

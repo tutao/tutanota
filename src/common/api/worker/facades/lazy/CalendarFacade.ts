@@ -262,11 +262,14 @@ export class CalendarFacade {
 			currentProgress += progressForThisList / 2
 			await progressUpdater(currentProgress)
 
-			const eventAlarmTupleToPersist = eventAlarmsTuples.filter((tuple) => successfulIds.has(tuple.event._id))
-			await this.alarmFacade.createAlarms(loggedInUser, eventAlarmTupleToPersist, pushIdentifiers).catch((e) => {
-				results.failedAlarms.push(...eventAlarmTupleToPersist)
-				results.failedAlarmErrors.push(e)
-			})
+			const eventAlarmTuplesToPersist = eventAlarmsTuples.filter((tuple) => successfulIds.has(tuple.event._id) && isNotEmpty(tuple.alarmInfoTemplates))
+
+			if (isNotEmpty(eventAlarmTuplesToPersist)) {
+				await this.alarmFacade.createAlarms(loggedInUser, eventAlarmTuplesToPersist, pushIdentifiers).catch((e) => {
+					results.failedAlarms.push(...eventAlarmTuplesToPersist)
+					results.failedAlarmErrors.push(e)
+				})
+			}
 			currentProgress += progressForThisList / 2
 			await progressUpdater(currentProgress)
 		}
