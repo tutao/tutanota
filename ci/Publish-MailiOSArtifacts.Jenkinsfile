@@ -93,7 +93,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.tutanota.test", "publish_mail_staging file:${WORKSPACE}/${FILE_PATH_STAGING}")
+							util.runFastlane("de.tutao.tutanota.test", "publish_mail_adhoc_staging file:${WORKSPACE}/${FILE_PATH_STAGING}")
 						}
 					} // steps
 				} // stage staging
@@ -104,7 +104,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.tutanota", "publish_mail_prod file:${WORKSPACE}/${FILE_PATH_PROD}")
+							util.runFastlane("de.tutao.tutanota", "publish_mail_appstore_prod_to_app_store file:${WORKSPACE}/${FILE_PATH_PROD}")
 						}
 					} // steps
 				} // stage production

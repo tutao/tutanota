@@ -74,9 +74,9 @@ pipeline {
 								buildWebapp("test")
 								generateXCodeProjects()
 
-								util.runFastlane("de.tutao.calendar.test", "calendar_adhoc_staging")
+								util.runFastlane("de.tutao.calendar.test", "build_calendar_adhoc_staging")
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.calendar.test", "calendar_testflight_staging")
+									util.runFastlane("de.tutao.calendar.test", "build_calendar_appstore_staging")
 								}
 								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-testing'
 							}
@@ -94,10 +94,10 @@ pipeline {
 
 								buildWebapp("prod")
 								generateXCodeProjects()
-								util.runFastlane("de.tutao.calendar", "calendar_adhoc_prod")
+								util.runFastlane("de.tutao.calendar", "build_calendar_adhoc_prod")
 
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.calendar", "build_calendar_prod")
+									util.runFastlane("de.tutao.calendar", "build_calendar_appstore_prod")
 									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
 									stash includes: "app-ios/releases/calendar-${VERSION}.app.dSYM.zip", name: 'dsym-production'
 								} else {

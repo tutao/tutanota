@@ -93,7 +93,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.calendar.test", "publish_calendar_staging file:${WORKSPACE}/${FILE_PATH_STAGING}")
+							util.runFastlane("de.tutao.calendar.test", "publish_calendar_appstore_staging_to_testflight file:${WORKSPACE}/${FILE_PATH_STAGING}")
 						}
 					} // steps
 				} // stage staging
@@ -104,7 +104,7 @@ pipeline {
 
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							util.runFastlane("de.tutao.calendar", "publish_calendar_prod file:${WORKSPACE}/${FILE_PATH_PROD}")
+							util.runFastlane("de.tutao.calendar", "publish_calendar_appstore_prod_to_app_store file:${WORKSPACE}/${FILE_PATH_PROD}")
 						}
 					} // steps
 				} // stage production
