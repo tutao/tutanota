@@ -286,7 +286,7 @@ pipeline {
 									when { expression { return !params.target.equals("dryRun") } }
 									steps {
 										script {
-											build job: 'calendar-ios-publish', parameters: params.target.equals("publishToProd") ? [
+											build job: 'tuta-calendar-ios-publish', parameters: params.target.equals("publishToProd") ? [
 													booleanParam(name: "STAGING", value: false),
 													booleanParam(name: "PROD", value: true),
 													booleanParam(name: "GITHUB_RELEASE", value: true),
