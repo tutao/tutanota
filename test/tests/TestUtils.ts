@@ -12,14 +12,14 @@ import { Cardinality, clone, create, Entity, generatedIdToTimestamp, ModelValue,
 import { type fetch as undiciFetch, type Response } from "undici"
 import { ClientModelInfo, InstancePipeline, ModelMapper, ServerModelInfo, ServerModels, TypeModelResolver } from "@tutao/instance-pipeline"
 import { dummyResolver } from "./instance-pipeline/InstancePipelineTestUtils"
-import { accountingTypeModels, accountingModelInfo } from "@tutao/entities/accounting"
-import { baseTypeModels, baseModelInfo } from "@tutao/entities/base"
-import { driveTypeModels, driveModelInfo } from "@tutao/entities/drive"
-import { monitorTypeModels, monitorModelInfo } from "@tutao/entities/monitor"
-import { storageTypeModels, storageModelInfo } from "@tutao/entities/storage"
-import { sysTypeModels, sysModelInfo } from "@tutao/entities/sys"
-import { tutanotaTypeModels, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { usageTypeModels, usageModelInfo } from "@tutao/entities/usage"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/base/crypto/KeyLoaderFacade"
@@ -148,7 +148,7 @@ export const domainConfigStub: DomainConfig = {
 
 export function makePopulatedClientModelInfo(): ClientModelInfo {
 	const info = ClientModelInfo.getNewInstanceForTestsOnly()
-	info.typeModels = {
+	Object.assign(info.typeModels, {
 		accounting: accountingTypeModels as any,
 		base: baseTypeModels as any,
 		drive: driveTypeModels as any,
@@ -157,7 +157,7 @@ export function makePopulatedClientModelInfo(): ClientModelInfo {
 		sys: sysTypeModels as any,
 		tutanota: tutanotaTypeModels as any,
 		usage: usageTypeModels as any,
-	}
+	})
 	Object.assign(info.modelInfos, {
 		accounting: accountingModelInfo,
 		base: baseModelInfo,

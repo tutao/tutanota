@@ -3,13 +3,12 @@ import { component_size, font_size, layout_size, px, size } from "./size"
 import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
-import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
+import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
 import { hexToRGBAString } from "./base/Color"
 import { goEuropeanBlue } from "./builtinThemes"
 import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
-import { ThemeController } from "./ThemeController"
 import { client } from "../app-env/boot/ClientDetector"
 
 assertMainOrNode()
@@ -41,7 +40,7 @@ const scrollbarWidthHeight = px(18)
 
 export class MainStyles {
 	constructor(
-		private readonly themeController: ThemeController,
+		private readonly baseThemeProvider: BaseThemeProvider,
 		private readonly windowFacade: IWindowFacade,
 	) {}
 	public init() {
@@ -51,7 +50,7 @@ export class MainStyles {
 		})
 
 		styles.registerStyle("main", () => {
-			const lightTheme = this.themeController.getBaseTheme("light")
+			const lightTheme = this.baseThemeProvider.getBaseTheme("light")
 			return {
 				"#link-tt":
 					isDesktop() || isAdminClient()

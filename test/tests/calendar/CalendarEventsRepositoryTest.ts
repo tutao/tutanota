@@ -18,8 +18,9 @@ import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarVi
 import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { OperationType } from "@tutao/meta"
 
-import { EntityEventsListener, EntityUpdateData } from "@tutao/instance-pipeline"
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
+import { EntityEventsListener, EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
 		const initialCalendarGroupId = "initialCalendarGroupId"

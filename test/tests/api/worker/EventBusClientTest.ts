@@ -7,12 +7,11 @@ import { matchers, object, verify, when } from "testdouble"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { UserFacade } from "../../../../src/base/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { EntityUpdateData, InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade"
 import { ProgrammingError } from "@tutao/app-env"
 import { Thunk } from "@tutao/utils"
-import { LastProcessedEventBatchProvider, WebsocketConnectivityListener, WsConnectionState } from "@tutao/network"
-import { ConnectMode } from "../../../../src/network/Constants"
+import { ConnectMode, WsConnectionState } from "../../../../src/network/Constants"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 
 import {
@@ -27,6 +26,9 @@ import {
 	WebsocketEntityData,
 	WebsocketEntityDataTypeRef,
 } from "@tutao/entities/sys"
+import { WebsocketConnectivityListener } from "../../../../src/network/WebsocketConnectivityListener"
+import { LastProcessedEventBatchProvider } from "../../../../src/network/LastProcessedEventBatchProvider"
+import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,
 	patches: null,

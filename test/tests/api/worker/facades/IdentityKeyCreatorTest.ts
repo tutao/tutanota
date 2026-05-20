@@ -27,7 +27,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { KeyAuthenticationFacade } from "@tutao/network"
+import { KeyAuthenticationFacade } from "../../../../../src/network/KeyAuthenticationFacade"
 
 const { anything, argThat, captor } = matchers
 

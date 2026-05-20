@@ -3,7 +3,7 @@ import Stream from "mithril/stream"
 import { AppType, assertMainOrNodeBoot, isApp, isDesktop } from "@tutao/app-env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/utils"
 import m from "mithril"
-import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
+import { BaseThemeId, BaseThemeProvider, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
 import { getWhitelabelCustomizations } from "./utils/WhitelabelUtils"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
@@ -20,7 +20,7 @@ export interface ThemeConfigurator {
 }
 export const defaultThemeId = "light" satisfies ThemeId
 
-export class ThemeController {
+export class ThemeController implements BaseThemeProvider {
 	private readonly theme: Theme
 	_themeId: ThemeId
 	private _themePreference: ThemePreference

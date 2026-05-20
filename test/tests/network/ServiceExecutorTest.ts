@@ -1,5 +1,4 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-import { ServiceExecutor } from "@tutao/network"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestClientOptions } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade.js"
@@ -14,6 +13,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/network/ServiceExecutor"
 const { anything } = matchers
 
 o.spec("ServiceExecutor", function () {

@@ -31,7 +31,6 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../src/base/crypto/KeyRotationFacade.js"
 import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CacheManagementFacade } from "../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { CacheMode } from "@tutao/network"
 import { RolloutFacade } from "../../../src/base/facades/RolloutFacade"
 import { ConnectMode } from "../../../src/network/Constants"
 import { CacheStorageLateInitializer } from "../../../src/local-store/Types"
@@ -55,6 +54,7 @@ import {
 } from "@tutao/entities/sys"
 import { CredentialType } from "@tutao/network/types"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/base/crypto/Constants.js"
+import { CacheMode } from "../../../src/network/EntityRestClient"
 
 const { anything, argThat } = matchers
 

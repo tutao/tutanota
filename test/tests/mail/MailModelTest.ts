@@ -32,8 +32,8 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
 import { OperationType } from "@tutao/meta"
+import { EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 

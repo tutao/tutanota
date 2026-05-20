@@ -54,6 +54,7 @@ import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 import { CacheMode } from "../network/EntityRestClient"
 import { client } from "../app-env/boot/ClientDetector"
+import { initUiSingletons } from "../common/app-common"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -126,26 +127,18 @@ import("../ui/translations/en.js")
 		const { mailLocator } = await import("./mailLocator.js")
 		await mailLocator.init()
 		initCommonLocator(mailLocator)
+		await initUiSingletons(windowFacade, mailLocator.themeController)
 
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts({ quickActionsModel: () => mailLocator.quickActionsModel(), logins: mailLocator.logins })
 
 		const { BottomNav } = await import("./gui/BottomNav.js")
-		const { MainStyles } = await import("../ui/main-styles")
-		new MainStyles(mailLocator.themeController, windowFacade).init()
 
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel)
 		if (isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
-
-		import("../ui/base/Dialog").then(({ Dialog }) => {
-			windowFacade.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
-		})
-
-		const { modal } = await import("../ui/base/Modal")
-		modal.init(windowFacade)
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 

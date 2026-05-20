@@ -4,7 +4,7 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/meta"
+import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/network/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
@@ -19,14 +19,14 @@ import {
 	ClientSpamTrainingDatumTypeRef,
 	MailBagTypeRef,
 	MailBox,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetails,
 	MailDetailsTypeRef,
 	MailSetRefTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
-	MailboxGroupRoot,
-	MailboxGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 
 const { anything } = matchers

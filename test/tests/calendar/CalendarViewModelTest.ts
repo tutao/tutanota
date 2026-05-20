@@ -28,12 +28,12 @@ import { ContactModel } from "../../../src/common/contactsFunctionality/ContactM
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
-import { ProgressMonitor } from "@tutao/network"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { EntityEventsListener, EntityUpdateData } from "@tutao/instance-pipeline"
 import { makePopulatedClientModelInfo } from "../TestUtils.js"
 import { GroupType } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
+import { ProgressMonitor } from "../../../src/network/ProgressMonitorInterface"
+import { EntityEventsListener, EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
 
 let saveAndSendMock
 let rescheduleEventMock

@@ -8,9 +8,8 @@ import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailView
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer"
 import type { Dialog } from "../../../../src/ui/base/Dialog"
 import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/common/api/worker/facades/lazy/AutosaveFacade"
-import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { Mail, MailState, MailTypeRef } from "@tutao/entities/tutanota"
 import { createTestEntity } from "../../TestUtils.js"
-import { MailState } from "@tutao/app-env"
 
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction

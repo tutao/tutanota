@@ -33,7 +33,12 @@ import {
 import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/network/ServiceRequest.js"
-import { AdminSymKeyAuthenticationParams, KeyAuthenticationFacade, PubDistKeyAuthenticationParams, ServiceExecutor, brandKeyMac } from "@tutao/network"
+import {
+	AdminSymKeyAuthenticationParams,
+	KeyAuthenticationFacade,
+	PubDistKeyAuthenticationParams,
+	brandKeyMac,
+} from "../../../../../src/network/KeyAuthenticationFacade"
 import { CryptoProtocolVersion, EncryptionKeyVerificationState, GroupKeyRotationType, RolloutType, ShareCapability, TutanotaError } from "@tutao/app-env"
 
 import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade.js"
@@ -94,6 +99,7 @@ import {
 	createPubEncKeyData,
 } from "@tutao/entities/sys"
 import { PublicKeySignatureType } from "../../../../../src/base/crypto/Constants.js"
+import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

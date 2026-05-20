@@ -3,7 +3,7 @@ import { RestClient, restError } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { SetupMultipleError } from "../../../src/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/meta"
-import { doBlobRequestWithRetry, EntityRestClient, ServiceExecutor, tryServers } from "@tutao/network"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers } from "../../../src/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/base/facades/UserFacade.js"
@@ -47,7 +47,8 @@ import {
 } from "@tutao/entities/tutanota"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "@tutao/entities/storage"
 import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
-import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef, PatchListTypeRef, createPatchList, sysModelInfo } from "@tutao/entities/sys"
+import { AccountingInfoTypeRef, createPatchList, CustomerTypeRef, GroupMemberTypeRef, PatchListTypeRef, sysModelInfo } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/network/ServiceExecutor"
 
 const { anything, argThat, captor } = matchers
 

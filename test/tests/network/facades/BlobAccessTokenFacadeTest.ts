@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ServiceExecutor } from "@tutao/network"
+import { ServiceExecutor } from "../../../../src/network/ServiceExecutor"
 import { matchers, object, verify, when } from "testdouble"
 import { getElementId, getEtId, getListId } from "../../../../src/meta"
 import { BlobAccessTokenFacade } from "../../../../src/network/BlobAccessTokenFacade.js"
@@ -20,6 +20,7 @@ import {
 } from "@tutao/entities/storage"
 
 import { BlobTypeRef } from "@tutao/entities/sys"
+
 const { anything, captor } = matchers
 
 o.spec("BlobAccessTokenFacade", function () {

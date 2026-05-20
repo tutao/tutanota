@@ -47,7 +47,7 @@ import {
 import { OperationType } from "@tutao/meta"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel
 

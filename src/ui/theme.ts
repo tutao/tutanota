@@ -186,3 +186,7 @@ export const MATERIAL_COLORS = Object.freeze([
 ] as const satisfies (keyof Theme)[])
 
 export type MaterialPalette = Record<(typeof MATERIAL_COLORS)[number], string>
+
+export interface BaseThemeProvider {
+	getBaseTheme(baseId: BaseThemeId): Theme
+}
