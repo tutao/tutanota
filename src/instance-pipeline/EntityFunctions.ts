@@ -149,7 +149,7 @@ export class ServerModelInfo {
 	}
 
 	public async resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
-		if (this.typeModels == null) {
+		if (this.typeModels == null || Object.keys(this.typeModels).length === 0) {
 			const getOut = await this.fetcher(this.applicationTypesHash)
 			this.init(getOut)
 		}

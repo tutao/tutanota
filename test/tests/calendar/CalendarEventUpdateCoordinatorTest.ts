@@ -14,8 +14,8 @@ import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
 import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
 import { FileTypeRef } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
+import { EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
 
-import { EntityUpdateData } from "@tutao/instance-pipeline"
 o.spec("CalendarEventUpdateCoordinatorTest", function () {
 	const MAILGROUP_ID = "mail-group"
 

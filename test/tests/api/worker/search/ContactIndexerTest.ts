@@ -13,7 +13,8 @@ import { Contact, ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef }
 import { OperationType, TypeRef } from "@tutao/meta"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient
 	let userFacade: UserFacade

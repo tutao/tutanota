@@ -1,4 +1,4 @@
-import o, { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/otest"
+import o from "@tutao/otest"
 import {
 	AlarmInfoTemplate,
 	CachingMode,
@@ -9,29 +9,20 @@ import {
 } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, downcast, neverNull } from "@tutao/utils"
-import { clone, elementIdPart, getElementId, getLetId, getListId, isSameTypeRef, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
-import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
-import { downcast } from "@tutao/utils"
-import { clone, elementIdPart, getElementId, getLetId, getListId, isSameTypeRef, sysTypeRefs, tutanotaTypeRefs, TypeModelResolver } from "@tutao/typerefs"
+import { downcast, first } from "@tutao/utils"
+import { clone, elementIdPart, getElementId, getLetId, getListId } from "@tutao/meta"
 import { SetupMultipleError } from "../../../../../src/network/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/base/facades/lazy/GroupManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
-import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/base/facades/UserFacade"
-import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import * as restError from "@tutao/rest-client/error"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
-import { EntityRestClient } from "@tutao/network"
-import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
-import { base64ToKey } from "@tutao/crypto"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
+import { TypeModelResolver } from "@tutao/instance-pipeline"
 
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettingsTypeRef, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
 	AlarmInfo,
 	AlarmInfoTypeRef,
-	AlarmNotificationTypeRef,
 	CalendarEventRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupType,
@@ -43,9 +34,10 @@ import {
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { OperationType, clone, getElementId, getLetId, getListId, isSameTypeRef } from "@tutao/meta"
 import { AlarmFacade } from "../../../../../src/common/api/worker/facades/lazy/AlarmFacade"
 import { EventAlarmInfoTemplatesTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
+import { EntityClient } from "../../../../../src/network/EntityClient"
+import { ExposedOperationProgressTracker } from "../../../../../src/common/api/main/OperationProgressTracker"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -160,8 +152,8 @@ o.spec("CalendarFacadeTest", function () {
 
 	o.spec("setupMultipleCalendarEventsForOneList", function () {
 		// Calendar Events
-		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
-		let workCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let personalCalendarEvent: CalendarEvent
+		let workCalendarEvent: CalendarEvent
 
 		// Calendar Event Lists
 		const shortListId = "shortListId"
@@ -254,18 +246,18 @@ o.spec("CalendarFacadeTest", function () {
 		let eventAlarmInfoTemplatesTuples: EventAlarmInfoTemplatesTuple[]
 
 		// Calendar Events
-		let personalCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let personalCalendarEvent: CalendarEvent
 		let personalAlarmTemplate: AlarmInfoTemplate
-		let workCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let workCalendarEvent: CalendarEvent
 		let workAlarmTemplate: AlarmInfoTemplate
-		let vacationsCalendarEvent: tutanotaTypeRefs.CalendarEvent
+		let vacationsCalendarEvent: CalendarEvent
 		let vacationsAlarmTemplate: AlarmInfoTemplate
 
 		// Calendar Event Lists
 		const shortListId = "shortListId"
-		let shortListEvents: tutanotaTypeRefs.CalendarEvent[] = []
+		let shortListEvents: CalendarEvent[] = []
 		const longListId = "longListId"
-		let longListEvents: tutanotaTypeRefs.CalendarEvent[] = []
+		let longListEvents: CalendarEvent[] = []
 
 		// Dependencies
 		let nonCachingEntityClientMock: EntityClient
@@ -384,7 +376,7 @@ o.spec("CalendarFacadeTest", function () {
 				o.check(result.failedAlarms.length).equals(0)
 				o.check(result.failedAlarmErrors.length).equals(0)
 
-				verify(cachingEntityClientMock.loadAll(sysTypeRefs.PushIdentifierTypeRef, matchers.anything()), { times: 0 })
+				verify(cachingEntityClientMock.loadAll(PushIdentifierTypeRef, matchers.anything()), { times: 0 })
 				verify(cachingEntityClientMock.setupMultipleEntities(matchers.anything(), matchers.anything()), { times: 0 })
 				verify(alarmFacadeMock.createAlarms(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			})

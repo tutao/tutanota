@@ -18,14 +18,15 @@ import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
 	Mail,
-	MailSetTypeRef,
-	MailTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityEventsListener } from "@tutao/instance-pipeline"
 
 import { OperationType } from "@tutao/meta"
+import { EntityEventsListener } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
 

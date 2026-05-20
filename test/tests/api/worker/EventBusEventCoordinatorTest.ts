@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { func, matchers, object, verify, when } from "testdouble"
-
 import { createTestEntity } from "../../TestUtils.js"
 import { RolloutType } from "../../../../src/app-env"
 import { UserFacade } from "../../../../src/base/facades/UserFacade.js"
@@ -15,12 +14,11 @@ import { RolloutFacade } from "../../../../src/base/facades/RolloutFacade"
 import { GroupManagementFacade } from "../../../../src/base/facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
 import { IdentityKeyCreator } from "../../../../src/base/crypto/IdentityKeyCreator"
-
 import { noPatchesAndInstance } from "./EventBusClientTest"
 import { OperationType } from "@tutao/meta"
-
 import { Group, GroupKeyUpdateTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
 	let userId = "userId"

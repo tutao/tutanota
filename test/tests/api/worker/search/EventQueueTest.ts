@@ -5,8 +5,8 @@ import * as restError from "@tutao/rest-client/error"
 
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { OperationType } from "@tutao/meta"
+import { EntityUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
 
-import { EntityUpdateData } from "@tutao/instance-pipeline"
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
 	let processElement: any

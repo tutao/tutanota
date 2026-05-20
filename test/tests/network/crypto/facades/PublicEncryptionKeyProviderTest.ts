@@ -2,7 +2,6 @@ import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import PublicEncryptionKeyProvider from "../../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { KeyAuthenticationFacade, ServiceExecutor } from "@tutao/network"
 
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
@@ -33,6 +32,8 @@ import {
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
 } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
+import { KeyAuthenticationFacade } from "../../../../../src/network/KeyAuthenticationFacade"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

@@ -9,14 +9,12 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { PatchMerger, PatchOperationError, PatchOperationType, convertJsToDbType, encryptValue } from "@tutao/instance-pipeline"
+import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError, PatchOperationType } from "@tutao/instance-pipeline"
 import { instance, matchers, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/base/crypto/KeyLoaderFacade"
 import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
 import { UserFacade } from "../../../src/base/facades/UserFacade"
 import { EntityClient } from "../../../src/network/EntityClient"
-import { ServiceExecutor } from "@tutao/network"
-import { DefaultEntityRestCache } from "../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { AsymmetricCryptoFacade } from "../../../src/base/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../src/base/crypto/KeyRotationFacade"
 
@@ -41,22 +39,24 @@ import {
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
+	createOutOfOfficeNotificationRecipientList,
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRoot,
-	MailboxGroupRootTypeRef,
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
-	createOutOfOfficeNotificationRecipientList,
 } from "@tutao/entities/tutanota"
 import { AttributeModel, Entity, ModelValue, ServerModelParsedInstance } from "@tutao/meta"
 
-import { Customer, CustomerTypeRef, Patch, createPatch } from "@tutao/entities/sys"
+import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/network/ServiceExecutor"
+
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey

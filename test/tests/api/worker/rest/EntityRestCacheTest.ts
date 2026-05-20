@@ -30,9 +30,8 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native-
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { CacheMode, EntityRestClient, LastProcessedEventBatchProvider } from "@tutao/network"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
-import { entityUpdateToUpdateData, EntityUpdateData, ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "@tutao/instance-pipeline"
+import { ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "@tutao/instance-pipeline"
 
 import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
 import {
@@ -47,9 +46,12 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { OperationType, collapseId } from "@tutao/meta"
+import { collapseId, OperationType } from "@tutao/meta"
 
 import {
+	createEntityUpdate,
+	createPatch,
+	createPatchList,
 	Customer,
 	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
@@ -58,10 +60,11 @@ import {
 	Patch,
 	PermissionTypeRef,
 	RootInstanceTypeRef,
-	createEntityUpdate,
-	createPatch,
-	createPatchList,
 } from "@tutao/entities/sys"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheMode, EntityRestClient } from "../../../../../src/network/EntityRestClient"
+import { LastProcessedEventBatchProvider } from "../../../../../src/network/LastProcessedEventBatchProvider"
+
 const { anything } = matchers
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
