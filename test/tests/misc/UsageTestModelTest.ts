@@ -19,18 +19,19 @@ import { createTestEntity, makePopulatedClientModelInfo } from "../TestUtils.js"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
 import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
+	createUsageTestMetricData,
+	usageModelInfo,
 	UsageTestAssignmentInTypeRef,
 	UsageTestAssignmentOutTypeRef,
 	UsageTestAssignmentService,
 	UsageTestAssignmentTypeRef,
 	UsageTestParticipationInTypeRef,
 	UsageTestParticipationService,
-	createUsageTestMetricData,
-	usageModelInfo,
 } from "@tutao/entities/usage"
 import { clone } from "@tutao/meta"
 
 import { CustomerPropertiesTypeRef } from "@tutao/entities/sys"
+
 const { anything } = matchers
 
 o.spec("UsageTestModel", function () {

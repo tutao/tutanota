@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import { isMailAddress, isRegularExpression, isValidCreditCardNumber } from "../../../src/utils/FormatUtils.js"
+
 o.spec("FormatValidatorTest", function () {
 	o(" isRegularExpression", function () {
 		// no regular expressions

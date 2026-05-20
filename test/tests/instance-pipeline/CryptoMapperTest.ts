@@ -24,10 +24,10 @@ import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase
 import {
 	ClientTypeReferenceResolver,
 	CryptoMapper,
+	encryptValue,
 	ModelMapper,
 	ServerTypeReferenceResolver,
 	SymmetricGroupKeyLoader,
-	encryptValue,
 } from "@tutao/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"

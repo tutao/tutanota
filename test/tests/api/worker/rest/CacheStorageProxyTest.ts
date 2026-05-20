@@ -1,6 +1,5 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { func, instance, object, when } from "testdouble"
-import { verify } from "@tutao/otest"
 import { LateInitializedCacheStorageImpl } from "../../../../../src/local-store/CacheStorageProxy.js"
 import { OfflineStorage } from "../../../../../src/local-store/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"

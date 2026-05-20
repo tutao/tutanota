@@ -6,6 +6,7 @@ import { Const } from "../../../src/app-env"
 import { createTestEntity } from "../TestUtils.js"
 
 import { Customer, CustomerInfo, CustomerInfoTypeRef, CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
+
 o.spec("PostLoginUtils", () => {
 	o.spec("shouldShowUpgradeReminder", () => {
 		let userController: UserController

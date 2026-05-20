@@ -3,7 +3,7 @@ import { Mode } from "@tutao/app-env"
 import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { NativeFileApp } from "../../../src/native-bridge/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
-import { FileReference } from "@tutao/entities/tutanota"
+import { FileReference, FileTypeRef } from "@tutao/entities/tutanota"
 import { neverNull } from "@tutao/utils"
 
 import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
@@ -12,9 +12,9 @@ import * as restError from "@tutao/rest-client/error"
 import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
 import { ArchiveDataType } from "../../../src/entities/sys"
 import { TransferId } from "../../../src/entities/drive/Utils"
-import { FileTypeRef } from "@tutao/entities/tutanota"
 
 import { BlobTypeRef } from "@tutao/entities/sys"
+
 const { anything, argThat } = matchers
 
 o.spec("FileControllerTest", function () {

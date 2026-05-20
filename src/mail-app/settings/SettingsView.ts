@@ -75,7 +75,7 @@ import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../ui/Header"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority, EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

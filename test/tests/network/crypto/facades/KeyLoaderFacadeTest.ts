@@ -30,10 +30,11 @@ import { RSA_TEST_KEYPAIR } from "../../../api/worker/facades/RsaPqPerformanceTe
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 import {
+	createKeyPair,
 	Group,
 	GroupKey,
-	GroupKeyTypeRef,
 	GroupKeysRefTypeRef,
+	GroupKeyTypeRef,
 	GroupMembership,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
@@ -41,8 +42,8 @@ import {
 	KeyPairTypeRef,
 	User,
 	UserTypeRef,
-	createKeyPair,
 } from "@tutao/entities/sys"
+
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
 	let userFacade: UserFacade

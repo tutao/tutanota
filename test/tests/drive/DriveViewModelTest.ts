@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { EntityClient } from "../../../src/network/EntityClient"
 import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../src/ui/ScopedRouter"
@@ -10,7 +10,6 @@ import { DriveViewModel } from "../../../src/drive-app/drive/view/DriveViewModel
 import { matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
-import { verify } from "@tutao/otest"
 
 import { UserController } from "../../../src/common/api/main/UserController"
 
@@ -20,9 +19,10 @@ import { DriveTransferController } from "../../../src/drive-app/drive/view/Drive
 
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, createDriveFolder } from "@tutao/entities/drive"
+import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
+
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
 

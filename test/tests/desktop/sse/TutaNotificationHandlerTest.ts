@@ -24,7 +24,8 @@ import { assertNotNull } from "@tutao/utils"
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { CredentialType } from "@tutao/network/types"
 
-import { NotificationInfo, createIdTupleWrapper, createNotificationInfo } from "@tutao/entities/sys"
+import { createIdTupleWrapper, createNotificationInfo, NotificationInfo } from "@tutao/entities/sys"
+
 type UndiciFetch = typeof undiciFetch
 
 o.spec("TutaNotificationHandler", () => {

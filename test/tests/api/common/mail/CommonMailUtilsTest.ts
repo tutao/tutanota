@@ -11,7 +11,7 @@ import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
 import { isTutanotaTeamAddress, isTutaTeamMail } from "../../../../../src/common/mailFunctionality/SharedMailUtils"
 
 import { MailState } from "../../../../../src/entities/tutanota"
-import { Mail, MailAddressTypeRef, MailTypeRef, createMail, createMailAddress } from "@tutao/entities/tutanota"
+import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	return createTestEntity(MailTypeRef, {

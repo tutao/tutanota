@@ -6,6 +6,7 @@ import { PresentableKeyVerificationState } from "../../../src/app-env"
 import { Contact, Recipient, RecipientType } from "@tutao/entities/tutanota"
 
 import { User } from "@tutao/entities/sys"
+
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes
  */

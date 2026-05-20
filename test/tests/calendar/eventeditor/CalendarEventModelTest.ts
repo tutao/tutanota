@@ -25,13 +25,13 @@ import { AccountType } from "../../../../src/entities/sys"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
-	MailBoxTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
 	UserSettingsGroupRootTypeRef,
-	createCalendarEventAttendee,
 } from "@tutao/entities/tutanota"
 import { clone } from "@tutao/meta"
 
@@ -45,6 +45,7 @@ import {
 	RepeatRuleTypeRef,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
+
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
 	let calendarModel: CalendarModel

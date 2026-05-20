@@ -7,6 +7,7 @@ import { invoiceItemListMock } from "./invoiceTestUtils.js"
 import { PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef } from "@tutao/entities/sys"
+
 o.spec("PdfInvoiceGenerator", function () {
 	let pdfWriter: PdfWriter
 	o.beforeEach(function () {

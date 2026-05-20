@@ -5,10 +5,9 @@ import { LanguageViewModel } from "../../../../src/ui/utils/LanguageViewModel.js
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { function as fn, matchers, object, verify, when } from "testdouble"
 import { CommonNativeFacade } from "../../../../src/native-bridge/common/generatedipc/types/CommonNativeFacade.js"
-import { CredentialEncryptionMode } from "@tutao/app-env"
+import { CancelledError, CredentialEncryptionMode } from "@tutao/app-env"
 import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
 import { defer, delay, stringToBase64 } from "@tutao/utils"
-import { CancelledError } from "@tutao/app-env"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/common/api/common/error/KeyPermanentlyInvalidatedError.js"
 
 import { loadArgon2WASM } from "../../crypto/WebAssemblyTestUtils"

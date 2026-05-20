@@ -15,6 +15,7 @@ import { freshVersioned } from "@tutao/utils"
 import { AesKey, CryptoWrapper, KeyPairType, PQKeyPairs } from "@tutao/crypto"
 
 import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupType } from "@tutao/entities/sys"
+
 const { anything } = matchers
 
 o.spec("GroupManagementFacadeTest", function () {

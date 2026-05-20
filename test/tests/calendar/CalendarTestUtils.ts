@@ -18,12 +18,12 @@ import {
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
 	ContactTypeRef,
+	createEncryptedMailAddress,
 	EncryptedMailAddress,
 	Recipient,
 	RecipientType,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
-	createEncryptedMailAddress,
 } from "@tutao/entities/tutanota"
 import {
 	BookingsRefTypeRef,

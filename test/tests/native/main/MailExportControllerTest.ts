@@ -21,10 +21,10 @@ import {
 	MailAddressTypeRef,
 	MailBag,
 	MailBagTypeRef,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { BlobServerUrlTypeRef } from "@tutao/entities/storage"
@@ -32,6 +32,7 @@ import { GENERATED_MAX_ID, getElementId } from "@tutao/meta"
 import { createDataFile } from "../../../../src/common/api/worker/utils/DataFile.js"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailExportController", function () {
 	const userId = "userId"
 

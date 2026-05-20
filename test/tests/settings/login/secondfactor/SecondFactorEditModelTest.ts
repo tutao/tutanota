@@ -15,6 +15,7 @@ import { SecondFactorType } from "../../../../../src/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 
 import { GroupInfoTypeRef, User } from "@tutao/entities/sys"
+
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
 	const readableKey = TotpVerifier.readableKey(key)

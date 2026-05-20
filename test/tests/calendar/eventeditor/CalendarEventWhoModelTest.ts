@@ -33,11 +33,11 @@ import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
 	Recipient,
 	RecipientType,
 	UserSettingsGroupRootTypeRef,
-	createCalendarEventAttendee,
 } from "@tutao/entities/tutanota"
 import { AccountType, UserTypeRef } from "@tutao/entities/sys"
 

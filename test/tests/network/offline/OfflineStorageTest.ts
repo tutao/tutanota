@@ -41,6 +41,8 @@ import { AccountType } from "../../../../src/entities/sys"
 import {
 	BodyTypeRef,
 	ContactListTypeRef,
+	createContactList,
+	createMailSetRef,
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -55,14 +57,13 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
-	createContactList,
-	createMailSetRef,
 } from "@tutao/entities/tutanota"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "@tutao/entities/storage"
 import { expandId } from "@tutao/meta"
 import { SqlType } from "../../../../src/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
 	return constructMailSetEntryId(new Date(receiveDate.getTime() + ms), mailId)

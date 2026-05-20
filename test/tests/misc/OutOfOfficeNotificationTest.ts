@@ -1,6 +1,4 @@
-import o from "@tutao/otest"
-
-import { mockAttribute, unmockAttribute } from "@tutao/otest"
+import o, { mockAttribute, unmockAttribute } from "@tutao/otest"
 import { getDayShifted, getStartOfDay, getStartOfNextDay } from "@tutao/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import { formatActivateState, isNotificationCurrentlyActive } from "../../../src/common/misc/OutOfOfficeNotificationUtils.js"

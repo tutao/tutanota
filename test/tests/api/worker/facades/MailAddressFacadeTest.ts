@@ -13,6 +13,7 @@ import { EntityRestClientLoadOptions } from "../../../../../src/network/EntityRe
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade

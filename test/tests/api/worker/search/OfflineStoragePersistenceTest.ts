@@ -22,6 +22,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupType } from "@tutao/entities/sys"
+
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStoragePersistence", () => {

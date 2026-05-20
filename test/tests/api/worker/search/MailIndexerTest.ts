@@ -35,6 +35,7 @@ import {
 	Mail,
 	MailBagTypeRef,
 	MailBox,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
@@ -46,7 +47,6 @@ import {
 	MailSetRefTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
 	RecipientsTypeRef,
 	tutanotaTypeModels,
 } from "@tutao/entities/tutanota"

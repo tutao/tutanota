@@ -18,6 +18,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { User, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
 	const archiveId = "archiveId"

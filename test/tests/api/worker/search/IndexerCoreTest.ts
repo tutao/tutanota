@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import {
 	DbEncryptionData,
 	ElementDataDbRow,
@@ -13,17 +13,15 @@ import {
 } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/utils"
-import { spy } from "@tutao/otest"
 
 import { DbKey, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/meta"
+import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/meta"
 import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXED_IV } from "@tutao/crypto"
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { AttributeModel } from "../../../../../src/meta"
 
 import { CancelledError } from "@tutao/app-env"
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"

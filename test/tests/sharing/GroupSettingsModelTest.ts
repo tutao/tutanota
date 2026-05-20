@@ -8,10 +8,11 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import o from "@tutao/otest"
 import { UserController } from "../../../src/common/api/main/UserController"
 
-import { UserSettingsGroupRoot, UserSettingsGroupRootTypeRef, createGroupSettings } from "@tutao/entities/tutanota"
+import { createGroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { isSameId } from "@tutao/meta"
 
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("GroupSettingsModel", function () {
 	let groupSettingsModel: GroupSettingsModel
 	let entityRestClient: EntityRestClientMock

@@ -8,6 +8,7 @@ import { KeyVersion } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache
 

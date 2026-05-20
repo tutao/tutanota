@@ -8,7 +8,8 @@ import { Time } from "../../../../src/common/calendar/date/Time.js"
 
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
-import { DateWrapperTypeRef, RepeatRuleTypeRef, createDateWrapper, createRepeatRule } from "@tutao/entities/sys"
+import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
 

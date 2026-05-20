@@ -6,6 +6,7 @@ import {
 	arrayHashUnsigned,
 	arrayOf,
 	clear,
+	compare,
 	concat,
 	deduplicate,
 	difference,
@@ -22,7 +23,6 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "@tutao/utils"
-import { compare } from "@tutao/utils"
 
 type ObjectWithId = {
 	v: number

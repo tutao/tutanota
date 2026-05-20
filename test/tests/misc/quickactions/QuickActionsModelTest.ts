@@ -1,9 +1,6 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { QuickAction, QuickActionsModel } from "../../../../src/common/misc/quickactions/QuickActionsModel"
 import { func } from "testdouble"
-import { assertWorkerOrNode } from "../../../../src/app-env"
-import { addAll } from "@tutao/utils"
-import { verify } from "@tutao/otest"
 
 type QuickActionExec = QuickAction["exec"]
 

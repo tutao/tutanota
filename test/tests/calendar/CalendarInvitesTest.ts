@@ -19,18 +19,19 @@ import {
 	CalendarEventAttendee,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createMailAddress,
 	EncryptedMailAddressTypeRef,
 	Mail,
-	MailBoxTypeRef,
-	MailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
+	MailTypeRef,
 	UserSettingsGroupRootTypeRef,
-	createMailAddress,
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
 		calendarInviteHandler: CalendarInviteHandler,

@@ -1,11 +1,10 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/common/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
 import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
 import { CancelledError } from "@tutao/app-env"
-import { assertThrows } from "@tutao/otest"
 import { DeviceStorageUnavailableError } from "../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): DesktopKeyStoreFacade {

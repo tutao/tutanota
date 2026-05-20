@@ -9,6 +9,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { AccountType } from "../../../../src/entities/sys"
 
 import { Customer, PlanConfigurationTypeRef } from "@tutao/entities/sys"
+
 o.spec("CalendarNotificationModel", function () {
 	let userController: UserController
 	let customer: Customer

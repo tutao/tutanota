@@ -10,6 +10,7 @@ import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
 import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
+
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
 o.spec("PublicEncryptionKeyCacheTest", function () {

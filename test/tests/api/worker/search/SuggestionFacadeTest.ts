@@ -1,12 +1,11 @@
 /**
  * Created by bdeterding on 13.12.17.
  */
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/utils"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { spy } from "@tutao/otest"
 import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"

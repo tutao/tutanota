@@ -43,6 +43,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
 	let mailDetails: MailDetails

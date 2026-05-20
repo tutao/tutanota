@@ -5,7 +5,7 @@ import { WebauthnClient } from "../../../../src/common/misc/2fa/webauthn/Webauth
 import { WebAuthnFacade } from "../../../../src/native-bridge/common/generatedipc/types/WebAuthnFacade.js"
 import { createTestEntity, domainConfigStub } from "../../TestUtils.js"
 import { DomainConfigProvider } from "../../../../src/common/api/common/DomainConfigProvider.js"
-import { U2fKeyTypeRef, U2fChallengeTypeRef } from "@tutao/entities/sys"
+import { U2fChallengeTypeRef, U2fKeyTypeRef } from "@tutao/entities/sys"
 
 o.spec("WebauthnClient", function () {
 	let webauthn: WebAuthnFacade

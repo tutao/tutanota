@@ -1,8 +1,7 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import { FaqModel } from "../../../src/common/support/FaqModel.js"
 import { downcast } from "@tutao/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
-import { spy } from "@tutao/otest"
 
 async function collect(generator: AsyncGenerator): Promise<Array<unknown>> {
 	const result: Array<unknown> = []

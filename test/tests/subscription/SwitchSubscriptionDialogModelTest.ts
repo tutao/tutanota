@@ -7,6 +7,7 @@ import { createTestEntity } from "../TestUtils.js"
 import { AccountType, BookingItemFeatureType, PlanType } from "../../../src/entities/sys"
 
 import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerTypeRef, FeatureTypeRef } from "@tutao/entities/sys"
+
 o.spec("SwitchSubscriptionDialogModelTest", function () {
 	const paidPlanType = PlanType.Premium
 	const premiumCustomer = createTestEntity(CustomerTypeRef, {

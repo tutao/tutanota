@@ -61,13 +61,13 @@ import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
-	EncryptedMailAddressTypeRef,
-	UserSettingsGroupRootTypeRef,
 	createAdvancedRepeatRule,
 	createCalendarRepeatRule,
+	EncryptedMailAddressTypeRef,
+	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupType, GroupTypeRef, RepeatRule, UserTypeRef } from "@tutao/entities/sys"
-import { StrippedEntity, clone } from "@tutao/meta"
+import { clone, StrippedEntity } from "@tutao/meta"
 
 const zone = "Europe/Berlin"
 
