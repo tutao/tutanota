@@ -1,4 +1,4 @@
-import { bundleDependencyCheckPlugin, resolveLibs } from "./RollupConfig.js"
+import { resolveLibs } from "./RollupConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
@@ -205,7 +205,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			commonjs(),
 			disableMinify ? undefined : terser(),
-			bundleDependencyCheckPlugin(),
+			// bundleDependencyCheckPlugin(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
 		],
 	})

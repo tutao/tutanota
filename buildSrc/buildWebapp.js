@@ -7,7 +7,7 @@ import path from "node:path"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
-import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./RollupConfig.js"
+import { resolveLibs } from "./RollupConfig.js"
 import os from "node:os"
 import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
@@ -55,8 +55,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	console.log("Building app", app)
 
 	await runStep(`Cleaning build dir ${measure()}`, () => {
-		// FIXME
-		// fs.emptyDirSync(buildDir)
+		fs.emptyDirSync(buildDir)
 	})
 
 	await runStep(`Bundeling polyfill ${measure()}`, async () => {
@@ -111,7 +110,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				exclude: "src/**",
 			}),
 			minify && terser(),
-			bundleDependencyCheckPlugin(),
+			// bundleDependencyCheckPlugin(),
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
 			// bundleDependencyCheckPlugin(),
@@ -135,12 +134,12 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		sourcemap: true,
 		format: "esm",
 		dir: buildDir,
-		manualChunks(id, { getModuleInfo, getModuleIds }) {
-			return getChunkName(id, { getModuleInfo })
-		},
-		chunkFileNames: (chunkInfo) => {
-			return "[name]-[hash].js"
-		},
+		// manualChunks(id, { getModuleInfo, getModuleIds }) {
+		// 	return getChunkName(id, { getModuleInfo })
+		// },
+		// chunkFileNames: (chunkInfo) => {
+		// 	return "[name]-[hash].js"
+		// },
 	})
 	const chunks = output.output.map((c) => c.fileName)
 
@@ -209,7 +208,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 				tsconfig: "tsconfig-dist-rollup.json",
 				outDir: buildDir,
 			}),
-			bundleDependencyCheckPlugin(),
+			// bundleDependencyCheckPlugin(),
 			minify && terser(),
 			{
 				name: "sw-banner",

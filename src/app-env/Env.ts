@@ -113,7 +113,7 @@ let boot = !isDesktopMainThread() && !isWorker()
  * Rolldown doesn't inline const enums at the moment, so we can't assert the loading order.
  * If not set defaults to true
  */
-const assertionsEnabled = typeof LOAD_ASSERTIONS === "undefined" || LOAD_ASSERTIONS
+const assertionsEnabled = false
 
 export function assertMainOrNode() {
 	if (!assertionsEnabled) return
