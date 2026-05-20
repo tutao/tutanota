@@ -15,7 +15,7 @@ import { theme } from "../../../../ui/theme"
 import { PasswordGenerator } from "../../misc/passwords/PasswordGenerator"
 import { locator } from "../../api/main/CommonLocator"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
-import { delay, noOp } from "@tutao/utils"
+import { debounceStart, delay, noOp } from "@tutao/utils"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { styles } from "../../../../ui/styles"
@@ -225,7 +225,13 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	private dictionary: string[] = []
 	private pwGenerator: PasswordGenerator | undefined
 	private hasGeneratedPassword = false
-	private snackBarShown = false
+	private debouncedShowSnackbar = debounceStart(3000, () =>
+		showSnackBar({
+			message: "copied_msg",
+			showingTime: 3000,
+			leadingIcon: Icons.ClipboardFilled,
+		}),
+	)
 
 	async oncreate() {
 		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
@@ -315,17 +321,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 						{
 							onclick: () => {
 								copyToClipboard(attrs.model.getNewPassword())
-								if (!this.snackBarShown) {
-									this.snackBarShown = true
-									void showSnackBar({
-										message: "copied_msg",
-										showingTime: 3000,
-										leadingIcon: Icons.ClipboardFilled,
-										onClose: () => (this.snackBarShown = false),
-									})
-								} else {
-									noOp()
-								}
+								this.debouncedShowSnackbar()
 							},
 						},
 						lang.getTranslationText("copy_action"),
