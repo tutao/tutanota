@@ -37,7 +37,6 @@ import {
 	OperationType,
 	POST_MULTIPLE_LIMIT,
 	removeTechnicalFields,
-	TypeRef,
 } from "@tutao/meta"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import * as restError from "@tutao/rest-client/error"
@@ -114,11 +113,10 @@ import {
 	CalendarMethod,
 	createDefaultAlarmInfo,
 	createGroupSettings,
+	FileTypeRef,
 	GroupSettings,
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
-	File,
-	FileTypeRef,
 } from "@tutao/entities/tutanota"
 import {
 	createDateWrapper,

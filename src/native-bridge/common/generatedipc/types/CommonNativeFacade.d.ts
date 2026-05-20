@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/types"
+
 /**
  * Common operations used by all native platforms.
  */

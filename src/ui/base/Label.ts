@@ -2,7 +2,7 @@ import { pureComponent } from "./PureComponent.js"
 import m from "mithril"
 import { colorForBg } from "./GuiUtils.js"
 import { size } from "../size.js"
-import { theme, isDarkTheme } from "../theme.js"
+import { isDarkTheme, theme } from "../theme.js"
 
 const supportsRelativeHslColors = typeof CSS !== "undefined" ? CSS.supports("color", `hsl(from #ccc h calc(min(50, s)) l)`) : false
 

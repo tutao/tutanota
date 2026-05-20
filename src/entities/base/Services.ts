@@ -1,4 +1,3 @@
-import * as baseTypeRefs from "./TypeRefs.js"
 export const ApplicationTypesService = Object.freeze({
 	app: "base",
 	name: "ApplicationTypesService",

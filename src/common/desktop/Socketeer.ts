@@ -1,8 +1,8 @@
 import type { App } from "electron"
 import type { WindowManager } from "./DesktopWindowManager"
+import type { TimeoutSetter } from "@tutao/utils"
 import { isMailAddress } from "@tutao/utils"
 import { log } from "./DesktopLog"
-import type { TimeoutSetter } from "@tutao/utils"
 import { NetExports } from "./ElectronExportTypes"
 import { Server, Socket } from "node:net"
 

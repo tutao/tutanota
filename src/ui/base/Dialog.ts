@@ -120,21 +120,21 @@ export class Dialog implements ModalComponent {
 	}
 	view(): Children {
 		const isEditLarge = this.dialogType === DialogType.EditLarge
-			const isKeyboardOpen = Dialog.keyboardHeight > 0
-			const margin = size.spacing_12
+		const isKeyboardOpen = Dialog.keyboardHeight > 0
+		const margin = size.spacing_12
 		const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
-			const bottomMarginForType = isEditLarge ? 0 : margin
-			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
-			const marginBottom = isAndroidApp()
-				? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
-				: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
+		const bottomMarginForType = isEditLarge ? 0 : margin
+		// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
+		const marginBottom = isAndroidApp()
+			? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
+			: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
 		return m(
 			this.getDialogWrapperClasses(this.dialogType),
 			{
 				style: {
-						paddingTop: "var(--safe-area-inset-top)",
-						paddingLeft: "var(--safe-area-inset-left)",
-						paddingRight: "var(--safe-area-inset-right)",
+					paddingTop: "var(--safe-area-inset-top)",
+					paddingLeft: "var(--safe-area-inset-left)",
+					paddingRight: "var(--safe-area-inset-right)",
 				},
 			},
 			/** controls vertical alignment
@@ -146,10 +146,10 @@ export class Dialog implements ModalComponent {
 				{
 					// controls horizontal alignment
 					style: {
-							marginTop: px(margin),
+						marginTop: px(margin),
 						marginLeft: sidesMargin,
 						marginRight: sidesMargin,
-							marginBottom,
+						marginBottom,
 					},
 				},
 				[

@@ -1,5 +1,5 @@
 import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
-import { elementIdPart, getEtId, EntityIdEncoding, listIdPart, sortCompareById } from "../../meta"
+import { elementIdPart, EntityIdEncoding, getEtId, listIdPart, sortCompareById } from "../../meta"
 import { assertNotNull, cleanMailAddress, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -8,6 +8,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import { EventController } from "../api/main/EventController.js"
 import { DbError } from "../api/common/error/DbError.js"
 import * as restError from "@tutao/rest-client/error"
+import { LoginIncompleteError } from "@tutao/rest-client/error"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 import {
@@ -21,7 +22,6 @@ import {
 } from "@tutao/entities/tutanota"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
-import { LoginIncompleteError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 

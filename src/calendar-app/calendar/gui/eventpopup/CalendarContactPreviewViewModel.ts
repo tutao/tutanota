@@ -1,4 +1,3 @@
-import {} from "../../../../meta"
 import { isNotNull } from "@tutao/utils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 

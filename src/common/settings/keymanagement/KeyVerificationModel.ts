@@ -1,10 +1,9 @@
 import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
 import { assertNotNull } from "@tutao/utils"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade, MobileSystemFacade, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
-import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
 import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKeyProvider"
 import {
 	IdentityKeyQrVerificationResult,
@@ -17,7 +16,6 @@ import {
 } from "@tutao/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { TrustDBEntry } from "../../../local-store/IdentityKeyTrustDatabase"
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { PublicKeyIdentifierType } from "@tutao/crypto"
 
 export type PublicIdentity = {

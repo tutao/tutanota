@@ -1,6 +1,6 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
-import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart } from "@tutao/meta"
+import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import * as restError from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
@@ -10,7 +10,6 @@ import { UserFacade } from "../../../../../base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest"
 import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade"
 import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { OperationType } from "@tutao/meta"
 import {
 	AlarmInfo,
 	AlarmNotificationTypeRef,

@@ -1,7 +1,6 @@
-import { NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExtendedNotificationMode, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
-import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
 import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "@tutao/meta"

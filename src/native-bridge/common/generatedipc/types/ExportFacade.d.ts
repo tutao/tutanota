@@ -1,8 +1,7 @@
 /* generated file, don't edit. */
 
-import { MailBundle } from "@tutao/native-bridge/generatedIpc/types"
-import { DataFile } from "@tutao/native-bridge/generatedIpc/types"
-import { MailboxExportState } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile, MailboxExportState, MailBundle } from "@tutao/native-bridge/generatedIpc/types"
+
 export interface ExportFacade {
 	/**
 	 * Convert mail to .msg format.

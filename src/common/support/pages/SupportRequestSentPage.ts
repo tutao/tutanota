@@ -6,10 +6,9 @@ import { client } from "../../../app-env/boot/ClientDetector.js"
 import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
-import { TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { isIOSApp, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { SupportDialogState } from "../SupportDialog.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
-import { isIOSApp } from "@tutao/app-env"
 import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
 
 type SupportRequestSentPageAttrs = {

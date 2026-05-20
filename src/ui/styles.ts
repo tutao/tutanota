@@ -1,9 +1,8 @@
 import { Cat, log, timer } from "./utils/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "@tutao/app-env"
+import { assertMainOrNodeBoot, client, isAdminClient, isTest } from "@tutao/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
-import { client } from "@tutao/app-env"
 import { ThemeController } from "./ThemeController.js"
 
 assertMainOrNodeBoot()

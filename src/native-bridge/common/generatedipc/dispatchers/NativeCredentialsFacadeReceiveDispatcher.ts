@@ -1,9 +1,6 @@
 /* generated file, don't edit. */
 
-import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
-import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
-import { CredentialEncryptionMode } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CredentialEncryptionMode, NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 
 export class NativeCredentialsFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCredentialsFacade) {}

@@ -1,5 +1,6 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
+
 const sha1 = new sjcl.hash.sha1()
 
 /**

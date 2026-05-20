@@ -7,11 +7,9 @@ import { CredentialAuthenticationError } from "../api/common/error/CredentialAut
 import { liveDataAttrs } from "../../ui/AriaUtils.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
-import { CancelledError } from "@tutao/app-env"
-import { Keys } from "@tutao/app-env"
+import { CancelledError, Keys } from "@tutao/app-env"
 import { BaseButton } from "../../ui/base/buttons/BaseButton.js"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { type RadioSelectorOption } from "../../ui/base/RadioSelectorItem"
 
 export async function showAppLockMethodDialog(mobileSystemFacade: MobileSystemFacade): Promise<void> {

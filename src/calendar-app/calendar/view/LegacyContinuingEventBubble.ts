@@ -7,7 +7,6 @@ import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.j
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
 import { px } from "../../../ui/size"
 import { normalizeColorHex } from "../../../ui/base/GuiUtils"
-import {} from "../../../meta"
 import { User } from "@tutao/entities/sys"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {

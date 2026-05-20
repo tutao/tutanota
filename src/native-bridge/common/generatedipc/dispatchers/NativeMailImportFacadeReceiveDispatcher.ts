@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeMailImportFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 
 export class NativeMailImportFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeMailImportFacade) {}

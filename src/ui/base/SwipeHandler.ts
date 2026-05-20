@@ -1,4 +1,4 @@
-import { component_size, size } from "../size"
+import { component_size } from "../size"
 
 export const enum DirectionLock {
 	Horizontal,

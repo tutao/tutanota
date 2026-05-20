@@ -1,4 +1,5 @@
 import {
+	AppType,
 	assertMainOrNode,
 	Const,
 	FeatureType,
@@ -43,20 +44,22 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../network/ServiceRequest.js"
 import { CryptoFacade } from "../base/crypto/CryptoFacade.js"
-import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ContactSuggestion } from "@tutao/native-bridge/generatedIpc/types"
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	CommonSystemFacade,
+	ContactSuggestion,
+	DesktopSystemFacade,
+	ExternalCalendarFacade,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	SqlCipherFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
-import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeFileApp } from "../native-bridge/common/FileApp.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
 import { PageContextLoginListener } from "../common/api/main/PageContextLoginListener.js"
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
@@ -129,10 +132,9 @@ import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { ExposedCacheStorage } from "../local-store/CacheStorage"
-import { AppType } from "@tutao/app-env"
 import { CALENDAR_MIME_TYPE } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { ClientModelInfo, ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 import { GroupType } from "@tutao/entities/sys"
 import { KdfType } from "../base/crypto/Constants"
 import { initClientModels } from "../common/ClientModelInfoInitializer"

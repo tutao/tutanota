@@ -1,4 +1,4 @@
-import { Mail, Body } from "@tutao/entities/tutanota"
+import { Body, Mail } from "@tutao/entities/tutanota"
 
 export interface MailAddressAndName {
 	name: string

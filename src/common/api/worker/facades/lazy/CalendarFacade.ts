@@ -37,35 +37,13 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
-import {
-	AlarmInfo,
-	AlarmNotification,
-	AlarmNotificationTypeRef,
-	AlarmService,
-	createAlarmInfo,
-	createAlarmNotification,
-	createAlarmServicePost,
-	createCalendarEventRef,
-	createDateWrapper,
-	createNotificationSessionKey,
-	createRepeatRule,
-	createUserAlarmInfo,
-	Group,
-	GroupType,
-	PushIdentifier,
-	PushIdentifierTypeRef,
-	RepeatRule,
-	User,
-	UserAlarmInfo,
-	UserAlarmInfoTypeRef,
-} from "@tutao/entities/sys"
+import { AlarmInfo, Group, GroupType, PushIdentifierTypeRef, User, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarEventUidIndex,
 	CalendarEventUidIndexTypeRef,
 	CalendarGroupRootTypeRef,
-	CalendarRepeatRule,
 	CalendarService,
 	createCalendarDeleteIn,
 	UserSettingsGroupRootTypeRef,

@@ -11,6 +11,7 @@ import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { Autocapitalize, LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { neverNull } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { mailLocator } from "../mailLocator.js"
@@ -24,7 +25,6 @@ import {
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../ui/base/Checkbox"
 import { createInboxRule, InboxRule, InboxRuleType, MailSetKind } from "@tutao/entities/tutanota"
-import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 

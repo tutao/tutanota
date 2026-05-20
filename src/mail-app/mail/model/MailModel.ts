@@ -22,6 +22,7 @@ import m from "mithril"
 import { Notifications, NotificationType } from "../../../ui/Notifications.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import * as restError from "@tutao/rest-client/error"
+import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
@@ -50,7 +51,6 @@ import {
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
-import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 
 interface MailboxSets {
 	folders: FolderSystem

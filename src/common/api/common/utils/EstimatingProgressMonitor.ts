@@ -1,6 +1,5 @@
 import { first, last } from "@tutao/utils"
-import { ProgressMonitorInterface } from "../../../../network/ProgressMonitorInterface"
-import { ProgressListener } from "../../../../network/ProgressMonitorInterface"
+import { ProgressListener, ProgressMonitorInterface } from "../../../../network/ProgressMonitorInterface"
 
 const DEFAULT_RATE_PER_SECOND = 0.5
 const DEFAULT_PROGRESS_ESTIMATION_REFRESH_MS: number = 1000

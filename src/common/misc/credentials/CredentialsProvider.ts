@@ -1,10 +1,12 @@
-import { CredentialEncryptionMode } from "@tutao/native-bridge/generatedIpc/types"
-import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	CredentialEncryptionMode,
+	CredentialsInfo,
+	NativeCredentialsFacade,
+	PersistedCredentials,
+	SqlCipherFacade,
+	UnencryptedCredentials,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
-import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { CredentialType } from "@tutao/network/types"
 import { isAdminClient, isBrowser } from "@tutao/app-env"
 

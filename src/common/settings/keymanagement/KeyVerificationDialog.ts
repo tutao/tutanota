@@ -1,7 +1,7 @@
 import { Dialog } from "../../../ui/base/Dialog"
-import { IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "@tutao/app-env"
+import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "@tutao/app-env"
 import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { UsageTestController } from "@tutao/usagetests"
 import { MultiPageDialog } from "../../../ui/dialogs/MultiPageDialog"
 import m from "mithril"
@@ -18,8 +18,6 @@ import { PublicIdentityKeyProvider } from "../../../base/crypto/PublicIdentityKe
 import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 import { assertNotNull } from "@tutao/utils"
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { IdentityKeyQrVerificationResult } from "@tutao/app-env"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",

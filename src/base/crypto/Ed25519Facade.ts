@@ -15,10 +15,7 @@ import {
 	verifyEd25519Signature,
 } from "@tutao/crypto"
 import { LazyLoaded } from "@tutao/utils"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519Signature } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { IPCEd25519PrivateKey, IPCEd25519PublicKey, IPCEd25519Signature, NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { EncodedEd25519Signature } from "../../crypto/encryption/Ed25519"
 
 assertWorkerOrNode()

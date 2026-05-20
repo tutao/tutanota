@@ -5,9 +5,8 @@ import { ElectronWebContentsTransport } from "./ipc/ElectronWebContentsTransport
 import { NativeToWebRequest, WebToNativeRequest } from "../native/WebauthnNativeBridge.js"
 import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import { exposeRemote } from "../api/common/WorkerProxy.js"
-import { CancelledError } from "@tutao/app-env"
+import { CancelledError, ProgrammingError } from "@tutao/app-env"
 import { register } from "./electron-localshortcut/LocalShortcut.js"
-import { ProgrammingError } from "@tutao/app-env"
 import { objToError } from "../api/common/utils/ErrorUtils"
 
 export const webauthnIpcConfig = Object.freeze({

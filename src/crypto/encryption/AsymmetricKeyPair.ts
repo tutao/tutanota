@@ -1,4 +1,4 @@
-import { RsaX25519KeyPair, RsaX25519PublicKey, RsaKeyPair, RsaPublicKey } from "./RsaKeyPair.js"
+import { RsaKeyPair, RsaPublicKey, RsaX25519KeyPair, RsaX25519PublicKey } from "./RsaKeyPair.js"
 import { PQKeyPairs, PQPublicKeys } from "./PQKeyPairs.js"
 import { Versioned } from "@tutao/utils"
 

@@ -8,7 +8,7 @@ import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "@tutao/app-env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
-import { component_size, px, size } from "../size.js"
+import { component_size, px } from "../size.js"
 import { InfoIcon } from "./InfoIcon.js"
 
 assertMainOrNode()

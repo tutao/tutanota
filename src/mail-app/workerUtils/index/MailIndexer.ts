@@ -1,6 +1,6 @@
 import { CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { assertNotNull, clamp, defer, DeferredObject, findAllAndRemove, first, isEmpty, isNotEmpty, isNotNull, newPromise, promiseMap } from "@tutao/utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, getListId, hasError, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "@tutao/meta"
 import * as restError from "@tutao/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"

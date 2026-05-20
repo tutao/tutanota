@@ -2,7 +2,6 @@ import m, { Children } from "mithril"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { getReferralLink, ReferralLinkViewer } from "../misc/news/items/ReferralLinkViewer.js"
 import { locator } from "../api/main/CommonLocator.js"
-import {} from "../../meta"
 import { EntityUpdateData } from "@tutao/instance-pipeline"
 
 /**

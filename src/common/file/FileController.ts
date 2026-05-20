@@ -5,6 +5,7 @@ import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import { deduplicateFilenames, sanitizeFilename } from "../../ui/utils/FileUtils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import * as restError from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
@@ -14,7 +15,6 @@ import { DataFile, FileReference, WebFile } from "@tutao/entities/tutanota"
 import { TransferId } from "@tutao/entities/drive"
 import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile"
 import { createReferencingInstance, DownloadableFileEntity } from "@tutao/entities/storage"
-import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 

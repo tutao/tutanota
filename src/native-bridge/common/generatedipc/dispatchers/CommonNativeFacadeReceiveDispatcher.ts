@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/types"
-import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CalendarOpenAction, CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 export class CommonNativeFacadeReceiveDispatcher {
 	constructor(private readonly facade: CommonNativeFacade) {}

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Theme, theme } from "./theme"
+import { theme } from "./theme"
 import { boxShadowHigh } from "./main-styles"
 import { component_size, px, size } from "./size"
 import { IconButton } from "./base/IconButton"

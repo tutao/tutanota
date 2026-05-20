@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { CredentialType } from "./CredentialType.js"
+
 /**
  * Key definition for shortcuts.
  */

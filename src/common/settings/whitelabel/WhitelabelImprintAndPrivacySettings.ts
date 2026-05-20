@@ -1,5 +1,4 @@
 import { Dialog } from "../../../ui/base/Dialog"
-import { lang } from "../../../ui/utils/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { Icons } from "../../../ui/base/icons/Icons"

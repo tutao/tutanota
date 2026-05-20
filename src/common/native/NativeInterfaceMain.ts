@@ -1,4 +1,4 @@
-import { assertMainOrNode, isAdminClient, isAndroidApp, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isDesktop, isIOSApp, ProgrammingError } from "@tutao/app-env"
 import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.js"
 import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"

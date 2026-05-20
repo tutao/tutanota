@@ -1,8 +1,7 @@
-import { cleanMailAddress } from "@tutao/utils"
+import { cleanMailAddress, stringToBase64UrlCustomId } from "@tutao/utils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 import { DAY_IN_MILLIS } from "@tutao/app-env"
-import { stringToBase64UrlCustomId } from "@tutao/utils"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { StrippedEntity } from "@tutao/meta"
 

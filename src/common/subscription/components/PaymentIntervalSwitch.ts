@@ -2,8 +2,6 @@ import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { AriaRole } from "../../../ui/AriaUtils.js"
 import { Keys, TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../../ui/utils/KeyManager.js"
-import { locator } from "../../api/main/CommonLocator.js"
-import { theme } from "../../../ui/theme"
 
 type SwitchState = "left" | "right"
 

@@ -13,7 +13,6 @@ import { LoginScreenHeader } from "../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { client } from "../../app-env/boot/ClientDetector"
-import {} from "../../meta"
 import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
 
 assertMainOrNode()

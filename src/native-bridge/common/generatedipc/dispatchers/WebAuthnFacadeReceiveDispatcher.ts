@@ -1,8 +1,6 @@
 /* generated file, don't edit. */
 
-import { WebAuthnRegistrationChallenge } from "@tutao/native-bridge/generatedIpc/types"
-import { WebAuthnSignChallenge } from "@tutao/native-bridge/generatedIpc/types"
-import { WebAuthnFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnFacade, WebAuthnRegistrationChallenge, WebAuthnSignChallenge } from "@tutao/native-bridge/generatedIpc/types"
 
 export class WebAuthnFacadeReceiveDispatcher {
 	constructor(private readonly facade: WebAuthnFacade) {}

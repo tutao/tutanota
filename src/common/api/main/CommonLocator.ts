@@ -1,17 +1,19 @@
 import { WorkerClient } from "./WorkerClient.js"
 import { FileController } from "../../file/FileController.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	CommonSystemFacade,
+	DesktopSystemFacade,
+	MobileContactsFacade,
+	MobilePaymentsFacade,
+	MobileSystemFacade,
+	NativeCredentialsFacade,
+	SearchTextInAppFacade,
+	SettingsFacade,
+	ThemeFacade,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
-import { MobileContactsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
-import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient.js"
 import { SystemPermissionHandler } from "../../native/SystemPermissionHandler.js"

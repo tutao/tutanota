@@ -15,7 +15,6 @@ import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
 import { isWebFile } from "../../../../../ui/utils/FileUtils"
 import { FileReference, WebFile } from "@tutao/entities/tutanota"
-import { TransferId } from "@tutao/entities/drive"
 import {
 	createDriveCopyServicePostIn,
 	createDriveFolderServiceDeleteIn,
@@ -40,6 +39,7 @@ import {
 	DriveItemService,
 	DriveRenameData,
 	DriveService,
+	TransferId,
 } from "@tutao/entities/drive"
 import { getCleanedMimeType } from "../../utils/DataFile"
 
