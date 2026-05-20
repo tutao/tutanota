@@ -1,7 +1,7 @@
 import { pureComponent } from "../../ui/base/PureComponent"
 import m from "mithril"
 import { styles } from "../../ui/styles"
-import { layout_size, px, size } from "../../ui/size"
+import { layout_size, px } from "../../ui/size"
 import { Skeleton } from "../../ui/base/Skeleton"
 import { theme } from "../../ui/theme.js"
 

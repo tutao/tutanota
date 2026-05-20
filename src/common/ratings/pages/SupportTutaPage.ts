@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { ImageWithOptionsDialog } from "../../../ui/dialogs/ImageWithOptionsDialog.js"
-import { client } from "../../../app-env/boot/ClientDetector.js"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradePromptType } from "@tutao/app-env"

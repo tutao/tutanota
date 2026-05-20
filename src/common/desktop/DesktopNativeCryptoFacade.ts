@@ -2,19 +2,21 @@ import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8Arr
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type * as FsModule from "node:fs"
 import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/crypto"
-import { EncryptedFileInfo } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	EncryptedFileInfo,
+	IPCEd25519KeyPair,
+	IPCEd25519PrivateKey,
+	IPCEd25519PublicKey,
+	IPCEd25519Signature,
+	KyberEncapsulation,
+	KyberKeyPair,
+	KyberPrivateKey,
+	KyberPublicKey,
+	NativeCryptoFacade,
+	RsaPrivateKey,
+	RsaPublicKey,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { FileUri } from "../../native-bridge/common/FileApp.js"
-import { IPCEd25519KeyPair } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519Signature } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberEncapsulation } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberKeyPair } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { RsaPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { RsaPublicKey } from "@tutao/native-bridge/generatedIpc/types"
 import path from "node:path"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"

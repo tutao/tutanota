@@ -1,6 +1,6 @@
 import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander.js"
-import m, { Child, ChildArray, Children, ClassComponent, Component, Vnode } from "mithril"
+import m, { Child, ChildArray, Component, Vnode } from "mithril"
 import Stream from "mithril/stream"
 
 export interface NotificationTargetsListAttrs {

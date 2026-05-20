@@ -37,6 +37,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	CancelledError,
+	client,
 	FeatureType,
 	isApp,
 	isBrowser,
@@ -74,7 +75,6 @@ import {
 	showDownloadProgressDialog,
 	showUndoMailSnackbar,
 } from "../view/MailGuiUtils"
-import { client } from "@tutao/app-env"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
 import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"

@@ -1,16 +1,21 @@
 import { default as stream, Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
-import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { DownloadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
-import { FileFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade, DownloadTaskResponse, FileFacade, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
 import { FileUri } from "../../../native-bridge/common/FileApp.js"
-import { IpcClientRect } from "@tutao/native-bridge/generatedIpc/types"
-import { UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
 import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/crypto"
-import { assertNotNull, newPromise, splitUint8ArrayInChunks, stringToUtf8Uint8Array, throttle, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import {
+	assertNotNull,
+	DateProvider,
+	newPromise,
+	splitUint8ArrayInChunks,
+	stringToUtf8Uint8Array,
+	throttle,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+} from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import type { WriteStream } from "node:fs"
@@ -20,16 +25,13 @@ import type { ReadableStream } from "node:stream/web"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { log } from "../DesktopLog.js"
-import { BuildConfigKey, DesktopConfigKey } from "@tutao/app-env"
-import { CancelledError } from "@tutao/app-env"
+import { BuildConfigKey, CancelledError, DesktopConfigKey, ProgrammingError } from "@tutao/app-env"
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { DateProvider } from "@tutao/utils"
 import { TempFs } from "./TempFs.js"
 import { HttpMethod } from "@tutao/rest-client/types"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
-import { ProgrammingError } from "@tutao/app-env"
 import { DataFile } from "@tutao/entities/tutanota"
 
 const TAG = "[DesktopFileFacade]"

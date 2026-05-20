@@ -1,6 +1,5 @@
 import { Stage, UsageTest } from "@tutao/usagetests"
-import { ProgrammingError } from "@tutao/app-env"
-import { IdentityKeyVerificationMethod } from "@tutao/app-env"
+import { IdentityKeyVerificationMethod, ProgrammingError } from "@tutao/app-env"
 
 export type TestTracks = {
 	[IdentityKeyVerificationMethod.text]: UsageTest

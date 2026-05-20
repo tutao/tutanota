@@ -1,11 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import type { InfoLink, TranslationKey, MaybeTranslation } from "../../ui/utils/LanguageViewModel.js"
+import Stream from "mithril/stream"
+import type { InfoLink, MaybeTranslation } from "../../ui/utils/LanguageViewModel.js"
 import type { TableAttrs } from "../../ui/base/Table.js"
 import { Table } from "../../ui/base/Table.js"
 import { SettingsExpander } from "./SettingsExpander.js"
-import type { lazy } from "@tutao/utils"
-import Stream from "mithril/stream"
 
 type ExpandableTableAttrs = {
 	title: MaybeTranslation

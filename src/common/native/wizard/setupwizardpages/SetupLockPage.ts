@@ -1,10 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { WizardPageAttrs } from "../../../../ui/base/WizardDialog.js"
-import { lang, type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SelectAppLockMethodView } from "../../SelectAppLockMethodDialog.js"
-import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/types"
-import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CredentialAuthenticationError } from "../../../api/common/error/CredentialAuthenticationError.js"
 import { CancelledError } from "@tutao/app-env"
 

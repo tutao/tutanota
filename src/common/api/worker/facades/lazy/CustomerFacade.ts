@@ -34,7 +34,7 @@ import {
 } from "@tutao/crypto"
 import { CacheMode } from "../../../../../network/EntityRestClient"
 import { CounterType } from "@tutao/entities/monitor"
-import { createCustomerAccountCreateData, CustomerAccountService, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { createCustomerAccountCreateData, CustomerAccountService, DataFile, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -64,7 +64,6 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { getByAbbreviation } from "../../../../gui/CountryList"
-import { DataFile } from "@tutao/entities/tutanota"
 
 assertWorkerOrNode()
 

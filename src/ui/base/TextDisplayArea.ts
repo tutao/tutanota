@@ -1,9 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../utils/LanguageViewModel"
+import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { theme } from "../theme"
-import { font_size, px, size } from "../size"
-import type { lazy } from "@tutao/utils"
+import { font_size, px } from "../size"
 
 export type TextDisplayAreaAttrs = {
 	value: string

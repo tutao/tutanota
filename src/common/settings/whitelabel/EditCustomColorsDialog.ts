@@ -1,10 +1,8 @@
 import m from "mithril"
-import { lang } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, Keys } from "@tutao/app-env"
 import { Dialog } from "../../../ui/base/Dialog"
 import { ButtonType } from "../../../ui/base/Button.js"
 import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
-import { Keys } from "@tutao/app-env"
 import { CustomColorEditor } from "./CustomColorEditor"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 

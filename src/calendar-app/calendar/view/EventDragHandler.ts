@@ -5,9 +5,8 @@ import { showDropdownAtPosition } from "../../../ui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "@tutao/utils"
 import { isKeyPressed, isModifierKeyPressed, Key } from "../../../ui/utils/KeyManager.js"
-import { Keys } from "@tutao/app-env"
+import { isAppleDevice, Keys } from "@tutao/app-env"
 import { EventWrapper } from "./CalendarViewModel"
-import { isAppleDevice } from "@tutao/app-env"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 
 const DRAG_THRESHOLD = 10

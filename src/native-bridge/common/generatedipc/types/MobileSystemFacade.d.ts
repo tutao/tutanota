@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
-import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
-import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+
 /**
  * Common operations implemented by each mobile platform.
  */

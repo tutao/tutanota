@@ -6,15 +6,15 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	aesDecrypt,
+	aesDecryptUnauthenticated,
 	aesEncrypt,
 	AesKey,
 	base64ToKey,
 	decryptKey,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
 	encryptKey,
 	random,
 	uint8ArrayToKey,
-	aesDecryptUnauthenticated,
-	decryptKeyUnauthenticatedWithDeviceKeyChain,
 } from "@tutao/crypto"
 
 // the prng throws if it doesn't have enough entropy

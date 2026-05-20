@@ -1,13 +1,15 @@
 /* generated file, don't edit. */
 
-import { RsaPublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { RsaPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519Signature } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	IPCEd25519PrivateKey,
+	IPCEd25519PublicKey,
+	IPCEd25519Signature,
+	KyberPrivateKey,
+	KyberPublicKey,
+	NativeCryptoFacade,
+	RsaPrivateKey,
+	RsaPublicKey,
+} from "@tutao/native-bridge/generatedIpc/types"
 
 export class NativeCryptoFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCryptoFacade) {}

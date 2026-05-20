@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../ui/utils/LanguageViewModel.js"
 import { root } from "../ui/base/RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertNotNull, neverNull } from "@tutao/utils"
+import { assertNotNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"

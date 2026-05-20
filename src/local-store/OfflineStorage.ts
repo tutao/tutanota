@@ -23,6 +23,8 @@ import { EncodeOptions, Token, Type } from "cborg"
 import {
 	assert,
 	assertNotNull,
+	Category,
+	DateProvider,
 	getFirstOrThrow,
 	groupBy,
 	groupByAndMap,
@@ -30,22 +32,20 @@ import {
 	mapNullable,
 	Nullable,
 	splitInChunks,
+	syncMetrics,
 	typedEntries,
 	typedValues,
 } from "@tutao/utils"
-import { DateProvider } from "@tutao/utils"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { OutOfSyncError } from "../app-env/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { ModelMapper } from "@tutao/instance-pipeline"
-import { Category, syncMetrics } from "@tutao/utils"
-import { isAdminClient, isBrowser, isDesktop, isTest, Mode } from "@tutao/app-env"
+import { ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
+import { isAdminClient, isBrowser, isDesktop, isTest } from "@tutao/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { FormattedQuery, OfflineStorageInitArgs, TaggedSqlValue } from "./Types"
 import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "@tutao/meta"
-import { TypeModelResolver } from "@tutao/instance-pipeline"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
 import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "../native-bridge/common/generatedipc/types/SqlCipherFacade"

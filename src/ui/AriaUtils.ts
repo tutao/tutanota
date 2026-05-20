@@ -1,4 +1,3 @@
-import { assertMainOrNodeBoot } from "@tutao/app-env"
 /**
  * Collections of utility functions to support Accessible Rich Internet Applications (ARIA).
  *
@@ -8,7 +7,7 @@ import { assertMainOrNodeBoot } from "@tutao/app-env"
  * https://www.w3.org/TR/wai-aria-1.1/
  *
  */
-import { TabIndex } from "@tutao/app-env"
+import { assertMainOrNodeBoot, TabIndex } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 

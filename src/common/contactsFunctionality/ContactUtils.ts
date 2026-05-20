@@ -2,14 +2,16 @@ import { assertMainOrNode } from "@tutao/app-env"
 import { formatDate } from "../../ui/utils/Formatter.js"
 import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
-import { StructuredAddress } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredCustomDate } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredMailAddress } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredMessengerHandle } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredPhoneNumber } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredRelationship } from "@tutao/native-bridge/generatedIpc/types"
-import { StructuredWebsite } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	StructuredAddress,
+	StructuredContact,
+	StructuredCustomDate,
+	StructuredMailAddress,
+	StructuredMessengerHandle,
+	StructuredPhoneNumber,
+	StructuredRelationship,
+	StructuredWebsite,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { parseUrl } from "@tutao/utils"
 import {
 	Birthday,

@@ -1,16 +1,19 @@
 /* generated file, don't edit. */
 
-import { RsaPublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { RsaPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { EncryptedFileInfo } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberKeyPair } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPublicKey } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberEncapsulation } from "@tutao/native-bridge/generatedIpc/types"
-import { KyberPrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519KeyPair } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PrivateKey } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519Signature } from "@tutao/native-bridge/generatedIpc/types"
-import { IPCEd25519PublicKey } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	EncryptedFileInfo,
+	IPCEd25519KeyPair,
+	IPCEd25519PrivateKey,
+	IPCEd25519PublicKey,
+	IPCEd25519Signature,
+	KyberEncapsulation,
+	KyberKeyPair,
+	KyberPrivateKey,
+	KyberPublicKey,
+	RsaPrivateKey,
+	RsaPublicKey,
+} from "@tutao/native-bridge/generatedIpc/types"
+
 export interface NativeCryptoFacade {
 	rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array>
 

@@ -19,8 +19,7 @@ import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js
 import { handleCalendarImport } from "./CalendarImporterDialog.js"
 import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { CalendarEvent } from "@tutao/entities/tutanota"
-import { DataFile } from "@tutao/entities/tutanota"
+import { CalendarEvent, DataFile } from "@tutao/entities/tutanota"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {

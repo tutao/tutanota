@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
-import { TaggedSqlValue } from "@tutao/native-bridge/generatedIpc/types"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade, TaggedSqlValue } from "@tutao/native-bridge/generatedIpc/types"
 
 export class SqlCipherFacadeReceiveDispatcher {
 	constructor(private readonly facade: SqlCipherFacade) {}

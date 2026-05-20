@@ -2,24 +2,22 @@ import {
 	AttributeModel,
 	BlobElementEntity,
 	clone,
-	firstBiggerThanSecondBase64Ext,
-	localToServerIdEncoding,
-	serverToLocalIdEncoding,
 	Entity,
 	expandId,
-	firstBiggerThanSecond,
-	GENERATED_MIN_ID,
+	firstBiggerThanSecondBase64Ext,
 	getTypeString,
 	hasError,
 	ListElementEntity,
+	localToServerIdEncoding,
 	parseTypeString,
 	ServerModelParsedInstance,
+	serverToLocalIdEncoding,
 	SomeEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeRef,
 } from "@tutao/meta"
-import { assertNotNull, filterNull, getFromMap,  Nullable, remove } from "@tutao/utils"
+import { assertNotNull, filterNull, getFromMap, Nullable, remove } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ModelMapper, ServerTypeModelResolver } from "@tutao/instance-pipeline"

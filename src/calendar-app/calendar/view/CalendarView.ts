@@ -9,13 +9,14 @@ import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartO
 import { elementIdPart } from "@tutao/meta"
 import { Group, GroupInfo, GroupType, NewPaidPlans, User } from "@tutao/entities/sys"
 import {
+	client,
 	DEFAULT_CALENDAR_COLOR,
 	isAndroidApp,
 	isApp,
 	isDesktop,
 	Keys,
-	reverse,
 	ProgrammingError,
+	reverse,
 	ShareCapability,
 	TimeFormat,
 	UpgradePromptType,
@@ -71,7 +72,6 @@ import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
-import { client } from "@tutao/app-env"
 import { FloatingActionButton } from "../../../ui/base/FloatingActionButton.js"
 import { progressIcon } from "../../../ui/base/Icon.js"
 import { getExternalCalendarName, parseCalendarStringData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils.js"

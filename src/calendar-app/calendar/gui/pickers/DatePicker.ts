@@ -15,10 +15,9 @@ import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../ui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../ui/utils/KeyManager.js"
-import { Keys, TabIndex } from "@tutao/app-env"
+import { isApp, isIOSApp, Keys, TabIndex } from "@tutao/app-env"
 import { AriaPopupType } from "../../../../ui/AriaUtils.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../ui/base/InputButton.js"
-import { isApp, isIOSApp } from "@tutao/app-env"
 
 export enum PickerPosition {
 	TOP,

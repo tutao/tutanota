@@ -1,7 +1,4 @@
-import { DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ElectronResult } from "@tutao/native-bridge/generatedIpc/types"
-import { ErrorInfo } from "@tutao/native-bridge/generatedIpc/types"
-import { NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
 import { Shortcut } from "../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"

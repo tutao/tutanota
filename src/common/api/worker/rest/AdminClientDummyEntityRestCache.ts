@@ -1,6 +1,5 @@
-import { ListElementEntity, SomeEntity } from "@tutao/meta"
+import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 import { ProgrammingError } from "@tutao/app-env"
-import { TypeRef } from "@tutao/meta"
 import { EntityRestCache } from "../../../../network/EntityRestCacheInterface"
 import { EntityRestClientLoadOptions } from "../../../../network/EntityRestClient"
 import { EntityUpdateData } from "../../../../instance-pipeline/EntityUpdateUtils"

@@ -1,9 +1,7 @@
 /* generated file, don't edit. */
 
-import { IpcClientRect } from "@tutao/native-bridge/generatedIpc/types"
-import { UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
-import { DownloadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
-import { DataFile } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile, DownloadTaskResponse, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
+
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */

@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/types"
+
 /**
  * Push notifications and alarms operations
  */
