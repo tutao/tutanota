@@ -1,7 +1,7 @@
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { LoginController } from "../api/main/LoginController"
-import { AppType, client, isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/app-env"
+import { AppType, isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/app-env"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { locator } from "../api/main/CommonLocator"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
@@ -12,6 +12,7 @@ import { EntityClient } from "../../network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
 import { getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
+import { client } from "../../app-env/boot/ClientDetector"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts

@@ -12,9 +12,9 @@ import { getLocationUrl } from "./EventPreviewView.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
-import { client } from "@tutao/app-env"
 import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
+import { client } from "../../../../app-env/boot/ClientDetector"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent

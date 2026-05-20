@@ -1,4 +1,4 @@
-import { EntityUpdateData } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { User } from "@tutao/entities/sys"
 
 export interface IndexerInitParams {

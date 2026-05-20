@@ -81,7 +81,6 @@ import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
@@ -114,7 +113,7 @@ import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
 import { AddNotificationEmailDialog } from "./settings/AddNotificationEmailDialog.js"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../ui/ThemeController.js"
-import { HtmlSanitizer } from "../common/gui/utils/HtmlSanitizer.js"
+import { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../ui/theme.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { MAIL_PREFIX } from "../ui/utils/RouteChange.js"
@@ -167,9 +166,9 @@ import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType, ShareableGroupType } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "../instance-pipeline/EntityFunctions"
-import { initClientModels } from "../common/ClientModelInfoInitializer"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNode()
 
@@ -1067,7 +1066,7 @@ class MailLocator implements CommonLocator {
 			isApp() || isDesktop() ? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => mailLocator.themeFacade)) : new WebThemeFacade(deviceConfig)
 		const lazySanitizer = isTest()
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-			: () => import("../common/gui/utils/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
+			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Mail, this.whitelabelThemeGenerator)
 
@@ -1304,7 +1303,7 @@ class MailLocator implements CommonLocator {
 	}
 
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
-		const { getHtmlSanitizer } = await import("../common/gui/utils/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../common/misc/HtmlSanitizer")
 		const { MailExportController } = await import("./native/main/MailExportController.js")
 		return new MailExportController(
 			this.mailExportFacade,

@@ -1,18 +1,18 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { BubbleTextField, BubbleTextFieldAttrs, BubbleTextFieldClickBehaviour } from "../../../ui/base/BubbleTextField.js"
-import { component_size, px } from "../../../ui/size.js"
-import { Icon, IconSize, progressIcon } from "../../../ui/base/Icon.js"
-import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { stringToNameAndMailAddress } from "../../../common/misc/parsing/MailAddressParser.js"
-import { DropdownChildAttrs } from "../../../ui/base/Dropdown.js"
-import { RecipientsSearchModel } from "../../../common/misc/RecipientsSearchModel.js"
+import { BubbleTextField, BubbleTextFieldAttrs, BubbleTextFieldClickBehaviour } from "../../ui/base/BubbleTextField.js"
+import { component_size, px } from "../../ui/size.js"
+import { Icon, IconSize, progressIcon } from "../../ui/base/Icon.js"
+import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
+import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
+import { DropdownChildAttrs } from "../../ui/base/Dropdown.js"
+import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
 import { getFirstOrThrow, lazy } from "@tutao/utils"
-import { Dialog } from "../../../ui/base/Dialog.js"
-import { SearchDropDown } from "../../../common/gui/SearchDropDown.js"
-import { Icons } from "../../../ui/base/icons/Icons.js"
-import { theme } from "../../../ui/theme.js"
-import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
+import { Dialog } from "../../ui/base/Dialog.js"
+import { SearchDropDown } from "./SearchDropDown.js"
+import { Icons } from "../../ui/base/icons/Icons.js"
+import { theme } from "../../ui/theme.js"
+import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
+import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { PresentableKeyVerificationState } from "@tutao/app-env"
 import { Contact, Recipient } from "@tutao/entities/tutanota"
 
@@ -110,7 +110,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			onClick: (recipient: ResolvableRecipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
-					import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
+					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
 						async ({ SenderKeyVerificationRecoveryDialogPages, showSenderKeyVerificationRecoveryDialog }) =>
 							showSenderKeyVerificationRecoveryDialog(await recipient.resolve(), SenderKeyVerificationRecoveryDialogPages.INFO),
 					)

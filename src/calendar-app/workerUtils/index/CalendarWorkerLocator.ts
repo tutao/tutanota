@@ -10,7 +10,6 @@ import { EventBusClient } from "../../../network/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import {
 	assertWorkerOrNode,
-	BrowserData,
 	Const,
 	getWebsocketBaseUrl,
 	isAdminClient,
@@ -109,8 +108,9 @@ import { ServiceExecutor } from "../../../network/ServiceExecutor"
 import { Credentials } from "@tutao/network/types"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { Challenge, UserTypeRef } from "@tutao/entities/sys"
-import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

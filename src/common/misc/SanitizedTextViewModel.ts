@@ -1,4 +1,4 @@
-import type { HtmlSanitizer } from "../gui/utils/HtmlSanitizer.js"
+import type { HtmlSanitizer } from "./HtmlSanitizer.js"
 import { noOp } from "@tutao/utils"
 import { convertTextToHtml } from "../../ui/utils/Formatter.js"
 import { prepareCalendarDescription } from "../api/common/utils/CommonCalendarUtils.js"

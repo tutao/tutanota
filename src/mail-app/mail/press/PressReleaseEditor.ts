@@ -10,7 +10,7 @@ import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxMod
 import { Keys, TabIndex } from "@tutao/app-env"
 import { progressIcon } from "../../../ui/base/Icon"
 import { Editor } from "../../../ui/editor/Editor"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"

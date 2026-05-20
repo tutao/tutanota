@@ -1,6 +1,6 @@
 import * as restError from "@tutao/rest-client/error"
 import { purgeSyncMetrics, syncMetrics } from "@tutao/utils"
-import { EntityUpdateData, getLogStringForEntityEvent } from "@tutao/instance-pipeline"
+import { EntityUpdateData, getLogStringForEntityEvent } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { ProgressMonitorInterface } from "./ProgressMonitorInterface"
 
 export type QueuedBatch = {

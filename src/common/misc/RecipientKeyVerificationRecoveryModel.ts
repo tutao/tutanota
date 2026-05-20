@@ -2,7 +2,7 @@ import type { KeyVerificationFacade } from "../../base/facades/lazy/KeyVerificat
 import { PublicIdentityKeyProvider } from "../../base/crypto/PublicIdentityKeyProvider"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
-import { PublicKeyIdentifierType } from "@tutao/crypto"
+import { PublicKeyIdentifierType } from "../../crypto/CryptoTypes.js"
 
 /**
  * Handles the high level logic of how to deal with key verification errors for recipients.

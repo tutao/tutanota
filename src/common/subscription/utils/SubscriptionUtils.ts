@@ -33,7 +33,7 @@ import {
 	PlanName,
 	PlanType,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export const enum UpgradeType {
 	/**

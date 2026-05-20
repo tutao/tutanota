@@ -17,6 +17,7 @@ import {
 	areAllAdvancedRepeatRulesValid,
 	ByRule,
 	CALENDAR_TYPE_TRANSLATION_MAP,
+	getAttendeeStatus,
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -37,7 +38,6 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../ui/base/ExpandableTextArea.js"
 import { hasError } from "@tutao/meta"
-import { getAttendeeStatus } from "../../../../base/utils_todo_move_elsewhere/CalendarUtils"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel

@@ -17,9 +17,10 @@ import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
-import { client, isIOSApp } from "@tutao/app-env"
+import { isIOSApp } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }

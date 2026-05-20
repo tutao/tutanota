@@ -12,7 +12,7 @@ import { promiseMap } from "@tutao/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../ui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { isSameId, OperationType } from "@tutao/meta"
 

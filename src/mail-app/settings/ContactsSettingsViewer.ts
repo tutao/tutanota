@@ -11,7 +11,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { assert } from "@tutao/utils"
 import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../common/subscription/TermsAndConditions"
 import { TutanotaProperties, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
 
 assertMainOrNode()

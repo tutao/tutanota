@@ -7,9 +7,8 @@ import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from
 import { Icons } from "../../../ui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
 import { elementIdPart } from "@tutao/meta"
-import { Group, GroupInfo, GroupType, NewPaidPlans, User } from "@tutao/entities/sys"
+import { Group, GroupInfo, GroupType, hasCapabilityOnGroup, NewPaidPlans, User } from "@tutao/entities/sys"
 import {
-	client,
 	DEFAULT_CALENDAR_COLOR,
 	isAndroidApp,
 	isApp,
@@ -47,10 +46,10 @@ import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
-import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
+import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../ui/SidebarSection"
-import { HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { calendarNavConfiguration, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
@@ -107,6 +106,7 @@ import {
 	PartialRecipient,
 } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../../common/misc/WindowFacade"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 export type GroupColors = Map<Id, string>
 
@@ -140,7 +140,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
-		this.htmlSanitizer = import("../../../common/gui/utils/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
+		this.htmlSanitizer = import("../../../common/misc/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>

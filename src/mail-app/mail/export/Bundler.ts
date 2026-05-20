@@ -1,5 +1,5 @@
 import type { EntityClient } from "../../../network/EntityClient"
-import type { HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/utils"
 import { FileController } from "../../../common/file/FileController"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"

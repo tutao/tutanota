@@ -2,7 +2,7 @@ import type { KeyVerificationFacade } from "../../base/facades/lazy/KeyVerificat
 import { PublicIdentityKeyProvider } from "../../base/crypto/PublicIdentityKeyProvider"
 import { MailAddressAndName } from "../api/common/CommonMailUtils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
-import { PublicKeyIdentifierType } from "@tutao/crypto"
+import { PublicKeyIdentifierType } from "../../crypto/CryptoTypes"
 
 /**
  * Handles the high level logic of how to deal with key verification errors for senders.

@@ -16,7 +16,7 @@ import { ofClass } from "@tutao/utils"
 import { IconButton } from "../../ui/base/IconButton.js"
 import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { EmailTemplate, TemplateGroupRoot } from "@tutao/entities/tutanota"
-import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one

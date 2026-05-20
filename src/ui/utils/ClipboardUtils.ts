@@ -1,6 +1,5 @@
-import { client } from "@tutao/app-env"
-
 import { newPromise } from "@tutao/utils"
+import { client } from "../../app-env/boot/ClientDetector"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return newPromise((resolve, reject) => {

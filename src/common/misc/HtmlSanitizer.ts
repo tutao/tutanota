@@ -1,7 +1,6 @@
-import { ReplacementImage } from "../../../ui/base/icons/Icons"
+import { ReplacementImage } from "../../ui/base/icons/Icons"
 import { isEmpty, isNotNull, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import DOMPurify, { Config } from "dompurify"
-import { splitTextForHighlighting } from "../../../ui/utils/QueryTokenUtils"
 import {
 	combineParsers,
 	makeCharacterParser,
@@ -18,9 +17,10 @@ import {
 	ParserError,
 	StringIterator,
 	stringParser,
-} from "../../misc/parsing/ParserCombinator"
-import { Link, SanitizeConfig, SanitizeConfigExtra, SanitizedFragment, SanitizedHTML } from "../../../ui/utils/HtmlSanitizerInterface"
-import { DataFile } from "../../../entities/tutanota/MailBundle"
+} from "./parsing/ParserCombinator"
+import { Link, SanitizeConfig, SanitizeConfigExtra, SanitizedFragment, SanitizedHTML } from "../../ui/utils/HtmlSanitizerInterface"
+import { DataFile } from "../../entities/tutanota/MailBundle"
+import { splitTextForHighlighting } from "../../ui/utils/QueryTokenUtils"
 
 // background attribute is deprecated but still used in common browsers
 const EXTERNAL_CONTENT_ATTRS = Object.freeze([

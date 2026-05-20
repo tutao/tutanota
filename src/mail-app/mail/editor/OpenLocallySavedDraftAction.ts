@@ -1,4 +1,3 @@
-import type { PostLoginAction } from "../../../common/api/main/LoginController"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import type { Dialog } from "../../../ui/base/Dialog"
@@ -7,7 +6,7 @@ import type { EntityClient } from "../../../network/EntityClient"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
 import { SessionType } from "@tutao/app-env"
-import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
+import { LoggedInEvent, PostLoginAction } from "../../../native-bridge/common/PostLoginAction.js"
 
 import { isEditableDraft } from "../model/MailChecks"
 import { isOfflineError } from "@tutao/rest-client/error"

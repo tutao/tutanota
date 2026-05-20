@@ -183,7 +183,7 @@ export async function makeCalendarEventModel(
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
-	const { getHtmlSanitizer } = await import("../../../../common/gui/utils/HtmlSanitizer.js")
+	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")

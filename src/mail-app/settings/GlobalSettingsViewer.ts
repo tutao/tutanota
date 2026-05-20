@@ -52,7 +52,7 @@ import { AccountMaintenanceSettings, AccountMaintenanceUpdateNotifier } from "..
 import type { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 import { getSpamRuleField } from "../mail/MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders

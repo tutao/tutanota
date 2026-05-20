@@ -2,7 +2,6 @@ import m, { Children } from "mithril"
 import { showTemplateEditor } from "./TemplateEditor"
 import { EntityClient } from "../../network/EntityClient"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
-import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
 import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import type { LoginController } from "../../common/api/main/LoginController"
@@ -25,8 +24,9 @@ import { keyManager } from "../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { isSameId } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { EmailTemplate, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { hasCapabilityOnGroup } from "@tutao/entities/sys"
 
 assertMainOrNode()
 

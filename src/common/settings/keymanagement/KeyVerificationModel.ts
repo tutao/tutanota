@@ -16,7 +16,7 @@ import {
 } from "@tutao/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { TrustDBEntry } from "../../../local-store/IdentityKeyTrustDatabase"
-import { PublicKeyIdentifierType } from "@tutao/crypto"
+import { PublicKeyIdentifierType } from "../../../crypto/CryptoTypes"
 
 export type PublicIdentity = {
 	fingerprint: Hex

@@ -3,7 +3,7 @@ import { freezeMap } from "@tutao/utils"
 import { ExposedCacheStorage } from "./CacheStorage.js"
 import { CalendarEvent, Mail } from "@tutao/entities/tutanota"
 import { SomeEntity } from "@tutao/meta"
-import { EntityUpdateData } from "../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { User } from "@tutao/entities/sys"
 
 /**

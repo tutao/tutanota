@@ -1,6 +1,6 @@
 import { ApprovalStatus, assertMainOrNode, daysToMillis, minutesToMillis, ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Attachment,
 	CalendarAttendeeStatus,
@@ -1240,7 +1240,7 @@ export class SendMailModel {
 	private async getSanitizedBody(): Promise<string> {
 		const unsanitized_body = this.getBody()
 
-		const { getHtmlSanitizer } = await import("../gui/utils/HtmlSanitizer.js")
+		const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
 		return getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
 			// store the draft always with external links preserved. this reverts
 			// the draft-src and draft-srcset attribute stow.

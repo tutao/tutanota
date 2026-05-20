@@ -1,6 +1,6 @@
 import { WeekStart } from "@tutao/app-env"
 import { UserSettingsGroupRoot } from "@tutao/entities/tutanota"
-import { getWeekStart } from "../../base/utils_todo_move_elsewhere/CalendarUtils"
+import { getWeekStart } from "../calendar/date/CalendarUtils"
 
 /** Start of the week offset relative to Sunday (forward). */
 export function getStartOfTheWeekOffset(weekStart: WeekStart): number {

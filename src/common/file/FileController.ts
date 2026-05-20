@@ -1,5 +1,5 @@
 import { Dialog } from "../../ui/base/Dialog.js"
-import { assertMainOrNode, BrowserType, client, isApp } from "@tutao/app-env"
+import { assertMainOrNode, isApp } from "@tutao/app-env"
 import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel.js"
 import { deduplicateFilenames, sanitizeFilename } from "../../ui/utils/FileUtils"
@@ -13,8 +13,10 @@ import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { ArchiveDataType } from "@tutao/entities/sys"
 import { DataFile, FileReference, WebFile } from "@tutao/entities/tutanota"
 import { TransferId } from "@tutao/entities/drive"
-import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile"
+import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile.js"
 import { createReferencingInstance, DownloadableFileEntity } from "@tutao/entities/storage"
+import { client } from "../../app-env/boot/ClientDetector"
+import { BrowserType } from "../../app-env/boot/ClientConstants"
 
 assertMainOrNode()
 

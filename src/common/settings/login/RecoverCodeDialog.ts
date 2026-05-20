@@ -20,7 +20,7 @@ import { RecoverCodeDisplay } from "../../subscription/RecoverCodeDisplay"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
 import { getEtId, isSameId } from "@tutao/meta"
 import { GroupType, User } from "@tutao/entities/sys"
-import { getHtmlSanitizer } from "../../gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 
 type Action = "get" | "create"
 assertMainOrNode()

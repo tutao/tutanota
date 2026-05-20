@@ -23,7 +23,7 @@ import {
 	SwitchAccountTypeService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { BookingFailureReason, client, Const, InvoiceData, isIOSApp, Keys, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, InvoiceData, isIOSApp, Keys, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
@@ -61,6 +61,7 @@ import { px } from "../../ui/size"
 import { Icons } from "../../ui/base/icons/Icons"
 import { getUserGroupMemberships } from "../../network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
+import { client } from "../../app-env/boot/ClientDetector"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.

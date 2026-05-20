@@ -10,7 +10,7 @@ import { locator } from "../api/main/CommonLocator"
 import { renderCountryDropdown } from "../gui/CountryDropdown"
 import { LocationService, LocationServiceGetReturn } from "@tutao/entities/sys"
 import { Countries, CountryType } from "../gui/CountryList"
-import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,

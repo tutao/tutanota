@@ -22,7 +22,7 @@ import {
 	createContactListEntry,
 } from "@tutao/entities/tutanota"
 import { GroupInfo, GroupType, ReceivedGroupInvitation } from "@tutao/entities/sys"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getEtId, isSameId } from "@tutao/meta"
 
 export class ContactListViewModel {

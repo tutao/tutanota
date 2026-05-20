@@ -10,7 +10,7 @@ import { search } from "../../../common/api/common/utils/PlainTextSearch.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { EmailTemplate, EmailTemplateContent, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, isSameId, OperationType } from "@tutao/meta"
 
 /**

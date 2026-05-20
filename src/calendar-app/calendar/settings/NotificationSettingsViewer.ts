@@ -10,7 +10,7 @@ import { AppType, isApp, isBrowser, isDesktop, PushServiceType } from "@tutao/ap
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {

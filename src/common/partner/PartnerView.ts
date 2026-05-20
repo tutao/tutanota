@@ -23,7 +23,7 @@ import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsVie
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../../ui/base/icons/Icons"
-import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()

@@ -60,7 +60,6 @@ import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
 import * as restError from "@tutao/rest-client/error"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
-import type { BrowserData } from "@tutao/app-env"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { UserFacade } from "../../../base/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
@@ -70,6 +69,7 @@ import { SearchToken, splitQuery } from "../../../ui/utils/QueryTokenUtils"
 import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from "../../../common/api/worker/search/IndexEncryptionUtils"
 import { Contact, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 type RowsToReadForIndexKey = {
 	indexKey: string

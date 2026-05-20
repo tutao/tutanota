@@ -1,7 +1,6 @@
 import { Commands, Request } from "../../../native-bridge/shared/MessageTypes"
 import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import * as restError from "@tutao/rest-client/error"
-import type { BrowserData } from "@tutao/app-env"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "../index/CalendarWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
@@ -12,6 +11,7 @@ import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker
 import { CryptoError } from "@tutao/crypto/error"
 import { errorToObj } from "@tutao/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

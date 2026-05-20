@@ -6,7 +6,8 @@ import type { KeyboardSizeListener, WindowSizeListener } from "../../ui/utils/Wi
 import type { IWindowFacade } from "../../ui/IWindowFacade"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../ui/base/Dialog"
-import { assertMainOrNodeBoot, client, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { client } from "../../app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -124,7 +125,6 @@ export class WindowFacade implements IWindowFacade {
 				}
 			})
 		}
-		this.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
 		// call the resize listeners once to make sure everyone
 		// has the current window size once we're done initializing
 		this._resize()

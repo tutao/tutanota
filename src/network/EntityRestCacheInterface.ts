@@ -1,6 +1,6 @@
 import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { EntityUpdateData } from "../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { EntityRestClientEraseOptions, EntityRestClientLoadOptions, EntityRestClientSetupOptions, EntityRestClientUpdateOptions } from "./EntityRestClient"
 
 /**

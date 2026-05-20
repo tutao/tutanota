@@ -7,10 +7,10 @@ import { component_size, px, size } from "../../../ui/size"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { Icon, IconSize } from "../../../ui/base/Icon.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
-import { client } from "@tutao/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { getFolderIcon } from "./MailGuiUtils"
 import { MailSet } from "@tutao/entities/tutanota"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 export type MailFolderRowAttrs = {
 	count: number

@@ -37,7 +37,6 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	CancelledError,
-	client,
 	FeatureType,
 	isApp,
 	isBrowser,
@@ -64,7 +63,7 @@ import { ExpanderPanel } from "../../../ui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "@tutao/utils"
@@ -88,10 +87,9 @@ import { fileListToArray } from "../../../ui/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
 import { Shortcut } from "../../../ui/utils/KeyManager"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { MailRecipientsTextField } from "../../contacts/view/MailRecipientsTextField.js"
+import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
-
 import { animateToolbar, RichTextToolbar } from "../../../ui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
@@ -132,6 +130,7 @@ import { showInfoSnackbar } from "../../../ui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 // Interval where we save drafts locally.
 //

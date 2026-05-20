@@ -79,8 +79,8 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailSetKind, MailTypeRef } from "@tutao/entities/tutanota"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 const SEARCH_PAGE_SIZE = 100
 

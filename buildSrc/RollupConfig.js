@@ -51,10 +51,10 @@ export const allowedImports = {
 	"polyfill-helpers": [],
 	"wasm-fallback": [],
 	wasm: ["wasm-fallback"],
-	"common-min": ["polyfill-helpers", "boot"],
+	"common-min": ["polyfill-helpers"],
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
-	"gui-base": ["polyfill-helpers", "common-min", "common", "boot", "worker"],
+	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
@@ -275,6 +275,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/common/gui/base")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
+	} else if (isIn("src/common/gui/CountryList.ts")) {
+		return "common"
 	} else if (isIn("src/common/native/wizard")) {
 		return "setup-wizard"
 	} else if (isIn("src/common/native") || isIn("src/mail-app/native/main") || moduleId.includes("SearchInPageOverlay")) {
@@ -301,6 +303,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/gui") ||
 		isIn("src/common/offline") ||
 		isIn("src/common/serviceworker") ||
+		isIn("src/ui/utils/ClipboardUtils.ts") ||
 		moduleId.includes(path.normalize("src/usagetests")) ||
 		moduleId.includes("NotificationContentSelector") ||
 		moduleId.includes("NotificationPermissionsDialog") ||
@@ -316,10 +319,11 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm-fallback"
 	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js")) {
 		return "spam-classifier"
-	} else if (isIn("src/mail-app/workerUtils/worker")
-		|| isIn("src/calendar-app/worker")
-		|| isIn("src/mail-app/workerUtils/offline")
-		|| isIn("src/drive-app/workerUtils")
+	} else if (
+		isIn("src/mail-app/workerUtils/worker") ||
+		isIn("src/calendar-app/worker") ||
+		isIn("src/mail-app/workerUtils/offline") ||
+		isIn("src/drive-app/workerUtils")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
@@ -386,6 +390,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "linkify"
 	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
 		return "pdf"
+	} else if (isIn("src/common/api/worker/utils")) {
+		return "common"
 	} else if (isIn("src/common/api/worker") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
@@ -398,7 +404,19 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "drive"
 	} else if (isIn("src/utils")) {
 		return "common-min"
-	} else if (isIn("src/meta") || isIn("src/rest-client/error.ts")) {
+	} else if (
+		isIn("src/meta") ||
+		isIn("src/rest-client/error.ts") ||
+		isIn("src/instance-pipeline/utils") ||
+		isIn("src/ui/utils") ||
+		isIn("src/base/crypto/Constants.ts") ||
+		isIn("src/crypto/CryptoTypes.ts") ||
+		isIn("src/network/GroupUtils.ts") ||
+		isIn("src/network/EntityClient.ts") ||
+		isIn("src/network/ProgressMonitorInterface.ts") ||
+		isIn("src/native-bridge/common/threading/WebTransport.ts") ||
+		isIn("src/instance-pipeline/EntityFunctions.ts")
+	) {
 		return "common"
 	} else if (isIn("src/rest-client") || isIn("src/crypto") || isIn("src/instance-pipeline")) {
 		return "worker"
@@ -420,8 +438,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker-lazy"
 	} else if (isIn("src/network/crypto/facades") || isIn("src/network/facades/") || isIn("src/network/offline/migrations")) {
 		return "worker"
-	} else if (isIn("src/network/GroupUtils.ts") || isIn("src/network/EntityClient.ts") || isIn("src/network/ProgressMonitorInterface.ts")) {
-		return "common"
 	} else if (isIn("src/network")) {
 		return "worker"
 	} else if (isIn("src/local-store")) {

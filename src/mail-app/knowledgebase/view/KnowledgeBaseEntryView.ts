@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/utils"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getConfirmation } from "../../../ui/base/GuiUtils.js"

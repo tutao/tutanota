@@ -35,7 +35,6 @@ import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorVi
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
@@ -113,18 +112,19 @@ import { WhitelabelThemeGenerator } from "../ui/WhitelabelThemeGenerator"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
 import { EntropyFacade } from "../base/facades/EntropyFacade"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { initClientModels } from "../common/ClientModelInfoInitializer"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { Router, ScopedRouter, ThrottledRouter } from "../ui/ScopedRouter"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
 import { CALENDAR_PREFIX } from "../ui/utils/RouteChange"
-import { HtmlSanitizer } from "../common/gui/utils/HtmlSanitizer"
+import { HtmlSanitizer } from "../common/misc/HtmlSanitizer"
 import { theme } from "../ui/theme"
 import { CALENDAR_MIME_TYPE } from "../utils/FileConstants"
 import { lang } from "../ui/utils/LanguageViewModel"
 import { SearchToken } from "../ui/utils/QueryTokenUtils"
 import { KdfType } from "../base/crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
+import { ShareableGroupType } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -775,7 +775,7 @@ class DriveLocator implements CommonLocator {
 		const lazySanitizer =
 			env.mode === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-				: () => import("../common/gui/utils/HtmlSanitizer.js").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
+				: () => import("../common/misc/HtmlSanitizer.js").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar, this.whitelabelThemeGenerator)
 

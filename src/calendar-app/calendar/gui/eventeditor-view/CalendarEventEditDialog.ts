@@ -27,9 +27,7 @@ import { theme } from "../../../../ui/theme.js"
 import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
-
 import { PosRect } from "../../../../ui/utils/PosRect"
-import { getHtmlSanitizer } from "../../../../common/gui/utils/HtmlSanitizer"
 
 const enum ConfirmationResult {
 	Cancel,
@@ -86,8 +84,9 @@ export class EventEditorDialog {
 	async showCalendarEventEditDialog(model: CalendarEventModel, handler: EditDialogOkHandler): Promise<void> {
 		const recipientsSearch = await locator.recipientsSearchModel()
 		const { HtmlEditor } = await import("../../../../ui/editor/HtmlEditor.js")
-		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+		const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer")
 
+		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
 		const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
 			acc.set(gc.group, gc.color)
 			return acc

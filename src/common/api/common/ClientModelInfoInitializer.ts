@@ -7,7 +7,7 @@ import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
-import { ClientModelInfo } from "@tutao/instance-pipeline"
+import { ClientModelInfo } from "../../../instance-pipeline/EntityFunctions.js"
 
 const clientModelInfo: ClientModelInfo = new ClientModelInfo()
 

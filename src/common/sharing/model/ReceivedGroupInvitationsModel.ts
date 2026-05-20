@@ -3,12 +3,12 @@ import Stream from "mithril/stream"
 import { getLetId } from "../../../meta"
 import { EntityClient } from "../../../network/EntityClient"
 import { EventController } from "../../api/main/EventController"
-import { getInvitationGroupType, loadReceivedGroupInvitations, ShareableGroupType } from "../GroupUtils"
+import { loadReceivedGroupInvitations } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { promiseMap } from "@tutao/utils"
-import { ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef } from "@tutao/entities/sys"
+import { getInvitationGroupType, ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef, ShareableGroupType } from "@tutao/entities/sys"
 import { isSameId, OperationType } from "@tutao/meta"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType> {
 	readonly invitations: Stream<Array<ReceivedGroupInvitation>>

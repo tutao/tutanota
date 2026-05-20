@@ -21,7 +21,7 @@ import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 import { OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotification } from "@tutao/entities/tutanota"
-import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(

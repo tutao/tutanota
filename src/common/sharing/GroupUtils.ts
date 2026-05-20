@@ -1,53 +1,24 @@
 import { UserSettingsGroupRoot } from "@tutao/entities/tutanota"
 import {
+	getInvitationGroupType,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMember,
-	GroupMembership,
+	GroupMemberInfo,
 	GroupMemberTypeRef,
 	GroupType,
+	GroupTypeNameByCode,
 	ReceivedGroupInvitation,
 	ReceivedGroupInvitationTypeRef,
-	User,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { getEtId, isSameId } from "../../meta"
-import { reverse, ShareCapability } from "@tutao/app-env"
+import { ShareCapability } from "@tutao/app-env"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../../network/EntityClient"
 import * as restError from "@tutao/rest-client/error"
 import { UserController } from "../api/main/UserController"
-
-/**
- * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
- * @param user
- * @param group
- * @param requiredCapability
- * @returns {boolean}
- */
-export function hasCapabilityOnGroup(user: User, group: Group, requiredCapability: ShareCapability): boolean {
-	if (!isShareableGroupType(downcast(group.type))) {
-		return false
-	}
-
-	if (isSharedGroupOwner(group, user._id)) {
-		return true
-	}
-
-	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
-
-	if (membership) {
-		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
-	}
-
-	return false
-}
-
-export function isSharedGroupOwner(sharedGroup: Group, user: Id | User): boolean {
-	return !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
-}
 
 export function getCapabilityText(capability: ShareCapability): string {
 	switch (capability) {
@@ -65,19 +36,6 @@ export function getCapabilityText(capability: ShareCapability): string {
 	}
 }
 
-export type GroupMemberInfo = {
-	member: GroupMember
-	info: GroupInfo
-}
-
-export function getMemberCapability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
-	if (isSharedGroupOwner(group, memberInfo.member.user)) {
-		return ShareCapability.Invite
-	}
-
-	return downcast(memberInfo.member.capability)
-}
-
 export function loadGroupMembers(group: Group, entityClient: EntityClient): Promise<Array<GroupMemberInfo>> {
 	return entityClient
 		.loadAll(GroupMemberTypeRef, group.members)
@@ -93,19 +51,6 @@ export function loadGroupInfoForMember(groupMember: GroupMember, entityClient: E
 	})
 }
 
-export const GroupTypeNameByCode = reverse(GroupType)
-
-export function getDefaultGroupName(groupType: GroupType): string {
-	switch (groupType) {
-		case GroupType.Calendar:
-			return lang.get("privateCalendar_label")
-		case GroupType.Template:
-			return lang.get("templateGroupDefaultName_label")
-		default:
-			return GroupTypeNameByCode[groupType]
-	}
-}
-
 export function loadReceivedGroupInvitations(
 	userController: UserController,
 	entityClient: EntityClient,
@@ -118,28 +63,21 @@ export function loadReceivedGroupInvitations(
 		.catch(ofClass(restError.NotFoundError, () => []))
 }
 
-// Group invitations without a type set were sent when Calendars were the only shareable kind of user group
-const DEFAULT_GROUP_TYPE = GroupType.Calendar
-
-export function getInvitationGroupType(invitation: ReceivedGroupInvitation): ShareableGroupType {
-	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : (invitation.groupType as ShareableGroupType)
-}
-
-export function isTemplateGroup(groupType: GroupType): boolean {
-	return groupType === GroupType.Template
-}
-
-export type ShareableGroupType = GroupType.Calendar | GroupType.Template | GroupType.ContactList
-
-export function isShareableGroupType(groupType: GroupType): groupType is ShareableGroupType {
-	// Should be synchronised with GroupType::isShareableGroup in tutadb
-	return groupType === GroupType.Calendar || groupType === GroupType.Template || groupType === GroupType.ContactList
-}
-
 export const TemplateGroupPreconditionFailedReason = Object.freeze({
 	BUSINESS_FEATURE_REQUIRED: "templategroup.business_feature_required",
 	UNLIMITED_REQUIRED: "templategroup.unlimited_required",
 })
+
+export function getDefaultGroupName(groupType: GroupType): string {
+	switch (groupType) {
+		case GroupType.Calendar:
+			return lang.get("privateCalendar_label")
+		case GroupType.Template:
+			return lang.get("templateGroupDefaultName_label")
+		default:
+			return GroupTypeNameByCode[groupType]
+	}
+}
 
 /**
  * Get the name of a (possibly) shared group.
@@ -161,4 +99,3 @@ export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGro
 export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot): string | null {
 	return userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)?.name ?? null
 }
-export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)

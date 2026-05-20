@@ -76,7 +76,7 @@ import {
 	hasSourceUrl,
 	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
+import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -126,12 +126,13 @@ import {
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
+	isSharedGroupOwner,
 	MembershipService,
 	User,
 	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../utils/Utils"
 import { formatNotificationForDisplay } from "../../../ui/utils/Formatter"

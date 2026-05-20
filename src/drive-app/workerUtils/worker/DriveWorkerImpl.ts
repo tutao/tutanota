@@ -1,5 +1,5 @@
 import * as restError from "@tutao/rest-client/error"
-import { assertWorkerOrNode, BrowserData, isMainOrNode, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./DriveWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "@tutao/crypto"
@@ -12,6 +12,7 @@ import { WebWorkerTransport } from "../../../native-bridge/common/threading/WebT
 import { Commands } from "../../../native-bridge/shared/MessageTypes"
 import { Request } from "../../../native-bridge/shared/MessageTypes.js"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

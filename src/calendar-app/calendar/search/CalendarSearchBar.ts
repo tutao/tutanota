@@ -9,7 +9,7 @@ import { TypeRef } from "@tutao/meta"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { assertMainOrNode, BrowserType, client, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "@tutao/utils"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
@@ -22,6 +22,8 @@ import { loadMultipleFromLists } from "../../../network/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
+import { client } from "../../../app-env/boot/ClientDetector"
+import { BrowserType } from "../../../app-env/boot/ClientConstants"
 
 assertMainOrNode()
 export type ShowMoreAction = {

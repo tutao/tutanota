@@ -5,7 +5,7 @@ import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
 import { progressIcon } from "../../../ui/base/Icon.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { GENERATED_MAX_ID, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Booking,
 	BookingTypeRef,

@@ -1,6 +1,6 @@
 import m from "mithril"
 import { isSameId, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { Challenge, createSecondFactorAuthData, Session, SessionTypeRef } from "@tutao/entities/sys"
 import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, SessionState } from "@tutao/app-env"

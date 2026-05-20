@@ -18,7 +18,6 @@ import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.j
 import { deviceConfig } from "./DeviceConfig"
 import { CacheMode } from "../../network/EntityRestClient"
 import { AvailablePlans, AvailablePlanType, Customer, NewBusinessPlans, SubscriptionType } from "@tutao/entities/sys"
-import { getCustomerApprovalStatus } from "../subscription/utils/SubscriptionUtils"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
@@ -34,6 +33,7 @@ const TWO_DAYS_MS = 48 * 60 * 60 * 1000
  * @returns True if the user may still send emails, false otherwise.
  */
 export async function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus?: ApprovalStatus): Promise<boolean> {
+	const { getCustomerApprovalStatus } = await import("../subscription/utils/SubscriptionUtils")
 	if (!logins.getUserController().isInternalUser()) {
 		// external users are not authorized to load the customer
 		return true

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, assertMainOrNode, client, Const, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, assertMainOrNode, Const, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { elementIdPart, GENERATED_MAX_ID, getEtId, OperationType } from "../../meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
@@ -79,7 +79,8 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { client } from "../../app-env/boot/ClientDetector"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24

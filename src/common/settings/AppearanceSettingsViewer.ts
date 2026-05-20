@@ -11,13 +11,10 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { client } from "../../app-env/boot/ClientDetector.js"
 import { DateTime } from "luxon"
 import * as restError from "@tutao/rest-client/error"
-import { LanguageDropdown } from "./LanguageDropdown"
-import { UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../entities/tutanota/TypeRefs"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
-
-export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
-	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
-}
+import { LanguageDropdown } from "../gui/LanguageDropdown"
+import { UserSettingsGroupRootTypeRef } from "../../entities/tutanota/TypeRefs"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { getHourCycle } from "@tutao/entities/tutanota"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null

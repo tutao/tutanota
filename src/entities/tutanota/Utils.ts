@@ -1,7 +1,7 @@
-import { PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
+import { PresentableKeyVerificationState, ProgrammingError, TimeFormat } from "@tutao/app-env"
 import { isSameTypeRef } from "@tutao/meta"
 import { downcast } from "@tutao/utils"
-import { Contact, File, FileTypeRef } from "./TypeRefs"
+import { Contact, File, FileTypeRef, UserSettingsGroupRoot } from "./TypeRefs"
 import { DataFile } from "./MailBundle"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
@@ -417,4 +417,8 @@ export function assertOnlyFileReferences(files: Array<Attachment>): asserts file
 export interface WebFile {
 	readonly _type: "WebFile"
 	file: globalThis.File
+}
+
+export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
+	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }

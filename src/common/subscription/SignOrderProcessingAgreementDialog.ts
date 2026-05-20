@@ -16,7 +16,7 @@ import {
 	OrderProcessingAgreement,
 	SignOrderProcessingAgreementService,
 } from "@tutao/entities/sys"
-import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"

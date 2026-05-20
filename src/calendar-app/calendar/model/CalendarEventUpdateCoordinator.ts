@@ -8,7 +8,7 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
 import { FileTypeRef } from "@tutao/entities/sys"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 const TAG = "[CalendarEventUpdateCoordinator]"
 

@@ -9,11 +9,11 @@ import { downcast, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/util
 import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupModel.js"
 import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel.js"
 import type { UserController } from "../../../common/api/main/UserController.js"
-import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { EmailTemplate, EmailTemplateTypeRef, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, getLetId, isSameId, OperationType } from "@tutao/meta"
+import { hasCapabilityOnGroup } from "@tutao/entities/sys"
 
 export const SELECT_NEXT_ENTRY = "next"
 

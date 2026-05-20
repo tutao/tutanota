@@ -71,7 +71,6 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import type { BrowserData } from "@tutao/app-env"
 import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
@@ -102,6 +101,7 @@ import {
 	encryptSearchIndexEntry,
 } from "../../../common/api/worker/search/IndexEncryptionUtils"
 import { ContactList } from "@tutao/entities/tutanota"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

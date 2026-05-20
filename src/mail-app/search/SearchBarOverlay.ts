@@ -5,7 +5,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { Icons } from "../../ui/base/icons/Icons"
 import { downcast, isEmpty } from "@tutao/utils"
 import { isSameTypeRef, TypeRef } from "../../meta"
-import { companyTeamLabel, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate, formatTimeOrDateOrYesterday } from "../../ui/utils/Formatter"
 import Badge from "../../ui/base/Badge"
 import { Icon } from "../../ui/base/Icon"
@@ -19,6 +19,7 @@ import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
 import { isTutaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
+import { companyTeamLabel } from "../../app-env/boot/ClientConstants"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState

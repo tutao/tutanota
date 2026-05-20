@@ -10,7 +10,7 @@ import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../../ui/base/Button.js"
 import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
-import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
+import { getSharedGroupName } from "../../sharing/GroupUtils.js"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { UserController } from "../../api/main/UserController.js"
 import { ShareCapability } from "@tutao/app-env"
@@ -20,6 +20,7 @@ import { handleCalendarImport } from "./CalendarImporterDialog.js"
 import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { CalendarEvent, DataFile } from "@tutao/entities/tutanota"
+import { hasCapabilityOnGroup } from "@tutao/entities/sys"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {

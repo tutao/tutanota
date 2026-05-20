@@ -1,4 +1,4 @@
-import { WindowSizeListener } from "./utils/WindowUtils"
+import { type KeyboardSizeListener, WindowSizeListener } from "./utils/WindowUtils"
 
 export interface IWindowFacade {
 	/**
@@ -19,4 +19,6 @@ export interface IWindowFacade {
 	addHistoryEventListener(listener: (e: Event) => boolean): () => void
 
 	addWindowCloseListener(listener: () => unknown): (...args: Array<any>) => any
+
+	addKeyboardSizeListener(listener: KeyboardSizeListener): void
 }

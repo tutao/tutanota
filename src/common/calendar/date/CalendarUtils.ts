@@ -1,13 +1,16 @@
 import { clone, isSameId, StrippedEntity } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
+	CalendarAttendeeStatus,
 	CalendarEvent,
+	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarGroupRoot,
 	CalendarRepeatRule,
 	createCalendarEvent,
 	createCalendarRepeatRule,
 	GroupSettings,
+	UserSettingsGroupRoot,
 } from "@tutao/entities/tutanota"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "@tutao/entities/sys"
 import {
@@ -32,7 +35,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "./Time.js"
@@ -1908,4 +1911,11 @@ export const FlagKeyToIcon: Record<EventWrapperFlagKeys, AllIcons> = {
 	hasAlarms: Icons.BellFilled,
 	isAlteredInstance: Icons.PenFilled,
 	isBirthdayEvent: Icons.GiftFilled,
+}
+export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStart {
+	return downcast(userSettings.startOfTheWeek)
+}
+
+export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatus {
+	return downcast(attendee.status)
 }
