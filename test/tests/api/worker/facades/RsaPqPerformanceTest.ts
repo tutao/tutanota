@@ -10,9 +10,9 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	RsaKeyPair,
-} from "@tutao/crypto"
-import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
+} from "../../../../../src/platform-kit/crypto"
+import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 

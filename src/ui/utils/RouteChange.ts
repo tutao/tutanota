@@ -1,6 +1,6 @@
 import m from "mithril"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
-import { lazyMemoized } from "@tutao/utils"
+import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { lazyMemoized } from "../../platform-kit/utils"
 
 assertMainOrNodeBoot()
 

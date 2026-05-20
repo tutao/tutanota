@@ -17,14 +17,14 @@ import {
 	_normalizeContactName,
 	getMergeableContacts,
 	mergeContacts,
-} from "../../../src/mail-app/contacts/ContactMergeUtils.js"
+} from "../../../src/applications/mail-app/contacts/ContactMergeUtils.js"
 import { createFilledContact } from "./VCardExporterTest.js"
-import { downcast, neverNull } from "@tutao/utils"
-import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js"
-import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
+import { downcast, neverNull } from "../../../src/platform-kit/utils"
+import { _contactToVCard } from "../../../src/applications/mail-app/contacts/VCardExporter.js"
+import { birthdayToIsoDate } from "../../../src/applications/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/app-env"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota"
+import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/platform-kit/app-env"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota/Utils"
 import {
 	BirthdayTypeRef,
 	Contact,

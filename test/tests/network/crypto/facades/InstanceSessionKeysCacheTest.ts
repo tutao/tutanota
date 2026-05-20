@@ -1,10 +1,11 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
-import { InstanceSessionKeysCache } from "../../../../../src/local-store/InstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "../../../../../src/app-kit/local-store/InstanceSessionKeysCache"
 
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
+
 o.spec("InstanceSessionKeysCacheTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache
 	let testMail: Mail

@@ -1,9 +1,9 @@
 import o, { verify } from "@tutao/otest"
-import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage.js"
-import { ServerModelParsedInstance } from "../../../../../src/meta"
+import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
+import { ServerModelParsedInstance } from "../../../../../src/platform-kit/meta"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
+import { ModelMapper, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kit/local-store/CustomCacheHandler"
 import { object, when } from "testdouble"
 
 import {
@@ -18,6 +18,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { User, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
 	const archiveId = "archiveId"

@@ -1,15 +1,24 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AsymmetricCryptoFacade } from "../../../../src/base/crypto/AsymmetricCryptoFacade.js"
-import { RsaImplementation } from "../../../../src/native-bridge/worker/RsaImplementation.js"
-import { PQFacade } from "../../../../src/base/crypto/PQFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { RsaImplementation } from "../../../../src/app-kit/native-bridge/worker/RsaImplementation.js"
+import { PQFacade } from "../../../../src/platform-kit/base/crypto/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
-import { CryptoError } from "@tutao/crypto/error"
+import {
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	EncryptionKeyVerificationState,
+	PresentableKeyVerificationState,
+	ProgrammingError,
+} from "../../../../src/platform-kit/app-env"
+import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import {
+	aes256RandomKey,
 	AesKey,
+	cryptoUtils,
 	CryptoWrapper,
 	KeyPairType,
+	keyToUint8Array,
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -18,20 +27,17 @@ import {
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,
-	X25519KeyPair,
-	aes256RandomKey,
-	cryptoUtils,
-	keyToUint8Array,
 	uint8ArrayToBitArray,
-} from "@tutao/crypto"
-import { KeyLoaderFacade } from "../../../../src/base/crypto/KeyLoaderFacade.js"
-import { IServiceExecutor } from "../../../../src/network/ServiceRequest.js"
-import { KeyVersion, Versioned } from "@tutao/utils"
+	X25519KeyPair,
+} from "../../../../src/platform-kit/crypto"
+import { KeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRequest.js"
+import { KeyVersion, Versioned } from "../../../../src/platform-kit/utils"
 
 import { createTestEntity } from "../../TestUtils.js"
-import { VerifiedPublicEncryptionKey } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
-import PublicEncryptionKeyProvider from "../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { AdminKeyLoaderFacade } from "../../../../src/base/crypto/AdminKeyLoaderFacade"
+import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
+import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
+import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {

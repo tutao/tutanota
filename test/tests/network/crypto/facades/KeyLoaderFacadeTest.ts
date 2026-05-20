@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
+import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
+import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
 import {
 	aes256RandomKey,
 	aesEncrypt,
@@ -17,23 +17,24 @@ import {
 	RsaKeyPair,
 	rsaPublicKeyToHex,
 	VersionedKey,
-} from "@tutao/crypto"
-import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId } from "@tutao/utils"
+} from "../../../../../src/platform-kit/crypto"
+import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { createTestEntity } from "../../../TestUtils.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { matchers, object, reset, verify, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
-import { KeyCache } from "../../../../../src/local-store/KeyCache.js"
-import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { CryptoError } from "@tutao/crypto/error"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyCache } from "../../../../../src/app-kit/local-store/KeyCache.js"
+import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../../api/worker/facades/RsaPqPerformanceTest.js"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 import {
+	createKeyPair,
 	Group,
 	GroupKey,
-	GroupKeyTypeRef,
 	GroupKeysRefTypeRef,
+	GroupKeyTypeRef,
 	GroupMembership,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
@@ -41,8 +42,8 @@ import {
 	KeyPairTypeRef,
 	User,
 	UserTypeRef,
-	createKeyPair,
 } from "@tutao/entities/sys"
+
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
 	let userFacade: UserFacade

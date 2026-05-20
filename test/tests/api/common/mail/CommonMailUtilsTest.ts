@@ -1,17 +1,17 @@
 import o from "@tutao/otest"
-import { EncryptionAuthStatus } from "../../../../../src/app-env"
+import { EncryptionAuthStatus } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/ui/base/icons/Icons.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { getDisplayedSender } from "../../../../../src/common/api/common/CommonMailUtils.js"
-import { getConfidentialIcon } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
+import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { getDisplayedSender } from "../../../../../src/applications/common/api/common/CommonMailUtils.js"
+import { getConfidentialIcon } from "../../../../../src/applications/mail-app/mail/view/MailGuiUtils.js"
 
-import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
-import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
-import { isTutanotaTeamAddress, isTutaTeamMail } from "../../../../../src/common/mailFunctionality/SharedMailUtils"
+import { isSystemNotification } from "../../../../../src/applications/mail-app/mail/view/MailViewerUtils.js"
+import { compareMails } from "../../../../../src/applications/mail-app/mail/model/MailUtils"
+import { isTutanotaTeamAddress, isTutaTeamMail } from "../../../../../src/applications/common/mailFunctionality/SharedMailUtils"
 
-import { MailState } from "../../../../../src/entities/tutanota"
-import { Mail, MailAddressTypeRef, MailTypeRef, createMail, createMailAddress } from "@tutao/entities/tutanota"
+import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { MailState } from "../../../../../src/entities/tutanota/Utils"
 
 export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	return createTestEntity(MailTypeRef, {

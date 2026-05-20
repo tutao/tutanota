@@ -1,13 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
-import { KeyCache } from "../../../../../src/local-store/KeyCache.js"
+import { KeyCache } from "../../../../../src/app-kit/local-store/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { aes256RandomKey, VersionedKey } from "@tutao/crypto"
-import * as restError from "@tutao/rest-client/error"
+import { aes256RandomKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { object } from "testdouble"
-import { KeyVersion } from "@tutao/utils"
-import { CryptoError } from "@tutao/crypto/error"
+import { KeyVersion } from "../../../../../src/platform-kit/utils"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("KeyCacheTest", function () {
 	let keyCache: KeyCache
 

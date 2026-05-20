@@ -1,5 +1,5 @@
 import m from "mithril"
-import { assertMainOrNode, isAdminClient, TabIndex } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient, TabIndex } from "../../platform-kit/app-env"
 import { Dialog, DialogType } from "../base/Dialog"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
@@ -7,7 +7,7 @@ import { lang } from "../utils/LanguageViewModel"
 import { progressIcon } from "../base/Icon"
 import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import Stream from "mithril/stream"
-import { delay, MaybeLazy, resolveMaybeLazy } from "@tutao/utils"
+import { delay, MaybeLazy, resolveMaybeLazy } from "../../platform-kit/utils"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 
 assertMainOrNode()

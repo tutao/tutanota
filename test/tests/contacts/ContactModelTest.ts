@@ -1,21 +1,22 @@
 import o from "@tutao/otest"
-import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
-import { EntityClient } from "../../../src/network/EntityClient"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
-import { LoginController } from "../../../src/common/api/main/LoginController"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { object, when } from "testdouble"
-import { EventController } from "../../../src/common/api/main/EventController"
-import { ContactSearchFacade } from "../../../src/mail-app/workerUtils/index/ContactSearchFacade"
+import { EventController } from "../../../src/applications/common/api/main/EventController"
+import { ContactSearchFacade } from "../../../src/applications/mail-app/workerUtils/index/ContactSearchFacade"
 
-import { UserController } from "../../../src/common/api/main/UserController"
+import { UserController } from "../../../src/applications/common/api/main/UserController"
 
-import { DbError } from "../../../src/common/api/common/error/DbError"
-import { timestampToGeneratedId } from "../../../src/meta"
+import { DbError } from "../../../src/applications/common/api/common/error/DbError"
+import { timestampToGeneratedId } from "../../../src/platform-kit/meta"
 import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
-import { TypeModelResolver } from "@tutao/instance-pipeline"
+import { TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 
 import { GroupMembershipTypeRef, RootInstanceTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("ContactModel", () => {
 	let entityMock: EntityRestClientMock
 	let entityClient: EntityClient

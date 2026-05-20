@@ -1,0 +1,27 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["native-bridge", "../../types/", "../../types.d.ts"],
+	"compilerOptions": {
+		"rootDir": "native-bridge",
+		"outDir": "../../build/native-bridge",
+		"tsBuildInfoFile": "../../build/native-bridge/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kit/tsconfig.meta.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.crypto.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.sys.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.instance-pipeline.json"
+		}
+	]
+}

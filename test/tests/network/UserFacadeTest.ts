@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import { UserFacade } from "../../../src/base/facades/UserFacade.js"
-import { KeyCache } from "../../../src/local-store/KeyCache.js"
+import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
+import { KeyCache } from "../../../src/app-kit/local-store/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
-import { aes256RandomKey, encryptKey } from "@tutao/crypto"
+import { aes256RandomKey, encryptKey } from "../../../src/platform-kit/crypto"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
+
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache
 	let facade: UserFacade

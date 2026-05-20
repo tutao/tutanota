@@ -1,4 +1,4 @@
-import { elementIdPart, type ListElementEntity, listIdPart, type SomeEntity } from "@tutao/meta"
+import { elementIdPart, type ListElementEntity, listIdPart, type SomeEntity } from "../../platform-kit/meta"
 import { Blob } from "@tutao/entities/sys"
 
 /**

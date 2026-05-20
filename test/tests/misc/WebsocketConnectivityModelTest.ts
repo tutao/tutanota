@@ -1,9 +1,10 @@
 import o from "@tutao/otest"
-import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
-import { ExposedEventBus } from "../../../src/common/api/worker/workerInterfaces"
+import { WebsocketConnectivityModel } from "../../../src/applications/common/misc/WebsocketConnectivityModel"
+import { ExposedEventBus } from "../../../src/applications/common/api/worker/workerInterfaces"
 import { func, object, verify } from "testdouble"
 
 import { WebsocketLeaderStatus } from "@tutao/entities/sys"
+
 o.spec("WebsocketConnectivityModelTest", function () {
 	let websocketConnectivityModel: WebsocketConnectivityModel
 	let mockEventBus: ExposedEventBus

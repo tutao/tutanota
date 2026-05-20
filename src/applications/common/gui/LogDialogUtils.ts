@@ -1,0 +1,85 @@
+import type { Dialog } from "../../../ui/base/Dialog.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils.js"
+import m from "mithril"
+import { locator } from "../api/main/CommonLocator.js"
+import { clientInfoString } from "../misc/ErrorReporter.js"
+import { isApp, isDesktop } from "@tutao/app-env"
+
+export async function prepareLogContent() {
+	const entries: string[] = []
+	if (window.logger) {
+		entries.push(`== MAIN LOG ==
+${window.logger.getEntries().join("\n")}
+`)
+	}
+	const workerLog = await locator.workerFacade.getLog()
+	if (workerLog.length > 0) {
+		entries.push(`== WORKER LOG ==
+${workerLog.join("\n")}
+`)
+	}
+
+	if (isDesktop() || isApp()) {
+		entries.push(`== NATIVE LOG ==
+${await locator.commonSystemFacade.getLog()}
+`)
+	}
+	let { message, type, client } = clientInfoString(new Date(), false)
+	return `v${env.versionNumber} - ${client}
+${message}
+
+${entries.join("\n")}`
+}
+
+export async function showLogsDialog(logContent: string) {
+	const { Dialog: dialog } = await import("../../../ui/base/Dialog.js")
+
+	const dialogComponent: Dialog = dialog.editDialog(
+		{
+			middle: lang.makeTranslation("logs", "Logs"),
+			right: () => [
+				{
+					type: ButtonType.Secondary,
+					label: "copy_action",
+					click: () => copyToClipboard(logContent),
+				},
+				{
+					type: ButtonType.Primary,
+					label: "ok_action",
+					click: () => dialogComponent.close(),
+				},
+			],
+		},
+		class {
+			view() {
+				return m(".fill-absolute.selectable.scroll.white-space-pre.plr-12.pt-16.pb-16", logContent)
+			}
+		},
+		{},
+	)
+
+	dialogComponent.show()
+}
+
+export async function prepareWidgetLogs(nativeLog: string) {
+	const entries: string[] = [nativeLog]
+	if (window.logger) {
+		entries.push(`== MAIN LOG ==
+${window.logger.getEntries().join("\n")}
+`)
+	}
+	const workerLog = await locator.workerFacade.getLog()
+	if (workerLog.length > 0) {
+		entries.push(`== WORKER LOG ==
+${workerLog.join("\n")}
+`)
+	}
+
+	let { message, type, client } = clientInfoString(new Date(), false)
+	return `v${env.versionNumber} - ${client}
+${message}
+
+${entries.join("\n")}`
+}

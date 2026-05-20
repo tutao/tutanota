@@ -1,17 +1,15 @@
 import o from "@tutao/otest"
-import { ServiceExecutor } from "@tutao/network"
+import { ServiceExecutor } from "../../../../src/platform-kit/network/ServiceExecutor"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, getEtId, getListId } from "../../../../src/meta"
-import { BlobAccessTokenFacade } from "../../../../src/network/BlobAccessTokenFacade.js"
+import { getElementId, getEtId, getListId } from "../../../../src/platform-kit/meta"
+import { BlobAccessTokenFacade } from "../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../TestUtils.js"
-import { LoggedInUserProvider } from "@tutao/instance-pipeline"
-import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys"
+import { LoggedInUserProvider } from "../../../../src/platform-kit/instance-pipeline"
 import { FileTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import {
 	BlobAccessTokenPostOutTypeRef,
 	BlobAccessTokenService,
-	BlobReferencingInstance,
 	BlobServerAccessInfoTypeRef,
 	createBlobAccessTokenPostIn,
 	createBlobReadData,
@@ -20,6 +18,9 @@ import {
 } from "@tutao/entities/storage"
 
 import { BlobTypeRef } from "@tutao/entities/sys"
+import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys/Utils"
+import { BlobReferencingInstance } from "../../../../src/entities/storage/BlobUtils"
+
 const { anything, captor } = matchers
 
 o.spec("BlobAccessTokenFacade", function () {

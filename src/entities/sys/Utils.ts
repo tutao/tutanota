@@ -1,7 +1,7 @@
-import { reverse, ShareCapability } from "@tutao/app-env"
+import { reverse, ShareCapability } from "../../platform-kit/app-env"
 import { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "./TypeRefs"
-import { downcast } from "@tutao/utils"
-import { getEtId, isSameId } from "@tutao/meta"
+import { downcast } from "../../platform-kit/utils"
+import { getEtId, isSameId } from "../../platform-kit/meta"
 
 export enum GroupType {
 	User = "0",

@@ -1,6 +1,6 @@
 import { pureComponent } from "./base/PureComponent.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { NBSP } from "@tutao/utils"
+import { NBSP } from "../platform-kit/utils"
 import { AppHeaderAttrs } from "./Header.js"
 import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"
@@ -12,7 +12,7 @@ import { px } from "./size.js"
 import { theme } from "./theme.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "./utils/LanguageViewModel.js"
-import { client } from "../app-env/boot/ClientDetector"
+import { client } from "../platform-kit/app-env/boot/ClientDetector"
 import { Icons } from "./base/icons/Icons"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {

@@ -1,17 +1,18 @@
 import o from "@tutao/otest"
-import { loadUserExportData } from "../../../src/common/settings/UserDataExporter.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
+import { loadUserExportData } from "../../../src/applications/common/settings/UserDataExporter.js"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { matchers, object, when } from "testdouble"
-import { formatDateTimeUTC } from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
-import { CounterFacade } from "../../../src/network/CounterFacade.js"
+import { formatDateTimeUTC } from "../../../src/applications/calendar-app/calendar/export/CalendarExporter.js"
+import { CounterFacade } from "../../../src/platform-kit/network/CounterFacade.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { CounterType } from "../../../src/entities/monitor"
 import { CounterValueTypeRef } from "@tutao/entities/monitor"
-import { TypeRef } from "@tutao/meta"
+import { TypeRef } from "../../../src/platform-kit/meta"
 
 import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { CounterType } from "../../../src/entities/monitor/Utils"
+
 o.spec("user data export", function () {
 	const customerId = "customerId"
 	const userGroupsId = "userGroupsId"

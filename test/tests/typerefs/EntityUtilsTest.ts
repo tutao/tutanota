@@ -13,7 +13,7 @@ import {
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
 	TypeRef,
-} from "../../../src/meta"
+} from "../../../src/platform-kit/meta"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {

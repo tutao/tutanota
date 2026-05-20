@@ -1,4 +1,4 @@
-import { reverse } from "@tutao/app-env"
+import { reverse } from "../../platform-kit/app-env"
 
 export enum CounterType {
 	Default = "0",

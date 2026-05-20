@@ -1,5 +1,5 @@
 import { BaseThemeId, Theme } from "./theme"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../platform-kit/app-env"
 
 assertMainOrNodeBoot()
 export const WHITELABEL_CUSTOMIZATION_VERSION = "1"

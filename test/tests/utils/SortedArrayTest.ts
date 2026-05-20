@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SortedArray } from "@tutao/utils"
+import { SortedArray } from "../../../src/platform-kit/utils"
 
 o.spec("SortedArray", function () {
 	o("with numbers", function () {

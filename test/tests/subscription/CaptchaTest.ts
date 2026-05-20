@@ -1,7 +1,8 @@
 import o from "@tutao/otest"
-import { solvePowChallengeInWorker } from "../../../src/common/subscription/captcha/Captcha.js"
+import { solvePowChallengeInWorker } from "../../../src/applications/common/subscription/captcha/Captcha.js"
 
-import { TimelockCaptchaGetOut, createTimelockCaptchaGetOut } from "@tutao/entities/sys"
+import { createTimelockCaptchaGetOut, TimelockCaptchaGetOut } from "@tutao/entities/sys"
+
 o.spec("SolvePowChallenge", () => {
 	o(
 		"solve valid challenge",

@@ -1,28 +1,39 @@
-import type { BrowserData } from "../../src/app-env/boot/ClientConstants.js"
-import { DbEncryptionData } from "../../src/common/api/worker/search/SearchTypes.js"
-import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
-import { assertNotNull, deepEqual, defer, isNotNull, Thunk, typedEntries } from "@tutao/utils"
-import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
+import { DbEncryptionData } from "../../src/applications/common/api/worker/search/SearchTypes.js"
+import { IndexerCore } from "../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
+import { DbFacade, DbTransaction } from "../../src/applications/common/api/worker/search/DbFacade.js"
+import { assertNotNull, deepEqual, defer, isNotNull, Thunk, typedEntries } from "../../src/platform-kit/utils"
+import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import { Aes256Key, aes256RandomKey, FIXED_IV, SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "@tutao/crypto"
-import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
+import { Aes256Key, aes256RandomKey, FIXED_IV, SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto"
+import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
-import { Cardinality, clone, create, Entity, generatedIdToTimestamp, ModelValue, timestampToGeneratedId, TypeModel, TypeRef, ValueType } from "../../src/meta"
+import {
+	Cardinality,
+	clone,
+	create,
+	Entity,
+	generatedIdToTimestamp,
+	ModelValue,
+	timestampToGeneratedId,
+	TypeModel,
+	TypeRef,
+	ValueType,
+} from "../../src/platform-kit/meta"
 import { type fetch as undiciFetch, type Response } from "undici"
-import { ClientModelInfo, InstancePipeline, ModelMapper, ServerModelInfo, ServerModels, TypeModelResolver } from "@tutao/instance-pipeline"
+import { ClientModelInfo, InstancePipeline, ModelMapper, ServerModelInfo, ServerModels, TypeModelResolver } from "../../src/platform-kit/instance-pipeline"
 import { dummyResolver } from "./instance-pipeline/InstancePipelineTestUtils"
-import { accountingTypeModels, accountingModelInfo } from "@tutao/entities/accounting"
-import { baseTypeModels, baseModelInfo } from "@tutao/entities/base"
-import { driveTypeModels, driveModelInfo } from "@tutao/entities/drive"
-import { monitorTypeModels, monitorModelInfo } from "@tutao/entities/monitor"
-import { storageTypeModels, storageModelInfo } from "@tutao/entities/storage"
-import { sysTypeModels, sysModelInfo } from "@tutao/entities/sys"
-import { tutanotaTypeModels, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { usageTypeModels, usageModelInfo } from "@tutao/entities/usage"
-import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
-import { ClientPlatform } from "../../src/app-env/boot/ClientDetector"
-import { KeyLoaderFacade } from "../../src/base/crypto/KeyLoaderFacade"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
+import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
+import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
+import { KeyLoaderFacade } from "../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -148,7 +159,7 @@ export const domainConfigStub: DomainConfig = {
 
 export function makePopulatedClientModelInfo(): ClientModelInfo {
 	const info = ClientModelInfo.getNewInstanceForTestsOnly()
-	info.typeModels = {
+	Object.assign(info.typeModels, {
 		accounting: accountingTypeModels as any,
 		base: baseTypeModels as any,
 		drive: driveTypeModels as any,
@@ -157,7 +168,7 @@ export function makePopulatedClientModelInfo(): ClientModelInfo {
 		sys: sysTypeModels as any,
 		tutanota: tutanotaTypeModels as any,
 		usage: usageTypeModels as any,
-	}
+	})
 	Object.assign(info.modelInfos, {
 		accounting: accountingModelInfo,
 		base: baseModelInfo,

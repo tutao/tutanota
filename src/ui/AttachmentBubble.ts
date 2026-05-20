@@ -1,12 +1,12 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { hasError } from "../meta"
+import { hasError } from "../platform-kit/meta"
 import { Button, ButtonType } from "./base/Button.js"
 import { Icons } from "./base/icons/Icons.js"
 import { formatStorageSize } from "./utils/Formatter.js"
-import { defer, DeferredObject, noOp, Thunk } from "@tutao/utils"
+import { defer, DeferredObject, noOp, Thunk } from "../platform-kit/utils"
 import { modal, ModalComponent } from "./base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "./utils/KeyManager.js"
-import { Keys } from "@tutao/app-env"
+import { Keys } from "../platform-kit/app-env"
 import { px } from "./size.js"
 import { AllIcons, Icon } from "./base/Icon.js"
 import { theme } from "./theme.js"
@@ -18,7 +18,7 @@ import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/bu
 import { lang } from "./utils/LanguageViewModel.js"
 import { PosRect } from "./utils/PosRect"
 import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
-import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/FileConstants"
+import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kit/utils/FileConstants"
 
 export enum AttachmentType {
 	GENERIC,

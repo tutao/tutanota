@@ -1,11 +1,12 @@
-import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
+import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler.js"
 import o, { spy } from "@tutao/otest"
 import { DateTime } from "luxon"
-import { EndType, RepeatPeriod } from "../../../src/app-env"
-import { DateProvider } from "../../../src/utils/DateProvider.js"
+import { EndType, RepeatPeriod } from "../../../src/platform-kit/app-env"
+import { DateProvider } from "../../../src/platform-kit/utils/DateProvider.js"
 import { createTestEntity, SchedulerMock } from "../TestUtils.js"
 
 import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+
 o.spec("AlarmScheduler", function () {
 	let alarmScheduler: AlarmScheduler
 	let scheduler: SchedulerMock

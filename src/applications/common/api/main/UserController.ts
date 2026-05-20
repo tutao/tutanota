@@ -1,0 +1,434 @@
+import { assertMainOrNode, FeatureType, getApiBaseUrl, isDesktop, SessionType } from "@tutao/app-env"
+import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
+import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
+import * as restError from "@tutao/rest-client/error"
+import { locator } from "./CommonLocator"
+import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
+import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
+import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
+import { MediaType } from "../../../../platform-kit/rest-client/types"
+import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import {
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	CloseSessionService,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	CustomerProperties,
+	CustomerPropertiesTypeRef,
+	CustomerTypeRef,
+	DomainInfo,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMembership,
+	PlanConfiguration,
+	PlanService,
+	SessionTypeRef,
+	sysTypeModels,
+	User,
+	UserTypeRef,
+	WhitelabelConfig,
+	WhitelabelConfigTypeRef,
+} from "@tutao/entities/sys"
+import { AccountType, GroupType, LegacyPlans, PlanType } from "../../../../entities/sys/Utils"
+import {
+	createUserSettingsGroupRoot,
+	TutanotaProperties,
+	TutanotaPropertiesTypeRef,
+	UserSettingsGroupRoot,
+	UserSettingsGroupRootTypeRef,
+} from "@tutao/entities/tutanota"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { OperationType } from "../../../../platform-kit/meta/EntityTypes"
+
+assertMainOrNode()
+
+export class UserController {
+	private planConfig: PlanConfiguration | null
+
+	constructor(
+		// should be readonly but is needed for a workaround in CalendarModel
+		public user: User,
+		private _userGroupInfo: GroupInfo,
+		public readonly sessionId: IdTuple,
+		private _props: TutanotaProperties,
+		public readonly accessToken: Base64Url,
+		private _userSettingsGroupRoot: UserSettingsGroupRoot,
+		public readonly sessionType: SessionType,
+		/** Which identifier (e.g. email address) was used to create the session. */
+		public readonly loginUsername: string,
+		private readonly entityClient: EntityClient,
+		private readonly serviceExecutor: IServiceExecutor,
+		private customer: Customer | null,
+	) {
+		this.planConfig = null
+	}
+
+	get userId(): Id {
+		return this.user._id
+	}
+
+	get props(): TutanotaProperties {
+		return this._props
+	}
+
+	get userGroupInfo(): GroupInfo {
+		return this._userGroupInfo
+	}
+
+	get userSettingsGroupRoot(): UserSettingsGroupRoot {
+		return this._userSettingsGroupRoot
+	}
+
+	/**
+	 * Checks if the current user is an admin of the customer.
+	 * @return True if the user is an admin
+	 */
+	isGlobalAdmin(): boolean {
+		return isGlobalAdmin(this.user)
+	}
+
+	/**
+	 * Checks if the account type of the logged-in user is FREE.
+	 * @returns True if the account type is FREE otherwise false
+	 */
+	isFreeAccount(): boolean {
+		return this.user.accountType === AccountType.FREE
+	}
+
+	isPaidAccount(): boolean {
+		return this.user.accountType === AccountType.PAID
+	}
+
+	getUserAccountType(): AccountType {
+		return this.user.accountType as AccountType
+	}
+
+	/**
+	 * Provides the information if an internal user is logged in.
+	 * @return True if an internal user is logged in, false if no user or an external user is logged in.
+	 */
+	isInternalUser(): boolean {
+		return isInternalUser(this.user)
+	}
+
+	reloadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
+		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { cacheMode })
+	}
+
+	/**
+	 * External users are not allowed to load customer
+	 * @returns {Customer} if the user is internal, otherwise null
+	 */
+	getCustomer(): Customer | null {
+		return this.customer
+	}
+
+	async loadCustomerInfo(): Promise<CustomerInfo> {
+		const customer = await this.reloadCustomer()
+		return await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+	}
+
+	async loadCustomerProperties(): Promise<CustomerProperties> {
+		const customer = await this.reloadCustomer()
+		return await this.entityClient.load(CustomerPropertiesTypeRef, assertNotNull(customer.properties))
+	}
+
+	async getPlanType(): Promise<PlanType> {
+		const customerInfo = await this.loadCustomerInfo()
+		return downcast(customerInfo.plan)
+	}
+
+	async getPlanConfig(): Promise<PlanConfiguration> {
+		if (this.planConfig === null) {
+			const planServiceGetOut = await this.serviceExecutor.get(PlanService, null)
+			this.planConfig = planServiceGetOut.config
+		}
+		return downcast(this.planConfig)
+	}
+
+	isLegacyPlan(type: PlanType): boolean {
+		return LegacyPlans.includes(type)
+	}
+
+	async isNewPaidPlan(): Promise<boolean> {
+		const type = await this.getPlanType()
+		return !this.isLegacyPlan(type) && type !== PlanType.Free
+	}
+
+	async useLegacyBookingItem(): Promise<boolean> {
+		const customerInfo = await this.loadCustomerInfo()
+		const type: PlanType = downcast(customerInfo.plan)
+		return !(this.isLegacyPlan(type) && customerInfo.customPlan == null) && type !== PlanType.Free
+	}
+
+	/**
+	 * Checks if the current plan allows adding users and groups.
+	 */
+	async canHaveUsers(): Promise<boolean> {
+		const customer = await this.reloadCustomer()
+		const planType = await this.getPlanType()
+		const planConfig = await this.getPlanConfig()
+
+		return this.isLegacyPlan(planType) || planConfig.multiUser || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
+	}
+
+	async loadAccountingInfo(): Promise<AccountingInfo> {
+		const customerInfo = await this.loadCustomerInfo()
+		return await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+	}
+
+	getMailGroupMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Mail)
+	}
+
+	getContactGroupMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Contact)
+	}
+
+	getCalendarMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Calendar)
+	}
+
+	getUserMailGroupMembership(): GroupMembership {
+		return this.getMailGroupMemberships()[0]
+	}
+
+	getTemplateMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.Template)
+	}
+
+	getContactListMemberships(): GroupMembership[] {
+		return this.user.memberships.filter((membership) => membership.groupType === GroupType.ContactList)
+	}
+
+	/**
+	 * Returns true if the given update is an update on the user instance of the logged in user and the update event is sent for the user group.
+	 * There are two updates for the user instance sent if the logged in user is an admin:, one for the user group and one for the admin group.
+	 * We only want to process it once, so we skip the admin group update
+	 *
+	 * Attention: Modules that act on user updates, e.g. for changed group memberships, need to use this function in their entityEventsReceived listener.
+	 * Only then it is guaranteed that the user in the user controller has been updated. The update event for the admin group might come first, so if a module
+	 * reacts on that one the user controller is not updated yet.
+	 */
+	isUpdateForLoggedInUserInstance(update: EntityUpdateData, eventOwnerGroupId: Id): boolean {
+		return (
+			update.operation === OperationType.UPDATE &&
+			isUpdateForTypeRef(UserTypeRef, update) &&
+			isSameId(this.user._id, update.instanceId) &&
+			isSameId(this.user.userGroup.group, eventOwnerGroupId)
+		) // only include updates for the user group here
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+		for (const update of updates) {
+			const { instanceId, operation } = update
+			if (this.isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
+				this.user = await this.entityClient.load(UserTypeRef, this.user._id)
+			} else if (
+				operation === OperationType.UPDATE &&
+				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
+				isSameId(this.userGroupInfo._id, [update.instanceListId, instanceId])
+			) {
+				this._userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this._userGroupInfo._id)
+			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				this._props = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group)
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				this._userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group)
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+				if (operation === OperationType.CREATE) {
+					// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
+					await this.entityClient.load(CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
+				}
+				// cached plan config might be outdated now
+				this.planConfig = null
+			} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+				// offline cache might still be outdated, so we're playing it safe with WriteOnly
+				this.customer = await this.reloadCustomer(CacheMode.WriteOnly).catch(() => this.customer)
+			}
+		}
+	}
+
+	/**
+	 * Delete the session (only if it's a non-persistent session
+	 * @param sync whether or not to delete in the main thread. For example, will be true when logging out due to closing the tab
+	 */
+	async deleteSession(sync: boolean): Promise<void> {
+		// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
+		if (sync) {
+			if (this.sessionType !== SessionType.Persistent) {
+				await this.deleteSessionSync()
+			}
+		} else {
+			if (this.sessionType !== SessionType.Persistent) {
+				await locator.loginFacade.deleteSession(this.accessToken).catch((e) => console.log("Error ignored on Logout:", e))
+			}
+		}
+	}
+
+	deleteSessionSync(): Promise<void> {
+		return newPromise(async (resolve, reject) => {
+			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
+
+			if (sendBeacon) {
+				try {
+					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
+					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
+					apiUrl.searchParams.append("cv", env.versionNumber)
+					// atleast in the iOS WebView, we _have_ to use a http(s) URL to sendBeacon to not error out.
+					// our apiUrl is a api(s):// url on iOS, so we just replace the protocol in that case.
+					if (apiUrl.protocol.startsWith("api")) {
+						apiUrl.protocol = apiUrl.protocol.replace("api", "http")
+					}
+					const requestObject = JSON.stringify({
+						[1596]: "0", // _format
+						[1597]: this.accessToken, // accessToken
+						[1598]: [this.sessionId], // sessionId
+					})
+
+					// Send as Blob to be able to set content type otherwise sends 'text/plain'
+					const queued = sendBeacon.call(navigator, apiUrl, new Blob([requestObject], { type: MediaType.Json }))
+					console.log("queued closing session: ", queued)
+					resolve()
+				} catch (e) {
+					console.log("Failed to send beacon", e)
+					reject(e)
+				}
+			} else {
+				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
+				const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
+				const xhr = new XMLHttpRequest()
+				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload
+
+				xhr.setRequestHeader("accessToken", this.accessToken)
+				xhr.setRequestHeader("v", sysTypeModels[SessionTypeRef.typeId].version)
+				xhr.setRequestHeader("cv", env.versionNumber)
+
+				xhr.onload = function () {
+					// XMLHttpRequestProgressEvent, but not needed
+					if (xhr.status === 200) {
+						console.log("deleted session")
+						resolve()
+					} else if (xhr.status === 401) {
+						console.log("authentication failed => session is already deleted")
+						resolve()
+					} else {
+						console.error("could not delete session " + xhr.status)
+						reject(new Error("could not delete session " + xhr.status))
+					}
+				}
+
+				xhr.onerror = function () {
+					console.error("failed to request delete session")
+					reject(new Error("failed to request delete session"))
+				}
+
+				xhr.send()
+			}
+		})
+	}
+
+	async isWhitelabelAccount(): Promise<boolean> {
+		// isTutanotaDomain always returns true on desktop
+		if (!isDesktop()) {
+			return !!getWhitelabelCustomizations(window)
+		}
+
+		const customerInfo = await this.loadCustomerInfo()
+		return customerInfo.domainInfos.some((domainInfo) => domainInfo.whitelabelConfig)
+	}
+
+	async loadWhitelabelConfig(): Promise<
+		| {
+				whitelabelConfig: WhitelabelConfig
+				domainInfo: DomainInfo
+		  }
+		| null
+		| undefined
+	> {
+		// The model allows for multiple domainInfos to have whitelabel configs
+		// but in reality on the server only a single custom configuration is allowed
+		// therefore the result of the filtering all domainInfos with no whitelabelConfig
+		// can only be an array of length 0 or 1
+		const customerInfo = await this.loadCustomerInfo()
+		const domainInfoAndConfig = first(
+			mapAndFilterNull(
+				customerInfo.domainInfos,
+				(domainInfo) =>
+					domainInfo.whitelabelConfig && {
+						domainInfo,
+						whitelabelConfig: domainInfo.whitelabelConfig,
+					},
+			),
+		)
+
+		if (domainInfoAndConfig) {
+			const whitelabelConfig = await locator.entityClient.load(WhitelabelConfigTypeRef, domainInfoAndConfig.whitelabelConfig)
+			return {
+				domainInfo: domainInfoAndConfig.domainInfo,
+				whitelabelConfig,
+			}
+		}
+	}
+}
+
+export type UserControllerInitData = {
+	user: User
+	userGroupInfo: GroupInfo
+	sessionId: IdTuple
+	accessToken: Base64Url
+	sessionType: SessionType
+	loginUsername: string
+}
+// noinspection JSUnusedGlobalSymbols
+// dynamically imported
+export async function initUserController({
+	user,
+	userGroupInfo,
+	sessionId,
+	accessToken,
+	sessionType,
+	loginUsername,
+}: UserControllerInitData): Promise<UserController> {
+	const entityClient = locator.entityClient
+	const [props, userSettingsGroupRoot, customer] = await Promise.all([
+		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
+		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
+			ofClass(restError.NotFoundError, () =>
+				entityClient
+					.setup(
+						null,
+						createUserSettingsGroupRoot({
+							_ownerGroup: user.userGroup.group,
+							startOfTheWeek: "0",
+							timeFormat: "0",
+							groupSettings: [],
+							usageDataOptedIn: null,
+							birthdayCalendarColor: null,
+						}),
+					)
+					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
+			),
+		),
+		// External users is not allowed to load Customer
+		isInternalUser(user) ? entityClient.load(CustomerTypeRef, assertNotNull(user.customer)) : null,
+	])
+	return new UserController(
+		user,
+		userGroupInfo,
+		sessionId,
+		props,
+		accessToken,
+		userSettingsGroupRoot,
+		sessionType,
+		loginUsername,
+		entityClient,
+		locator.serviceExecutor,
+		customer,
+	)
+}

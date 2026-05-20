@@ -1,15 +1,15 @@
 import o from "@tutao/otest"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
-import { compareContacts } from "../../../src/mail-app/contacts/view/ContactGuiUtils.js"
+import { compareContacts } from "../../../src/applications/mail-app/contacts/view/ContactGuiUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import {
 	extractStructuredAddresses,
 	extractStructuredMailAddresses,
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
-} from "../../../src/common/contactsFunctionality/ContactUtils.js"
+} from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
 
-import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
 import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("ContactUtilsTest", function () {

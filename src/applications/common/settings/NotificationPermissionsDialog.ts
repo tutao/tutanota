@@ -1,0 +1,100 @@
+import m, { Component, Vnode } from "mithril"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { ClickHandler } from "../../../ui/base/GuiUtils.js"
+import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
+import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
+import { isAndroidApp } from "@tutao/app-env"
+import { isNotNull } from "@tutao/utils"
+import { NativePushServiceApp } from "../native/NativePushServiceApp"
+import { SystemPermissionHandler } from "../native/SystemPermissionHandler"
+
+function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
+	return renderSettingsBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
+}
+
+/// Shows a dialog that allows the user to set the notification and battery permissions on mobile.
+/// It shows the same screen as the notifications page in the onboarding wizard
+export async function renderNotificationPermissionsDialog(
+	pushService: NativePushServiceApp | null,
+	systemPermissionHandler: SystemPermissionHandler,
+	onClose: () => void,
+) {
+	let isNotificationPermissionGranted = await systemPermissionHandler.hasPermission(PermissionType.Notification)
+	let isBatteryPermissionGranted = await systemPermissionHandler.hasPermission(PermissionType.IgnoreBatteryOptimization)
+
+	const headerBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "close_alt",
+				click: () => dialog.close(),
+				type: ButtonType.Secondary,
+			},
+		],
+		middle: "permissions_label",
+		remove: () => onClose(),
+	}
+	const dialog = Dialog.editSmallDialog(headerBarAttrs, () =>
+		m(NotificationPermissionsBody, {
+			isNotificationPermissionGranted,
+			isBatteryPermissionGranted,
+			askForNotificationPermission: (isGranted) => {
+				isNotificationPermissionGranted = isGranted
+				m.redraw()
+			},
+			askForBatteryNotificationPermission: async (isGranted) => {
+				isBatteryPermissionGranted = isGranted
+				m.redraw()
+			},
+			pushService,
+			systemPermissionHandler,
+		}),
+	)
+	dialog.show()
+}
+
+export interface NotificationPermissionsBodyAttrs {
+	isNotificationPermissionGranted: boolean
+	isBatteryPermissionGranted: boolean
+	askForNotificationPermission: (isGranted: boolean) => void
+	askForBatteryNotificationPermission: (isGranted: boolean) => void
+	systemPermissionHandler: SystemPermissionHandler
+	pushService: NativePushServiceApp | null
+}
+
+/// Displays buttons to grant the notification and battery permissions with explaining paragraphs
+export class NotificationPermissionsBody implements Component<NotificationPermissionsBodyAttrs> {
+	view({ attrs }: Vnode<NotificationPermissionsBodyAttrs>) {
+		return [
+			m("p.mb-8", lang.get("allowNotifications_msg")),
+			renderPermissionButton("grant_notification_permission_action", attrs.isNotificationPermissionGranted, async () => {
+				// Ask for the notification permission
+				const isNotificationPermissionGranted = await attrs.systemPermissionHandler.requestPermission(
+					PermissionType.Notification,
+					"grant_notification_permission_action",
+				)
+				// Register the push notifications if granted and we actually have a push service
+				// For instance, Drive does not have one yet.
+				if (isNotificationPermissionGranted && isNotNull(attrs.pushService)) {
+					attrs.pushService.register()
+				}
+				attrs.askForNotificationPermission(isNotificationPermissionGranted)
+			}),
+			!isAndroidApp()
+				? null
+				: m("section.mt-8.mb-16", [
+						m("p.mb-8.mt-8", lang.get("allowBatteryPermission_msg")),
+						renderPermissionButton("grant_battery_permission_action", attrs.isBatteryPermissionGranted, async () => {
+							// Ask for permission to disable battery optimisations
+							const isBatteryPermissionGranted = await attrs.systemPermissionHandler.requestPermission(
+								PermissionType.IgnoreBatteryOptimization,
+								"allowBatteryPermission_msg",
+							)
+							attrs.askForBatteryNotificationPermission(isBatteryPermissionGranted)
+						}),
+					]),
+		]
+	}
+}

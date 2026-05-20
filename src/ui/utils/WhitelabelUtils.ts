@@ -1,5 +1,5 @@
-import { assertMainOrNodeBoot } from "@tutao/app-env"
-import { mapNullable } from "@tutao/utils"
+import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { mapNullable } from "../../platform-kit/utils"
 import { UnknownThemeCustomizations, WhitelabelCustomizations } from "../WhitelabelCustomizations"
 
 assertMainOrNodeBoot()

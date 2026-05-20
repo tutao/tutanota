@@ -1,15 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-
-import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { Cardinality, Type, ValueType } from "../../../src/meta"
-import { ProgrammingError } from "@tutao/app-env"
-import { ApplicationTypesFacade } from "../../../src/instance-pipeline/ApplicationTypesFacade"
+import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { Cardinality, Type, TypeModel, ValueType } from "../../../src/platform-kit/meta"
+import { ProgrammingError } from "../../../src/platform-kit/app-env"
+import { ApplicationTypesFacade } from "../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
 import { object } from "testdouble"
-import { TypeModel } from "../../../src/meta"
-
 import { clientModelAsServerModel, makePopulatedClientModelInfo } from "../TestUtils"
 import { MailTypeRef } from "@tutao/entities/tutanota"
-import { ClientModelInfo, ServerModelInfo, ServerModels } from "@tutao/instance-pipeline"
+import { ClientModelInfo, ServerModelInfo, ServerModels } from "../../../src/platform-kit/instance-pipeline"
 
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo
@@ -86,7 +83,7 @@ o.spec("EntityFunctionsTest", function () {
 
 			const applicationTypesHash = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(applicationTypesJson))
 			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
-			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, { base: clientModel })
+			Object.assign(clientModelInfo.typeModels, clientModelInfo.typeModels, { base: clientModel })
 			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo, async () => ({
 				applicationTypesHash,
 				applicationTypesJson,
@@ -101,7 +98,7 @@ o.spec("EntityFunctionsTest", function () {
 			const applicationTypesJson = JSON.stringify(serverModel)
 			const applicationTypesHash = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(applicationTypesJson))
 			clientModelInfo = makePopulatedClientModelInfo()
-			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, {
+			Object.assign(clientModelInfo.typeModels, clientModelInfo.typeModels, {
 				base: {
 					"0": {
 						app: "base",

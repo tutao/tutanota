@@ -8,20 +8,18 @@ import {
 	ValueDecryptor,
 	VersionedEncryptedKey,
 	VersionedKey,
-} from "@tutao/crypto"
-import { PatchMerger, PatchOperationError, PatchOperationType, convertJsToDbType, encryptValue } from "@tutao/instance-pipeline"
+} from "../../../src/platform-kit/crypto"
+import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, matchers, object, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../src/base/crypto/KeyLoaderFacade"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
-import { UserFacade } from "../../../src/base/facades/UserFacade"
-import { EntityClient } from "../../../src/network/EntityClient"
-import { ServiceExecutor } from "@tutao/network"
-import { DefaultEntityRestCache } from "../../../src/common/api/worker/rest/DefaultEntityRestCache"
-import { AsymmetricCryptoFacade } from "../../../src/base/crypto/AsymmetricCryptoFacade"
-import { KeyRotationFacade } from "../../../src/base/crypto/KeyRotationFacade"
+import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade"
+import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
+import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade"
+import { KeyRotationFacade } from "../../../src/platform-kit/base/crypto/KeyRotationFacade"
 
-import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
-import { RestClient } from "@tutao/rest-client"
+import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { RestClient } from "../../../src/platform-kit/rest-client"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -29,34 +27,36 @@ import {
 	modelMapperFromTypeModelResolver,
 	removeOriginals,
 } from "../TestUtils"
-import { CustomCacheHandlerMap } from "../../../src/local-store/CustomCacheHandler"
-import { EphemeralCacheStorage } from "../../../src/local-store/EphemeralCacheStorage"
+import { CustomCacheHandlerMap } from "../../../src/app-kit/local-store/CustomCacheHandler"
+import { EphemeralCacheStorage } from "../../../src/app-kit/local-store/EphemeralCacheStorage"
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
-import { EncryptionAuthStatus } from "@tutao/app-env"
-import PublicEncryptionKeyProvider from "../../../src/base/crypto/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
-import { CacheStorage } from "../../../src/local-store/CacheStorage"
-import { CacheManagementInterface } from "../../../src/local-store/CacheManagementInterface"
+import { EncryptionAuthStatus } from "../../../src/platform-kit/app-env"
+import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
+import { InstanceSessionKeysCache } from "../../../src/app-kit/local-store/InstanceSessionKeysCache"
+import { CacheStorage } from "../../../src/app-kit/local-store/CacheStorage"
+import { CacheManagementInterface } from "../../../src/app-kit/local-store/CacheManagementInterface"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
+	createOutOfOfficeNotificationRecipientList,
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRoot,
-	MailboxGroupRootTypeRef,
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
-	createOutOfOfficeNotificationRecipientList,
 } from "@tutao/entities/tutanota"
-import { AttributeModel, Entity, ModelValue, ServerModelParsedInstance } from "@tutao/meta"
+import { AttributeModel, Entity, ModelValue, ServerModelParsedInstance } from "../../../src/platform-kit/meta"
 
-import { Customer, CustomerTypeRef, Patch, createPatch } from "@tutao/entities/sys"
+import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey

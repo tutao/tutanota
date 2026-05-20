@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 
-import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
-import { clone } from "../../../src/meta"
-import { NewPaidPlans, PlanType } from "../../../src/entities/sys"
+import { getAvailableMatchingPlans } from "../../../src/applications/common/subscription/utils/SubscriptionUtils.js"
+import { clone } from "../../../src/platform-kit/meta"
+import { NewPaidPlans, PlanType } from "../../../src/entities/sys/Utils"
 
 o.spec("SubscriptionUtilsTest", function () {
 	let serviceExecutor: IServiceExecutor

@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 
-import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/common/api/common/utils/BirthdayUtils.js"
-import { ParsingError } from "../../../../../src/common/api/common/error/ParsingError.js"
-import { TutanotaError } from "../../../../../src/app-env"
+import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/applications/common/api/common/utils/BirthdayUtils.js"
+import { ParsingError } from "../../../../../src/applications/common/api/common/error/ParsingError.js"
+import { TutanotaError } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { BirthdayTypeRef, createBirthday } from "@tutao/entities/tutanota"
 

@@ -4,36 +4,47 @@ import {
 	BlobFacade,
 	parseMultipleBlobsResponse,
 	pipelineEncryptAndUpload,
-} from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
-import { HttpMethod, RestClientOptions } from "@tutao/rest-client/types"
-import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
-import { AesApp } from "../../../../../src/native-bridge/worker/AesApp.js"
-import { Mode, ProgrammingError } from "@tutao/app-env"
-import { elementIdPart, getElementId, listIdPart } from "../../../../../src/meta"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
+import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kit/rest-client"
+import { HttpMethod, RestClientOptions } from "../../../../../src/platform-kit/rest-client/types"
+import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
+import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.js"
+import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
-import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, DeferredObject, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
-import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade.js"
-import { FileReference } from "@tutao/entities/tutanota"
-import { BlobAccessTokenFacade } from "../../../../../src/network/BlobAccessTokenFacade.js"
+import { aes256RandomKey, aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto"
+import {
+	arrayEquals,
+	base64ExtToBase64,
+	base64ToUint8Array,
+	concat,
+	defer,
+	DeferredObject,
+	neverNull,
+	stringToUtf8Uint8Array,
+} from "../../../../../src/platform-kit/utils"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
-import { InstancePipeline } from "@tutao/instance-pipeline"
-import { ArchiveDataType } from "../../../../../src/entities/sys"
+import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
-import { File, FileTypeRef } from "@tutao/entities/tutanota"
 import {
 	BlobGetIn,
 	BlobGetInTypeRef,
 	BlobPostOutTypeRef,
-	BlobReferencingInstance,
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
 	createBlobPostOut,
 	storageTypeModels,
 } from "@tutao/entities/storage"
 
-import { BlobTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
+
+import { File, FileTypeRef } from "@tutao/entities/tutanota"
+import { FileReference } from "../../../../../src/entities/tutanota/Utils"
+import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
+
 const { anything, captor } = matchers
 
 o.spec("BlobFacade", function () {
@@ -1005,8 +1016,8 @@ o.spec("BlobFacade", function () {
 			const encryptChunk = async (chunk): Promise<`encrypted-${number}`> => {
 				return `encrypted-${chunk}`
 			}
-			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<sysTypeRefs.BlobReferenceTokenWrapper> => {
-				return createTestEntity(sysTypeRefs.BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
+			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<BlobReferenceTokenWrapper> => {
+				return createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
 			}
 
 			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)
@@ -1026,8 +1037,8 @@ o.spec("BlobFacade", function () {
 			const encryptChunk = async (chunk): Promise<`encrypted-${number}`> => {
 				return `encrypted-${chunk}`
 			}
-			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<sysTypeRefs.BlobReferenceTokenWrapper> => {
-				return createTestEntity(sysTypeRefs.BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
+			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<BlobReferenceTokenWrapper> => {
+				return createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
 			}
 
 			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)

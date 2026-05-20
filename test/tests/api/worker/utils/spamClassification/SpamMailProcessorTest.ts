@@ -4,13 +4,13 @@ import {
 	BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 	SpamMailDatum,
 	SpamMailProcessor,
-} from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+} from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 import { createTestEntity } from "../../../../TestUtils"
-import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { splitArrayAt, splitUint8Array } from "@tutao/utils"
+import { SparseVectorCompressor } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
+import { splitArrayAt, splitUint8Array } from "../../../../../../src/platform-kit/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
-import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/app-env"
+import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/platform-kit/app-env"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("SpamMailProcessor Tests", () => {

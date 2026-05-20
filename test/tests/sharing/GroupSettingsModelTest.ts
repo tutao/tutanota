@@ -1,17 +1,18 @@
-import { GroupNameData, GroupSettingsModel } from "../../../src/common/sharing/model/GroupSettingsModel"
-import { EntityClient } from "../../../src/network/EntityClient"
-import { LoginController } from "../../../src/common/api/main/LoginController"
+import { GroupNameData, GroupSettingsModel } from "../../../src/applications/common/sharing/model/GroupSettingsModel"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { object, when } from "testdouble"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
 
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import o from "@tutao/otest"
-import { UserController } from "../../../src/common/api/main/UserController"
+import { UserController } from "../../../src/applications/common/api/main/UserController"
 
-import { UserSettingsGroupRoot, UserSettingsGroupRootTypeRef, createGroupSettings } from "@tutao/entities/tutanota"
-import { isSameId } from "@tutao/meta"
+import { createGroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { isSameId } from "../../../src/platform-kit/meta"
 
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("GroupSettingsModel", function () {
 	let groupSettingsModel: GroupSettingsModel
 	let entityRestClient: EntityRestClientMock

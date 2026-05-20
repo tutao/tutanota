@@ -5,4 +5,4 @@ try {
 } catch (e) {
 	console.error("failed to setup githook ", e)
 }
-execSync("npm ci", { stdio: "inherit", cwd: "src/mimimi" })
+execSync("npm ci", { stdio: "inherit", cwd: "src/app-kit/mimimi" })

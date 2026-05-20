@@ -9,7 +9,7 @@ import {
 	SYMMETRIC_CIPHER_FACADE,
 	SymmetricCipherFacade,
 	ValueDecryptor,
-} from "@tutao/crypto"
+} from "../../../src/platform-kit/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
 import {
 	Cardinality,
@@ -19,18 +19,18 @@ import {
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	ValueType,
-} from "../../../src/meta"
-import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+} from "../../../src/platform-kit/meta"
+import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
 import {
 	ClientTypeReferenceResolver,
 	CryptoMapper,
+	encryptValue,
 	ModelMapper,
 	ServerTypeReferenceResolver,
 	SymmetricGroupKeyLoader,
-	encryptValue,
-} from "@tutao/instance-pipeline"
+} from "../../../src/platform-kit/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
-import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE

@@ -1,30 +1,28 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 
-import { CryptoProtocolVersion, MailAuthenticationStatus } from "../../../../../src/app-env"
+import { CryptoProtocolVersion, MailAuthenticationStatus } from "../../../../../src/platform-kit/app-env"
 import { matchers, object, when } from "testdouble"
-import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade.js"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { BlobFacade } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade"
-import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
-import { LoginFacade } from "../../../../../src/base/facades/LoginFacade.js"
-import { downcast, KeyVersion, lazyNumberRange } from "@tutao/utils"
-import { ProgrammingError } from "@tutao/app-env"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
+import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
+import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
+import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
+import { LoginFacade } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
+import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platform-kit/utils"
+import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
-import PublicEncryptionKeyProvider from "../../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { AesKey, CryptoWrapper, VersionedEncryptedKey } from "@tutao/crypto"
-import { RecipientsNotFoundError } from "../../../../../src/network/error/RecipientsNotFoundError"
-import { KeyVerificationMismatchError } from "../../../../../src/network/error/KeyVerificationMismatchError"
-import { SpamClassifier } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
+import { AesKey, CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
+import { RecipientsNotFoundError } from "../../../../../src/platform-kit/network/error/RecipientsNotFoundError"
+import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
+import { SpamClassifier } from "../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
-import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportedMailFieldType } from "../../../../../src/entities/tutanota"
+import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
+import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/instance-pipeline"
 import {
-	DataFile,
 	FileTypeRef,
 	InternalRecipientKeyDataTypeRef,
 	Mail,
@@ -33,7 +31,6 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	Recipient,
 	ReportedMailFieldMarkerTypeRef,
 	SecureExternalRecipientKeyDataTypeRef,
 	SendDraftData,
@@ -45,13 +42,15 @@ import {
 	BucketKeyTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	InstanceSessionKey,
 	InstanceSessionKeyTypeRef,
 	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { elementIdPart, getElementId } from "@tutao/meta"
+import { elementIdPart, getElementId } from "../../../../../src/platform-kit/meta"
+import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } from "../../../../../src/entities/tutanota/Utils"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

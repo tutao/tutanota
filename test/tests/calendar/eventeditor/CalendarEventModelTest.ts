@@ -1,39 +1,37 @@
 import o from "@tutao/otest"
-import { EndType, RepeatPeriod } from "../../../../src/app-env"
+import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { func, matchers, object, verify, when } from "testdouble"
 import {
 	CalendarOperation,
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
-} from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
-import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
+} from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { CalendarNotificationSender } from "../../../../src/applications/calendar-app/calendar/view/CalendarNotificationSender.js"
+import { CalendarModel } from "../../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 
-import { EntityClient } from "../../../../src/network/EntityClient.js"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
-import { identity, noOp } from "@tutao/utils"
-import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
+import { identity, noOp } from "../../../../src/platform-kit/utils"
+import { RecipientsModel, ResolvableRecipient } from "../../../../src/applications/common/api/main/RecipientsModel.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
-import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
-import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
-import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota"
-import { AccountType } from "../../../../src/entities/sys"
+import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/applications/common/calendar/date/CalendarUtils.js"
+import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { CalendarInviteHandler } from "../../../../src/applications/calendar-app/calendar/view/CalendarInvites"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
-	MailBoxTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
 	UserSettingsGroupRootTypeRef,
-	createCalendarEventAttendee,
 } from "@tutao/entities/tutanota"
-import { clone } from "@tutao/meta"
+import { clone } from "../../../../src/platform-kit/meta"
 
 import {
 	AlarmInfoTypeRef,
@@ -45,6 +43,9 @@ import {
 	RepeatRuleTypeRef,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../../src/entities/sys/Utils"
+
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
 	let calendarModel: CalendarModel

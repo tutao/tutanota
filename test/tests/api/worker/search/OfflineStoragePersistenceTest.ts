@@ -1,15 +1,19 @@
 import o from "@tutao/otest"
-import { IndexedGroupData, OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
-import { assertNotNull, typedValues } from "@tutao/utils"
-import { untagSqlObject, untagSqlValue } from "../../../../../src/local-store/SqlValue"
-import { sql } from "../../../../../src/local-store/Sql"
-import { getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/meta"
+import {
+	IndexedGroupData,
+	OfflineStoragePersistence,
+	SearchTableDefinitions,
+} from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { DesktopSqlCipher } from "../../../../../src/applications/common/desktop/db/DesktopSqlCipher"
+import { assertNotNull, typedValues } from "../../../../../src/platform-kit/utils"
+import { untagSqlObject, untagSqlValue } from "../../../../../src/app-kit/local-store/SqlValue"
+import { sql } from "../../../../../src/app-kit/local-store/Sql"
+import { getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils"
 import { object } from "testdouble"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
 	BodyTypeRef,
 	ContactMailAddressTypeRef,
@@ -20,8 +24,8 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
-import { GroupType } from "@tutao/entities/sys"
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStoragePersistence", () => {

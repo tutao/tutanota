@@ -1,38 +1,39 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import PublicEncryptionKeyProvider from "../../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { KeyAuthenticationFacade, ServiceExecutor } from "@tutao/network"
+import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "../../../../../src/platform-kit/utils"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
 
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
+	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
+	hexToRsaPublicKey,
 	KeyPairType,
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
 	RsaPublicKey,
-	bytesToKyberPublicKey,
-	hexToRsaPublicKey,
-} from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
-import * as restError from "@tutao/rest-client/error"
-import { EntityClient } from "../../../../../src/network/EntityClient"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade"
+} from "../../../../../src/platform-kit/crypto"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
+import * as restError from "../../../../../src/platform-kit/rest-client/error"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade"
 
-import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/base/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/app-kit/local-store/PublicEncryptionKeyCache"
 import {
+	createPublicKeyGetOut,
+	createSystemKeysReturn,
 	PubDistributionKey,
 	PublicKeyGetOut,
 	PublicKeyService,
 	PublicKeySignature,
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
-	createPublicKeyGetOut,
-	createSystemKeysReturn,
 } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
+import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

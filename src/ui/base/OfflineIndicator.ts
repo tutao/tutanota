@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { isSameDayOfDate, noOp } from "@tutao/utils"
+import { isSameDayOfDate, noOp } from "../../platform-kit/utils"
 import { lang } from "../utils/LanguageViewModel"
 
 export const enum OfflineIndicatorState {

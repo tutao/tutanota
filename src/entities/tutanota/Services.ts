@@ -1,60 +1,58 @@
-import {
-	CalendarDeleteInTypeRef,
-	ChangePrimaryAddressServicePutInTypeRef,
-	ClientClassifierResultPostInTypeRef,
-	CreateGroupPostReturnTypeRef,
-	CreateMailFolderDataTypeRef,
-	CreateMailFolderReturnTypeRef,
-	CreateMailGroupDataTypeRef,
-	CustomerAccountCreateDataTypeRef,
-	DeleteGroupDataTypeRef,
-	DeleteMailDataTypeRef,
-	DeleteMailFolderDataTypeRef,
-	DraftCreateDataTypeRef,
-	DraftCreateReturnTypeRef,
-	DraftUpdateDataTypeRef,
-	DraftUpdateReturnTypeRef,
-	EncryptTutanotaPropertiesDataTypeRef,
-	EntropyDataTypeRef,
-	ExternalUserDataTypeRef,
-	GroupInvitationDeleteDataTypeRef,
-	GroupInvitationPostDataTypeRef,
-	GroupInvitationPostReturnTypeRef,
-	GroupInvitationPutDataTypeRef,
-	ImportMailGetInTypeRef,
-	ImportMailGetOutTypeRef,
-	ImportMailPostInTypeRef,
-	ImportMailPostOutTypeRef,
-	ListUnsubscribeDataTypeRef,
-	MailExportTokenServicePostOutTypeRef,
-	MailGroupPostOutTypeRef,
-	ManageLabelServiceDeleteInTypeRef,
-	ManageLabelServicePostInTypeRef,
-	MoveMailDataTypeRef,
-	MoveMailPostOutTypeRef,
-	NewsInTypeRef,
-	NewsOutTypeRef,
-	PopulateClientSpamTrainingDataPostInTypeRef,
-	ProcessInboxPostInTypeRef,
-	ReceiveInfoServiceDataTypeRef,
-	ReceiveInfoServicePostOutTypeRef,
-	ReportMailPostDataTypeRef,
-	ResolveConversationsServiceGetInTypeRef,
-	ResolveConversationsServiceGetOutTypeRef,
-	SendDraftDataTypeRef,
-	SendDraftDeleteInTypeRef,
-	SendDraftReturnTypeRef,
-	SimpleMoveMailPostInTypeRef,
-	TranslationGetInTypeRef,
-	TranslationGetOutTypeRef,
-	UnreadMailStatePostInTypeRef,
-	UpdateMailFolderDataTypeRef,
-	UserAccountCreateDataTypeRef,
-	UserAccountPostOutTypeRef,
-	UserAreaGroupDeleteDataTypeRef,
-	UserAreaGroupPostDataTypeRef
-} from "./TypeRefs"
 import { ApplyLabelServicePostInTypeRef } from "./TypeRefs.js"
+import { UserAreaGroupPostDataTypeRef } from "./TypeRefs.js"
+import { CreateGroupPostReturnTypeRef } from "./TypeRefs.js"
+import { CalendarDeleteInTypeRef } from "./TypeRefs.js"
+import { ChangePrimaryAddressServicePutInTypeRef } from "./TypeRefs.js"
+import { ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
+import { UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
+import { CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { DraftCreateDataTypeRef } from "./TypeRefs.js"
+import { DraftCreateReturnTypeRef } from "./TypeRefs.js"
+import { DraftUpdateDataTypeRef } from "./TypeRefs.js"
+import { DraftUpdateReturnTypeRef } from "./TypeRefs.js"
+import { EncryptTutanotaPropertiesDataTypeRef } from "./TypeRefs.js"
+import { EntropyDataTypeRef } from "./TypeRefs.js"
+import { ExternalUserDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPostDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPostReturnTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPutDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationDeleteDataTypeRef } from "./TypeRefs.js"
+import { ImportMailGetInTypeRef } from "./TypeRefs.js"
+import { ImportMailGetOutTypeRef } from "./TypeRefs.js"
+import { ImportMailPostInTypeRef } from "./TypeRefs.js"
+import { ImportMailPostOutTypeRef } from "./TypeRefs.js"
+import { ListUnsubscribeDataTypeRef } from "./TypeRefs.js"
+import { MailExportTokenServicePostOutTypeRef } from "./TypeRefs.js"
+import { CreateMailFolderDataTypeRef } from "./TypeRefs.js"
+import { CreateMailFolderReturnTypeRef } from "./TypeRefs.js"
+import { UpdateMailFolderDataTypeRef } from "./TypeRefs.js"
+import { DeleteMailFolderDataTypeRef } from "./TypeRefs.js"
+import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
+import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
+import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
+import { DeleteMailDataTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
+import { ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
+import { MoveMailDataTypeRef } from "./TypeRefs.js"
+import { MoveMailPostOutTypeRef } from "./TypeRefs.js"
+import { NewsOutTypeRef } from "./TypeRefs.js"
+import { NewsInTypeRef } from "./TypeRefs.js"
+import { PopulateClientSpamTrainingDataPostInTypeRef } from "./TypeRefs.js"
+import { ProcessInboxPostInTypeRef } from "./TypeRefs.js"
+import { ReceiveInfoServiceDataTypeRef } from "./TypeRefs.js"
+import { ReceiveInfoServicePostOutTypeRef } from "./TypeRefs.js"
+import { ReportMailPostDataTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetInTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetOutTypeRef } from "./TypeRefs.js"
+import { SendDraftDataTypeRef } from "./TypeRefs.js"
+import { SendDraftReturnTypeRef } from "./TypeRefs.js"
+import { SendDraftDeleteInTypeRef } from "./TypeRefs.js"
+import { SimpleMoveMailPostInTypeRef } from "./TypeRefs.js"
+import { TranslationGetInTypeRef } from "./TypeRefs.js"
+import { TranslationGetOutTypeRef } from "./TypeRefs.js"
+import { UnreadMailStatePostInTypeRef } from "./TypeRefs.js"
+import { UserAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { UserAccountPostOutTypeRef } from "./TypeRefs.js"
 
 export const ApplyLabelService = Object.freeze({
 	app: "tutanota",

@@ -1,29 +1,25 @@
-import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "../../../src/app-env"
-import type { UserController } from "../../../src/common/api/main/UserController.js"
+import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "../../../src/platform-kit/app-env"
+import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 
-import { downcast, LazyLoaded } from "@tutao/utils"
-import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
+import { downcast, LazyLoaded } from "../../../src/platform-kit/utils"
+import type { CalendarInfo } from "../../../src/applications/calendar-app/calendar/model/CalendarModel"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
-import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
-import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
-import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
+import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler.js"
+import { CalendarType } from "../../../src/applications/common/calendar/date/CalendarUtils"
+import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 
-import { ContactAddressType } from "../../../src/entities/tutanota"
-import { AccountType } from "../../../src/entities/sys"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
 	ContactTypeRef,
+	createEncryptedMailAddress,
 	EncryptedMailAddress,
-	Recipient,
-	RecipientType,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
-	createEncryptedMailAddress,
 } from "@tutao/entities/tutanota"
 import {
 	BookingsRefTypeRef,
@@ -33,14 +29,15 @@ import {
 	FeatureTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MailAddressAliasTypeRef,
 	PlanConfigurationTypeRef,
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { GENERATED_MAX_ID } from "../../../src/platform-kit/meta"
+import { ContactAddressType, Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
+import { AccountType, GroupType } from "../../../src/entities/sys/Utils"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const

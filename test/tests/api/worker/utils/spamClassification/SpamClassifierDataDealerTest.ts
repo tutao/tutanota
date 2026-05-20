@@ -3,31 +3,31 @@ import {
 	SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT,
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
-} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/meta"
+} from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
+import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/platform-kit/meta"
 import { matchers, object, verify, when } from "testdouble"
-import { EntityClient } from "../../../../../../src/network/EntityClient"
-import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
-import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
+import { EntityClient } from "../../../../../../src/platform-kit/network/EntityClient"
+import { BulkMailLoader } from "../../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader"
+import { MailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
-import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { last } from "@tutao/utils"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/entities/tutanota"
+import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { last } from "../../../../../../src/platform-kit/utils"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
 	ClientSpamTrainingDatumTypeRef,
 	MailBagTypeRef,
 	MailBox,
+	MailboxGroupRoot,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetails,
 	MailDetailsTypeRef,
 	MailSetRefTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
-	MailboxGroupRoot,
-	MailboxGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/entities/tutanota/Utils"
 
 const { anything } = matchers
 

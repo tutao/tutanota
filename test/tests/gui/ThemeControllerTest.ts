@@ -1,13 +1,12 @@
-import o from "@tutao/otest"
+import o, { spy, verify } from "@tutao/otest"
 import { ThemeController } from "../../../src/ui/ThemeController.js"
-import { downcast } from "@tutao/utils"
-import { ThemeFacade } from "../../../src/native-bridge/common/generatedipc/types/ThemeFacade.js"
-import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
+import { downcast } from "../../../src/platform-kit/utils"
+import { ThemeFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types/ThemeFacade.js"
+import { HtmlSanitizer } from "../../../src/applications/common/misc/HtmlSanitizer.js"
 import { matchers, object, when } from "testdouble"
-import { spy, verify } from "@tutao/otest"
 import { Theme } from "../../../src/ui/theme.js"
 import { WhitelabelThemeGenerator } from "../../../src/ui/WhitelabelThemeGenerator"
-import { AppType } from "@tutao/app-env"
+import { AppType } from "../../../src/platform-kit/app-env"
 import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../src/ui/WhitelabelCustomizations"
 
 o.spec("ThemeController", () => {

@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { DesktopConfigMigrator } from "../../../../../src/common/desktop/config/migrations/DesktopConfigMigrator.js"
-import { DesktopNativeCryptoFacade } from "../../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { downcast } from "@tutao/utils"
+import { DesktopConfigMigrator } from "../../../../../src/applications/common/desktop/config/migrations/DesktopConfigMigrator.js"
+import { DesktopNativeCryptoFacade } from "../../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
+import { downcast } from "../../../../../src/platform-kit/utils"
 import { makeKeyStoreFacade } from "../../../TestUtils.js"
-import { DesktopKeyStoreFacade } from "../../../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { DesktopConfigKey } from "../../../../../src/app-env/ConfigKeys.js"
-import { aes256RandomKey } from "@tutao/crypto"
+import { DesktopKeyStoreFacade } from "../../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
+import { DesktopConfigKey } from "../../../../../src/platform-kit/app-env/ConfigKeys.js"
+import { aes256RandomKey } from "../../../../../src/platform-kit/crypto"
 
 o.spec("DesktopConfigMigrator", function () {
 	let migrator

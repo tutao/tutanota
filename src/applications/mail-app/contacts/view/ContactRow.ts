@@ -1,0 +1,165 @@
+import {
+	checkboxOpacity,
+	scaleXHide,
+	scaleXShow,
+	selectableRowAnimParams,
+	SelectableRowContainer,
+	SelectableRowSelectedSetter,
+} from "../../../../ui/SelectableRowContainer.js"
+import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
+import { NBSP, noOp } from "../../../../platform-kit/utils"
+import m, { Children } from "mithril"
+import { component_size, px, size } from "../../../../ui/size.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../../ui/base/ListUtils.js"
+import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
+import { Contact } from "@tutao/entities/tutanota"
+
+export const shiftByForCheckbox = px(component_size.checkbox_size + size.spacing_12)
+export const translateXShow = `translateX(${shiftByForCheckbox})`
+export const translateXHide = "translateX(0)"
+
+export class ContactRow implements VirtualRow<Contact> {
+	top: number
+	domElement: HTMLElement | null = null // set from List
+
+	entity: Contact | null
+	private selectionUpdater!: SelectableRowSelectedSetter
+	private domName!: HTMLElement
+	private domAddress!: HTMLElement
+	private checkboxDom!: HTMLInputElement
+	private checkboxWasVisible: boolean
+	private highlightedStrings?: readonly SearchToken[]
+
+	constructor(
+		private readonly onSelected: (entity: Contact, selected: boolean) => unknown,
+		private readonly shouldShowCheckbox: () => boolean,
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
+	) {
+		this.top = 0
+		this.entity = null
+		this.checkboxWasVisible = this.shouldShowCheckbox()
+	}
+
+	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
+		const oldEntity = this.entity
+		this.entity = contact
+		const oldHighlightedStrings = this.highlightedStrings
+		this.highlightedStrings = this.getHighlightedStrings?.()
+
+		this.selectionUpdater(selected, isInMultiSelect)
+		this.showCheckboxAnimated(this.shouldShowCheckbox() || isInMultiSelect)
+		checkboxOpacity(this.checkboxDom, selected)
+		this.checkboxDom.checked = selected && isInMultiSelect
+
+		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
+			const address = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : NBSP
+			setHTMLElementTextWithHighlighting(this.domName, getContactListName(contact), this.highlightedStrings)
+			setHTMLElementTextWithHighlighting(this.domAddress, address, this.highlightedStrings)
+		}
+	}
+
+	/**
+	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
+	 */
+	render(): Children {
+		return m(
+			SelectableRowContainer,
+			{
+				class: "pt-12 pb-12 pl-12 pr-12",
+				oncreate: (vnode) => {
+					Promise.resolve().then(() => this.showCheckbox(this.shouldShowCheckbox()))
+				},
+				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
+			},
+			m(".mt-4.abs", [
+				m("input.checkbox.list-checkbox", {
+					type: "checkbox",
+					style: {
+						transformOrigin: "left",
+					},
+					onclick: (e: MouseEvent) => {
+						if (e.shiftKey) {
+							// If the shift is pressed, let it bubble up and be handled by List which will do a range select
+							e.preventDefault()
+						} else {
+							e.stopPropagation()
+						}
+					},
+					onchange: () => {
+						if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
+					},
+					oncreate: (vnode) => {
+						this.checkboxDom = vnode.dom as HTMLInputElement
+						checkboxOpacity(this.checkboxDom, false)
+					},
+				}),
+			]),
+			m(".flex.col.overflow-hidden.flex-grow", [
+				m(".text-ellipsis.badge-line-height", {
+					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
+				}),
+				m(".text-ellipsis.smaller.mt-4", {
+					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
+				}),
+			]),
+		)
+	}
+
+	private showCheckboxAnimated(show: boolean) {
+		if (this.checkboxWasVisible === show) return
+		if (show) {
+			this.domName.style.paddingRight = shiftByForCheckbox
+			this.domAddress.style.paddingRight = shiftByForCheckbox
+			this.checkboxDom.style.display = ""
+
+			const nameAnim = this.domName.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
+			const addressAnim = this.domAddress.animate({ transform: [translateXHide, translateXShow] }, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXHide, scaleXShow] }, selectableRowAnimParams)
+
+			Promise.all([nameAnim.finished, addressAnim.finished, checkboxAnim.finished]).then(() => {
+				nameAnim.cancel()
+				addressAnim.cancel()
+				checkboxAnim.cancel()
+				this.showCheckbox(show)
+			}, noOp)
+		} else {
+			this.domName.style.paddingRight = "0"
+			this.domAddress.style.paddingRight = "0"
+
+			const nameAnim = this.domName.animate({ transform: [translateXShow, translateXHide] }, selectableRowAnimParams)
+			const addressAnim = this.domAddress.animate({ transform: [translateXShow, translateXHide] }, selectableRowAnimParams)
+			const checkboxAnim = this.checkboxDom.animate({ transform: [scaleXShow, scaleXHide] }, selectableRowAnimParams)
+
+			Promise.all([nameAnim.finished, addressAnim.finished, checkboxAnim.finished]).then(() => {
+				nameAnim.cancel()
+				addressAnim.cancel()
+				checkboxAnim.cancel()
+				this.showCheckbox(show)
+			}, noOp)
+		}
+		this.checkboxWasVisible = show
+	}
+
+	private showCheckbox(show: boolean) {
+		let translate
+		let scale
+		let padding
+		if (show) {
+			translate = translateXShow
+			scale = scaleXShow
+			padding = shiftByForCheckbox
+		} else {
+			translate = translateXHide
+			scale = scaleXHide
+			padding = "0"
+		}
+
+		this.domAddress.style.transform = translate
+		this.domName.style.transform = translate
+		this.domAddress.style.paddingRight = padding
+		this.domName.style.paddingRight = padding
+		this.checkboxDom.style.transform = scale
+		// Stop the hidden checkbox from entering the tab index
+		this.checkboxDom.style.display = show ? "" : "none"
+	}
+}

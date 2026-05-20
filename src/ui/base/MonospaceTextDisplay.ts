@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull } from "../../platform-kit/utils"
 
 export type MonospaceTextDisplayAttrs = {
 	text: string

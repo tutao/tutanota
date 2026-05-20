@@ -6,31 +6,32 @@ import {
 	StorageBehavior,
 	UsageTestModel,
 	UsageTestStorage,
-} from "../../../src/common/misc/UsageTestModel.js"
+} from "../../../src/applications/common/misc/UsageTestModel.js"
 
 import { matchers, object, replace, verify, when } from "testdouble"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { UserController } from "../../../src/common/api/main/UserController.js"
-import { EventController } from "../../../src/common/api/main/EventController.js"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
+import { UserController } from "../../../src/applications/common/api/main/UserController.js"
+import { EventController } from "../../../src/applications/common/api/main/EventController.js"
 import { createTestEntity, makePopulatedClientModelInfo } from "../TestUtils.js"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../../../src/platform-kit/rest-client/types"
 import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
+	createUsageTestMetricData,
+	usageModelInfo,
 	UsageTestAssignmentInTypeRef,
 	UsageTestAssignmentOutTypeRef,
 	UsageTestAssignmentService,
 	UsageTestAssignmentTypeRef,
 	UsageTestParticipationInTypeRef,
 	UsageTestParticipationService,
-	createUsageTestMetricData,
-	usageModelInfo,
 } from "@tutao/entities/usage"
-import { clone } from "@tutao/meta"
+import { clone } from "../../../src/platform-kit/meta"
 
 import { CustomerPropertiesTypeRef } from "@tutao/entities/sys"
+
 const { anything } = matchers
 
 o.spec("UsageTestModel", function () {

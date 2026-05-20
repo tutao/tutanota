@@ -1,4 +1,4 @@
-import { AssociationType, Cardinality, Entity, ModelValue, Type, TypeModel, TypeRef, ValueType } from "../../../src/meta"
+import { AssociationType, Cardinality, Entity, ModelValue, Type, TypeModel, TypeRef, ValueType } from "../../../src/platform-kit/meta"
 
 export const testTypeModel: TypeModel = {
 	app: "tutanota",

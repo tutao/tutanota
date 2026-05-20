@@ -1,4 +1,3 @@
-import { EntityRestClient, EntityRestClientLoadOptions } from "@tutao/network"
 import {
 	BlobElementEntity,
 	clone,
@@ -18,13 +17,13 @@ import {
 	timestampToGeneratedId,
 	Type,
 	TypeRef,
-} from "../../../../../src/meta"
-import { _verifyType } from "@tutao/instance-pipeline"
-import * as restError from "@tutao/rest-client/error"
-import { downcast } from "@tutao/utils"
+} from "../../../../../src/platform-kit/meta"
+import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import * as restError from "../../../../../src/platform-kit/rest-client/error"
+import { downcast } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { LoggedInUserProvider, TypeModelResolver } from "@tutao/instance-pipeline"
-import { getIdOfInstance } from "@tutao/meta"
+import { getIdOfInstance } from "../../../../../src/platform-kit/meta"
+import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 
 const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {

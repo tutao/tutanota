@@ -2,9 +2,9 @@
  * @file color/theme definitions for default themes.
  */
 import type { Theme, ThemeId } from "./theme"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../platform-kit/app-env"
 import { getAppLogo } from "./base/Logo.js"
-import { client } from "../app-env/boot/ClientDetector"
+import { client } from "../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 

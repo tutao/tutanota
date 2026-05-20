@@ -1,17 +1,17 @@
 import o from "@tutao/otest"
-import { RestClient, restError, restSuspension } from "@tutao/rest-client"
-import { HttpMethod, MediaType, RestClientMiddleware } from "@tutao/rest-client/types"
-import { defer, noOp } from "@tutao/utils"
+import { RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
+import { HttpMethod, MediaType, RestClientMiddleware } from "../../../src/platform-kit/rest-client/types"
+import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
 import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { matchers, object, reset, verify } from "testdouble"
 import { domainConfigStub } from "../TestUtils"
-import { ClientPlatform } from "../../../src/app-env/boot/ClientDetector"
+import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDetector"
 
-import { getServiceRestPath } from "../../../src/meta"
-import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
+import { getServiceRestPath } from "../../../src/platform-kit/meta"
+import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { ApplicationTypesService } from "@tutao/entities/base"
 
 type SuspensionHandler = restSuspension.SuspensionHandler

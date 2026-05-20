@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
-import { RolloutAction, RolloutFacade } from "../../../../../src/base/facades/RolloutFacade"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
+import { RolloutAction, RolloutFacade } from "../../../../../src/platform-kit/base/facades/RolloutFacade"
 import { func, matchers, object, verify, when } from "testdouble"
 
 import { createTestEntity } from "../../../TestUtils"
-import { ProgrammingError, RolloutType } from "@tutao/app-env"
+import { ProgrammingError, RolloutType } from "../../../../../src/platform-kit/app-env"
 import { RolloutGetOutTypeRef, RolloutService, RolloutTypeRef } from "@tutao/entities/sys"
 
 o.spec("RolloutFacadeTest", function () {

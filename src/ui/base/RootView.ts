@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { modal } from "./Modal"
 import { overlay } from "./Overlay"
-import { assertMainOrNodeBoot, isApp, Keys } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isApp, Keys } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
 
 assertMainOrNodeBoot()

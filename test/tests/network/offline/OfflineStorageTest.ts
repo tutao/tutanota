@@ -1,5 +1,5 @@
 import o, { verify } from "@tutao/otest"
-import { OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../src/local-store/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../src/app-kit/local-store/OfflineStorage.js"
 import { instance, matchers, object, when } from "testdouble"
 import {
 	constructMailSetEntryId,
@@ -19,28 +19,28 @@ import {
 	timestampToGeneratedId,
 	Type as TypeId,
 	TypeRef,
-} from "../../../../src/meta"
-import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, lastThrow, mapNullable, promiseMap, typedKeys } from "@tutao/utils"
-import { DateProvider } from "../../../../src/utils/DateProvider.js"
-import { OfflineStorageMigrator } from "../../../../src/local-store/OfflineStorageMigrator.js"
-import { untagSqlObject } from "../../../../src/local-store/SqlValue.js"
-import { FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "@tutao/app-env"
-import { DesktopSqlCipher } from "../../../../src/common/desktop/db/DesktopSqlCipher.js"
+} from "../../../../src/platform-kit/meta"
+import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, lastThrow, mapNullable, promiseMap, typedKeys } from "../../../../src/platform-kit/utils"
+import { DateProvider } from "../../../../src/platform-kit/utils/DateProvider.js"
+import { OfflineStorageMigrator } from "../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
+import { untagSqlObject } from "../../../../src/app-kit/local-store/SqlValue.js"
+import { FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../../src/platform-kit/app-env"
+import { DesktopSqlCipher } from "../../../../src/applications/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { sql } from "../../../../src/local-store/Sql.js"
-import { MailOfflineCleaner } from "../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/local-store/CustomCacheHandler"
-import { ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
+import { sql } from "../../../../src/app-kit/local-store/Sql.js"
+import { MailOfflineCleaner } from "../../../../src/applications/mail-app/workerUtils/offline/MailOfflineCleaner.js"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/app-kit/local-store/CustomCacheHandler"
+import { ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
-import { ApplicationTypesFacade } from "../../../../src/instance-pipeline/ApplicationTypesFacade"
-import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../src/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
-import { SqlCipherFacade } from "../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { MailSetKind } from "../../../../src/entities/tutanota"
-import { AccountType } from "../../../../src/entities/sys"
+import { ApplicationTypesFacade } from "../../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
+import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import {
 	BodyTypeRef,
 	ContactListTypeRef,
+	createContactList,
+	createMailSetRef,
 	FileTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -55,14 +55,15 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
-	createContactList,
-	createMailSetRef,
 } from "@tutao/entities/tutanota"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "@tutao/entities/storage"
-import { expandId } from "@tutao/meta"
-import { SqlType } from "../../../../src/local-store/Types.js"
+import { expandId } from "../../../../src/platform-kit/meta"
+import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { AccountType } from "../../../../src/entities/sys/Utils"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
+
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
 	return constructMailSetEntryId(new Date(receiveDate.getTime() + ms), mailId)

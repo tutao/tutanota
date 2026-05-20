@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./utils/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./utils/",
+		"outDir": "../../build/utils",
+		"tsBuildInfoFile": "../../build/utils/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.app-env.json"
+		}
+	]
+}

@@ -1,12 +1,11 @@
-import o from "@tutao/otest"
-import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import type { SecretStorage } from "../../../src/common/desktop/sse/SecretStorage.js"
+import o, { assertThrows } from "@tutao/otest"
+import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
+import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
+import type { SecretStorage } from "../../../src/applications/common/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
-import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
-import { CancelledError } from "@tutao/app-env"
-import { assertThrows } from "@tutao/otest"
-import { DeviceStorageUnavailableError } from "../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
+import { aes256RandomKey, keyToBase64 } from "../../../src/platform-kit/crypto"
+import { CancelledError } from "../../../src/platform-kit/app-env"
+import { DeviceStorageUnavailableError } from "../../../src/applications/common/api/common/error/DeviceStorageUnavailableError.js"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): DesktopKeyStoreFacade {
 	return new DesktopKeyStoreFacade(secretStorage, crypto)

@@ -1,16 +1,16 @@
 import o from "@tutao/otest"
-import { OpenDraftFunctions, OpenLocallySavedDraftAction } from "../../../../src/mail-app/mail/editor/OpenLocallySavedDraftAction"
+import { OpenDraftFunctions, OpenLocallySavedDraftAction } from "../../../../src/applications/mail-app/mail/editor/OpenLocallySavedDraftAction"
 import { matchers, object, verify, when } from "testdouble"
-import { MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel"
-import { EntityClient } from "../../../../src/network/EntityClient"
-import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel"
+import { MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient"
+import { MailViewerViewModel } from "../../../../src/applications/mail-app/mail/view/MailViewerViewModel"
 
-import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer"
+import { CreateMailViewerOptions } from "../../../../src/applications/mail-app/mail/view/MailViewer"
 import type { Dialog } from "../../../../src/ui/base/Dialog"
-import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/common/api/worker/facades/lazy/AutosaveFacade"
+import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/applications/common/api/worker/facades/lazy/AutosaveFacade"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { createTestEntity } from "../../TestUtils.js"
-import { MailState } from "@tutao/app-env"
+import { MailState } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction

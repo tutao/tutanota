@@ -1,13 +1,13 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../TestUtils"
-import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { EntityAdapter, InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
-import { assertThrows } from "@tutao/otest"
+import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 
 import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
+
 o.spec("EntityAdapter", () => {
 	let typeModelResolver: TypeModelResolver
 	let instancePipeline: InstancePipeline

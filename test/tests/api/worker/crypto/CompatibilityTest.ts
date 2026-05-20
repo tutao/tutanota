@@ -49,7 +49,7 @@ import {
 	verifyHmacSha256Async,
 	x25519Decapsulate,
 	x25519Encapsulate,
-} from "@tutao/crypto"
+} from "../../../../../src/platform-kit/crypto"
 import {
 	base64ToUint8Array,
 	byteArraysToBytes,
@@ -61,14 +61,14 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 	Versioned,
-} from "@tutao/utils"
+} from "../../../../../src/platform-kit/utils"
 import testData from "./CompatibilityTestData.json"
-import { uncompress } from "@tutao/instance-pipeline"
+import { uncompress } from "../../../../../src/platform-kit/instance-pipeline"
 import { matchers, object, when } from "testdouble"
-import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
-import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicKeySignatureFacade"
+import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kit/base/crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
@@ -562,7 +562,7 @@ o.spec("CompatibilityTest", function () {
 async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
-		const wasmBuffer = await readFile("../src/crypto/crypto-primitives/crypto_primitives_bg.wasm")
+		const wasmBuffer = await readFile("../src/platform-kit/crypto/crypto-primitives/crypto_primitives_bg.wasm")
 		return new WASMEd25519Facade(wasmBuffer)
 	} else {
 		return new WASMEd25519Facade()

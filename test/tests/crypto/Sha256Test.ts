@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
-import { sha256Hash } from "@tutao/crypto"
+import { hexToUint8Array, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { sha256Hash } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 
 o.spec("Sha256", function () {

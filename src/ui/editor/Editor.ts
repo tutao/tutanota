@@ -1,9 +1,9 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer, isMailAddress } from "@tutao/utils"
+import { defer, isMailAddress } from "../../platform-kit/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
-import { TabIndex } from "@tutao/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { LegacyTextFieldType } from "../base/LegacyTextField.js"
 import { HTML_EDITOR_LINE_HEIGHT } from "./HtmlEditor.js"
 

@@ -1,10 +1,9 @@
-import o from "@tutao/otest"
-import { SafeStorageSecretStorage } from "../../../../src/common/desktop/sse/SecretStorage.js"
-import type { ElectronExports, FsExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
+import o, { assertThrows } from "@tutao/otest"
+import { SafeStorageSecretStorage } from "../../../../src/applications/common/desktop/sse/SecretStorage.js"
+import type { ElectronExports, FsExports } from "../../../../src/applications/common/desktop/ElectronExportTypes.js"
 import path from "node:path"
 import { matchers, object, when } from "testdouble"
-import { assertThrows } from "@tutao/otest"
-import { DeviceStorageUnavailableError } from "../../../../src/common/api/common/error/DeviceStorageUnavailableError.js"
+import { DeviceStorageUnavailableError } from "../../../../src/applications/common/api/common/error/DeviceStorageUnavailableError.js"
 
 o.spec("SecretStorage", function () {
 	o.spec("SafeStorageSecretStorage", function () {

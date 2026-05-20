@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import * as restError from "@tutao/rest-client/error"
-import { TutanotaError } from "@tutao/app-env"
+import * as restError from "../../../src/platform-kit/rest-client/error"
+import { TutanotaError } from "../../../src/platform-kit/app-env"
 
 o.spec("RestErrorTest", function () {
 	o("handleRestError should create the correct error classes", () => {

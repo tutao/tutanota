@@ -1,10 +1,10 @@
 import o, { spy } from "@tutao/otest"
-import { CustomColorsEditorViewModel } from "../../../../src/common/settings/whitelabel/CustomColorsEditorViewModel.js"
+import { CustomColorsEditorViewModel } from "../../../../src/applications/common/settings/whitelabel/CustomColorsEditorViewModel.js"
 import { ThemeController } from "../../../../src/ui/ThemeController.js"
-import { downcast } from "@tutao/utils"
-import { EntityClient } from "../../../../src/network/EntityClient.js"
+import { downcast } from "../../../../src/platform-kit/utils"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
 import { themes } from "../../../../src/ui/builtinThemes.js"
-import type { LoginController } from "../../../../src/common/api/main/LoginController.js"
+import type { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { WhitelabelThemeGenerator } from "../../../../src/ui/WhitelabelThemeGenerator"
 import { matchers, object, when } from "testdouble"
@@ -13,6 +13,7 @@ import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/ui/theme"
 import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/ui/WhitelabelCustomizations"
 
 import { DomainInfoTypeRef, WhitelabelConfigTypeRef } from "@tutao/entities/sys"
+
 o.spec("CustomColorEditorViewModel", () => {
 	let model: CustomColorsEditorViewModel
 	let themeController: ThemeController

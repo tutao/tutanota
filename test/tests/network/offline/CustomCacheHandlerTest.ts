@@ -1,14 +1,14 @@
 import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, ServerModelParsedInstance } from "../../../../src/meta"
-import { createEventElementId } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { EntityRestClient } from "@tutao/network"
-import { LateInitializedCacheStorageImpl } from "../../../../src/local-store/CacheStorageProxy.js"
-import { numberRange, promiseMap } from "@tutao/utils"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, ServerModelParsedInstance } from "../../../../src/platform-kit/meta"
+import { createEventElementId } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
+import { LateInitializedCacheStorageImpl } from "../../../../src/app-kit/local-store/CacheStorageProxy.js"
+import { numberRange, promiseMap } from "../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../TestUtils.js"
-import { ModelMapper } from "@tutao/instance-pipeline"
-import { CustomCalendarEventCacheHandler } from "../../../../src/calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
+import { ModelMapper } from "../../../../src/platform-kit/instance-pipeline"
+import { CustomCalendarEventCacheHandler } from "../../../../src/applications/calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { EntityRestClient } from "../../../../src/platform-kit/network/EntityRestClient"
 
 o.spec("Custom calendar events handler", function () {
 	const entityRestClientMock = instance(EntityRestClient)

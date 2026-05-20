@@ -1,0 +1,27 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["instance-pipeline", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "instance-pipeline",
+		"outDir": "../../build/instance-pipeline",
+		"tsBuildInfoFile": "../../build/instance-pipeline/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.meta.json"
+		},
+		{
+			"path": "tsconfig.crypto.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.sys.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.base.json"
+		},
+		{
+			"path": "tsconfig.rest-client.json"
+		}
+	]
+}

@@ -1,8 +1,7 @@
-import o from "@tutao/otest"
-import { PdfWriter } from "../../../../../src/common/api/worker/pdf/PdfWriter.js"
-import { PDF_DEFAULT_OBJECTS, PdfDictValue } from "../../../../../src/common/api/worker/pdf/PdfConstants.js"
-import { mapToObject } from "@tutao/otest"
-import { PdfObject } from "../../../../../src/common/api/worker/pdf/PdfObject.js"
+import o, { mapToObject } from "@tutao/otest"
+import { PdfWriter } from "../../../../../src/applications/common/api/worker/pdf/PdfWriter.js"
+import { PDF_DEFAULT_OBJECTS, PdfDictValue } from "../../../../../src/applications/common/api/worker/pdf/PdfConstants.js"
+import { PdfObject } from "../../../../../src/applications/common/api/worker/pdf/PdfObject.js"
 
 o.spec("PdfWriter", function () {
 	const textEncoder = new TextEncoder()

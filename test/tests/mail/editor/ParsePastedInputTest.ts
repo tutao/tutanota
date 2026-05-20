@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { parsePastedInput } from "../../../../src/common/gui/MailRecipientsTextField"
+import { parsePastedInput } from "../../../../src/applications/common/gui/MailRecipientsTextField"
 
 o.spec("MailRecipientsTextField", () => {
 	o.spec("testParsePastedInput", () => {

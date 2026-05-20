@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { _findMatchingRule, _matchesRegularExpression } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
+import { _findMatchingRule, _matchesRegularExpression } from "../../../src/applications/mail-app/mail/model/InboxRuleHandler.js"
 
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { InboxRuleType } from "../../../src/entities/tutanota"
+import { InboxRuleType } from "../../../src/entities/tutanota/Utils"
 import { InboxRule, InboxRuleTypeRef, Mail, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("InboxRuleHandlerTest", function () {

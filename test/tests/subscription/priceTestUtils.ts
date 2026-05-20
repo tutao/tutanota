@@ -1,5 +1,5 @@
 import { matchers, object, when } from "testdouble"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
 
 import { createTestEntity } from "../TestUtils.js"
 

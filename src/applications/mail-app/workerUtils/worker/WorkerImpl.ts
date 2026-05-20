@@ -1,0 +1,373 @@
+import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
+import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
+import { RestClient, restError } from "../../../../platform-kit/rest-client"
+import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
+import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
+import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
+import type { LoginFacade } from "../../../../platform-kit/base/facades/LoginFacade.js"
+import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
+import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
+import { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade.js"
+import { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js"
+import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
+import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
+import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
+import { CryptoWrapper, random } from "../../../../platform-kit/crypto"
+import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { Commands, Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
+import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
+import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
+import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
+import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
+import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
+import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport.js"
+import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
+import { RecoverCodeFacade } from "../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
+import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { ExposedEventBus, MainInterface, WorkerRandomizer } from "../../../common/api/worker/workerInterfaces.js"
+import { CryptoError } from "../../../../platform-kit/crypto/error"
+import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
+import PublicEncryptionKeyProvider from "../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
+import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
+import { BulkMailLoader } from "../index/BulkMailLoader.js"
+import { ApplicationTypesFacade } from "../../../../platform-kit/instance-pipeline/ApplicationTypesFacade"
+import { Indexer } from "../index/Indexer"
+import { SearchFacade } from "../index/SearchFacade"
+import { ContactSearchFacade } from "../index/ContactSearchFacade"
+import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
+import { SpamClassifier } from "../spamClassification/SpamClassifier"
+import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { errorToObj } from "../../../../platform-kit/utils"
+import { objToError } from "../../../common/api/common/utils/ErrorUtils"
+import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
+import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
+import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
+import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { NamedClientModel } from "@tutao/instance-pipeline"
+
+assertWorkerOrNode()
+
+/** Interface of the facades exposed by the worker, basically interface for the worker itself */
+export interface WorkerInterface {
+	readonly loginFacade: LoginFacade
+	readonly customerFacade: CustomerFacade
+	readonly giftCardFacade: GiftCardFacade
+	readonly groupManagementFacade: GroupManagementFacade
+	readonly configFacade: ConfigurationDatabase
+	readonly calendarFacade: CalendarFacade
+	readonly alarmFacade: AlarmFacade
+	readonly mailFacade: MailFacade
+	readonly shareFacade: ShareFacade
+	readonly cacheManagementFacade: CacheManagementFacade
+	readonly counterFacade: CounterFacade
+	readonly indexerFacade: Indexer
+	readonly searchFacade: SearchFacade
+	readonly contactSearchFacade: ContactSearchFacade
+	readonly bookingFacade: BookingFacade
+	readonly mailAddressFacade: MailAddressFacade
+	readonly keyVerificationFacade: KeyVerificationFacade
+	readonly blobAccessTokenFacade: BlobAccessTokenFacade
+	readonly blobFacade: BlobFacade
+	readonly userManagementFacade: UserManagementFacade
+	readonly recoverCodeFacade: RecoverCodeFacade
+	readonly restInterface: EntityRestInterface
+	readonly serviceExecutor: IServiceExecutor
+	readonly cryptoWrapper: CryptoWrapper
+	readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	readonly publicIdentityKeyProvider: PublicIdentityKeyProvider
+	readonly asymmetricCryptoFacade: AsymmetricCryptoFacade
+	readonly cryptoFacade: CryptoFacade
+	readonly cacheStorage: ExposedCacheStorage
+	readonly sqlCipherFacade: SqlCipherFacade
+	readonly random: WorkerRandomizer
+	readonly eventBus: ExposedEventBus
+	readonly entropyFacade: EntropyFacade
+	readonly workerFacade: WorkerFacade
+	readonly contactFacade: ContactFacade
+	readonly mailExportFacade: MailExportFacade
+	readonly bulkMailLoader: BulkMailLoader
+	readonly applicationTypesFacade: ApplicationTypesFacade
+	readonly identityKeyCreator: IdentityKeyCreator
+	readonly spamClassifier: SpamClassifier
+	readonly autosaveFacade: AutosaveFacade
+	readonly driveFacade: DriveFacade
+}
+
+type WorkerRequest = Request<WorkerRequestType>
+
+export class WorkerImpl implements NativeInterface {
+	private readonly _scope: DedicatedWorkerGlobalScope
+	private readonly _dispatcher: MessageDispatcher<MainRequestType, WorkerRequestType>
+
+	constructor(self: DedicatedWorkerGlobalScope) {
+		this._scope = self
+		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
+	}
+
+	async init(browserData: BrowserData, apps: Array<NamedClientModel>): Promise<void> {
+		// import("tuta-sdk").then(async (module) => {
+		// 	// await module.default("wasm/tutasdk.wasm")
+		// 	const entityClient = new module.EntityClient()
+		// 	const typeRef = new module.TypeRef("tutanota", "Mail")
+		// 	console.log("result from rust: ", awai t entityClient.load_element(typeRef, "myId"))
+		// 	typeRef.free()
+		// 	entityClient.free()
+		// })
+
+		await initLocator(this, browserData, apps)
+		const workerScope = this._scope
+
+		// only register oncaught error handler if we are in the *real* worker scope
+		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
+		if (workerScope && !isMainOrNode()) {
+			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+				this.sendError(event.reason)
+			})
+
+			// @ts-ignore
+			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
+				console.error("workerImpl.onerror", e, source, lineno, colno, error)
+
+				if (error instanceof Error) {
+					this.sendError(error)
+				} else {
+					// @ts-ignore
+					const err = new Error(e)
+					// @ts-ignore
+					err.lineNumber = lineno
+					// @ts-ignore
+					err.columnNumber = colno
+					// @ts-ignore
+					err.fileName = source
+					this.sendError(err)
+				}
+
+				return true
+			}
+		}
+	}
+
+	get exposedInterface(): DelayedImpls<WorkerInterface> {
+		return {
+			async loginFacade() {
+				return locator.login
+			},
+
+			async customerFacade() {
+				return locator.customer()
+			},
+
+			async giftCardFacade() {
+				return locator.giftCards()
+			},
+
+			async groupManagementFacade() {
+				return locator.groupManagement()
+			},
+			async identityKeyCreator() {
+				return locator.identityKeyCreator()
+			},
+
+			async configFacade() {
+				return locator.configFacade()
+			},
+
+			async calendarFacade() {
+				return locator.calendar()
+			},
+
+			async alarmFacade() {
+				return locator.alarmFacade()
+			},
+
+			async mailFacade() {
+				return locator.mail()
+			},
+
+			async shareFacade() {
+				return locator.share()
+			},
+
+			async cacheManagementFacade() {
+				return locator.cacheManagement()
+			},
+
+			async counterFacade() {
+				return locator.counters()
+			},
+
+			async indexerFacade() {
+				return locator.indexer()
+			},
+
+			async searchFacade() {
+				return locator.search()
+			},
+
+			async contactSearchFacade() {
+				return locator.contactSearch()
+			},
+
+			async bookingFacade() {
+				return locator.booking()
+			},
+
+			async mailAddressFacade() {
+				return locator.mailAddress()
+			},
+
+			async keyVerificationFacade() {
+				return locator.keyVerification()
+			},
+
+			async blobAccessTokenFacade() {
+				return locator.blobAccessToken
+			},
+
+			async blobFacade() {
+				return locator.blob()
+			},
+
+			async userManagementFacade() {
+				return locator.userManagement()
+			},
+
+			async recoverCodeFacade() {
+				return locator.recoverCode()
+			},
+
+			async restInterface() {
+				return locator.cache
+			},
+
+			async serviceExecutor() {
+				return locator.serviceExecutor
+			},
+
+			async cryptoWrapper() {
+				return locator.cryptoWrapper
+			},
+
+			async publicEncryptionKeyProvider() {
+				return locator.publicEncryptionKeyProvider
+			},
+
+			async publicIdentityKeyProvider() {
+				return locator.publicIdentityKeyProvider
+			},
+
+			async asymmetricCryptoFacade() {
+				return locator.asymmetricCrypto
+			},
+
+			async cryptoFacade() {
+				return locator.crypto
+			},
+
+			async cacheStorage() {
+				return locator.cacheStorage
+			},
+
+			async sqlCipherFacade() {
+				return locator.sqlCipherFacade
+			},
+
+			async random() {
+				return {
+					async generateRandomNumber(nbrOfBytes: number) {
+						return random.generateRandomNumber(nbrOfBytes)
+					},
+				}
+			},
+
+			async eventBus() {
+				return locator.eventBusClient
+			},
+
+			async entropyFacade() {
+				return locator.entropyFacade
+			},
+
+			async workerFacade() {
+				return locator.workerFacade
+			},
+
+			async contactFacade() {
+				return locator.contactFacade()
+			},
+			async bulkMailLoader() {
+				return locator.bulkMailLoader()
+			},
+			async mailExportFacade() {
+				return locator.mailExportFacade()
+			},
+			async applicationTypesFacade() {
+				return locator.applicationTypesFacade
+			},
+			async autosaveFacade() {
+				return locator.autosaveFacade()
+			},
+			async spamClassifier() {
+				return locator.spamClassifier()
+			},
+			async driveFacade() {
+				return locator.driveFacade()
+			},
+		}
+	}
+
+	queueCommands(exposedWorker: DelayedImpls<WorkerInterface>): Commands<WorkerRequestType> {
+		return {
+			setup: async (message) => {
+				console.error("WorkerImpl: setup was called after bootstrap! message: ", message)
+			},
+			testEcho: (message) =>
+				Promise.resolve({
+					msg: ">>> " + message.args[0].msg,
+				}),
+			testError: (message) => {
+				const errorTypes = {
+					ProgrammingError,
+					CryptoError,
+					NotAuthenticatedError: restError.NotAuthenticatedError,
+				}
+				// @ts-ignore
+				let ErrorType = errorTypes[message.args[0].errorType]
+				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
+			},
+			reset: (message: WorkerRequest) => {
+				return resetLocator()
+			},
+			restRequest: (message: WorkerRequest) => {
+				// This horror is to add auth headers to the admin client
+				const args = message.args as Parameters<RestClient["request"]>
+				let [path, method, options] = args
+				options = options ?? {}
+				options.headers = { ...locator.user.createAuthHeaders(), ...options.headers }
+				return locator.restClient.request(path, method, options)
+			},
+
+			facade: exposeLocalDelayed<DelayedImpls<WorkerInterface>, WorkerRequestType>(exposedWorker),
+		}
+	}
+
+	invokeNative(requestType: string, args: ReadonlyArray<unknown>): Promise<any> {
+		return this._dispatcher.postRequest(new Request("execNative", [requestType, args]))
+	}
+
+	getMainInterface(): MainInterface {
+		return exposeRemote<MainInterface>((request) => this._dispatcher.postRequest(request))
+	}
+
+	sendError(e: Error): Promise<void> {
+		return this._dispatcher.postRequest(new Request("error", [errorToObj(e)]))
+	}
+}

@@ -1,18 +1,22 @@
 import o, { verify } from "@tutao/otest"
-import { DriveTransferController, DriveTransferState, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS } from "../../../src/drive-app/drive/view/DriveTransferController"
-import { DriveFacade } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
-import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade"
-import { FileController } from "../../../src/common/file/FileController"
-import { defer, DeferredObject } from "@tutao/utils"
+import {
+	DriveTransferController,
+	DriveTransferState,
+	FINISHED_TRANSFER_RETAIN_TIMEOUT_MS,
+} from "../../../src/applications/drive-app/drive/view/DriveTransferController"
+import { DriveFacade } from "../../../src/applications/common/api/worker/facades/lazy/DriveFacade"
+import { BlobFacade } from "../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
+import { FileController } from "../../../src/applications/common/file/FileController"
+import { defer, DeferredObject } from "../../../src/platform-kit/utils"
 import { matchers, object, when } from "testdouble"
 import { createTestEntity, SchedulerMock } from "../TestUtils"
 
-import { CancelledError } from "@tutao/app-env"
-import * as restError from "@tutao/rest-client/error"
-import { ArchiveDataType } from "../../../src/entities/sys"
+import { CancelledError } from "../../../src/platform-kit/app-env"
+import * as restError from "../../../src/platform-kit/rest-client/error"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TransferId } from "../../../src/entities/drive/Utils"
 import { DriveFile, DriveFileTypeRef } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../src/entities/sys/Utils"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController

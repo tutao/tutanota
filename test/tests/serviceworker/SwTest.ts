@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ServiceWorker } from "../../../src/common/serviceworker/sw.js"
+import { ServiceWorker } from "../../../src/applications/common/serviceworker/sw.js"
 import { object, when } from "testdouble"
 
 o.spec(

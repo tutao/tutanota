@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils"
-import { LabelsPopupViewModel } from "../../../../src/mail-app/mail/view/LabelsPopupViewModel"
-import { LabelState } from "../../../../src/mail-app/mail/model/MailModel"
+import { LabelsPopupViewModel } from "../../../../src/applications/mail-app/mail/view/LabelsPopupViewModel"
+import { LabelState } from "../../../../src/applications/mail-app/mail/model/MailModel"
 
-import { MailSetKind } from "../../../../src/entities/tutanota"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("LabelsPopupViewModelTest", () => {

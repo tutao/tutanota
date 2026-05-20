@@ -1,6 +1,6 @@
-import type { DbKey } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { DbTransaction, osName } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { downcast, neverNull } from "@tutao/utils"
+import type { DbKey } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
+import { DbTransaction, osName } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
+import { downcast, neverNull } from "../../../../../src/platform-kit/utils"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -9,7 +9,7 @@ import {
 	SearchIndexMetaDataOS,
 	SearchIndexOS,
 	SearchIndexWordsIndex,
-} from "../../../../../src/common/api/worker/search/IndexTables.js"
+} from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 
 export type Index = { [indexName: string]: string }
 

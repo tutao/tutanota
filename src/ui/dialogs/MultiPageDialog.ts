@@ -1,12 +1,12 @@
-import { noOp } from "@tutao/utils"
+import { noOp } from "../../platform-kit/utils"
 import { Dialog } from "../base/Dialog.js"
 import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
 import { theme } from "../theme.js"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { client } from "../../app-env/boot/ClientDetector.js"
+import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { px, size } from "../size.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError } from "../../platform-kit/app-env"
 import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 import { lang } from "../utils/LanguageViewModel.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
@@ -112,10 +112,12 @@ export class MultiPageDialog<PageKey extends string> {
 	 * @param defaultPage - The first page displayed after opening the dialog.
 	 * @param getPages - The function to return the configured pages.
 	 * @param height - The height of the dialog in pixels.
+	 * @param windowFacade - WindowFacade
 	 **/
 	constructor(
 		defaultPage: PageKey,
 		private readonly getPages: GetPagesFunc<PageKey>,
+		windowFacade: IWindowFacade,
 		height: number = 666,
 	) {
 		this.currentPageStream = stream(defaultPage)
@@ -130,6 +132,7 @@ export class MultiPageDialog<PageKey extends string> {
 				stackStream: this.pageStackStream,
 				isAnimating: this.isAnimating,
 				height,
+				windowFacade,
 			},
 			{
 				height: "100%",
@@ -222,6 +225,7 @@ type Props = {
 	stackStream: stream<string[]>
 	isAnimating: stream<boolean>
 	height: number
+	windowFacade: IWindowFacade
 }
 
 enum SlideDirection {
@@ -240,10 +244,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 	private slideDirection: SlideDirection | undefined = undefined
 	private transitionClass = ""
 
-	constructor(
-		vnode: Vnode<Props>,
-		private readonly windowFacade: IWindowFacade,
-	) {
+	constructor(vnode: Vnode<Props>) {
 		vnode.attrs.stackStream.map((newStack: string[]) => {
 			const newStackLength = newStack.length
 			if (newStackLength < this.stackSize && newStack.length > 0) {
@@ -271,7 +272,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 	}
 
 	onremove(vnode: VnodeDOM<Props>) {
-		this.windowFacade.removeResizeListener(this.resizeListener)
+		vnode.attrs.windowFacade.removeResizeListener(this.resizeListener)
 		vnode.attrs.currentPageStream.end(true)
 	}
 
@@ -289,7 +290,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 			m.redraw()
 		})
 
-		this.windowFacade.addResizeListener(this.resizeListener)
+		vnode.attrs.windowFacade.addResizeListener(this.resizeListener)
 	}
 
 	onupdate(vnode: VnodeDOM<Props>): any {

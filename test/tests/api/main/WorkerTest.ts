@@ -1,19 +1,38 @@
 import o, { assertThrows } from "@tutao/otest"
-import type { WorkerClient } from "../../../../src/common/api/main/WorkerClient.js"
-import * as restError from "@tutao/rest-client/error"
-import { Request } from "../../../../src/native-bridge/shared/MessageTypes.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
-import { SessionType } from "../../../../src/app-env/SessionType.js"
-import { CryptoError } from "@tutao/crypto/error"
-import { mailLocator } from "../../../../src/mail-app/mailLocator.js"
+import { WorkerClient } from "../../../../src/applications/common/api/main/WorkerClient"
+import { mailLocator } from "../../../../src/applications/mail-app/mailLocator"
+import { initCommonLocator, locator } from "../../../../src/applications/common/api/main/CommonLocator"
+import { ProgrammingError, SessionType } from "../../../../src/platform-kit/app-env"
+import { CryptoError } from "../../../../src/platform-kit/crypto/error"
+import { NotAuthenticatedError } from "../../../../src/platform-kit/rest-client/error"
+import { Request } from "../../../../src/app-kit/native-bridge/shared/MessageTypes"
+import { initClientModels } from "../../../../src/applications/common/api/common/ClientModelInfoInitializer"
+import { AppNameEnum } from "../../../../src/platform-kit/meta"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 
 o.spec(
 	"WorkerTest request / response",
 	node(function () {
 		let worker: WorkerClient
 		o.before(async function () {
-			await mailLocator.init()
+			const apps = [
+				{ app: AppNameEnum.Base, clientModel: baseTypeModels, modelInfo: baseModelInfo },
+				{ app: "sys", clientModel: sysTypeModels, modelInfo: sysModelInfo },
+				{ app: "tutanota", clientModel: tutanotaTypeModels, modelInfo: tutanotaModelInfo },
+				{ app: "drive", clientModel: driveTypeModels, modelInfo: driveModelInfo },
+				{ app: "storage", clientModel: storageTypeModels, modelInfo: storageModelInfo },
+				{ app: "monitor", clientModel: monitorTypeModels, modelInfo: monitorModelInfo },
+				{ app: "usage", clientModel: usageTypeModels, modelInfo: usageModelInfo },
+				{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
+			]
+			await mailLocator.init(initClientModels(apps))
 			initCommonLocator(mailLocator)
 
 			worker = locator.worker
@@ -63,7 +82,7 @@ o.spec(
 		})
 		o("rest error handling", async function () {
 			o.timeout(2000)
-			const e = await assertThrows(restError.NotAuthenticatedError, () =>
+			const e = await assertThrows(NotAuthenticatedError, () =>
 				worker._postRequest(
 					new Request("testError", [
 						{

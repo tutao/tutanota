@@ -1,0 +1,338 @@
+import { ALLOWED_IMAGE_FORMATS, assertMainOrNode, EncryptionAuthStatus, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
+import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
+import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
+import { UserController } from "../api/main/UserController.js"
+import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
+import { lang, Language, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { MailboxDetail } from "./MailboxModel.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
+import { showFileChooser } from "../file/FileController.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { ImageHandler } from "../../../ui/editor/Editor"
+import { CustomerPropertiesTypeRef, GroupInfo, User } from "../../../entities/sys/TypeRefs"
+import { Contact, createContact, createContactMailAddress, Mail } from "../../../entities/tutanota/TypeRefs"
+import { ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
+import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
+import { DataFile } from "../../../entities/tutanota/MailBundle"
+import { Attachment } from "../../../entities/tutanota/Utils"
+
+assertMainOrNode()
+export const LINE_BREAK = "<br>"
+
+/**
+ * Creates a contact with an email address and a name.
+ * @param mailAddress The mail address of the contact. Type is OTHER.
+ * @param name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
+ * @return The contact.
+ */
+export function createNewContact(user: User, mailAddress: string, name: string): Contact {
+	// prepare some contact information. it is only saved if the mail is sent securely
+	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
+	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
+	let contact = createContact({
+		_ownerGroup: assertNotNull(
+			user.memberships.find((m) => m.groupType === GroupType.Contact),
+			"called createNewContact as user without contact group mship",
+		).group,
+		firstName: firstAndLastName.firstName,
+		lastName: firstAndLastName.lastName,
+		mailAddresses: [
+			createContactMailAddress({
+				address: mailAddress,
+				type: ContactAddressType.OTHER,
+				customTypeName: "",
+			}),
+		],
+		birthdayIso: null,
+		comment: "",
+		company: "",
+		nickname: null,
+		oldBirthdayDate: null,
+		presharedPassword: null,
+		role: "",
+		title: null,
+		addresses: [],
+		oldBirthdayAggregate: null,
+		phoneNumbers: [],
+		photo: null,
+		socialIds: [],
+		department: null,
+		middleName: null,
+		nameSuffix: null,
+		phoneticFirst: null,
+		phoneticLast: null,
+		phoneticMiddle: null,
+		customDate: [],
+		messengerHandles: [],
+		pronouns: [],
+		relationships: [],
+		websites: [],
+	})
+	return contact
+}
+
+export function getMailAddressDisplayText(name: string | null, mailAddress: string, preferNameOnly: boolean): string {
+	if (!name) {
+		return mailAddress
+	} else if (preferNameOnly) {
+		return name
+	} else {
+		return name + " <" + mailAddress + ">"
+	}
+}
+
+export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
+	if (isUserMailbox(mailboxDetail)) {
+		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
+	} else {
+		return getEnabledMailAddressesForGroupInfo(mailboxDetail.mailGroupInfo)
+	}
+}
+
+export function isAliasEnabledWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo, aliasAddress: string): boolean {
+	if (isUserMailbox(mailboxDetail)) {
+		return isAliasEnabledForGroupInfo(userGroupInfo, aliasAddress)
+	} else {
+		return isAliasEnabledForGroupInfo(mailboxDetail.mailGroupInfo, aliasAddress)
+	}
+}
+
+/**
+ * @return {string} default mail address
+ */
+export function getDefaultSenderFromUser({ props, userGroupInfo }: UserController): string {
+	return props.defaultSender && isAliasEnabledForGroupInfo(userGroupInfo, props.defaultSender) ? props.defaultSender : neverNull(userGroupInfo.mailAddress)
+}
+
+export function isUserMailbox(mailboxDetails: MailboxDetail): boolean {
+	return mailboxDetails.mailGroup != null && mailboxDetails.mailGroup.user != null
+}
+
+export function getDefaultSender(logins: LoginController, mailboxDetails: MailboxDetail): string {
+	if (isUserMailbox(mailboxDetails)) {
+		return getDefaultSenderFromUser(logins.getUserController())
+	} else {
+		return assertNotNull(mailboxDetails.mailGroupInfo.mailAddress)
+	}
+}
+
+export function isUserEmail(logins: LoginController, mailboxDetails: MailboxDetail, address: string): boolean {
+	if (isUserMailbox(mailboxDetails)) {
+		return (
+			isAliasEnabledWithUser(mailboxDetails, logins.getUserController().userGroupInfo, address) ||
+			logins.getUserController().userGroupInfo.mailAddress === address
+		)
+	} else {
+		return mailboxDetails.mailGroupInfo.mailAddress === address
+	}
+}
+
+export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: UserController): string {
+	if (isUserMailbox(mailboxDetails)) {
+		// external users do not have access to the user group info
+		return userController.userGroupInfo.name
+	} else {
+		return mailboxDetails.mailGroupInfo ? mailboxDetails.mailGroupInfo.name : ""
+	}
+}
+
+export function getMailboxName(logins: LoginController, mailboxDetails: MailboxDetail): string {
+	if (!logins.isInternalUserLoggedIn()) {
+		return lang.get("mailbox_label")
+	} else if (isUserMailbox(mailboxDetails)) {
+		return neverNull(logins.getUserController().userGroupInfo.mailAddress)
+	} else {
+		return getGroupInfoDisplayName(assertNotNull(mailboxDetails.mailGroupInfo, "mailboxDetails without mailGroupInfo?"))
+	}
+}
+
+export function getTemplateLanguages(sortedLanguages: Array<Language>, entityClient: EntityClient, loginController: LoginController): Promise<Array<Language>> {
+	// External users do not have templates
+	if (!loginController.isInternalUserLoggedIn()) {
+		return Promise.resolve([])
+	}
+
+	return loginController
+		.getUserController()
+		.reloadCustomer()
+		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		.then((customerProperties) => {
+			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
+		})
+		.catch(() => [])
+}
+
+export function dialogTitleTranslationKey(conversationType: ConversationType): TranslationKey {
+	let key: TranslationKey
+
+	switch (conversationType) {
+		case ConversationType.NEW:
+			key = "newMail_action"
+			break
+
+		case ConversationType.REPLY:
+			key = "reply_action"
+			break
+
+		case ConversationType.FORWARD:
+			key = "forward_action"
+			break
+
+		default:
+			key = "emptyString_msg"
+	}
+
+	return key
+}
+
+type AttachmentSizeCheckResult = {
+	attachableFiles: Array<Attachment>
+	tooBigFiles: Array<string>
+}
+
+/**
+ * @param files the files that shall be attached.
+ * @param maxAttachmentSize the maximum size the new files may have in total to be attached successfully.
+ */
+export function checkAttachmentSize(files: ReadonlyArray<Attachment>, maxAttachmentSize: number = MAX_ATTACHMENT_SIZE): AttachmentSizeCheckResult {
+	let totalSize = 0
+	const attachableFiles: Array<Attachment> = []
+	const tooBigFiles: Array<string> = []
+	for (const file of files) {
+		if (totalSize + Number(file.size) > maxAttachmentSize) {
+			tooBigFiles.push(file.name)
+		} else {
+			totalSize += Number(file.size)
+			attachableFiles.push(file)
+		}
+	}
+	return {
+		attachableFiles,
+		tooBigFiles,
+	}
+}
+
+export enum RecipientField {
+	TO = "to",
+	CC = "cc",
+	BCC = "bcc",
+}
+
+export function isTutaMailAddress(mailAddress: string): boolean {
+	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
+}
+
+export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
+	switch (encryptionAuthStatus) {
+		// emails before tuta-crypt had no encryptionAuthStatus
+		case null:
+		case undefined:
+		case EncryptionAuthStatus.RSA_NO_AUTHENTICATION:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED:
+		case EncryptionAuthStatus.TUTACRYPT_SENDER: // should only be set for sent NOT received mails
+			return true
+		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
+		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
+		default:
+			// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
+			return false
+	}
+}
+
+/**
+ * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
+ * @VisibleForTesting
+ */
+export function isTutanotaTeamAddress(address: string): boolean {
+	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
+}
+
+/**
+ * Is this a tutao team member email or a system notification
+ */
+export function isTutaTeamMail(mail: Mail): boolean {
+	const { confidential, sender, state } = mail
+	return (
+		confidential &&
+		state === MailState.RECEIVED &&
+		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
+		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
+	)
+}
+
+/**
+ * Is this a system notification?
+ */
+export function isSystemNotification(mail: Mail): boolean {
+	const { confidential, sender, state } = mail
+	return (
+		state === MailState.RECEIVED &&
+		confidential &&
+		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
+		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS ||
+			// New emails will have sender set to system and will only have replyTo set to no-reply
+			// but we should keep displaying old emails correctly.
+			isNoReplyTeamAddress(sender.address))
+	)
+}
+
+export function isNoReplyTeamAddress(address: string): boolean {
+	return address === "no-reply@tutao.de" || address === "no-reply@tutanota.de"
+}
+
+export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
+	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+		const tooBig: DataFile[] = []
+
+		for (let file of files) {
+			if (file.size > MAX_BASE64_IMAGE_SIZE) {
+				tooBig.push(file)
+			} else {
+				const b64 = uint8ArrayToBase64(file.data)
+				const dataUrlString = `data:${file.mimeType};base64,${b64}`
+				handler.insertImage(dataUrlString, {
+					style: "max-width: 100%",
+				})
+			}
+		}
+
+		if (tooBig.length > 0) {
+			Dialog.message(
+				lang.getTranslation("tooBigInlineImages_msg", {
+					"{size}": MAX_BASE64_IMAGE_SIZE / 1024,
+				}),
+			)
+		}
+	})
+}
+
+// .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
+export type MailExportMode = "msg" | "eml"
+/**
+ * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
+ * Ideally this would just be {Mail, Headers, Body, FileReference[]}
+ * but we can't send Dates over to the native side, so we may as well just extract everything here
+ */
+export type MailBundleRecipient = {
+	address: string
+	name?: string
+}
+
+export type MailBundle = {
+	mailId: IdTuple
+	subject: string
+	body: string
+	sender: MailBundleRecipient
+	to: MailBundleRecipient[]
+	cc: MailBundleRecipient[]
+	bcc: MailBundleRecipient[]
+	replyTo: MailBundleRecipient[]
+	isDraft: boolean
+	isRead: boolean
+	sentOn: number
+	// UNIX timestamp
+	receivedOn: number // UNIX timestamp,
+	headers: string | null
+	attachments: DataFile[]
+}

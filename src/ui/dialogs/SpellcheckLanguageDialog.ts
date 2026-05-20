@@ -1,12 +1,12 @@
 import type { SelectorItem } from "../base/DropDownSelector.js"
 import type { TranslationKey } from "../utils/LanguageViewModel"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import type { SettingsFacade } from "../../app-kit/native-bridge/common/generatedipc/types/SettingsFacade"
 
 export class SpellcheckLanguageDialog {
 	constructor(private readonly settingsFacade: SettingsFacade) {}
 
 	async showSpellcheckLanguageDialog(): Promise<string> {
-		const { DesktopConfigKey } = await import("../../app-env/ConfigKeys")
+		const { DesktopConfigKey } = await import("../../platform-kit/app-env/ConfigKeys")
 		const current = await this.getCurrentSpellcheckLanguage()
 		const { Dialog } = await import("../base/Dialog.js")
 		const items = await this.getItems()
@@ -26,7 +26,7 @@ export class SpellcheckLanguageDialog {
 	}
 
 	async getCurrentSpellcheckLanguage(): Promise<string> {
-		const { DesktopConfigKey } = await import("../../app-env/ConfigKeys")
+		const { DesktopConfigKey } = await import("../../platform-kit/app-env/ConfigKeys")
 		return (await this.settingsFacade.getStringConfigValue(DesktopConfigKey.spellcheck)) ?? ""
 	}
 

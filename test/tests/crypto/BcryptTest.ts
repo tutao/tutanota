@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { generateKeyFromPassphraseBcrypt, generateRandomSalt, KeyLength, keyToUint8Array } from "@tutao/crypto"
+import { generateKeyFromPassphraseBcrypt, generateRandomSalt, KeyLength, keyToUint8Array } from "../../../src/platform-kit/crypto"
 
 o.spec("Bcrypt", function () {
 	o("GenerateRandomSalt", function () {

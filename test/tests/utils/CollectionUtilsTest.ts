@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { setEquals, setMap } from "@tutao/utils"
+import { setEquals, setMap } from "../../../src/platform-kit/utils"
 
 type ObjectWithId = {
 	v: number

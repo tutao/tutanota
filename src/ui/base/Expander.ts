@@ -7,8 +7,8 @@ import { theme } from "../theme"
 import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys } from "@tutao/app-env"
-import { assertNotNull } from "@tutao/utils"
+import { Keys } from "../../platform-kit/app-env"
+import { assertNotNull } from "../../platform-kit/utils"
 
 export type ExpanderAttrs = {
 	label: MaybeTranslation

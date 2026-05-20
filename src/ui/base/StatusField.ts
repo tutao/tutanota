@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode } from "../../platform-kit/app-env"
 
 assertMainOrNode()
 export type StatusType = "neutral" | "valid" | "invalid"

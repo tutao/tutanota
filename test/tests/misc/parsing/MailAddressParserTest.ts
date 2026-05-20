@@ -5,8 +5,8 @@ import {
 	mailAddressToFirstAndLastName,
 	parseMailtoUrl,
 	stringToNameAndMailAddress,
-} from "../../../../src/common/misc/parsing/MailAddressParser.js"
-import { isMailAddress } from "../../../../src/utils/FormatUtils.js"
+} from "../../../../src/applications/common/misc/parsing/MailAddressParser.js"
+import { isMailAddress } from "../../../../src/platform-kit/utils/FormatUtils.js"
 
 o.spec("MailAddressParser", function () {
 	o("parseMailtoUrl single address", function () {

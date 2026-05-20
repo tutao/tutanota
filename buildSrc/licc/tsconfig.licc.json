@@ -1,0 +1,17 @@
+{
+	"include": ["./"],
+	"compilerOptions": {
+		"rootDir": ".",
+		"composite": true /* Enable constraints that allow a TypeScript project to be used with project references. */,
+		"target": "esnext",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": "../../build/licc",
+		"tsBuildInfoFile": "../../build/licc/tsbuildinfo",
+		"incremental": true
+	}
+}

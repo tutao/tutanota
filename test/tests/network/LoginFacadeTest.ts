@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 
-import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
 	_encryptString,
 	aes256RandomKey,
@@ -14,33 +14,32 @@ import {
 	keyToUint8Array,
 	sha256Hash,
 	uint8ArrayToKey,
-} from "@tutao/crypto"
-import { LoginFacade, LoginFailReason, LoginListener } from "../../../src/base/facades/LoginFacade"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest"
-import { EntityClient } from "../../../src/network/EntityClient"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
-import { UserFacade } from "../../../src/base/facades/UserFacade"
-import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/utils"
-import { Const, RolloutType } from "@tutao/app-env"
-import { SessionType } from "../../../src/app-env/SessionType"
-import { EventBusClient } from "../../../src/network/EventBusClient.js"
-import { BlobAccessTokenFacade } from "../../../src/network/BlobAccessTokenFacade.js"
-import { EntropyFacade } from "../../../src/base/facades/EntropyFacade.js"
-import { DatabaseKeyFactory } from "../../../src/base/crypto/DatabaseKeyFactory.js"
+} from "../../../src/platform-kit/crypto"
+import { LoginFacade, LoginFailReason, LoginListener } from "../../../src/platform-kit/base/facades/LoginFacade"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
+import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade"
+import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade"
+import { defer, DeferredObject, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
+import { Const, RolloutType } from "../../../src/platform-kit/app-env"
+import { SessionType } from "../../../src/platform-kit/app-env/SessionType"
+import { EventBusClient } from "../../../src/platform-kit/network/EventBusClient.js"
+import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
+import { EntropyFacade } from "../../../src/platform-kit/base/facades/EntropyFacade.js"
+import { DatabaseKeyFactory } from "../../../src/platform-kit/base/crypto/DatabaseKeyFactory.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../TestUtils.js"
-import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../src/base/crypto/KeyRotationFacade.js"
-import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
-import { CacheManagementFacade } from "../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { CacheMode } from "@tutao/network"
-import { RolloutFacade } from "../../../src/base/facades/RolloutFacade"
-import { ConnectMode } from "../../../src/network/Constants"
-import { CacheStorageLateInitializer } from "../../../src/local-store/Types"
-import { Argon2idFacade } from "../../../src/base/crypto/WasmArgon2idFacade"
-import { Credentials } from "../../../src/network/types"
-import { AccountType } from "../../../src/entities/sys"
+import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../src/platform-kit/base/crypto/KeyRotationFacade.js"
+import { InstancePipeline, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { CacheManagementFacade } from "../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { RolloutFacade } from "../../../src/platform-kit/base/facades/RolloutFacade"
+import { ConnectMode } from "../../../src/platform-kit/network/Constants"
+import { CacheStorageLateInitializer } from "../../../src/app-kit/local-store/Types"
+import { Argon2idFacade } from "../../../src/platform-kit/base/crypto/WasmArgon2idFacade"
+import { Credentials } from "../../../src/platform-kit/network/types"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
 	ChangeKdfService,
+	createSaltReturn,
 	CreateSessionReturnTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
@@ -51,10 +50,11 @@ import {
 	User,
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
-	createSaltReturn,
 } from "@tutao/entities/sys"
-import { CredentialType } from "@tutao/network/types"
-import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/base/crypto/Constants.js"
+import { CredentialType } from "../../../src/platform-kit/network/types"
+import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/crypto/Constants.js"
+import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
+import { AccountType } from "../../../src/entities/sys/Utils"
 
 const { anything, argThat } = matchers
 

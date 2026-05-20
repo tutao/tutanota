@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { compress, uncompress } from "@tutao/instance-pipeline"
-import { base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import { compress, uncompress } from "../../../src/platform-kit/instance-pipeline"
+import { base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
 
 import testData from "../api/worker/crypto/CompatibilityTestData.json"
 

@@ -1,0 +1,27 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./", "../../types/", "../global.d.ts"],
+	"compilerOptions": {
+		"rootDir": "./",
+		"outDir": "../../build/ui",
+		"tsBuildInfoFile": "../../build/ui/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kit/tsconfig.utils.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.app-env.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.meta.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.rest-client.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		}
+	]
+}

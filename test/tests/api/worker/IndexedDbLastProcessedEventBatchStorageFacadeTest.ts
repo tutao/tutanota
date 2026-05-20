@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { object, verify, when } from "testdouble"
-import { IndexerCore } from "../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { EphemeralCacheStorage } from "../../../../src/local-store/EphemeralCacheStorage"
-import { IndexedDbLastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { IndexingNotSupportedError } from "../../../../src/common/api/common/error/IndexingNotSupportedError"
-import { MailIndexer } from "../../../../src/mail-app/workerUtils/index/MailIndexer"
+import { IndexerCore } from "../../../../src/applications/mail-app/workerUtils/index/IndexerCore"
+import { EphemeralCacheStorage } from "../../../../src/app-kit/local-store/EphemeralCacheStorage"
+import { IndexedDbLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
+import { IndexingNotSupportedError } from "../../../../src/applications/common/api/common/error/IndexingNotSupportedError"
+import { MailIndexer } from "../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 
 o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 	o.spec("IndexedDbLastProcessedEventBatchStorageFacade", () => {

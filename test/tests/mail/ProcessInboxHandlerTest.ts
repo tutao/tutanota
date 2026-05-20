@@ -1,19 +1,19 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 
-import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
-import { assertNotNull, delay } from "@tutao/utils"
-import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
+import { ClientClassifierType } from "../../../src/applications/common/api/common/ClientClassifierType"
+import { assertNotNull, delay } from "../../../src/platform-kit/utils"
+import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../TestUtils"
-import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
-import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
-import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxModel"
-import { LoginController } from "../../../src/common/api/main/LoginController"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
-import * as restError from "@tutao/rest-client/error"
-import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota"
+import { SpamClassificationHandler } from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
+import { FolderSystem } from "../../../src/applications/common/api/common/mail/FolderSystem"
+import { InboxRuleHandler } from "../../../src/applications/mail-app/mail/model/InboxRuleHandler"
+import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
+import { MailboxDetail } from "../../../src/applications/common/mailFunctionality/MailboxModel"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController"
+import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade"
+import * as restError from "../../../src/platform-kit/rest-client/error"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {
 	Body,
 	BodyTypeRef,
@@ -24,9 +24,10 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { isSameId } from "@tutao/meta"
+import { isSameId } from "../../../src/platform-kit/meta"
 
 import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
+
 const { captor, anything } = matchers
 
 o.spec("ProcessInboxHandlerTest", function () {

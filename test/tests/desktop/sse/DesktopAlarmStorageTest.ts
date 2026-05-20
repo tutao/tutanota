@@ -1,18 +1,19 @@
 import o from "@tutao/otest"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
-import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
-import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
+import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop/sse/DesktopAlarmStorage.js"
+import { DesktopConfig } from "../../../../src/applications/common/desktop/config/DesktopConfig.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
+import type { DesktopKeyStoreFacade } from "../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
-import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
-import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
-import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
+import { DesktopConfigKey } from "../../../../src/platform-kit/app-env/ConfigKeys.js"
+import { assertNotNull, uint8ArrayToBase64 } from "../../../../src/platform-kit/utils"
+import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
-import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
-import { hasError } from "@tutao/meta"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
+import { hasError } from "../../../../src/platform-kit/meta"
 
 import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
+
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
 	let confMock: DesktopConfig

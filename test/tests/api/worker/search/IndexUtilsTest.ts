@@ -6,11 +6,11 @@ import {
 	htmlToText,
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
-} from "../../../../../src/common/api/common/utils/IndexUtils.js"
-import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/utils"
-import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
+} from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
+import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
+import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 
-import { aes256RandomKey, aesDecryptUnauthenticated, FIXED_IV } from "@tutao/crypto"
+import { aes256RandomKey, aesDecryptUnauthenticated, FIXED_IV } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import {
 	decryptMetaData,
@@ -19,10 +19,11 @@ import {
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
 	encryptSearchIndexEntry,
-} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
+} from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
+import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

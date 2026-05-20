@@ -1,0 +1,123 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField"
+import { lang } from "../../../../../ui/utils/LanguageViewModel"
+import { Card } from "../../../../../ui/base/Card"
+import { SingleLineTextField } from "../../../../../ui/base/SingleLineTextField"
+import { Icons } from "../../../../../ui/base/icons/Icons"
+import { ButtonColor, getColors } from "../../../../../ui/base/Button"
+import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons.js"
+import { KeyVerificationModel } from "../KeyVerificationModel"
+import { Icon, IconSize } from "../../../../../ui/base/Icon"
+import { theme } from "../../../../../ui/theme"
+import { debounce } from "../../../../../platform-kit/utils"
+import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { TitleSection } from "../../../../../ui/TitleSection"
+import { FingerprintRow } from "../FingerprintRow"
+import { IdentityKeyVerificationMethod } from "../../../../../platform-kit/app-env"
+
+type VerificationByTextPageAttrs = {
+	model: KeyVerificationModel
+	goToSuccessPage: () => void
+	gotToMismatchPage: () => void
+}
+
+const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
+	await model.loadIdentityKeyForMailAddress(mailAddress)
+	m.redraw()
+})
+
+export class VerificationByManualInputPage implements Component<VerificationByTextPageAttrs> {
+	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
+		const { model, goToSuccessPage } = vnode.attrs
+
+		const publicIdentity = model.getPublicIdentity()
+
+		return m(".pt-16.pb-16.flex.col.gap-16", [
+			m(TitleSection, {
+				title: lang.get("keyManagement.textVerification_label"),
+				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
+			}),
+			m(
+				Card,
+				{
+					style: { padding: "0" },
+				},
+				m(SingleLineTextField, {
+					ariaLabel: lang.get("mailAddress_label"),
+					placeholder: lang.get("mailAddress_label"),
+					disabled: false,
+					classes: ["flex", "gap-8", "items-center", "pl-8"],
+					leadingIcon: {
+						icon: Icons.PersonFilled,
+						color: getColors(ButtonColor.Content).button,
+					},
+					value: model.mailAddressInput,
+					type: LegacyTextFieldType.Text,
+
+					oninput: async (newValue) => {
+						model.mailAddressInput = newValue
+						const cleanMailAddress = getCleanedMailAddress(newValue)
+						if (cleanMailAddress == null) {
+							return "mailAddressInvalid_msg"
+						} else {
+							try {
+								debouncedFingerprintRequest(model, cleanMailAddress)
+							} catch (e) {
+								console.error("error while trying to fetch the public key service: ", e)
+							}
+						}
+					},
+				}),
+			),
+			publicIdentity
+				? [
+						m(
+							Card,
+							{ classes: ["flex", "flex-column", "gap-16"] },
+							m(
+								".pl-8",
+								lang.get("keyManagement.verificationByText_label", {
+									"{settings}": lang.get("settings_label"),
+									"{keyManagement}": lang.get("keyManagement_label"),
+								}),
+							),
+							m(FingerprintRow, {
+								mailAddress: publicIdentity.mailAddress,
+								publicKeyType: publicIdentity.trustDbEntry.publicIdentityKey.object.type,
+								publicKeyFingerprint: publicIdentity.fingerprint,
+								publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
+							}),
+						),
+						m(PrimaryButton, {
+							class: "flex-center row center-vertically",
+							label: "yes_label",
+							onclick: async () => {
+								await model.trust(IdentityKeyVerificationMethod.text)
+								goToSuccessPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.Checkmark,
+								size: IconSize.PX20,
+								class: "mr-8 flex-center",
+							}),
+						}),
+						m(PrimaryButton, {
+							class: "flex-center row center-vertically",
+							label: "no_label",
+							onclick: async () => {
+								vnode.attrs.gotToMismatchPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.X,
+								size: IconSize.PX20,
+								class: "mr-8 flex-center",
+								style: {
+									fill: theme.surface,
+								},
+							}),
+						}),
+					]
+				: null,
+		])
+	}
+}

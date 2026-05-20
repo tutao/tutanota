@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../platform-kit/app-env"
 import { isColorLight } from "./base/Color"
 
 assertMainOrNodeBoot()
@@ -186,3 +186,7 @@ export const MATERIAL_COLORS = Object.freeze([
 ] as const satisfies (keyof Theme)[])
 
 export type MaterialPalette = Record<(typeof MATERIAL_COLORS)[number], string>
+
+export interface BaseThemeProvider {
+	getBaseTheme(baseId: BaseThemeId): Theme
+}

@@ -1,21 +1,29 @@
 import o, { assertThrows } from "@tutao/otest"
 
 import { matchers, object, verify, when } from "testdouble"
-import { PublicKeyIdentifier, PublicKeyIdentifierType, SigningKeyPairType } from "@tutao/crypto"
+import {
+	Aes256Key,
+	bytesToEd25519PublicKey,
+	Ed25519PublicKey,
+	PublicKeyIdentifier,
+	PublicKeyIdentifierType,
+	SigningKeyPairType,
+} from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils"
-import { Aes256Key, bytesToEd25519PublicKey, Ed25519PublicKey } from "@tutao/crypto"
-import { arrayEquals, hexToUint8Array } from "@tutao/utils"
-import { IdentityKeySourceOfTrust } from "@tutao/app-env"
-import * as restError from "@tutao/rest-client/error"
+import { arrayEquals, hexToUint8Array } from "../../../../../src/platform-kit/utils"
+import { IdentityKeySourceOfTrust } from "../../../../../src/platform-kit/app-env"
+import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
-import { PublicIdentityKeyProvider } from "../../../../../src/base/crypto/PublicIdentityKeyProvider"
-import { IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade, ServiceExecutor, brandKeyMac } from "@tutao/network"
-import { EntityClient } from "../../../../../src/network/EntityClient"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/local-store/IdentityKeyTrustDatabase"
-import { CryptoError } from "@tutao/crypto/error"
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
+import { PublicIdentityKeyProvider } from "../../../../../src/platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor.js"
+
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPair, IdentityKeyService, KeyMacTypeRef } from "@tutao/entities/sys"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor

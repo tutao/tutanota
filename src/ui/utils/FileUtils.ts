@@ -1,4 +1,4 @@
-import { assertNotNull, intersection, toLowerCase } from "@tutao/utils"
+import { assertNotNull, intersection, toLowerCase } from "../../platform-kit/utils"
 import { Attachment, WebFile } from "../../entities/tutanota/Utils"
 
 type StringPredicate = (arg0: string) => boolean

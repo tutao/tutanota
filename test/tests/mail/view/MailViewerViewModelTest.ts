@@ -4,33 +4,32 @@ import {
 	LIST_UNSUBSCRIBE_POST_PAYLOAD,
 	MailViewerViewModel,
 	UnsubscribeType,
-} from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
+} from "../../../../src/applications/mail-app/mail/view/MailViewerViewModel.js"
 
 import { matchers, object, verify, when } from "testdouble"
-import { EntityClient } from "../../../../src/network/EntityClient.js"
-import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { EventController } from "../../../../src/common/api/main/EventController.js"
-import { WorkerFacade } from "../../../../src/common/api/worker/facades/WorkerFacade.js"
-import * as restError from "@tutao/rest-client/error"
-import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.js"
-import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { FileController } from "../../../../src/common/file/FileController.js"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
+import { ConfigurationDatabase } from "../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
+import { EventController } from "../../../../src/applications/common/api/main/EventController.js"
+import { WorkerFacade } from "../../../../src/applications/common/api/worker/facades/WorkerFacade.js"
+import * as restError from "../../../../src/platform-kit/rest-client/error"
+import { SearchModel } from "../../../../src/applications/mail-app/search/model/SearchModel.js"
+import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
+import { FileController } from "../../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "../../../../src/app-env"
-import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
-import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
-import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
-import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
-import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { downcast } from "@tutao/utils"
-import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
-import { UndoModel } from "../../../../src/mail-app/UndoModel"
-import { CommonSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types/CommonSystemFacade.js"
-import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
-import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
-import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota"
+import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "../../../../src/platform-kit/app-env"
+import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { ContactImporter } from "../../../../src/applications/mail-app/contacts/ContactImporter.js"
+import { MailboxDetail, MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { ContactModel } from "../../../../src/applications/common/contactsFunctionality/ContactModel.js"
+import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel.js"
+import { downcast } from "../../../../src/platform-kit/utils"
+import { CalendarEventsRepository } from "../../../../src/applications/common/calendar/date/CalendarEventsRepository"
+import { UndoModel } from "../../../../src/applications/mail-app/UndoModel"
+import { CommonSystemFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types"
+import { unsubscribe } from "../../../../src/applications/mail-app/mail/view/MailViewerUtils"
+import { TransferProgressDispatcher } from "../../../../src/applications/common/api/main/TransferProgressDispatcher"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -43,6 +42,8 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
+import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
+
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
 	let mailDetails: MailDetails

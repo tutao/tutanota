@@ -4,14 +4,14 @@ import {
 	createOfflineStorageMigrations,
 	CURRENT_OFFLINE_VERSION,
 	OfflineStorageMigrator,
-} from "../../../../src/local-store/OfflineStorageMigrator.js"
-import { OfflineStorage } from "../../../../src/local-store/OfflineStorage.js"
+} from "../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
+import { OfflineStorage } from "../../../../src/app-kit/local-store/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
-import { ProgrammingError } from "@tutao/app-env"
-import { maxBy } from "@tutao/utils"
-import { ApplicationTypesFacade } from "../../../../src/instance-pipeline/ApplicationTypesFacade"
-import { SqlCipherFacade } from "../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { OfflineMigration } from "../../../../src/local-store/OfflineMigration"
+import { ProgrammingError } from "../../../../src/platform-kit/app-env"
+import { maxBy } from "../../../../src/platform-kit/utils"
+import { ApplicationTypesFacade } from "../../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
+import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { OfflineMigration } from "../../../../src/app-kit/local-store/OfflineMigration"
 
 o.spec("OfflineStorageMigrator", function () {
 	let migrations: OfflineMigration[]

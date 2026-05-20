@@ -1,20 +1,19 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Mode } from "@tutao/app-env"
-import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { NativeFileApp } from "../../../src/native-bridge/common/FileApp.js"
+import { Mode } from "../../../src/platform-kit/app-env"
+import { BlobFacade } from "../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
+import { NativeFileApp } from "../../../src/app-kit/native-bridge/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
-import { FileReference } from "@tutao/entities/tutanota"
-import { neverNull } from "@tutao/utils"
-
-import { FileControllerNative } from "../../../src/common/file/FileControllerNative.js"
-import { FileControllerBrowser } from "../../../src/common/file/FileControllerBrowser.js"
-import * as restError from "@tutao/rest-client/error"
-import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
-import { ArchiveDataType } from "../../../src/entities/sys"
-import { TransferId } from "../../../src/entities/drive/Utils"
 import { FileTypeRef } from "@tutao/entities/tutanota"
-
+import { neverNull } from "../../../src/platform-kit/utils"
+import { FileControllerNative } from "../../../src/applications/common/file/FileControllerNative.js"
+import { FileControllerBrowser } from "../../../src/applications/common/file/FileControllerBrowser.js"
+import * as restError from "../../../src/platform-kit/rest-client/error"
+import { createTestEntity, withOverriddenEnv } from "../TestUtils.js"
+import { ArchiveDataType } from "../../../src/entities/sys/Utils"
+import { TransferId } from "../../../src/entities/drive/Utils"
 import { BlobTypeRef } from "@tutao/entities/sys"
+import { FileReference } from "../../../src/entities/tutanota/Utils"
+
 const { anything, argThat } = matchers
 
 o.spec("FileControllerTest", function () {

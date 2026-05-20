@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
 import { object, verify, when } from "testdouble"
-import { NewsItemStorage, NewsModel } from "../../../src/common/misc/news/NewsModel.js"
+import { NewsItemStorage, NewsModel } from "../../../src/applications/common/misc/news/NewsModel.js"
 
-import { NewsListItem } from "../../../src/common/misc/news/NewsListItem.js"
+import { NewsListItem } from "../../../src/applications/common/misc/news/NewsListItem.js"
 import { Children } from "mithril"
 import { createTestEntity } from "../TestUtils.js"
 import { NewsId, NewsIdTypeRef, NewsInTypeRef, NewsOutTypeRef, NewsService } from "@tutao/entities/tutanota"

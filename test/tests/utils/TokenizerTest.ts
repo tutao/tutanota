@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { tokenize } from "@tutao/utils"
+import { tokenize } from "../../../src/platform-kit/utils"
+
 o.spec("Tokenizer test", () => {
 	o("tokenize", () => {
 		o(tokenize("")).deepEquals([])

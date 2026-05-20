@@ -1,18 +1,19 @@
 import o, { mapToObject, spy } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
+import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { matchers, object, when } from "testdouble"
-import { MailAddressFacade, TokenBucket } from "../../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
+import { MailAddressFacade, TokenBucket } from "../../../../../src/applications/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { arrayEquals, freshVersioned } from "@tutao/utils"
-import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
-import { DateProvider } from "../../../../../src/utils/DateProvider"
+import { arrayEquals, freshVersioned } from "../../../../../src/platform-kit/utils"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider"
 
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
-import { EntityRestClientLoadOptions } from "../../../../../src/network/EntityRestClient"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
+import { EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade

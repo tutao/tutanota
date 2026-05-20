@@ -7,14 +7,14 @@ import {
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
-} from "../../../../../src/meta"
-import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
+} from "../../../../../src/platform-kit/meta"
+import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore"
+import { IndexedDbMailIndexerBackend } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
 import { matchers, object, verify, when } from "testdouble"
-import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
-import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
-import { assertNotNull } from "@tutao/utils"
+import { AttributeHandler, SearchIndexEntry } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import { Metadata } from "../../../../../src/applications/common/api/worker/search/IndexTables"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils"
+import { assertNotNull } from "../../../../../src/platform-kit/utils"
 
 import {
 	BodyTypeRef,

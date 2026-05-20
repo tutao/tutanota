@@ -1,5 +1,5 @@
-import { TypeRef } from "../../meta/TypeRef.js"
-import { create, StrippedEntity } from "../../meta/EntityUtils.js"
+import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
+import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
 
 

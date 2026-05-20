@@ -1,5 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { decapsulateKyber, encapsulateKyber, extractKyberPublicKeyFromKyberPrivateKey, generateKeyPairKyber, LibOQSExports, random } from "@tutao/crypto"
+import {
+	decapsulateKyber,
+	encapsulateKyber,
+	extractKyberPublicKeyFromKyberPrivateKey,
+	generateKeyPairKyber,
+	LibOQSExports,
+	random,
+} from "../../../src/platform-kit/crypto"
 import { loadWasmExports, loadWasmModuleFallback } from "./WebAssemblyTestUtils.js"
 
 o.spec("Kyber", function () {

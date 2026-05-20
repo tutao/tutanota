@@ -6,15 +6,15 @@ import {
 	serializeExcludedDates,
 	serializeRepeatRule,
 	serializeTrigger,
-} from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
+} from "../../../src/applications/calendar-app/calendar/export/CalendarExporter.js"
 
 import { DateTime } from "luxon"
-import { EndType, RepeatPeriod } from "../../../src/app-env"
-import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { EndType, RepeatPeriod } from "../../../src/platform-kit/app-env"
+import { getAllDayDateUTC } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
-import { getFirstOrThrow, Require } from "@tutao/utils"
+import { getFirstOrThrow, Require } from "../../../src/platform-kit/utils"
 import { createTestEntity } from "../TestUtils.js"
-import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { getAllDayDateUTCFromZone } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 import {
 	checkURLString,
 	EventImportRejectionReason,
@@ -25,9 +25,8 @@ import {
 	ParsedCalendarData,
 	ParsedEvent,
 	sortOutParsedEvents,
-} from "../../../src/common/calendar/gui/ImportExportUtils.js"
+} from "../../../src/applications/common/calendar/gui/ImportExportUtils.js"
 
-import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -37,7 +36,9 @@ import {
 	createEncryptedMailAddress,
 } from "@tutao/entities/tutanota"
 
-import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef, createRepeatRule } from "@tutao/entities/sys"
+import { AlarmInfo, AlarmInfoTypeRef, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
+
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
 

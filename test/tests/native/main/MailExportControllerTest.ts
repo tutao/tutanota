@@ -1,37 +1,38 @@
 import o, { assertThrows, spy } from "@tutao/otest"
-import { MailExportController } from "../../../../src/mail-app/native/main/MailExportController.js"
 import { matchers, object, verify, when } from "testdouble"
-import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
-import { ExportFacade } from "../../../../src/native-bridge/common/generatedipc/types/ExportFacade.js"
-import { MailboxExportState } from "../../../../src/native-bridge/common/generatedipc/types/MailboxExportState.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
+import { HtmlSanitizer } from "../../../../src/applications/common/misc/HtmlSanitizer.js"
+import { ExportFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/ExportFacade.js"
+import { MailboxExportState } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/MailboxExportState.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
+import { MailboxDetail, MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { createTestEntity, SchedulerMock } from "../../TestUtils.js"
 
-import { UserController } from "../../../../src/common/api/main/UserController.js"
-import { assertNotNull } from "@tutao/utils"
-import { makeMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
-import { MailExportFacade } from "../../../../src/common/api/worker/facades/lazy/MailExportFacade.js"
-import { ExportError, ExportErrorReason } from "../../../../src/common/api/common/error/ExportError"
-import { SuspensionError } from "../../../../src/common/api/common/error/SuspensionError"
-import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
+import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
+import { assertNotNull } from "../../../../src/platform-kit/utils"
+import { MailExportFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailExportFacade.js"
+import { ExportError, ExportErrorReason } from "../../../../src/applications/common/api/common/error/ExportError"
+import { SuspensionError } from "../../../../src/applications/common/api/common/error/SuspensionError"
 import {
 	BodyTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
 	MailBag,
 	MailBagTypeRef,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { BlobServerUrlTypeRef } from "@tutao/entities/storage"
-import { GENERATED_MAX_ID, getElementId } from "@tutao/meta"
-import { createDataFile } from "../../../../src/common/api/worker/utils/DataFile.js"
+import { GENERATED_MAX_ID, getElementId } from "../../../../src/platform-kit/meta"
+import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
+import { MailExportController } from "../../../../src/applications/mail-app/native/main/MailExportController"
+import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
+import { makeMailBundle } from "../../../../src/applications/mail-app/mail/export/Bundler"
+
 o.spec("MailExportController", function () {
 	const userId = "userId"
 

@@ -18,23 +18,22 @@ import {
 	ServerModelParsedInstance,
 	SomeEntity,
 	TypeRef,
-} from "../../../../../src/meta"
-import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "@tutao/utils"
-import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/local-store/OfflineStorage.js"
-import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient, restError } from "@tutao/rest-client"
-import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage.js"
-import { OfflineStorageMigrator } from "../../../../../src/local-store/OfflineStorageMigrator.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+} from "../../../../../src/platform-kit/meta"
+import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
+import { NoZoneDateProvider } from "../../../../../src/applications/common/api/common/utils/NoZoneDateProvider.js"
+import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
+import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
+import { OfflineStorageMigrator } from "../../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { CacheMode, EntityRestClient, LastProcessedEventBatchProvider } from "@tutao/network"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
-import { entityUpdateToUpdateData, EntityUpdateData, ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "@tutao/instance-pipeline"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kit/local-store/CustomCacheHandler"
+import { ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
 	BodyTypeRef,
 	ContactTypeRef,
@@ -47,9 +46,12 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { OperationType, collapseId } from "@tutao/meta"
+import { collapseId, OperationType } from "../../../../../src/platform-kit/meta"
 
 import {
+	createEntityUpdate,
+	createPatch,
+	createPatchList,
 	Customer,
 	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
@@ -58,18 +60,19 @@ import {
 	Patch,
 	PermissionTypeRef,
 	RootInstanceTypeRef,
-	createEntityUpdate,
-	createPatch,
-	createPatchList,
 } from "@tutao/entities/sys"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheMode, EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
+
 const { anything } = matchers
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap): Promise<CacheStorage> {
-	const { PerWindowSqlCipherFacade } = await import("../../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js")
-	const { OfflineDbRefCounter } = await import("../../../../../src/common/desktop/db/OfflineDbRefCounter.js")
-	const { DesktopSqlCipher } = await import("../../../../../src/common/desktop/db/DesktopSqlCipher.js")
+	const { PerWindowSqlCipherFacade } = await import("../../../../../src/applications/common/desktop/db/PerWindowSqlCipherFacade.js")
+	const { OfflineDbRefCounter } = await import("../../../../../src/applications/common/desktop/db/OfflineDbRefCounter.js")
+	const { DesktopSqlCipher } = await import("../../../../../src/applications/common/desktop/db/DesktopSqlCipher.js")
 
 	const odbRefCounter = new OfflineDbRefCounter({
 		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {

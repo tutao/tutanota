@@ -3,9 +3,9 @@ import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
 import type { Shortcut } from "../utils/KeyManager"
 import { keyManager } from "../utils/KeyManager"
-import { insideRect, lastIndex, remove } from "@tutao/utils"
+import { insideRect, lastIndex, remove } from "../../platform-kit/utils"
 import { LayerType } from "./RootView"
-import { assertMainOrNodeBoot, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNodeBoot, ProgrammingError } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
 
 assertMainOrNodeBoot()

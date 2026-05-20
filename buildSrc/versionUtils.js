@@ -63,13 +63,16 @@ function makeNewVersion(currentVersion) {
  * @returns {number[]}
  */
 function readModelVersions() {
-	const appNames = fs.readdirSync("./src/meta/entities/")
-	return appNames.map((appName) => {
-		const modelInfoString = fs.readFileSync(`./src/typerefs/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
-		const versionPrefix = "version:"
-		const versionNumberStart = modelInfoString.indexOf(versionPrefix) + versionPrefix.length
-		const version = modelInfoString.substring(versionNumberStart, modelInfoString.indexOf(",", versionNumberStart))
-		console.log(` > ${appName} version ${version}`)
-		return parseInt(version, 10)
-	})
+	return fs
+		.readdirSync("./src/entities/", { withFileTypes: true })
+		.filter((dirent) => dirent.isDirectory())
+		.map((dirent) => {
+			const appName = dirent.name
+			const modelInfoString = fs.readFileSync(`./src/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
+			const versionPrefix = "version:"
+			const versionNumberStart = modelInfoString.indexOf(versionPrefix) + versionPrefix.length
+			const version = modelInfoString.substring(versionNumberStart, modelInfoString.indexOf(",", versionNumberStart))
+			console.log(` > ${appName} version ${version}`)
+			return parseInt(version, 10)
+		})
 }

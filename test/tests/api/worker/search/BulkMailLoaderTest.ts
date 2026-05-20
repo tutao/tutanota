@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailSetListData, TimeRange } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailSetListData, TimeRange } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader"
 import { object, when } from "testdouble"
-import { EntityClient } from "../../../../../src/network/EntityClient"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 
-import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/meta"
+import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, equalToArray } from "../../../TestUtils"
-import { lastThrow } from "@tutao/utils"
-import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade"
+import { lastThrow } from "../../../../../src/platform-kit/utils"
+import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { MailSetEntry, MailSetEntryTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("BulkMailLoader", () => {

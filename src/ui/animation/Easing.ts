@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
 
 assertMainOrNodeBoot()
 export type EasingFunction = (percent: number) => number

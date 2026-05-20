@@ -1,17 +1,16 @@
 import o from "@tutao/otest"
 
 import { createTestEntity } from "../../TestUtils"
-import { EndType, RepeatPeriod } from "@tutao/app-env"
+import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import {
 	eventHasSameFields,
 	IcsCalendarEvent,
 	makeCalendarEventFromIcsCalendarEvent,
 	StrippedRepeatRule,
-} from "../../../../src/common/calendar/gui/ImportExportUtils"
+} from "../../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { object } from "testdouble"
-import { clone } from "@tutao/meta"
+import { clone } from "../../../../src/platform-kit/meta"
 
-import { CalendarAttendeeStatus } from "@tutao/entities/tutanota"
 import {
 	AdvancedRepeatRuleTypeRef,
 	CalendarEvent,
@@ -23,6 +22,8 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
+
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("makeCalendarEventFromIcsCalendarEvent", function () {
 		let icsEvent: IcsCalendarEvent

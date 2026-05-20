@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { keyToUint8Array, TotpVerifier } from "@tutao/crypto"
+import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { keyToUint8Array, TotpVerifier } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 
 o.spec("TotpVerifier", function () {

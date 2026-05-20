@@ -1,12 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
-import { SetupMultipleError } from "../../../src/network/error/SetupMultipleError.js"
-import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/meta"
-import { doBlobRequestWithRetry, EntityRestClient, ServiceExecutor, tryServers } from "@tutao/network"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade.js"
+import { RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
+import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
+import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
+import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../src/base/facades/UserFacade.js"
+import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
 	assertNotNull,
 	base64ToUint8Array,
@@ -19,20 +19,20 @@ import {
 	ofClass,
 	promiseMap,
 	uint8ArrayToBase64,
-} from "@tutao/utils"
-import { ProgrammingError } from "@tutao/app-env"
-import { BlobAccessTokenFacade } from "../../../src/network/BlobAccessTokenFacade.js"
+} from "../../../src/platform-kit/utils"
+import { ProgrammingError } from "../../../src/platform-kit/app-env"
+import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "@tutao/instance-pipeline"
-import { aes256RandomKey, AesKey, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
-import { EntityClient } from "../../../src/network/EntityClient"
-import { KeyLoaderFacade } from "../../../src/base/crypto/KeyLoaderFacade"
-import { AsymmetricCryptoFacade } from "../../../src/base/crypto/AsymmetricCryptoFacade"
-import PublicEncryptionKeyProvider from "../../../src/base/crypto/PublicEncryptionKeyProvider"
-import { KeyRotationFacade } from "../../../src/base/crypto/KeyRotationFacade"
-import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
-import { CacheManagementInterface } from "../../../src/local-store/CacheManagementInterface"
-import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
+import { aes256RandomKey, AesKey, CryptoWrapper, decryptKey, VersionedKey } from "../../../src/platform-kit/crypto"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
+import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade"
+import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
+import { KeyRotationFacade } from "../../../src/platform-kit/base/crypto/KeyRotationFacade"
+import { InstanceSessionKeysCache } from "../../../src/app-kit/local-store/InstanceSessionKeysCache"
+import { CacheManagementInterface } from "../../../src/app-kit/local-store/CacheManagementInterface"
+import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import {
 	BodyTypeRef,
 	CalendarEventTypeRef,
@@ -47,7 +47,8 @@ import {
 } from "@tutao/entities/tutanota"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "@tutao/entities/storage"
 import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
-import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef, PatchListTypeRef, createPatchList, sysModelInfo } from "@tutao/entities/sys"
+import { AccountingInfoTypeRef, createPatchList, CustomerTypeRef, GroupMemberTypeRef, PatchListTypeRef, sysModelInfo } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 
 const { anything, argThat, captor } = matchers
 

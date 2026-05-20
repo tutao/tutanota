@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./drive/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./drive/",
+		"outDir": "../../build/entities/drive",
+		"tsBuildInfoFile": "../../build/entities/drive/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kit/tsconfig.meta.json"
+		},
+		{
+			"path": "tsconfig.entities.sys.json"
+		}
+	]
+}

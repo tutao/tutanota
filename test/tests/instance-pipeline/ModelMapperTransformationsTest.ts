@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ClientTypeReferenceResolver, ModelMapper, ServerTypeReferenceResolver } from "@tutao/instance-pipeline"
+import { ClientTypeReferenceResolver, ModelMapper, ServerTypeReferenceResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	AssociationType,
 	Cardinality,
@@ -10,9 +10,9 @@ import {
 	Type,
 	TypeRef,
 	ValueType,
-} from "../../../src/meta"
+} from "../../../src/platform-kit/meta"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
-import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
+import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
 import { removeOriginals } from "../TestUtils"
 
 o.spec("ModelMapperTransformations", function () {

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { PasswordModel } from "../../../src/common/settings/PasswordForm.js"
+import { PasswordModel } from "../../../src/applications/common/settings/PasswordForm.js"
 import { matchers, object, when } from "testdouble"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { UsageTestController } from "@tutao/usagetests"
 
 o.spec("PasswordModelTest", function () {

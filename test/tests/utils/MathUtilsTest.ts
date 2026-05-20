@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { clamp } from "@tutao/utils"
+import { clamp } from "../../../src/platform-kit/utils"
 
 o.spec("MathUtils", function () {
 	o("clamp", function () {

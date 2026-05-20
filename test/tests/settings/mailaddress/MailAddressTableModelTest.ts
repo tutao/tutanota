@@ -1,21 +1,22 @@
 import o, { assertThrows } from "@tutao/otest"
-import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
-import { EntityClient } from "../../../../src/network/EntityClient.js"
+import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../../../../src/applications/common/settings/mailaddress/MailAddressTableModel.js"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
 import { matchers, object, when } from "testdouble"
-import { MailAddressFacade } from "../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
-import { EventController } from "../../../../src/common/api/main/EventController.js"
-import * as restError from "@tutao/rest-client/error"
+import { MailAddressFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailAddressFacade.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
+import { EventController } from "../../../../src/applications/common/api/main/EventController.js"
+import * as restError from "../../../../src/platform-kit/rest-client/error"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "../../subscription/priceTestUtils.js"
-import { noOp } from "@tutao/utils"
-import { UpgradeRequiredError } from "../../../../src/common/api/main/UpgradeRequiredError.js"
-import { UserError } from "../../../../src/common/api/main/UserError.js"
+import { noOp } from "../../../../src/platform-kit/utils"
+import { UpgradeRequiredError } from "../../../../src/applications/common/api/main/UpgradeRequiredError.js"
+import { UserError } from "../../../../src/applications/common/api/main/UserError.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { clone } from "../../../../src/meta"
+import { clone } from "../../../../src/platform-kit/meta"
 
-import { PlanType } from "../../../../src/entities/sys"
+import { PlanType } from "../../../../src/entities/sys/Utils"
 
 import { MailAddressAliasTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailAddressTableModel", function () {
 	let model: MailAddressTableModel
 	let nameChanger: MailAddressNameChanger

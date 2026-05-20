@@ -44,12 +44,12 @@ contains most of the logic for server communication, encryption, indexing etc.
 ### Communication
 
 Worker, main thread & apps communicate through the messages. Protocol is described in the
-[RemoteMessageDispatcher](../src/native-bridge/shared/MessageDispatcher.ts).
-See [WorkerClient](../src/common/api/main/WorkerClient.ts)
+[RemoteMessageDispatcher](../src/app-kit/native-bridge/shared/MessageDispatcher.ts).
+See [WorkerClient](../src/applications/common/api/main/WorkerClient.ts)
 and
-[WorkerImpl](../src/common/api/worker/WorkerImpl.ts) for the client and server part.
+[WorkerImpl](../src/applications/common/api/worker/WorkerImpl.ts) for the client and server part.
 
-Native code communicates through the [NativeInterface](../src/native-bridge/common/NativeInterface.ts).
+Native code communicates through the [NativeInterface](../src/app-kit/native-bridge/common/NativeInterface.ts).
 
 ### UI code
 
@@ -93,11 +93,11 @@ One level below `EntityWorker` lays `EntityRestInterface` which is either `Entit
 currently. Caches saves requested entities is the memory and updates them with WebSocket events.
 
 If you're listening for WebSocket updates in the worker part (and you should justify doing that) then you should change
-[EventBus](../src/common/api/worker/EventBusClient.ts) to do that. For the main thread you can subscribe to the
-[EventController](../src/common/api/main/EventController.ts).
+[EventBus](../src/applications/common/api/worker/EventBusClient.ts) to do that. For the main thread you can subscribe to the
+[EventController](../src/applications/common/api/main/EventController.ts).
 
 `EventBus` and `EntityRestClient` make sure that entities are automatically encrypted/decrypted when needed. See
-[decryptAndMapToInstance()](../src/base/crypto/CryptoFacade.ts).
+[decryptAndMapToInstance()](../src/platform-kit/base/crypto/CryptoFacade.ts).
 
 #### Entity updates
 

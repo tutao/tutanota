@@ -16,6 +16,8 @@ await program
 	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
 	.option("-D, --dev-tools", "Start the desktop client with DevTools open")
 	.action(async (stage, host, options) => {
+		await removeDistDirs("src")
+
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
@@ -62,3 +64,24 @@ await program
 		}
 	})
 	.parseAsync(process.argv)
+
+// temp fix to remove dist dirs that were created in the src tree. Can be removed 2027.
+async function removeDistDirs(dir, depth = 0) {
+	if (depth > 2) return
+
+	const entries = await fs.readdir(dir, { withFileTypes: true })
+
+	for (const entry of entries) {
+		if (!entry.isDirectory()) continue
+
+		const fullPath = path.join(dir, entry.name)
+
+		if (entry.name === "dist") {
+			await fs.rm(fullPath, { recursive: true, force: true })
+			console.log(`Deleted ${fullPath}`)
+			continue
+		}
+
+		await removeDistDirs(fullPath, depth + 1)
+	}
+}

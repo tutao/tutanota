@@ -38,7 +38,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 		await runStep("Clean", async () => {
 			fs.rmSync(buildDir, { recursive: true, force: true })
 			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
-			fs.rmSync("src/mimimi/napi-out", { recursive: true, force: true })
+			fs.rmSync("src/app-kit/mimimi/napi-out", { recursive: true, force: true })
 			execSync("cargo clean")
 			execSync("npx tsc --build --clean")
 		})
@@ -47,14 +47,14 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	await runStep("Build crypto-primitives", async () => {
 		const targetDir = path.resolve(buildDir)
 		clean
-			? await $({ stdio: "inherit", cwd: "src/crypto" })`node make ${targetDir} --clean`
-			: await $({ stdio: "inherit", cwd: "src/crypto" })`node make ${targetDir}`
+			? await $({ stdio: "inherit", cwd: "src/platform-kit/crypto" })`node make ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "src/platform-kit/crypto" })`node make ${targetDir}`
 	})
 
 	// We need to build mimimi for web as well until ts modularization is done.
 	await runStep("Build mimimi", async () => {
 		execSync("node make", {
-			cwd: "src/mimimi",
+			cwd: "src/app-kit/mimimi",
 			stdio: "inherit",
 		})
 	})
@@ -131,7 +131,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		await buildArgon2(resolvedBuildDir)
 		await buildLibOqs(resolvedBuildDir)
 		const bundle = await rolldown({
-			input: { app: entry, worker: worker, "pow-worker": "src/common/api/common/pow-worker.ts" },
+			input: { app: entry, worker, "pow-worker": "src/applications/common/api/common/pow-worker.ts" },
 			transform: {
 				define: {
 					// Need it at least until inlining enums is supported
@@ -173,7 +173,7 @@ async function buildDesktopPart({ version, networkDebugging }) {
 		const platform = getCanonicalPlatformName(process.platform)
 		const architecture = getValidArchitecture(process.platform, process.arch)
 		const bundle = await rolldown({
-			input: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
+			input: ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"],
 			platform: "node",
 			external: [
 				"electron",
@@ -193,7 +193,7 @@ async function buildDesktopPart({ version, networkDebugging }) {
 				napiPlugin({
 					platform,
 					architecture,
-					modulePath: "src/mimimi",
+					modulePath: "src/app-kit/mimimi",
 				}),
 				// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
 				platform === "win32"
@@ -242,8 +242,8 @@ async function buildDesktopPart({ version, networkDebugging }) {
 
 		await fs.mkdir(`${buildDir}/desktop`, { recursive: true })
 		// The preload scripts are run as commonjs scripts and are a special environment so we just copy them directly.
-		await fs.copyFile("src/common/desktop/preload.js", `${buildDir}/desktop/preload.js`)
-		await fs.copyFile("src/common/desktop/preload-webdialog.js", `${buildDir}/desktop/preload-webdialog.js`)
+		await fs.copyFile("src/applications/common/desktop/preload.js", `${buildDir}/desktop/preload.js`)
+		await fs.copyFile("src/applications/common/desktop/preload-webdialog.js", `${buildDir}/desktop/preload-webdialog.js`)
 	})
 }
 
@@ -344,18 +344,18 @@ export function entryPointsForApp(app) {
 	switch (app) {
 		case "mail":
 			return {
-				entry: "src/mail-app/app.ts",
-				worker: "src/mail-app/workerUtils/worker/mail-worker.ts",
+				entry: "src/applications/mail-app/app.ts",
+				worker: "src/applications/mail-app/workerUtils/worker/mail-worker.ts",
 			}
 		case "calendar":
 			return {
-				entry: "src/calendar-app/calendar-app.ts",
-				worker: "src/calendar-app/workerUtils/worker/calendar-worker.ts",
+				entry: "src/applications/calendar-app/calendar-app.ts",
+				worker: "src/applications/calendar-app/workerUtils/worker/calendar-worker.ts",
 			}
 		case "drive":
 			return {
-				entry: "src/drive-app/drive-app.ts",
-				worker: "src/drive-app/workerUtils/worker/drive-worker.ts",
+				entry: "src/applications/drive-app/drive-app.ts",
+				worker: "src/applications/drive-app/workerUtils/worker/drive-worker.ts",
 			}
 	}
 }

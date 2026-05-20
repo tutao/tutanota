@@ -1,19 +1,20 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-import { ServiceExecutor } from "@tutao/network"
-import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, RestClientOptions } from "@tutao/rest-client/types"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade.js"
+import { RestClient } from "../../../src/platform-kit/rest-client"
+import { HttpMethod, MediaType, RestClientOptions } from "../../../src/platform-kit/rest-client/types"
+import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
-import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/meta"
-import { deepEqual, downcast } from "@tutao/utils"
-import { ProgrammingError } from "@tutao/app-env"
+import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/platform-kit/meta"
+import { deepEqual, downcast } from "../../../src/platform-kit/utils"
+import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "@tutao/instance-pipeline"
-import { aes256RandomKey } from "@tutao/crypto"
-import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { aes256RandomKey } from "../../../src/platform-kit/crypto"
+import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
+import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+
 const { anything } = matchers
 
 o.spec("ServiceExecutor", function () {

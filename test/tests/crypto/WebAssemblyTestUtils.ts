@@ -1,5 +1,5 @@
-import { isNotNull, WASMExports } from "@tutao/utils"
-import { Argon2IDExports, LibOQSExports } from "@tutao/crypto"
+import { isNotNull, WASMExports } from "../../../src/platform-kit/utils"
+import { Argon2IDExports, LibOQSExports } from "../../../src/platform-kit/crypto"
 
 export async function loadWasmFromFileOrNetwork(wasmFile: string): Promise<ArrayBuffer> {
 	const loadWasmInNode: ArrayBuffer = await node(async () => {

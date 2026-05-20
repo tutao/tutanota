@@ -1,4 +1,4 @@
-import { AppType, assertMainOrNodeBoot, isApp, ProgrammingError } from "@tutao/app-env"
+import { AppType, assertMainOrNodeBoot, isApp, ProgrammingError } from "../../platform-kit/app-env"
 import { isColorLight } from "./Color.js"
 import { theme } from "../theme.js"
 

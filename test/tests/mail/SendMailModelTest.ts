@@ -1,62 +1,62 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 // @ts-ignore[untyped-import]
 import en from "../../../src/ui/translations/en.js"
-import type { UserController } from "../../../src/common/api/main/UserController.js"
-import type { LoginController } from "../../../src/common/api/main/LoginController.js"
+import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
+import type { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 
-import { downcast } from "@tutao/utils"
+import { downcast } from "../../../src/platform-kit/utils"
 import { lang, TranslationKey } from "../../../src/ui/utils/LanguageViewModel.js"
-import { EventController } from "../../../src/common/api/main/EventController.js"
-import { UserError } from "../../../src/common/api/main/UserError.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
-import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { EventController } from "../../../src/applications/common/api/main/EventController.js"
+import { UserError } from "../../../src/applications/common/api/main/UserError.js"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
+import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { RecipientsModel } from "../../../src/common/api/main/RecipientsModel"
+import { RecipientsModel } from "../../../src/applications/common/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
-import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
-import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
-import { DateProvider } from "../../../src/utils/DateProvider"
-import { ProgrammingError } from "@tutao/app-env"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel.js"
+import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { RecipientField } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
+import { getContactDisplayName } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
+import { ConfigurationDatabase } from "../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase"
+import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker"
+import { DateProvider } from "../../../src/platform-kit/utils/DateProvider"
+import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
-import { ConversationType, MailMethod } from "../../../src/entities/tutanota"
 import {
 	BodyTypeRef,
 	Contact,
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
+	createContact,
 	Mail,
 	MailAddressTypeRef,
+	MailboxGroupRootTypeRef,
+	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
-	MailboxPropertiesTypeRef,
 	NotificationMailTypeRef,
 	RecipientsTypeRef,
 	SendDraftReturnTypeRef,
 	TutanotaPropertiesTypeRef,
-	createContact,
 } from "@tutao/entities/tutanota"
 import {
 	ChallengeTypeRef,
 	CustomerTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { OperationType, isSameId, isSameTypeRef } from "@tutao/meta"
+import { isSameId, isSameTypeRef, OperationType } from "../../../src/platform-kit/meta"
+import { GroupType } from "../../../src/entities/sys/Utils"
+import { ConversationType, MailMethod } from "../../../src/entities/tutanota/Utils"
 
 const { anything, argThat } = matchers
 

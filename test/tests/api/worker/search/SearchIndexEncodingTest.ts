@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { spy as makeSpy } from "@tutao/otest"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpace,
@@ -8,9 +8,8 @@ import {
 	iterateBinaryBlocks,
 	numberOfBytes,
 	removeBinaryBlockRanges,
-} from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
-import { spy as makeSpy } from "@tutao/otest"
-import { concat } from "@tutao/utils"
+} from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
+import { concat } from "../../../../../src/platform-kit/utils"
 
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {

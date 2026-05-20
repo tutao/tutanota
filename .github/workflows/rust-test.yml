@@ -5,7 +5,7 @@ on:
     types: [ opened, synchronize, edited ]
     paths:
       - 'tuta-sdk/**'
-      - 'src/mimimi/**'
+      - '../../src/app-kit/mimimi/**'
       - '.github/workflows/rust-test.yml'
   push:
     branches:

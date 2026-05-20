@@ -1,0 +1,61 @@
+import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../../../ui/base/Button.js"
+import m from "mithril"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../../ui/base/DropDownSelector.js"
+import { IndentedFolder } from "../../api/common/mail/FolderSystem"
+import { repeat } from "../../../../platform-kit/utils"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { MailSet } from "@tutao/entities/tutanota"
+
+/**
+ * Shows a dialog with the users mailSets that are able to import mails.
+ * @param indentedFolders List of user's mailSets
+ * @param okAction
+ */
+export function folderSelectionDialog(indentedFolders: IndentedFolder[], okAction: (dialog: Dialog, selectedMailFolder: MailSet) => unknown) {
+	let selectedIndentedFolder = indentedFolders[0]
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
+						},
+					},
+				],
+				middle: "mailFolder_label",
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "pricing.select_action",
+						click: () => {
+							okAction(dialog, selectedIndentedFolder.folder)
+						},
+					},
+				],
+			}),
+
+			m(".dialog-max-height.plr-24.pt-16.pb-16.text-break.scroll", [
+				m(".text-break.selectable", lang.get("mailImportSelection_label")),
+				m(DropDownSelector, {
+					label: "mailFolder_label",
+					items: indentedFolders.map((mailFolder) => {
+						return {
+							name: repeat(".", mailFolder.level) + mailFolder.folder.name,
+							value: mailFolder.folder,
+						}
+					}),
+					selectedValue: selectedIndentedFolder.folder,
+					selectionChangedHandler: (v) => (selectedIndentedFolder.folder = v),
+					icon: Icons.ArrowDown,
+				} satisfies DropDownSelectorAttrs<MailSet>),
+			]),
+		],
+	}).show()
+}

@@ -1,28 +1,29 @@
 import o, { assertThrows } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
-import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/base/crypto/AsymmetricCryptoFacade.js"
+import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, CryptoWrapper, MacTag, PQKeyPairs, PublicKeyIdentifierType, VersionedKey, X25519PublicKey, cryptoUtils } from "@tutao/crypto"
-import { createTestEntity } from "../../../TestUtils.js"
-import { CryptoProtocolVersion, ProgrammingError, TutanotaError } from "@tutao/app-env"
-import { CryptoError } from "@tutao/crypto/error"
-import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
-import { KeyAuthenticationFacade, UserGroupKeyAuthenticationParams, brandKeyMac } from "@tutao/network"
-
 import {
-	Group,
-	GroupKey,
-	GroupKeyTypeRef,
-	GroupKeysRefTypeRef,
-	GroupType,
-	GroupTypeRef,
-	KeyMac,
-	KeyMacTypeRef,
-	PubEncKeyDataTypeRef,
-} from "@tutao/entities/sys"
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	MacTag,
+	PQKeyPairs,
+	PublicKeyIdentifierType,
+	VersionedKey,
+	X25519PublicKey,
+} from "../../../../../src/platform-kit/crypto"
+import { createTestEntity } from "../../../TestUtils.js"
+import { CryptoProtocolVersion, ProgrammingError, TutanotaError } from "../../../../../src/platform-kit/app-env"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+
+import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyMac, KeyMacTypeRef, PubEncKeyDataTypeRef } from "@tutao/entities/sys"
+import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
+
 const { anything, argThat, captor } = matchers
 
 o.spec("AdminKeyLoaderFacadeTest", function () {

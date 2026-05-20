@@ -1,14 +1,15 @@
 import o from "@tutao/otest"
-import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
-import { NativePushServiceApp } from "../../../src/common/native/NativePushServiceApp.js"
+import { NotificationSettingsViewerModel } from "../../../src/applications/mail-app/settings/NotificationSettingsViewerModel"
+import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
 
-import { EntityClient } from "../../../src/network/EntityClient"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"
 
-import { AppType } from "@tutao/app-env"
+import { AppType } from "../../../src/platform-kit/app-env"
 
-import { PushIdentifier, PushIdentifierTypeRef, User, UserTypeRef, createPushIdentifierList } from "@tutao/entities/sys"
+import { createPushIdentifierList, PushIdentifier, PushIdentifierTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("NotificationSettingsViewerModel", () => {
 	let model: NotificationSettingsViewerModel
 	let pushService: NativePushServiceApp

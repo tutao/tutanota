@@ -1,12 +1,12 @@
 import o, { mockAttribute, unmockAttribute } from "@tutao/otest"
-import { downcast } from "@tutao/utils"
+import { downcast } from "../../../src/platform-kit/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
-import { getHtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
-import type { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { appendEmailSignature, prependEmailSignature } from "../../../src/mail-app/mail/signature/Signature.js"
-import { LINE_BREAK } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
+import { getHtmlSanitizer } from "../../../src/applications/common/misc/HtmlSanitizer.js"
+import type { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
+import { appendEmailSignature, prependEmailSignature } from "../../../src/applications/mail-app/mail/signature/Signature.js"
+import { LINE_BREAK } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
 
-import { EmailSignatureType } from "../../../src/entities/tutanota"
+import { EmailSignatureType } from "../../../src/entities/tutanota/Utils"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 o.spec("MailUtilsSignatureTest", function () {

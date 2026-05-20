@@ -1,0 +1,300 @@
+import type { LoginController } from "../api/main/LoginController"
+import { Dialog } from "../../../ui/base/Dialog"
+import { generatedIdToTimestamp } from "@tutao/meta"
+import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
+import * as restError from "@tutao/rest-client/error"
+import { ApprovalStatus, CancelledError } from "@tutao/app-env"
+import type { ResetAction } from "../login/recover/RecoverLoginDialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { UserError } from "../api/main/UserError"
+import { noOp, ofClass } from "@tutao/utils"
+import { showUserError } from "./ErrorHandlerImpl"
+import type { ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
+import { locator } from "../api/main/CommonLocator"
+import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
+import { Params } from "mithril"
+import { LoginState } from "../login/LoginViewModel.js"
+import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
+import { deviceConfig } from "./DeviceConfig"
+import { CacheMode } from "../../../platform-kit/network/EntityRestClient"
+import { Customer } from "@tutao/entities/sys"
+import { AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "../../../entities/sys/Utils"
+
+function getAccountAgeInMs(customer: Customer) {
+	return new Date().getTime() - generatedIdToTimestamp(customer._id)
+}
+
+const TWO_DAYS_MS = 48 * 60 * 60 * 1000
+
+/**
+ * Shows warnings if the invoices are not paid or the registration is not approved yet.
+ * @param logins The `LoginController` used to retrieve the current users customer information from.
+ * @param includeInvoiceNotPaidForAdmin If true, also shows a warning for an admin if the invoice is not paid (use at login), if false does not show this warning (use when sending an email).
+ * @param defaultStatus This status is used if the actual status on the customer is "0"
+ * @returns True if the user may still send emails, false otherwise.
+ */
+export async function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus?: ApprovalStatus): Promise<boolean> {
+	const { getCustomerApprovalStatus } = await import("../subscription/utils/SubscriptionUtils")
+	if (!logins.getUserController().isInternalUser()) {
+		// external users are not authorized to load the customer
+		return true
+	}
+
+	const customer = await logins
+		.getUserController()
+		// the server doesn't push an update for the approval status change, so we have to make sure we're loading the
+		// instance from the network instead of relying on the entity updates to be applied to our cached version
+		.reloadCustomer(CacheMode.WriteOnly)
+
+	const approvalStatus = getCustomerApprovalStatus(customer)
+	const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus
+	if (status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED || status === ApprovalStatus.DELAYED || status === ApprovalStatus.UNUSED2_DEPRECATED) {
+		await showApprovalNeededMessageDialog(approvalStatus)
+		return false
+	} else if (status === ApprovalStatus.UNUSED_DEPRECATED) {
+		if (getAccountAgeInMs(customer) > TWO_DAYS_MS) {
+			await Dialog.message("requestApproval_msg")
+			return true
+		} else {
+			await showApprovalNeededMessageDialog(approvalStatus)
+			return false
+		}
+	} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
+		if (logins.getUserController().isGlobalAdmin()) {
+			if (includeInvoiceNotPaidForAdmin) {
+				await Dialog.message("invoiceNotPaid_msg")
+				// TODO: navigate to payment site in settings
+				//m.route.set("/settings")
+				//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+				return true
+			} else {
+				return true
+			}
+		} else {
+			const errorMessage = lang.makeTranslation("invoiceNotPaidUser_msg", lang.get("invoiceNotPaidUser_msg") + " " + lang.get("contactAdmin_msg"))
+			await Dialog.message(errorMessage)
+			return false
+		}
+	} else if (status === ApprovalStatus.SPAM_SENDER) {
+		// do not logout to avoid that we try to reload with mail editor open
+		await Dialog.message("loginAbuseDetected_msg")
+		return false
+	} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
+		const message = lang.get("upgradeNeeded_msg")
+		const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message)
+		if (confirmed) {
+			// fire-and-forget since the wizard only resolves after the upgrade is done.
+			import("../subscription/UpgradeSubscriptionWizard").then((module) =>
+				module.showUpgradeWizard({
+					logins,
+
+					// this user started a paid signup but never completed it, so we don't count
+					// it as an upgrade
+					upgradePromptType: null,
+				}),
+			)
+		}
+		return false
+	} else {
+		return true
+	}
+}
+
+export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): MaybeTranslation {
+	switch (error.constructor) {
+		case restError.BadRequestError:
+		case restError.NotAuthenticatedError:
+		case restError.AccessDeactivatedError:
+			return "loginFailed_msg"
+
+		case restError.AccessBlockedError:
+			return "loginFailedOften_msg"
+
+		case restError.AccessExpiredError:
+			return isExternalLogin ? "expiredLink_msg" : "inactiveAccount_msg"
+
+		case restError.TooManyRequestsError:
+			return "tooManyAttempts_msg"
+
+		case CancelledError:
+			return "emptyString_msg"
+
+		case CredentialAuthenticationError:
+			return lang.getTranslation("couldNotUnlockCredentials_msg", {
+				"{reason}": error.message,
+			})
+
+		case restError.ConnectionError:
+			return "connectionLostLong_msg"
+
+		default:
+			return "emptyString_msg"
+	}
+}
+
+/**
+ * Handle expected login errors
+ * Any unexpected errors will be rethrown
+ */
+export function handleExpectedLoginError<E extends Error>(error: E, handler: (error: E) => void) {
+	if (
+		error instanceof restError.BadRequestError ||
+		error instanceof restError.NotAuthenticatedError ||
+		error instanceof restError.AccessExpiredError ||
+		error instanceof restError.TooManyRequestsError ||
+		error instanceof restError.AccessDeactivatedError ||
+		error instanceof restError.TooManyRequestsError ||
+		error instanceof CancelledError ||
+		error instanceof CredentialAuthenticationError ||
+		error instanceof restError.ConnectionError
+	) {
+		handler(error)
+	} else {
+		throw error
+	}
+}
+
+export function getLoginErrorStateAndMessage(error: Error): { errorMessage: MaybeTranslation; state: LoginState } {
+	let errorMessage = getLoginErrorMessage(error, false)
+	let state
+	if (error instanceof restError.BadRequestError || error instanceof restError.NotAuthenticatedError) {
+		state = LoginState.InvalidCredentials
+	} else if (error instanceof restError.AccessExpiredError) {
+		state = LoginState.AccessExpired
+	} else {
+		state = LoginState.UnknownError
+	}
+	handleExpectedLoginError(error, noOp)
+	return {
+		errorMessage,
+		state,
+	}
+}
+
+export async function showSignupDialog(urlParams: Params) {
+	const { canSubscribeToPlan } = await import("../subscription/utils/SubscriptionUtils")
+
+	const subscriptionParams = getSubscriptionParameters(urlParams)
+	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
+	const referralData = getReferralCodeFromParams(urlParams)
+	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams).filter(canSubscribeToPlan)
+	// We assume that if a user comes from our website for signup, the language selected on the website should take precedence over the browser language.
+	// As we initialize the language with the browser's one in the app.ts already, we try to overwrite it by the website language here.
+	const websiteLang = getWebsiteLangFromParams(urlParams)
+	if (websiteLang) {
+		// need to set the language in LanguageViewModel *and* deviceConfig, to keep app language and language dropdown view in sync
+		lang.setLanguage(websiteLang)
+		deviceConfig.setLanguage(websiteLang.code)
+	}
+
+	await showProgressDialog(
+		"loading_msg",
+		locator.worker.initialized.then(async () => {
+			const { loadSignupWizard } = await import("../subscription/UpgradeSubscriptionWizard")
+			await loadSignupWizard(subscriptionParams, registrationDataId, referralData, availablePlans)
+		}),
+	).catch(
+		ofClass(UserError, async (e) => {
+			const m = await import("mithril")
+			await showUserError(e)
+			// redirects if there were invalid parameters, e.g. for referral codes and campaignIds
+			m.route.set("/signup")
+		}),
+	)
+}
+
+export function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCode; languageTag: string } | null {
+	if (typeof urlParams.websiteLang !== "string") return null
+	const code = urlParams.websiteLang
+	if (!Object.keys(LanguageNames).includes(code)) return null
+	return { code, languageTag: languageCodeToTag(code) }
+}
+
+export function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
+	// Default to all available plans if the params do not have the needed information
+	if (params == null || params.type == null) return AvailablePlans
+
+	try {
+		const type = stringToSubscriptionType(params.type)
+		switch (type) {
+			// We don't want to display private plans as these are not permitted for business purposes
+			case SubscriptionType.Business:
+				return NewBusinessPlans
+			// But we can provide a business plan for private customers who want to use the larger plans
+			case SubscriptionType.Personal:
+			case SubscriptionType.PaidPersonal:
+				return AvailablePlans
+		}
+	} catch (e) {
+		// If params.type is not a valid subscription type, return the default value
+		return AvailablePlans
+	}
+}
+
+export function stringToSubscriptionType(string: string): SubscriptionType {
+	switch (string.toLowerCase()) {
+		case "business":
+			return SubscriptionType.Business
+		case "private":
+			return SubscriptionType.Personal
+		case "privatepaid":
+			return SubscriptionType.PaidPersonal
+		default:
+			throw new Error(`Failed to get subscription type: ${string}`)
+	}
+}
+
+export function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
+	const { subscription, type, interval } = hashParams
+	const isSubscriptionString = typeof subscription === "string"
+	const isTypeString = typeof type === "string"
+	const isIntervalString = typeof interval === "string"
+
+	if (!isSubscriptionString && !isTypeString && !isIntervalString) return null
+
+	return {
+		subscription: isSubscriptionString ? subscription : null,
+		type: isTypeString ? type : null,
+		interval: isIntervalString ? interval : null,
+	}
+}
+
+export function getReferralCodeFromParams(urlParams: Params): ReferralData | null {
+	if (typeof urlParams.ref !== "string") return null
+	return { code: urlParams.ref, isCalledBySatisfactionDialog: urlParams.s === "1" }
+}
+
+export function getRegistrationDataIdFromParams(hashParams: Params): string | null {
+	if (typeof hashParams.token === "string") {
+		return hashParams.token
+	}
+	return null
+}
+
+export function getBusinessOnly(urlParams: Params): boolean {
+	if (typeof urlParams.type !== "string") return false
+	return urlParams.type === "business"
+}
+
+async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
+	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")
+	return wizard.loadRedeemGiftCardWizard(urlHash)
+}
+
+export async function showGiftCardDialog(urlHash: string) {
+	showProgressDialog("loading_msg", loadRedeemGiftCardWizard(urlHash))
+		.then((dialog) => dialog.show())
+		.catch((e) => {
+			if (e instanceof restError.NotAuthorizedError || e instanceof restError.NotFoundError) {
+				throw new UserError("invalidGiftCard_msg")
+			} else {
+				throw e
+			}
+		})
+		.catch(ofClass(UserError, showUserError))
+}
+
+export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
+	const dialog = await import("../login/recover/RecoverLoginDialog")
+	dialog.show(mailAddress, resetAction)
+}

@@ -17,7 +17,7 @@
 			 */
 			"@tutao/utils": ["../src/utils"],
 			"@tutao/crypto": ["../src/crypto"],
-			"@tutao/crypto/error": ["../src/crypto/error"],
+			"@tutao/crypto/error": ["../src/platform-kit/crypto/error"],
 			"@tutao/usagetests": ["../src/usagetests"],
 			"@tutao/mimimi": ["../src/mimimi"],
 			"@tutao/mimimi/types": ["../src/mimimi/napi-out/binding.d.ts"],
@@ -39,19 +39,27 @@
 			"@tutao/entities/tutanota": ["../src/entities/tutanota"],
 			"@tutao/entities/usage": ["../src/entities/usage"],
 			"@tutao/instance-pipeline": ["../src/instance-pipeline"],
-			"@tutao/licc": ["../src/licc"],
-			"@tutao/licc-parser": ["../src/licc/Parser"],
-			"@tutao/crypto/rsa": ["../src/crypto/encryption/Rsa"],
-			"@tutao/crypto/random": ["../src/crypto/random/SecureRandom"],
-			"@tutao/crypto/symmetric-cipher-utils": ["../src/crypto/encryption/symmetric/SymmetricCipherUtils"],
-			"@tutao/crypto/symmetric-cipher-facade": ["../src/crypto/encryption/symmetric/SymmetricCipherFacade"],
-			"@tutao/crypto/symmetric-key-deriver": ["../src/crypto/encryption/symmetric/SymmetricKeyDeriver"],
-			"@tutao/crypto/symmetric-cipher-version": ["../src/crypto/encryption/symmetric/SymmetricCipherVersion"],
-			"@tutao/crypto/aes-cbc-facade": ["../src/crypto/encryption/symmetric/AesCbcFacade"],
-			"@tutao/crypto/sha256": ["../src/crypto/hashes/Sha256"],
-			"@tutao/crypto/blake3": ["../src/crypto/hashes/Blake3"],
-			"@tutao/crypto/sjcl": ["../src/crypto/internal/sjcl.js"],
-			"@tutao/crypto/jsbn": ["../src/crypto/internal/crypto-jsbn-2012-08-09_1.js"]
+			"@tutao/licc": ["../buildSrc/licc"],
+			"@tutao/licc-parser": ["../buildSrc/licc/Parser"],
+			"@tutao/crypto/rsa": ["../src/platform-kit/crypto/encryption/Rsa"],
+			"@tutao/crypto/random": ["../src/platform-kit/crypto/random/SecureRandom"],
+			"@tutao/crypto/symmetric-cipher-utils": [
+				"../src/platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils"
+			],
+			"@tutao/crypto/symmetric-cipher-facade": [
+				"../src/platform-kit/crypto/encryption/symmetric/SymmetricCipherFacade"
+			],
+			"@tutao/crypto/symmetric-key-deriver": [
+				"../src/platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
+			],
+			"@tutao/crypto/symmetric-cipher-version": [
+				"../src/platform-kit/crypto/encryption/symmetric/SymmetricCipherVersion"
+			],
+			"@tutao/crypto/aes-cbc-facade": ["../src/platform-kit/crypto/encryption/symmetric/AesCbcFacade"],
+			"@tutao/crypto/sha256": ["../src/platform-kit/crypto/hashes/Sha256"],
+			"@tutao/crypto/blake3": ["../src/platform-kit/crypto/hashes/Blake3"],
+			"@tutao/crypto/sjcl": ["../src/platform-kit/crypto/internal/sjcl.js"],
+			"@tutao/crypto/jsbn": ["../src/platform-kit/crypto/internal/crypto-jsbn-2012-08-09_1.js"]
 		}
 	},
 	"include": ["../src/*d.ts", "../libs/*d.ts", "../types/*d.ts", "tests/**/*.ts", "types/*.d.ts"],
@@ -62,7 +70,7 @@
 			"path": "tsconfig.otest.json"
 		},
 		{
-			"path": "../src/tsconfig.combined-apps.json"
+			"path": "../src/applications/tsconfig.combined-apps.json"
 		}
 	]
 }

@@ -27,17 +27,17 @@
 		"types": ["node"],
 		"incremental": true,
 		"paths": {
-			"@tutao/utils": ["./src/utils"],
-			"@tutao/crypto": ["./src/crypto"],
-			"@tutao/crypto/error": ["./src/crypto/error"],
+			"@tutao/utils": ["./src/platform-kit/utils"],
+			"@tutao/crypto": ["./src/platform-kit/crypto"],
+			"@tutao/crypto/error": ["./src/platform-kit/crypto/error"],
 			"@tutao/usagetests": ["./src/usagetests"],
-			"@tutao/mimimi": ["./src/mimimi"],
-			"@tutao/mimimi/types": ["./src/mimimi/napi-out/binding.d.ts"],
-			"@tutao/rest-client": ["./src/rest-client"],
-			"@tutao/rest-client/types": ["./src/rest-client/types.d.ts"],
-			"@tutao/rest-client/error": ["./src/rest-client/error.ts"],
-			"@tutao/app-env": ["./src/app-env"],
-			"@tutao/meta": ["./src/meta"],
+			"@tutao/mimimi": ["./src/app-kit/mimimi"],
+			"@tutao/mimimi/types": ["./src/app-kit/mimimi/napi-out/binding.d.ts"],
+			"@tutao/rest-client": ["./src/platform-kit/rest-client"],
+			"@tutao/rest-client/types": ["./src/platform-kit/rest-client/types.ts"],
+			"@tutao/rest-client/error": ["./src/platform-kit/rest-client/error.ts"],
+			"@tutao/app-env": ["./src/platform-kit/app-env"],
+			"@tutao/meta": ["./src/platform-kit/meta"],
 			"@tutao/entities/accounting": ["./src/entities/accounting"],
 			"@tutao/entities/base": ["./src/entities/base"],
 			"@tutao/entities/drive": ["./src/entities/drive"],
@@ -47,11 +47,16 @@
 			"@tutao/entities/sys": ["./src/entities/sys"],
 			"@tutao/entities/tutanota": ["./src/entities/tutanota"],
 			"@tutao/entities/usage": ["./src/entities/usage"],
-			"@tutao/instance-pipeline": ["./src/instance-pipeline"],
-			"@tutao/network/types": ["./src/network/types.d.ts"],
-			"@tutao/native-bridge/generatedIpc/types": ["./src/native-bridge/common/generatedipc/types/index.d.ts"],
+			"@tutao/instance-pipeline": ["./src/platform-kit/instance-pipeline"],
+			"@tutao/network/types": ["./src/platform-kit/network/types.ts"],
+			"@tutao/native-bridge/generatedIpc/types": [
+				"./src/app-kit/native-bridge/common/generatedipc/types/index.d.ts"
+			],
+			"@tutao/native-bridge/generatedIpc/enums": [
+				"./src/app-kit/native-bridge/common/generatedipc/types/enums.ts"
+			],
 			"@tutao/native-bridge/generatedIpc/dispatchers": [
-				"./src/native-bridge/common/generatedipc/dispatchers/index.ts"
+				"./src/app-kit/native-bridge/common/generatedipc/dispatchers/index.ts"
 			]
 		}
 	}

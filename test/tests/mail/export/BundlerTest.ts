@@ -1,18 +1,16 @@
 import o from "@tutao/otest"
-import { downloadMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
+import { downloadMailBundle } from "../../../../src/applications/mail-app/mail/export/Bundler.js"
 
-import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
-import { EntityClient } from "../../../../src/network/EntityClient.js"
-import { FileController } from "../../../../src/common/file/FileController.js"
+import { HtmlSanitizer } from "../../../../src/applications/common/misc/HtmlSanitizer.js"
+import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
+import { FileController } from "../../../../src/applications/common/file/FileController.js"
 import { matchers, object, verify, when } from "testdouble"
-import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade.js"
 
-import { MailState } from "../../../../src/entities/tutanota"
 import {
 	BodyTypeRef,
-	DataFile,
 	FileTypeRef,
 	HeaderTypeRef,
 	Mail,
@@ -22,6 +20,8 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
+import { MailState } from "../../../../src/entities/tutanota/Utils"
+import { DataFile } from "../../../../src/entities/tutanota/MailBundle"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient

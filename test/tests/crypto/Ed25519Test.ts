@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "@tutao/crypto"
+import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "../../../src/platform-kit/crypto"
 import { matchers, object, verify } from "testdouble"
 import { loadWasmFromFileOrNetwork } from "./WebAssemblyTestUtils"
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull } from "../../../src/platform-kit/utils"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {

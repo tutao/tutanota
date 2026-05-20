@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { ClickHandler } from "../GuiUtils.js"
-import { assertNotNull } from "@tutao/utils"
-import { TabIndex } from "@tutao/app-env"
+import { assertNotNull } from "../../../platform-kit/utils"
+import { TabIndex } from "../../../platform-kit/app-env"
 import { AriaRole } from "../../AriaUtils.js"
 import { lang, MaybeTranslation } from "../../utils/LanguageViewModel.js"
 

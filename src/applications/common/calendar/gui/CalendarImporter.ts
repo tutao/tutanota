@@ -1,0 +1,197 @@
+import { utf8Uint8ArrayToString } from "@tutao/utils"
+import { getTimeZone } from "../date/CalendarUtils.js"
+import { ParserError } from "../../misc/parsing/ParserCombinator.js"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
+import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List.js"
+import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
+import { component_size } from "../../../../ui/size.js"
+import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar.js"
+import { ButtonType } from "../../../../ui/base/Button.js"
+import m from "mithril"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../../ui/base/DropDownSelector.js"
+import { getSharedGroupName } from "../../sharing/GroupUtils.js"
+import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import { UserController } from "../../api/main/UserController.js"
+import { ShareCapability } from "@tutao/app-env"
+import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
+import { handleCalendarImport } from "./CalendarImporterDialog.js"
+import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
+import { DataFile } from "../../../../entities/tutanota/MailBundle"
+
+/** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
+export function parseCalendarFile(file: DataFile): ParsedCalendarData {
+	try {
+		const stringData = utf8Uint8ArrayToString(file.data)
+		return parseCalendarStringData(stringData, getTimeZone())
+	} catch (e) {
+		if (e instanceof ParserError) {
+			throw new ParserError(e.message, file.name)
+		} else {
+			throw e
+		}
+	}
+}
+
+/**
+ * Shows a dialog with a preview of a given list of events
+ * @param events The event list to be previewed
+ * @param okAction The action to be executed when the user press the ok or continue button
+ * @param title
+ */
+export function showEventsImportDialog(
+	events: CalendarEvent[],
+	okAction: (dialog: Dialog) => unknown,
+	title: MaybeTranslation,
+	calendarInfo: CalendarInfoBase,
+) {
+	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
+		itemHeight: component_size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			return new KindaCalendarRow(dom, [calendarInfo])
+		},
+	}
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
+						},
+					},
+				],
+				middle: title,
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "import_action",
+						click: () => {
+							okAction(dialog)
+						},
+					},
+				],
+			}),
+			/** variable-size child container that may be scrollable. */
+			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
+				m(
+					".flex.col.rel.mt-8",
+					{
+						style: {
+							height: "80vh",
+						},
+					},
+					m(List, {
+						renderConfig,
+						state: {
+							items: events,
+							loadingStatus: ListLoadingState.Done,
+							loadingAll: false,
+							inMultiselect: true,
+							activeIndex: null,
+							selectedItems: new Set(),
+						},
+						onLoadMore() {},
+						onRangeSelectionTowards(item: CalendarEvent) {},
+						onRetryLoading() {},
+						onSingleSelection(item: CalendarEvent) {},
+						onSingleTogglingMultiselection(item: CalendarEvent) {},
+						onStopLoading() {},
+					} satisfies ListAttrs<CalendarEvent, KindaCalendarRow>),
+				),
+			]),
+		],
+	}).show()
+}
+
+/**
+ * Handle the import of calendar events with preview of events to be imported
+ * @param calendarModel
+ * @param userController
+ * @param events The event list to be previewed and imported
+ */
+export async function importCalendarFile(calendarModel: CalendarModel, userController: UserController, events: ParsedEvent[]) {
+	const groupSettings = userController.userSettingsGroupRoot.groupSettings
+	const calendarInfos = await calendarModel.getCalendarInfos()
+	const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
+
+	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
+		dialog.close()
+		handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, events)
+	})
+}
+
+/**
+ * Shows a dialog with user's calendars that are able to receive new events
+ * @param calendars List of user's calendars
+ * @param userController
+ * @param groupColors List of calendar's colors
+ * @param okAction
+ */
+export function calendarSelectionDialog(
+	calendars: CalendarInfo[],
+	userController: UserController,
+	groupColors: GroupColors,
+	okAction: (dialog: Dialog, selectedCalendar: CalendarInfo) => unknown,
+) {
+	const availableCalendars = calendars.filter(
+		(calendarInfo) => hasCapabilityOnGroup(userController.user, calendarInfo.group, ShareCapability.Write) && !calendarInfo.isExternal,
+	)
+	let selectedCalendar = availableCalendars[0]
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
+						},
+					},
+				],
+				middle: "calendar_label",
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "pricing.select_action",
+						click: () => {
+							okAction(dialog, selectedCalendar)
+						},
+					},
+				],
+			}),
+
+			m(".dialog-max-height.plr-24.pt-16.pb-16.text-break.scroll", [
+				m(".text-break.selectable", lang.get("calendarImportSelection_label")),
+				m(DropDownSelector, {
+					label: "calendar_label",
+					items: availableCalendars.map((calendarInfo) => {
+						return {
+							name: getSharedGroupName(calendarInfo.groupInfo, userController.userSettingsGroupRoot, calendarInfo.hasMultipleMembers),
+							value: calendarInfo,
+						}
+					}),
+					selectedValue: selectedCalendar,
+					selectionChangedHandler: (v) => (selectedCalendar = v),
+					icon: Icons.ArrowDown,
+					disabled: availableCalendars.length < 2,
+					helpLabel: () => renderCalendarColor(selectedCalendar, groupColors),
+				} satisfies DropDownSelectorAttrs<CalendarInfo>),
+			]),
+		],
+	}).show()
+}

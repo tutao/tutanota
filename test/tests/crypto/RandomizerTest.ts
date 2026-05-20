@@ -1,8 +1,7 @@
-import o from "@tutao/otest"
-import { random } from "@tutao/crypto"
+import o, { assertThrows } from "@tutao/otest"
+import { random } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
-import { CryptoError } from "@tutao/crypto/error"
-import { assertThrows } from "@tutao/otest"
+import { CryptoError } from "../../../src/platform-kit/crypto/error"
 
 o.spec("Randomizer", function () {
 	o.beforeEach(function () {

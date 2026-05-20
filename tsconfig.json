@@ -12,7 +12,7 @@
 	"exclude": ["build"],
 	"references": [
 		{
-			"path": "src/tsconfig.combined-apps.json"
+			"path": "src/applications/tsconfig.combined-apps.json"
 		}
 	]
 }

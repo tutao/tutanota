@@ -1,10 +1,8 @@
-import { TypeRef } from "../../meta/TypeRef.js"
-import { create, StrippedEntity } from "../../meta/EntityUtils.js"
+import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
+import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
-import * as sysTypeRefs from "../sys/TypeRefs.js"
-
-type Blob = sysTypeRefs.Blob
-type BlobReferenceTokenWrapper = sysTypeRefs.BlobReferenceTokenWrapper
+import { Blob } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 

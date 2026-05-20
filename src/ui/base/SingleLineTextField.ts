@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
-import { filterInt } from "@tutao/utils"
+import { filterInt } from "../../platform-kit/utils"
 
 export enum InputMode {
 	NONE = "none",

@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { LazyLoaded } from "@tutao/utils"
+import { LazyLoaded } from "../../../src/platform-kit/utils"
 
 o.spec("LazyLoaded", function () {
 	o.test("default value", async function () {

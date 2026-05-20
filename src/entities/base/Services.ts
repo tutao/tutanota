@@ -1,3 +1,4 @@
+
 export const ApplicationTypesService = Object.freeze({
 	app: "base",
 	name: "ApplicationTypesService",

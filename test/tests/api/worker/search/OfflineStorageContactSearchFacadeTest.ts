@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { OfflineStorageContactSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageContactSearchFacade"
-import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
+import { OfflineStorageContactSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageContactSearchFacade"
+import { OfflineStorageSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { object, when } from "testdouble"
 
-import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("OfflineStorageContactSearchFacade", () => {

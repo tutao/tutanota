@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./tutanota/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./tutanota/",
+		"outDir": "../../build/entities/tutanota",
+		"tsBuildInfoFile": "../../build/entities/tutanota/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kit/tsconfig.meta.json"
+		},
+		{
+			"path": "tsconfig.entities.sys.json"
+		}
+	]
+}

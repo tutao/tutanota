@@ -1,0 +1,292 @@
+import m, { Params } from "mithril"
+import { isSessionStorageAvailable, remove } from "@tutao/utils"
+import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
+import { LoginController } from "../api/main/LoginController.js"
+import type { KeyboardSizeListener, WindowSizeListener } from "../../../ui/utils/WindowUtils"
+import type { IWindowFacade } from "../../../ui/IWindowFacade"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+
+assertMainOrNodeBoot()
+
+export class WindowFacade implements IWindowFacade {
+	private _windowSizeListeners: WindowSizeListener[]
+	resizeTimeout: (AnimationFrameID | null) | (TimeoutID | null)
+	windowCloseConfirmation: boolean
+	private _windowCloseListeners: Set<(e: Event) => unknown>
+	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
+	// following two properties are for mobile
+	private _keyboardSize: number = 0
+	private _keyboardSizeListeners: KeyboardSizeListener[] = []
+	private _ignoreNextPopstate: boolean = false
+	private connectivityModel!: WebsocketConnectivityModel
+	private logins: LoginController | null = null
+
+	constructor() {
+		this._windowSizeListeners = []
+		this.resizeTimeout = null
+		this.windowCloseConfirmation = false
+		this._windowCloseListeners = new Set()
+
+		const onresize = () => {
+			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
+			if (!this.resizeTimeout) {
+				const cb = () => {
+					this.resizeTimeout = null
+
+					this._resize() // The actualResizeHandler will execute at a rate of 15fps
+				}
+
+				// On mobile devices there's usually no resize but when changing orientation it's to early to
+				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
+				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
+			}
+		}
+		window.onresize = onresize
+		// specifially for iOS: rotation through the unsupported orientation (e.g, 90 degrees 3 times) will not trigger the resize and we wouldn't resize
+		// some things so we react to both, it is throttled anyway
+		window.onorientationchange = onresize
+	}
+
+	addResizeListener(listener: WindowSizeListener) {
+		this._windowSizeListeners.push(listener)
+	}
+
+	removeResizeListener(listener: WindowSizeListener) {
+		remove(this._windowSizeListeners, listener)
+	}
+
+	addWindowCloseListener(listener: () => unknown): (...args: Array<any>) => any {
+		this._windowCloseListeners.add(listener)
+
+		this._checkWindowClosing(this._windowCloseListeners.size > 0)
+
+		return () => {
+			this._windowCloseListeners.delete(listener)
+
+			this._checkWindowClosing(this._windowCloseListeners.size > 0)
+		}
+	}
+
+	_notifyCloseListeners(e: Event) {
+		for (const f of this._windowCloseListeners) {
+			f(e)
+		}
+	}
+
+	addKeyboardSizeListener(listener: KeyboardSizeListener) {
+		this._keyboardSizeListeners.push(listener)
+
+		listener(this._keyboardSize)
+	}
+
+	removeKeyboardSizeListener(listener: KeyboardSizeListener) {
+		remove(this._keyboardSizeListeners, listener)
+	}
+
+	openLink(href: string) {
+		const tmpAnchorEl = document.createElement("a")
+		tmpAnchorEl.href = href
+		tmpAnchorEl.target = isApp() ? "_system" : "_blank"
+		tmpAnchorEl.click()
+	}
+
+	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel) {
+		this.logins = logins
+
+		if (window.addEventListener && !isApp()) {
+			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
+			window.addEventListener("popstate", (e) => this._popState(e))
+			window.addEventListener("unload", (e) => this._onUnload())
+		}
+
+		this.connectivityModel = connectivityModel
+
+		if (isApp() || isDesktop() || isAdminClient()) {
+			this.addPageInBackgroundListener()
+		}
+
+		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
+		// and Cmd+Arrow to navigate a text editor
+		if (isDesktop() && client.isMacOS && window.addEventListener) {
+			window.addEventListener("keydown", (e) => {
+				if (!e.metaKey || e.key === "Meta") return
+
+				const target = e.target as HTMLElement | null
+				// prevent history nav if the active element is an input / squire editor
+				if (target?.tagName === "INPUT" || target?.contentEditable === "true") {
+					e.stopPropagation()
+				} else if (e.key === "ArrowLeft") {
+					window.history.back()
+				} else if (e.key === "ArrowRight") {
+					window.history.forward()
+				}
+			})
+		}
+		// call the resize listeners once to make sure everyone
+		// has the current window size once we're done initializing
+		this._resize()
+	}
+
+	_resize() {
+		try {
+			for (const listener of this._windowSizeListeners) {
+				listener(window.innerWidth, window.innerHeight)
+			}
+		} finally {
+			m.redraw()
+		}
+	}
+
+	_checkWindowClosing(enable: boolean) {
+		this.windowCloseConfirmation = enable
+	}
+
+	_beforeUnload(e: any): string | null {
+		// BeforeUnloadEvent
+		console.log("windowfacade._beforeUnload")
+
+		this._notifyCloseListeners(e)
+
+		if (this.windowCloseConfirmation) {
+			let m = lang.get("closeWindowConfirmation_msg")
+			// modern approach (see https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event)
+			e.preventDefault()
+			// legacy approach
+			e.returnValue = m
+			return m
+		} else if (this.logins?.isUserLoggedIn()) {
+			this.logins?.logout(true)
+			return null
+		} else {
+			return null
+		}
+	}
+
+	addHistoryEventListener(listener: (e: Event) => boolean): () => void {
+		this._historyStateEventListeners.push(listener)
+
+		return () => {
+			const index = this._historyStateEventListeners.indexOf(listener)
+
+			if (index !== -1) {
+				this._historyStateEventListeners.splice(index, 1)
+			}
+		}
+	}
+
+	removeHistoryEventListener(listener: (e: Event) => boolean): void {
+		remove(this._historyStateEventListeners, listener)
+	}
+
+	/**
+	 * calls the last history event listener that was added
+	 * and reverts the state change if it returns false
+	 * TODO: this also fires for forward-events and when the user jumps around in the history
+	 * TODO: by long-clicking the back/forward buttons.
+	 * TODO: solving this requires extensive bookkeeping because the events are indistinguishable by default
+	 * @param e: popstate DOM event
+	 * @private
+	 */
+	_popState(e: Event) {
+		const len = this._historyStateEventListeners.length
+		if (len === 0) return
+
+		if (this._ignoreNextPopstate) {
+			this._ignoreNextPopstate = false
+			return
+		}
+
+		if (!this._historyStateEventListeners[len - 1](e)) {
+			this._ignoreNextPopstate = true
+			// go 1 page forward in the history
+			// this reverts the state change (if the event was triggered by a back-button press)
+			history.go(1)
+		}
+	}
+
+	_onUnload() {
+		if (this.windowCloseConfirmation && this.logins && this.logins.isUserLoggedIn()) {
+			const _ = this.logins.logout(true)
+		}
+	}
+
+	addOnlineListener(listener: () => void) {
+		window.addEventListener("online", listener)
+	}
+
+	addOfflineListener(listener: () => void) {
+		window.addEventListener("offline", listener)
+	}
+
+	async reload(args: Params) {
+		this.windowCloseConfirmation = false
+		this._windowCloseListeners.clear()
+
+		if (!Object.hasOwn(args, "noAutoLogin")) {
+			args.noAutoLogin = true
+		}
+		const stringifiedArgs: Record<string, string> = {}
+		for (const [k, v] of Object.entries(args)) {
+			if (v != null) {
+				stringifiedArgs[k] = String(v)
+			}
+		}
+		if (isApp() || isDesktop() || isAdminClient()) {
+			const { locator } = await import("../api/main/CommonLocator")
+			await locator.commonSystemFacade.reload(stringifiedArgs)
+		} else {
+			if (isSessionStorageAvailable()) {
+				sessionStorage.setItem("reloadArgs", JSON.stringify(stringifiedArgs))
+			}
+			window.location.reload()
+		}
+	}
+
+	addPageInBackgroundListener() {
+		// For Android it's handled manually from native because visibilitychange listener is not called after the
+		// app was inactive for some time.
+		// See NativeWrapperCommands.js
+		if (isIOSApp()) {
+			document.addEventListener("visibilitychange", () => {
+				console.log("Visibility change, hidden: ", document.hidden)
+
+				if (!document.hidden) {
+					// On iOS devices the WebSocket close event fires when the app comes back to foreground
+					// so we try to reconnect with a delay to receive _close event first. Otherwise
+					// we may try to reconnect while we think that we're still connected
+					// (e.g. first reconnect and then receive close).
+					// We used to handle it in the EventBus and reconnect immediately but isIosApp()
+					// check does not work in the worker currently.
+					// Doing this for all apps just to be sure.
+					setTimeout(() => this.connectivityModel?.tryReconnect(false, true), 100)
+				}
+			})
+		}
+	}
+
+	keyboardSize(): number {
+		return this._keyboardSize
+	}
+
+	onKeyboardSizeChanged(size: number) {
+		this._keyboardSize = size
+
+		for (let listener of this._keyboardSizeListeners) {
+			listener(size)
+		}
+
+		if (size > 0) {
+			// reset position fixed for the body to allow scrolling in dialogs on iOS
+			// https://github.com/scottjehl/Device-Bugs/issues/14
+			const body = document.body as any
+			body.style.position = "unset"
+			setTimeout(() => {
+				body.style.position = "fixed"
+			}, 200)
+		}
+	}
+}
+
+export const windowFacade: WindowFacade = new WindowFacade()

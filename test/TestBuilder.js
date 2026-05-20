@@ -31,8 +31,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			fs.rmSync(buildDir, { recursive: true, force: true })
-			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
-			fs.rmSync("src/mimimi/napi-out", { recursive: true, force: true })
+			fs.rmSync("src/platform-kit/mimimi/napi-out", { recursive: true, force: true })
 			spawnSync("cargo", ["clean"])
 			spawnSync("npx", ["tsc", "--build", "--clean"])
 		})
@@ -41,13 +40,13 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	await runStep("Build crypto-primitives", async () => {
 		const targetDir = path.resolve(buildDir)
 		const _ = clean
-			? await $({ stdio: "inherit", cwd: "../src/crypto" })`node make ${targetDir} --clean`
-			: await $({ stdio: "inherit", cwd: "../src/crypto" })`node make ${targetDir}`
+			? await $({ stdio: "inherit", cwd: "../src/platform-kit/crypto" })`node make ${targetDir} --clean`
+			: await $({ stdio: "inherit", cwd: "../src/platform-kit/crypto" })`node make ${targetDir}`
 	})
 
 	await runStep("Build mimimi", async () => {
 		const mimiMakeCmd = ci ? "node make --release" : "node make"
-		execSync(mimiMakeCmd, { cwd: "../src/mimimi", stdio: "inherit" })
+		execSync(mimiMakeCmd, { cwd: "../src/app-kit/mimimi", stdio: "inherit" })
 	})
 
 	await runStep("Types", async () => {
@@ -68,7 +67,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 
 		for (const key of Object.keys(tsImportAliases)) delete tsImportAliases[key] // See: devbuild.js
 		const bundle = await rolldown({
-			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
+			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/applications/common/api/common/pow-worker.ts"],
 			platform: "neutral",
 			transform: {
 				define: {

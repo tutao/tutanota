@@ -1,0 +1,594 @@
+import m, { Children } from "mithril"
+import { assertMainOrNode, isIOSApp, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
+import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
+import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
+import * as InvoiceDataDialog from "./InvoiceDataDialog"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { ColumnWidth, Table, TableLineAttrs } from "../../../ui/base/Table.js"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { formatDate } from "../../../ui/utils/Formatter"
+import * as restError from "@tutao/rest-client/error"
+import { Dialog, DialogType } from "../../../ui/base/Dialog"
+import * as PaymentDataDialog from "./PaymentDataDialog"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { getDefaultPaymentMethod, getPaymentMethodType, getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
+import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
+import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
+import { locator } from "../api/main/CommonLocator"
+import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
+import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
+import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
+import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
+import { createDropdown } from "../../../ui/base/Dropdown.js"
+import {
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	BookingTypeRef,
+	createDebitServicePutData,
+	Customer,
+	CustomerTypeRef,
+	DebitService,
+	InvoiceInfo,
+	InvoiceInfoTypeRef,
+} from "@tutao/entities/sys"
+import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
+import { GENERATED_MAX_ID } from "@tutao/meta"
+import { getByAbbreviation } from "../gui/CountryList"
+import { CustomerAccountPosting } from "@tutao/entities/accounting"
+import { CustomerAccountService } from "../../../entities/accounting/Services"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
+assertMainOrNode()
+
+/**
+ * Displays payment method/invoice data and allows changing them.
+ */
+export class PaymentViewer implements UpdatableSettingsViewer {
+	private readonly invoiceAddressField: HtmlEditor
+	private customer: Customer | null = null
+	private accountingInfo: AccountingInfo | null = null
+	private postings: readonly CustomerAccountPosting[] = []
+	private outstandingBookingsPrice: number | null = null
+	private balance: number = 0
+	private invoiceInfo: InvoiceInfo | null = null
+	private postingsExpanded: boolean = false
+
+	constructor() {
+		this.invoiceAddressField = new HtmlEditor(getHtmlSanitizer())
+			.setMinHeight(140)
+			.showBorders()
+			.setMode(HtmlEditorMode.HTML)
+			.setHtmlMonospace(false)
+			.setReadOnly(true)
+			.setPlaceholderId("invoiceAddress_label")
+		this.loadData()
+		this.view = this.view.bind(this)
+	}
+
+	view(): Children {
+		return m(
+			"#invoicing-settings.fill-absolute.scroll.plr-24.pb-48",
+			{
+				role: "group",
+			},
+			[this.renderInvoiceData(), this.renderPaymentMethod(), this.renderPostings()],
+		)
+	}
+
+	private async loadData() {
+		this.customer = await locator.logins.getUserController().reloadCustomer()
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+
+		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		this.updateAccountingInfoData(accountingInfo)
+		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+		m.redraw()
+		await this.loadPostings()
+	}
+
+	private renderPaymentMethod(): Children {
+		const paymentMethodHelpLabel = () => {
+			if (this.accountingInfo && getPaymentMethodType(this.accountingInfo) === PaymentMethodType.Invoice) {
+				return lang.get("paymentProcessingTime_msg")
+			}
+
+			return ""
+		}
+
+		const paymentMethod = this.accountingInfo
+			? getPaymentMethodName(getPaymentMethodType(neverNull(this.accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this.accountingInfo))
+			: lang.get("loading_msg")
+
+		return m(LegacyTextField, {
+			label: "paymentMethod_label",
+			value: paymentMethod,
+			helpLabel: paymentMethodHelpLabel,
+			isReadOnly: true,
+			injectionsRight: () =>
+				m(IconButton, {
+					title: "paymentMethod_label",
+					click: (e, dom) => this.handlePaymentMethodClick(e, dom),
+					icon: this.getIconForPaymentMethodSetting(this.accountingInfo),
+					size: ButtonSize.Compact,
+				}),
+		})
+	}
+
+	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
+		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
+			return Icons.InfoFilled
+		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
+			return Icons.InfoFilled
+		}
+		return Icons.PenFilled
+	}
+
+	private async handlePaymentMethodClick(e: MouseEvent, dom: HTMLElement) {
+		if (this.accountingInfo == null) {
+			return
+		}
+		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
+		if (isIOSApp()) {
+			if (currentPaymentMethod === PaymentMethodType.AppStore) {
+				// Paid users trying to change payment method on iOS with an active subscription
+				return Dialog.message(lang.getTranslation("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+			} else if (this.customer?.type === AccountType.PAID) {
+				// Paid users trying to change payment method on iOS without an active subscription.
+				return Dialog.message(lang.getTranslation("settingNotApplicableInIos_msg"))
+			}
+
+			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
+		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
+			return showManageThroughAppStoreDialog()
+		} else if (currentPaymentMethod === PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
+			// For now we do not allow changing payment method for Paid accounts that use AppStore,
+			// they must downgrade to Free first.
+
+			const isResubscribe = await Dialog.choice(
+				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
+				[
+					{
+						text: "changePlan_action",
+						value: false,
+					},
+					{
+						text: "resubscribe_action",
+						value: true,
+					},
+				],
+			)
+			if (isResubscribe) {
+				return showManageThroughAppStoreDialog()
+			} else {
+				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+				const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+				const lastBooking = last(bookings)
+				if (lastBooking == null) {
+					console.warn("No booking but payment method is AppStore?")
+					return
+				}
+				return showSwitchDialog({
+					customer: this.customer,
+					accountingInfo: this.accountingInfo,
+					lastBooking,
+					acceptedPlans: AvailablePlans,
+					reason: null,
+				})
+			}
+		} else {
+			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
+				UpgradePromptType.CHANGE_PAYMENT_METHOD,
+				NewPaidPlans,
+				() => this.accountingInfo && this.changePaymentMethod(),
+				// iOS app is checked above
+				() => locator.logins.getUserController().isPaidAccount(),
+			)
+
+			showPaymentMethodDialog(e, dom)
+		}
+	}
+
+	private changeInvoiceData() {
+		if (this.accountingInfo) {
+			const accountingInfo = neverNull(this.accountingInfo)
+			const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
+			InvoiceDataDialog.show(
+				neverNull(neverNull(this.customer).businessUse),
+				{
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+					country: invoiceCountry,
+					vatNumber: accountingInfo.invoiceVatIdNo,
+				},
+				accountingInfo,
+			)
+		}
+	}
+
+	private changePaymentMethod() {
+		if (this.accountingInfo && hasRunningAppStoreSubscription(this.accountingInfo)) {
+			throw new ProgrammingError("Active AppStore subscription")
+		}
+
+		let nextPayment = this.amountOwed() * -1
+		showProgressDialog(
+			"pleaseWait_msg",
+			locator.bookingFacade.getCurrentPrice().then((priceServiceReturn) => {
+				return Math.max(
+					nextPayment,
+					Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price),
+					Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
+				)
+			}),
+		)
+			.then((price) => {
+				return { price, paymentMethod: getDefaultPaymentMethod() }
+			})
+			.then(({ price, paymentMethod }) => {
+				return PaymentDataDialog.show(neverNull(this.customer), neverNull(this.accountingInfo), price, paymentMethod).then((success) => {
+					if (success) {
+						if (this.isPayButtonVisible()) {
+							return this.showPayDialog(this.amountOwed())
+						}
+					}
+				})
+			})
+	}
+
+	private renderPostings(): Children {
+		if (!this.postings || this.postings.length === 0) {
+			return null
+		} else {
+			const balance = this.balance
+			return [
+				m(".h4.mt-32", lang.get("currentBalance_label")),
+				m(".flex.center-horizontally.center-vertically.col", [
+					m(
+						"div.h4.pt-16.pb-16" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
+						formatPrice(balance, true) + (this.accountBalance() !== balance ? ` (${formatPrice(this.accountBalance(), true)})` : ""),
+					),
+					this.accountBalance() !== balance
+						? m(
+								".small" + (this.accountBalance() < 0 ? ".content-accent-fg" : ""),
+								lang.get("unprocessedBookings_msg", {
+									"{amount}": formatPrice(assertNotNull(this.outstandingBookingsPrice), true),
+								}),
+							)
+						: null,
+					this.isPayButtonVisible()
+						? m(
+								".pb-16",
+								{
+									style: {
+										width: "200px",
+									},
+								},
+								m(PrimaryButton, {
+									label: "invoicePay_action",
+									onclick: () => this.showPayDialog(this.amountOwed()),
+								}),
+							)
+						: null,
+				]),
+				this.accountingInfo &&
+				this.accountingInfo.paymentMethod !== PaymentMethodType.Invoice &&
+				(this.isAmountOwed() || (this.invoiceInfo && this.invoiceInfo.paymentErrorInfo))
+					? this.invoiceInfo && this.invoiceInfo.paymentErrorInfo
+						? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this.invoiceInfo.paymentErrorInfo.errorCode)))
+						: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
+					: null,
+				m(".flex-space-between.items-center.mt-32.mb-8", [
+					m(".h4", lang.get("postings_label")),
+					m(ExpanderButton, {
+						label: "show_action",
+						expanded: this.postingsExpanded,
+						onExpandedChange: (expanded) => (this.postingsExpanded = expanded),
+					}),
+				]),
+				m(
+					ExpanderPanel,
+					{
+						expanded: this.postingsExpanded,
+					},
+					m(Table, {
+						columnHeading: ["type_label", "amount_label"],
+						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
+						columnAlignments: [false, true, false],
+						showActionButtonColumn: true,
+						lines: this.postings.map((posting: CustomerAccountPosting) => this.postingLineAttrs(posting)),
+					}),
+				),
+				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
+			]
+		}
+	}
+
+	private postingLineAttrs(posting: CustomerAccountPosting): TableLineAttrs {
+		return {
+			cells: () => [
+				{
+					main: getPostingTypeText(posting),
+					info: [formatDate(posting.valueDate)],
+				},
+				{
+					main: formatPrice(Number(posting.amount), true),
+				},
+			],
+			actionButtonAttrs:
+				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit || posting.type === PostingType.SalesCommission
+					? {
+							title: "download_action",
+							icon: Icons.DownloadFilled,
+							size: ButtonSize.Compact,
+							click: (e, dom) => {
+								if (this.customer?.businessUse) {
+									createDropdown({
+										width: 300,
+										lazyButtons: () => [
+											{
+												label: "downloadInvoicePdf_action",
+												click: () => this.doPdfInvoiceDownload(posting),
+											},
+											{
+												label: "downloadInvoiceXml_action",
+												click: () => this.doXrechnungInvoiceDownload(posting),
+											},
+										],
+									})(e, dom)
+								} else {
+									this.doPdfInvoiceDownload(posting)
+								}
+							},
+						}
+					: null,
+		}
+	}
+
+	private async doPdfInvoiceDownload(posting: CustomerAccountPosting): Promise<unknown> {
+		if (client.compressionStreamSupported()) {
+			return showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then((pdfInvoice) =>
+				locator.fileController.saveDataFile(pdfInvoice),
+			)
+		} else {
+			if (client.device === DeviceType.ANDROID) {
+				return Dialog.message("invoiceFailedWebview_msg", () =>
+					m(
+						"div",
+						m(
+							"a",
+							{
+								href: InfoLink.Webview,
+								target: "_blank",
+							},
+							InfoLink.Webview,
+						),
+					),
+				)
+			} else if (client.isIos()) {
+				return Dialog.message("invoiceFailedIOS_msg")
+			} else {
+				return Dialog.message("invoiceFailedBrowser_msg")
+			}
+		}
+	}
+
+	private async doXrechnungInvoiceDownload(posting: CustomerAccountPosting) {
+		return showProgressDialog(
+			"pleaseWait_msg",
+			locator.customerFacade.generateXRechnungInvoice(neverNull(posting.invoiceNumber)).then((xInvoice) => locator.fileController.saveDataFile(xInvoice)),
+		)
+	}
+
+	private updateAccountingInfoData(accountingInfo: AccountingInfo) {
+		this.accountingInfo = accountingInfo
+
+		this.invoiceAddressField.setValue(
+			formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry ?? undefined),
+		)
+
+		m.redraw()
+	}
+
+	private accountBalance(): number {
+		return this.balance - assertNotNull(this.outstandingBookingsPrice)
+	}
+
+	private amountOwed(): number {
+		if (this.balance != null) {
+			let balance = this.balance
+
+			if (balance < 0) {
+				return balance
+			}
+		}
+
+		return 0
+	}
+
+	private isAmountOwed(): boolean {
+		return this.amountOwed() < 0
+	}
+
+	private loadPostings(): Promise<void> {
+		return locator.serviceExecutor.get(CustomerAccountService, null).then((result) => {
+			this.postings = result.postings
+			this.outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
+			this.balance = Number(result.balance)
+			m.redraw()
+		})
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			await this.processEntityUpdate(update)
+		}
+	}
+
+	private async processEntityUpdate(update: EntityUpdateData): Promise<void> {
+		const { instanceId } = update
+
+		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
+			this.updateAccountingInfoData(accountingInfo)
+		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
+			this.customer = await locator.logins.getUserController().reloadCustomer()
+			m.redraw()
+		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
+			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, instanceId)
+			m.redraw()
+		}
+	}
+
+	private isPayButtonVisible(): boolean {
+		return (
+			this.accountingInfo != null &&
+			(this.accountingInfo.paymentMethod === PaymentMethodType.CreditCard || this.accountingInfo.paymentMethod === PaymentMethodType.Paypal) &&
+			this.isAmountOwed()
+		)
+	}
+
+	private showPayDialog(openBalance: number): Promise<void> {
+		return showPayConfirmDialog(openBalance)
+			.then((confirmed) => {
+				if (confirmed) {
+					return showProgressDialog(
+						"pleaseWait_msg",
+						locator.serviceExecutor
+							.put(DebitService, createDebitServicePutData({}))
+							.catch(ofClass(restError.LockedError, () => "operationStillActive_msg" as TranslationKey))
+							.catch(ofClass(restError.PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
+							.catch(ofClass(restError.TooManyRequestsError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
+							.catch(ofClass(restError.TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
+					)
+				}
+			})
+			.then((errorId: TranslationKeyType | void) => {
+				if (errorId) {
+					return Dialog.message(errorId)
+				} else {
+					return this.loadPostings()
+				}
+			})
+	}
+
+	private renderInvoiceData(): Children {
+		return [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
+				m(".h4", lang.get("invoiceData_msg")),
+				m(IconButton, {
+					title: "invoiceData_msg",
+					click: createNotAvailableForFreeClickHandler(
+						UpgradePromptType.VIEW_INVOICE,
+						NewPaidPlans,
+						() => this.changeInvoiceData(),
+						() => locator.logins.getUserController().isPaidAccount(),
+					),
+					icon: Icons.PenFilled,
+					size: ButtonSize.Compact,
+				}),
+			]),
+			m(this.invoiceAddressField),
+			this.accountingInfo && this.accountingInfo.invoiceVatIdNo.trim().length > 0
+				? m(LegacyTextField, {
+						label: "invoiceVatIdNo_label",
+						value: this.accountingInfo ? this.accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
+						isReadOnly: true,
+					})
+				: null,
+		]
+	}
+}
+
+function showPayConfirmDialog(price: number): Promise<boolean> {
+	return newPromise((resolve) => {
+		let dialog: Dialog
+
+		const doAction = (res: boolean) => {
+			dialog.close()
+			resolve(res)
+		}
+
+		const actionBarAttrs: DialogHeaderBarAttrs = {
+			left: [
+				{
+					label: "cancel_action",
+					click: () => doAction(false),
+					type: ButtonType.Secondary,
+				},
+			],
+			right: [
+				{
+					label: "invoicePay_action",
+					click: () => doAction(true),
+					type: ButtonType.Primary,
+				},
+			],
+			middle: "adminPayment_action",
+		}
+		dialog = new Dialog(DialogType.EditSmall, {
+			view: (): Children => [
+				m(DialogHeaderBar, actionBarAttrs),
+				m(
+					".plr-24.pb-16",
+					m("", [
+						m(".pt-16", lang.get("invoicePayConfirm_msg")),
+						m(LegacyTextField, {
+							label: "price_label",
+							value: formatPrice(-price, true),
+							isReadOnly: true,
+						}),
+					]),
+				),
+			],
+		})
+			.setCloseHandler(() => doAction(false))
+			.show()
+	})
+}
+
+function getPostingTypeText(posting: CustomerAccountPosting): string {
+	switch (posting.type) {
+		case PostingType.UsageFee:
+			return lang.get("invoice_label")
+
+		case PostingType.Credit:
+			return lang.get("credit_label")
+
+		case PostingType.Payment:
+			return lang.get("adminPayment_action")
+
+		case PostingType.Refund:
+			return lang.get("refund_label")
+
+		case PostingType.GiftCard:
+			return Number(posting.amount) < 0 ? lang.get("boughtGiftCardPosting_label") : lang.get("redeemedGiftCardPosting_label")
+
+		case PostingType.SalesCommission:
+			return Number(posting.amount) < 0 ? lang.get("cancelledReferralCreditPosting_label") : lang.get("referralCreditPosting_label")
+
+		default:
+			return ""
+		// Generic, Dispute, Suspension, SuspensionCancel
+	}
+}
+
+export async function showManageThroughAppStoreDialog(): Promise<void> {
+	const confirmed = await Dialog.confirm(
+		lang.getTranslation("storeSubscription_msg", {
+			"{AppStorePayment}": InfoLink.AppStorePayment,
+		}),
+	)
+	if (confirmed) {
+		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+	}
+}

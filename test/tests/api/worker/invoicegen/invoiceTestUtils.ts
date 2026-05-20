@@ -1,6 +1,7 @@
 import { createTestEntity } from "../../../TestUtils.js"
 
 import { InvoiceDataItemTypeRef } from "@tutao/entities/sys"
+
 /**
  * Produces a bulk list of mocked InvoiceItems
  * @param amountOfEntries

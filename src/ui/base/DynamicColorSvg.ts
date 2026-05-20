@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import { ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError } from "../../platform-kit/app-env"
 
 interface DynamicColorSvgAttrs {
 	path: string

@@ -1,16 +1,17 @@
 import o from "@tutao/otest"
-import { DateProvider } from "../../../../../src/utils/DateProvider.js"
-import { NewsModel } from "../../../../../src/common/misc/news/NewsModel.js"
+import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider.js"
+import { NewsModel } from "../../../../../src/applications/common/misc/news/NewsModel.js"
 import { object, replace, when } from "testdouble"
-import { ReferralLinkViewer } from "../../../../../src/common/misc/news/items/ReferralLinkViewer.js"
-import { getDayShifted } from "@tutao/utils"
-import { ReferralLinkNews } from "../../../../../src/common/misc/news/items/ReferralLinkNews.js"
-import { timestampToGeneratedId } from "../../../../../src/meta"
-import { UserController } from "../../../../../src/common/api/main/UserController.js"
-import { initCommonLocator } from "../../../../../src/common/api/main/CommonLocator.js"
-import { IMailLocator } from "../../../../../src/mail-app/mailLocator.js"
+import { ReferralLinkViewer } from "../../../../../src/applications/common/misc/news/items/ReferralLinkViewer.js"
+import { getDayShifted } from "../../../../../src/platform-kit/utils"
+import { ReferralLinkNews } from "../../../../../src/applications/common/misc/news/items/ReferralLinkNews.js"
+import { timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
+import { UserController } from "../../../../../src/applications/common/api/main/UserController.js"
+import { initCommonLocator } from "../../../../../src/applications/common/api/main/CommonLocator.js"
+import { IMailLocator } from "../../../../../src/applications/mail-app/mailLocator.js"
 
 import { Customer, User } from "@tutao/entities/sys"
+
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider
 	let newsModel: NewsModel

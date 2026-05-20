@@ -1,14 +1,15 @@
 import o from "@tutao/otest"
-import { OfflineStorageIndexer } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageIndexer"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade"
-import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
-import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler"
-import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
+import { OfflineStorageIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageIndexer"
+import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
+import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { MailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
+import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
+import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
-import { GroupMembershipTypeRef, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade

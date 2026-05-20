@@ -1,36 +1,37 @@
 import o from "@tutao/otest"
-import { CalendarInviteHandler, ReplyResult } from "../../../src/calendar-app/calendar/view/CalendarInvites.js"
+import { CalendarInviteHandler, ReplyResult } from "../../../src/applications/calendar-app/calendar/view/CalendarInvites.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { findAttendeeInAddresses } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { instance, matchers, verify, when } from "testdouble"
-import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
+import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { calendars, makeUserController } from "./CalendarTestUtils.js"
-import { UserController } from "../../../src/common/api/main/UserController.js"
-import { CalendarNotificationSender } from "../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
-import { SendMailModel } from "../../../src/common/mailFunctionality/SendMailModel.js"
-import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
-import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
-import { AccountType } from "../../../src/entities/sys"
+import { UserController } from "../../../src/applications/common/api/main/UserController.js"
+import { CalendarNotificationSender } from "../../../src/applications/calendar-app/calendar/view/CalendarNotificationSender.js"
+import { SendMailModel } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { CalendarEventProgenitor } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createMailAddress,
 	EncryptedMailAddressTypeRef,
 	Mail,
-	MailBoxTypeRef,
-	MailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
+	MailBoxTypeRef,
+	MailTypeRef,
 	UserSettingsGroupRootTypeRef,
-	createMailAddress,
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../src/entities/sys/Utils"
+
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
 		calendarInviteHandler: CalendarInviteHandler,

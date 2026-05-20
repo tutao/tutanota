@@ -1,11 +1,11 @@
-import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel.js"
-import { LazyLoaded } from "@tutao/utils"
-import { createNewContact, isTutaMailAddress } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { PresentableKeyVerificationState } from "../../../src/app-env"
-
-import { Contact, Recipient, RecipientType } from "@tutao/entities/tutanota"
-
+import { ResolvableRecipient } from "../../../src/applications/common/api/main/RecipientsModel.js"
+import { LazyLoaded } from "../../../src/platform-kit/utils"
+import { createNewContact, isTutaMailAddress } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
+import { PresentableKeyVerificationState } from "../../../src/platform-kit/app-env"
+import { Contact } from "@tutao/entities/tutanota"
 import { User } from "@tutao/entities/sys"
+import { Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
+
 /**
  * Creating actual ResolvableRecipients is annoying because you have to mock a bunch of stuff in other model classes
  */

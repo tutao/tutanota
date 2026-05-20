@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { evaluateRatingEligibility, isEventHappyMoment, RatingDisallowReason } from "../../../src/common/ratings/UserSatisfactionUtils.js"
-import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
+import { evaluateRatingEligibility, isEventHappyMoment, RatingDisallowReason } from "../../../src/applications/common/ratings/UserSatisfactionUtils.js"
+import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { object, verify, when } from "testdouble"
-import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
-import { UserController } from "../../../src/common/api/main/UserController.js"
-import { isApp } from "@tutao/app-env"
-import { PlanType } from "../../../src/entities/sys"
+import { CommonLocator, initCommonLocator } from "../../../src/applications/common/api/main/CommonLocator.js"
+import { UserController } from "../../../src/applications/common/api/main/UserController.js"
+import { isApp } from "../../../src/platform-kit/app-env"
+import { PlanType } from "../../../src/entities/sys/Utils"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()

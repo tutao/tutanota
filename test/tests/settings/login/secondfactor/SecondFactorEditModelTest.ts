@@ -5,16 +5,17 @@ import {
 	DEFAULT_U2F_NAME,
 	NameValidationStatus,
 	SecondFactorEditModel,
-} from "../../../../../src/common/settings/login/secondfactor/SecondFactorEditModel.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
-import { TotpSecret, TotpVerifier } from "@tutao/crypto"
-import { noOp } from "@tutao/utils"
-import { LoginFacade } from "../../../../../src/base/facades/LoginFacade.js"
-import { SecondFactorType } from "../../../../../src/app-env"
+} from "../../../../../src/applications/common/settings/login/secondfactor/SecondFactorEditModel.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
+import { WebauthnClient } from "../../../../../src/applications/common/misc/2fa/webauthn/WebauthnClient.js"
+import { TotpSecret, TotpVerifier } from "../../../../../src/platform-kit/crypto"
+import { noOp } from "../../../../../src/platform-kit/utils"
+import { LoginFacade } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
+import { SecondFactorType } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 
 import { GroupInfoTypeRef, User } from "@tutao/entities/sys"
+
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
 	const readableKey = TotpVerifier.readableKey(key)

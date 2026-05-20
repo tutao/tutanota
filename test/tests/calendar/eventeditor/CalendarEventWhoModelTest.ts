@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 
 import { matchers, object, replace, verify, when } from "testdouble"
-import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
-import { PresentableKeyVerificationState, ShareCapability } from "../../../../src/app-env"
-import { UserController } from "../../../../src/common/api/main/UserController.js"
-import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { RecipientsModel } from "../../../../src/applications/common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, ShareCapability } from "../../../../src/platform-kit/app-env"
+import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
+import { CalendarOperation, EventType } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
 	addCapability,
 	calendars,
@@ -22,24 +22,23 @@ import {
 	thirdAddress,
 	thirdRecipient,
 } from "../CalendarTestUtils.js"
-import { assertNotNull, downcast, neverNull } from "@tutao/utils"
-import { RecipientField } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { assertNotNull, downcast, neverNull } from "../../../../src/platform-kit/utils"
+import { RecipientField } from "../../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
+import { ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../TestUtils.js"
-import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
+import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { CalendarEventWhoModel } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 import {
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
-	EncryptedMailAddressTypeRef,
-	Recipient,
-	RecipientType,
-	UserSettingsGroupRootTypeRef,
 	createCalendarEventAttendee,
+	EncryptedMailAddressTypeRef,
+	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { AccountType, UserTypeRef } from "@tutao/entities/sys"
+import { UserTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus, Recipient, RecipientType } from "../../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../../src/entities/sys/Utils"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1

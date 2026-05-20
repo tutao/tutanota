@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 
-import { TemplateEditorModel } from "../../../src/mail-app/settings/TemplateEditorModel.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
-import { downcast } from "@tutao/utils"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
+import { downcast } from "../../../src/platform-kit/utils"
 import { LanguageNames, languages } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createTestEntity } from "../TestUtils.js"
 import { EmailTemplateContentTypeRef, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { TemplateEditorModel } from "../../../src/applications/mail-app/settings/TemplateEditorModel"
 
 o.spec("TemplateEditorModel", function () {
 	let entityClient: EntityClient

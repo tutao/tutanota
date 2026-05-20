@@ -1,14 +1,14 @@
 import o, { verify } from "@tutao/otest"
 
-import { getFirstOrThrow, neverNull, Require } from "@tutao/utils"
-import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { RepeatPeriod } from "../../../src/app-env"
+import { getFirstOrThrow, neverNull, Require } from "../../../src/platform-kit/utils"
+import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
+import { RepeatPeriod } from "../../../src/platform-kit/app-env"
 import { DateTime } from "luxon"
-import { EventController } from "../../../src/common/api/main/EventController.js"
+import { EventController } from "../../../src/applications/common/api/main/EventController.js"
 import { Notifications } from "../../../src/ui/Notifications.js"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
+import { ProgressTracker } from "../../../src/applications/common/api/main/ProgressTracker.js"
+import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
 import {
 	CachingMode,
 	CalendarEventAlteredInstance,
@@ -16,24 +16,21 @@ import {
 	CalendarEventUidIndexEntry,
 	CalendarFacade,
 	CreateCalendarEventsResult,
-} from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
-import { FileController } from "../../../src/common/file/FileController.js"
+} from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
+import { FileController } from "../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
-import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { ExternalCalendarFacade } from "../../../src/native-bridge/common/generatedipc/types/ExternalCalendarFacade.js"
-import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
-import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
+import { MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { ExternalCalendarFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types/ExternalCalendarFacade.js"
+import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
+import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker.js"
 import { LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel.js"
-import { NativePushServiceApp } from "../../../src/common/native/NativePushServiceApp.js"
-import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest"
+import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
+import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
-import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/common/calendar/gui/ImportExportUtils"
-import { OperationProgressTracker } from "../../../src/common/api/main/OperationProgressTracker"
-
-import { ProgressMonitorInterface } from "@tutao/network"
-import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/applications/common/calendar/gui/ImportExportUtils"
+import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
@@ -47,24 +44,26 @@ import {
 } from "@tutao/entities/tutanota"
 import {
 	AlarmInfoTypeRef,
+	createDateWrapper,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMember,
-	GroupMemberTypeRef,
 	GroupMembership,
 	GroupMembershipTypeRef,
-	GroupType,
+	GroupMemberTypeRef,
 	GroupTypeRef,
 	MailAddressAlias,
 	RepeatRuleTypeRef,
 	User,
 	UserAlarmInfoListType,
 	UserAlarmInfoTypeRef,
-	createDateWrapper,
 } from "@tutao/entities/sys"
-import { clone, elementIdPart, getListId, listIdPart } from "@tutao/meta"
+import { clone, elementIdPart, getListId, listIdPart } from "../../../src/platform-kit/meta"
+import { ProgressMonitorInterface } from "../../../src/platform-kit/network/ProgressMonitorInterface"
+import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { GroupType } from "../../../src/entities/sys/Utils"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 
-import { EntityUpdateData } from "@tutao/instance-pipeline"
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
 

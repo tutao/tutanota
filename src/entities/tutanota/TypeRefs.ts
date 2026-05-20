@@ -1,16 +1,14 @@
-import { TypeRef } from "../../meta/TypeRef.js"
-import { create, StrippedEntity } from "../../meta/EntityUtils.js"
+import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
+import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
-import * as sysTypeRefs from "../sys/TypeRefs.js"
-
-type Blob = sysTypeRefs.Blob
-type BucketKey = sysTypeRefs.BucketKey
-type BlobReferenceTokenWrapper = sysTypeRefs.BlobReferenceTokenWrapper
-type DateWrapper = sysTypeRefs.DateWrapper
-type StringWrapper = sysTypeRefs.StringWrapper
-type GeneratedIdWrapper = sysTypeRefs.GeneratedIdWrapper
-type IdTupleWrapper = sysTypeRefs.IdTupleWrapper
-type InstanceSessionKey = sysTypeRefs.InstanceSessionKey
+import { Blob } from '../sys/TypeRefs.js'
+import { BucketKey } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { DateWrapper } from '../sys/TypeRefs.js'
+import { StringWrapper } from '../sys/TypeRefs.js'
+import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
+import { IdTupleWrapper } from '../sys/TypeRefs.js'
+import { InstanceSessionKey } from '../sys/TypeRefs.js'
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 

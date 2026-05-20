@@ -20,7 +20,7 @@
 		"preinstall": "node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
-		"generate-ipc": "tsc --build src/tsconfig.licc.json && node build/licc/cli.js ipc-schema && npm run style:fix",
+		"generate-ipc": "tsc --build buildSrc/licc/tsconfig.licc.json && node build/licc/cli.js ipc-schema && npm run style:fix",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
 		"lint:check": "eslint . --cache --cache-location cache/eslint",
