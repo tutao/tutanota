@@ -239,6 +239,10 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 											"div.small",
 											{ style: { color: localTheme.on_surface_variant } },
 											lang.getTranslationText(priceHintLabel ?? "pricing.perUserMonth_label"),
+											(discountDetail?.discountType === "GlobalFirstYear" ||
+												discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
+												isYearly &&
+												m("sup", { style: { "font-size": px(8) } }, "1"),
 										),
 									]),
 						),

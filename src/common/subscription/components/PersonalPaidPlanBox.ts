@@ -2,7 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { component_size, font_size, px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/utils"
-import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/app-env"
+import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType } from "@tutao/app-env"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
 import { isLightTheme, theme, Theme } from "../../gui/theme.js"
@@ -18,7 +18,6 @@ import { boxShadowHigh } from "../../gui/main-styles"
 import { DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getCampaignTheme, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import { PlanTypeToName } from "@tutao/typerefs"
-import { PlanType } from "@tutao/app-env"
 
 type PersonalPlanBoxAttrs = {
 	planConfig: PlanConfig
@@ -261,7 +260,9 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
 							m("span", getPriceHintStr()),
-							discountDetail?.discountType === "GlobalFirstYear" && isYearly && m("sup", { style: { "font-size": px(8) } }, "1"),
+							(discountDetail?.discountType === "GlobalFirstYear" || discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
+								isYearly &&
+								m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 					),
 				]),

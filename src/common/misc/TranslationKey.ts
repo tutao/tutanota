@@ -2270,3 +2270,5 @@ export type TranslationKeyType =
 	| "setAsSenderNameForPrimaryAddress_label"
 	| "incorrectRecoveryCodeFormat_msg"
 	| "emptyString_msg"
+	| "pricing.bonusMonthAndGlobalFirstYear_label"
+	| "pricing.firstYearDiscountOnly_msg"
