@@ -260,7 +260,9 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
 							m("span", getPriceHintStr()),
-							discountDetail?.discountType === "GlobalFirstYear" && isYearly && m("sup", { style: { "font-size": px(8) } }, "1"),
+							(discountDetail?.discountType === "GlobalFirstYear" || discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
+								isYearly &&
+								m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 					),
 				]),

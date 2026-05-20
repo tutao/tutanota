@@ -2273,3 +2273,5 @@ export type TranslationKeyType =
 	| "dark_green_label"
 	| "driveNotEnabled_msg"
 	| "emptyString_msg"
+	| "pricing.bonusMonthAndGlobalFirstYear_label"
+	| "pricing.firstYearDiscountOnly_msg"

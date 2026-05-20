@@ -2274,6 +2274,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"pricing.bonusMonthAndGlobalFirstYear_label": "+{months} months free & {amount} discount",
+		"pricing.firstYearDiscountOnly_msg": "Discount only applies for the first year."
 	}
 }

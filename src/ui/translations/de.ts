@@ -2274,6 +2274,8 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"pricing.bonusMonthAndGlobalFirstYear_label": "+{months} Monat(e) & {amount} Rabatt",
+		"pricing.firstYearDiscountOnly_msg": "Der Rabatt gilt nur für das erste Jahr."
 	}
 }

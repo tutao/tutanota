@@ -21,7 +21,7 @@ import Stream from "mithril/stream"
 
 export type DiscountDetail = {
 	ribbonTranslation: Translation
-	discountType: "BonusMonths" | "IndividualFirstYear" | "Permanent" | "GlobalFirstYear"
+	discountType: "BonusMonths" | "BonusMonthsAndGlobalFirstYear" | "IndividualFirstYear" | "Permanent" | "GlobalFirstYear"
 }
 
 export type DiscountDetails = Partial<Record<PlanType, DiscountDetail>>
@@ -162,7 +162,7 @@ export function hasRelevantGlobalFirstYearCampaign(
 	return Object.entries(discountDetails)
 		.filter(([planName, _]) => isRelevantNewPlanName(planName, subscriptionType))
 		.map((v) => v[1])
-		.some((v) => v.discountType === "GlobalFirstYear")
+		.some((v) => v.discountType === "GlobalFirstYear" || v.discountType === "BonusMonthsAndGlobalFirstYear")
 }
 
 export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider: PriceAndConfigProvider): DiscountDetails {

@@ -10,7 +10,6 @@ import stream from "mithril/stream"
 import { theme } from "../../../ui/theme.js"
 import { boxShadowHigh } from "../../../ui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
@@ -74,24 +73,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 		options.businessUse(!isPersonalPlanAvailable(availablePlans) ? true : options.businessUse())
 		const renderFootnoteElement = (): Children => {
-			const getLegendPriceStrProps = {
-				priceAndConfigProvider,
-				paymentInterval: PaymentInterval.Yearly,
-				targetPlan: PlanType.Legend,
-			}
-			const { referencePriceStr: legendRefPriceStr } = isApplePrice ? getApplePriceStr(getLegendPriceStrProps) : getPriceStr(getLegendPriceStrProps)
-
-			if (!options.businessUse() && hasRelevantGlobalFirstYearCampaign(discountDetails ?? null)) {
-				return m(
-					".flex.column-gap-4",
-					m("span", m("sup", "1")),
-					m(
-						"span",
-						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_msg" : "pricing.firstYearDiscount_msg", {
-							"{price}": legendRefPriceStr ?? "",
-						}),
-					),
-				)
+			if (hasRelevantGlobalFirstYearCampaign(discountDetails ?? null, options.businessUse() ? SubscriptionType.Business : SubscriptionType.Personal)) {
+				return m(".flex.column-gap-4", m("span", m("sup", "1")), m("span", lang.get("pricing.firstYearDiscountOnly_msg")))
 			}
 
 			return undefined
