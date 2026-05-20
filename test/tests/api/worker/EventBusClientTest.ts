@@ -29,6 +29,7 @@ import {
 import { WebsocketConnectivityListener } from "../../../../src/network/WebsocketConnectivityListener"
 import { LastProcessedEventBatchProvider } from "../../../../src/network/LastProcessedEventBatchProvider"
 import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,
 	patches: null,

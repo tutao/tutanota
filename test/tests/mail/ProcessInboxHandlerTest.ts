@@ -27,6 +27,7 @@ import {
 import { isSameId } from "@tutao/meta"
 
 import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
+
 const { captor, anything } = matchers
 
 o.spec("ProcessInboxHandlerTest", function () {

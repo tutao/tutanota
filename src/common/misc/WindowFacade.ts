@@ -5,7 +5,6 @@ import { LoginController } from "../api/main/LoginController.js"
 import type { KeyboardSizeListener, WindowSizeListener } from "../../ui/utils/WindowUtils"
 import type { IWindowFacade } from "../../ui/IWindowFacade"
 import { lang } from "../../ui/utils/LanguageViewModel"
-import { Dialog } from "../../ui/base/Dialog"
 import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
 import { client } from "../../app-env/boot/ClientDetector"
 

@@ -1,6 +1,5 @@
 import n from "../nodemocker.js"
-import o from "@tutao/otest"
-import { makeTimeoutMock, spy } from "@tutao/otest"
+import o, { makeTimeoutMock, spy } from "@tutao/otest"
 import { Socketeer } from "../../../src/common/desktop/Socketeer.js"
 
 o.spec("Socketeer Test", function () {

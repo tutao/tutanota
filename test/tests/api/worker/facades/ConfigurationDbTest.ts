@@ -20,6 +20,7 @@ import { Metadata } from "../../../../../src/common/api/worker/search/IndexTable
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota"
 
 import { UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 

@@ -40,6 +40,7 @@ import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ProgrammingError } from "@tutao/app-env"
+
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
 }

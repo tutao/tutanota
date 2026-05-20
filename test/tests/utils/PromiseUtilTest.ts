@@ -1,6 +1,5 @@
 import o, { verify } from "@tutao/otest"
-import { delay, mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseFilter, promiseMap } from "@tutao/utils"
-import { defer } from "@tutao/utils"
+import { defer, delay, mapInCallContext, PromisableWrapper as PromiseableWrapper, promiseFilter, promiseMap } from "@tutao/utils"
 import { func, matchers, when } from "testdouble"
 
 function mockDeferMapper() {

@@ -15,7 +15,7 @@ import {
 import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
-import { ApplicationTypesGetOut, ServerModelInfo, ServerModels, compressString, decompressString } from "@tutao/instance-pipeline"
+import { ApplicationTypesGetOut, compressString, decompressString, ServerModelInfo, ServerModels } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "@tutao/app-env"
 import { FileFacade } from "../../../src/native-bridge/common/generatedipc/types/FileFacade.js"

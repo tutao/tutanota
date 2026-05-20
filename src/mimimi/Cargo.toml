@@ -18,9 +18,9 @@ test-with-local-http-server = []
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.16.13", default-features = false, features = [
-	"napi9",
-	"async",
-	"tokio_rt",
+    "napi9",
+    "async",
+    "tokio_rt",
 ] }
 napi-derive = { version = "2.16.13", optional = true }
 mail-parser = { version = "0.10.2", features = ["full_encoding"] }

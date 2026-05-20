@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import { parseCsv } from "../../../src/common/misc/parsing/CsvParser.js"
+
 o.spec("Parser combinator test", function () {})
 o.spec("CSV parsing test", function () {
 	o("Parse good csv no quotes no empty columns no surrounding spaces", function () {

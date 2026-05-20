@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { getElementId, EntityIdEncoding, sortCompareById, timestampToGeneratedId } from "../../../src/meta"
+import { EntityIdEncoding, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/meta"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/ui/base/List.js"

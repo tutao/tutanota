@@ -13,9 +13,10 @@ import { TrustDBEntry } from "../../../../src/local-store/IdentityKeyTrustDataba
 import { ProgrammingError } from "@tutao/app-env"
 import { DesktopSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types/DesktopSystemFacade.js"
 import { withOverriddenEnv } from "../../TestUtils"
-import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, IdentityKeySourceOfTrust, Mode } from "../../../../src/app-env"
+import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Mode } from "../../../../src/app-env"
 import { SigningPublicKey } from "../../../../src/crypto/encryption/Ed25519"
 import { PublicKeyIdentifierType } from "@tutao/crypto"
+
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade

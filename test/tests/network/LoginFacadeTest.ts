@@ -40,6 +40,7 @@ import { AccountType } from "../../../src/entities/sys"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
 	ChangeKdfService,
+	createSaltReturn,
 	CreateSessionReturnTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
@@ -50,7 +51,6 @@ import {
 	User,
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
-	createSaltReturn,
 } from "@tutao/entities/sys"
 import { CredentialType } from "@tutao/network/types"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/base/crypto/Constants.js"

@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import { urlify } from "../../../../src/common/api/worker/Urlifier.js"
+
 o.spec("UrlifierTest", function () {
 	o.test(" validHtmlLinks", function () {
 		// html links

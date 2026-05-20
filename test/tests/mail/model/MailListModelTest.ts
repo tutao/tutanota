@@ -32,20 +32,21 @@ import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
 import { MailSetKind } from "../../../../src/entities/tutanota"
 import {
+	createMailSetEntry,
 	Mail,
+	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailSet,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
-	createMailSetEntry,
 } from "@tutao/entities/tutanota"
 import { OperationType } from "@tutao/meta"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+
 o.spec("MailListModel", () => {
 	let model: MailListModel
 

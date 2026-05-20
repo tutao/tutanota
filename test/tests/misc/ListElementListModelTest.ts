@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { getElementId, getListId, EntityIdEncoding, sortCompareById } from "../../../src/meta"
+import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "../../../src/meta"
 import { defer, DeferredObject } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"

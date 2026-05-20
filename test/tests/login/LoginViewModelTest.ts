@@ -26,6 +26,7 @@ import { Credentials } from "../../../src/network/types"
 import { CredentialType } from "@tutao/network/types"
 
 import { GroupInfoTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 const { anything } = matchers
 
 /**

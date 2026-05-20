@@ -28,9 +28,6 @@ import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
 	CalendarEventRefTypeRef,
-	MissedNotificationTypeRef,
-	NotificationSessionKeyTypeRef,
-	SseConnectDataTypeRef,
 	createAlarmInfo,
 	createAlarmNotification,
 	createCalendarEventRef,
@@ -38,6 +35,9 @@ import {
 	createMissedNotification,
 	createNotificationInfo,
 	createNotificationSessionKey,
+	MissedNotificationTypeRef,
+	NotificationSessionKeyTypeRef,
+	SseConnectDataTypeRef,
 	sysTypeModels,
 } from "@tutao/entities/sys"
 

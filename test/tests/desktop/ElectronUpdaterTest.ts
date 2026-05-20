@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import type { App } from "electron"
 import type { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { delay, downcast } from "@tutao/utils"
@@ -11,7 +11,6 @@ import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../src/ui/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FsExports } from "../../../src/common/desktop/ElectronExportTypes.js"
-import { spy } from "@tutao/otest"
 
 lang.init(en)
 

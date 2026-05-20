@@ -6,6 +6,7 @@ import { createTestEntity } from "../TestUtils.js"
 import { aes256RandomKey, encryptKey } from "@tutao/crypto"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
+
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache
 	let facade: UserFacade

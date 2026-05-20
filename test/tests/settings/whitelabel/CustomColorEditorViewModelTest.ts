@@ -13,6 +13,7 @@ import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/ui/theme"
 import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/ui/WhitelabelCustomizations"
 
 import { DomainInfoTypeRef, WhitelabelConfigTypeRef } from "@tutao/entities/sys"
+
 o.spec("CustomColorEditorViewModel", () => {
 	let model: CustomColorsEditorViewModel
 	let themeController: ThemeController

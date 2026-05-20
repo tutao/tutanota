@@ -5,6 +5,7 @@ import { extractCityName, extractPostalCode, XRechnungInvoiceGenerator } from ".
 import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "@tutao/entities/sys"
+
 o.spec("XRechnungInvoiceGenerator", function () {
 	o("xrechnung generation for japanese invoice noVat 2_items", async function () {
 		const invoiceData = createTestEntity(InvoiceDataGetOutTypeRef, {

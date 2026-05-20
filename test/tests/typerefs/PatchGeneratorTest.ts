@@ -12,25 +12,23 @@ import {
 } from "../instance-pipeline/InstancePipelineTestUtils"
 
 import {
+	areValuesDifferent,
 	ClientTypeReferenceResolver,
+	computePatches,
 	InstancePipeline,
 	PatchOperationType,
 	ServerTypeReferenceResolver,
-	areValuesDifferent,
-	computePatches,
 } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../src/meta"
+import { AttributeModel, ClientModelEncryptedParsedInstance, ClientTypeModel, GENERATED_MAX_ID, GENERATED_MIN_ID, ValueType } from "../../../src/meta"
 
 import { createTestEntityWithDummyResolver } from "../TestUtils"
-import { ClientModelEncryptedParsedInstance, ClientTypeModel } from "../../../src/meta"
-import { AttributeModel } from "../../../src/meta"
-import { ValueType } from "../../../src/meta"
 
 import { object } from "testdouble"
 
 import { createPatch } from "@tutao/entities/sys"
+
 o.spec("computePatches", function () {
 	const dummyTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver
 	const dummyInstancePipeline = new InstancePipeline(

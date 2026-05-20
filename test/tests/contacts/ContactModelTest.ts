@@ -16,6 +16,7 @@ import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "@
 import { TypeModelResolver } from "@tutao/instance-pipeline"
 
 import { GroupMembershipTypeRef, RootInstanceTypeRef, UserTypeRef } from "@tutao/entities/sys"
+
 o.spec("ContactModel", () => {
 	let entityMock: EntityRestClientMock
 	let entityClient: EntityClient

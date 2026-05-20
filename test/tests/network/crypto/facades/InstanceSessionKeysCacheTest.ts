@@ -5,6 +5,7 @@ import { InstanceSessionKeysCache } from "../../../../../src/local-store/Instanc
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
+
 o.spec("InstanceSessionKeysCacheTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache
 	let testMail: Mail

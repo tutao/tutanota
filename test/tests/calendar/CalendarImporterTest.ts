@@ -37,7 +37,8 @@ import {
 	createEncryptedMailAddress,
 } from "@tutao/entities/tutanota"
 
-import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef, createRepeatRule } from "@tutao/entities/sys"
+import { AlarmInfo, AlarmInfoTypeRef, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
 

@@ -32,6 +32,7 @@ import {
 import { isSameId } from "@tutao/meta"
 
 import { UserTypeRef } from "@tutao/entities/sys"
+
 const { anything } = matchers
 
 o.spec("SpamClassificationHandlerTest", function () {

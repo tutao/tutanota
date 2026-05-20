@@ -16,6 +16,7 @@ import { clone } from "../../../../src/meta"
 import { PlanType } from "../../../../src/entities/sys"
 
 import { MailAddressAliasTypeRef } from "@tutao/entities/sys"
+
 o.spec("MailAddressTableModel", function () {
 	let model: MailAddressTableModel
 	let nameChanger: MailAddressNameChanger

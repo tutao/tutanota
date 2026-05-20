@@ -32,19 +32,19 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
+	createContact,
 	Mail,
 	MailAddressTypeRef,
+	MailboxGroupRootTypeRef,
+	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	MailboxGroupRootTypeRef,
-	MailboxPropertiesTypeRef,
 	NotificationMailTypeRef,
 	RecipientsTypeRef,
 	SendDraftReturnTypeRef,
 	TutanotaPropertiesTypeRef,
-	createContact,
 } from "@tutao/entities/tutanota"
 import {
 	ChallengeTypeRef,
@@ -56,7 +56,7 @@ import {
 	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { OperationType, isSameId, isSameTypeRef } from "@tutao/meta"
+import { isSameId, isSameTypeRef, OperationType } from "@tutao/meta"
 
 const { anything, argThat } = matchers
 

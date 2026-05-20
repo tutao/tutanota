@@ -11,9 +11,9 @@ import {
 import { object } from "testdouble"
 import { clone } from "@tutao/meta"
 
-import { CalendarAttendeeStatus } from "@tutao/entities/tutanota"
 import {
 	AdvancedRepeatRuleTypeRef,
+	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
@@ -23,6 +23,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("makeCalendarEventFromIcsCalendarEvent", function () {
 		let icsEvent: IcsCalendarEvent
