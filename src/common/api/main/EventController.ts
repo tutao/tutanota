@@ -5,7 +5,7 @@ import Stream from "mithril/stream"
 import { assertMainOrNode } from "@tutao/app-env"
 import { ProgressTracker } from "./ProgressTracker"
 import { ProgressMonitorId } from "../../../network/ProgressMonitorInterface"
-import { EntityEventsListener, EntityUpdateData } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationStatusUpdate, WebsocketCounterData } from "@tutao/entities/sys"
 
 assertMainOrNode()

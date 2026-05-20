@@ -25,7 +25,7 @@ import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
 import { keyManager } from "../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { isSameId, listIdPart } from "@tutao/meta"
 
 assertMainOrNode()

@@ -1,5 +1,5 @@
 import { OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { CustomerPropertiesTypeRef, CustomerServerProperties, CustomerServerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
 import { assertMainOrNode } from "@tutao/app-env"

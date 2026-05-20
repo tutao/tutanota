@@ -25,7 +25,7 @@ import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { IdentityKeyCreator } from "../../../base/crypto/IdentityKeyCreator"
 import { isSameId } from "../../../meta"
 import { SigningPublicKey } from "../../../crypto/encryption/Ed25519"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { GroupTypeRef } from "@tutao/entities/sys"
 
 /**

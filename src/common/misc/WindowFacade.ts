@@ -124,7 +124,6 @@ export class WindowFacade implements IWindowFacade {
 				}
 			})
 		}
-		this.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
 		// call the resize listeners once to make sure everyone
 		// has the current window size once we're done initializing
 		this._resize()

@@ -81,7 +81,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
 import { haveSameId, isSameId, OperationType } from "@tutao/meta"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 
 export const enum ContentBlockingStatus {

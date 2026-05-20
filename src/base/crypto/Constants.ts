@@ -1,4 +1,4 @@
-import { CryptoProtocolVersion, GroupKeyRotationType, reverse } from "../../app-env"
+import { CryptoProtocolVersion, GroupKeyRotationType, reverse } from "@tutao/app-env"
 import { PublicKeyIdentifierType } from "@tutao/crypto"
 
 export const enum BucketPermissionType {

@@ -1,4 +1,3 @@
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
 import { LazyLoaded, memoized, noOp } from "@tutao/utils"
@@ -26,6 +25,7 @@ import { theme } from "../../../ui/theme.js"
 import { IconButton } from "../../../ui/base/IconButton.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 const className = "group-list"

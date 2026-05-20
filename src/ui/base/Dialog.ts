@@ -76,13 +76,6 @@ export interface TextInputDialogParams {
 	selectionRange?: [number, number]
 }
 
-/**
- * TODO (modularization)
- * Stop using it statically and rather have a DialogFactory that is stored on locator.
- * Remove references to WindowFacade afterwards and inject.
- *
- * move to ui/base/
- */
 export class Dialog implements ModalComponent {
 	private static keyboardHeight: number = 0
 	private domDialog: HTMLElement | null = null
@@ -1177,6 +1170,7 @@ export class Dialog implements ModalComponent {
 }
 
 export type stringValidator = (arg0: string) => (TranslationKey | null) | Promise<TranslationKey | null>
+
 function getUnsubscribeImageSuffix(themeId: string): ThemeId {
 	switch (themeId) {
 		case "light":

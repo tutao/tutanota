@@ -20,7 +20,7 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 
 assertMainOrNode()

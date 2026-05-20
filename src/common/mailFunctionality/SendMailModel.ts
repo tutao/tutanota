@@ -1,6 +1,6 @@
 import { ApprovalStatus, assertMainOrNode, daysToMillis, minutesToMillis, ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Attachment,
 	CalendarAttendeeStatus,

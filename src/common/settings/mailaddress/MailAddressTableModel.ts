@@ -18,7 +18,7 @@ import {
 	isUpdateFor,
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
-} from "../../../instance-pipeline/EntityUpdateUtils"
+} from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
 
 export enum AddressStatus {

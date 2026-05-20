@@ -49,7 +49,7 @@ import { OutOfSyncError } from "../../../app-env/OutOfSyncError"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembership, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getMembershipGroupType } from "../../../common/sharing/GroupUtils"
 
 export type InitParams = {

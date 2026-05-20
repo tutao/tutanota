@@ -77,7 +77,7 @@ import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "@tutao/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
-import { initClientModels } from "../ClientModelInfoInitializer"
+import { initClientModels } from "../api/common/ClientModelInfoInitializer"
 
 mp()
 

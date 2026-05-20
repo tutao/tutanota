@@ -34,7 +34,12 @@ import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import {
+	EntityEventsListener,
+	EntityUpdateData,
+	isUpdateForTypeRef,
+	OnEntityUpdateReceivedPriority,
+} from "../../../../instance-pipeline/utils/EntityUpdateUtils.js"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 const SEARCH_PAGE_SIZE = 100

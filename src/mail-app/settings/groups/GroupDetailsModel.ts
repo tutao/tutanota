@@ -22,7 +22,7 @@ import {
 } from "@tutao/entities/sys"
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GENERATED_MIN_ID, isSameId, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class GroupDetailsModel {
 	groupInfo: GroupInfo

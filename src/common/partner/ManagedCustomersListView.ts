@@ -22,7 +22,7 @@ import { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
 import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
 import { CustomerInfo, CustomerInfoTypeRef, PartnerManagedCustomerTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { elementIdPart, listIdPart } from "@tutao/meta"
 
 assertMainOrNode()

@@ -169,7 +169,7 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "../instance-pipeline/EntityFunctions"
-import { initClientModels } from "../common/ClientModelInfoInitializer"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNode()
 

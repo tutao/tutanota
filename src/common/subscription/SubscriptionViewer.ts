@@ -79,7 +79,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24

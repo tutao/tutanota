@@ -109,7 +109,7 @@ import { ServiceExecutor } from "../../../network/ServiceExecutor"
 import { Credentials } from "@tutao/network/types"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { Challenge, UserTypeRef } from "@tutao/entities/sys"
-import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 
 assertWorkerOrNode()

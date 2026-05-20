@@ -15,7 +15,6 @@ import { EventController } from "../api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
 import { isOfflineError } from "@tutao/rest-client/error"
 import { SuspensionBehavior } from "@tutao/rest-client/types"
-import { ClientTypeModelResolver, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
 	createUsageTestAssignmentIn,
@@ -29,6 +28,8 @@ import {
 	UsageTestParticipationService,
 } from "@tutao/entities/usage"
 import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
+import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 const PRESELECTED_LIKERT_VALUE = null
 

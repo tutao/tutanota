@@ -1,11 +1,10 @@
-import { PostLoginAction } from "../../../common/api/main/LoginController"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull } from "@tutao/utils"
 import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
+import { LoggedInEvent, PostLoginAction } from "../../../native-bridge/common/PostLoginAction.js"
 
 /**
  * Initialize SpamClassifier if FeatureType.SpamClientClassification feature is enabled for the customer.

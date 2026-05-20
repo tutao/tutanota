@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
 import { groupByAndMap, isEmpty, promiseFilter } from "@tutao/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { Mail, MailSet, MailSetEntry, MailSetKind } from "@tutao/entities/tutanota"
 import { elementIdPart, getElementId, listIdPart } from "@tutao/meta"
 

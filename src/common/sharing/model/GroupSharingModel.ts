@@ -17,7 +17,7 @@ import type { ShareFacade } from "../../../base/facades/lazy/ShareFacade.js"
 import type { GroupManagementFacade } from "../../../base/facades/lazy/GroupManagementFacade.js"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { MailAddress, Recipient, RecipientType } from "@tutao/entities/tutanota"
 import { Group, GroupInfo, GroupMember, GroupMemberTypeRef, GroupTypeRef, SentGroupInvitation, SentGroupInvitationTypeRef } from "@tutao/entities/sys"
 

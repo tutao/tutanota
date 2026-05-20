@@ -1,4 +1,4 @@
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { CustomerPropertiesTypeRef, GroupInfo, Session, SessionTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"

@@ -13,7 +13,7 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 import { isExpectedErrorForSynchronization, isOfflineError } from "@tutao/rest-client/error"
 import { Mail, MailSet, MailSetEntry, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	compareNewestFirst,
 	CUSTOM_MAX_ID,

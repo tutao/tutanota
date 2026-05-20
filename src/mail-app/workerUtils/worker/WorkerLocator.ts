@@ -127,7 +127,7 @@ import { LastProcessedEventBatchProvider } from "../../../network/LastProcessedE
 import { ServiceExecutor } from "../../../network/ServiceExecutor"
 import { Credentials } from "@tutao/network/types"
 import { EntityRestInterface } from "../../../network/EntityRestCacheInterface"
-import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 
 assertWorkerOrNode()
 

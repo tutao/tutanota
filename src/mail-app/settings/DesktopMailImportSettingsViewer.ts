@@ -22,7 +22,7 @@ import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { ImportStatus, MailSet, MailSetKind } from "@tutao/entities/tutanota"
 import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "@tutao/entities/sys"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "@tutao/meta"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.

@@ -6,23 +6,15 @@ import { getWhitelabelCustomizations } from "../../../ui/utils/WhitelabelUtils.j
 import * as restError from "@tutao/rest-client/error"
 import type { LoginFacade, NewSessionData } from "../../../base/facades/LoginFacade"
 import { ResumeSessionErrorReason } from "../../../base/facades/LoginFacade"
-import { LoggedInEvent } from "../../../native-bridge/common/PostLoginAction.js"
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
 import { CacheMode } from "../../../network/EntityRestClient"
 import { Credentials } from "@tutao/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../base/crypto/Constants"
+import { PostLoginAction } from "../../../native-bridge/common/PostLoginAction"
 
 assertMainOrNodeBoot()
-
-export interface PostLoginAction {
-	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
-	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
-
-	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
-	onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
-}
 
 export type ResumeSessionResult = { type: "success" } | { type: "error"; reason: ResumeSessionErrorReason }
 

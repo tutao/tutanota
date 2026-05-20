@@ -137,7 +137,7 @@ import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties 
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 import { GroupType } from "@tutao/entities/sys"
 import { KdfType } from "../base/crypto/Constants"
-import { initClientModels } from "../common/ClientModelInfoInitializer"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNode()
 

@@ -73,9 +73,9 @@ import { shouldHideBusinessPlans } from "../../common/subscription/utils/Subscri
 import { ButtonType } from "../../ui/base/Button"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../ui/Header"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority, EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

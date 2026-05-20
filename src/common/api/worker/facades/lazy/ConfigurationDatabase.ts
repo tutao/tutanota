@@ -33,7 +33,7 @@ import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spa
 import { b64UserIdHash } from "../../utils/DbUtils"
 import { ExternalImageRule, NewsletterBannerRule } from "@tutao/entities/tutanota"
 import { User, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
 
 const VERSION: number = 5

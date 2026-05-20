@@ -25,8 +25,8 @@ import { keyManager } from "../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { isSameId } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { EmailTemplate, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

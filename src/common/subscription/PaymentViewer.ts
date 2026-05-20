@@ -45,12 +45,12 @@ import {
 	NewPaidPlans,
 	PaymentMethodType,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting } from "@tutao/entities/accounting"
 import { CustomerAccountService } from "../../entities/accounting/Services"
 import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

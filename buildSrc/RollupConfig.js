@@ -54,7 +54,7 @@ export const allowedImports = {
 	"common-min": ["polyfill-helpers", "boot"],
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
-	"gui-base": ["polyfill-helpers", "common-min", "common", "boot", "worker"],
+	"gui-base": ["polyfill-helpers", "common-min", "common", "boot", "worker", "main"],
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
@@ -173,7 +173,7 @@ export const allowedImports = {
 	],
 	jszip: ["polyfill-helpers"],
 	"worker-lazy": ["common-min", "common", "worker", "worker-search", "date"],
-	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
+	"worker-search": ["common-min", "common", "worker", "worker-lazy", "sharing"],
 	linkify: [],
 	qr: ["polyfill-helpers"],
 	pdf: ["common-min", "qr"],
@@ -275,6 +275,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (isIn("src/common/gui/base")) {
 		// these gui elements are used from everywhere
 		return "gui-base"
+	} else if (isIn("src/common/gui/CountryList.ts")) {
+		return "common"
 	} else if (isIn("src/common/native/wizard")) {
 		return "setup-wizard"
 	} else if (isIn("src/common/native") || isIn("src/mail-app/native/main") || moduleId.includes("SearchInPageOverlay")) {
@@ -316,10 +318,11 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm-fallback"
 	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js")) {
 		return "spam-classifier"
-	} else if (isIn("src/mail-app/workerUtils/worker")
-		|| isIn("src/calendar-app/worker")
-		|| isIn("src/mail-app/workerUtils/offline")
-		|| isIn("src/drive-app/workerUtils")
+	} else if (
+		isIn("src/mail-app/workerUtils/worker") ||
+		isIn("src/calendar-app/worker") ||
+		isIn("src/mail-app/workerUtils/offline") ||
+		isIn("src/drive-app/workerUtils")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
@@ -386,6 +389,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "linkify"
 	} else if (isIn("src/common/api/worker/pdf") || isIn("src/common/api/worker/invoicegen") || isIn("src/common/api/worker/recoveryDocumentGenerator")) {
 		return "pdf"
+	} else if (isIn("src/common/api/worker/utils")) {
+		return "common"
 	} else if (isIn("src/common/api/worker") || moduleId.includes("argon2")) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
@@ -398,7 +403,14 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "drive"
 	} else if (isIn("src/utils")) {
 		return "common-min"
-	} else if (isIn("src/meta") || isIn("src/rest-client/error.ts")) {
+	} else if (
+		isIn("src/meta") ||
+		isIn("src/rest-client/error.ts") ||
+		isIn("src/instance-pipeline/utils") ||
+		isIn("src/ui/utils") ||
+		isIn("src/base/crypto/Constants.ts") ||
+		isIn("src/crypto/CryptoTypes.ts")
+	) {
 		return "common"
 	} else if (isIn("src/rest-client") || isIn("src/crypto") || isIn("src/instance-pipeline")) {
 		return "worker"

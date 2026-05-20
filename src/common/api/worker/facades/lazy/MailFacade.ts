@@ -175,7 +175,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../base/crypto/Constants.js"
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>

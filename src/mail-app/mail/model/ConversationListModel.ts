@@ -34,7 +34,7 @@ import {
 	listIdPart,
 	OperationType,
 } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * Organizes mails into conversations and handles state upkeep.

@@ -1,5 +1,5 @@
 import { clone, getElementId, getListId, isSameId, listIdPart, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
 import { CustomerInfoTypeRef, GroupInfo, GroupType, NewPaidPlans, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import {

@@ -16,7 +16,7 @@ import { DefaultAnimationTime } from "../../../ui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonType } from "../../../ui/base/Button"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef, PaymentMethodType, PlanType } from "@tutao/entities/sys"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
 import { CountryType } from "../../gui/CountryList"
 

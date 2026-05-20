@@ -8,7 +8,7 @@ import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 import { GroupType } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(

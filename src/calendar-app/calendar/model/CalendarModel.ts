@@ -131,7 +131,7 @@ import {
 	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../utils/Utils"
 import { formatNotificationForDisplay } from "../../../ui/utils/Formatter"

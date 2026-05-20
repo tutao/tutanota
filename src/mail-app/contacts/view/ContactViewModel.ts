@@ -10,7 +10,7 @@ import { Router } from "../../../ui/ScopedRouter.js"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getElementId } from "@tutao/meta"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {

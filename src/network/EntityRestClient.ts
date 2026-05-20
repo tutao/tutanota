@@ -34,7 +34,7 @@ import {
 import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
 import { computePatchPayload } from "../instance-pipeline/PatchGenerator"
 import { PatchListTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { BlobServerUrl } from "@tutao/entities/storage"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
 import { isOfflineError, LoginIncompleteError } from "@tutao/rest-client/error"

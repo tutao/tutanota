@@ -26,7 +26,7 @@ import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupType } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

@@ -111,6 +111,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				exclude: "src/**",
 			}),
 			minify && terser(),
+			bundleDependencyCheckPlugin(),
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
 			// bundleDependencyCheckPlugin(),
@@ -208,6 +209,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 				tsconfig: "tsconfig-dist-rollup.json",
 				outDir: buildDir,
 			}),
+			bundleDependencyCheckPlugin(),
 			minify && terser(),
 			{
 				name: "sw-banner",

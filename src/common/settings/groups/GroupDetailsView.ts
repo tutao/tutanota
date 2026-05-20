@@ -1,4 +1,4 @@
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import m, { ChildArray, Children } from "mithril"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"

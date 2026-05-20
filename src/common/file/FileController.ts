@@ -13,7 +13,7 @@ import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { ArchiveDataType } from "@tutao/entities/sys"
 import { DataFile, FileReference, WebFile } from "@tutao/entities/tutanota"
 import { TransferId } from "@tutao/entities/drive"
-import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile"
+import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile.js"
 import { createReferencingInstance, DownloadableFileEntity } from "@tutao/entities/storage"
 
 assertMainOrNode()

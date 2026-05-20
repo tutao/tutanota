@@ -4,7 +4,7 @@ import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { isBrowser } from "@tutao/app-env"
-import { EntityUpdateData } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.

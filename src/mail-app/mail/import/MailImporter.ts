@@ -16,7 +16,7 @@ import { OpenSettingsHandler } from "../../../common/native/OpenSettingsHandler.
 import { Dialog } from "../../../ui/base/Dialog"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { mailLocator } from "../../mailLocator"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { elementIdPart, GENERATED_MIN_ID, isSameId } from "@tutao/meta"
 
 // keep in sync with napi binding.d.cts
