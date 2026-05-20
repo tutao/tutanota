@@ -11,10 +11,10 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../network/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { ActionBar } from "../../ui/base/ActionBar.js"
-import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
 import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
 import { EmailTemplate, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	// we're not memoizing the translated language name since this is not a proper mithril component and may stick around after a language

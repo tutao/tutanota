@@ -1,7 +1,7 @@
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, client, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { AppType, assertMainOrNodeBoot, bootFinished, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull } from "@tutao/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -22,6 +22,8 @@ import { styles } from "../ui/styles"
 import { AppHeaderAttrs } from "../ui/Header"
 import { DRIVE_PREFIX } from "../ui/utils/RouteChange"
 import { TopLevelAttrs, TopLevelView } from "../ui/base/TopLevelView"
+import { client } from "../app-env/boot/ClientDetector"
+import { initUiSingletons } from "../common/app-common"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -66,6 +68,7 @@ import("../ui/translations/en.js")
 		await driveLocator.init()
 
 		initCommonLocator(driveLocator)
+		await initUiSingletons(windowFacade, driveLocator.themeController)
 
 		// this needs to stay after client.init
 		windowFacade.init(driveLocator.logins, driveLocator.connectivityModel)

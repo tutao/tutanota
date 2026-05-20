@@ -1,7 +1,7 @@
 import o, { assertThrows, spy } from "@tutao/otest"
 import { MailExportController } from "../../../../src/mail-app/native/main/MailExportController.js"
 import { matchers, object, verify, when } from "testdouble"
-import { HtmlSanitizer } from "../../../../src/common/gui/utils/HtmlSanitizer.js"
+import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "../../../../src/native-bridge/common/generatedipc/types/ExportFacade.js"
 import { MailboxExportState } from "../../../../src/native-bridge/common/generatedipc/types/MailboxExportState.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"

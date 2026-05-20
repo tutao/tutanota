@@ -16,7 +16,6 @@ import { EventQueue } from "../../../network/EventQueue.js"
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import {
 	_encryptKeyWithVersionedKey,
 	aes256EncryptSearchIndexEntry,
@@ -47,10 +46,9 @@ import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedD
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../app-env/OutOfSyncError"
 import { MailTypeRef } from "@tutao/entities/tutanota"
-import { GroupMembership, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { getMembershipGroupType, GroupMembership, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
-import { getMembershipGroupType } from "../../../common/sharing/GroupUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export type InitParams = {
 	user: User
@@ -582,5 +580,15 @@ export class IndexedDbIndexer implements Indexer {
 
 	async rebuildMailIndex() {
 		await this.mailIndexer.rebuildIndex(this.initParams.user)
+	}
+}
+
+function deleteObjectStores(db: IDBDatabase, ...oss: string[]) {
+	for (let os of oss) {
+		try {
+			db.deleteObjectStore(os)
+		} catch (e) {
+			console.warn("Error while deleting old os", os, "ignoring", e)
+		}
 	}
 }

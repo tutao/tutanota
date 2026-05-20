@@ -7,7 +7,7 @@ import { noOp, promiseMap } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { SignupViewModel } from "../signup/SignupView"
 import { component_size, px } from "../../ui/size"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 
 export interface PaypalButtonNewAttrs {

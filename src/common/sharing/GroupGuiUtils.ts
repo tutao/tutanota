@@ -1,8 +1,8 @@
 import type { MaybeTranslation, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { lang } from "../../ui/utils/LanguageViewModel"
-import { getDefaultGroupName, ShareableGroupType } from "./GroupUtils"
 import type { lazy } from "@tutao/utils"
-import { GroupType, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { GroupType, ReceivedGroupInvitation, ShareableGroupType } from "@tutao/entities/sys"
+import { getDefaultGroupName } from "./GroupUtils"
 
 export type GroupSharingTexts = {
 	readonly groupNameLabel: TranslationKey

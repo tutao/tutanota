@@ -21,7 +21,7 @@ import { debounce, downcast, neverNull } from "@tutao/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { TemplateSearchBar } from "./TemplateSearchBar.js"
 import { Editor } from "../../../ui/editor/Editor"
-import { getSharedGroupName, hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils"
+import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
 import { createInitialTemplateListIfAllowed } from "../TemplateGroupUtils.js"
 import { getConfirmation } from "../../../ui/base/GuiUtils"
 import { ScrollSelectList } from "../../../ui/ScrollSelectList"
@@ -31,6 +31,7 @@ import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_CO
 import { PosRect } from "../../../ui/utils/PosRect"
 import { WindowSizeListener } from "../../../ui/utils/WindowUtils"
 import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { hasCapabilityOnGroup } from "@tutao/entities/sys"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

@@ -8,7 +8,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
-import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { getAttendeeStatus, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { difference, noOp, ofClass } from "@tutao/utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
@@ -19,7 +19,6 @@ import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeSta
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "@tutao/app-env"
-import { getAttendeeStatus } from "../../../base/utils_todo_move_elsewhere/CalendarUtils.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */

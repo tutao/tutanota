@@ -1,5 +1,5 @@
 import { DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
+import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import {
 	_encryptKeyWithVersionedKey,
 	Aes128Key,
@@ -14,6 +14,7 @@ import {
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
+	sha256Hash,
 	VersionedKey,
 } from "@tutao/crypto"
 import { UserFacade } from "../../../../../base/facades/UserFacade.js"
@@ -30,10 +31,9 @@ import { KeyLoaderFacade } from "../../../../../base/crypto/KeyLoaderFacade.js"
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
-import { b64UserIdHash } from "../../utils/DbUtils"
 import { ExternalImageRule, NewsletterBannerRule } from "@tutao/entities/tutanota"
 import { User, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
 
 const VERSION: number = 5
@@ -532,4 +532,8 @@ async function addAddressToNewsletterBannerList(db: DbFacade, encryptedAddress: 
 		}
 		throw e
 	}
+}
+
+export function b64UserIdHash(userId: Id): string {
+	return uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(userId)))
 }

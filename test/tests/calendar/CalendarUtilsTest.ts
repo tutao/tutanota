@@ -40,7 +40,6 @@ import {
 	prepareCalendarDescription,
 	serializeAlarmInterval,
 } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { hasCapabilityOnGroup } from "../../../src/common/sharing/GroupUtils.js"
 import { getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
 import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
@@ -54,7 +53,7 @@ import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarM
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { AccountType } from "../../../src/entities/sys"
+import { AccountType, hasCapabilityOnGroup } from "../../../src/entities/sys"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,

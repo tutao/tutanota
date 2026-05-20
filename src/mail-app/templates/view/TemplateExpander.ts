@@ -5,7 +5,7 @@ import { TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
 import { memoized } from "@tutao/utils"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { theme } from "../../../ui/theme.js"
 import { EmailTemplate } from "@tutao/entities/tutanota"
 

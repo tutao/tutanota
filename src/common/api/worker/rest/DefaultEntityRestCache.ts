@@ -61,7 +61,7 @@ import {
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()

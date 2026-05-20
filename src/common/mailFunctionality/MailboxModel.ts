@@ -7,7 +7,7 @@ import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import * as restError from "@tutao/rest-client/error"
 import { isSameId, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,

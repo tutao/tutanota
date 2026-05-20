@@ -27,9 +27,9 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { MainStyles } from "../ui/main-styles"
 import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../ui/utils/RouteChange"
+import { initUiSingletons } from "../common/app-common"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -77,9 +77,7 @@ import("../ui/translations/en.js")
 		await calendarLocator.init()
 
 		initCommonLocator(calendarLocator)
-
-		const mainStyles = new MainStyles(calendarLocator.themeController, windowFacade)
-		mainStyles.init()
+		await initUiSingletons(windowFacade, calendarLocator.themeController)
 
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)

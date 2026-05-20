@@ -3,15 +3,7 @@ import * as restError from "@tutao/rest-client/error"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "../meta"
 import { assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
-import {
-	EntityAdapter,
-	EntityUpdateData,
-	entityUpdateToUpdateData,
-	InstancePipeline,
-	LoggedInUserProvider,
-	SessionKeyResolver,
-	TypeModelResolver,
-} from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "./Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ProgressMonitorId, ProgressMonitorInterface } from "./ProgressMonitorInterface.js"
@@ -36,6 +28,7 @@ import {
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 

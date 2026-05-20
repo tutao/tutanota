@@ -33,7 +33,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { User } from "@tutao/entities/sys"
 import { isFolder } from "../../mail/MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day

@@ -1,5 +1,5 @@
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
-import { getHtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { assertMainOrNode } from "@tutao/app-env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"

@@ -4,7 +4,7 @@ import { EntityClient } from "../../../network/EntityClient.js"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { UserFacade } from "../../../base/facades/UserFacade"
 import { ContactListTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class ContactIndexer {
 	constructor(

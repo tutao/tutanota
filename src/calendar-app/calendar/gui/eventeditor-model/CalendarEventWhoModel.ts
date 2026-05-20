@@ -6,7 +6,6 @@ import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
-import { hasCapabilityOnGroup } from "../../../../common/sharing/GroupUtils.js"
 import { UserController } from "../../../../common/api/main/UserController.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { CalendarOperation, EventType } from "./CalendarEventModel.js"
@@ -28,7 +27,9 @@ import {
 	RecipientType,
 } from "@tutao/entities/tutanota"
 import { clone, haveSameId, Stripped } from "@tutao/meta"
-import { getAttendeeStatus } from "../../../../base/utils_todo_move_elsewhere/CalendarUtils"
+
+import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
+import { hasCapabilityOnGroup } from "@tutao/entities/sys"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {

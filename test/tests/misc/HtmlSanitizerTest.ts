@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { getCssValueUrls, HtmlSanitizer, parseSrcsetUrls } from "../../../src/common/gui/utils/HtmlSanitizer.js"
+import { getCssValueUrls, HtmlSanitizer, parseSrcsetUrls } from "../../../src/common/misc/HtmlSanitizer.js"
 
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { textIncludes } from "../TestUtils"

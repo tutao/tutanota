@@ -44,7 +44,7 @@ import {
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "../../../meta/EntityTypes"
 
 assertMainOrNode()

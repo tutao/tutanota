@@ -1,6 +1,6 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { assertMainOrNode, client, isAdminClient, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -8,8 +8,9 @@ import { hexToRGBAString } from "./base/Color"
 import { goEuropeanBlue } from "./builtinThemes"
 import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
-import type { ThemeController } from "./ThemeController"
 import type { IWindowFacade } from "./IWindowFacade.js"
+import { ThemeController } from "./ThemeController"
+import { client } from "../app-env/boot/ClientDetector"
 
 assertMainOrNode()
 

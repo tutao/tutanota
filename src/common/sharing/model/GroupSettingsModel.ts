@@ -15,10 +15,10 @@
  */
 import { getEtId, isSameId } from "@tutao/meta"
 import { createGroupSettings, GroupSettings } from "@tutao/entities/tutanota"
-import { GroupInfo, GroupTypeRef } from "@tutao/entities/sys"
+import { GroupInfo, GroupTypeRef, isSharedGroupOwner } from "@tutao/entities/sys"
 import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../../network/EntityClient"
-import { getCustomSharedGroupName, getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../GroupUtils"
+import { getCustomSharedGroupName, getSharedGroupName, loadGroupMembers } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 

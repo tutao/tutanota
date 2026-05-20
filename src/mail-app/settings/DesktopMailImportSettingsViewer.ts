@@ -4,7 +4,7 @@ import { IconButton, IconButtonAttrs } from "../../ui/base/IconButton"
 import { ButtonSize } from "../../ui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { client, UpgradePromptType } from "@tutao/app-env"
+import { UpgradePromptType } from "@tutao/app-env"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../ui/utils/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
@@ -22,7 +22,8 @@ import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { ImportStatus, MailSet, MailSetKind } from "@tutao/entities/tutanota"
 import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "@tutao/entities/sys"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "@tutao/meta"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { client } from "../../app-env/boot/ClientDetector"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.

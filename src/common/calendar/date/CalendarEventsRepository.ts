@@ -41,7 +41,7 @@ import {
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 

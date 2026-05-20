@@ -32,7 +32,7 @@ import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDi
 import { createMoreActionButtonAttrs, getConfirmation } from "../../ui/base/GuiUtils"
 import { SidebarSection } from "../../ui/SidebarSection"
 import { ReceivedGroupInvitationsModel } from "../../common/sharing/model/ReceivedGroupInvitationsModel"
-import { getNullableSharedGroupName, getSharedGroupName, isSharedGroupOwner } from "../../common/sharing/GroupUtils"
+import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sharing/GroupUtils"
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
 import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
@@ -50,7 +50,7 @@ import { styles } from "../../ui/styles.js"
 import { MobileHeader } from "../../ui/MobileHeader.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
 import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
-import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupType, ReceivedGroupInvitation, User } from "@tutao/entities/sys"
+import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupType, isSharedGroupOwner, ReceivedGroupInvitation, User } from "@tutao/entities/sys"
 import { Dialog } from "../../ui/base/Dialog.js"
 import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
@@ -73,9 +73,9 @@ import { shouldHideBusinessPlans } from "../../common/subscription/utils/Subscri
 import { ButtonType } from "../../ui/base/Button"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../ui/Header"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority, EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

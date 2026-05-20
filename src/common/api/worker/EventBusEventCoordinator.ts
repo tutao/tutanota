@@ -22,8 +22,8 @@ import {
 	UserTypeRef,
 	WebsocketCounterData,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {

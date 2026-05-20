@@ -7,7 +7,7 @@ import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
 import { Button, ButtonType } from "../../ui/base/Button"
 import { CustomerInfo, PlanType } from "@tutao/entities/sys"
-import { EntityUpdateData } from "@tutao/instance-pipeline"
+import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

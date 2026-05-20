@@ -1,7 +1,6 @@
 import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { RestClient, restError } from "@tutao/rest-client"
-import type { BrowserData } from "@tutao/app-env"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
 import { CryptoFacade } from "../../../base/crypto/CryptoFacade.js"
@@ -52,6 +51,7 @@ import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade
 import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 import { EntityRestInterface } from "../../../network/EntityRestCacheInterface"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

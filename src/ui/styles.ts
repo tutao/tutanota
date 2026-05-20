@@ -1,9 +1,10 @@
 import { Cat, log, timer } from "./utils/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, client, isAdminClient, isTest } from "@tutao/app-env"
+import { assertMainOrNodeBoot, isAdminClient, isTest } from "@tutao/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { ThemeController } from "./ThemeController.js"
+import { client } from "../app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"

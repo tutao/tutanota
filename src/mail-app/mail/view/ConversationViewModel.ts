@@ -23,7 +23,7 @@ import { MailModel } from "../model/MailModel.js"
 
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 

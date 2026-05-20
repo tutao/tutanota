@@ -1,6 +1,6 @@
 import { Commands, Request, Transport } from "../../../native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../../../native-bridge/common/threading/WebTransport.js"
-import { assertMainOrNode, client } from "@tutao/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
@@ -11,6 +11,7 @@ import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../native-bridge/shared/MessageDispatcher.js"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 assertMainOrNode()
 

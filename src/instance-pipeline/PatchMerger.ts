@@ -24,7 +24,7 @@ import {
 import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "../entities/sys/TypeRefs"
-import { EntityUpdateData } from "./EntityUpdateUtils"
+import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>

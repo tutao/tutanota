@@ -399,7 +399,7 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async sanitizeDescription(): Promise<void> {
-		const { getHtmlSanitizer } = await import("../../../../common/gui/utils/HtmlSanitizer.js")
+		const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 		this.sanitizedDescription = prepareCalendarDescription(
 			this.calendarEvent.description,
 			(s) =>

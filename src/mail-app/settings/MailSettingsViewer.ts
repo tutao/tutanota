@@ -72,9 +72,9 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
 import { OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "@tutao/instance-pipeline"
 import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../ui/base/Button"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()
 

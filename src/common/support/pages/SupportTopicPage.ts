@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { getHtmlSanitizer, HtmlSanitizer } from "../../gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../../ui/utils/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../../ui/base/Dialog.js"

@@ -8,7 +8,7 @@ import { CATEGORY_TO_IMAGE, CATEGORY_TO_REASON, getCategoryType } from "./Leavin
 import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { styles } from "../../ui/styles.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
-import { getHtmlSanitizer } from "../gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
 export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurveyData> {
 	private _dom: HTMLElement | null = null

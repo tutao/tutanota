@@ -5,7 +5,7 @@ import { createDropdown } from "../../ui/base/Dropdown.js"
 import { mapNullable } from "@tutao/utils"
 import { getWhitelabelCustomizations } from "../../ui/utils/WhitelabelUtils.js"
 import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
-import { LanguageDropdown } from "../settings/LanguageDropdown"
+import { LanguageDropdown } from "./LanguageDropdown"
 import { isApp } from "@tutao/app-env"
 import { deviceConfig } from "../misc/DeviceConfig"
 

@@ -22,7 +22,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode, isApp, isIOSApp, ProgrammingError } from "@tutao/app-env"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Contact,
 	ContactTypeRef,

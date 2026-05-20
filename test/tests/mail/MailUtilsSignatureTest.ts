@@ -1,7 +1,7 @@
 import o, { mockAttribute, unmockAttribute } from "@tutao/otest"
 import { downcast } from "@tutao/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
-import { getHtmlSanitizer } from "../../../src/common/gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { appendEmailSignature, prependEmailSignature } from "../../../src/mail-app/mail/signature/Signature.js"
 import { LINE_BREAK } from "../../../src/common/mailFunctionality/SharedMailUtils.js"

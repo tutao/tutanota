@@ -734,13 +734,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	/**
 	 * @returns True if the merging was canceled by the user, false otherwise
 	 */
-	_showMergeDialogs(mergable: Contact[][]): Promise<boolean> {
+	async _showMergeDialogs(mergable: Contact[][]): Promise<boolean> {
 		let canceled = false
 
 		if (mergable.length > 0) {
 			let contact1 = mergable[0][0]
 			let contact2 = mergable[0][1]
-			let mergeDialog = new ContactMergeView(contact1, contact2)
+			const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+			let mergeDialog = new ContactMergeView(getHtmlSanitizer(), contact1, contact2)
 			return mergeDialog
 				.show()
 				.then((action) => {

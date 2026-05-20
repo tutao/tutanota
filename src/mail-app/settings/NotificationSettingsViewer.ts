@@ -18,7 +18,7 @@ import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerMod
 import { noOp, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null

@@ -9,7 +9,6 @@ import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/Cus
 import type { CounterFacade } from "../../../network/CounterFacade.js"
 import { EventBusClient } from "../../../network/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import type { BrowserData } from "@tutao/app-env"
 import {
 	assertWorkerOrNode,
 	Const,
@@ -127,7 +126,8 @@ import { LastProcessedEventBatchProvider } from "../../../network/LastProcessedE
 import { ServiceExecutor } from "../../../network/ServiceExecutor"
 import { Credentials } from "@tutao/network/types"
 import { EntityRestInterface } from "../../../network/EntityRestCacheInterface"
-import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

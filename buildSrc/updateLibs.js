@@ -12,6 +12,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import child_process from "node:child_process"
 import { promisify } from "node:util"
 import alias from "@rollup/plugin-alias"
+import { bundleDependencyCheckPlugin } from "./RollupConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -215,6 +216,7 @@ async function rollDesktopDep(src, target, banner) {
 			commonjs({
 				ignore: ["node:sqlite"],
 			}),
+			bundleDependencyCheckPlugin(),
 		],
 		onwarn: (warning, defaultHandler) => {
 			if (warning.code === "CIRCULAR_DEPENDENCY") {

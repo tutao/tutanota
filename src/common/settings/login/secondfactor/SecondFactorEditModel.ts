@@ -6,7 +6,7 @@ import { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { isApp, ProgrammingError, SecondFactorType } from "@tutao/app-env"
 import { LoginFacade } from "../../../../base/facades/LoginFacade.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { getHtmlSanitizer } from "../../../gui/utils/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import QRCode from "qrcode-svg"
 import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from "@tutao/entities/sys"
 

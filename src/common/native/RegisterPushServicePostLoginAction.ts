@@ -1,7 +1,6 @@
 import { NativePushServiceApp } from "./NativePushServiceApp"
 import { DeviceConfig } from "../misc/DeviceConfig"
-import { PostLoginAction } from "../api/main/LoginController"
-import { LoggedInEvent } from "../../native-bridge/common/PostLoginAction"
+import { LoggedInEvent, PostLoginAction } from "../../native-bridge/common/PostLoginAction"
 
 export class RegisterPushServicePostLoginAction implements PostLoginAction {
 	constructor(

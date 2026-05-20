@@ -49,7 +49,7 @@ import {
 	SystemFolderType,
 } from "@tutao/entities/tutanota"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
 
 interface MailboxSets {

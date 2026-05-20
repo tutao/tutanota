@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { downloadMailBundle } from "../../../../src/mail-app/mail/export/Bundler.js"
 
-import { HtmlSanitizer } from "../../../../src/common/gui/utils/HtmlSanitizer.js"
+import { HtmlSanitizer } from "../../../../src/common/misc/HtmlSanitizer.js"
 import { EntityClient } from "../../../../src/network/EntityClient.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { matchers, object, verify, when } from "testdouble"

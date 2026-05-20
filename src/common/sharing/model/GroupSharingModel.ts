@@ -6,8 +6,7 @@ import { getElementId, getEtId, isSameId, OperationType } from "@tutao/meta"
 import { ProgrammingError, ShareCapability } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
 import { findAndRemove, lazy, noOp, ofClass, promiseMap } from "@tutao/utils"
-import type { GroupMemberInfo } from "../GroupUtils"
-import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
+import { loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
 import { lang } from "../../../ui/utils/LanguageViewModel"
@@ -17,9 +16,20 @@ import type { ShareFacade } from "../../../base/facades/lazy/ShareFacade.js"
 import type { GroupManagementFacade } from "../../../base/facades/lazy/GroupManagementFacade.js"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { MailAddress, Recipient, RecipientType } from "@tutao/entities/tutanota"
-import { Group, GroupInfo, GroupMember, GroupMemberTypeRef, GroupTypeRef, SentGroupInvitation, SentGroupInvitationTypeRef } from "@tutao/entities/sys"
+import {
+	Group,
+	GroupInfo,
+	GroupMember,
+	GroupMemberInfo,
+	GroupMemberTypeRef,
+	GroupTypeRef,
+	hasCapabilityOnGroup,
+	isSharedGroupOwner,
+	SentGroupInvitation,
+	SentGroupInvitationTypeRef,
+} from "@tutao/entities/sys"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo

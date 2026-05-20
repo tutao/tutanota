@@ -1,7 +1,6 @@
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import {
 	assertWorkerOrNode,
-	BrowserData,
 	Const,
 	getWebsocketBaseUrl,
 	isAndroidApp,
@@ -74,7 +73,7 @@ import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificatio
 import { DeviceEncryptionFacade } from "../../../base/crypto/DeviceEncryptionFacade"
 import { NativeInterface } from "../../../native-bridge/common/NativeInterface"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { initClientModels } from "../../../common/ClientModelInfoInitializer"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { ServiceExecutor } from "../../../network/ServiceExecutor"
 import { EntityRestClient } from "../../../network/EntityRestClient"
 import {
@@ -107,6 +106,7 @@ import { Credentials } from "@tutao/network/types"
 import { AesApp } from "../../../native-bridge/worker/AesApp"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
 import { LastProcessedEventBatchProvider } from "../../../network/LastProcessedEventBatchProvider"
+import { BrowserData } from "../../../app-env/boot/ClientConstants"
 
 assertWorkerOrNode()
 

@@ -18,7 +18,7 @@ import { IconButtonAttrs } from "../../ui/base/IconButton.js"
 import { Icons } from "../../ui/base/icons/Icons.js"
 import { ButtonSize } from "../../ui/base/ButtonSize.js"
 import { EmailTemplate, KnowledgeBaseEntry, TemplateGroupRoot } from "@tutao/entities/tutanota"
-import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 /**
  *  Editor to edit / add a knowledgeBase entry

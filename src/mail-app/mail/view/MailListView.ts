@@ -267,7 +267,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			new Set(downloaded.map((f) => f.fileName)),
 		)
 
-		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const htmlSanitizer = getHtmlSanitizer()
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename

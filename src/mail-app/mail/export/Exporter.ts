@@ -72,7 +72,7 @@ export async function exportMails(
 			if (cancelled) throw new CancelledError("export cancelled")
 		}
 
-		const { getHtmlSanitizer } = await import("../../../common/gui/utils/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const htmlSanitizer = getHtmlSanitizer()
 		const mailChunks = splitInChunks<Mail>(EXPORT_CHUNK_SIZE, mails)
 		for (const [index, mailsChunk] of mailChunks.entries()) {

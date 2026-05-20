@@ -1,5 +1,5 @@
 import { clone, getElementId, getListId, isSameId, listIdPart, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "@tutao/instance-pipeline"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
 import { CustomerInfoTypeRef, GroupInfo, GroupType, NewPaidPlans, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import {
@@ -33,6 +33,7 @@ import {
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
+	getWeekStart,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 	isEventBetweenDays,
@@ -67,7 +68,6 @@ import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { ProgressMonitorInterface } from "../../../network/ProgressMonitorInterface"
-import { getWeekStart } from "../../../base/utils_todo_move_elsewhere/CalendarUtils"
 
 export interface EventWrapperFlags {
 	/**

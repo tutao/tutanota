@@ -77,7 +77,6 @@ import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { CalendarEventModel, CalendarOperation } from "./calendar/gui/eventeditor-model/CalendarEventModel.js"
@@ -106,7 +105,7 @@ import { isCustomizationEnabledForCustomer } from "../common/api/common/utils/Cu
 import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../ui/ThemeController.js"
-import type { HtmlSanitizer } from "../common/gui/utils/HtmlSanitizer.js"
+import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../ui/theme.js"
 import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
@@ -135,9 +134,9 @@ import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType, ShareableGroupType } from "@tutao/entities/sys"
 import { KdfType } from "../base/crypto/Constants"
-import { initClientModels } from "../common/ClientModelInfoInitializer"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNode()
 
@@ -825,7 +824,7 @@ class CalendarLocator implements CommonLocator {
 		const lazySanitizer =
 			env.mode === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-				: () => import("../common/gui/utils/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
+				: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar, this.whitelabelThemeGenerator)
 

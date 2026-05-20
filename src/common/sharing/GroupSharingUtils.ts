@@ -1,9 +1,9 @@
 import { locator } from "../api/main/CommonLocator"
 import { showProgressDialog } from "../../ui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
-import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
+import { getDefaultGroupName, getSharedGroupName } from "./GroupUtils"
 import { getDefaultSender, getSenderNameForUser, isAliasEnabledWithUser } from "../mailFunctionality/SharedMailUtils.js"
-import { GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { getInvitationGroupType, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { MailMethod, PartialRecipient, VerificationRecipients } from "@tutao/entities/tutanota"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
@@ -81,7 +81,7 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation,
 }
 
 function _sendNotificationEmail(recipients: VerificationRecipients, subject: string, body: string, senderMailAddress: string) {
-	import("../gui/utils/HtmlSanitizer").then(({ getHtmlSanitizer }) => {
+	import("../misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => {
 		const sanitizedBody = getHtmlSanitizer().sanitizeHTML(body, {
 			blockExternalContent: false,
 			allowRelativeLinks: false,

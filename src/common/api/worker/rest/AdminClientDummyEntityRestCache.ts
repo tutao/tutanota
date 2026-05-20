@@ -2,7 +2,7 @@ import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityRestCache } from "../../../../network/EntityRestCacheInterface"
 import { EntityRestClientLoadOptions } from "../../../../network/EntityRestClient"
-import { EntityUpdateData } from "../../../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class AdminClientDummyEntityRestCache implements EntityRestCache {
 	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {

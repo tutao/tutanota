@@ -9,7 +9,7 @@ import { Button, ButtonType } from "../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../ui/base/Expander"
 import { downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { client, ErrorReportClientType, isApp, isBrowser, isDesktop, Keys, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
+import { isApp, isBrowser, isDesktop, Keys, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
 import { copyToClipboard } from "../../ui/utils/ClipboardUtils"
 import { px } from "../../ui/size"
 import { createLogFile } from "../api/common/Logger.js"
@@ -19,6 +19,8 @@ import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 import { ConversationType, DataFile, MailMethod, RecipientType } from "@tutao/entities/tutanota"
 import { AccountType } from "@tutao/entities/sys"
 import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService } from "@tutao/entities/monitor"
+import { client } from "../../app-env/boot/ClientDetector"
+import { ErrorReportClientType } from "../../app-env/boot/ClientConstants"
 
 type FeedbackContent = {
 	message: string

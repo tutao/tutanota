@@ -205,6 +205,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			commonjs(),
 			disableMinify ? undefined : terser(),
+			// bundleDependencyCheckPlugin(),
 			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
 		],
 	})

@@ -20,8 +20,8 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
-import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
+import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, hasCapabilityOnGroup, isSharedGroupOwner } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
@@ -186,7 +186,6 @@ export class ContactModel {
 		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
 		const userController = this.loginController.getUserController()
 		const { getSharedGroupName } = await import("../sharing/GroupUtils.js")
-		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../sharing/GroupUtils.js")
 
 		return {
 			name: getSharedGroupName(groupInfo, userController.userSettingsGroupRoot, true),

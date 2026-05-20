@@ -17,7 +17,7 @@ import { IconButton } from "../../../ui/base/IconButton.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { Contact, ContactAddressType } from "@tutao/entities/tutanota"
 import { getContactSocialType } from "../ContactUtils"
-import { getHtmlSanitizer } from "../../../common/gui/utils/HtmlSanitizer"
+import { HtmlSanitizerInterface } from "../../../ui/utils/HtmlSanitizerInterface"
 
 export class ContactMergeView {
 	dialog: Dialog
@@ -27,7 +27,11 @@ export class ContactMergeView {
 
 	windowCloseUnsubscribe: Thunk | null = null
 
-	constructor(contact1: Contact, contact2: Contact) {
+	constructor(
+		private readonly htmlSanitizer: HtmlSanitizerInterface,
+		contact1: Contact,
+		contact2: Contact,
+	) {
 		this.contact1 = contact1
 		this.contact2 = contact2
 
@@ -76,7 +80,7 @@ export class ContactMergeView {
 			isReadOnly: true,
 		})
 		let emptyHTMLFieldPlaceholder = m(
-			new HtmlEditor(getHtmlSanitizer(), "emptyString_msg")
+			new HtmlEditor(this.htmlSanitizer, "emptyString_msg")
 				.showBorders()
 				.setValue("")
 				.setReadOnly(false)

@@ -10,7 +10,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { DropDownSelector } from "../../ui/base/DropDownSelector.js"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { EmailSignatureType, TutanotaProperties } from "@tutao/entities/tutanota"
-import { getHtmlSanitizer } from "../../common/gui/utils/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases

@@ -8,7 +8,7 @@ import { noOp, promiseMap } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import stream from "mithril/stream"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 
 export interface PaypalButtonAttrs {

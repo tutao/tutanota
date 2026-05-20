@@ -1,4 +1,7 @@
-import { reverse } from "@tutao/app-env"
+import { reverse, ShareCapability } from "@tutao/app-env"
+import { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "./TypeRefs"
+import { downcast } from "@tutao/utils"
+import { getEtId, isSameId } from "@tutao/meta"
 
 export enum GroupType {
 	User = "0",
@@ -166,4 +169,66 @@ export enum PaymentMethodType {
 	AppStore = "5",
 }
 
-export const PaymentMethodTypeToName = reverse(PaymentMethodType)
+export const PaymentMethodTypeToName = reverse(PaymentMethodType) // Group invitations without a type set were sent when Calendars were the only shareable kind of user group
+/**
+ * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
+ * @param user
+ * @param group
+ * @param requiredCapability
+ * @returns {boolean}
+ */
+export function hasCapabilityOnGroup(user: User, group: Group, requiredCapability: ShareCapability): boolean {
+	if (!isShareableGroupType(downcast(group.type))) {
+		return false
+	}
+
+	if (isSharedGroupOwner(group, user._id)) {
+		return true
+	}
+
+	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
+
+	if (membership) {
+		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
+	}
+
+	return false
+}
+
+export function isSharedGroupOwner(sharedGroup: Group, user: Id | User): boolean {
+	return !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
+}
+
+export type GroupMemberInfo = {
+	member: GroupMember
+	info: GroupInfo
+}
+
+export function getMemberCapability(memberInfo: GroupMemberInfo, group: Group): ShareCapability {
+	if (isSharedGroupOwner(group, memberInfo.member.user)) {
+		return ShareCapability.Invite
+	}
+
+	return downcast(memberInfo.member.capability)
+}
+
+export const GroupTypeNameByCode = reverse(GroupType)
+
+const DEFAULT_GROUP_TYPE = GroupType.Calendar
+
+export function getInvitationGroupType(invitation: ReceivedGroupInvitation): ShareableGroupType {
+	return invitation.groupType === null ? DEFAULT_GROUP_TYPE : (invitation.groupType as ShareableGroupType)
+}
+
+export function isTemplateGroup(groupType: GroupType): boolean {
+	return groupType === GroupType.Template
+}
+
+export type ShareableGroupType = GroupType.Calendar | GroupType.Template | GroupType.ContactList
+
+export function isShareableGroupType(groupType: GroupType): groupType is ShareableGroupType {
+	// Should be synchronised with GroupType::isShareableGroup in tutadb
+	return groupType === GroupType.Calendar || groupType === GroupType.Template || groupType === GroupType.ContactList
+}
+
+export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)

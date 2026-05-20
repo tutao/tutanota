@@ -25,7 +25,7 @@ class Modal implements Component {
 	private closingComponents: Array<ModalComponent>
 	private readonly historyEventListener = (e: Event) => this.popState(e)
 
-	// is initialized  via singeleton.ts suring app startup
+	// is initialized  via singeleton.ts during app startup
 	private windowFacade: IWindowFacade | null = null
 
 	constructor() {

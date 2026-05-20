@@ -31,7 +31,7 @@ import {
 	GroupInfo,
 	GroupInfoTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void

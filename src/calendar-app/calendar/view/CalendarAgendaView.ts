@@ -23,13 +23,14 @@ import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/Cale
 import { PageView } from "../../../ui/base/PageView.js"
 import { getIfLargeScroll } from "../../../ui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../ui/utils/KeyManager.js"
-import { client, Keys } from "@tutao/app-env"
+import { Keys } from "@tutao/app-env"
 import { MainCreateButton } from "../../../ui/MainCreateButton.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../ui/base/icons/Icons"
+import { client } from "../../../app-env/boot/ClientDetector"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
