@@ -1,63 +1,35 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, CancelledError, FeatureType, isApp, isDesktop, isIOSApp } from "../../../platform-kit/app-env"
-import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
-import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
 import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
-import { lang } from "../../../ui/utils/LanguageViewModel"
-import { LoginSettingsViewer } from "../../common/settings/login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
 import { UserListView } from "../../common/settings/UserListView.js"
-import { clone, getEtId } from "../../../platform-kit/meta"
 import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
-import { Icons } from "../../../ui/base/icons/Icons"
-import { theme } from "../../../ui/theme"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { LazyLoaded, partition, promiseMap } from "../../../platform-kit/utils"
-import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
-import type { NavButtonAttrs } from "../../../ui/base/NavButton.js"
-import { NavButtonColor } from "../../../ui/base/NavButton.js"
-import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
-import { layout_size } from "../../../ui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import { showGroupSharingDialog } from "../../common/sharing/view/GroupSharingDialog"
-import { createMoreActionButtonAttrs, getConfirmation } from "../../../ui/base/GuiUtils"
-import { SidebarSection } from "../../../ui/SidebarSection"
 import { ReceivedGroupInvitationsModel } from "../../common/sharing/model/ReceivedGroupInvitationsModel"
-import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sharing/GroupUtils"
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
-import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
 import { exportUserCsv, loadUserExportData } from "../../common/settings/UserDataExporter.js"
-import { IconButton } from "../../../ui/base/IconButton.js"
 import { BottomNav } from "../gui/BottomNav.js"
 import { getAvailableDomains } from "../../common/settings/mailaddress/MailAddressesUtils.js"
-import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
-import { TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { ReferralSettingsViewer } from "../../common/settings/ReferralSettingsViewer.js"
 import { LoginController } from "../../common/api/main/LoginController.js"
-import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
-import { styles } from "../../../ui/styles.js"
-import { MobileHeader } from "../../../ui/MobileHeader.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
-import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
-import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, ReceivedGroupInvitation, User } from "@tutao/entities/sys"
-import { GroupType, isSharedGroupOwner } from "../../../entities/sys/Utils"
-import { Dialog } from "../../../ui/base/Dialog.js"
+
 import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
 import { TemplateListView } from "./TemplateListView.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
-import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
@@ -65,15 +37,33 @@ import { DesktopMailImportSettingsViewer } from "./DesktopMailImportSettingsView
 import { KeyManagementSettingsViewer } from "../../common/settings/keymanagement/KeyManagementSettingsViewer.js"
 import { mailLocator } from "../mailLocator"
 import { WebMailImportSettingsViewer } from "./WebMailImportSettingsViewer.js"
-import { BaseButton } from "../../../ui/base/buttons/BaseButton"
 import { showSupportDialog } from "../../common/support/SupportDialog"
-import { Icon, IconSize } from "../../../ui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
 import { shouldHideBusinessPlans } from "../../common/subscription/utils/SubscriptionUtils"
-import { ButtonType } from "../../../ui/base/Button"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
+import { calendarSettings, loginSettings } from "../../common/settings/standardSettings"
+import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
+import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer"
+import { createMoreActionButtonAttrs, getConfirmation } from "../../../ui/base/GuiUtils"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { IconButton } from "../../../ui/base/IconButton"
+import { assertMainOrNode, CancelledError, FeatureType, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView"
+import { TopLevelView } from "../../../ui/base/TopLevelView"
+import { ViewSlider } from "../../../ui/nav/ViewSlider"
+import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
+import { LazyLoaded, partition, promiseMap } from "@tutao/utils"
+import { GroupType, isSharedGroupOwner } from "../../../entities/sys/Utils"
+import { SidebarSection } from "../../../ui/SidebarSection"
+import { layout_size } from "../../../ui/size"
+import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout"
+import { theme } from "../../../ui/theme"
+import { MobileHeader } from "../../../ui/MobileHeader"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sharing/GroupUtils"
+import { styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
 import {
@@ -82,6 +72,16 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
+import { clone, getEtId } from "@tutao/meta"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, ReceivedGroupInvitation, User } from "@tutao/entities/sys"
+import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
+import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
+import { Icon, IconSize } from "../../../ui/base/Icon.js"
+import { Dialog } from "../../../ui/base/Dialog.js"
+import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 
 assertMainOrNode()
@@ -115,13 +115,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		super()
 		this.logins = vnode.attrs.logins
 		this._userFolders = [
-			new SettingsFolder(
-				() => "login_label",
-				() => Icons.PersonFilled,
-				"login",
-				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
-				undefined,
-			),
+			loginSettings(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 			new SettingsFolder(
 				() => "email_label",
 				() => Icons.MailFilled,
@@ -136,6 +130,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => new ContactsSettingsViewer(),
 				undefined,
 			),
+			calendarSettings(locator.entityClient, locator.logins.getUserController()),
 			new SettingsFolder(
 				() => "appearanceSettings_label",
 				() => Icons.ColorpaletteFilled,
@@ -834,6 +829,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	_bottomSection(): Children {
 		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 
+		// @ts-ignore
 		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.gap-16", [
 			// Support button
 			m(BaseButton, {

@@ -1,21 +1,27 @@
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
+import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { ThemeController } from "../../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
-import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { SettingsViewSection } from "../../../common/settings/Interfaces"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { adminSettingsSection, appearanceSettings, loginSettings, subscriptionSettingsSection } from "../../../common/settings/standardSettings"
+import {
+	adminSettingsSection,
+	appearanceSettings,
+	calendarSettings,
+	loginSettings,
+	subscriptionSettingsSection,
+} from "../../../common/settings/standardSettings"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder"
-import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
 
 assertMainOrNode()
 
-export function makeCalendarSettings(
+export function makeCalendarAppSettings(
 	credentialsProvider: CredentialsProvider,
 	systemFacade: MobileSystemFacade,
 	entityClient: EntityClient,
@@ -28,12 +34,18 @@ export function makeCalendarSettings(
 	return [
 		{
 			name: lang.getTranslation("userSettings_label"),
-			settings: [loginSettings(credentialsProvider, systemFacade), appearanceSettings(), notificationSettings()],
+			settings: [
+				loginSettings(credentialsProvider, systemFacade),
+				calendarSettings(entityClient, logins.getUserController()),
+				appearanceSettings(),
+				notificationSettings(),
+			],
 		},
 		adminSettingsSection(logins, entityClient, themeController, whitelabelThemeGenerator, customerFacade),
 		subscriptionSettingsSection(logins, mobilePaymentsFacade),
 	]
 }
+
 export function notificationSettings(): SettingsFolder<unknown> {
 	return new SettingsFolder(
 		() => "notificationSettings_action",

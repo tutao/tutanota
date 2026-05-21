@@ -12,14 +12,26 @@ import { CredentialsProvider } from "../misc/credentials/CredentialsProvider"
 import { LoginController } from "../api/main/LoginController"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade"
 import { MobileGlobalSettingsViewer } from "./MobileGlobalSettingsViewer"
-import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { Icons } from "../../../ui/base/icons/Icons"
+import { CalendarSettingsViewer } from "./CalendarSettingsViewer"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ThemeController } from "../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
 import { lang } from "../../../ui/utils/LanguageViewModel"
+import { UserController } from "../api/main/UserController"
 
-export function loginSettings(credentialsProvider: CredentialsProvider, systemFacade: MobileSystemFacade): SettingsFolder<unknown> {
+export function calendarSettings(entityClient: EntityClient, userController: UserController): SettingsFolder<void> {
+	return new SettingsFolder(
+		() => "calendar_label",
+		() => Icons.CalendarFilled,
+		"calendar",
+		() => new CalendarSettingsViewer(entityClient, userController),
+		undefined,
+	)
+}
+
+export function loginSettings(credentialsProvider: CredentialsProvider, systemFacade: MobileSystemFacade | null): SettingsFolder<unknown> {
 	return new SettingsFolder(
 		() => "login_label",
 		() => Icons.PersonFilled,
@@ -58,6 +70,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 	function shouldShowSubscriptionSetting(): boolean {
 		return !logins.isEnabled(FeatureType.WhitelabelChild) && logins.getUserController().isGlobalAdmin()
 	}
+
 	return {
 		name: lang.getTranslation("subscriptionSettings_label"),
 		settings: [
@@ -90,6 +103,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 		],
 	}
 }
+
 export function adminSettingsSection(
 	logins: LoginController,
 	entityClient: EntityClient,
