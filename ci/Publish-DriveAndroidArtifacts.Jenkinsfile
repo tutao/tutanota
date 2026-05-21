@@ -1,0 +1,138 @@
+pipeline {
+    parameters {
+		string(
+			name: 'appVersion',
+			defaultValue: "",
+			description: 'Which version should be published. Leave empty if you want to release the latest build and take the version number from package.json.'
+		)
+		booleanParam(
+			name: 'STAGING',
+			defaultValue: true,
+            description: "Uploads staging artifact (apk) to Google PlayStore"
+		)
+		booleanParam(
+			name: 'PROD',
+			defaultValue: false,
+            description: "Uploads production artifact (apk) to Google PlayStore as a Draft on the public track"
+		)
+		booleanParam(
+	        name: 'GITHUB_RELEASE',
+	        defaultValue: false,
+	        description: "Uploads android artifact (apk) to GitHub and publish release notes"
+		)
+		persistentText(
+			name: 'releaseNotes',
+			defaultValue: "",
+			description: 'Android release notes'
+		)
+        string(
+            name: 'branch',
+            defaultValue: "*/master",
+            description: "the branch to build the release from"
+        )
+    }
+
+	environment {
+		PATH = "${env.NODE_PATH}:${env.PATH}"
+		PACKAGE_VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+		VERSION = "${params.appVersion.trim() ?: PACKAGE_VERSION}"
+		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-drive-android-release-${VERSION}"
+		STAGING_AAB_FILE_PATH = "artifacts/app-android/drive-tutao-releaseTest-${VERSION}.aab"
+		PROD_AAB_FILE_PATH = "artifacts/app-android/drive-tutao-release-${VERSION}.aab"
+	}
+
+    agent {
+		label 'linux'
+	}
+
+    stages {
+    	stage("Checking params") {
+			steps {
+				script{
+					if(!params.STAGING && !params.PROD && !params.GITHUB_RELEASE) {
+						currentBuild.result = 'ABORTED'
+						error('No tasks were selected.')
+					}
+				}
+				echo "Params OKAY"
+			}
+    	}
+		stage("Google Play Store") {
+			stages {
+				stage("Staging") {
+					when { expression { params.STAGING } }
+					steps {
+						script {
+							downloadAndroidApp("drive-android-test", STAGING_AAB_FILE_PATH)
+
+							// This doesn't publish to the main app on play store,
+							// instead it gets published to the hidden "tutanota-test" app
+							// this happens because the AppId is set to de.tutao.tutanota.test by the android build
+							// and play store knows which app to publish just based on the id
+							androidApkUpload(
+									googleCredentialsId: 'android-app-publisher-credentials',
+									apkFilesPattern: STAGING_AAB_FILE_PATH,
+									trackName: 'internal',
+									rolloutPercentage: '100%'
+							) // androidApkUpload
+						} // script
+					} // steps
+				} // stage Testing
+				stage("Production") {
+					when { expression { params.PROD } }
+					steps {
+						script {
+							downloadAndroidApp("drive-android", PROD_AAB_FILE_PATH)
+
+							androidApkUpload(
+									googleCredentialsId: 'android-app-publisher-credentials',
+									apkFilesPattern: PROD_AAB_FILE_PATH,
+									trackName: 'production',
+									// Don't publish the app to users directly
+									// It will require manual intervention at play.google.com/console
+									rolloutPercentage: '0%'
+							)
+						} // script
+					} // steps
+				} // stage Production
+			} // stages
+		} // stage Google Play Store
+		stage("Github release notes") {
+			when { expression { params.GITHUB_RELEASE } }
+			steps {
+				script {
+					downloadAndroidApp("drive-android", PROD_AAB_FILE_PATH)
+
+					sh 'npm ci'
+
+					writeFile file: "notes.txt", text: params.releaseNotes
+					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+						sh """node buildSrc/createReleaseDraft.js --name '[Drive] ${VERSION} (Android)' \
+															   --tag 'tutanota-drive-android-release-${VERSION}' \
+															   --uploadFile '${WORKSPACE}/${PROD_FILE_PATH}' \
+															   --notes notes.txt"""
+					} // withCredentials
+					sh "rm notes.txt"
+				} // script
+			} // steps
+		} // stage github release notes
+    } // stages
+} // pipeline
+
+def downloadAndroidApp(String artifactId, String filePath) {
+    def util = load "ci/jenkins-lib/util.groovy"
+
+    util.downloadFromNexus(
+    	groupId: "app",
+		artifactId: artifactId,
+		version: "${VERSION}",
+		outFile: "${WORKSPACE}/${filePath}",
+		fileExtension: 'aab'
+	)
+
+    if (!fileExists("${filePath}")) {
+        currentBuild.result = 'ABORTED'
+        error("Unable to find file ${filePath}")
+    }
+    echo "File ${filePath} found!"
+}
