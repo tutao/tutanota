@@ -5,7 +5,7 @@ import { SuspensionError } from "../error/SuspensionError.js"
 import { LoginIncompleteError } from "../error/LoginIncompleteError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { SseError } from "../error/SseError.js"
-import { ProgrammingError } from "@tutao/app-env"
+import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { RecipientsNotFoundError } from "../error/RecipientsNotFoundError.js"
 import { RecipientNotResolvedError } from "../error/RecipientNotResolvedError.js"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
@@ -31,10 +31,10 @@ import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
-import { InvalidModelError } from "@tutao/app-env"
 import { MoveCycleError } from "../error/MoveCycleError"
 import { MoveToTrashError } from "../error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceError"
+import { FileTooLargeError } from "../error/FileTooLargeError"
 
 //If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "<at>bundleInto:common-min"
 /**
@@ -106,6 +106,7 @@ const ErrorNameToType = {
 	MoveCycleError,
 	MoveToTrashError,
 	MoveDestinationIsSourceError,
+	FileTooLargeError,
 	Error,
 	"java.net.SocketTimeoutException": restError.ConnectionError,
 	"java.net.SocketException": restError.ConnectionError,
