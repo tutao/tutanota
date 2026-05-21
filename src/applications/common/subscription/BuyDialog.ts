@@ -115,9 +115,17 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 			m(LegacyTextField, {
 				label: "price_label",
 				helpLabel: () => this.getPriceInfoText(priceChangeModel),
-				value: this.getPriceText(priceChangeModel),
+				value: this.getPriceText(priceChangeModel, !priceChangeModel.isUnbuy()),
 				isReadOnly: true,
 			}),
+			// this can be the case when there are active discounts that will disappear at the end of the period.
+			priceChangeModel.priceDeltaThisPeriod !== priceChangeModel.priceDeltaNextPeriod && !priceChangeModel.isUnbuy()
+				? m(LegacyTextField, {
+						label: "priceForNextYear_label",
+						value: this.getPriceText(priceChangeModel, false),
+						isReadOnly: true,
+					})
+				: null,
 		])
 	}
 
@@ -129,18 +137,15 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 		}
 	}
 
-	private getPriceText(model: PriceChangeModel): string {
+	private getPriceText(model: PriceChangeModel, thisPeriod: boolean): string {
 		let netGrossText = model.taxIncluded() ? lang.get("gross_label") : lang.get("net_label")
 		let periodText = model.isYearly() ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
 
-		const futurePriceNextPeriod = model.futurePrice
-		let currentPriceNextPeriod = model.currentPrice
-
 		if (model.isSinglePriceType()) {
-			const priceDiff = futurePriceNextPeriod - currentPriceNextPeriod
-			return `${formatPrice(priceDiff, true)} ${periodText} (${netGrossText})`
+			const delta = thisPeriod ? model.priceDeltaThisPeriod : model.priceDeltaNextPeriod
+			return `${formatPrice(delta, true)} ${periodText} (${netGrossText})`
 		} else {
-			return `${formatPrice(futurePriceNextPeriod, true)} ${periodText} (${netGrossText})`
+			return `${formatPrice(model.futureTotalPriceThisPeriod, true)} ${periodText} (${netGrossText})`
 		}
 	}
 
@@ -149,9 +154,9 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 			return lang.get("priceChangeValidFrom_label", {
 				"{1}": formatDate(model.periodEndDate()),
 			})
-		} else if (model.addedPriceForCurrentPeriod() > 0) {
+		} else if (model.currentPeriodProratedPrice != null && model.currentPeriodProratedPrice !== model.priceDeltaThisPeriod) {
 			return lang.get("priceForCurrentAccountingPeriod_label", {
-				"{1}": formatPrice(model.addedPriceForCurrentPeriod(), true),
+				"{1}": formatPrice(model.currentPeriodProratedPrice, true),
 			})
 		} else {
 			return ""
