@@ -1,4 +1,4 @@
-import { assertNotNull, filterInt } from "@tutao/utils"
+import { assertNotNull } from "@tutao/utils"
 import { TranslationKey } from "../misc/LanguageViewModel.js"
 import { assertMainOrNode, BookingItemFeatureType } from "@tutao/app-env"
 import { asPaymentInterval, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
@@ -9,17 +9,27 @@ assertMainOrNode()
 export class PriceChangeModel {
 	readonly currentItem: sysTypeRefs.PriceItemData | null
 	readonly futureItem: sysTypeRefs.PriceItemData | null
-	readonly currentPrice: number
-	readonly futurePrice: number
+	readonly currentPriceThisPeriod: number
+	readonly futurePriceThisPeriod: number
+	readonly currentTotalPriceThisPeriod: number
+	readonly futureTotalPriceThisPeriod: number
+	readonly priceDeltaThisPeriod: number
+	readonly priceDeltaNextPeriod: number
+	readonly currentPeriodProratedPrice: number | null
 
 	constructor(
 		private readonly price: sysTypeRefs.PriceServiceReturn,
 		readonly featureType: BookingItemFeatureType,
 	) {
-		this.currentItem = getPriceItem(price.currentPriceNextPeriod, featureType)
+		this.currentItem = getPriceItem(price.currentPriceThisPeriod, featureType)
 		this.futureItem = getPriceItem(price.futurePriceNextPeriod, featureType)
-		this.currentPrice = this.getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
-		this.futurePrice = this.getPriceFromPriceData(price.futurePriceNextPeriod, featureType)
+		this.currentPriceThisPeriod = this.getPriceFromPriceData(price.currentPriceThisPeriod, featureType)
+		this.futurePriceThisPeriod = this.getPriceFromPriceData(price.futurePriceThisPeriod, featureType)
+		this.currentTotalPriceThisPeriod = this.getTotalPriceFromPriceData(price.currentPriceThisPeriod)
+		this.futureTotalPriceThisPeriod = this.getTotalPriceFromPriceData(price.futurePriceThisPeriod)
+		this.priceDeltaThisPeriod = this.futureTotalPriceThisPeriod - this.currentTotalPriceThisPeriod
+		this.priceDeltaNextPeriod = this.getTotalPriceFromPriceData(price.futurePriceNextPeriod) - this.getTotalPriceFromPriceData(price.currentPriceNextPeriod)
+		this.currentPeriodProratedPrice = price.currentPeriodAddedPrice != null ? parseFloat(price.currentPeriodAddedPrice) : null
 	}
 
 	getActionLabel(): TranslationKey {
@@ -33,27 +43,19 @@ export class PriceChangeModel {
 	}
 
 	isBuy() {
-		return this.currentPrice < this.futurePrice
+		return this.currentPriceThisPeriod < this.futurePriceThisPeriod
 	}
 
 	isUnbuy() {
-		return this.currentPrice > this.futurePrice
+		return this.currentPriceThisPeriod > this.futurePriceThisPeriod
 	}
 
 	isPriceChange() {
-		return this.currentPrice !== this.futurePrice
+		return this.currentPriceThisPeriod !== this.futurePriceThisPeriod
 	}
 
 	isSinglePriceType() {
 		return this.anyItem().singleType
-	}
-
-	getCurrentCount(): number {
-		return filterInt(assertNotNull(this.currentItem).count)
-	}
-
-	getFutureCount(): number {
-		return filterInt(assertNotNull(this.futureItem).count)
 	}
 
 	isYearly(): boolean {
@@ -70,18 +72,9 @@ export class PriceChangeModel {
 		return new Date(this.price.periodEndDate)
 	}
 
-	addedPriceForCurrentPeriod(): number {
-		return this.price.currentPeriodAddedPrice ? filterInt(this.price.currentPeriodAddedPrice) : 0
-	}
-
 	private anyItem() {
 		return assertNotNull(this.futureItem ?? this.currentItem)
 	}
-
-	private getFuturePrice(featureType: BookingItemFeatureType) {
-		return this.getPriceFromPriceData(this.price.futurePriceNextPeriod, featureType)
-	}
-
 	/**
 	 * Returns the price for the feature type from the price data if available, otherwise 0.
 	 */
@@ -96,5 +89,12 @@ export class PriceChangeModel {
 		}
 
 		return itemPrice
+	}
+
+	private getTotalPriceFromPriceData(priceData: sysTypeRefs.PriceData | null): number {
+		if (priceData == null) {
+			return 0
+		}
+		return parseFloat(priceData.price)
 	}
 }
