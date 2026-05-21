@@ -32,14 +32,14 @@
 		"ios:generate-project": "cd app-ios && xcodegen --spec mail-project.yml && xcodegen --spec calendar-project.yml"
 	},
 	"dependencies": {
-		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@fingerprintjs/botd": "1.9.1",
+		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
+		"@tensorflow/tfjs-backend-cpu": "4.22.0",
+		"@tensorflow/tfjs-backend-webgl": "4.22.0",
 		"@tensorflow/tfjs-core": "4.22.0",
 		"@tensorflow/tfjs-layers": "4.22.0",
-		"@tensorflow/tfjs-backend-webgl": "4.22.0",
-		"@tensorflow/tfjs-backend-cpu": "4.22.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/luxon": "3.6.2",
@@ -80,8 +80,8 @@
 		"@types/pako": "^2.0.3",
 		"body-parser": "2.2.0",
 		"commander": "14.0.0",
-		"json5": "^2.2.1",
 		"electron-builder": "26.7.0",
+		"esbuild": "^0.28.0",
 		"eslint": "9.29.0",
 		"eslint-plugin-unicorn": "59.0.1",
 		"express": "5.1.0",
@@ -89,6 +89,7 @@
 		"globals": "16.2.0",
 		"js-yaml": "4.1.0",
 		"jsdom": "26.1.0",
+		"json5": "^2.2.1",
 		"node-gyp": "11.2.0",
 		"octokit": "5.0.3",
 		"prettier": "3.5.3",
@@ -98,9 +99,9 @@
 		"testdouble": "3.20.2",
 		"typescript": "5.8.3",
 		"typescript-eslint": "8.34.0",
+		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3",
 		"xhr2": "0.2.1",
-		"zx": "8.5.5",
-		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3"
+		"zx": "8.5.5"
 	},
 	"workspaces": [
 		"./src/licc"

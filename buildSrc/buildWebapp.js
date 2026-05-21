@@ -1,22 +1,16 @@
 /**
-	Exports the buildWebapp function that can be used for production builds.
+ * Exports the buildWebapp function that can be used for production builds.
  */
-import { rollup } from "rollup"
-import terser from "@rollup/plugin-terser"
+import * as esbuild from "esbuild"
 import path from "node:path"
-import { nodeResolve } from "@rollup/plugin-node-resolve"
-import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
-import { resolveLibs } from "./RollupConfig.js"
+import { dependencyMap } from "./RollupConfig.js"
 import os from "node:os"
 import * as env from "./env.js"
 import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
-import { visualizer } from "rollup-plugin-visualizer"
-import replace from "@rollup/plugin-replace"
 import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
-import typescript from "@rollup/plugin-typescript"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
 import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
 
@@ -59,14 +53,13 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	})
 
 	await runStep(`Bundeling polyfill ${measure()}`, async () => {
-		const polyfillBundle = await rollup({
-			input: ["src/polyfill.js"],
-			plugins: [minify && terser(), commonjs()],
-		})
-		await polyfillBundle.write({
-			sourcemap: false,
+		await esbuild.build({
+			entryPoints: ["src/polyfill.js"],
+			bundle: true,
 			format: "iife",
-			file: `${buildDir}/polyfill.js`,
+			outfile: `${buildDir}/polyfill.js`,
+			sourcemap: false,
+			minify,
 		})
 	})
 
@@ -93,55 +86,60 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await buildArgon2(resolvedBuildDir)
 	await buildLibOqs(resolvedBuildDir)
 
-	console.log("started bundling", measure())
-	const bundle = await rollup({
-		input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
-		preserveEntrySignatures: false,
-		perf: true,
-		plugins: [
-			typescript({
-				tsconfig: "./tsconfig-dist-rollup.json",
-				compilerOptions: {
-					outDir: buildDir,
-				},
-			}),
-			resolveLibs(),
-			commonjs({
-				exclude: "src/**",
-			}),
-			minify && terser(),
-			// bundleDependencyCheckPlugin(),
-			analyzer(projectDir, buildDir),
-			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
-			// bundleDependencyCheckPlugin(),
-			replace({
-				// see AppType in src/common/misc/ClientConstants.ts
-				APP_TYPE: appTypeForApp(app),
-			}),
-			nodeResolve({
-				preferBuiltins: true,
-				resolveOnly: [/^@tutao\/.*$/],
-			}),
-		],
-	})
+	// Translation files as explicit entry points so the service worker can identify them by name.
+	const translationEntries = Object.fromEntries(
+		fs
+			.readdirSync("src/ui/translations")
+			.filter((f) => f.endsWith(".ts"))
+			.map((f) => [`translation-${f.slice(0, -3)}`, `src/ui/translations/${f}`]),
+	)
 
-	console.log("bundling timings: ")
-	for (let [k, v] of Object.entries(bundle.getTimings())) {
-		console.log(k, v[0])
+	// Vendored library aliases: bare specifiers only (./tensorflow-custom handled by plugin).
+	// Packages with .d.ts-only const enums are overridden to point to runtime .ts files.
+	const alias = {
+		...Object.fromEntries(
+			Object.entries(dependencyMap)
+				.filter(([k]) => !k.startsWith("./"))
+				.map(([k, v]) => [k, path.resolve(v)]),
+		),
+		// These packages have const enums used as runtime values but only .d.ts declarations.
+		// Point esbuild at the .ts source files so it emits regular enum objects at runtime.
+		"@tutao/rest-client/types": path.resolve("src/rest-client/types.ts"),
+		"@tutao/network/types": path.resolve("src/network/types.ts"),
+		// Use our index.ts barrel (re-exports const enums as regular enums via esbuild).
+		"@tutao/native-bridge/generatedIpc/types": path.resolve("src/native-bridge/common/generatedipc/types/index.ts"),
 	}
-	console.log("started writing bundles into", buildDir, measure())
-	const output = await bundle.write({
-		sourcemap: true,
+
+	console.log("started bundling", measure())
+	const result = await esbuild.build({
+		entryPoints: {
+			app: entryFile,
+			worker: workerFile,
+			"pow-worker": "src/common/api/common/pow-worker.ts",
+			...translationEntries,
+		},
+		bundle: true,
+		splitting: true,
 		format: "esm",
-		dir: buildDir,
-		// manualChunks(id, { getModuleInfo, getModuleIds }) {
-		// 	return getChunkName(id, { getModuleInfo })
-		// },
-		// chunkFileNames: (chunkInfo) => {
-		// 	return "[name]-[hash].js"
-		// },
+		outdir: buildDir,
+		sourcemap: true,
+		minify,
+		metafile: true,
+		define: {
+			APP_TYPE: appTypeForApp(app),
+		},
+		// tsconfig_common.json provides paths for all @tutao/* packages not in alias above.
+		tsconfig: "./tsconfig_common.json",
+		alias,
+		plugins: [tensorflowAliasPlugin()],
+		// qrcode-svg optionally imports node:fs; mark external to avoid bundling errors in browser build.
+		external: ["fs"],
 	})
-	const chunks = output.output.map((c) => c.fileName)
+	console.log("finished bundling", measure())
+
+	const chunks = Object.keys(result.metafile.outputs)
+		.filter((f) => f.endsWith(".js"))
+		.map((f) => path.relative(buildDir, f))
 
 	// we have to use System.import here because bootstrap is not executed until we actually import()
 	// unlike nollup+es format where it just runs on being loaded like you expect
@@ -180,6 +178,21 @@ import "./worker.js"`,
 }
 
 /**
+ * esbuild plugin that redirects the relative `./tensorflow-custom` specifier to the vendored lib.
+ * The esbuild `alias` option only works for bare (non-relative) specifiers, so we need a plugin.
+ */
+function tensorflowAliasPlugin() {
+	return {
+		name: "tensorflow-alias",
+		setup(build) {
+			build.onResolve({ filter: /^\.\/tensorflow-custom$/ }, () => ({
+				path: path.resolve(dependencyMap["./tensorflow-custom"]),
+			}))
+		},
+	}
+}
+
+/**
  * @param bundles {string[]}
  * @param version {string}
  * @param minify {boolean}
@@ -189,79 +202,22 @@ import "./worker.js"`,
 async function bundleServiceWorker(bundles, version, minify, buildDir) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
-		// we always include English
-		// we still cache native-common even though we don't need it because worker has to statically depend on it
-		.concat(
-			bundles
-				.filter(
-					(it) =>
-						it.startsWith("translation-en") ||
-						(!it.startsWith("translation") && !it.startsWith("native-main") && !it.startsWith("SearchInPageOverlay")),
-				)
-				.sort(),
-		)
+		// we always include English; exclude other translations (loaded on demand)
+		.concat(bundles.filter((it) => it.startsWith("translation-en") || !it.startsWith("translation")).sort())
 		.concat(["images/apple-touch-icon.png", "images/logo-favicon.svg", "images/logo-favicon-192.png", "images/font.ttf"])
-	const swBundle = await rollup({
-		input: ["src/common/serviceworker/sw.ts"],
-		plugins: [
-			typescript({
-				tsconfig: "tsconfig-dist-rollup.json",
-				outDir: buildDir,
-			}),
-			// bundleDependencyCheckPlugin(),
-			minify && terser(),
-			{
-				name: "sw-banner",
-				banner() {
-					return `function filesToCache() { return ${JSON.stringify(filesToCache.sort())} }
-					function version() { return "${version}" }
-					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
-				},
-			},
-		],
-	})
-	await swBundle.write({
-		sourcemap: true,
+
+	await esbuild.build({
+		entryPoints: ["src/common/serviceworker/sw.ts"],
+		bundle: true,
 		format: "iife",
-		file: `${buildDir}/sw.js`,
-	})
-}
-
-/**
- * A little plugin to:
- *  - Print out each chunk size and contents
- *  - Create a graph file with chunk dependencies.
- */
-function analyzer(projectDir, buildDir) {
-	return {
-		name: "analyze",
-		async generateBundle(outOpts, bundle) {
-			const prefix = projectDir
-			let buffer = "digraph G {\n"
-			buffer += "edge [dir=back]\n"
-
-			for (const [fileName, info] of Object.entries(bundle)) {
-				if (fileName.startsWith("translation")) continue
-				// https://www.rollupjs.org/plugin-development/#generatebundle
-				if (info.type === "asset") continue
-				for (const dep of info.imports) {
-					if (!dep.includes("translation")) {
-						buffer += `"${dep}" -> "${fileName}"\n`
-					}
-				}
-
-				console.log(fileName, "", info.code.length / 1024 + "K")
-				for (const module of Object.keys(info.modules)) {
-					if (module.includes("src/common/api/entities")) {
-						continue
-					}
-					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module
-					console.log("\t" + moduleName)
-				}
-			}
-
-			buffer += "}\n"
-			await fs.writeFile(`${buildDir}/bundles.dot`, buffer)
+		outfile: `${buildDir}/sw.js`,
+		sourcemap: true,
+		minify,
+		tsconfig: "./tsconfig_common.json",
+		banner: {
+			js: `function filesToCache() { return ${JSON.stringify(filesToCache.sort())} }
+function version() { return "${version}" }
+function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`,
 		},
-	}
+	})
 }

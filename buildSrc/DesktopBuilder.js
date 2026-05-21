@@ -1,22 +1,16 @@
-import { resolveLibs } from "./RollupConfig.js"
-import nodeResolve from "@rollup/plugin-node-resolve"
+import { dependencyMap } from "./RollupConfig.js"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
-import { rollup } from "rollup"
-import terser from "@rollup/plugin-terser"
+import * as esbuild from "esbuild"
 import electronBuilder from "electron-builder"
 import generatePackageJson from "./electron-package-json-template.js"
-import { create as createEnv, preludeEnvPlugin } from "./env.js"
+import { create as createEnv } from "./env.js"
 import cp from "node:child_process"
 import util from "node:util"
 import { fileURLToPath } from "node:url"
-import { getCanonicalPlatformName } from "./buildUtils.js"
+import { getCanonicalPlatformName, getTargetTupleWithLibc, normalizeCopyTarget, removeNpmNamespacePrefix, resolveArch } from "./buildUtils.js"
+import { getNativeLibModulePaths } from "./nativeLibraryProvider.js"
 import { domainConfigs } from "./DomainConfigs.js"
-import commonjs from "@rollup/plugin-commonjs"
-import { nodeGypPlugin } from "./nodeGypPlugin.js"
-import { napiPlugin } from "./napiPlugin.js"
-import replace from "@rollup/plugin-replace"
-import typescript from "@rollup/plugin-typescript"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -93,7 +87,7 @@ export async function buildDesktop({
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
+	await buildDesktopBundle(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -147,71 +141,154 @@ export async function buildDesktop({
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
+async function buildDesktopBundle(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
 
-	const mainFiles = ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"]
-	const mainBundle = await rollup({
-		input: mainFiles,
-		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
-		// which rollup for some reason won't distinguish from the node builtin.
-		external: (id, parent, isResolved) => {
-			if (parent != null && parent.endsWith("mimimi/napi-out/binding.cjs")) return true
-			if (id.endsWith(".node")) return true
-			return ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron"].includes(id)
+	const envObject = createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })
+
+	const bannerJs = [
+		nodeGypConstantLine("@signalapp/sqlcipher", platform),
+		platform === "win32" ? nodeGypConstantLine("@indutny/simple-windows-notifications", platform) : null,
+		`globalThis.env = ${JSON.stringify(envObject, null, 2)};`,
+	]
+		.filter(Boolean)
+		.join("\n")
+
+	const alias = {
+		...Object.fromEntries(
+			Object.entries(dependencyMap)
+				.filter(([k]) => !k.startsWith("./"))
+				.map(([k, v]) => [k, path.resolve(v)]),
+		),
+		// These packages have const enums used as runtime values but only .d.ts declarations.
+		"@tutao/rest-client/types": path.resolve("src/rest-client/types.ts"),
+		"@tutao/network/types": path.resolve("src/network/types.ts"),
+		// Use our index.ts barrel so esbuild emits regular enum objects at runtime.
+		"@tutao/native-bridge/generatedIpc/types": path.resolve("src/native-bridge/common/generatedipc/types/index.ts"),
+		// NAPI binding compiled by napi-rs; the mimimi plugin copies the .node file to outdir.
+		"@tutao/mimimi": path.resolve("build/mimimi/binding.js"),
+	}
+
+	await esbuild.build({
+		entryPoints: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
+		bundle: true,
+		splitting: true,
+		format: "esm",
+		platform: "node",
+		outdir: outDir,
+		sourcemap: true,
+		minify: !disableMinify,
+		define: {
+			// AppType.Integrated — see src/common/misc/ClientConstants.ts
+			APP_TYPE: '"0"',
 		},
-		preserveEntrySignatures: false,
+		alias,
+		// tsconfig_common.json provides paths for all @tutao/* packages not in alias above.
+		tsconfig: "./tsconfig_common.json",
+		external: ["url", "util", "path", "fs", "os", "http", "https", "crypto", "child_process", "electron", "*.node"],
+		banner: { js: bannerJs },
 		plugins: [
-			replace({
-				// AppType.Integrated
-				// see src/common/misc/ClientConstants.ts
-				APP_TYPE: JSON.stringify("0"),
-			}),
-			nodeGypPlugin({
+			makeNodeGypPlugin({
 				rootDir: projectRoot,
-				platform: platform,
-				architecture: architecture,
+				platform,
+				architecture,
 				nodeModule: "@signalapp/sqlcipher",
-				// we build for Electron, but it uses NAPI so it's fine to build for node
 				environment: "node",
 				targetName: "node_sqlcipher",
 			}),
 			// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
-			platform === "win32"
-				? nodeGypPlugin({
-						rootDir: projectRoot,
-						platform,
-						architecture,
-						nodeModule: "@indutny/simple-windows-notifications",
-						environment: "node",
-						targetName: "simple-windows-notifications",
-					})
-				: undefined,
-			napiPlugin({
+			...(platform === "win32"
+				? [
+						makeNodeGypPlugin({
+							rootDir: projectRoot,
+							platform,
+							architecture,
+							nodeModule: "@indutny/simple-windows-notifications",
+							environment: "node",
+							targetName: "simple-windows-notifications",
+						}),
+					]
+				: []),
+			makeNapiPlugin({
 				platform,
 				architecture,
 				modulePath: "src/mimimi",
 			}),
-			typescript({
-				tsconfig: "tsconfig-dist-rollup.json",
-				outDir,
-			}),
-			resolveLibs(),
-			nodeResolve({
-				preferBuiltins: true,
-				// do not pull in random packages from node_modules, only our workspace is allowed
-				// simple-windows-notifications is our own fork so it's fine to not vendor it
-				resolveOnly: [/^@tutao\/.*$/, "@indutny/simple-windows-notifications"],
-			}),
-			commonjs(),
-			disableMinify ? undefined : terser(),
-			// bundleDependencyCheckPlugin(),
-			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
 		],
 	})
-	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })
+
 	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload.js"), path.join(outDir, "preload.js"))
 	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
+}
+
+/**
+ * Returns the banner line that defines the __NODE_GYP_<name> constant used to locate the .node file at runtime.
+ * This replicates what nodeGypPlugin's banner() hook did in the Rollup build.
+ */
+function nodeGypConstantLine(nodeModule, platform) {
+	const unprefixed = removeNpmNamespacePrefix(nodeModule)
+	const constName = `__NODE_GYP_${unprefixed.replaceAll("-", "_")}`
+	return `const ${constName} = \`./${unprefixed}.${platform}-\${process.arch}.node\``
+}
+
+/**
+ * esbuild plugin equivalent of nodeGypPlugin.
+ * onStart: locates/builds the native .node file.
+ * onEnd: copies it to the output directory.
+ */
+function makeNodeGypPlugin({ rootDir, platform, architecture, nodeModule, environment, targetName }) {
+	const resolvedTargetName = targetName ?? normalizeCopyTarget(nodeModule)
+	environment = environment ?? "electron"
+	let modulePaths
+
+	return {
+		name: "node-gyp-plugin",
+		setup(build) {
+			build.onStart(async () => {
+				modulePaths = await getNativeLibModulePaths({
+					nodeModule,
+					environment,
+					rootDir,
+					log: console.log.bind(console),
+					platform,
+					architecture,
+					copyTarget: resolvedTargetName,
+				})
+			})
+			build.onEnd(async () => {
+				const dstDir = path.normalize(build.initialOptions.outdir)
+				await fs.promises.mkdir(dstDir, { recursive: true })
+				for (const [arch, modulePath] of Object.entries(modulePaths)) {
+					const targetTuple = getTargetTupleWithLibc(platform, /** @type {any} */ (arch))
+					const dst = path.join(dstDir, `${resolvedTargetName}.${targetTuple}.node`)
+					await fs.promises.copyFile(modulePath, dst)
+				}
+			})
+		},
+	}
+}
+
+/**
+ * esbuild plugin equivalent of napiPlugin.
+ * onEnd: copies the pre-built NAPI .node file(s) to the output directory.
+ */
+function makeNapiPlugin({ modulePath, platform, architecture }) {
+	return {
+		name: "napi-plugin",
+		setup(build) {
+			build.onEnd(async () => {
+				const dstDir = path.normalize(build.initialOptions.outdir)
+				const moduleName = removeNpmNamespacePrefix(modulePath)
+				const napiOut = path.join(path.resolve(modulePath), "napi-out")
+				await fs.promises.mkdir(dstDir, { recursive: true })
+				for (const arch of resolveArch(architecture)) {
+					const targetTuple = getTargetTupleWithLibc(platform, arch)
+					const fileName = `${moduleName}.${targetTuple}.node`
+					await fs.promises.copyFile(path.join(napiOut, fileName), path.join(dstDir, fileName))
+				}
+			})
+		},
+	}
 }
 
 /**
