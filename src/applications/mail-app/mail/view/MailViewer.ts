@@ -659,7 +659,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 								return
 							}
 							const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
-							const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
+							const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address)
 
 							show(mailboxDetails, newRule)
 						},

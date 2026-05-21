@@ -9,7 +9,6 @@ import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { Autocapitalize, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
-import { neverNull } from "../../../platform-kit/utils"
 import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
@@ -140,10 +139,11 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 	}
 }
 
-export function createInboxRuleTemplate(ruleType: string | null, value: string | null): InboxRuleTemplate {
+export function createInboxRuleTemplate(ruleType: string | null, value: string): InboxRuleTemplate {
+	const type = ruleType ?? InboxRuleType.FROM_EQUALS
 	return {
-		type: ruleType ?? InboxRuleType.FROM_EQUALS,
-		value: getCleanedValue(neverNull(ruleType), value || ""),
+		type,
+		value: getCleanedValue(type, value),
 	}
 }
 
