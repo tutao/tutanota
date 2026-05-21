@@ -75,6 +75,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.setHtmlMonospace(false)
 			.setReadOnly(true)
 			.setPlaceholderId("invoiceAddress_label")
+			.displayOnly()
 		this.loadData()
 		this.view = this.view.bind(this)
 	}
