@@ -52,14 +52,14 @@ pipeline {
 				echo "Params OKAY"
 			}
 		} // stage checking params
-    	stage('Check Github') {
+		stage('Check Github') {
 			steps {
 				script {
 					def util = load "ci/jenkins-lib/util.groovy"
 					util.checkGithub()
 				}
 			}
-    	}
+		}
 		stage('Build') {
 			stages {
 				stage('Staging') {
@@ -68,6 +68,7 @@ pipeline {
 					}
 					steps {
 						echo "Building STAGING ${VERSION}"
+						initSubmodules()
 						sh 'npm ci'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
@@ -77,7 +78,7 @@ pipeline {
 						}
 						stash includes: STAGING_AAB_FILE_PATH, name: 'aab-staging'
 						stash includes: STAGING_APK_FILE_PATH, name: 'apk-staging'
-                    }
+					}
 				} // stage testing
 				stage('Production') {
 					when {
@@ -88,6 +89,7 @@ pipeline {
 					}
 					steps {
 						echo "Building PROD ${VERSION}"
+						initSubmodules()
 						sh 'npm ci'
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
@@ -160,4 +162,8 @@ def publishToNexus(Map params) {
 		def util = load "ci/jenkins-lib/util.groovy"
 		util.publishToNexus(params)
 	}
+}
+
+def initSubmodules() {
+	sh 'git submodule init && git submodule sync --recursive && git submodule update'
 }
