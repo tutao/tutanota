@@ -219,8 +219,8 @@ import("../../ui/translations/en.js")
 				{
 					prepareRoute: async () => {
 						const { MobileSettingsView } = await import("../common/settings/MobileSettingsView.js")
-						const { makeCalendarSettings } = await import("./calendar/settings/CalendarSettingsView.js")
-						const settingSections = makeCalendarSettings(
+						const { makeCalendarAppSettings } = await import("./calendar/settings/CalendarAppSettings.js")
+						const settingSections = makeCalendarAppSettings(
 							calendarLocator.credentialsProvider,
 							calendarLocator.systemFacade,
 							calendarLocator.entityClient,
