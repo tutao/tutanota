@@ -2284,5 +2284,6 @@ export default {
 		"collapseTransferStack_label": "Collapse transfers",
 		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
 		"confirmCancelTransfers_action": "Cancel transfers",
+		"nativeFileUploadTooLarge_msg": "This file is too large to be uploaded - try uploading it from the web app for now.",
 	}
 }

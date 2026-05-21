@@ -31,6 +31,7 @@ import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
 import { ProgrammingError } from "@tutao/app-env"
+import { FileTooLargeError } from "../../api/common/error/FileTooLargeError"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -287,7 +288,17 @@ export class DesktopFileFacade implements FileFacade {
 	/** can be used with arbitrary paths, is run on the selected file locations */
 	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
 		const tempDir = await this.tfs.ensureUnencrytpedDir()
-		const fullBytes = await this.fs.promises.readFile(fileUri)
+		let fullBytes: Buffer<ArrayBufferLike>
+
+		try {
+			fullBytes = await this.fs.promises.readFile(fileUri)
+		} catch (e) {
+			if (e.code === "ERR_FS_FILE_TOO_LARGE") {
+				throw new FileTooLargeError("file too large")
+			} else {
+				throw e
+			}
+		}
 		const chunks = splitUint8ArrayInChunks(maxChunkSizeBytes, fullBytes)
 		// this could just be randomized, we don't seem to care about the blob file names
 		const filenameHash = uint8ArrayToHex(sha256Hash(stringToUtf8Uint8Array(fileUri)))

@@ -10,6 +10,8 @@ import { ArchiveDataType } from "@tutao/app-env"
 import { FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { FileReference, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { FileTooLargeError } from "../../../common/api/common/error/FileTooLargeError"
+import { UserError } from "../../../common/api/main/UserError"
 
 export type DriveTransferType = "upload" | "download"
 
@@ -116,7 +118,9 @@ export class DriveTransferController {
 					this.removeTransfer(transfer.id)
 				} else {
 					this.transferFailed(id)
-					if (!isOfflineError(e)) {
+					if (e instanceof FileTooLargeError) {
+						handleUncaughtError(new UserError("nativeFileUploadTooLarge_msg"))
+					} else if (!isOfflineError(e)) {
 						handleUncaughtError(e)
 					}
 				}
