@@ -19,8 +19,20 @@ import { WhitelabelThemeGenerator } from "../gui/WhitelabelThemeGenerator"
 import { MobilePaymentsFacade } from "../native/common/generatedipc/MobilePaymentsFacade"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade"
 import { MobileGlobalSettingsViewer } from "./MobileGlobalSettingsViewer"
+import { CalendarSettingsViewer } from "./CalendarSettingsViewer"
+import { tutanotaTypeRefs } from "@tutao/typerefs"
 
-export function loginSettings(credentialsProvider: CredentialsProvider, systemFacade: MobileSystemFacade): SettingsFolder<unknown> {
+export function calendarSettings(entityClient: EntityClient, userSettingsGroupRoot: tutanotaTypeRefs.UserSettingsGroupRoot): SettingsFolder<void> {
+	return new SettingsFolder(
+		() => "calendar_label",
+		() => Icons.CalendarFilled,
+		"calendar",
+		() => new CalendarSettingsViewer(entityClient, userSettingsGroupRoot),
+		undefined,
+	)
+}
+
+export function loginSettings(credentialsProvider: CredentialsProvider, systemFacade: MobileSystemFacade | null): SettingsFolder<unknown> {
 	return new SettingsFolder(
 		() => "login_label",
 		() => Icons.PersonFilled,
@@ -59,6 +71,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 	function shouldShowSubscriptionSetting(): boolean {
 		return !logins.isEnabled(FeatureType.WhitelabelChild) && logins.getUserController().isGlobalAdmin()
 	}
+
 	return {
 		name: lang.getTranslation("subscriptionSettings_label"),
 		settings: [
@@ -91,6 +104,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 		],
 	}
 }
+
 export function adminSettingsSection(
 	logins: LoginController,
 	entityClient: EntityClient,

@@ -1,12 +1,11 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { assertMainOrNode, GroupType, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType, GroupType, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
 import { ColumnType, ViewColumn } from "../../common/gui/base/ViewColumn"
 import { ViewSlider } from "../../common/gui/nav/ViewSlider.js"
 import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { Header } from "../../common/gui/Header.js"
-import { LoginSettingsViewer } from "../../common/settings/login/LoginSettingsViewer.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
@@ -16,13 +15,11 @@ import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
 import { clone, LazyLoaded, partition, promiseMap } from "@tutao/utils"
-import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
@@ -57,7 +54,6 @@ import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
 import { TemplateListView } from "./TemplateListView.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
-import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { AffiliateSettingsViewer } from "../../common/settings/AffiliateSettingsViewer.js"
 import { AffiliateKpisViewer } from "../../common/settings/AffiliateKpisViewer.js"
@@ -75,6 +71,9 @@ import { ButtonType } from "../../common/gui/base/Button"
 import { CancelledError } from "../../common/api/common/error/CancelledError"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
+import { calendarSettings, loginSettings } from "../../common/settings/standardSettings"
+import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
+import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer"
 
 assertMainOrNode()
 
@@ -107,13 +106,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		super()
 		this.logins = vnode.attrs.logins
 		this._userFolders = [
-			new SettingsFolder(
-				() => "login_label",
-				() => Icons.PersonFilled,
-				"login",
-				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
-				undefined,
-			),
+			loginSettings(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 			new SettingsFolder(
 				() => "email_label",
 				() => Icons.MailFilled,
@@ -128,6 +121,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => new ContactsSettingsViewer(),
 				undefined,
 			),
+			calendarSettings(locator.entityClient, locator.logins.getUserController().userSettingsGroupRoot),
 			new SettingsFolder(
 				() => "appearanceSettings_label",
 				() => Icons.ColorpaletteFilled,

@@ -8,15 +8,21 @@ import { WhitelabelThemeGenerator } from "../../../common/gui/WhitelabelThemeGen
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { MobileSystemFacade } from "../../../common/native/common/generatedipc/MobileSystemFacade"
-import { adminSettingsSection, appearanceSettings, loginSettings, subscriptionSettingsSection } from "../../../common/settings/standardSettings"
+import {
+	adminSettingsSection,
+	appearanceSettings,
+	calendarSettings,
+	loginSettings,
+	subscriptionSettingsSection,
+} from "../../../common/settings/standardSettings"
+import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { SettingsFolder } from "../../../common/settings/SettingsFolder"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
-import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 
 assertMainOrNode()
 
-export function makeCalendarSettings(
+export function makeCalendarAppSettings(
 	credentialsProvider: CredentialsProvider,
 	systemFacade: MobileSystemFacade,
 	entityClient: EntityClient,
@@ -29,12 +35,18 @@ export function makeCalendarSettings(
 	return [
 		{
 			name: lang.getTranslation("userSettings_label"),
-			settings: [loginSettings(credentialsProvider, systemFacade), appearanceSettings(), notificationSettings()],
+			settings: [
+				loginSettings(credentialsProvider, systemFacade),
+				calendarSettings(entityClient, logins.getUserController().userSettingsGroupRoot),
+				appearanceSettings(),
+				notificationSettings(),
+			],
 		},
 		adminSettingsSection(logins, entityClient, themeController, whitelabelThemeGenerator, customerFacade),
 		subscriptionSettingsSection(logins, mobilePaymentsFacade),
 	]
 }
+
 export function notificationSettings(): SettingsFolder<unknown> {
 	return new SettingsFolder(
 		() => "notificationSettings_action",
