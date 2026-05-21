@@ -2282,3 +2282,4 @@ export type TranslationKeyType =
 	| "collapseTransferStack_label"
 	| "confirmCancelTransfers_msg"
 	| "confirmCancelTransfers_action"
+	| "nativeFileUploadTooLarge_msg"

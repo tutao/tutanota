@@ -5,11 +5,8 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { SuspensionError } from "../error/SuspensionError.js"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { SseError } from "../error/SseError.js"
-import { CancelledError, InvalidModelError, ProgrammingError } from "@tutao/app-env"
-import { RecipientsNotFoundError } from "../../../../../platform-kit/network/error/RecipientsNotFoundError.js"
-import { RecipientNotResolvedError } from "../../../../../platform-kit/network/error/RecipientNotResolvedError.js"
+import { CancelledError, InvalidModelError, OutOfSyncError, ProgrammingError } from "@tutao/app-env"
 import { OfflineDbClosedError } from "../error/OfflineDbClosedError.js"
-import { OutOfSyncError } from "../../../../../platform-kit/app-env/OutOfSyncError.js"
 import { DbError } from "../error/DbError.js"
 import { IndexingNotSupportedError } from "../error/IndexingNotSupportedError.js"
 import { QuotaExceededError } from "../error/QuotaExceededError.js"
@@ -33,6 +30,9 @@ import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
 import { MoveCycleError } from "../error/MoveCycleError"
 import { MoveToTrashError } from "../error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../error/MoveDestinationIsSourceError"
+import { FileTooLargeError } from "../error/FileTooLargeError"
+import { RecipientsNotFoundError } from "../../../../../platform-kit/network/error/RecipientsNotFoundError"
+import { RecipientNotResolvedError } from "../../../../../platform-kit/network/error/RecipientNotResolvedError"
 
 // If importing fails it is a good idea to adjust the chunking to bundle the error into common
 
@@ -96,6 +96,7 @@ const ErrorNameToType = {
 	MoveCycleError,
 	MoveToTrashError,
 	MoveDestinationIsSourceError,
+	FileTooLargeError,
 	Error,
 	"java.net.SocketTimeoutException": restError.ConnectionError,
 	"java.net.SocketException": restError.ConnectionError,
