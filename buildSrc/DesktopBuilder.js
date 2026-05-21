@@ -214,6 +214,7 @@ async function buildDesktopBundle(dirname, outDir, version, platform, architectu
 				architecture,
 				modulePath: "src/mimimi",
 			}),
+			makeCjsVendorPlugin(),
 		],
 	})
 
@@ -285,6 +286,26 @@ function makeNapiPlugin({ modulePath, platform, architecture }) {
 					const targetTuple = getTargetTupleWithLibc(platform, arch)
 					const fileName = `${moduleName}.${targetTuple}.node`
 					await fs.promises.copyFile(path.join(napiOut, fileName), path.join(dstDir, fileName))
+				}
+			})
+		},
+	}
+}
+
+/**
+ * Wraps IIFE/UMD vendored libs that use module.exports patterns esbuild can't detect as CJS
+ * when the root package.json has "type": "module".
+ */
+function makeCjsVendorPlugin() {
+	return {
+		name: "cjs-vendor",
+		setup(build) {
+			build.onLoad({ filter: /(stream|jszip|jsQR|qrcode)\.js$/, namespace: "file" }, async (args) => {
+				if (!args.path.includes("/libs/")) return undefined
+				const text = await fs.promises.readFile(args.path, "utf8")
+				return {
+					contents: `var module={exports:{}};var exports=module.exports;\n${text}\nexport default module.exports;`,
+					loader: "js",
 				}
 			})
 		},

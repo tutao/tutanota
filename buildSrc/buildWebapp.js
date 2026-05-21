@@ -131,7 +131,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		// tsconfig_common.json provides paths for all @tutao/* packages not in alias above.
 		tsconfig: "./tsconfig_common.json",
 		alias,
-		plugins: [tensorflowAliasPlugin()],
+		plugins: [tensorflowAliasPlugin(), cjsVendorPlugin()],
 		// qrcode-svg optionally imports node:fs; mark external to avoid bundling errors in browser build.
 		external: ["fs"],
 	})
@@ -188,6 +188,27 @@ function tensorflowAliasPlugin() {
 			build.onResolve({ filter: /^\.\/tensorflow-custom$/ }, () => ({
 				path: path.resolve(dependencyMap["./tensorflow-custom"]),
 			}))
+		},
+	}
+}
+
+/**
+ * esbuild plugin that wraps IIFE/UMD vendored libs that use module.exports in ways esbuild
+ * cannot auto-detect as CommonJS when the root package.json has "type": "module".
+ * Affected files: stream.js (module["exports"]), jszip.js, jsQR.js, qrcode.js (UMD patterns).
+ */
+function cjsVendorPlugin() {
+	return {
+		name: "cjs-vendor",
+		setup(build) {
+			build.onLoad({ filter: /(stream|jszip|jsQR|qrcode)\.js$/, namespace: "file" }, async (args) => {
+				if (!args.path.includes("/libs/")) return undefined
+				const text = await fs.promises.readFile(args.path, "utf8")
+				return {
+					contents: `var module={exports:{}};var exports=module.exports;\n${text}\nexport default module.exports;`,
+					loader: "js",
+				}
+			})
 		},
 	}
 }
