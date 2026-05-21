@@ -10,6 +10,8 @@ import { isOfflineError } from "@tutao/rest-client/error"
 import { DriveFile } from "@tutao/entities/drive"
 import { TransferId } from "../../../../entities/drive/Utils"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { FileTooLargeError } from "../../../common/api/common/error/FileTooLargeError"
+import { UserError } from "../../../common/api/main/UserError"
 
 export type DriveTransferType = "upload" | "download"
 
@@ -116,7 +118,9 @@ export class DriveTransferController {
 					this.removeTransfer(transfer.id)
 				} else {
 					this.transferFailed(id)
-					if (!isOfflineError(e)) {
+					if (e instanceof FileTooLargeError) {
+						handleUncaughtError(new UserError("nativeFileUploadTooLarge_msg"))
+					} else if (!isOfflineError(e)) {
 						handleUncaughtError(e)
 					}
 				}
