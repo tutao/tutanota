@@ -35,22 +35,27 @@ pipeline {
 		booleanParam(
 				name: 'ios_mail',
 				defaultValue: true,
-				description: "Build the mail ios app"
+				description: "Build Mail iOS app"
 		)
 		booleanParam(
 				name: 'android_mail',
 				defaultValue: true,
-				description: "Build the mail android app"
+				description: "Build Mail Android app"
 		)
 		booleanParam(
 				name: 'ios_calendar',
 				defaultValue: true,
-				description: "Build the calendar ios app"
+				description: "Build Calendar iOS app"
 		)
 		booleanParam(
 				name: 'android_calendar',
 				defaultValue: true,
-				description: "Build the calendar android app"
+				description: "Build Calendar Android app"
+		)
+		booleanParam(
+				name: 'android_drive',
+				defaultValue: true,
+				description: "Build Drive Android app"
 		)
 		booleanParam(
 				name: 'desktop',
@@ -93,6 +98,7 @@ pipeline {
 							ios_mail        : params.ios ? pregenerateReleaseNotes("ios") : null,
 							android_calendar: params.android ? pregenerateReleaseNotes("android") : null,
 							ios_calendar    : params.ios ? pregenerateReleaseNotes("ios") : null,
+							android_drive   : params.android_drive ? pregenerateReleaseNotes("android") : null,
 					]
 					echo("${releaseNotes}")
 				} // script
@@ -284,7 +290,7 @@ pipeline {
 							} // stages
 						} // stage android client
 					} // parallel
-				} // stage mobile
+				} // stage Mail Mobile
 				stage("Calendar Mobile") {
 					parallel {
 						stage("Calendar iOS") {
@@ -363,7 +369,48 @@ pipeline {
 							} // stages
 						} // stage android client
 					} // parallel
-				} // stage mobile
+				} // stage Calendar Mobile
+				stage("Drive Mobile") {
+					parallel {
+						stage("Drive Android") {
+							when { expression { params.android_drive } }
+							stages {
+								stage("Build Drive Android") {
+									when { expression { shouldBuild() } }
+									steps {
+										script {
+											build job: 'tuta-drive-android', parameters: [
+													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+													booleanParam(name: "PROD", value: true),
+													string(name: "branch", value: params.branch)
+											]
+										} // script
+									} // steps
+								} // stage build
+								stage("Publish Drive Android") {
+									when { expression { params.target != "dryRun" } }
+									steps {
+										script {
+											build job: 'tuta-drive-android-publish', parameters: params.target == "publishToProd" ? [
+													booleanParam(name: "STAGING", value: false),
+													booleanParam(name: "PROD", value: true),
+													booleanParam(name: "GITHUB_RELEASE", value: true),
+													text(name: "releaseNotes", value: releaseNotes.android_drive),
+													string(name: "branch", value: params.branch)
+											] : [
+													booleanParam(name: "STAGING", value: true),
+													booleanParam(name: "PROD", value: false),
+													booleanParam(name: "GITHUB_RELEASE", value: false),
+													string(name: "branch", value: params.branch)
+											]
+										} // script
+									} // steps
+								} // stage publish
+							} // stages
+						} // stage android client
+					} // parallel
+				} // stage Drive Mobile
 			} // stages
 		} // stage other clients
 		stage('notify about release') {
