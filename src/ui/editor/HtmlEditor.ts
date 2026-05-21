@@ -31,6 +31,9 @@ export class HtmlEditor implements Component {
 	private modeSwitcherLabel: MaybeTranslation | null = null
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
+	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
+	private isDisplayOnly: boolean = false
+
 	constructor(
 		private readonly htmlSanitizer: HtmlSanitizerInterface,
 		private label?: MaybeTranslation,
@@ -48,8 +51,6 @@ export class HtmlEditor implements Component {
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
-
-	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
 	view(): Children {
 		const modeSwitcherLabel = this.modeSwitcherLabel
@@ -130,16 +131,21 @@ export class HtmlEditor implements Component {
 										this.domTextArea.style.height = this.domTextArea.scrollHeight + "px"
 									}
 								},
-								style: this.staticLineAmount
-									? {
-											"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
-											"min-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
-											overflow: "scroll",
-										}
-									: {
-											"font-family": this.htmlMonospace ? "monospace" : "inherit",
-											"min-height": this.minHeight ? px(this.minHeight) : "initial",
-										},
+								style: {
+									...(this.staticLineAmount
+										? {
+												"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+												"min-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
+												overflow: "scroll",
+											}
+										: {
+												"font-family": this.htmlMonospace ? "monospace" : "inherit",
+												"min-height": this.minHeight ? px(this.minHeight) : "initial",
+											}),
+									...(this.isDisplayOnly && {
+										"pointer-events": "none",
+									}),
+								},
 								disabled: !this.editor.isEnabled(),
 								readonly: this.editor.isReadOnly(),
 							}),
@@ -264,6 +270,12 @@ export class HtmlEditor implements Component {
 		if (this.domTextArea) {
 			this.domTextArea.disabled = !enabled
 		}
+		return this
+	}
+
+	//Only display the content, disables cursor events
+	displayOnly() {
+		this.isDisplayOnly = true
 		return this
 	}
 
