@@ -2290,6 +2290,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"importEventIcsDuplicate_msg": "{amount} of {total} events are duplicated in the file. Duplicates will not be imported. Will continue with the remaining events...",
+		"emptyIcsFile_msg": "The file was empty. No events to import."
 	}
 }

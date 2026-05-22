@@ -91,7 +91,7 @@ import {
 	normalizeCalendarUrl,
 	parseCalendarStringData,
 	ParsedCalendarData,
-	ParsedEvent,
+	ParsedEventAlarmTuple,
 	shallowIsSameEvent,
 	sortOutParsedEvents,
 	SyncStatus,
@@ -563,7 +563,7 @@ export class CalendarModel {
 				continue
 			}
 
-			let parsedExternalEvents: ParsedEvent[] = []
+			let parsedExternalEvents: ParsedEventAlarmTuple[] = []
 			try {
 				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
 				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents

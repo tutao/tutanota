@@ -2289,3 +2289,5 @@ export type TranslationKeyType =
 	| "referAFriendMoreInfo_label"
 	| "referAFriendBothBenefit_label"
 	| "emptyString_msg"
+	| "importEventIcsDuplicate_msg"
+	| "emptyIcsFile_msg"

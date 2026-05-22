@@ -23,7 +23,7 @@ import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platf
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../common/calendar/gui/ImportExportUtils"
 
 function parseDateString(dateString: string): {
 	year: number
@@ -509,7 +509,7 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEvent> {
+function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
 		const tzId = getTzId(startProp)

@@ -127,7 +127,7 @@ import { lang } from "../../ui/utils/LanguageViewModel.js"
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "./calendar/model/CalendarEventUpdateCoordinator"
-import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { ParsedEventAlarmTuple } from "../common/calendar/gui/ImportExportUtils"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { ExposedCacheStorage } from "../../app-kit/local-store/CacheStorage"
@@ -837,7 +837,7 @@ class CalendarLocator implements CommonLocator {
 		if (areAllICSFiles) {
 			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
 
-			let parsedEvents: ParsedEvent[] = []
+			let parsedEvents: ParsedEventAlarmTuple[] = []
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
@@ -846,7 +846,13 @@ class CalendarLocator implements CommonLocator {
 				parsedEvents.push(...data.contents)
 			}
 
-			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), parsedEvents)
+			await importCalendarFile(
+				await this.calendarModel(),
+				this.logins.getUserController(),
+				parsedEvents,
+				this.entityClient,
+				this.logins.getUserController().user,
+			)
 		}
 	}
 
