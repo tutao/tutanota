@@ -114,6 +114,7 @@ export class EventBusClient {
 
 	private progressMonitor: ProgressMonitorDelegate | null = null
 	private isInitialSyncDone: boolean = false
+	private lastMissedBatchId: Id | null = null
 
 	/**
 	 * The artificial work that is added as an overstatement, to make sure the progress bar is not completed too early.
@@ -333,6 +334,10 @@ export class EventBusClient {
 					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
 					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
 				}
+				// update the lastMissedBatchId as long as the initial sync is not done
+				if (!this.isInitialSyncDone) {
+					this.lastMissedBatchId = batchId
+				}
 				// if the updates were not added to the queue, since the array is empty because it was optimized away,
 				// we need to complete the work for the batch here, since the processEventBatch function
 				// (and therefore the EventController) will not be called for this particular batch.
@@ -375,8 +380,10 @@ export class EventBusClient {
 				console.log("Reached final event, sync is done")
 
 				this.isInitialSyncDone = true
-				this.listener.onSyncDone()
-
+				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
+				if (this.lastMissedBatchId === null) {
+					this.listener.onSyncDone()
+				}
 				setTimeout(() => this.progressMonitor?.workDone(this.artificialWorkEstimate), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
 				break
 			}
@@ -681,6 +688,10 @@ export class EventBusClient {
 					progressMonitorId,
 					assertNotNull(batch.isInitialSyncDone),
 				)
+			}
+			// call syncDone listener right after the last missed batch is processed
+			if (batch.batchId === this.lastMissedBatchId) {
+				this.listener.onSyncDone()
 			}
 		} catch (e) {
 			if (e instanceof restError.ServiceUnavailableError) {
