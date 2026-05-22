@@ -1,8 +1,10 @@
 import path from "node:path"
 import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
 import { CryptoFunctions } from "../CryptoFns.js"
-import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { assertNotNull, base64ToBase64Url, filterInt, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
+import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
+import { Readable } from "node:stream"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 
@@ -118,7 +120,7 @@ export class TempFs {
 		const tmpPath = path.join(this.getTutanotaTempPath(), subfolder)
 		await this.fs.promises.mkdir(tmpPath, { recursive: true })
 
-		const filename = uint8ArrayToHex(this.cryptoFunctions.randomBytes(12))
+		const filename = this.generateFilename()
 		const filePath = path.join(tmpPath, filename)
 
 		await this.fs.promises.writeFile(filePath, contents, option)
@@ -151,11 +153,128 @@ export class TempFs {
 		}
 	}
 
+	private inMemoryFiles = new Map<TmpFilename, Uint8Array>()
+
+	private readInMemoryFile(uri: string): Uint8Array | null {
+		const filename = this.uriToName(uri)
+		return this.inMemoryFiles.get(filename) ?? null
+	}
+
+	createInMemoryFile(content: Uint8Array): `tuta-tmp:${string}` {
+		const filename = this.generateFilename()
+		this.inMemoryFiles.set(filename, content)
+		return this.nameToUri(filename)
+	}
+
+	private deleteInMemoryFile(uri: string) {
+		const filename = this.uriToName(uri)
+		this.inMemoryFiles.delete(filename)
+	}
+
+	async deleteFile(uri: string) {
+		if (uri.startsWith("tuta-tmp:")) {
+			this.deleteInMemoryFile(uri)
+		} else if (uri.startsWith("tuta-chunk:")) {
+			// no-op
+		} else {
+			this.assertInTmpDir(uri)
+			await this.fs.promises.unlink(uri)
+		}
+	}
+
+	fileStream(uri: string): NodeJS.ReadableStream {
+		if (uri.startsWith("tuta-tmp:")) {
+			const data = this.readInMemoryFile(uri)
+			if (data == null) {
+				throw new FileNotFoundError(uri)
+			}
+			return new TypedArrayReadableStream(data)
+		} else if (uri.startsWith("tuta-chunk:")) {
+			const { filePath, start, length } = this.parseChunkUri(uri)
+			// end is inclusive
+			return this.fs.createReadStream(filePath, { start, end: start + length - 1 })
+		} else {
+			this.assertInTmpDir(uri)
+			return this.fs.createReadStream(uri)
+		}
+	}
+
+	private parseChunkUri(uri: string): { filePath: string; start: number; length: number } {
+		const parsedUri = new URL(uri)
+		const start = filterInt(assertNotNull(parsedUri.searchParams.get("start"), "chunk uri has no start"))
+		const length = filterInt(assertNotNull(parsedUri.searchParams.get("length"), "chunk uri has no length"))
+		return { filePath: parsedUri.pathname, start, length }
+	}
+
+	async getFileSize(uri: string): Promise<number> {
+		if (uri.startsWith("tuta-tmp:")) {
+			const data = this.readInMemoryFile(uri)
+			if (data == null) {
+				throw new FileNotFoundError(uri)
+			}
+			return data.length
+		} else if (uri.startsWith("tuta-chunk:")) {
+			const { length } = this.parseChunkUri(uri)
+			return length
+		} else {
+			// we only upload encrypted blobs so it should be safe
+			this.assertInTmpDir(uri)
+			return (await this.fs.promises.stat(uri)).size
+		}
+	}
+
+	closeFileStream(stream: NodeJS.ReadableStream) {
+		if (stream instanceof this.fs.ReadStream) {
+			stream.close()
+		} else {
+			// no-op for TypedArrayReadableStream
+		}
+	}
+
+	createFileChunkUri(fileUri: string, start: number, length: number): string {
+		return `tuta-chunk:${fileUri}?start=${start}&length=${length}`
+	}
+
+	private nameToUri(filename: TmpFilename): `tuta-tmp:${string}` {
+		return `tuta-tmp:${filename}`
+	}
+
+	private uriToName(possibleUri: string): TmpFilename {
+		if (!possibleUri.startsWith("tuta-tmp:")) {
+			throw new ProgrammingError(`Invalid tmp uri: ${possibleUri}`)
+		} else {
+			return possibleUri.slice(`tuta-tmp:`.length) as TmpFilename
+		}
+	}
+
+	private generateFilename(): TmpFilename {
+		return uint8ArrayToHex(this.cryptoFunctions.randomBytes(12)) as TmpFilename
+	}
+
 	private getEncryptedTempDir() {
 		return path.join(this.getTutanotaTempPath(), "encrypted")
 	}
 
 	private getUnencryptedTempDir() {
 		return path.join(this.getTutanotaTempPath(), "decrypted")
+	}
+}
+
+type TmpFilename = string & { readonly __brand: unique symbol }
+
+class TypedArrayReadableStream extends Readable {
+	private position: number = 0
+
+	constructor(private readonly array: Uint8Array) {
+		super()
+	}
+	_read(size: number) {
+		if (this.position >= this.array.length) {
+			this.push(null)
+		} else {
+			const chunk = this.array.slice(this.position, this.position + size)
+			this.position += size
+			this.push(chunk)
+		}
 	}
 }
