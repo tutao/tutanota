@@ -8,7 +8,7 @@ import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kits/network/BlobAccessTokenFacade"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../../../../../src/rest-client/types"
 import { ArchiveDataType } from "../../../../../src/entities/sys"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { createReferencingInstance } from "@tutao/entities/storage"

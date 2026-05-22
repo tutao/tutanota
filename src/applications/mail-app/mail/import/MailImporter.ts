@@ -1,5 +1,5 @@
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
-import { NativeMailImportFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeMailImportFacade } from "../../../native-bridge/common/generatedipc/types"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
 import { LoginController } from "../../../common/api/main/LoginController"

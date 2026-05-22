@@ -3,9 +3,9 @@ import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { CacheInfo, LoginFailReason, LoginListener } from "../../../../platform-kits/base/facades/LoginFacade.js"
 import { SessionType } from "@tutao/app-env"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
-import { PersistedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { PersistedCredentials } from "../../../native-bridge/common/generatedipc/types"
 
-import { Credentials } from "@tutao/network/types"
+import { Credentials } from "../../../network/types"
 import { Challenge } from "@tutao/entities/sys"
 
 /** Listener for the login events from the worker side. */

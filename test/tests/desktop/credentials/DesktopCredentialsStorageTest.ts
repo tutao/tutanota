@@ -4,7 +4,7 @@ import { object } from "testdouble"
 
 import { CredentialEncryptionMode } from "@tutao/app-env"
 import { PersistedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/PersistedCredentials.js"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../../src/network/types"
 
 const encryptedCredentials1: PersistedCredentials = {
 	credentialInfo: {

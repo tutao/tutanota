@@ -1,4 +1,4 @@
-import { IntegrationInfo, SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { IntegrationInfo, SettingsFacade } from "../../../native-bridge/common/generatedipc/types"
 import { DesktopConfig } from "./DesktopConfig.js"
 import { DesktopConfigKey } from "@tutao/app-env"
 import { DesktopUtils } from "../DesktopUtils.js"

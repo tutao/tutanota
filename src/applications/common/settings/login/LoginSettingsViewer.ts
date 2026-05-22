@@ -28,7 +28,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../../ui/base/Dro
 import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
-import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, MobileSystemFacade } from "../../../native-bridge/common/generatedipc/types"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { UserController } from "../../api/main/UserController"
 import { ifAllowedTutaLinks } from "../../gui/base/TutaLinkUtils"

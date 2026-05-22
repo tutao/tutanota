@@ -1,5 +1,5 @@
 import { Aes256Key, uint8ArrayToKey } from "@tutao/crypto"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCryptoFacade } from "../../native-bridge/common/generatedipc/types"
 import { assertWorkerOrNode } from "../../app-env"
 import { Argon2idFacade } from "./WasmArgon2idFacade"
 

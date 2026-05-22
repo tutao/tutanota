@@ -1,6 +1,6 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, RestClientOptions } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestClientOptions } from "../../../src/rest-client/types"
 import { CryptoFacade } from "../../../src/platform-kits/base/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "@tutao/meta"

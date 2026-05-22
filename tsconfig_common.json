@@ -50,7 +50,7 @@
 			"@tutao/instance-pipeline": ["./src/platform-kits/instance-pipeline"],
 			"@tutao/network/types": ["./src/platform-kits/network/types.d.ts"],
 			"@tutao/native-bridge/generatedIpc/types": [
-				"./src/app-kits/native-bridge/common/generatedipc/types/index.d.ts"
+				"./src/app-kits/native-bridge/common/generatedipc/types/index.ts"
 			],
 			"@tutao/native-bridge/generatedIpc/dispatchers": [
 				"./src/app-kits/native-bridge/common/generatedipc/dispatchers/index.ts"

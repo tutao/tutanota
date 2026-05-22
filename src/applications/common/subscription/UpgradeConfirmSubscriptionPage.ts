@@ -21,7 +21,7 @@ import { assertNotNull, base64ExtToBase64, base64ToUint8Array, neverNull, ofClas
 import { locator } from "../api/main/CommonLocator"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
-import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentResultType } from "../../native-bridge/common/generatedipc/types"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../../../platform-kits/app-env/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"

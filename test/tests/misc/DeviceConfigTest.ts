@@ -11,7 +11,7 @@ import { matchers, object, when } from "testdouble"
 
 import { getDayShifted, getStartOfDay } from "@tutao/utils"
 import { CredentialEncryptionMode } from "@tutao/app-env"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../src/network/types"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {

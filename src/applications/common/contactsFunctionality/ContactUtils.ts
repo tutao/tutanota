@@ -11,7 +11,7 @@ import {
 	StructuredPhoneNumber,
 	StructuredRelationship,
 	StructuredWebsite,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../native-bridge/common/generatedipc/types"
 import { parseUrl } from "@tutao/utils"
 import {
 	Birthday,

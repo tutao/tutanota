@@ -18,7 +18,7 @@ import { createSwitchAccountTypePostIn, SwitchAccountTypeService } from "@tutao/
 import { AccountType, AvailablePlanType, PaymentMethodType, PlanType } from "../../entities/sys/Utils"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
-import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentResultType } from "../../native-bridge/common/generatedipc/types"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../../../platform-kits/app-env/boot/ClientDetector.js"

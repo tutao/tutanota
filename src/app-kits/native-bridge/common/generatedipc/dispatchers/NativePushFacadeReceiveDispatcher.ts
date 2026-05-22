@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ExtendedNotificationMode, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExtendedNotificationMode, NativePushFacade } from "../types"
 
 export class NativePushFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativePushFacade) {}

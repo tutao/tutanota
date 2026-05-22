@@ -22,7 +22,7 @@ import { aes256RandomKey } from "@tutao/crypto"
 import { assertNotNull } from "@tutao/utils"
 
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../../src/network/types"
 
 import { createIdTupleWrapper, createNotificationInfo, NotificationInfo } from "@tutao/entities/sys"
 

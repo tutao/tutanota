@@ -11,7 +11,7 @@ import { offline10 } from "./migrations/offline-v10"
 import { offline11 } from "./migrations/offline-v11"
 import { offline12 } from "./migrations/offline-v12"
 import { ApplicationTypesFacade } from "@tutao/instance-pipeline"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../native-bridge/common/generatedipc/types"
 import { OfflineMigration } from "./OfflineMigration"
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)

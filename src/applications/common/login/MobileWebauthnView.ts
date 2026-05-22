@@ -6,7 +6,7 @@ import { progressIcon } from "../../../ui/base/Icon.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { BrowserWebauthn } from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import { WebAuthnRegistrationChallenge, WebAuthnSignChallenge } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnRegistrationChallenge, WebAuthnSignChallenge } from "../../native-bridge/common/generatedipc/types"
 import { stringToBase64 } from "@tutao/utils"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 

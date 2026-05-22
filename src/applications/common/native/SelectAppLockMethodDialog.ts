@@ -9,7 +9,7 @@ import type { DeferredObject } from "@tutao/utils"
 import { defer } from "@tutao/utils"
 import { CancelledError, Keys } from "@tutao/app-env"
 import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
-import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, MobileSystemFacade } from "../../native-bridge/common/generatedipc/types"
 import { type RadioSelectorOption } from "../../../ui/base/RadioSelectorItem"
 
 export async function showAppLockMethodDialog(mobileSystemFacade: MobileSystemFacade): Promise<void> {

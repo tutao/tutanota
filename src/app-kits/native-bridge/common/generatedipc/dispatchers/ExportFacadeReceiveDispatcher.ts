@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DataFile, ExportFacade, MailBundle } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile, ExportFacade, MailBundle } from "../types"
 
 export class ExportFacadeReceiveDispatcher {
 	constructor(private readonly facade: ExportFacade) {}

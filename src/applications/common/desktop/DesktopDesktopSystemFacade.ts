@@ -1,4 +1,4 @@
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade } from "../../native-bridge/common/generatedipc/types"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Socketeer } from "./Socketeer.js"

@@ -14,7 +14,7 @@ import { EntityClient } from "../../../platform-kits/network/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import * as restError from "@tutao/rest-client/error"
 import { isOfflineError } from "@tutao/rest-client/error"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../../rest-client/types"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
 	createUsageTestAssignmentIn,

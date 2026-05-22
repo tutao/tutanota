@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DesktopConfigKey, SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopConfigKey, SettingsFacade } from "../types"
 
 export class SettingsFacadeReceiveDispatcher {
 	constructor(private readonly facade: SettingsFacade) {}

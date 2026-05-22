@@ -9,7 +9,7 @@ import {
 	NativeCryptoFacade,
 	RsaPrivateKey,
 	RsaPublicKey,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../types"
 
 export class NativeCryptoFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCryptoFacade) {}

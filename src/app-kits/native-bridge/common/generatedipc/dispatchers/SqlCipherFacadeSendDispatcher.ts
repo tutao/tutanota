@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../types"
 
 interface NativeInterface {
 	invokeNative(requestType: string, args: unknown[]): Promise<any>

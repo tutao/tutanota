@@ -3,7 +3,7 @@ import { CredentialsProvider } from "../../../common/misc/credentials/Credential
 import { LoginController } from "../../../common/api/main/LoginController"
 import { ThemeController } from "../../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
-import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentsFacade, MobileSystemFacade } from "../../../native-bridge/common/generatedipc/types"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { SettingsViewSection } from "../../../common/settings/Interfaces"
 import { lang } from "../../../../ui/utils/LanguageViewModel"

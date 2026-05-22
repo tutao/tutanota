@@ -40,7 +40,7 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { NativeFileApp } from "../../../../app-kits/native-bridge/common/FileApp.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { CryptoFacade } from "../../../../platform-kits/base/crypto/CryptoFacade.js"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -124,7 +124,7 @@ import { EntityRestClient } from "../../../../platform-kits/network/EntityRestCl
 import { EntityClient } from "../../../../platform-kits/network/EntityClient"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kits/network/LastProcessedEventBatchProvider"
 import { ServiceExecutor } from "../../../../platform-kits/network/ServiceExecutor"
-import { Credentials } from "@tutao/network/types"
+import { Credentials } from "../../../network/types"
 import { EntityRestInterface } from "../../../../platform-kits/network/EntityRestCacheInterface"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { BrowserData } from "../../../../platform-kits/app-env/boot/ClientConstants"

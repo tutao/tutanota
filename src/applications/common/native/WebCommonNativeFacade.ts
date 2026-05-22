@@ -1,4 +1,4 @@
-import { CalendarOpenAction, CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CalendarOpenAction, CommonNativeFacade } from "../../native-bridge/common/generatedipc/types"
 import { lang, MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
 import { AppType, CancelledError, isDesktop } from "@tutao/app-env"

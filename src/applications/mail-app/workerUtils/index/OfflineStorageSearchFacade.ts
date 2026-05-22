@@ -1,7 +1,7 @@
 import { SearchFacade } from "./SearchFacade"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../../app-kits/local-store/Sql"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "@tutao/utils"

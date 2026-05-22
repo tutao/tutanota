@@ -1,5 +1,5 @@
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../native-bridge/common/generatedipc/types"
 import { assertNotNull, isEmpty } from "@tutao/utils"
 import { sql } from "../Sql"
 import { CUSTOM_MIN_ID, getTypeString } from "@tutao/meta"

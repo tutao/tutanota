@@ -9,7 +9,7 @@ import { NativeCredentialsFacade } from "../../../../src/app-kits/native-bridge/
 import { PersistedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/PersistedCredentials.js"
 import { SqlCipherFacade } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { UnencryptedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../../src/network/types"
 
 o.spec("CredentialsProvider", function () {
 	let credentialsProvider: CredentialsProvider

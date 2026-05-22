@@ -10,7 +10,7 @@ import { UnencryptedCredentials } from "../../../../src/app-kits/native-bridge/c
 
 import { aes256RandomKey } from "@tutao/crypto"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../../src/network/types"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()

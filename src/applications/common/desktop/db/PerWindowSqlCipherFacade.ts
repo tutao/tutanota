@@ -1,4 +1,4 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { ProgrammingError } from "@tutao/app-env"
 import { log } from "../DesktopLog.js"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"

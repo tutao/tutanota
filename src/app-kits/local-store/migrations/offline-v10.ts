@@ -1,5 +1,5 @@
 import { OfflineStorage } from "../OfflineStorage.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../native-bridge/common/generatedipc/types"
 import { OfflineMigration } from "../OfflineMigration"
 
 const VERSION = 10

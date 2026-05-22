@@ -15,7 +15,7 @@ import {
 	NativeMailImportFacade,
 	SearchTextInAppFacade,
 	ThemeFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../native-bridge/common/generatedipc/types"
 import {
 	CommonSystemFacadeSendDispatcher,
 	DesktopSystemFacadeSendDispatcher,

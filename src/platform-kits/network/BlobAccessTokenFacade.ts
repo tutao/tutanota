@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest"
 import { DateProvider, deduplicate, first, isEmpty, lazyMemoized } from "@tutao/utils"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../rest-client/types"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { ArchiveDataType, BlobAccessTokenKind } from "../entities/sys/Utils"

@@ -1,7 +1,7 @@
 import { Dialog } from "../../../../ui/base/Dialog"
 import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "@tutao/app-env"
 import { KeyVerificationFacade } from "../../../../platform-kits/base/facades/lazy/KeyVerificationFacade"
-import { DesktopSystemFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade, MobileSystemFacade } from "../../../native-bridge/common/generatedipc/types"
 import { UsageTestController } from "@tutao/usagetests"
 import { MultiPageDialog } from "../../../../ui/dialogs/MultiPageDialog"
 import m from "mithril"

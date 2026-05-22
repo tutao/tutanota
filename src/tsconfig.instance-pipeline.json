@@ -19,6 +19,9 @@
 		},
 		{
 			"path": "tsconfig.entities.base.json"
+		},
+		{
+			"path": "tsconfig.rest-client.json"
 		}
 	]
 }

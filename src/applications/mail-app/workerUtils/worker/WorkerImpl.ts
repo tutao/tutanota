@@ -18,7 +18,7 @@ import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/Us
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { CryptoWrapper, random } from "@tutao/crypto"
 import { NativeInterface } from "../../../../app-kits/native-bridge/common/NativeInterface.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { Commands, Request } from "../../../../app-kits/native-bridge/shared/MessageTypes"
 import { IServiceExecutor } from "../../../../platform-kits/network/ServiceRequest.js"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"

@@ -1,4 +1,4 @@
-import { HttpMethod, RestClientMiddleware } from "@tutao/rest-client/types"
+import { HttpMethod, RestClientMiddleware } from "../rest-client/types"
 import { isNotNull } from "@tutao/utils"
 import { getServiceRestPath } from "@tutao/meta"
 import { ServerModelInfo } from "./EntityFunctions"

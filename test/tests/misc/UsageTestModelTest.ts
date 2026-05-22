@@ -16,7 +16,7 @@ import { LoginController } from "../../../src/applications/common/api/main/Login
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { EventController } from "../../../src/applications/common/api/main/EventController.js"
 import { createTestEntity, makePopulatedClientModelInfo } from "../TestUtils.js"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../../../src/rest-client/types"
 import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
 	createUsageTestMetricData,

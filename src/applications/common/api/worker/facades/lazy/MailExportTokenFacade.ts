@@ -1,6 +1,6 @@
 import { AccessExpiredError } from "@tutao/rest-client/error"
 import { IServiceExecutor } from "../../../../../../platform-kits/network/ServiceRequest.js"
-import { SuspensionBehavior } from "@tutao/rest-client/types"
+import { SuspensionBehavior } from "../../../../../rest-client/types"
 import { MailExportTokenService } from "@tutao/entities/tutanota"
 
 const TAG = "[MailExportTokenFacade]"

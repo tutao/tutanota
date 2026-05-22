@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonSystemFacade } from "../types"
 
 export class CommonSystemFacadeReceiveDispatcher {
 	constructor(private readonly facade: CommonSystemFacade) {}

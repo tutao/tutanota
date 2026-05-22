@@ -3,7 +3,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { show } from "../../../ui/base/NotificationOverlay"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SettingsFacade } from "../../native-bridge/common/generatedipc/types"
 
 assertMainOrNode()
 

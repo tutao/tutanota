@@ -1,5 +1,5 @@
 import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "@tutao/utils"
-import { ContactSyncResult, MobileContactsFacade, PermissionType, StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
+import { ContactSyncResult, MobileContactsFacade, PermissionType, StructuredContact } from "../../../native-bridge/common/generatedipc/types"
 import {
 	extractStructuredAddresses,
 	extractStructuredCustomDates,

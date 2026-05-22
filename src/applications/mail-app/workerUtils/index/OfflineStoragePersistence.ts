@@ -1,4 +1,4 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { sql } from "../../../../app-kits/local-store/Sql"
 import { untagSqlObject, untagSqlValue } from "../../../../app-kits/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"

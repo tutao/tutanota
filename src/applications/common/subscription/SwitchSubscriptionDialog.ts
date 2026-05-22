@@ -33,7 +33,7 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentSubscriptionOwnership } from "../../native-bridge/common/generatedipc/types"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import {
 	appStorePlanName,

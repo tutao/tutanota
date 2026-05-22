@@ -5,7 +5,7 @@ import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPerman
 import { CryptoError } from "@tutao/crypto/error"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { DesktopConfig } from "../config/DesktopConfig.js"
-import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade } from "../../../native-bridge/common/generatedipc/types"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { DesktopCredentialsMode } from "./CredentialCommons.js"
 

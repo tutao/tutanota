@@ -87,7 +87,7 @@ import {
 	SettingsFacade,
 	SqlCipherFacade,
 	ThemeFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../native-bridge/common/generatedipc/types"
 import { notifications } from "../../ui/Notifications"
 import { EntityClient } from "../../platform-kits/network/EntityClient"
 import { CommonLocator } from "../common/api/main/CommonLocator"

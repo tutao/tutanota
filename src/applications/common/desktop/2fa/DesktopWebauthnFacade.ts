@@ -4,7 +4,7 @@ import {
 	WebAuthnRegistrationResult,
 	WebAuthnSignChallenge,
 	WebAuthnSignResult,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../../native-bridge/common/generatedipc/types"
 import type { WebDialogController } from "../WebDialog.js"
 import { WebDialog } from "../WebDialog.js"
 import { ApplicationWindow } from "../ApplicationWindow.js"

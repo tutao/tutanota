@@ -17,7 +17,7 @@ import {
 import { AttributeModel, GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "../../app-env"
 import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
 	_encryptString,
@@ -88,7 +88,7 @@ import {
 import { EventBusClient } from "../../network/EventBusClient"
 import { CacheMode, EntityRestClient } from "../../network/EntityRestClient"
 import { CloseEventBusOption, ConnectMode } from "../../network/Constants"
-import { Credentials, CredentialType } from "@tutao/network/types"
+import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../crypto/Constants"
 import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"

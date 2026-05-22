@@ -6,7 +6,7 @@ import {
 	WebAuthnRegistrationResult,
 	WebAuthnSignChallenge,
 	WebAuthnSignResult,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../../../native-bridge/common/generatedipc/types"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebauthnError } from "../../../api/common/error/WebauthnError.js"
 

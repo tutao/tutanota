@@ -23,7 +23,7 @@ import { AppLock } from "../../../src/applications/common/login/AppLock.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
 import { Credentials } from "@tutao/network/types"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../src/network/types"
 
 import { GroupInfoTypeRef, UserTypeRef } from "@tutao/entities/sys"
 

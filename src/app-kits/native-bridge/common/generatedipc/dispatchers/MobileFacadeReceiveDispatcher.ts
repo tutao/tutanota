@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileFacade } from "../types"
 
 export class MobileFacadeReceiveDispatcher {
 	constructor(private readonly facade: MobileFacade) {}
