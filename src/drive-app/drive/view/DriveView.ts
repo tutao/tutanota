@@ -18,7 +18,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../common/gui/base/List"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
-import { Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "@tutao/app-env"
+import { isAndroidApp, Keys, NewPaidPlans, OperationStatus, UpgradePromptType } from "@tutao/app-env"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../common/gui/base/Modal"
@@ -283,21 +283,27 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
-		return m("#drive.main-view", {}, [
-			m(this.viewSlider, {
-				header: m(Header, {
-					firstColWidth: this.driveNavColumn.width,
-					rightView: null,
-					...attrs.header,
+		return m(
+			"#drive.main-view",
+			{
+				class: isAndroidApp() && styles.isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect ? "mb-safe-inset" : undefined,
+			},
+			[
+				m(this.viewSlider, {
+					header: m(Header, {
+						firstColWidth: this.driveNavColumn.width,
+						rightView: null,
+						...attrs.header,
+					}),
+					bottomNav:
+						styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
+							? this.driveViewModel.listState().inMultiselect
+								? this.renderMobileActionBar(attrs.showMoveItemDialog)
+								: attrs.bottomNav()
+							: null,
 				}),
-				bottomNav:
-					styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
-						? this.driveViewModel.listState().inMultiselect
-							? this.renderMobileActionBar(attrs.showMoveItemDialog)
-							: attrs.bottomNav()
-						: null,
-			}),
-		])
+			],
+		)
 	}
 
 	private renderMobileActionBar(showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
@@ -445,7 +451,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
 						floatingActionButton: () => {
-							return this.renderFab()
+							return !this.driveViewModel.listState().inMultiselect ? this.renderFab() : null
 						},
 						desktopToolbar: () => [],
 						columnLayout: [

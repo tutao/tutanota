@@ -101,7 +101,7 @@ class Styles {
 	}
 
 	isAppNotUsingBottomNav(): boolean {
-		return client.isCalendarApp()
+		return client.isCalendarApp() || client.isDriveApp()
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | object>) {
