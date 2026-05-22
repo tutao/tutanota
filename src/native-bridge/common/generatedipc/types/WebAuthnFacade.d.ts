@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { WebAuthnRegistrationChallenge, WebAuthnRegistrationResult, WebAuthnSignChallenge, WebAuthnSignResult } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnRegistrationChallenge, WebAuthnRegistrationResult, WebAuthnSignChallenge, WebAuthnSignResult } from "./index"
 
 /**
  * implementation of the WebAuthn protocol

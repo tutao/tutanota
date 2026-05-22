@@ -11,7 +11,7 @@ import {
 	SearchTextInAppFacade,
 	SettingsFacade,
 	ThemeFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../../native-bridge/common/generatedipc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { NativeFileApp } from "../../../native-bridge/common/FileApp.js"
 

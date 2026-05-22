@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DesktopConfigKey, IntegrationInfo, UpdateInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopConfigKey, IntegrationInfo, UpdateInfo } from "./index"
 
 /**
  * Desktop preferences.

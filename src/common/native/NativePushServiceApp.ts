@@ -5,7 +5,7 @@ import { AppType, isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } fr
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { locator } from "../api/main/CommonLocator"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
-import { ExtendedNotificationMode, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExtendedNotificationMode, NativePushFacade } from "../../native-bridge/common/generatedipc/types"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { CryptoFacade } from "../../base/crypto/CryptoFacade"
 import { EntityClient } from "../../network/EntityClient"

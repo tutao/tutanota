@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SettingsFacade } from "../types"
 
 interface NativeInterface {
 	invokeNative(requestType: string, args: unknown[]): Promise<any>

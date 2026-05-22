@@ -2,7 +2,7 @@ import { IdentityKeySourceOfTrust, isBrowser, ProgrammingError, SessionType } fr
 import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes, SigningKeyPairType } from "@tutao/crypto"
 import { lazy, Versioned } from "@tutao/utils"
 import { sql } from "./Sql"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../native-bridge/common/generatedipc/types"
 import type { OfflineStorageTable } from "./OfflineStorage"
 import { SigningPublicKey } from "../crypto/encryption/Ed25519"
 import { SessionTypeProvider, TaggedSqlValue } from "./Types.js"

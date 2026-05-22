@@ -1,5 +1,5 @@
 import type { WindowManager } from "../DesktopWindowManager"
-import { ExtendedNotificationMode, NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { ExtendedNotificationMode, NativeCredentialsFacade, UnencryptedCredentials } from "../../../native-bridge/common/generatedipc/types"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
 import { AttributeModel, EncryptedParsedInstance, ServerModelUntypedInstance, StrippedEntity, TypeModel } from "@tutao/meta"

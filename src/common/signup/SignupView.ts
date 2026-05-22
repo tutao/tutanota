@@ -26,7 +26,7 @@ import {
 	stringToSubscriptionType,
 } from "../misc/LoginUtils"
 import { FeatureListProvider, SelectedSubscriptionOptions, UpgradePriceType } from "../subscription/FeatureListProvider"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentSubscriptionOwnership } from "../../native-bridge/common/generatedipc/types"
 import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"

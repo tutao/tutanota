@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { MobilePaymentResult, MobilePaymentSubscriptionOwnership, MobilePlanPrice } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentResult, MobilePaymentSubscriptionOwnership, MobilePlanPrice } from "./index"
 
 /**
  * Operations for handling mobile payments.

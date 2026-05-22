@@ -216,7 +216,6 @@ async function rollDesktopDep(src, target, banner) {
 			commonjs({
 				ignore: ["node:sqlite"],
 			}),
-			bundleDependencyCheckPlugin(),
 		],
 		onwarn: (warning, defaultHandler) => {
 			if (warning.code === "CIRCULAR_DEPENDENCY") {

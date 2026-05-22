@@ -3,7 +3,7 @@ import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint
 import { getServiceRestPath, ServiceDefinition } from "../meta"
 import { ApplicationTypesService } from "../entities/base/Services.js"
 import { baseModelInfo } from "../entities/base"
-import { HttpMethod, MediaType, RestClientInterface } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestClientInterface } from "../rest-client/types"
 import { sha256Hash } from "@tutao/crypto"
 import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
 import { decompressString } from "./ModelMapper.js"

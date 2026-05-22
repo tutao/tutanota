@@ -1,4 +1,4 @@
-import { Result, SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { Result, SearchTextInAppFacade } from "../../native-bridge/common/generatedipc/types"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 
 export class DesktopSearchTextInAppFacade implements SearchTextInAppFacade {

@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ElectronResult, ErrorInfo, NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { ElectronResult, ErrorInfo, NativeShortcut } from "./index"
 
 export interface DesktopFacade {
 	print(): Promise<void>

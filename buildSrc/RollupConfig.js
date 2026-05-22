@@ -195,7 +195,6 @@ export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
 }
 
 export function esBuildResolveLibs(baseDir = ".", extraDependenciesMap = {}) {
-	const tsImportAliases = {}
 	return {
 		name: "resolve-libs",
 

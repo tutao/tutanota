@@ -1,5 +1,5 @@
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../../../native-bridge/common/generatedipc/types"
 import { sql } from "../../../../../local-store/Sql"
 import type { OfflineStorageTable } from "../../../../../local-store/OfflineStorage"
 import { untagSqlObject } from "../../../../../local-store/SqlValue"

@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DataFile, FileFacade, IpcClientRect } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile, FileFacade, IpcClientRect } from "../types"
 
 export class FileFacadeReceiveDispatcher {
 	constructor(private readonly facade: FileFacade) {}

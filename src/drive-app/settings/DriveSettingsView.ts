@@ -3,7 +3,7 @@ import { CredentialsProvider } from "../../common/misc/credentials/CredentialsPr
 import { LoginController } from "../../common/api/main/LoginController"
 import { adminSettingsSection, appearanceSettings, loginSettings, subscriptionSettingsSection } from "../../common/settings/standardSettings"
 import { CustomerFacade } from "../../common/api/worker/facades/lazy/CustomerFacade"
-import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MobilePaymentsFacade, MobileSystemFacade } from "../../native-bridge/common/generatedipc/types"
 import { EntityClient } from "../../network/EntityClient"
 import { ThemeController } from "../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../ui/WhitelabelThemeGenerator"

@@ -9,7 +9,7 @@ import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler"
 import { UserFacade } from "../../../../../base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../network/ServiceRequest"
 import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade"
-import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { AlarmNotification, NativePushFacade } from "../../../../../native-bridge/common/generatedipc/types"
 import {
 	AlarmInfo,
 	AlarmNotificationTypeRef,

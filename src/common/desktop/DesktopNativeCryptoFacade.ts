@@ -15,7 +15,7 @@ import {
 	NativeCryptoFacade,
 	RsaPrivateKey,
 	RsaPublicKey,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../native-bridge/common/generatedipc/types"
 import { FileUri } from "../../native-bridge/common/FileApp.js"
 import path from "node:path"
 import { nonClobberingFilename } from "./PathUtils.js"

@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ContactBook, ContactSuggestion, ContactSyncResult, StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
+import { ContactBook, ContactSuggestion, ContactSyncResult, StructuredContact } from "./index"
 
 /**
  * Contact-related funcionality on mobile.

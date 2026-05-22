@@ -3,7 +3,7 @@ import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, Versio
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { HttpMethod, RestClientInterface } from "@tutao/rest-client/types"
+import { HttpMethod, RestClientInterface } from "../rest-client/types"
 import { restError } from "@tutao/rest-client"
 import { EntityClient } from "./EntityClient"
 import { IServiceExecutor } from "./ServiceRequest"

@@ -1,5 +1,5 @@
 import { IndexerCore } from "../../../mail-app/workerUtils/index/IndexerCore"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { sql } from "../../../local-store/Sql"
 import { lazyAsync, noOp } from "@tutao/utils"
 import { EphemeralCacheStorage } from "../../../local-store/EphemeralCacheStorage"

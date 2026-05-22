@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { Result } from "@tutao/native-bridge/generatedIpc/types"
+import { Result } from "./index"
 
 /**
  * Operations for in-app search.

@@ -1,5 +1,5 @@
 import { type RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod, MediaType, SuspensionBehavior } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, SuspensionBehavior } from "../rest-client/types"
 import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"

@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DataFile, MailboxExportState, MailBundle } from "@tutao/native-bridge/generatedIpc/types"
+import { DataFile, MailboxExportState, MailBundle } from "./index"
 
 export interface ExportFacade {
 	/**

@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { CommonNativeFacade, DesktopFacade, InterWindowEventFacade, MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade, DesktopFacade, InterWindowEventFacade, MobileFacade } from "../types"
 import { CommonNativeFacadeReceiveDispatcher } from "./CommonNativeFacadeReceiveDispatcher.js"
 import { DesktopFacadeReceiveDispatcher } from "./DesktopFacadeReceiveDispatcher.js"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"

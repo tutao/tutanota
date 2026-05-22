@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { UnencryptedCredentials } from "./index"
 
 /**
  * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.

@@ -19,7 +19,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../../instance-pipeline/ServerModelsUnavailableError"
 
-import { Credentials } from "@tutao/network/types"
+import { Credentials } from "../../network/types"
 import { locator } from "../api/main/CommonLocator"
 import { UserTypeRef } from "@tutao/entities/sys"
 

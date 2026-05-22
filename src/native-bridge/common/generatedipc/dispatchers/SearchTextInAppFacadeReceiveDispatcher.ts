@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SearchTextInAppFacade } from "../types"
 
 export class SearchTextInAppFacadeReceiveDispatcher {
 	constructor(private readonly facade: SearchTextInAppFacade) {}

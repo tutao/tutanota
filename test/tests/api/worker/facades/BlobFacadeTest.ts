@@ -6,7 +6,7 @@ import {
 	pipelineEncryptAndUpload,
 } from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
-import { HttpMethod, RestClientOptions } from "@tutao/rest-client/types"
+import { HttpMethod, RestClientOptions } from "../../../../../src/rest-client/types"
 import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../../src/native-bridge/worker/AesApp.js"
 import { Mode, ProgrammingError } from "@tutao/app-env"

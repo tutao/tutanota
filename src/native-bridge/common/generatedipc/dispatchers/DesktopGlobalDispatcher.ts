@@ -16,7 +16,7 @@ import {
 	SqlCipherFacade,
 	ThemeFacade,
 	WebAuthnFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../types"
 import { CommonSystemFacadeReceiveDispatcher } from "./CommonSystemFacadeReceiveDispatcher.js"
 import { DesktopSystemFacadeReceiveDispatcher } from "./DesktopSystemFacadeReceiveDispatcher.js"
 import { ExportFacadeReceiveDispatcher } from "./ExportFacadeReceiveDispatcher.js"

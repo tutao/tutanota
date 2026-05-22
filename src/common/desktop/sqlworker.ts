@@ -17,7 +17,7 @@ import { MessageDispatcher } from "../../native-bridge/shared/MessageDispatcher.
 import { Command, Request } from "../../native-bridge/shared/MessageTypes"
 import { NodeWorkerTransport } from "../../native-bridge/common/threading/NodeWorkerTransport.js"
 import { objToError } from "../api/common/utils/ErrorUtils"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../native-bridge/common/generatedipc/types"
 
 /** make this generic over all possible facades? The generic parameter needs some constraint to not expand this to any */
 export type SqlCipherCommandNames = keyof SqlCipherFacade

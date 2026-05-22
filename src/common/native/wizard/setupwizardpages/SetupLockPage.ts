@@ -3,7 +3,7 @@ import { WizardPageAttrs } from "../../../../ui/base/WizardDialog.js"
 import { type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SelectAppLockMethodView } from "../../SelectAppLockMethodDialog.js"
-import { AppLockMethod, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, MobileSystemFacade } from "../../../../native-bridge/common/generatedipc/types"
 import { CredentialAuthenticationError } from "../../../api/common/error/CredentialAuthenticationError.js"
 import { CancelledError } from "@tutao/app-env"
 

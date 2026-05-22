@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { InterWindowEventFacade } from "../types"
 
 export class InterWindowEventFacadeReceiveDispatcher {
 	constructor(private readonly facade: InterWindowEventFacade) {}

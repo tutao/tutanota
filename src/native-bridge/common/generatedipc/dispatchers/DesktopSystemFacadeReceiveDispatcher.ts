@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade } from "../types"
 
 export class DesktopSystemFacadeReceiveDispatcher {
 	constructor(private readonly facade: DesktopSystemFacade) {}

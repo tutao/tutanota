@@ -14,7 +14,7 @@ import {
 } from "../../../src/meta"
 import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType } from "../../../src/rest-client/types"
 import { ApplicationTypesGetOut, compressString, decompressString, ServerModelInfo, ServerModels } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "@tutao/app-env"

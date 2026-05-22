@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { ExtendedNotificationMode, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { ExtendedNotificationMode, PermissionType } from "../../native-bridge/common/generatedipc/types"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../../common/api/main/CommonLocator.js"

@@ -1,4 +1,4 @@
-import { CommonNativeFacade, DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade, DesktopFacade } from "../../../native-bridge/common/generatedipc/types"
 import { CommonNativeFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/CommonNativeFacadeSendDispatcher.js"
 import { DesktopFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/DesktopFacadeSendDispatcher.js"
 import { DesktopGlobalDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/DesktopGlobalDispatcher.js"

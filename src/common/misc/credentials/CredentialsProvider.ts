@@ -5,9 +5,9 @@ import {
 	PersistedCredentials,
 	SqlCipherFacade,
 	UnencryptedCredentials,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../../../native-bridge/common/generatedipc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../network/types"
 import { isAdminClient, isBrowser } from "@tutao/app-env"
 
 /**

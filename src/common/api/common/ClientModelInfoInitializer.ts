@@ -12,6 +12,9 @@ import { ClientModelInfo } from "../../../instance-pipeline/EntityFunctions.js"
 const clientModelInfo: ClientModelInfo = new ClientModelInfo()
 
 export function initClientModels() {
+	if (clientModelInfo.applicationVersionSum() > 0) {
+		return clientModelInfo
+	}
 	const apps = [
 		{ app: AppNameEnum.Base, clientModel: baseTypeModels, modelInfo: baseModelInfo },
 		{ app: "sys", clientModel: sysTypeModels, modelInfo: sysModelInfo },

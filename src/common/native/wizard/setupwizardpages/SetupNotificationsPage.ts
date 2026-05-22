@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { WizardPageAttrs } from "../../../../ui/base/WizardDialog.js"
-import { PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { PermissionType } from "../../../../native-bridge/common/generatedipc/types"
 import { type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"

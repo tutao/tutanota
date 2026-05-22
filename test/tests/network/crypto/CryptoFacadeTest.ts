@@ -5,7 +5,7 @@ import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationS
 import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/base/crypto/Constants.js"
 import { AttributeModel, elementIdPart, getListId, isSameId, listIdPart, ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../src/meta"
 import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod } from "../../../../src/rest-client/types"
 import { EntityClient } from "../../../../src/network/EntityClient.js"
 import {
 	Aes256Key,

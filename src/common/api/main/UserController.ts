@@ -8,7 +8,7 @@ import { EntityClient } from "../../../network/EntityClient"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
-import { MediaType } from "@tutao/rest-client/types"
+import { MediaType } from "../../../rest-client/types"
 import { CacheMode } from "../../../network/EntityRestClient"
 import {
 	AccountingInfo,

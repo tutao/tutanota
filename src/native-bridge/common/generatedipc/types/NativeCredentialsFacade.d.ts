@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { CredentialEncryptionMode, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { CredentialEncryptionMode, PersistedCredentials, UnencryptedCredentials } from "./index"
 
 /**
  * Operations for credential encryption operations using OS keychain.

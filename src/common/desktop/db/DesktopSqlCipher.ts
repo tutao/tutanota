@@ -1,7 +1,7 @@
 import { Database } from "@signalapp/sqlcipher"
 import { mapNullable, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../native-bridge/common/generatedipc/types"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { TaggedSqlValue } from "../../../local-store/Types"

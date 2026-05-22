@@ -60,7 +60,7 @@ import {
 	SettingsFacade,
 	SqlCipherFacade,
 	ThemeFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "../native-bridge/common/generatedipc/types"
 import { InterWindowEventFacadeSendDispatcher } from "../native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { NativeFileApp } from "../native-bridge/common/FileApp.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"

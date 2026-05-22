@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExternalCalendarFacade } from "../types"
 
 export class ExternalCalendarFacadeReceiveDispatcher {
 	constructor(private readonly facade: ExternalCalendarFacade) {}

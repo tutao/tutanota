@@ -10,7 +10,7 @@ import { SetupLockPage, SetupLockPageAttrs } from "./setupwizardpages/SetupLockP
 import { SystemPermissionHandler } from "../SystemPermissionHandler.js"
 import { WebMobileFacade } from "../WebMobileFacade.js"
 import { ContactImporter } from "../../../mail-app/contacts/ContactImporter.js"
-import { MobileSystemFacade, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { MobileSystemFacade, PermissionType } from "../../../native-bridge/common/generatedipc/types"
 import { NativeContactsSyncManager } from "../../../mail-app/contacts/model/NativeContactsSyncManager.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"

@@ -10,7 +10,7 @@ import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 import { ThemeCustomizations, UnknownThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "./WhitelabelCustomizations"
 import { HtmlSanitizerInterface } from "./utils/HtmlSanitizerInterface"
-import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { type ThemeFacade } from "../native-bridge/common/generatedipc/types/ThemeFacade"
 
 assertMainOrNodeBoot()
 

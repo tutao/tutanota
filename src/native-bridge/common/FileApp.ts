@@ -1,5 +1,5 @@
 import { promiseMap } from "@tutao/utils"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod } from "../../rest-client/types"
 import { UploadTaskResponse } from "./generatedipc/types/UploadTaskResponse.js"
 import { DownloadTaskResponse } from "./generatedipc/types/DownloadTaskResponse.js"
 import { FileFacade } from "./generatedipc/types/FileFacade.js"

@@ -15,7 +15,7 @@ import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorage
 import { DeviceConfig } from "../misc/DeviceConfig.js"
 import { CredentialRemovalHandler } from "./CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../native/NativePushServiceApp.js"
-import { CredentialsInfo, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { CredentialsInfo, UnencryptedCredentials } from "../../native-bridge/common/generatedipc/types"
 import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { AppLock } from "./AppLock.js"
 import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthenticationError"

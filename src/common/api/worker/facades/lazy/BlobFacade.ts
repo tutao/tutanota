@@ -2,7 +2,7 @@ import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from 
 import * as restError from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType } from "../../../../../rest-client/types"
 import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade.js"
 import {
 	assertNonNull,

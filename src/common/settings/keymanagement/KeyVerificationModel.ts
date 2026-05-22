@@ -1,6 +1,6 @@
 import { KeyVerificationFacade } from "../../../base/facades/lazy/KeyVerificationFacade"
 import { assertNotNull } from "@tutao/utils"
-import { DesktopSystemFacade, MobileSystemFacade, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade, MobileSystemFacade, PermissionType } from "../../../native-bridge/common/generatedipc/types"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"

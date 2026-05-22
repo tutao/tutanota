@@ -1,7 +1,7 @@
 import { ProgrammingError } from "@tutao/app-env"
-import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
+import { UnencryptedCredentials } from "../../../native-bridge/common/generatedipc/types"
 
-import { Credentials } from "@tutao/network/types"
+import { Credentials } from "../../../network/types"
 
 export function credentialsToUnencrypted(credentials: Credentials, databaseKey: Uint8Array | null): UnencryptedCredentials {
 	if (credentials.encryptedPassword == null) {

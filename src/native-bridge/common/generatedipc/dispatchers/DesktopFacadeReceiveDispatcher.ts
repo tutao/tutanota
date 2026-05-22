@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut } from "../types"
 
 export class DesktopFacadeReceiveDispatcher {
 	constructor(private readonly facade: DesktopFacade) {}

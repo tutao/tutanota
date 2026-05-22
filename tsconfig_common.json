@@ -49,7 +49,7 @@
 			"@tutao/entities/usage": ["./src/entities/usage"],
 			"@tutao/instance-pipeline": ["./src/instance-pipeline"],
 			"@tutao/network/types": ["./src/network/types.d.ts"],
-			"@tutao/native-bridge/generatedIpc/types": ["./src/native-bridge/common/generatedipc/types/index.d.ts"],
+			"@tutao/native-bridge/generatedIpc/types": ["./src/native-bridge/common/generatedipc/types/index.ts"],
 			"@tutao/native-bridge/generatedIpc/dispatchers": [
 				"./src/native-bridge/common/generatedipc/dispatchers/index.ts"
 			]

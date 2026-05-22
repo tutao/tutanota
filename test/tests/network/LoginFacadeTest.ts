@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 
 import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod } from "../../../src/rest-client/types"
 import {
 	_encryptString,
 	aes256RandomKey,
@@ -52,7 +52,7 @@ import {
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { CredentialType } from "@tutao/network/types"
+import { CredentialType } from "../../../src/network/types"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/base/crypto/Constants.js"
 import { CacheMode } from "../../../src/network/EntityRestClient"
 

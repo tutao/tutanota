@@ -12,7 +12,7 @@ import {
 	TypeRef,
 } from "../meta"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType } from "../rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
 import { lazy } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"

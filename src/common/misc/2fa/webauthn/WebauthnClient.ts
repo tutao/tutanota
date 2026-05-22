@@ -1,6 +1,6 @@
 import { decode } from "cborg"
 import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
-import { WebAuthnFacade, WebauthnKeyDescriptor } from "@tutao/native-bridge/generatedIpc/types"
+import { WebAuthnFacade, WebauthnKeyDescriptor } from "../../../../native-bridge/common/generatedipc/types"
 import { Const, getApiBaseUrl } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fChallenge, U2fKey, U2fRegisteredDevice, WebauthnResponseData } from "@tutao/entities/sys"

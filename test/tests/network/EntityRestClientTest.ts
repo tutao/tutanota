@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { RestClient, restError } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType } from "../../../src/rest-client/types"
 import { SetupMultipleError } from "../../../src/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/meta"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers } from "../../../src/network/EntityRestClient"

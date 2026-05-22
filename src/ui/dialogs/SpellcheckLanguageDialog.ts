@@ -1,6 +1,6 @@
 import type { SelectorItem } from "../base/DropDownSelector.js"
 import type { TranslationKey } from "../utils/LanguageViewModel"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SettingsFacade } from "../../native-bridge/common/generatedipc/types/SettingsFacade"
 
 export class SpellcheckLanguageDialog {
 	constructor(private readonly settingsFacade: SettingsFacade) {}

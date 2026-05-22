@@ -1,4 +1,4 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { SqlCipherFacade } from "../../../../../native-bridge/common/generatedipc/types"
 import { sql } from "../../../../../local-store/Sql"
 import type { OfflineStorageTable } from "../../../../../local-store/OfflineStorage"
 import type { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"

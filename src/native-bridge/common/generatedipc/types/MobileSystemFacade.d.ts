@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { AppLockMethod, PermissionType } from "@tutao/native-bridge/generatedIpc/types"
+import { AppLockMethod, PermissionType } from "./index"
 
 /**
  * Common operations implemented by each mobile platform.

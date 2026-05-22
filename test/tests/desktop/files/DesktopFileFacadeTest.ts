@@ -5,7 +5,7 @@ import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWin
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
 import * as restError from "@tutao/rest-client/error"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod } from "../../../../src/rest-client/types"
 import type fs from "node:fs"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"

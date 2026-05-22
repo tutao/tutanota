@@ -12,7 +12,7 @@ import {
 	KyberPublicKey,
 	RsaPrivateKey,
 	RsaPublicKey,
-} from "@tutao/native-bridge/generatedIpc/types"
+} from "./index"
 
 export interface NativeCryptoFacade {
 	rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array>

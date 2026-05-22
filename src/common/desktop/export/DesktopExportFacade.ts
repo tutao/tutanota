@@ -1,4 +1,4 @@
-import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ExportFacade } from "../../../native-bridge/common/generatedipc/types"
 import { DataFile } from "@tutao/entities/tutanota"
 import { MailboxExportState } from "../../../entities/tutanota/Utils"
 import { fileExists } from "../PathUtils.js"
