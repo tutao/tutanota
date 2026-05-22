@@ -2302,6 +2302,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"importEventIcsDuplicate_msg": "{amount} of {total} events are duplicated in the file. Duplicates will not be imported. Will continue with the remaining events...",
+		"emptyIcsFile_msg": "The file was empty. No events to import."
 	}
 }

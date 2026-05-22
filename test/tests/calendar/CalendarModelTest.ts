@@ -29,7 +29,7 @@ import { AlarmScheduler } from "../../../src/applications/common/calendar/date/A
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/applications/common/calendar/gui/ImportExportUtils"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
 	CalendarEvent,
@@ -264,7 +264,7 @@ o.spec("CalendarModel", function () {
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
 		let baseParsedCalendarData: ParsedCalendarData
-		let baseParsedEventReply: ParsedEvent
+		let baseParsedEventReply: ParsedEventAlarmTuple
 
 		o.beforeEach(function () {
 			baseParsedEventReply = {
@@ -629,7 +629,7 @@ o.spec("CalendarModel", function () {
 
 	o.spec("processCalendarData - CalendarMethod.CANCEL", function () {
 		let baseParsedCalendarDataCancel: ParsedCalendarData
-		let baseParsedEvent: ParsedEvent
+		let baseParsedEvent: ParsedEventAlarmTuple
 
 		o.beforeEach(function () {
 			userGroupInfo = object()

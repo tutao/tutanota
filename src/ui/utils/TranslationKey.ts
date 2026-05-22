@@ -2301,3 +2301,5 @@ export type TranslationKeyType =
 	| "selectAllFiles_action"
 	| "clearFileSelection_action"
 	| "emptyString_msg"
+	| "importEventIcsDuplicate_msg"
+	| "emptyIcsFile_msg"
