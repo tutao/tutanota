@@ -23,7 +23,7 @@ import { Icon, IconSize } from "../../../ui/base/Icon.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { theme } from "../../../ui/theme.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { px } from "../../../ui/size"
@@ -54,7 +54,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	}
 
 	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
+		const { planPrices, acceptedPlans, accountingInfo } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowApplePrices(accountingInfo)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices)
@@ -88,7 +88,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		return m("div", [
 			// Headline for a global campaign
 			!data.options.businessUse() &&
-				anyHasGlobalFirstYearCampaign(discountDetails) &&
+				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
 					icon: Icons.HeartFilled,

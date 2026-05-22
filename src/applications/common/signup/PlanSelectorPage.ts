@@ -39,14 +39,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		return m(
 			`.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`,
 			// Headline for a global campaign
-			!data.options!.businessUse() &&
-				anyHasGlobalFirstYearCampaign(discountDetails) &&
-				m(
-					"",
-					{ style: { "max-width": px(530) } },
-
-					m(MessageBanner, { translation: lang.getTranslation("pricing.cyber_monday_msg"), type: "base", icon: Icons.GiftFilled }),
-				),
+			this.renderMessageBanner(discountDetails, isBusiness),
 			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
 			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
 			// Headline for promotional messages
@@ -107,5 +100,30 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 				],
 			),
 		)
+	}
+
+	private renderMessageBanner(discountDetails: DiscountDetails, isBusiness: boolean): Children {
+		if (hasRelevantGlobalFirstYearCampaign(discountDetails, isBusiness ? SubscriptionType.Business : SubscriptionType.Personal)) {
+			return m(
+				".flex.full-width",
+				isBusiness
+					? {
+							style: {
+								"justify-content": "center",
+							},
+						}
+					: {},
+				m(
+					".flex-grow",
+					{ style: { "max-width": isBusiness ? px(900) : px(530) } },
+					m(MessageBanner, {
+						translation: lang.getTranslation("pricing.cyber_monday_msg"),
+						type: "base",
+						icon: Icons.GiftFilled,
+					}),
+				),
+			)
+		}
+		return null
 	}
 }

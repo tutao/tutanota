@@ -123,7 +123,7 @@ export async function showSwitchDialog({
 			".pt-16",
 			// Headline for a global campaign
 			!businessUse() &&
-				anyHasGlobalFirstYearCampaign(discountDetails) &&
+				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
 					icon: Icons.HeartFilled,
