@@ -1,7 +1,7 @@
 import { Stripped, StrippedEntity } from "@tutao/meta"
 import { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
-import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
-import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/utils"
+import { assignEventId, CalendarEventValidity, checkEventValidity } from "../date/CalendarUtils.js"
+import { assertValidURL, deepEqual, groupBy } from "@tutao/utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
@@ -25,9 +25,9 @@ export enum EventImportRejectionReason {
 	Inversed,
 	InvalidDate,
 	Duplicate,
+	DuplicateInIcs,
 }
 
-// CalendarEventWithAlarm
 export type EventAlarmInfoTemplatesTuple = {
 	event: CalendarEvent
 	alarmInfoTemplates: ReadonlyArray<AlarmInfoTemplate>
@@ -50,13 +50,13 @@ export type IcsCalendarEvent = {
 	attendees: Array<StrippedCalendarEventAttendee> | null
 	organizer: Stripped<EncryptedMailAddress> | null
 }
-export type ParsedEvent = {
+export type ParsedEventAlarmTuple = {
 	icsCalendarEvent: IcsCalendarEvent
 	alarms: Array<AlarmInfoTemplate>
 }
 export type ParsedCalendarData = {
 	method: string
-	contents: Array<ParsedEvent>
+	contents: Array<ParsedEventAlarmTuple>
 }
 
 export type StrippedCalendarEventAttendee = Stripped<
@@ -72,13 +72,18 @@ export type StrippedRepeatRule = Stripped<
 	}
 >
 
-/** check if the event should be skipped because it's invalid or already imported. if not, add it to the map. */
-function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map<string, CalendarEvent>): EventImportRejectionReason | null {
+/**
+ * Check multiple conditions to try to determine a rejection reason.
+ **/
+function determineRejectionReason(
+	event: CalendarEvent,
+	parsedEventUidGroup: Array<ParsedEventAlarmTuple>,
+	existingEventUidGroup: Array<CalendarEvent>,
+): EventImportRejectionReason | null {
 	if (!event.uid) {
 		// should not happen because calendar parser will generate uids if they do not exist
 		throw new Error("Uid is not set for imported event")
 	}
-
 	switch (checkEventValidity(event)) {
 		case CalendarEventValidity.InvalidContainsInvalidDate:
 			return EventImportRejectionReason.InvalidDate
@@ -87,17 +92,30 @@ function shouldBeSkipped(event: CalendarEvent, instanceIdentifierToEventMap: Map
 		case CalendarEventValidity.InvalidPre1970:
 			return EventImportRejectionReason.Pre1970
 	}
-	const instanceIdentifier = makeInstanceIdentifier(event)
-	if (!instanceIdentifierToEventMap.has(instanceIdentifier)) {
-		instanceIdentifierToEventMap.set(instanceIdentifier, event)
-		return null
-	} else {
+
+	const isExistingDuplicate = existingEventUidGroup.some((ev) => shallowIsSameEvent(ev, event))
+	const isExistingParsedEventDuplicate = parsedEventUidGroup.some((ev) => shallowIsSameEvent(ev.icsCalendarEvent, event))
+	if (isExistingDuplicate) {
 		return EventImportRejectionReason.Duplicate
+	} else if (isExistingParsedEventDuplicate) {
+		return EventImportRejectionReason.DuplicateInIcs
 	}
+
+	return null
 }
 
-/** we try to enforce that each calendar only contains each uid once, but we need to take into consideration
- * that altered instances have the same uid as their progenitor.*/
+/**
+ * Creates identifier as either:
+ *
+ * "event.uid-progenitor" OR
+ * "event.uid-{recurrenceTime}"
+ *
+ * This is used while checking for duplicates.  An event will be considered a duplicate when
+ * the uid and recurrence-id are identical (or if uid and "progenitor" status are identical)
+ *
+ * we try to enforce that each calendar only contains each uid once, but we need to take into consideration
+ * that altered instances have the same uid as their progenitor.
+ * */
 function makeInstanceIdentifier(event: CalendarEvent): string {
 	return `${event.uid}-${event.recurrenceId?.getTime() ?? "progenitor"}`
 }
@@ -130,98 +148,51 @@ export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly
 	return createCalendarEvent(calendarEvent)
 }
 
-/** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
- * and if necessary adds excluded dates to the parsed progenitor. This function will assign event id according to
- * the calendarGroupRoot and the long/short event status */
+type SortedParsedEvents = {
+	rejectedEvents: RejectedEvents
+	eventsForCreation: Array<EventAlarmInfoTemplatesTuple>
+}
+
+/** Sort parsed events into event to create and rejected events with a rejection reason
+ *
+ * This function will assign event id according to the calendarGroupRoot and the long/short event list
+ **/
 export function sortOutParsedEvents(
-	parsedEvents: ParsedEvent[],
+	parsedEventAlarmTuples: ParsedEventAlarmTuple[],
 	existingEvents: Array<CalendarEvent>,
 	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
-): {
-	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventAlarmInfoTemplatesTuple>
-} {
-	const instanceIdentifierToEventMap = new Map()
+): SortedParsedEvents {
+	const result: SortedParsedEvents = { rejectedEvents: new Map(), eventsForCreation: [] }
 
-	// We need to sort existingEvents to move all the progenitors to the beginning of the list
-	// So they can be processed before their alteredInstances
-	existingEvents.sort((a, b) => {
-		if (a.recurrenceId != null && b.recurrenceId == null) {
-			return 1
-		} else if (a.recurrenceId == null && b.recurrenceId != null) {
-			return -1
-		}
+	const parsedEventsGroupedByUid = groupBy(parsedEventAlarmTuples, (e) => e.icsCalendarEvent.uid)
+	const existingEventsGroupedByUid = groupBy(existingEvents, (e) => e.uid)
 
-		return 0
-	})
+	for (const [uid, parsedEventUidGroup] of parsedEventsGroupedByUid) {
+		const existingEventsWithSameUid = existingEventsGroupedByUid.get(uid) ?? []
 
-	for (const existingEvent of existingEvents) {
-		if (existingEvent.uid == null) continue
-		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
-	}
+		for (let i = 0; i < parsedEventUidGroup.length; i++) {
+			const { icsCalendarEvent, alarms } = parsedEventUidGroup[i]
+			const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 
-	const rejectedEvents: RejectedEvents = new Map()
-	const eventsForCreation: Array<EventAlarmInfoTemplatesTuple> = []
-	for (const [_, flatParsedEvents] of groupBy(parsedEvents, (e) => e.icsCalendarEvent.uid)) {
-		let progenitor: EventAlarmInfoTemplatesTuple | null = null
-		let alteredInstances: Array<EventAlarmInfoTemplatesTuple> = []
-
-		for (const { icsCalendarEvent, alarms } of flatParsedEvents) {
-			if (flatParsedEvents.length > 1) console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry")
+			const rejectionReason = determineRejectionReason(calendarEvent, parsedEventUidGroup.slice(i + 1), existingEventsWithSameUid)
+			if (rejectionReason != null) {
+				const rejectedEventsForTheSameReason = result.rejectedEvents.get(rejectionReason) ?? []
+				rejectedEventsForTheSameReason.push(calendarEvent)
+				result.rejectedEvents.set(rejectionReason, rejectedEventsForTheSameReason)
+				continue
+			}
 
 			for (let alarmInfo of alarms) {
 				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 			}
-
-			const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
-			if (progenitor?.event.repeatRule != null && calendarEvent.recurrenceId != null) {
-				insertIntoSortedArray(
-					createDateWrapper({ date: calendarEvent.recurrenceId }),
-					progenitor.event.repeatRule.excludedDates,
-					(left, right) => left.date.getTime() - right.date.getTime(),
-					() => true,
-				)
-				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
-					alteredInstances.push({ event: calendarEvent, alarmInfoTemplates: alarms })
-				}
-			} else if (calendarEvent.recurrenceId != null) {
-				treatProgenitorExcludedDates(
-					calendarEvent,
-					getFromMap(rejectedEvents, EventImportRejectionReason.Duplicate, () => []),
-				)
-
-				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, calendarEvent))) {
-					alteredInstances.push({ event: calendarEvent, alarmInfoTemplates: alarms })
-				}
-			}
-
-			const rejectionReason = shouldBeSkipped(calendarEvent, instanceIdentifierToEventMap)
-			if (rejectionReason != null) {
-				getFromMap(rejectedEvents, rejectionReason, () => []).push(calendarEvent)
-				continue
-			}
-
-			// hashedUid will be set later in calendarFacade to avoid importing the hash function here
-			const repeatRule = calendarEvent.repeatRule
 			calendarEvent._ownerGroup = calendarGroupRoot._id
-
-			if (repeatRule != null && repeatRule.timeZone === "") {
-				repeatRule.timeZone = getTimeZone()
-			}
-
 			assignEventId(calendarEvent, zone, calendarGroupRoot)
-			if (calendarEvent.recurrenceId == null) {
-				// the progenitor must be null here since we would have
-				// rejected the second uid-progenitor event in shouldBeSkipped.
-				progenitor = { event: calendarEvent, alarmInfoTemplates: alarms }
-			}
+			result.eventsForCreation.push({ event: calendarEvent, alarmInfoTemplates: alarms })
 		}
-		if (progenitor != null) eventsForCreation.push(progenitor)
-		eventsForCreation.push(...alteredInstances)
 	}
 
-	return { rejectedEvents, eventsForCreation }
+	return result
 }
 
 /*

@@ -70,7 +70,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/work
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { ParsedEventAlarmTuple } from "../common/calendar/gui/ImportExportUtils"
 import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
@@ -770,7 +770,7 @@ class DriveLocator implements CommonLocator {
 		if (areAllICSFiles) {
 			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
 
-			let parsedEvents: ParsedEvent[] = []
+			let parsedEvents: ParsedEventAlarmTuple[] = []
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
@@ -779,7 +779,13 @@ class DriveLocator implements CommonLocator {
 				parsedEvents.push(...data.contents)
 			}
 
-			await importCalendarFile(await this.calendarModel(), this.logins.getUserController(), parsedEvents)
+			await importCalendarFile(
+				await this.calendarModel(),
+				this.logins.getUserController(),
+				parsedEvents,
+				this.entityClient,
+				this.logins.getUserController().user,
+			)
 		}
 	}
 

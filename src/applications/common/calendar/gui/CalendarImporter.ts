@@ -17,11 +17,13 @@ import { ShareCapability } from "@tutao/app-env"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView.js"
 import { handleCalendarImport } from "./CalendarImporterDialog.js"
-import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
+import { parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "./ImportExportUtils.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { User } from "@tutao/entities/sys"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {
@@ -118,8 +120,16 @@ export function showEventsImportDialog(
  * @param calendarModel
  * @param userController
  * @param events The event list to be previewed and imported
+ * @param entityClient
+ * @param user
  */
-export async function importCalendarFile(calendarModel: CalendarModel, userController: UserController, events: ParsedEvent[]) {
+export async function importCalendarFile(
+	calendarModel: CalendarModel,
+	userController: UserController,
+	events: ParsedEventAlarmTuple[],
+	entityClient: EntityClient,
+	user: User,
+) {
 	const groupSettings = userController.userSettingsGroupRoot.groupSettings
 	const calendarInfos = await calendarModel.getCalendarInfos()
 	const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
@@ -129,7 +139,7 @@ export async function importCalendarFile(calendarModel: CalendarModel, userContr
 
 	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
 		dialog.close()
-		handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, events)
+		handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, events, selectedCalendar.type, entityClient, user)
 	})
 }
 
