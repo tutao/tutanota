@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { AllDaySection } from "../../../src/common/calendar/gui/AllDaySection"
+import { AllDaySection } from "../../../src/applications/common/calendar/gui/AllDaySection"
 import { createTestEntity } from "../TestUtils"
 
-import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils"
-import { ColumnBounds } from "../../../src/common/calendar/gui/CalendarTimeGrid"
+import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/applications/common/calendar/date/CalendarUtils"
+import { ColumnBounds } from "../../../src/applications/common/calendar/gui/CalendarTimeGrid"
 
 import { makeEventWrapper } from "./CalendarTestUtils"
 import { DateTime } from "luxon"

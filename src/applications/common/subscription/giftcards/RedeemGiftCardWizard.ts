@@ -1,0 +1,601 @@
+import m, { Children, Vnode, VnodeDOM } from "mithril"
+import stream from "mithril/stream"
+import { mapNullable, neverNull, noOp, ofClass } from "@tutao/utils"
+import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
+import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../../../ui/base/WizardDialog.js"
+import { LoginController } from "../../api/main/LoginController"
+import type { NewAccountData } from "../UpgradeSubscriptionWizard"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog"
+import { LoginForm } from "../../login/LoginForm"
+import { CredentialsSelector } from "../../login/CredentialsSelector"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { SignupForm } from "../SignupForm"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { locator } from "../../api/main/CommonLocator"
+import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg } from "./GiftCardUtils"
+import { CancelledError, Country } from "@tutao/app-env"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
+import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
+import { HabReminderImage } from "../../../../ui/base/icons/Icons"
+import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
+import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
+import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { SessionType } from "../../../../platform-kits/app-env/SessionType.js"
+import * as restError from "@tutao/rest-client/error"
+import { GiftCardFacade } from "../../api/worker/facades/lazy/GiftCardFacade.js"
+import { EntityClient } from "../../../../platform-kits/network/EntityClient.js"
+import { UpgradePriceType } from "../FeatureListProvider"
+import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
+import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
+import { signup } from "../utils/PaymentUtils"
+import { MessageBanner } from "../../../../ui/base/MessageBanner"
+import { AccountingInfo, AccountingInfoTypeRef, CustomerInfoTypeRef, GiftCardRedeemGetReturn, PaymentMethodType, PlanType } from "@tutao/entities/sys"
+import { renderCountryDropdown } from "../../gui/CountryDropdown"
+import { elementIdPart, isSameId } from "@tutao/meta"
+import { getByAbbreviation } from "../../gui/CountryList"
+import { windowFacade } from "../../misc/WindowFacade"
+
+const enum GetCredentialsMethod {
+	Login,
+	Signup,
+}
+
+class RedeemGiftCardModel {
+	mailAddress = ""
+	newAccountData: NewAccountData | null = null
+	credentialsMethod = GetCredentialsMethod.Signup
+
+	// accountingInfo is loaded after the user logs in, before redeeming the gift card
+	accountingInfo: AccountingInfo | null = null
+
+	constructor(
+		private readonly config: {
+			giftCardInfo: GiftCardRedeemGetReturn
+			key: string
+			premiumPrice: number
+			storedCredentials: ReadonlyArray<CredentialsInfo>
+			hashFromUrl: string
+			hasActiveCampaign: boolean
+		},
+		private readonly giftCardFacade: GiftCardFacade,
+		private readonly credentialsProvider: CredentialsProvider,
+		private readonly secondFactorHandler: SecondFactorHandler,
+		private readonly logins: LoginController,
+		private readonly entityClient: EntityClient,
+	) {}
+
+	get giftCardInfo(): GiftCardRedeemGetReturn {
+		return this.config.giftCardInfo
+	}
+
+	get giftCardId(): Id {
+		return elementIdPart(this.giftCardInfo.giftCard)
+	}
+
+	get key(): string {
+		return this.config.key
+	}
+
+	get hashFromUrl(): string {
+		return this.config.hashFromUrl
+	}
+
+	get premiumPrice(): number {
+		return this.config.premiumPrice
+	}
+
+	get message(): string {
+		return this.config.giftCardInfo.message
+	}
+
+	get paymentMethod(): PaymentMethodType {
+		return (this.accountingInfo?.paymentMethod as PaymentMethodType | null) ?? PaymentMethodType.AccountBalance
+	}
+
+	get storedCredentials(): ReadonlyArray<CredentialsInfo> {
+		return this.config.storedCredentials
+	}
+	get hasActivecampaign(): boolean {
+		return this.config.hasActiveCampaign
+	}
+
+	async loginWithStoredCredentials(encryptedCredentials: CredentialsInfo) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, encryptedCredentials.userId)) {
+			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
+			// anything, so just move on
+			await this.postLogin()
+		} else {
+			await this.logins.logout(false)
+			const credentials = await this.credentialsProvider.getDecryptedCredentialsByUserId(encryptedCredentials.userId)
+
+			if (credentials) {
+				await this.logins.resumeSession(credentials, null, null)
+				await this.postLogin()
+			}
+		}
+	}
+
+	async loginWithFormCredentials(mailAddress: string, password: string) {
+		this.mailAddress = mailAddress
+		// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
+		await this.logins.logout(false)
+		await this.logins.createSession(mailAddress, password, SessionType.Temporary)
+		await this.postLogin()
+	}
+
+	async handleNewSignup(newAccountData: NewAccountData | null) {
+		if (newAccountData || this.newAccountData) {
+			// if there's an existing account it means the signup form was readonly
+			// because we came back from the next page after having already signed up
+			if (!this.newAccountData) {
+				this.newAccountData = newAccountData
+			}
+
+			const { mailAddress, password } = neverNull(newAccountData || this.newAccountData)
+
+			this.mailAddress = mailAddress
+
+			await this.logins.createSession(mailAddress, password, SessionType.Temporary)
+			await this.postLogin()
+		}
+	}
+
+	async redeemGiftCard(country: Country | null): Promise<void> {
+		if (country == null) {
+			throw new UserError("invoiceCountryInfoBusiness_msg")
+		}
+
+		return this.giftCardFacade
+			.redeemGiftCard(this.giftCardId, this.key, country?.a ?? null)
+			.catch(
+				ofClass(restError.NotFoundError, () => {
+					throw new UserError("invalidGiftCard_msg")
+				}),
+			)
+			.catch(
+				ofClass(restError.NotAuthorizedError, (e) => {
+					throw new UserError(lang.makeTranslation("error_msg", e.message))
+				}),
+			)
+	}
+
+	private async postLogin(): Promise<void> {
+		if (!this.logins.getUserController().isGlobalAdmin()) {
+			throw new UserError("onlyAccountAdminFeature_msg")
+		}
+
+		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
+		const customer = await this.logins.getUserController().reloadCustomer()
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+
+		if (PaymentMethodType.AppStore === this.accountingInfo.paymentMethod) {
+			throw new UserError("redeemGiftCardWithAppStoreSubscription_msg")
+		}
+
+		if (customer.businessUse) {
+			throw new UserError("onlyPrivateAccountFeature_msg")
+		}
+	}
+}
+
+type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardModel>
+
+/**
+ * This page gives the user the option to either signup or login to an account with which to redeem their gift card.
+ */
+
+class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
+	private dom!: HTMLElement
+
+	oncreate(vnodeDOM: VnodeDOM<GiftCardRedeemAttrs>) {
+		this.dom = vnodeDOM.dom as HTMLElement
+	}
+
+	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
+		const a = vnode.attrs
+		const hasActiveCampaign = a.data.hasActivecampaign
+		const nextPage = (method: GetCredentialsMethod) => {
+			locator.logins.logout(false).then(() => {
+				a.data.credentialsMethod = method
+				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+				m.redraw()
+			})
+		}
+
+		return [
+			hasActiveCampaign
+				? m(".plr-48", m(MessageBanner, { type: "warning", translation: lang.getTranslation("buyGiftcardWhileCampaignActive_msg") }))
+				: null,
+			m(
+				".flex-center.full-width",
+				m(
+					".pt-32", // Needed to center SVG
+					{
+						style: {
+							width: "480px",
+						},
+					},
+					renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, a.data.message),
+				),
+			),
+			m(
+				".flex-center.full-width.pt-32",
+				m(PrimaryButton, {
+					label: "existingAccount_label",
+					class: "small-login-button",
+					onclick: () => nextPage(GetCredentialsMethod.Login),
+				}),
+			),
+			m(
+				".flex-center.full-width.pt-32.pb-16",
+				m(PrimaryButton, {
+					label: "register_label",
+					class: "small-login-button",
+					onclick: () => nextPage(GetCredentialsMethod.Signup),
+				}),
+			),
+		]
+	}
+}
+
+/**
+ * This page will either show a signup or login form depending on how they choose to select their credentials
+ * When they go to the next page the will be logged in.
+ */
+
+class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
+	private domElement: HTMLElement | null = null
+	private loginFormHelpText = lang.get("emptyString_msg")
+	private mailAddress = stream<string>("")
+	private password = stream<string>("")
+
+	oncreate(vnode: VnodeDOM<GiftCardRedeemAttrs>) {
+		this.domElement = vnode.dom as HTMLElement
+	}
+
+	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
+		const data = vnode.attrs.data
+
+		switch (data.credentialsMethod) {
+			case GetCredentialsMethod.Login:
+				return this.renderLoginPage(data)
+
+			case GetCredentialsMethod.Signup:
+				return this.renderSignupPage(data)
+		}
+	}
+
+	onremove() {
+		this.password("")
+	}
+
+	private renderLoginPage(model: RedeemGiftCardModel): Children {
+		return [
+			m(
+				".flex-grow.flex-center.scroll",
+				m(".flex-grow-shrink-auto.max-width-s.pt-16.plr-24", [this.renderLoginForm(model), this.renderCredentialsSelector(model)]),
+			),
+		]
+	}
+
+	private renderLoginForm(model: RedeemGiftCardModel): Children {
+		return m(LoginForm, {
+			onSubmit: async (mailAddress, password) => {
+				if (mailAddress === "" || password === "") {
+					this.loginFormHelpText = lang.get("loginFailed_msg")
+				} else {
+					try {
+						// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
+						await showProgressDialog("pleaseWait_msg", model.loginWithFormCredentials(this.mailAddress(), this.password()))
+						emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
+					} catch (e) {
+						if (e instanceof UserError) {
+							showUserError(e)
+						} else {
+							this.loginFormHelpText = lang.getTranslationText(getLoginErrorMessage(e, false))
+						}
+					}
+				}
+			},
+			mailAddress: this.mailAddress,
+			password: this.password,
+			helpText: this.loginFormHelpText,
+		})
+	}
+
+	private renderCredentialsSelector(model: RedeemGiftCardModel): Children {
+		if (model.storedCredentials.length === 0) {
+			return null
+		}
+
+		return m(CredentialsSelector, {
+			credentials: model.storedCredentials,
+			onCredentialsSelected: async (encryptedCredentials) => {
+				try {
+					await showProgressDialog("pleaseWait_msg", model.loginWithStoredCredentials(encryptedCredentials))
+					emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
+				} catch (e) {
+					if (e instanceof UserError) {
+						showUserError(e)
+					} else {
+						this.loginFormHelpText = lang.getTranslationText(getLoginErrorMessage(e, false))
+						handleExpectedLoginError(e, noOp)
+					}
+				}
+			},
+		})
+	}
+
+	private renderSignupPage(model: RedeemGiftCardModel): Children {
+		return m(SignupForm, {
+			// After having an account created we log them in to be in the same state as if they had selected an existing account
+			onComplete: async (result) => {
+				if (result.type === "success") {
+					const newAccountResult = await signup(
+						result.emailInputStore,
+						result.passwordInputStore,
+						result.registrationCode,
+						false,
+						true,
+						result.registrationDataId,
+						result.powChallengeSolutionPromise,
+					)
+
+					if (newAccountResult.variant !== "success") {
+						if (newAccountResult.errorMessageId != null) {
+							await Dialog.message(newAccountResult.errorMessageId)
+						}
+						emitWizardEvent(this.domElement, WizardEventType.CLOSE_DIALOG)
+						m.route.set(`/giftcard${model.hashFromUrl}`)
+						return
+					}
+					showProgressDialog(
+						"pleaseWait_msg",
+						model
+							.handleNewSignup(newAccountResult.newAccountData)
+							.then(() => {
+								emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
+								m.redraw()
+							})
+							.catch((e) => {
+								// TODO when would login fail here and how does it get handled? can we attempt to login again?
+								Dialog.message("giftCardLoginError_msg")
+								m.route.set("/login", {
+									noAutoLogin: true,
+								})
+							}),
+					)
+				} else {
+					emitWizardEvent(this.domElement, WizardEventType.CLOSE_DIALOG)
+				}
+			},
+			onChangePlan: () => {
+				emitWizardEvent(this.domElement, WizardEventType.SHOW_PREVIOUS_PAGE)
+			},
+			prefilledMailAddress: model.newAccountData ? model.newAccountData.mailAddress : "",
+			isBusinessUse: () => false,
+			isPaidSubscription: () => true,
+			campaignToken: () => null,
+		})
+	}
+}
+
+class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
+	private confirmed = false
+	private showCountryDropdown: boolean
+	private country: Country | null
+	private dom!: HTMLElement
+
+	constructor({ attrs }: Vnode<GiftCardRedeemAttrs>) {
+		// we expect that the accounting info is actually available by now,
+		// but we optional chain because invoiceCountry is nullable anyway
+		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, getByAbbreviation)
+
+		// if a country is already set, then we don't need to ask for one
+		this.showCountryDropdown = this.country == null
+	}
+
+	oncreate(vnodeDOM: VnodeDOM<GiftCardRedeemAttrs>) {
+		this.dom = vnodeDOM.dom as HTMLElement
+	}
+
+	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
+		const model = vnode.attrs.data
+		const isFree = locator.logins.getUserController().isFreeAccount()
+
+		return m("", [
+			mapNullable(model.newAccountData?.recoverCode, (code) =>
+				m(
+					".pt-32.plr-24",
+					m(RecoverCodeField, {
+						showMessage: true,
+						recoverCode: code,
+					}),
+				),
+			),
+			isFree ? this.renderInfoForFreeAccounts(model) : this.renderInfoForPaidAccounts(model),
+			m(
+				".flex-center.full-width.pt-32",
+				m(
+					"",
+					{
+						style: {
+							maxWidth: "620px",
+						},
+					},
+					[
+						this.showCountryDropdown
+							? renderCountryDropdown({
+									selectedCountry: this.country,
+									onSelectionChanged: (country) => (this.country = country),
+									helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
+								})
+							: null,
+						renderAcceptGiftCardTermsCheckbox(this.confirmed, (confirmed) => (this.confirmed = confirmed)),
+					],
+				),
+			),
+			m(
+				".flex-center.full-width.pt-8.pb-16",
+				m(PrimaryButton, {
+					label: "redeem_label",
+					class: "small-login-button",
+					onclick: () => {
+						if (!this.confirmed) {
+							Dialog.message("termsAcceptedNeutral_msg")
+							return
+						}
+
+						model
+							.redeemGiftCard(this.country)
+							.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG))
+							.catch(ofClass(UserError, showUserError))
+							.catch(ofClass(CancelledError, noOp))
+					},
+					disabled: !this.confirmed || this.country == null,
+				}),
+			),
+		])
+	}
+
+	private getCreditOrDebitMessage(model: RedeemGiftCardModel): string {
+		const remainingAmount = Number(model.giftCardInfo.value) - model.premiumPrice
+		if (remainingAmount > 0) {
+			return `${lang.get("giftCardUpgradeNotifyCredit_msg", {
+				"{price}": formatPrice(model.premiumPrice, true),
+				"{amount}": formatPrice(remainingAmount, true),
+			})} ${lang.get("creditUsageOptions_msg")}`
+		} else if (remainingAmount < 0) {
+			return lang.get("giftCardUpgradeNotifyDebit_msg", {
+				"{price}": formatPrice(model.premiumPrice, true),
+				"{amount}": formatPrice(remainingAmount * -1, true),
+			})
+		} else {
+			return ""
+		}
+	}
+
+	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
+		return [
+			m(".pt-32.plr-24", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
+			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
+			m(".flex-space-around.flex-wrap", [
+				m(".flex-grow-shrink-half.plr-24", [
+					m(LegacyTextField, {
+						label: "subscription_label",
+						value: "Revolutionary",
+						isReadOnly: true,
+					}),
+					m(LegacyTextField, {
+						label: "paymentInterval_label",
+						value: lang.get("pricing.yearly_label"),
+						isReadOnly: true,
+					}),
+					m(LegacyTextField, {
+						label: "price_label",
+						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
+						isReadOnly: true,
+					}),
+					m(LegacyTextField, {
+						label: "paymentMethod_label",
+						value: getPaymentMethodName(model.paymentMethod),
+						isReadOnly: true,
+					}),
+				]),
+				m(
+					".flex-grow-shrink-half.plr-24.flex-center.items-end",
+					m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
+						style: {
+							width: "200px",
+						},
+					}),
+				),
+			]),
+		]
+	}
+
+	private renderInfoForPaidAccounts(model: RedeemGiftCardModel): Children {
+		return [
+			m(
+				".pt-32.plr-24.flex-center",
+				`${lang.get("giftCardCreditNotify_msg", {
+					"{credit}": formatPrice(Number(model.giftCardInfo.value), true),
+				})} ${lang.get("creditUsageOptions_msg")}`,
+			),
+			m(
+				".flex-grow-shrink-half.plr-24.flex-center.items-end",
+				m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
+					style: {
+						width: "200px",
+					},
+				}),
+			),
+		]
+	}
+}
+
+export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dialog> {
+	const model = await loadModel(hashFromUrl)
+
+	const wizardPages = [
+		wizardPageWrapper(GiftCardWelcomePage, {
+			data: model,
+			headerTitle: () => "giftCard_label",
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+		wizardPageWrapper(GiftCardCredentialsPage, {
+			data: model,
+			headerTitle: () => (model.credentialsMethod === GetCredentialsMethod.Signup ? "register_label" : "login_label"),
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+		wizardPageWrapper(RedeemGiftCardPage, {
+			data: model,
+			headerTitle: () => "redeem_label",
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+	]
+	return createWizardDialog({
+		data: model,
+		pages: wizardPages,
+		closeAction: async () => {
+			const urlParams = model.mailAddress ? { loginWith: model.mailAddress, noAutoLogin: true } : {}
+			m.route.set("/login", urlParams)
+		},
+		dialogType: DialogType.EditLarge,
+		windowFacade,
+	}).dialog
+}
+
+async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
+	const { id, key } = await getTokenFromUrl(hashFromUrl)
+	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
+
+	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
+	const pricesDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
+	const hasActiveCampaign = pricesDataProvider.getRawPricingData().hasGlobalFirstYearDiscount
+	return new RedeemGiftCardModel(
+		{
+			giftCardInfo,
+			key,
+			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
+			storedCredentials,
+			hashFromUrl,
+			hasActiveCampaign,
+		},
+		locator.giftCardFacade,
+		locator.credentialsProvider,
+		locator.secondFactorHandler,
+		locator.logins,
+		locator.entityClient,
+	)
+}

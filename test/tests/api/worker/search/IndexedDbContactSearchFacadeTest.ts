@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { object, when } from "testdouble"
 
-import { IndexedDbContactSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactSearchFacade"
-import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
+import { IndexedDbContactSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbContactSearchFacade"
+import { IndexedDbSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
 
-import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { typedValues } from "@tutao/utils"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 import { TypeModelResolver } from "@tutao/instance-pipeline"

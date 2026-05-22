@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import PublicEncryptionKeyProvider from "../../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kits/base/crypto/PublicEncryptionKeyProvider.js"
 
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
@@ -16,12 +16,12 @@ import {
 } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import * as restError from "@tutao/rest-client/error"
-import { EntityClient } from "../../../../../src/network/EntityClient"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
+import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade"
 
-import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/base/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/platform-kits/base/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/app-kits/local-store/PublicEncryptionKeyCache"
 import {
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
@@ -32,8 +32,8 @@ import {
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
 } from "@tutao/entities/sys"
-import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
-import { KeyAuthenticationFacade } from "../../../../../src/network/KeyAuthenticationFacade"
+import { ServiceExecutor } from "../../../../../src/platform-kits/network/ServiceExecutor"
+import { KeyAuthenticationFacade } from "../../../../../src/platform-kits/network/KeyAuthenticationFacade"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

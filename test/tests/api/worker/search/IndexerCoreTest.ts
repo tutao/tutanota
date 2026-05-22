@@ -10,18 +10,24 @@ import {
 	IndexUpdate,
 	SearchIndexEntry,
 	SearchIndexMetaDataRow,
-} from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
+} from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
+import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/utils"
 
-import { DbKey, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
+import { DbKey, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
+import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/meta"
+import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
+import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "@tutao/meta"
 import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesDecryptUnauthenticated, aesEncrypt, FIXED_IV } from "@tutao/crypto"
-import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import {
+	ElementDataOS,
+	GroupDataOS,
+	ObjectStoreName,
+	SearchIndexMetaDataOS,
+	SearchIndexOS,
+} from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 
 import { CancelledError } from "@tutao/app-env"
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
@@ -32,7 +38,7 @@ import {
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
-} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
+} from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)

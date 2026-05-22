@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../src/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/platform-kits/network/ServiceRequest.js"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 
-import { getAvailableMatchingPlans } from "../../../src/common/subscription/utils/SubscriptionUtils.js"
-import { clone } from "../../../src/meta"
+import { getAvailableMatchingPlans } from "../../../src/applications/common/subscription/utils/SubscriptionUtils.js"
+import { clone } from "@tutao/meta"
 import { NewPaidPlans, PlanType } from "../../../src/entities/sys"
 
 o.spec("SubscriptionUtilsTest", function () {

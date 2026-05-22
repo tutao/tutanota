@@ -1,0 +1,246 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { Dialog } from "../../../ui/base/Dialog"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Keys, UpgradePromptType } from "@tutao/app-env"
+import { Checkbox } from "../../../ui/base/Checkbox.js"
+import { px } from "../../../ui/size"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { getDefaultNotificationLabel } from "../../common/misc/OutOfOfficeNotificationUtils"
+import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
+import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
+import { showUserError } from "../../common/misc/ErrorHandlerImpl"
+import { locator } from "../../common/api/main/CommonLocator"
+import { EditOutOfOfficeNotificationDialogModel, RecipientMessageType } from "./EditOutOfOfficeNotificationDialogModel"
+import { HtmlEditor } from "../../../ui/editor/HtmlEditor"
+import { UserError } from "../../common/api/main/UserError"
+import { DatePicker } from "../../calendar-app/calendar/gui/pickers/DatePicker"
+import type { lazy } from "@tutao/utils"
+import { ofClass } from "@tutao/utils"
+import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
+import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
+import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
+import { OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotification } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
+
+export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
+	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
+		outOfOfficeNotification,
+		locator.entityClient,
+		locator.logins.getUserController(),
+		lang,
+		locator.serviceExecutor,
+	)
+	const organizationMessageEditor = new HtmlEditor(getHtmlSanitizer(), "message_label")
+		.setMinHeight(100)
+		.showBorders()
+		.setValue(dialogModel.organizationMessage())
+		.enableToolbar()
+	const defaultMessageEditor = new HtmlEditor(getHtmlSanitizer(), "message_label")
+		.setMinHeight(100)
+		.showBorders()
+		.setValue(dialogModel.defaultMessage())
+		.enableToolbar()
+
+	const saveOutOfOfficeNotification = () => {
+		dialogModel.organizationMessage(organizationMessageEditor.getValue())
+		dialogModel.defaultMessage(defaultMessageEditor.getValue())
+		dialogModel
+			.saveOutOfOfficeNotification()
+			.then(() => cancel())
+			.catch(ofClass(UserError, (e) => showUserError(e)))
+			.catch(
+				ofClass(UpgradeRequiredError, (e) => {
+					showPlanUpgradeRequiredDialog(UpgradePromptType.OUT_OF_OFFICE_NOTIFICATIONS, e.plans)
+				}),
+			)
+	}
+
+	function cancel() {
+		dialog.close()
+	}
+
+	const dialogHeaderAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "cancel_action",
+				click: cancel,
+				type: ButtonType.Secondary,
+			},
+		],
+		right: [
+			{
+				label: "save_action",
+				click: saveOutOfOfficeNotification,
+				type: ButtonType.Primary,
+			},
+		],
+		middle: "outOfOfficeNotification_title",
+	}
+	const dialog = Dialog.editDialog(dialogHeaderAttrs, EditOutOfOfficeNotificationDialog, {
+		model: dialogModel,
+		organizationMessageEditor,
+		defaultMessageEditor,
+	})
+		.addShortcut({
+			key: Keys.ESC,
+			exec: cancel,
+			help: "close_alt",
+		})
+		.addShortcut({
+			key: Keys.S,
+			ctrlOrCmd: true,
+			exec: saveOutOfOfficeNotification,
+			help: "save_action",
+		})
+	dialog.show()
+}
+
+type EditOutOfOfficeNotificationDialogAttrs = {
+	model: EditOutOfOfficeNotificationDialogModel
+	defaultMessageEditor: HtmlEditor
+	organizationMessageEditor: HtmlEditor
+}
+
+class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNotificationDialogAttrs> {
+	view(vnode: Vnode<EditOutOfOfficeNotificationDialogAttrs>): Children {
+		const { model, defaultMessageEditor, organizationMessageEditor } = vnode.attrs
+		const defaultEnabled = model.isDefaultMessageEnabled()
+		const organizationEnabled = model.isOrganizationMessageEnabled()
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(locator.logins.getUserController().userSettingsGroupRoot)
+		return [
+			this.renderEnabled(model),
+			this.renderRecipients(model),
+			m(
+				".mt-16.flex-start",
+				m(Checkbox, {
+					label: () => lang.get("outOfOfficeTimeRange_msg"),
+					checked: model.timeRangeEnabled(),
+					onChecked: model.timeRangeEnabled,
+					helpLabel: "outOfOfficeTimeRangeHelp_msg",
+				}),
+			),
+			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
+			m(".mt-32", lang.get("outOfOfficeUnencrypted_msg")),
+			organizationEnabled ? this.renderOrganizations(model, organizationMessageEditor) : null,
+			defaultEnabled ? this.renderDefault(organizationEnabled, model, defaultMessageEditor) : null,
+			m(".pb-16", ""),
+		]
+	}
+
+	private renderEnabled(model: EditOutOfOfficeNotificationDialogModel) {
+		const statusItems = [
+			{ name: lang.get("deactivated_label"), value: false },
+			{ name: lang.get("activated_label"), value: true },
+		]
+		return m(DropDownSelector, {
+			label: "state_label",
+			items: statusItems,
+			selectedValue: model.enabled(),
+			selectionChangedHandler: model.enabled,
+		})
+	}
+
+	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
+		return [
+			m(".h4.text-center.mt-32", getDefaultNotificationLabel(organizationEnabled)),
+			m(LegacyTextField, {
+				label: "subject_label",
+				value: model.defaultSubject(),
+				oninput: model.defaultSubject,
+				injectionsLeft: () =>
+					m(
+						".flex-no-grow-no-shrink-auto.pr-4",
+						{
+							style: {
+								"line-height": px(24),
+								opacity: "1",
+							},
+						},
+						OUT_OF_OFFICE_SUBJECT_PREFIX,
+					),
+			}),
+			m(defaultMessageEditor),
+		]
+	}
+
+	private renderOrganizations(model: EditOutOfOfficeNotificationDialogModel, organizationMessageEditor: HtmlEditor) {
+		return [
+			m(".h4.text-center.mt-32", lang.get("outOfOfficeInternal_msg")),
+			m(LegacyTextField, {
+				label: "subject_label",
+				value: model.organizationSubject(),
+				oninput: model.organizationSubject,
+				injectionsLeft: () =>
+					m(
+						".flex-no-grow-no-shrink-auto.pr-4",
+						{
+							style: {
+								"line-height": px(24),
+								opacity: "1",
+							},
+						},
+						OUT_OF_OFFICE_SUBJECT_PREFIX,
+					),
+			}),
+			m(organizationMessageEditor),
+		]
+	}
+
+	private renderRecipients(model: EditOutOfOfficeNotificationDialogModel) {
+		const recipientItems = [
+			{ name: lang.get("everyone_label"), value: RecipientMessageType.EXTERNAL_TO_EVERYONE },
+			{ name: lang.get("insideOutside_label"), value: RecipientMessageType.INTERNAL_AND_EXTERNAL },
+			{ name: lang.get("insideOnly_label"), value: RecipientMessageType.INTERNAL_ONLY },
+		]
+		const recipientHelpLabel: lazy<string> = () => {
+			switch (model.recipientMessageTypes()) {
+				case RecipientMessageType.EXTERNAL_TO_EVERYONE:
+					return lang.get("outOfOfficeRecipientsEveryoneHelp_label")
+
+				case RecipientMessageType.INTERNAL_AND_EXTERNAL:
+					return lang.get("outOfOfficeRecipientsInternalExternalHelp_label")
+
+				case RecipientMessageType.INTERNAL_ONLY:
+					return lang.get("outOfOfficeRecipientsInternalOnlyHelp_label")
+
+				default:
+					return ""
+			}
+		}
+
+		return m(DropDownSelector, {
+			label: "outOfOfficeRecipients_label",
+			items: recipientItems,
+			selectedValue: model.recipientMessageTypes(),
+			selectionChangedHandler: model.recipientMessageTypes,
+			helpLabel: recipientHelpLabel,
+		})
+	}
+
+	private renderTimeRangeSelector(model: EditOutOfOfficeNotificationDialogModel, startOfTheWeekOffset: number): Children {
+		return m(".flex.col", [
+			m(DatePicker, {
+				date: model.startDate(),
+				onDateSelected: model.startDate,
+				label: "dateFrom_label",
+				nullSelectionText: "emptyString_msg",
+				startOfTheWeekOffset,
+			}),
+			m(Checkbox, {
+				label: () => lang.get("unlimited_label"),
+				checked: model.indefiniteTimeRange(),
+				onChecked: model.indefiniteTimeRange,
+			}),
+			!model.indefiniteTimeRange()
+				? m(DatePicker, {
+						date: model.endDate(),
+						onDateSelected: model.endDate,
+						label: "dateTo_label",
+						nullSelectionText: "emptyString_msg",
+						startOfTheWeekOffset,
+					})
+				: null,
+		])
+	}
+}

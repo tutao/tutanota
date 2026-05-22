@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { client } from "../../../src/app-env/boot/ClientDetector.js"
-import { BrowserType, DeviceType } from "../../../src/app-env/boot/ClientConstants.js"
+import { client } from "../../../src/platform-kits/app-env/boot/ClientDetector.js"
+import { BrowserType, DeviceType } from "../../../src/platform-kits/app-env/boot/ClientConstants.js"
 import { withOverriddenEnv } from "../TestUtils"
 import { AppType, Mode } from "@tutao/app-env"
 

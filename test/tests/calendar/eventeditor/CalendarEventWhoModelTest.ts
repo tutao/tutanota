@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 
 import { matchers, object, replace, verify, when } from "testdouble"
-import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
-import { PresentableKeyVerificationState, ShareCapability } from "../../../../src/app-env"
-import { UserController } from "../../../../src/common/api/main/UserController.js"
-import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { RecipientsModel } from "../../../../src/applications/common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, ShareCapability } from "@tutao/app-env"
+import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
+import { CalendarOperation, EventType } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
 	addCapability,
 	calendars,
@@ -23,11 +23,11 @@ import {
 	thirdRecipient,
 } from "../CalendarTestUtils.js"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
-import { RecipientField } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
+import { RecipientField } from "../../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { createTestEntity } from "../../TestUtils.js"
-import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
+import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { CalendarEventWhoModel } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 import {
 	CalendarAttendeeStatus,
 	CalendarEvent,

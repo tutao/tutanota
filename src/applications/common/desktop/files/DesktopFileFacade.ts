@@ -1,0 +1,514 @@
+import { default as stream, Readable, Transform } from "node:stream"
+import { pipeline } from "node:stream/promises"
+import { CommonNativeFacade, DownloadTaskResponse, FileFacade, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
+import { FileUri } from "../../../../app-kits/native-bridge/common/FileApp.js"
+import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
+import path from "node:path"
+import { ApplicationWindow } from "../ApplicationWindow.js"
+import { sha256Hash } from "@tutao/crypto"
+import {
+	assertNotNull,
+	DateProvider,
+	newPromise,
+	splitUint8ArrayInChunks,
+	stringToUtf8Uint8Array,
+	throttle,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+} from "@tutao/utils"
+import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
+import url from "node:url"
+import type { WriteStream } from "node:fs"
+import FsModule from "node:fs"
+import { Buffer } from "node:buffer"
+import type { ReadableStream } from "node:stream/web"
+import { FileOpenError } from "../../api/common/error/FileOpenError.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { log } from "../DesktopLog.js"
+import { BuildConfigKey, CancelledError, DesktopConfigKey, ProgrammingError } from "@tutao/app-env"
+import { DesktopConfig } from "../config/DesktopConfig.js"
+import { TempFs } from "./TempFs.js"
+import { HttpMethod } from "@tutao/rest-client/types"
+import { FetchImpl } from "../net/NetAgent"
+import { OpenDialogOptions } from "electron"
+import { CommandExecutor } from "../CommandExecutor"
+import { DataFile } from "@tutao/entities/tutanota"
+
+const TAG = "[DesktopFileFacade]"
+
+export class DesktopFileFacade implements FileFacade {
+	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
+	private lastOpenedFileManagerAt: number | null
+	private activeRequests: Map<string, AbortController> = new Map()
+
+	constructor(
+		private readonly win: ApplicationWindow,
+		private readonly conf: DesktopConfig,
+		private readonly dateProvider: DateProvider,
+		private readonly fetch: FetchImpl,
+		private readonly electron: ElectronExports,
+		private readonly tfs: TempFs,
+		private readonly fs: FsExports,
+		private readonly path: PathExports,
+		private readonly commandExecutor: CommandExecutor,
+		private readonly process: NodeJS.Process,
+		private readonly progressTracker: Pick<CommonNativeFacade, "downloadProgress" | "uploadProgress">,
+	) {
+		this.lastOpenedFileManagerAt = null
+	}
+
+	clearFileData(): Promise<void> {
+		this.tfs.clear()
+		return Promise.resolve()
+	}
+
+	async deleteFile(filePath: string): Promise<void> {
+		this.tfs.assertInTmpDir(filePath)
+		return await this.fs.promises.unlink(filePath)
+	}
+
+	private async deleteFileQuietly(filePath: string): Promise<void> {
+		try {
+			await this.fs.promises.unlink(filePath)
+		} catch (e) {
+			if (e.code !== "ENOENT") {
+				throw e
+			}
+		}
+	}
+
+	async download(sourceUrl: string, fileName: string, headers: Record<string, string>, fileId: string): Promise<DownloadTaskResponse> {
+		const abortController = new AbortController()
+		this.activeRequests.set(fileId, abortController)
+		try {
+			const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers, signal: abortController.signal })
+
+			let encryptedFilePath
+			if (status === 200 && body != null) {
+				const downloadDirectory = await this.tfs.ensureEncryptedDir()
+				encryptedFilePath = path.join(downloadDirectory, fileName)
+				const readable: stream.Readable = bodyToReadable(body)
+				// debounce so that we don't post the message too often
+				const onProgress = throttle(100, (bytes: number) => {
+					this.progressTracker.downloadProgress(fileId, bytes)
+				})
+				await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
+			} else {
+				encryptedFilePath = null
+			}
+
+			const result = {
+				statusCode: status,
+				encryptedFileUri: encryptedFilePath,
+				errorId: getHttpHeader(headersIncoming, "error-id"),
+				precondition: getHttpHeader(headersIncoming, "precondition"),
+				suspensionTime: getHttpHeader(headersIncoming, "suspension-time") ?? getHttpHeader(headersIncoming, "retry-after"),
+			}
+
+			log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
+
+			return result
+		} finally {
+			this.activeRequests.delete(fileId)
+		}
+	}
+
+	async abortDownload(fileId: string) {
+		this.activeRequests.get(fileId)?.abort(new CancelledError("Request canceled"))
+	}
+
+	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
+		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
+		try {
+			await pipeline(
+				response,
+				async function* (source) {
+					let downloadedBytes = 0
+					for await (const chunk of source) {
+						downloadedBytes += chunk.length
+						progress(downloadedBytes)
+						yield chunk
+					}
+				},
+				fileStream,
+			)
+		} catch (e) {
+			await this.fs.promises.unlink(encryptedFilePath)
+			throw e
+		}
+	}
+
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getMimeType(filePath: string): Promise<string> {
+		return await getMimeTypeForFile(filePath)
+	}
+
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getName(filePath: string): Promise<string> {
+		return path.basename(filePath)
+	}
+
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getSize(filePath: string): Promise<number> {
+		const stats = await this.fs.promises.stat(filePath)
+		return stats.size
+	}
+
+	async hashFile(filePath: string): Promise<string> {
+		this.tfs.assertInTmpDir(filePath)
+		const data = await this.fs.promises.readFile(filePath)
+		const checksum = sha256Hash(data).slice(0, 6)
+		return uint8ArrayToBase64(checksum)
+	}
+
+	async joinFiles(filename: string, files: Array<string>): Promise<string> {
+		const downloadDirectory = await this.tfs.ensureUnencrytpedDir()
+
+		const filesInDirectory = await this.fs.promises.readdir(downloadDirectory)
+		const newFilename = nonClobberingFilename(filesInDirectory, filename)
+		const filePath = path.join(downloadDirectory, newFilename)
+		const outStream = this.fs.createWriteStream(filePath, { autoClose: false })
+
+		try {
+			for (const infile of files) {
+				this.tfs.assertInTmpDir(infile)
+				const readStream = this.fs.createReadStream(infile)
+				try {
+					await newPromise<void>((resolve, reject) => {
+						readStream.on("end", resolve)
+						readStream.on("error", reject)
+						readStream.pipe(outStream, { end: false })
+					})
+				} finally {
+					readStream.close()
+				}
+				await this.fs.promises.unlink(infile)
+			}
+
+			await closeFileStream(outStream)
+		} catch (e) {
+			// clean up if we couldn't finish writing
+			await closeFileStream(outStream)
+
+			// The file might not exist yet if we didn't get to write anything,
+			// so let's delete it if it exists.
+			await this.deleteFileQuietly(filePath)
+			throw e
+		}
+
+		return filePath
+	}
+
+	async open(location: string /* , mimeType: string omitted */): Promise<void> {
+		this.tfs.assertInTmpDir(location)
+		const openWithElectronShell = () =>
+			this.electron.shell
+				.openPath(location) // may resolve with "" or an error message
+				.catch((e) => {
+					const message = "failed to open path." + e
+					throw new FileOpenError("Could not open " + location + ", " + message)
+				})
+
+		// only windows will happily execute a just downloaded program
+		if (this.process.platform === "win32" && looksExecutable(location)) {
+			const { response } = await this.electron.dialog.showMessageBox({
+				type: "warning",
+				buttons: [lang.get("yes_label"), lang.get("no_label")],
+				title: lang.get("executableOpen_label"),
+				message: lang.get("executableOpen_msg"),
+				defaultId: 1, // default button
+			})
+			if (response === 0) {
+				await openWithElectronShell()
+			}
+		} else if (this.process.platform === "linux") {
+			// temporary fix for the electron fix:
+			// https://github.com/electron/electron/issues/45129#issuecomment-3334644846
+			// https://github.com/tutao/tutanota/issues/9696
+			await this.commandExecutor
+				.run({
+					executable: "xdg-open",
+					args: [location],
+					env:
+						// electron replaces XDG_CURRENT_DESKTOP in some cases which breaks gio open which breaks xdg-open
+						this.process.env.ORIGINAL_XDG_CURRENT_DESKTOP == null
+							? undefined
+							: {
+									...this.process.env,
+									XDG_CURRENT_DESKTOP: this.process.env.ORIGINAL_XDG_CURRENT_DESKTOP,
+								},
+				})
+				.catch((e) => {
+					throw new FileOpenError("Could not open " + location + ", " + e)
+				})
+		} else {
+			await openWithElectronShell()
+		}
+	}
+
+	async openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<Array<string>> {
+		const opts: OpenDialogOptions = { properties: ["openFile", "multiSelections"] }
+		if (filter != null) {
+			opts.filters = [{ name: "Filter", extensions: filter.slice() }]
+		}
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
+		return filePaths
+	}
+
+	openFolderChooser(): Promise<string | null> {
+		// open folder dialog
+		return this.electron.dialog
+			.showOpenDialog(this.win._browserWindow, {
+				properties: ["openDirectory"],
+			})
+			.then(({ filePaths }) => filePaths[0] ?? null)
+	}
+
+	/**
+	 * Opens OS file picker for selecting either a file or a folder. The options "openDirectory", "openFile" simultaneously are only supported on macOS
+	 * This is needed because Apple Mail uses a custom MBOX when format when exporting, which is a directory and not a file.
+	 */
+	async openMacImportFileChooser(): Promise<Array<string>> {
+		const opts: OpenDialogOptions = { properties: ["openDirectory", "openFile", "multiSelections"] }
+		opts.filters = [{ name: "Filter", extensions: ["eml", "mbox"].slice() }]
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
+		return filePaths
+	}
+
+	async putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string> {
+		this.tfs.assertInTmpDir(localFileUri)
+		const savePath = await this.pickSavePath(fileNameToUse)
+		await this.fs.promises.mkdir(path.dirname(savePath), {
+			recursive: true,
+		})
+		await this.fs.promises.copyFile(localFileUri, savePath)
+		await this.showInFileExplorer(savePath)
+		return savePath
+	}
+
+	/** can be used with arbitrary paths, is run on the selected file locations */
+	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
+		const tempDir = await this.tfs.ensureUnencrytpedDir()
+		const fullBytes = await this.fs.promises.readFile(fileUri)
+		const chunks = splitUint8ArrayInChunks(maxChunkSizeBytes, fullBytes)
+		// this could just be randomized, we don't seem to care about the blob file names
+		const filenameHash = uint8ArrayToHex(sha256Hash(stringToUtf8Uint8Array(fileUri)))
+		const chunkPaths: string[] = []
+
+		for (let i = 0; i < chunks.length; i++) {
+			const chunk = chunks[i]
+			const fileName = `${filenameHash}.${i}.blob`
+			const chunkPath = path.join(tempDir, fileName)
+			await this.fs.promises.writeFile(chunkPath, chunk)
+			chunkPaths.push(chunkPath)
+		}
+
+		return chunkPaths
+	}
+
+	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
+		// we only upload encrypted blobs so it should be safe
+		this.tfs.assertInTmpDir(fileUri)
+		const fileStream = this.fs.createReadStream(fileUri)
+		const stat = await this.fs.promises.stat(fileUri)
+		headers["Content-Length"] = `${stat.size}`
+
+		const abortController = new AbortController()
+		this.activeRequests.set(fileId, abortController)
+
+		const onProgress = throttle(100, (bytes) => {
+			this.progressTracker.uploadProgress(fileId, bytes)
+		})
+		const progressStream = wrapReadableAsCountable(fileStream, onProgress)
+
+		try {
+			const response = await this.fetch(targetUrl, { method, headers, body: progressStream, signal: abortController.signal })
+
+			let responseBody: Uint8Array
+			if ((response.status === 200 || response.status === 201) && response.body != null) {
+				const readable: stream.Readable = bodyToReadable(response.body)
+				responseBody = await readStreamToBuffer(readable)
+			} else {
+				// this is questionable, should probably change the type
+				responseBody = new Uint8Array([])
+			}
+			return {
+				statusCode: assertNotNull(response.status),
+				errorId: getHttpHeader(response.headers, "error-id"),
+				precondition: getHttpHeader(response.headers, "precondition"),
+				suspensionTime: getHttpHeader(response.headers, "suspension-time") ?? getHttpHeader(response.headers, "retry-after"),
+				responseBody,
+			}
+		} finally {
+			fileStream.close()
+			this.activeRequests.delete(fileId)
+		}
+	}
+
+	async abortUpload(fileId: string): Promise<void> {
+		log.info(TAG, `Abort upload for fileId ${fileId}`)
+		this.activeRequests.get(fileId)?.abort(new CancelledError("Upload canceled"))
+	}
+
+	// this is only used to write decrypted data into our tmp
+	async writeTempDataFile(file: DataFile): Promise<string> {
+		return await this.tfs.writeToDisk(file.data, "decrypted")
+	}
+
+	// This write data to app dir and return full path
+	async writeToAppDir(fileConent: Uint8Array, fileName: string): Promise<void> {
+		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		this.assertPathWithinUserData(fullPath)
+		this.fs.writeFileSync(fullPath, fileConent)
+	}
+
+	async readFromAppDir(fileName: string): Promise<Uint8Array> {
+		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		this.assertPathWithinUserData(fullPath)
+		return this.fs.readFileSync(fullPath)
+	}
+
+	async deleteFromAppDir(fileName: string): Promise<void> {
+		const userDataDir = this.electron.app.getPath("userData")
+
+		const resolvedTarget = this.path.resolve(userDataDir, fileName)
+		this.assertPathWithinUserData(resolvedTarget)
+
+		try {
+			await this.fs.promises.unlink(resolvedTarget)
+		} catch (e) {
+			// ignore the error if the file does not exist
+		}
+	}
+
+	/** this is used to read unencrypted data from arbitrary locations */
+	async readDataFile(uriOrPath: FileUri): Promise<DataFile | null> {
+		try {
+			uriOrPath = url.fileURLToPath(uriOrPath)
+		} catch (e) {
+			// the thing already was a path, or at least not an URI
+		}
+		const name = path.basename(uriOrPath)
+		try {
+			const [data, mimeType] = await Promise.all([
+				this.fs.promises.readFile(uriOrPath),
+				// freestanding function doesn't have the checks
+				getMimeTypeForFile(uriOrPath),
+			])
+			if (data == null) return null
+			return {
+				_type: "DataFile",
+				data,
+				name,
+				mimeType,
+				size: data.length,
+				id: undefined,
+			}
+		} catch (e) {
+			return null
+		}
+	}
+
+	/**
+	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
+	 * public for testing
+	 */
+	async pickSavePath(filename: string): Promise<string> {
+		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
+
+		if (defaultDownloadPath != null) {
+			const fileName = path.basename(filename)
+			return path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
+		} else {
+			const { canceled, filePath } = await this.electron.dialog.showSaveDialog({
+				defaultPath: path.join(this.electron.app.getPath("downloads"), filename),
+			})
+
+			if (canceled) {
+				throw new CancelledError("Path selection cancelled")
+			} else {
+				return assertNotNull(filePath)
+			}
+		}
+	}
+
+	/** public for testing */
+	async showInFileExplorer(savePath: string): Promise<void> {
+		// See doc for _lastOpenedFileManagerAt on why we do this throttling.
+		const lastOpenedFileManagerAt = this.lastOpenedFileManagerAt
+		const fileManagerTimeout = await this.conf.getConst(BuildConfigKey.fileManagerTimeout)
+
+		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
+			this.lastOpenedFileManagerAt = this.dateProvider.now()
+			this.electron.shell.showItemInFolder(savePath)
+		}
+	}
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	private assertPathWithinUserData(unresolvedPath: string): void {
+		const resolvedBase = this.electron.app.getPath("userData")
+		const resolvedTarget = path.resolve(unresolvedPath)
+		if (!resolvedTarget.startsWith(resolvedBase + this.path.sep)) {
+			throw new ProgrammingError("Invalid file path: " + unresolvedPath)
+		}
+	}
+}
+
+export async function getMimeTypeForFile(filePath: string): Promise<string> {
+	const ext = path.extname(filePath).slice(1).toLowerCase() // remove the dot and normalize
+	const { extensionToMimeType } = await import("../flat-mimes.js")
+	const candidates = extensionToMimeType[ext]
+	// sometimes there are multiple options, but we'll take the first and reorder if issues arise.
+	return candidates != null ? candidates[0] : "application/octet-stream"
+}
+
+function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
+	return newPromise((resolve) => {
+		stream.on("close", resolve)
+		stream.close()
+	})
+}
+
+export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8Array> {
+	return newPromise((resolve, reject) => {
+		const data: Buffer[] = []
+
+		stream.on("data", (chunk) => {
+			data.push(chunk as Buffer)
+		})
+
+		stream.on("end", () => {
+			resolve(Buffer.concat(data))
+		})
+
+		stream.on("error", (err) => {
+			reject(err)
+		})
+	})
+}
+
+function getHttpHeader(headers: Headers, name: string): string | null {
+	// All headers are in lowercase. Lowercase them just to be sure
+	return headers.get(name.toLowerCase())
+}
+
+function bodyToReadable(body: ReadableStream<unknown>): stream.Readable {
+	// https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/65542
+	return stream.Readable.fromWeb(body)
+}
+
+/**
+ * Make a new Readable stream that counts the data read from the upstream {@param upstream} and invokes
+ * {@param onProgress} for every chunk read.
+ */
+function wrapReadableAsCountable(upstream: Readable, onProgress: (bytes: number) => void): Readable {
+	let writtenBytes = 0
+	const progressStream: Transform = new Transform({
+		transform(chunk, _encoding, callback) {
+			writtenBytes += chunk.length
+			onProgress(writtenBytes)
+			callback(null, chunk)
+		},
+	})
+	upstream.pipe(progressStream)
+	return progressStream
+}

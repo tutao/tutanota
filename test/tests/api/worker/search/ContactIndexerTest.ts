@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 
-import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
+import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
-import { ContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/ContactIndexerBackend"
-import { EntityClient } from "../../../../../src/network/EntityClient"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade"
+import { ContactIndexerBackend } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexerBackend"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade"
 
 import { noPatchesAndInstance } from "../EventBusClientTest"
 
@@ -13,7 +13,7 @@ import { Contact, ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef }
 import { OperationType, TypeRef } from "@tutao/meta"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient

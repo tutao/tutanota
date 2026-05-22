@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
-import { DesktopConfigMigrator } from "../../../../src/common/desktop/config/migrations/DesktopConfigMigrator.js"
+import { DesktopConfig } from "../../../../src/applications/common/desktop/config/DesktopConfig.js"
+import { DesktopConfigMigrator } from "../../../../src/applications/common/desktop/config/migrations/DesktopConfigMigrator.js"
 import { noOp } from "@tutao/utils"
-import { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { DesktopConfigKey } from "../../../../src/app-env/ConfigKeys.js"
-import { ConfigFile } from "../../../../src/common/desktop/config/ConfigFile.js"
+import { DesktopKeyStoreFacade } from "../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
+import { DesktopConfigKey } from "../../../../src/platform-kits/app-env/ConfigKeys.js"
+import { ConfigFile } from "../../../../src/applications/common/desktop/config/ConfigFile.js"
 import { function as fn, matchers, object, verify, when } from "testdouble"
 
 o.spec("DesktopConfigTest", function () {

@@ -1,11 +1,11 @@
 import n from "../nodemocker.js"
 import o from "@tutao/otest"
-import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
+import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
-import type { CryptoFunctions } from "../../../src/common/desktop/CryptoFns.js"
+import type { CryptoFunctions } from "../../../src/applications/common/desktop/CryptoFns.js"
 import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/crypto"
 import { matchers, object, verify, when } from "testdouble"
-import { TempFs } from "../../../src/common/desktop/files/TempFs.js"
+import { TempFs } from "../../../src/applications/common/desktop/files/TempFs.js"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])

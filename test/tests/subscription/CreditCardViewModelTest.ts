@@ -5,7 +5,7 @@ import {
 	getCardTypeRange,
 	inferExpirationDate,
 	SimplifiedCreditCardViewModel,
-} from "../../../src/common/subscription/SimplifiedCreditCardInputModel.js"
+} from "../../../src/applications/common/subscription/SimplifiedCreditCardInputModel.js"
 
 o.spec("inferExpirationDate month", function () {
 	o("starting with invalid character returns empty string", function () {

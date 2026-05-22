@@ -1,18 +1,18 @@
 import o, { assertThrows } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest.js"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade.js"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
+import { IServiceExecutor } from "../../../../../src/platform-kits/network/ServiceRequest.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade.js"
 import { AsymmetricKeyPair, cryptoUtils, CryptoWrapper, Ed25519KeyPair, KeyPairType, MacTag, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/base/crypto/AsymmetricCryptoFacade.js"
+import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/platform-kits/base/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 
-import { Ed25519Facade } from "../../../../../src/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicKeySignatureFacade"
-import { IdentityKeyCreator } from "../../../../../src/base/crypto/IdentityKeyCreator"
-import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
+import { Ed25519Facade } from "../../../../../src/platform-kits/base/crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kits/base/crypto/PublicKeySignatureFacade"
+import { IdentityKeyCreator } from "../../../../../src/platform-kits/base/crypto/IdentityKeyCreator"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/AdminKeyLoaderFacade"
 import { Versioned } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -27,7 +27,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { KeyAuthenticationFacade } from "../../../../../src/network/KeyAuthenticationFacade"
+import { KeyAuthenticationFacade } from "../../../../../src/platform-kits/network/KeyAuthenticationFacade"
 
 const { anything, argThat, captor } = matchers
 

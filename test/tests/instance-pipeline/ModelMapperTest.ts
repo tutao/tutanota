@@ -11,15 +11,7 @@ import {
 	ServerTypeReferenceResolver,
 	valueToDefault,
 } from "@tutao/instance-pipeline"
-import {
-	AssociationType,
-	Cardinality,
-	ClientModelParsedInstance,
-	GENERATED_MIN_ID,
-	ModelAssociation,
-	ServerModelParsedInstance,
-	ValueType,
-} from "../../../src/meta"
+import { AssociationType, Cardinality, ClientModelParsedInstance, GENERATED_MIN_ID, ModelAssociation, ServerModelParsedInstance, ValueType } from "@tutao/meta"
 import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "@tutao/app-env"

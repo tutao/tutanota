@@ -6,7 +6,7 @@ import {
 	MailListDisplayMode,
 	migrateConfigV2to3,
 	migrateConfigV5to6,
-} from "../../../src/common/misc/DeviceConfig.js"
+} from "../../../src/applications/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 
 import { getDayShifted, getStartOfDay } from "@tutao/utils"

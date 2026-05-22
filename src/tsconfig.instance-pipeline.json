@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["instance-pipeline", "./../types/"],
+	"include": ["platform-kits/instance-pipeline", "./../types/"],
 	"compilerOptions": {
-		"rootDir": "instance-pipeline",
+		"rootDir": "platform-kits/instance-pipeline",
 		"outDir": "../build/instance-pipeline",
 		"tsBuildInfoFile": "../build/instance-pipeline/tsbuildinfo",
 		"composite": true
@@ -12,7 +12,7 @@
 			"path": "tsconfig.meta.json"
 		},
 		{
-			"path": "tsconfig.crypto-primitives.json"
+			"path": "tsconfig.crypto.json"
 		},
 		{
 			"path": "tsconfig.entities.sys.json"

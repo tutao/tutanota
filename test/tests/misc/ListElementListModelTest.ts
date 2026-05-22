@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "../../../src/meta"
+import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "@tutao/meta"
 import { defer, DeferredObject } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
-import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
+import { ListAutoSelectBehavior } from "../../../src/applications/common/misc/DeviceConfig.js"
+import { ListElementListModel, ListElementListModelConfig } from "../../../src/applications/common/misc/ListElementListModel"
 import * as restError from "@tutao/rest-client/error"
 
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"

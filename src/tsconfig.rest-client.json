@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["rest-client", "./../types/"],
+	"include": ["platform-kits/rest-client", "./../types/"],
 	"compilerOptions": {
-		"rootDir": "rest-client",
+		"rootDir": "platform-kits/rest-client",
 		"outDir": "../build/rest-client",
 		"tsBuildInfoFile": "../build/rest-client/tsbuildinfo",
 		"composite": true

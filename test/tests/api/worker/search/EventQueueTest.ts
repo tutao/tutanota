@@ -1,11 +1,11 @@
 import o, { spy } from "@tutao/otest"
-import { EventQueue, QueuedBatch } from "../../../../../src/network/EventQueue.js"
+import { EventQueue, QueuedBatch } from "../../../../../src/platform-kits/network/EventQueue.js"
 import { defer, delay } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
 
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { OperationType } from "@tutao/meta"
-import { EntityUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue

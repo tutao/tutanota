@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { OfflineStorageMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
-import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { OfflineStorageMailIndexerBackend } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
+import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, verify, when } from "testdouble"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
-import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
 
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"

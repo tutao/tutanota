@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 
 import { createTestEntity } from "../TestUtils.js"
 import { incrementDate } from "@tutao/utils"
-import { earliestEventToShowTimeIndicator } from "../../../src/calendar-app/calendar/view/CalendarAgendaView.js"
+import { earliestEventToShowTimeIndicator } from "../../../src/applications/calendar-app/calendar/view/CalendarAgendaView.js"
 
 import { makeEventWrapper } from "./CalendarTestUtils"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"

@@ -1,8 +1,12 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils.js"
-import { extractCityName, extractPostalCode, XRechnungInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
+import {
+	extractCityName,
+	extractPostalCode,
+	XRechnungInvoiceGenerator,
+} from "../../../../../src/applications/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
 
-import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
+import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "@tutao/entities/sys"
 

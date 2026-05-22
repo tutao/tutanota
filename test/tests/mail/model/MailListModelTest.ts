@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailListModel } from "../../../../src/mail-app/mail/model/MailListModel"
+import { MailListModel } from "../../../../src/applications/mail-app/mail/model/MailListModel"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -10,26 +10,26 @@ import {
 	getListId,
 	isSameId,
 	listIdPart,
-} from "../../../../src/meta"
+} from "@tutao/meta"
 import { matchers, object, verify, when } from "testdouble"
-import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
-import { EntityClient } from "../../../../src/network/EntityClient"
-import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
+import { ConversationPrefProvider } from "../../../../src/applications/mail-app/mail/view/ConversationViewModel"
+import { EntityClient } from "../../../../src/platform-kits/network/EntityClient"
+import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
 import { PageSize } from "../../../../src/ui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
-import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
+import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
 import * as restError from "@tutao/rest-client/error"
 import { clamp, pad } from "@tutao/utils"
-import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
-import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
+import { LoadedMail } from "../../../../src/applications/mail-app/mail/model/MailSetListModel"
+import { getMailFilterForType, MailFilterType } from "../../../../src/applications/mail-app/mail/view/MailViewerUtils"
 import { theme } from "../../../../src/ui/theme.js"
-import { ProcessInboxHandler } from "../../../../src/mail-app/mail/model/ProcessInboxHandler"
-import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem"
-import { WebsocketConnectivityModel } from "../../../../src/common/misc/WebsocketConnectivityModel"
+import { ProcessInboxHandler } from "../../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
+import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
+import { WebsocketConnectivityModel } from "../../../../src/applications/common/misc/WebsocketConnectivityModel"
 
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 
-import { ExposedCacheStorage } from "../../../../src/local-store/CacheStorage"
+import { ExposedCacheStorage } from "../../../../src/app-kits/local-store/CacheStorage"
 import { MailSetKind } from "../../../../src/entities/tutanota"
 import {
 	createMailSetEntry,
@@ -45,7 +45,7 @@ import {
 import { OperationType } from "@tutao/meta"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("MailListModel", () => {
 	let model: MailListModel

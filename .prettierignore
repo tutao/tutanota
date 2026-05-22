@@ -4,11 +4,10 @@ node_modules/
 build/
 build-calendar-app/
 build-drive-app/
-dist/
 libs/
 app-android/
 app-ios/
 fdroid-metadata-workaround/
 src/crypto-primitives
 target/
-src/mimimi/tests
+src/app-kits/mimimi/tests

@@ -2,8 +2,8 @@ import o, { spy } from "@tutao/otest"
 import type { DomMutation } from "../../../../src/ui/animation/Animations.js"
 import { alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum } from "../../../../src/ui/animation/Animations.js"
 import { ease } from "../../../../src/ui/animation/Easing.js"
-import { client } from "../../../../src/app-env/boot/ClientDetector.js"
-import { DeviceType } from "../../../../src/app-env/boot/ClientConstants.js"
+import { client } from "../../../../src/platform-kits/app-env/boot/ClientDetector.js"
+import { DeviceType } from "../../../../src/platform-kits/app-env/boot/ClientConstants.js"
 import { assertNotNull, downcast } from "@tutao/utils"
 
 client.device = DeviceType.DESKTOP

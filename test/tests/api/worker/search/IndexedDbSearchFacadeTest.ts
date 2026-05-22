@@ -8,33 +8,33 @@ import {
 	getServerIdEncodingForType,
 	listIdPart,
 	timestampToGeneratedId,
-} from "../../../../../src/meta"
-import { TypeInfo, typeInfoToTypeRef, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
+} from "@tutao/meta"
+import { TypeInfo, typeInfoToTypeRef, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
 import {
 	ElementDataDbRow,
 	SearchIndexEntry,
 	SearchIndexMetaDataRow,
 	SearchRestriction,
 	SearchResult,
-} from "../../../../../src/common/api/worker/search/SearchTypes.js"
+} from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 import { groupBy, numberRange, splitInChunks } from "@tutao/utils"
-import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
+import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
-import type { BrowserData } from "../../../../../src/app-env/boot/ClientConstants.js"
+import type { BrowserData } from "../../../../../src/platform-kits/app-env/boot/ClientConstants.js"
 import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
-import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
-import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
-import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
+import { IndexedDbSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbSearchFacade"
+import { DbFacade } from "../../../../../src/applications/common/api/worker/search/DbFacade"
+import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/worker/search/EncryptedDbWrapper"
 import {
 	encryptIndexKeyBase64,
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
 	encryptSearchIndexEntry,
-} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
+} from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 

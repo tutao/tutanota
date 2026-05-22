@@ -1,0 +1,16 @@
+import { Thunk } from "@tutao/utils"
+import m, { Children, Component, Vnode } from "mithril"
+import { SectionButton } from "../../../ui/base/buttons/SectionButton.js"
+
+type Props = {
+	onClick: Thunk
+}
+
+export class NoSolutionSectionButton implements Component<Props> {
+	view({ attrs: { onClick } }: Vnode<Props>): Children {
+		return m(SectionButton, {
+			text: "other_label",
+			onclick: onClick,
+		})
+	}
+}

@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../src/common/api/worker/utils/SleepDetector.js"
+import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../src/applications/common/api/worker/utils/SleepDetector.js"
 import { SchedulerMock } from "../../../TestUtils.js"
 import { func, object, verify, when } from "testdouble"
 import { assertNotNull } from "@tutao/utils"
-import { DateProvider } from "../../../../../src/utils/DateProvider.js"
+import { DateProvider } from "@tutao/utils"
 
 o.spec("SleepDetector", function () {
 	let scheduler: SchedulerMock

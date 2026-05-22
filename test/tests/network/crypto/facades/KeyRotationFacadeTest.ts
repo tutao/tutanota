@@ -4,8 +4,8 @@ import {
 	KeyRotationRolloutAction,
 	MultiAdminGroupKeyAdminActionPath,
 	PendingKeyRotation,
-} from "../../../../../src/base/crypto/KeyRotationFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
+} from "../../../../../src/platform-kits/base/crypto/KeyRotationFacade.js"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
@@ -30,33 +30,33 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
-import type { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade.js"
+import type { PQFacade } from "../../../../../src/platform-kits/base/crypto/PQFacade.js"
+import { IServiceExecutor } from "../../../../../src/platform-kits/network/ServiceRequest.js"
 import {
 	AdminSymKeyAuthenticationParams,
 	brandKeyMac,
 	KeyAuthenticationFacade,
 	PubDistKeyAuthenticationParams,
-} from "../../../../../src/network/KeyAuthenticationFacade"
+} from "../../../../../src/platform-kits/network/KeyAuthenticationFacade"
 import { CryptoProtocolVersion, EncryptionKeyVerificationState, GroupKeyRotationType, RolloutType, ShareCapability, TutanotaError } from "@tutao/app-env"
 
-import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/platform-kits/base/crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/utils"
-import { RecoverCodeFacade } from "../../../../../src/base/facades/lazy/RecoverCodeFacade.js"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { ShareFacade } from "../../../../../src/base/facades/lazy/ShareFacade.js"
-import { GroupManagementFacade } from "../../../../../src/base/facades/lazy/GroupManagementFacade.js"
-import { RecipientsNotFoundError } from "../../../../../src/network/error/RecipientsNotFoundError.js"
+import { RecoverCodeFacade } from "../../../../../src/platform-kits/base/facades/lazy/RecoverCodeFacade.js"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade.js"
+import { ShareFacade } from "../../../../../src/platform-kits/base/facades/lazy/ShareFacade.js"
+import { GroupManagementFacade } from "../../../../../src/platform-kits/base/facades/lazy/GroupManagementFacade.js"
+import { RecipientsNotFoundError } from "../../../../../src/platform-kits/network/error/RecipientsNotFoundError.js"
 import * as restError from "@tutao/rest-client/error"
-import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/platform-kits/base/crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import PublicEncryptionKeyProvider from "../../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
-import { VerifiedPublicEncryptionKey } from "../../../../../src/base/facades/lazy/KeyVerificationFacade"
-import { KeyVerificationMismatchError } from "../../../../../src/network/error/KeyVerificationMismatchError"
-import { SessionType } from "../../../../../src/app-env/SessionType"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kits/base/crypto/PublicEncryptionKeyProvider.js"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kits/base/crypto/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/AdminKeyLoaderFacade"
+import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kits/base/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../../../../src/platform-kits/network/error/KeyVerificationMismatchError"
+import { SessionType } from "../../../../../src/platform-kits/app-env/SessionType"
 import { AccountType } from "../../../../../src/entities/sys"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 import {
@@ -98,8 +98,8 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { PublicKeySignatureType } from "../../../../../src/base/crypto/Constants.js"
-import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
+import { PublicKeySignatureType } from "../../../../../src/platform-kits/base/crypto/Constants.js"
+import { ServiceExecutor } from "../../../../../src/platform-kits/network/ServiceExecutor"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

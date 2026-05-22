@@ -1,0 +1,272 @@
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
+import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
+import { Thunk } from "@tutao/utils"
+import { locator } from "../../api/main/CommonLocator.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Card } from "../../../../ui/base/Card.js"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
+import { convertTextToHtml } from "../../../../ui/utils/Formatter.js"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
+import { Switch } from "../../../../ui/base/Switch.js"
+import { SectionButton } from "../../../../ui/base/buttons/SectionButton.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { Icon } from "../../../../ui/base/Icon.js"
+import { BaseButton } from "../../../../ui/base/buttons/BaseButton.js"
+import { ButtonColor, getColors } from "../../../../ui/base/Button.js"
+import { px, size } from "../../../../ui/size.js"
+import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
+import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
+import { theme } from "../../../../ui/theme"
+import { MailMethod } from "@tutao/entities/tutanota"
+import { PlanTypeToName } from "../../subscription/utils/SubscriptionUtils"
+
+import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import type { HtmlEditor } from "../../../../ui/editor/HtmlEditor"
+
+type Props = {
+	data: SupportDialogState
+	onSuccess: Thunk
+	isRating?: boolean
+}
+
+export class ContactSupportPage implements Component<Props> {
+	private sendMailModel: SendMailModel | undefined
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
+	private htmlEditor: HtmlEditor | null = null
+
+	oninit({ attrs: { data } }: Vnode<Props>) {
+		this.collectLogs().then((logs) => {
+			data.logs(logs)
+			m.redraw()
+		})
+
+		const selectedTopic = data.selectedTopic()
+		const selectedCategory = data.selectedCategory()
+
+		if (selectedCategory) {
+			const result = (selectedTopic?.issueEN ?? `${selectedCategory.nameEN}_other`).replaceAll(" ", "")
+
+			const formStage = getSupportUsageTestStage(3)
+			formStage.setMetric({ name: "Result", value: result })
+			void formStage.complete()
+		}
+	}
+
+	async oncreate({ attrs: { data } }: Vnode<Props>): Promise<void> {
+		const { HtmlEditor } = await import("../../../../ui/editor/HtmlEditor")
+		this.htmlEditor = new HtmlEditor(getHtmlSanitizer()).setMinHeight(250).setEnabled(true)
+
+		// "Technical Issues" -> Other -> use contactTemplate from category - "Technical Issues"
+		// "Technical Issues" -> "I cannot log in" -> use contactTemplate from topic - "I cannot log in"
+
+		if (data.contactTemplate().trim() !== "") {
+			this.htmlEditor.setValue(data.contactTemplate())
+		}
+
+		this.sendMailModel = await createSendMailModel()
+		await this.sendMailModel.initWithTemplate(
+			{
+				to: [
+					{
+						name: null,
+						address: "helpdesk@tutao.de",
+					},
+				],
+			},
+			"",
+			"",
+			[],
+			false,
+		)
+		m.redraw()
+	}
+
+	onupdate({ attrs: { data } }: VnodeDOM<Props>): void {
+		const supportRequestHtml = this.htmlEditor?.getValue() ?? ""
+
+		data.supportRequestHtml = supportRequestHtml
+		// If we would call `this.htmlEditor.isEmpty()` here, it would always return false because the value from inside is not updated yet, only on blur.
+		data.isSupportRequestEmpty = supportRequestHtml.trim() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(supportRequestHtml)
+	}
+
+	/**
+	 * Gets the subject of the support request considering the users current plan and the path they took to get to the contact form.
+	 * Appends the category and topic if present.
+	 *
+	 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
+	 */
+	private async getSubject(data: SupportDialogState, isRating: boolean = false) {
+		const MAX_ISSUE_LENGTH = 60
+		let subject = `Support Request (${PlanTypeToName[await locator.logins.getUserController().getPlanType()]})`
+
+		const selectedCategory = data.selectedCategory()
+		const selectedTopic = data.selectedTopic()
+
+		if (selectedCategory != null && selectedTopic != null) {
+			const localizedTopic = getTopicIssue(selectedTopic, lang.languageTag)
+			const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
+			subject += ` - ${getCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
+		}
+
+		if (selectedCategory != null && selectedTopic == null) {
+			subject += ` - ${getCategoryName(selectedCategory, lang.languageTag)}`
+		}
+
+		if (isRating) {
+			subject += ` - Rating`
+		}
+
+		return subject
+	}
+
+	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
+		return m(
+			".flex-space-between.flex-column.pt-16.height-100p",
+			this.renderTitleSection(data),
+			this.renderEditForm(data),
+			this.renderSendButton(data, isRating, onSuccess),
+		)
+	}
+
+	private renderTitleSection(data: SupportDialogState) {
+		return m(Card, m(".plr-8", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-16", data.helpText())))
+	}
+
+	renderEditForm(data: SupportDialogState): Children {
+		return m(".flex.col.gap-8", [
+			m(".small.uppercase.b.text-ellipsis.pt-8", { style: { color: theme.on_surface } }, lang.get("supportForm_whatWentWrong_msg")),
+			m(
+				Card,
+				{
+					classes: ["child-text-editor", "rel", "height-100p"],
+					style: {
+						padding: "8",
+					},
+				},
+				this.htmlEditor?.isEmpty() && !this.htmlEditor?.isActive() && m("span.text-editor-placeholder", lang.get("beginTyping_msg")),
+				this.htmlEditor != null && m(this.htmlEditor),
+			),
+			this.renderAttachmentList(),
+			this.renderAttachLogsSwitch(data),
+		])
+	}
+
+	private renderSendButton(data: SupportDialogState, isRating: boolean | undefined, onSuccess: () => unknown) {
+		return m(
+			".align-self-center.full-width.pb-24.pt-8",
+			m(PrimaryButton, {
+				label: "send_action",
+				disabled: this.sendMailModel == null,
+				onclick: async () => {
+					if (!this.sendMailModel) {
+						return
+					}
+
+					if (data.isSupportRequestEmpty) {
+						this.htmlEditor?.editor.domElement?.focus()
+						return
+					}
+
+					const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
+					let mailBody = data.shouldIncludeLogs()
+						? `${data.supportRequestHtml}${clientInfoString(new Date(), true).message}`
+						: data.supportRequestHtml
+					mailBody += `<br>Customer ID: ${customerId}`
+					const sanitisedBody = this.htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
+						blockExternalContent: true,
+					}).html
+
+					this.sendMailModel.setBody(sanitisedBody)
+					this.sendMailModel.setSubject(await this.getSubject(data, isRating))
+
+					if (data.shouldIncludeLogs()) {
+						this.sendMailModel.attachFiles(data.logs())
+					}
+
+					await this.sendMailModel.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
+
+					onSuccess()
+				},
+			}),
+		)
+	}
+
+	private renderAttachmentList() {
+		return m(
+			Card,
+			{
+				shouldDivide: true,
+			},
+			[
+				m(SectionButton, {
+					text: "attachFiles_action",
+					rightIcon: { icon: Icons.Paperclip, title: "attachFiles_action" },
+					isDisabled: this.sendMailModel == null,
+					onclick: async (_, dom) => {
+						await chooseAndAttachFile(this.sendMailModel!, dom.getBoundingClientRect())
+						m.redraw()
+					},
+				}),
+				(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
+					m(
+						".flex.center-vertically.flex-space-between.pb-8.pt-8",
+						{ style: { paddingInline: px(size.spacing_8) } },
+						m("span.smaller", attachment.name),
+						m(
+							BaseButton,
+							{
+								label: "remove_action",
+								onclick: () => {
+									this.sendMailModel?.removeAttachment(attachment)
+									m.redraw()
+								},
+								class: "flex justify-between flash",
+							},
+							m(Icon, {
+								icon: Icons.TrashFilled,
+								style: {
+									fill: getColors(ButtonColor.Content).button,
+									paddingInline: px((size.icon_24 - size.icon_16) / 2),
+								},
+								title: lang.get("remove_action"),
+							}),
+						),
+					),
+				),
+			],
+		)
+	}
+
+	private renderAttachLogsSwitch(data: SupportDialogState) {
+		return m(
+			Card,
+			{ style: { padding: "8px 16px" } },
+			m(".flex.gap-8.items-center", [
+				m(
+					Switch,
+					{
+						checked: data.shouldIncludeLogs(),
+						onclick: (checked) => data.shouldIncludeLogs(checked),
+						ariaLabel: lang.get("sendLogs_action"),
+						variant: "expanded",
+					},
+					lang.get("sendLogs_action"),
+				),
+			]),
+		)
+	}
+
+	private async collectLogs(): Promise<DataFile[]> {
+		return await getLogAttachments(new Date())
+	}
+}
+
+async function createSendMailModel(): Promise<SendMailModel> {
+	const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	return await locator.sendMailModel(mailboxDetails, mailboxProperties)
+}

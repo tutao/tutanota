@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { NotificationSettingsViewerModel } from "../../../src/mail-app/settings/NotificationSettingsViewerModel"
-import { NativePushServiceApp } from "../../../src/common/native/NativePushServiceApp.js"
+import { NotificationSettingsViewerModel } from "../../../src/applications/mail-app/settings/NotificationSettingsViewerModel"
+import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
 
-import { EntityClient } from "../../../src/network/EntityClient"
+import { EntityClient } from "../../../src/platform-kits/network/EntityClient"
 import { object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"
 

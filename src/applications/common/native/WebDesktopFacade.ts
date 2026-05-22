@@ -1,0 +1,97 @@
+import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { Shortcut } from "../../../ui/utils/KeyManager.js"
+import { Keys } from "@tutao/app-env"
+import { LoginController } from "../api/main/LoginController.js"
+import { lazyAsync } from "@tutao/utils"
+import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
+import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
+import { SettingsFacade } from "../../../app-kits/native-bridge/common/generatedipc/types/SettingsFacade"
+
+export class WebDesktopFacade implements DesktopFacade {
+	constructor(
+		private logins: LoginController,
+		private nativeInterface: lazyAsync<NativeInterfaceMain>,
+		private settingsFacade: SettingsFacade,
+	) {}
+
+	print(): Promise<void> {
+		window.print()
+		return Promise.resolve()
+	}
+
+	async showSpellcheckDropdown(): Promise<void> {
+		await new SpellcheckLanguageDialog(this.settingsFacade).showSpellcheckLanguageDialog()
+	}
+
+	async applySearchResultToOverlay(result: ElectronResult | null): Promise<void> {
+		const { searchInPageOverlay } = await import("../gui/desktop/SearchInPageOverlay.js")
+		searchInPageOverlay.applyNextResult(result)
+		return Promise.resolve()
+	}
+
+	async openFindInPage(): Promise<void> {
+		const { searchInPageOverlay } = await import("../gui/desktop/SearchInPageOverlay.js")
+		searchInPageOverlay.open()
+		return Promise.resolve()
+	}
+
+	async reportError(errorInfo: ErrorInfo): Promise<void> {
+		const { showErrorNotification } = await import("../misc/ErrorReporter.js")
+		await this.logins.waitForPartialLogin()
+		await showErrorNotification(errorInfo)
+	}
+
+	/**
+	 * Updates the link-reveal on hover when the main thread detects that
+	 * the hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)
+	 */
+	async updateTargetUrl(url: string, appPath: string): Promise<void> {
+		let linkToolTip = document.getElementById("link-tt")
+
+		if (!linkToolTip) {
+			linkToolTip = document.createElement("DIV")
+			linkToolTip.id = "link-tt"
+			;(document.body as any).appendChild(linkToolTip)
+		}
+
+		if (url === "" || url.startsWith(appPath)) {
+			linkToolTip.className = ""
+		} else {
+			linkToolTip.innerText = url
+			linkToolTip.className = "reveal"
+		}
+
+		return Promise.resolve()
+	}
+
+	/**
+	 * this is only used in the admin client to sync the DB view with the inbox
+	 */
+	async openCustomer(mailAddress: string | null): Promise<void> {
+		const m = await import("mithril")
+
+		if (typeof mailAddress === "string" && m.route.get().startsWith("/customer")) {
+			m.route.set(`/customer?query=${encodeURIComponent(mailAddress)}`)
+			console.log("switching to customer", mailAddress)
+		}
+	}
+
+	async addShortcuts(shortcuts: Array<NativeShortcut>): Promise<void> {
+		const baseShortcut: Shortcut = {
+			exec: () => true,
+			ctrlOrCmd: false,
+			alt: false,
+			meta: false,
+			help: "emptyString_msg",
+			key: Keys.F,
+		}
+		const fixedShortcuts: Array<Shortcut> = shortcuts.map((nsc) => Object.assign({}, baseShortcut, nsc))
+		const { keyManager } = await import("../../../ui/utils/KeyManager.js")
+		keyManager.registerDesktopShortcuts(fixedShortcuts)
+	}
+
+	async appUpdateDownloaded(): Promise<void> {
+		const native = await this.nativeInterface()
+		native.handleUpdateDownload()
+	}
+}

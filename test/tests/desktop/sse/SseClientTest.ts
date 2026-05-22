@@ -1,6 +1,6 @@
 import o, { verify } from "@tutao/otest"
-import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/common/desktop/sse/SseClient.js"
-import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/common/desktop/net/DesktopNetworkClient.js"
+import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/applications/common/desktop/sse/SseClient.js"
+import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/applications/common/desktop/net/DesktopNetworkClient.js"
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
 import { assertNotNull, defer, getFirstOrThrow } from "@tutao/utils"

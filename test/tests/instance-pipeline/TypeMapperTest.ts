@@ -1,4 +1,4 @@
-import { AttributeModel, ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel, TypeRef } from "../../../src/meta"
+import { AttributeModel, ClientModelEncryptedParsedInstance, ClientTypeModel, ServerModelUntypedInstance, ServerTypeModel, TypeRef } from "@tutao/meta"
 import { assertNotNull } from "@tutao/utils"
 import o, { assertThrows } from "@tutao/otest"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, TypeMapper } from "@tutao/instance-pipeline"

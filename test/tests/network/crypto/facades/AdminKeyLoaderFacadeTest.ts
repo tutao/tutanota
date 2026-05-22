@@ -1,15 +1,15 @@
 import o, { assertThrows } from "@tutao/otest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
-import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/base/crypto/AsymmetricCryptoFacade.js"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade.js"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade.js"
+import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/platform-kits/base/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AesKey, cryptoUtils, CryptoWrapper, MacTag, PQKeyPairs, PublicKeyIdentifierType, VersionedKey, X25519PublicKey } from "@tutao/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { CryptoProtocolVersion, ProgrammingError, TutanotaError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
-import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/AdminKeyLoaderFacade"
 
 import {
 	Group,
@@ -22,7 +22,7 @@ import {
 	KeyMacTypeRef,
 	PubEncKeyDataTypeRef,
 } from "@tutao/entities/sys"
-import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/network/KeyAuthenticationFacade"
+import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kits/network/KeyAuthenticationFacade"
 
 const { anything, argThat, captor } = matchers
 

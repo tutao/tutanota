@@ -1,0 +1,190 @@
+import m, { Child, Children, Component, Vnode } from "mithril"
+import { layout_size, px } from "../../../../ui/size"
+import { Icon } from "../../../../ui/base/Icon"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { ClickHandler, colorForBg, normalizeColorHex } from "../../../../ui/base/GuiUtils"
+import { TabIndex } from "@tutao/app-env"
+
+export type LegacyCalendarEventBubbleAttrs = {
+	text: string
+	secondLineText?: string | null
+	backgroundColor: string
+	color: string
+	border: string
+	hasAlarm: boolean
+	isAltered: boolean
+	isBirthday: boolean
+	click: ClickHandler
+	keyDown: (event: KeyboardEvent, dom: HTMLElement) => unknown
+	height?: number
+	noBorderRight?: boolean
+	noBorderLeft?: boolean
+	verticalPadding?: number
+	fadeIn: boolean
+	opacity: number
+	enablePointerEvents: boolean
+}
+const lineHeight = layout_size.calendar_line_height
+const lineHeightPx = px(lineHeight)
+
+/**
+ * @deprecated since version 314.251018.1. Use the new CalendarEventBubble instead
+ * @see CalendarEventBubble
+ */
+export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventBubbleAttrs> {
+	private hasFinishedInitialRender: boolean = false
+
+	oncreate(vnode: Vnode<LegacyCalendarEventBubbleAttrs>) {
+		this.hasFinishedInitialRender = true
+	}
+
+	view({ attrs }: Vnode<LegacyCalendarEventBubbleAttrs>): Children {
+		// This helps us stop flickering in certain cases where we want to disable and re-enable fade in (ie. when dragging events)
+		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
+		const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
+		const enablePointerEvents = attrs.enablePointerEvents
+
+		const normalizedBackgroundColor = normalizeColorHex(attrs.backgroundColor)
+
+		return m(
+			".calendar-event.small.overflow-hidden.flex.cursor-pointer" +
+				(doFadeIn ? ".fade-in" : "") +
+				(attrs.noBorderLeft ? ".event-continues-left" : "") +
+				(attrs.noBorderRight ? ".event-continues-right" : ""),
+			{
+				style: {
+					border: attrs.border,
+					borderLeft: attrs.noBorderLeft ? "none" : undefined,
+					borderRight: attrs.noBorderRight ? "none" : undefined,
+					background: attrs.backgroundColor,
+					color: attrs.color,
+					minHeight: lineHeightPx,
+					height: px(attrs.height ? Math.max(attrs.height, 0) : lineHeight),
+					"padding-top": px(attrs.verticalPadding || 0),
+					opacity: attrs.opacity,
+					pointerEvents: enablePointerEvents ? "auto" : "none",
+				},
+				tabIndex: enablePointerEvents ? TabIndex.Default : TabIndex.Programmatic,
+				onclick: (e: MouseEvent) => {
+					e.stopPropagation()
+					attrs.click(e, e.target as HTMLElement)
+				},
+				onkeydown: (e: KeyboardEvent) => {
+					attrs.keyDown(e, e.target as HTMLElement)
+				},
+			},
+			[
+				attrs.hasAlarm
+					? m(Icon, {
+							icon: Icons.BellFilled,
+							style: {
+								fill: colorForBg(normalizedBackgroundColor),
+								"padding-top": "2px",
+								"padding-right": "2px",
+							},
+							class: "icon-small",
+						})
+					: null,
+				attrs.isAltered
+					? m(Icon, {
+							icon: Icons.PenFilled,
+							style: {
+								fill: colorForBg(normalizedBackgroundColor),
+								"padding-top": "2px",
+								"padding-right": "2px",
+							},
+							class: "icon-small",
+						})
+					: null,
+				attrs.isBirthday
+					? m(Icon, {
+							icon: Icons.GiftFilled,
+							style: {
+								fill: colorForBg(normalizedBackgroundColor),
+								"padding-top": "2px",
+								"padding-right": "2px",
+							},
+							class: "icon-small",
+						})
+					: null,
+				m(
+					".flex.col",
+					{
+						style: {
+							// Limit the width to trigger ellipsis
+							width: "95%",
+						},
+					},
+					LegacyCalendarEventBubble.renderContent(attrs),
+				),
+			],
+		)
+	}
+
+	private static renderContent({ height: maybeHeight, text, secondLineText, backgroundColor }: LegacyCalendarEventBubbleAttrs): Children {
+		// If the bubble has 2 or more lines worth of vertical space, then we will render the text + the secondLineText on separate lines
+		// Otherwise we will combine them onto a single line
+		const height = maybeHeight ?? lineHeight
+		const isMultiline = height >= lineHeight * 2
+
+		if (isMultiline) {
+			// How many lines of text that will fit in the bubble
+			// we dont want any cut in half lines in case the bubble cannot fit a whole number of lines
+			const linesInBubble = Math.floor(height / lineHeight)
+			// leave space for the second text line. it will be restricted to a maximum of one line in height
+			const topSectionMaxLines = secondLineText != null ? linesInBubble - 1 : linesInBubble
+			const topSectionClass = topSectionMaxLines === 1 ? ".text-clip" : ".text-ellipsis-multi-line"
+			return [
+				// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
+				LegacyCalendarEventBubble.renderTextSection(
+					"",
+					m(
+						topSectionClass,
+						{
+							style: {
+								"-webkit-line-clamp": topSectionMaxLines, // This helps resizing the text to show as much as possible of its contents
+							},
+						},
+						text,
+					),
+					topSectionMaxLines * lineHeight,
+				),
+				secondLineText ? LegacyCalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
+			]
+		} else {
+			return LegacyCalendarEventBubble.renderTextSection(
+				".text-clip",
+				secondLineText
+					? [
+							`${text} `,
+							m(Icon, {
+								icon: Icons.ClockOutlines,
+								style: {
+									fill: colorForBg(normalizeColorHex(backgroundColor)),
+									"padding-top": "2px",
+									"padding-right": "2px",
+									"vertical-align": "text-top",
+								},
+								class: "icon-small",
+							}),
+							`${secondLineText}`,
+						]
+					: text,
+				lineHeight,
+			)
+		}
+	}
+
+	private static renderTextSection(classes: string, text: Children, maxHeight: number): Child {
+		return m(
+			classes,
+			{
+				style: {
+					lineHeight: lineHeightPx,
+					maxHeight: px(maxHeight),
+				},
+			},
+			text,
+		)
+	}
+}

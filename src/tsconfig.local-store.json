@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["local-store", "../types/*.d.ts"],
+	"include": ["app-kits/local-store", "../types/*.d.ts"],
 	"compilerOptions": {
-		"rootDir": "local-store",
+		"rootDir": "app-kits/local-store",
 		"outDir": "../build/local-store",
 		"tsBuildInfoFile": "../build/local-store/tsbuildinfo",
 		"composite": true
@@ -15,7 +15,7 @@
 			"path": "tsconfig.app-env.json"
 		},
 		{
-			"path": "tsconfig.crypto-primitives.json"
+			"path": "tsconfig.crypto.json"
 		},
 		{
 			"path": "tsconfig.meta.json"

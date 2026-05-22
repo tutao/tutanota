@@ -4,7 +4,7 @@ import { assertMainOrNodeBoot, isAdminClient, isTest } from "@tutao/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/utils"
 import { ThemeController } from "./ThemeController.js"
-import { client } from "../app-env/boot/ClientDetector"
+import { client } from "../platform-kits/app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"

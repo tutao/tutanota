@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { hasError } from "../meta"
+import { hasError } from "@tutao/meta"
 import { Button, ButtonType } from "./base/Button.js"
 import { Icons } from "./base/icons/Icons.js"
 import { formatStorageSize } from "./utils/Formatter.js"
@@ -18,7 +18,7 @@ import { BubbleButton, bubbleButtonHeight, bubbleButtonPadding } from "./base/bu
 import { lang } from "./utils/LanguageViewModel.js"
 import { PosRect } from "./utils/PosRect"
 import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
-import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/FileConstants"
+import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kits/utils/FileConstants"
 
 export enum AttachmentType {
 	GENERIC,

@@ -6,7 +6,7 @@ export class SpellcheckLanguageDialog {
 	constructor(private readonly settingsFacade: SettingsFacade) {}
 
 	async showSpellcheckLanguageDialog(): Promise<string> {
-		const { DesktopConfigKey } = await import("../../app-env/ConfigKeys")
+		const { DesktopConfigKey } = await import("../../platform-kits/app-env/ConfigKeys")
 		const current = await this.getCurrentSpellcheckLanguage()
 		const { Dialog } = await import("../base/Dialog.js")
 		const items = await this.getItems()
@@ -26,7 +26,7 @@ export class SpellcheckLanguageDialog {
 	}
 
 	async getCurrentSpellcheckLanguage(): Promise<string> {
-		const { DesktopConfigKey } = await import("../../app-env/ConfigKeys")
+		const { DesktopConfigKey } = await import("../../platform-kits/app-env/ConfigKeys")
 		return (await this.settingsFacade.getStringConfigValue(DesktopConfigKey.spellcheck)) ?? ""
 	}
 

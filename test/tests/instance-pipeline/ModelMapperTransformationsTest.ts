@@ -10,7 +10,7 @@ import {
 	Type,
 	TypeRef,
 	ValueType,
-} from "../../../src/meta"
+} from "@tutao/meta"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { removeOriginals } from "../TestUtils"

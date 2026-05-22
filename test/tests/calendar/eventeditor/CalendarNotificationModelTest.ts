@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { FeatureType } from "../../../../src/app-env"
-import { hasPlanWithInvites } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
+import { FeatureType } from "@tutao/app-env"
+import { hasPlanWithInvites } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarNotificationModel.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { object, replace, when } from "testdouble"
-import { UserController } from "../../../../src/common/api/main/UserController.js"
+import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 import { AccountType } from "../../../../src/entities/sys"

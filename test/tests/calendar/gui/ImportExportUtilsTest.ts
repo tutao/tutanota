@@ -7,7 +7,7 @@ import {
 	IcsCalendarEvent,
 	makeCalendarEventFromIcsCalendarEvent,
 	StrippedRepeatRule,
-} from "../../../../src/common/calendar/gui/ImportExportUtils"
+} from "../../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { object } from "testdouble"
 import { clone } from "@tutao/meta"
 

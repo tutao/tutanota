@@ -8,9 +8,9 @@ import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { matchers, object, reset, verify } from "testdouble"
 import { domainConfigStub } from "../TestUtils"
-import { ClientPlatform } from "../../../src/app-env/boot/ClientDetector"
+import { ClientPlatform } from "../../../src/platform-kits/app-env/boot/ClientDetector"
 
-import { getServiceRestPath } from "../../../src/meta"
+import { getServiceRestPath } from "@tutao/meta"
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "@tutao/instance-pipeline"
 import { ApplicationTypesService } from "@tutao/entities/base"
 

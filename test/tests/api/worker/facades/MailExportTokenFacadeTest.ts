@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import { func, matchers, object, when } from "testdouble"
-import { MailExportTokenFacade } from "../../../../../src/common/api/worker/facades/lazy/MailExportTokenFacade.js"
+import { MailExportTokenFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailExportTokenFacade.js"
 import { createMailExportTokenServicePostOut, MailExportTokenService } from "@tutao/entities/tutanota"
-import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
+import { ServiceExecutor } from "../../../../../src/platform-kits/network/ServiceExecutor"
 import { AccessExpiredError, TooManyRequestsError } from "@tutao/rest-client/error"
 
 o.spec("MailExportTokenFacade", () => {

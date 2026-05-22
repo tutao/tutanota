@@ -1,4 +1,4 @@
-import { TypeRef } from "../../meta/TypeRef.js"
+import { TypeRef } from "@tutao/meta"
 
 
 export const PersistenceResourcePostReturnTypeRef: TypeRef<PersistenceResourcePostReturn> = new TypeRef("base", 0)

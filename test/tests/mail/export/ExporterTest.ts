@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
 
-import { MailBundle } from "../../../../src/common/mailFunctionality/SharedMailUtils.js"
-import { _formatSmtpDateTime, mailToEml } from "../../../../src/mail-app/mail/export/emlUtils.js"
-import { createDataFile } from "../../../../src/common/api/worker/utils/DataFile.js"
+import { MailBundle } from "../../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
+import { _formatSmtpDateTime, mailToEml } from "../../../../src/applications/mail-app/mail/export/emlUtils.js"
+import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
 
 o.spec("Exporter", function () {
 	o.spec("mail to eml", function () {

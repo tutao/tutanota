@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import type { NotificationFactory } from "../../../../src/common/desktop/notifications/NotificationFactory.js"
+import type { NotificationFactory } from "../../../../src/applications/common/desktop/notifications/NotificationFactory.js"
 import { downcast, LazyLoaded } from "@tutao/utils"
-import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
-import type { DesktopTray } from "../../../../src/common/desktop/tray/DesktopTray.js"
+import { DesktopNotifier } from "../../../../src/applications/common/desktop/notifications/DesktopNotifier.js"
+import type { DesktopTray } from "../../../../src/applications/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
 import { func, object, verify, when } from "testdouble"
 

@@ -65,10 +65,10 @@ import {
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "@tutao/instance-pipeline"
 import { matchers, object, when } from "testdouble"
-import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
-import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicKeySignatureFacade"
+import { PQFacade } from "../../../../../src/platform-kits/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kits/base/crypto/KyberFacade.js"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kits/base/crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kits/base/crypto/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
@@ -562,7 +562,7 @@ o.spec("CompatibilityTest", function () {
 async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
-		const wasmBuffer = await readFile("../src/crypto/crypto-primitives/crypto_primitives_bg.wasm")
+		const wasmBuffer = await readFile("../src/platform-kits/cryptocrypto-primitives/crypto_primitives_bg.wasm")
 		return new WASMEd25519Facade(wasmBuffer)
 	} else {
 		return new WASMEd25519Facade()

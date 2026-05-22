@@ -1,15 +1,19 @@
 import o from "@tutao/otest"
-import { IndexedGroupData, OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
+import {
+	IndexedGroupData,
+	OfflineStoragePersistence,
+	SearchTableDefinitions,
+} from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { SqlCipherFacade } from "../../../../../src/app-kits/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { DesktopSqlCipher } from "../../../../../src/applications/common/desktop/db/DesktopSqlCipher"
 import { assertNotNull, typedValues } from "@tutao/utils"
-import { untagSqlObject, untagSqlValue } from "../../../../../src/local-store/SqlValue"
-import { sql } from "../../../../../src/local-store/Sql"
-import { getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/meta"
+import { untagSqlObject, untagSqlValue } from "../../../../../src/app-kits/local-store/SqlValue"
+import { sql } from "../../../../../src/app-kits/local-store/Sql"
+import { getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "@tutao/meta"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils"
 import { object } from "testdouble"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { CacheStorage } from "../../../../../src/app-kits/local-store/CacheStorage"
 import {
 	BodyTypeRef,
 	ContactMailAddressTypeRef,

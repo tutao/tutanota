@@ -1,0 +1,374 @@
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { Dialog } from "../../../ui/base/Dialog"
+import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
+import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
+import { Const, isIOSApp, SessionType } from "@tutao/app-env"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import * as restError from "@tutao/rest-client/error"
+import {
+	appStorePlanName,
+	getPreconditionFailedPaymentMsg,
+	SubscriptionApp,
+	UpgradeType,
+	waitUntilCustomerInfoPlanTypeIsCorrect,
+} from "./utils/SubscriptionUtils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/utils"
+import { locator } from "../api/main/CommonLocator"
+import { AccountType, AvailablePlanType, createSwitchAccountTypePostIn, PaymentMethodType, PlanType, SwitchAccountTypeService } from "@tutao/entities/sys"
+import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/types"
+import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
+import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
+import { client } from "../../../platform-kits/app-env/boot/ClientDetector.js"
+import { DateTime } from "luxon"
+import { formatDate } from "../../../ui/utils/Formatter.js"
+import { WizardStepContext } from "../../../ui/base/wizard/WizardController"
+import { SignupViewModel } from "../signup/SignupView"
+import { theme } from "../../../ui/theme"
+import { TextField } from "../../../ui/base/TextField"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { IconButton } from "../../../ui/base/IconButton"
+import { styles } from "../../../ui/styles"
+import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
+import { AllIcons } from "../../../ui/base/Icon"
+import { layout_size, px } from "../../../ui/size"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+
+export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
+	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
+		[PlanType.Free]: Icons.Revolutionary,
+		[PlanType.Revolutionary]: Icons.Revolutionary,
+		[PlanType.Legend]: Icons.Legendary,
+		[PlanType.Essential]: Icons.HouseOutline,
+		[PlanType.Advanced]: Icons.StoreOutline,
+		[PlanType.Unlimited]: Icons.CityOutline,
+	}
+
+	private _setStep(ctx: WizardStepContext<SignupViewModel>, index: number) {
+		ctx.controller.setStepUnreachable(ctx.controller.currentStep)
+		ctx.controller.setStep(index)
+	}
+
+	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
+		const data = ctx.viewModel
+		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
+
+		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
+		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
+
+		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
+			m(
+				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
+				{
+					style: {
+						position: "relative",
+						top: px(-6),
+					},
+				},
+				lang.get("confirm_order_page_title"),
+			),
+			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
+
+			m(".flex.gap-16", [
+				m(".flex-grow", [
+					m(
+						`.flex.col.gap-16.pt-16.pb-16.border-radius-16${styles.isMobileLayout() ? "" : ".plr-16"}`,
+						{
+							style: {
+								"background-color": theme.surface_container_high,
+								color: theme.on_surface_variant,
+							},
+						},
+						[
+							m(TextField, {
+								label: "subscription_label",
+								value: getDisplayNameOfPlanType(data.targetPlanType),
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: this.iconByPlanType[data.targetPlanType as AvailablePlanType],
+									color: theme.on_surface_variant,
+								},
+								injectionsRight: () => {
+									return m(IconButton, {
+										icon: Icons.PenFilled,
+										title: "edit_action",
+										click: () => {
+											if (styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
+												data.inlinePlanSelectorOpen(!data.inlinePlanSelectorOpen())
+											} else {
+												ctx.controller.setStep(0)
+											}
+										},
+									})
+								},
+							}),
+
+							m(TextField, {
+								label: "paymentMethod_label",
+								value: getPaymentMethodName(data.paymentData.paymentMethod),
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: data.paymentData.paymentMethod === PaymentMethodType.Paypal ? Icons.LogoPaypal : Icons.CreditcardFilled,
+									color: theme.on_surface_variant,
+								},
+								injectionsRight: () => {
+									return isIOSApp()
+										? undefined
+										: m(IconButton, {
+												icon: Icons.PenFilled,
+												title: "edit_action",
+												click: () => {
+													this._setStep(ctx, 2)
+												},
+											})
+								},
+							}),
+							data.invoiceData.country &&
+								m(TextField, {
+									label: "billingCountry_label",
+									value: data.invoiceData.country.n,
+									isReadOnly: true,
+									class: "",
+									leadingIcon: {
+										icon: Icons.PlaceFilled,
+										color: theme.on_surface_variant,
+									},
+									injectionsRight: () => {
+										return m(IconButton, {
+											icon: Icons.PenFilled,
+											title: "edit_action",
+											click: () => {
+												this._setStep(ctx, 2)
+											},
+										})
+									},
+								}),
+							m(TextField, {
+								label: "paymentInterval_label",
+								value: subscription,
+								isReadOnly: true,
+								class: "",
+								leadingIcon: {
+									icon: Icons.Refresh,
+									color: theme.on_surface_variant,
+								},
+
+								injectionsRight: () => {
+									return m(IconButton, {
+										icon: Icons.Swap,
+										title: "edit_action",
+										click: () => {
+											if (isYearly) {
+												data.options.paymentInterval(PaymentInterval.Monthly)
+											} else {
+												data.options.paymentInterval(PaymentInterval.Yearly)
+											}
+											data.updatePrice()
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.SELECT_PLAN,
+												data.targetPlanType,
+												data.options.paymentInterval(),
+											)
+											SignupFlowUsageTestController.completeStage(
+												SignupFlowStage.CREATE_ACCOUNT,
+												data.targetPlanType,
+												data.options.paymentInterval(),
+											)
+										},
+									})
+								},
+							}),
+							!isAppStorePayment &&
+								m.fragment({}, [
+									isFirstMonthForFree &&
+										m(TextField, {
+											label: lang.getTranslation("priceTill_label", {
+												"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
+											}),
+											value: formatPrice(0, true),
+											isReadOnly: true,
+											class: "",
+											leadingIcon: {
+												icon: Icons.WalletOutline,
+												color: theme.on_surface_variant,
+											},
+										}),
+									m(TextField, {
+										label: this.buildPriceLabel(isYearly, ctx),
+										value: buildPriceString(data.price?.displayPrice ?? "0", data.options),
+										isReadOnly: true,
+										class: "",
+										leadingIcon: {
+											icon: Icons.WalletOutline,
+											color: theme.on_surface_variant,
+										},
+									}),
+									this.renderPriceNextYear(data),
+								]),
+						],
+					),
+					m(
+						".flex-center.full-width.pt-32.pb-32",
+						m(PrimaryButton, {
+							size: "md",
+							label: isAppStorePayment ? "checkoutWithAppStore_action" : "confirmAndPay_action",
+							width: styles.isMobileLayout() ? "full" : "flex",
+							onclick: () => this.upgrade(ctx),
+							style: {
+								"margin-left": "auto",
+							},
+						}),
+					),
+					m(
+						".small.text-left",
+						data.options.businessUse()
+							? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
+							: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
+					),
+				]),
+			]),
+		])
+	}
+
+	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
+		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
+		if (ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore) {
+			const success = await this.handleAppStorePayment(ctx.viewModel)
+			if (!success) {
+				return
+			}
+			const receivedNotification = await showProgressDialog(
+				"waitingForAppStoreConfirmation_msg",
+				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
+			)
+			if (receivedNotification) {
+				ctx.goNext()
+				return
+			}
+		}
+
+		const serviceData = createSwitchAccountTypePostIn({
+			accountType: AccountType.PAID,
+			customer: null,
+			plan: ctx.viewModel.targetPlanType,
+			date: Const.CURRENT_DATE,
+			referralCode: ctx.viewModel.referralData?.code ?? null,
+			specialPriceUserSingle: null,
+			surveyData: null,
+			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		})
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
+			// Order confirmation (click on Buy), send selected payment method as an enum
+			.then(() => ctx.goNext())
+			.catch(
+				ofClass(restError.PreconditionFailedError, (e) => {
+					Dialog.message(
+						lang.makeTranslation(
+							"precondition_failed",
+							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
+								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+						),
+					)
+				}),
+			)
+			.catch(
+				ofClass(restError.TooManyRequestsError, () => {
+					Dialog.message(
+						lang.makeTranslation(
+							"payment_failed",
+							lang.get("paymentProviderNotAvailableError_msg") +
+								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+						),
+					)
+				}),
+			)
+	}
+
+	/** @return whether subscribed successfully */
+	private async handleAppStorePayment(data: SignupViewModel): Promise<boolean> {
+		if (!locator.logins.isUserLoggedIn()) {
+			await locator.logins.createSession(
+				assertNotNull(data.newAccountData).mailAddress,
+				assertNotNull(data.newAccountData).password,
+				SessionType.Temporary,
+			)
+		}
+
+		const customerId = assertNotNull(locator.logins.getUserController().user.customer)
+		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
+
+		try {
+			const result = await showProgressDialog(
+				"pleaseWait_msg",
+				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.targetPlanType), data.options.paymentInterval(), customerIdBytes),
+			)
+			if (result.result !== MobilePaymentResultType.Success) {
+				return false
+			}
+		} catch (e) {
+			if (e instanceof MobilePaymentError) {
+				console.error("AppStore subscription failed", e)
+				Dialog.message("appStoreSubscriptionError_msg", e.message)
+				return false
+			} else {
+				throw e
+			}
+		}
+
+		return await updatePaymentData(
+			data.options.paymentInterval(),
+			data.invoiceData,
+			data.paymentData,
+			null,
+			data.newAccountData != null,
+			null,
+			data.accountingInfo!,
+		)
+	}
+
+	private renderPriceNextYear(data: SignupViewModel) {
+		return data.nextYearPrice
+			? m(TextField, {
+					label: "priceForNextYear_label",
+					value: buildPriceString(data.nextYearPrice.displayPrice, data.options),
+					isReadOnly: true,
+					class: "",
+					leadingIcon: {
+						icon: Icons.WalletOutline,
+						color: theme.on_surface_variant,
+					},
+				})
+			: null
+	}
+
+	private buildPriceLabel(isYearly: boolean, ctx: WizardStepContext<SignupViewModel>): MaybeTranslation {
+		if (ctx.viewModel.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
+			return lang.getTranslation("priceFrom_label", {
+				"{date}": formatDate(
+					DateTime.now()
+						.plus({
+							month: 1,
+							day: 1,
+						})
+						.toJSDate(),
+				),
+			})
+		}
+
+		if (isYearly && ctx.viewModel.nextYearPrice) {
+			return "priceFirstYear_label"
+		}
+
+		return "price_label"
+	}
+
+	private close(ctx: WizardStepContext<SignupViewModel>) {}
+}
+
+function buildPriceString(price: string, options: SelectedSubscriptionOptions): string {
+	return formatPriceWithInfo(price, options.paymentInterval(), !options.businessUse())
+}

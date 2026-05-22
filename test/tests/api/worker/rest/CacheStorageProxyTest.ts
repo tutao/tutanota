@@ -1,10 +1,10 @@
 import o, { verify } from "@tutao/otest"
 import { func, instance, object, when } from "testdouble"
-import { LateInitializedCacheStorageImpl } from "../../../../../src/local-store/CacheStorageProxy.js"
-import { OfflineStorage } from "../../../../../src/local-store/OfflineStorage.js"
-import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
-import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage"
-import { OfflineStorageArgs } from "../../../../../src/local-store/Types"
+import { LateInitializedCacheStorageImpl } from "../../../../../src/app-kits/local-store/CacheStorageProxy.js"
+import { OfflineStorage } from "../../../../../src/app-kits/local-store/OfflineStorage.js"
+import { WorkerImpl } from "../../../../../src/applications/mail-app/workerUtils/worker/WorkerImpl.js"
+import { EphemeralCacheStorage } from "../../../../../src/app-kits/local-store/EphemeralCacheStorage"
+import { OfflineStorageArgs } from "../../../../../src/app-kits/local-store/Types"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"

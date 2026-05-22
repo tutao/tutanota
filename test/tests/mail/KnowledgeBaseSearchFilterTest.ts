@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { knowledgeBaseSearch } from "../../../src/mail-app/knowledgebase/model/KnowledgeBaseSearchFilter.js"
+import { knowledgeBaseSearch } from "../../../src/applications/mail-app/knowledgebase/model/KnowledgeBaseSearchFilter.js"
 
 import { createTestEntity } from "../TestUtils.js"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryKeywordTypeRef, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"

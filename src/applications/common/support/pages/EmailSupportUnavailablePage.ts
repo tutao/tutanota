@@ -1,0 +1,83 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { BaseButton } from "../../../../ui/base/buttons/BaseButton.js"
+import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
+import { Card } from "../../../../ui/base/Card.js"
+import { SectionButton } from "../../../../ui/base/buttons/SectionButton.js"
+import { windowFacade } from "../../misc/WindowFacade.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { SupportDialogState } from "../SupportDialog.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { UpgradePromptType } from "@tutao/app-env"
+import { Thunk } from "@tutao/utils"
+import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+
+type EmailSupportUnavailableAttrs = {
+	data: SupportDialogState
+	goToContactSupportPage: () => void
+}
+
+export class EmailSupportUnavailablePage implements Component<EmailSupportUnavailableAttrs> {
+	view({ attrs: { data, goToContactSupportPage } }: Vnode<EmailSupportUnavailableAttrs>): Children {
+		return m(
+			".pt-16.pb-16",
+			m(
+				Card,
+				{ classes: ["mb-8"] },
+				m("div.pt-8.pb-8.plr-12", [
+					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
+					m("p", lang.get("supportNoDirectSupport_msg")),
+					m(
+						".block",
+						{
+							style: {
+								margin: "0 auto",
+								width: "100%",
+							},
+						},
+						m(DynamicColorSvg, {
+							path: `/images/leaving-wizard/account.svg`,
+						}),
+					),
+				]),
+			),
+			m(SectionButton, {
+				text: { text: "Tuta FAQ", testId: "" },
+				leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },
+				rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
+				onclick: () => {
+					windowFacade.openLink("https://tuta.com/support")
+				},
+			}),
+			this.renderUpgradeButton(data, goToContactSupportPage),
+		)
+	}
+
+	renderUpgradeButton(data: SupportDialogState, goToContactSupportPage: Thunk) {
+		if (data.isExternalUser) {
+			return null
+		} else {
+			return m(
+				".mt-32.center",
+				m(BaseButton, {
+					label: "upgrade_action",
+					text: lang.get("upgrade_action"),
+					class: `button-content border-radius accent-bg center plr-8 flash full-width`,
+					onclick: async () => {
+						await showUpgradeDialog(UpgradePromptType.EMAIL_SUPPORT)
+
+						const isPaidPlanNow = !locator.logins.getUserController().isFreeAccount()
+
+						if (isPaidPlanNow) {
+							data.canHaveEmailSupport = true
+							setTimeout(() => {
+								goToContactSupportPage()
+							}, 1000)
+						}
+					},
+					disabled: false,
+				}),
+			)
+		}
+	}
+}

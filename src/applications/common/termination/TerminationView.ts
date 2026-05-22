@@ -1,0 +1,120 @@
+import m, { Children, Vnode } from "mithril"
+import { assertMainOrNode } from "@tutao/app-env"
+import { windowFacade } from "../misc/WindowFacade.js"
+import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { TerminationViewModel } from "./TerminationViewModel.js"
+import { TerminationForm } from "./TerminationForm.js"
+import { formatDateTime, formatDateWithMonth } from "../../../ui/utils/Formatter.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
+import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
+import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
+import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
+import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
+import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
+import { client } from "../../../platform-kits/app-env/boot/ClientDetector"
+import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
+
+assertMainOrNode()
+
+export interface TerminationViewAttrs extends TopLevelAttrs {
+	makeViewModel: () => TerminationViewModel
+}
+
+export class TerminationView extends BaseTopLevelView implements TopLevelView<TerminationViewAttrs> {
+	private bottomMargin = 0
+	private model: TerminationViewModel
+
+	constructor({ attrs }: Vnode<TerminationViewAttrs>) {
+		super()
+		this.model = attrs.makeViewModel()
+	}
+
+	keyboardListener = (keyboardSize: number) => {
+		this.bottomMargin = keyboardSize
+		m.redraw()
+	}
+
+	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
+		// do nothing
+	}
+
+	public view({ attrs }: Vnode<TerminationViewAttrs>) {
+		return m(
+			"#termination-view.main-view.flex.col.nav-bg",
+			{
+				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
+				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
+				style: {
+					marginBottom: this.bottomMargin + "px",
+				},
+			},
+			[
+				m(LoginScreenHeader),
+				m(
+					".flex-grow.flex-center.scroll",
+					m(
+						".flex-grow-shrink-auto.max-width-m.pb-16",
+						{
+							...landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
+							oncreate: (vnode) => {
+								;(vnode.dom as HTMLElement).focus()
+							},
+						},
+						m(".flex.col.pt-16.plr-24.content-bg.border-radius-12", [
+							this.model.acceptedTerminationRequest
+								? this.renderTerminationInfo(this.model.mailAddress, this.model.acceptedTerminationRequest)
+								: this.renderTerminationForm(),
+						]),
+					),
+				),
+			],
+		)
+	}
+
+	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
+		return m("", [
+			m(".h3.mt-16", "Termination successful"),
+			m(
+				"p.mt-16",
+				lang.get("terminationSuccessful_msg", {
+					"{accountName}": mailAddress,
+					"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),
+					"{deletionDate}": formatDateWithMonth(acceptedTerminationRequest.terminationDate),
+				}),
+			),
+		])
+	}
+
+	private async cancelWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
+		if (surveyResult && surveyResult.submitted && surveyResult.category && surveyResult.reason) {
+			const data = createSurveyData({
+				category: surveyResult.category,
+				reason: surveyResult.reason,
+				details: surveyResult.details,
+				version: SURVEY_VERSION_NUMBER,
+				clientVersion: env.versionNumber,
+				clientPlatform: client.getClientPlatform().valueOf().toString(),
+			})
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
+		} else {
+			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest())
+		}
+		m.redraw()
+	}
+
+	private renderTerminationForm(): Children {
+		return m(TerminationForm, {
+			onSubmit: (surveyData) => this.cancelWithProgressDialog(surveyData),
+			mailAddress: this.model.mailAddress,
+			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
+			password: this.model.password,
+			onPasswordChanged: (password) => (this.model.password = password),
+			date: this.model.date,
+			onDateChanged: (date) => (this.model.date = date),
+			terminationPeriodOption: this.model.terminationPeriodOption,
+			onTerminationPeriodOptionChanged: (option) => (this.model.terminationPeriodOption = option),
+			helpText: lang.getTranslationText(this.model.helpText),
+		})
+	}
+}

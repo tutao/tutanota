@@ -1,0 +1,37 @@
+import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
+import { UpgradePromptType } from "@tutao/app-env"
+
+export type WhitelabelStatusSettingsAttrs = {
+	isWhitelabelActive: boolean
+}
+
+export class WhitelabelStatusSettings implements Component<WhitelabelStatusSettingsAttrs> {
+	view({ attrs }: Vnode<WhitelabelStatusSettingsAttrs>): Children {
+		const { isWhitelabelActive } = attrs
+		return m(LegacyTextField, {
+			label: "state_label",
+			value: isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"),
+			isReadOnly: true,
+			injectionsRight: () => (isWhitelabelActive ? null : this.renderEnable()),
+		})
+	}
+
+	private renderEnable(): Children {
+		return m(IconButton, {
+			title: "whitelabelDomain_label",
+			click: async () => {
+				const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
+				showPlanUpgradeRequiredDialog(UpgradePromptType.WHITELABEL, plansWithWhitelabel)
+			},
+			icon: Icons.PenFilled,
+			size: ButtonSize.Compact,
+		})
+	}
+}

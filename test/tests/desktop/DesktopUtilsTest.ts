@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { object, verify } from "testdouble"
-import { DesktopUtils } from "../../../src/common/desktop/DesktopUtils"
-import { TempFs } from "../../../src/common/desktop/files/TempFs"
-import { ElectronExports } from "../../../src/common/desktop/ElectronExportTypes"
-import { CommandExecutor } from "../../../src/common/desktop/CommandExecutor"
+import { DesktopUtils } from "../../../src/applications/common/desktop/DesktopUtils"
+import { TempFs } from "../../../src/applications/common/desktop/files/TempFs"
+import { ElectronExports } from "../../../src/applications/common/desktop/ElectronExportTypes"
+import { CommandExecutor } from "../../../src/applications/common/desktop/CommandExecutor"
 import { App } from "electron"
-import { WindowsRegistryFacade } from "../../../src/common/desktop/integration/WindowsRegistryFacade"
+import { WindowsRegistryFacade } from "../../../src/applications/common/desktop/integration/WindowsRegistryFacade"
 import { LazyLoaded } from "@tutao/utils"
 
 o.spec("DesktopUtils", function () {

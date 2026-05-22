@@ -8,9 +8,9 @@ import {
 	_socialIdsToVCardSocialUrls,
 	_vCardFormatArrayToString,
 	contactsToVCard,
-} from "../../../src/mail-app/contacts/VCardExporter.js"
+} from "../../../src/applications/mail-app/contacts/VCardExporter.js"
 import { neverNull } from "@tutao/utils"
-import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
+import { vCardFileToVCards, vCardListToContacts } from "../../../src/applications/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 
 import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/entities/tutanota"

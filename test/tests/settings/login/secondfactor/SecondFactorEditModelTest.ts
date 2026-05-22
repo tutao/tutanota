@@ -5,13 +5,13 @@ import {
 	DEFAULT_U2F_NAME,
 	NameValidationStatus,
 	SecondFactorEditModel,
-} from "../../../../../src/common/settings/login/secondfactor/SecondFactorEditModel.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { WebauthnClient } from "../../../../../src/common/misc/2fa/webauthn/WebauthnClient.js"
+} from "../../../../../src/applications/common/settings/login/secondfactor/SecondFactorEditModel.js"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
+import { WebauthnClient } from "../../../../../src/applications/common/misc/2fa/webauthn/WebauthnClient.js"
 import { TotpSecret, TotpVerifier } from "@tutao/crypto"
 import { noOp } from "@tutao/utils"
-import { LoginFacade } from "../../../../../src/base/facades/LoginFacade.js"
-import { SecondFactorType } from "../../../../../src/app-env"
+import { LoginFacade } from "../../../../../src/platform-kits/base/facades/LoginFacade.js"
+import { SecondFactorType } from "@tutao/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 
 import { GroupInfoTypeRef, User } from "@tutao/entities/sys"

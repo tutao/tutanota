@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
-import { RolloutAction, RolloutFacade } from "../../../../../src/base/facades/RolloutFacade"
+import { IServiceExecutor } from "../../../../../src/platform-kits/network/ServiceRequest"
+import { RolloutAction, RolloutFacade } from "../../../../../src/platform-kits/base/facades/RolloutFacade"
 import { func, matchers, object, verify, when } from "testdouble"
 
 import { createTestEntity } from "../../../TestUtils"

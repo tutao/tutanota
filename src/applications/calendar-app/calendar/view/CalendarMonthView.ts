@@ -1,0 +1,588 @@
+import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
+import { layout_size, px, size } from "../../../../ui/size"
+import { EventTextTimeOption, isAppleDevice, isIOSApp, Keys, WeekStart } from "@tutao/app-env"
+import {
+	CalendarDay,
+	CalendarMonth,
+	getAllDayDateForTimezone,
+	getDiffIn24hIntervals,
+	getEventEnd,
+	getFirstDayOfMonth,
+	getStartOfNextDayWithZone,
+	getTimeZone,
+	getWeekNumber,
+} from "../../../common/calendar/date/CalendarUtils"
+import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/utils"
+import { styles } from "../../../../ui/styles"
+import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { windowFacade } from "../../../common/misc/WindowFacade"
+import type { GroupColors } from "./CalendarView"
+import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
+import { EventDragHandler } from "./EventDragHandler"
+import { colorForBg, getPosAndBoundsFromMouseEvent, normalizeColorHex } from "../../../../ui/base/GuiUtils"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	changePeriodOnWheel,
+	EventLayoutMode,
+	extractCalendarEventModifierKey,
+	getCalendarMonth,
+	getDateFromMousePos,
+	layOutEvents,
+	SELECTED_DATE_INDICATOR_THICKNESS,
+	TEMPORARY_EVENT_OPACITY,
+} from "../gui/CalendarGuiUtils.js"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
+import { Time } from "../../../common/calendar/date/Time.js"
+import { client } from "../../../../platform-kits/app-env/boot/ClientDetector"
+import { locator } from "../../../common/api/main/CommonLocator.js"
+import { PageView } from "../../../../ui/base/PageView.js"
+import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils"
+import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
+import { isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
+import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
+import { theme } from "../../../../ui/theme"
+
+type CalendarMonthAttrs = {
+	selectedDate: Date
+	onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown
+	eventsForDays: DaysToEvents
+	getEventsOnDaysToRender: (range: Array<Date>) => EventsOnDays
+	onNewEvent: (date: Date | null) => unknown
+	onEventClicked: CalendarEventBubbleClickHandler
+	onEventKeyDown: CalendarEventBubbleKeyDownHandler
+	onChangeMonth: (next: boolean) => unknown
+	amPmFormat: boolean
+	startOfTheWeek: WeekStart
+	groupColors: GroupColors
+	hiddenCalendars: ReadonlySet<Id>
+	temporaryEvents: Array<EventWrapper>
+	dragHandlerCallbacks: EventDragHandlerCallbacks
+}
+type SimplePosRect = {
+	top: number
+	left: number
+	right: number
+}
+
+/** height of the day number indicator at the top of the day square */
+const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
+
+const SPACE_BETWEEN_EVENTS = styles.isDesktopLayout() ? 2 : 1
+
+const EVENT_BUBBLE_VERTICAL_OFFSET = 5
+
+export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassComponent<CalendarMonthAttrs> {
+	private monthDom: HTMLElement | null = null
+	private readonly resizeListener: () => unknown
+	private readonly zone: string
+	private lastWidth: number
+	private lastHeight: number
+	private eventDragHandler: EventDragHandler
+	private dayUnderMouse: Date | null = null
+	private lastMousePos: MousePos | null = null
+	private lastKey?: Key
+
+	constructor({ attrs }: Vnode<CalendarMonthAttrs>) {
+		this.resizeListener = m.redraw
+		this.zone = getTimeZone()
+		this.lastWidth = 0
+		this.lastHeight = 0
+		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
+	}
+
+	oncreate() {
+		windowFacade.addResizeListener(this.resizeListener)
+		document.addEventListener("keydown", this.handleKeyDown)
+		document.addEventListener("keyup", this.handleKeyUp)
+	}
+
+	onremove() {
+		windowFacade.removeResizeListener(this.resizeListener)
+		document.removeEventListener("keydown", this.handleKeyDown)
+		document.removeEventListener("keyup", this.handleKeyUp)
+	}
+
+	handleKeyDown = (e: KeyboardEvent) => {
+		const key = extractCalendarEventModifierKey(e)
+		if (key) {
+			this.lastKey = undefined
+			this.eventDragHandler.pressedDragKey = key
+			m.redraw()
+		}
+	}
+
+	handleKeyUp = (e: KeyboardEvent) => {
+		if (isModifierKeyPressed(e.key)) {
+			this.lastKey = this.eventDragHandler.pressedDragKey
+			this.eventDragHandler.pressedDragKey = undefined
+			m.redraw()
+		}
+	}
+
+	resolveClasses = (isDesktopLayout: boolean) => {
+		const dragClass = this.eventDragHandler.isDragging && isModifierKeyPressed(this.eventDragHandler.pressedDragKey) ? "drag-mod-key" : ""
+		const desktopClass = ""
+
+		return [desktopClass, dragClass].join(" ")
+	}
+
+	view({ attrs }: Vnode<CalendarMonthAttrs>): Children {
+		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
+		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+		const lastMonthDate = incrementMonth(attrs.selectedDate, -1)
+		const nextMonthDate = incrementMonth(attrs.selectedDate, 1)
+		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+
+		const isDesktopLayout = styles.isDesktopLayout()
+
+		let containerStyle
+		let weekdayDaysClasses = ""
+		if (isDesktopLayout) {
+			containerStyle = {
+				overflow: "hidden",
+				marginBottom: px(size.spacing_24),
+			}
+			weekdayDaysClasses = "content-bg border-radius-top-12"
+		} else {
+			containerStyle = {
+				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+			}
+			weekdayDaysClasses = "nav-bg"
+		}
+
+		return m(
+			".fill-absolute.flex.col",
+			{
+				class: isDesktopLayout ? " mlr-24 border-radius-12" : "mlr-safe-inset",
+				style: isDesktopLayout ? { marginLeft: px(5) } : null,
+				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
+			},
+			[
+				m(
+					".flex.pt-8.pb-12",
+					{
+						class: weekdayDaysClasses,
+					},
+					thisMonth.weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd))),
+				),
+				m(
+					".flex.col.rel.flex-grow.overflow-hidden",
+					{
+						class:
+							(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
+							(!isDesktopLayout ? " border-radius-top-12" : ""),
+						style: containerStyle,
+					},
+					m(PageView, {
+						previousPage: {
+							key: getFirstDayOfMonth(lastMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, previousMonth, thisMonth, this.zone) : null,
+						},
+						currentPage: {
+							key: getFirstDayOfMonth(attrs.selectedDate).getTime(),
+							nodes: this.renderCalendar(attrs, thisMonth, thisMonth, this.zone),
+						},
+						nextPage: {
+							key: getFirstDayOfMonth(nextMonthDate).getTime(),
+							nodes: this.monthDom ? this.renderCalendar(attrs, nextMonth, thisMonth, this.zone) : null,
+						},
+						onChangePage: (next) => attrs.onChangeMonth(next),
+					}),
+				),
+			],
+		)
+	}
+
+	onbeforeupdate(newVnode: Vnode<CalendarMonthAttrs>, oldVnode: VnodeDOM<CalendarMonthAttrs>): boolean {
+		const dom = this.monthDom
+		const different =
+			!dom ||
+			oldVnode.attrs.eventsForDays !== newVnode.attrs.eventsForDays ||
+			oldVnode.attrs.selectedDate !== newVnode.attrs.selectedDate ||
+			oldVnode.attrs.amPmFormat !== newVnode.attrs.amPmFormat ||
+			!deepEqual(oldVnode.attrs.groupColors, newVnode.attrs.groupColors) ||
+			oldVnode.attrs.hiddenCalendars !== newVnode.attrs.hiddenCalendars ||
+			dom.offsetWidth !== this.lastWidth ||
+			dom.offsetHeight !== this.lastHeight
+
+		if (dom) {
+			this.lastWidth = dom.offsetWidth
+			this.lastHeight = dom.offsetHeight
+		}
+
+		return different || this.eventDragHandler.queryHasChanged() || this.eventDragHandler.pressedDragKey !== this.lastKey
+	}
+
+	onupdate() {
+		if (!this.eventDragHandler.pressedDragKey) {
+			this.lastKey = this.eventDragHandler.pressedDragKey
+		}
+	}
+
+	private renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
+		const { weeks } = month
+		const isVisible = month === currentlyVisibleMonth
+		return m(
+			".fill-absolute.flex.col.flex-grow",
+			{
+				class: this.resolveClasses(false),
+				oncreate: (vnode) => {
+					if (isVisible) {
+						this.monthDom = vnode.dom as HTMLElement
+						m.redraw()
+					}
+				},
+				onupdate: (vnode) => {
+					if (isVisible) {
+						this.monthDom = vnode.dom as HTMLElement
+					}
+				},
+				onmousemove: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+					const posAndBoundsFromMouseEvent = getPosAndBoundsFromMouseEvent(mouseEvent)
+					this.lastMousePos = posAndBoundsFromMouseEvent
+					this.dayUnderMouse = getDateFromMousePos(
+						posAndBoundsFromMouseEvent,
+						weeks.map((week) => week.map((day) => day.date)),
+					)
+
+					this.eventDragHandler.handleDrag(this.dayUnderMouse, posAndBoundsFromMouseEvent)
+				},
+				onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+
+					let key
+					if (mouseEvent.metaKey && isAppleDevice()) {
+						key = Keys.META
+					} else if (mouseEvent.ctrlKey) {
+						key = Keys.CTRL
+					}
+
+					this.endDrag(mouseEvent, key)
+				},
+				onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
+					mouseEvent.redraw = false
+
+					if (this.eventDragHandler.isDragging) {
+						this.eventDragHandler.cancelDrag()
+					}
+				},
+			},
+			weeks.map((week, weekIndex) => {
+				return m(
+					".flex.flex-grow.rel",
+					{
+						key: week[0].date.getTime(),
+					},
+					[
+						week.map((day, i) => this.renderDay(attrs, day, i, weekIndex === 0)),
+						this.monthDom ? this.renderWeekEvents(attrs, week, zone, !isVisible) : null,
+					],
+				)
+			}),
+		)
+	}
+
+	private endDrag(pos: MousePos, key?: Key) {
+		const dayUnderMouse = this.dayUnderMouse
+		const originalDate = this.eventDragHandler.originalCalendarEvent?.startTime
+
+		if (dayUnderMouse && originalDate) {
+			//make sure the date we move to also gets a time
+			const dateUnderMouse = Time.fromDate(originalDate).toDate(dayUnderMouse)
+
+			this.eventDragHandler.endDrag(dateUnderMouse, pos, key).catch(ofClass(UserError, showUserError))
+		}
+	}
+
+	/** render the grid of days */
+	private renderDay(attrs: CalendarMonthAttrs, day: CalendarDay, weekDayNumber: number, firstWeek: boolean): Children {
+		return m(
+			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer",
+			{
+				style: {
+					...(firstWeek && !styles.isDesktopLayout() ? { borderTop: "none" } : {}),
+				},
+				key: day.date.getTime(),
+				onclick: (e: MouseEvent) => {
+					if (client.isDesktopDevice()) {
+						const newDate = setNextHalfHour(new Date(day.date))
+
+						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
+						attrs.onNewEvent(newDate)
+					} else {
+						attrs.onDateSelected(new Date(day.date), styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+					}
+
+					e.preventDefault()
+				},
+			},
+			[
+				m(".mb-4", {
+					style: {
+						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
+					},
+				}),
+				this.renderDayHeader(day, attrs.onDateSelected), // According to ISO 8601, weeks always start on Monday. Week numbering systems for
+				// weeks that do not start on Monday are not strictly defined, so we only display
+				// a week number if the user's client is configured to start weeks on Monday
+				weekDayNumber === 0 && attrs.startOfTheWeek === WeekStart.MONDAY
+					? m(
+							".calendar-month-week-number.abs.z3",
+							{
+								onclick: (e: MouseEvent) => {
+									e.stopPropagation()
+									attrs.onDateSelected(new Date(day.date), CalendarViewType.WEEK)
+								},
+							},
+							getWeekNumber(day.date),
+						)
+					: null,
+			],
+		)
+	}
+
+	private renderDayHeader(
+		{ date, day, isPaddingDay }: CalendarDay,
+		onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown,
+	): Children {
+		const size = styles.isDesktopLayout() ? px(22) : px(20)
+		return m(
+			".rel.click.flex.items-center.justify-center.rel.ml-4",
+			{
+				"aria-label": date.toLocaleDateString(),
+				onclick: (e: MouseEvent) => {
+					onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+					e.stopPropagation()
+				},
+			},
+			[
+				m(".abs.z1.circle", {
+					class: isToday(date) ? "calendar-current-day-circle" : "",
+					style: {
+						width: size,
+						height: size,
+					},
+				}),
+				m(
+					".full-width.height-100p.center.z2",
+					{
+						class: isToday(date) ? "calendar-current-day-text" : "",
+						style: {
+							opacity: isPaddingDay ? 0.4 : 1,
+							fontWeight: isPaddingDay ? "500" : null,
+							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
+							lineHeight: size,
+						},
+					},
+					String(day),
+				),
+			],
+		)
+	}
+
+	/** render the events for the given week */
+	private renderWeekEvents(attrs: CalendarMonthAttrs, week: ReadonlyArray<CalendarDay>, zone: string, isDisabled: boolean): Children {
+		const eventsOnDays = attrs.getEventsOnDaysToRender(week.map((day) => day.date))
+		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEventsPerDay.flat()))
+		const firstDayOfWeek = week[0].date
+		const lastDayOfWeek = lastThrow(week)
+
+		const dayWidth = this.getWidthForDay()
+
+		const weekHeight = this.getHeightForWeek()
+
+		const eventHeight = CALENDAR_EVENT_HEIGHT + SPACE_BETWEEN_EVENTS // height + gap
+
+		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
+		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
+
+		/** initially, we have 0 extra, non-rendered events on each day of the week */
+		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
+		const eventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
+		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
+		return layOutEvents(
+			Array.from(events),
+			zone,
+			(columns: Array<Array<EventWrapper>>) => {
+				return columns
+					.map((eventsInColumn, columnIndex) => {
+						return eventsInColumn.map((wrapper) => {
+							if (columnIndex < numberOfEventsPerDayToRender) {
+								const eventIsAllDay = isAllDayEventByTimes(wrapper.event.startTime, wrapper.event.endTime)
+								const eventStart = eventIsAllDay ? getAllDayDateForTimezone(wrapper.event.startTime, zone) : wrapper.event.startTime
+								const eventEnd = eventIsAllDay ? incrementDate(getEventEnd(wrapper.event, zone), -1) : wrapper.event.endTime
+
+								const position = this.getEventPosition(
+									eventStart,
+									eventEnd,
+									firstDayOfWeek,
+									firstDayOfNextWeek,
+									dayWidth,
+									dayHeight(),
+									columnIndex,
+								)
+								return this.renderEvent(wrapper, position, eventStart, firstDayOfWeek, firstDayOfNextWeek, eventEnd, attrs, isDisabled)
+							} else {
+								for (const [dayIndex, dayInWeek] of week.entries()) {
+									const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
+
+									if (eventsForDay && eventsForDay.indexOf(wrapper) !== -1) {
+										moreEventsForDay[dayIndex]++
+									}
+								}
+								return null
+							}
+						})
+					})
+					.concat(
+						moreEventsForDay.map((moreEventsCount, weekday) => {
+							const day = week[weekday]
+							const isPadding = day.isPaddingDay
+
+							if (moreEventsCount > 0) {
+								return m(
+									".abs.small" + (isPadding ? ".calendar-bubble-more-padding-day" : ""),
+									{
+										style: {
+											bottom: 0,
+											height: px(CALENDAR_EVENT_HEIGHT),
+											left: px(weekday * dayWidth + eventMargin),
+											width: px(dayWidth - 2 - eventMargin * 2),
+											pointerEvents: "none",
+										},
+									},
+									m(
+										"",
+										{
+											style: {
+												"font-weight": "600",
+											},
+										},
+										"+" + moreEventsCount,
+									),
+								)
+							} else {
+								return null
+							}
+						}),
+					) as ChildArray
+			},
+			EventLayoutMode.DayBasedColumn,
+		)
+	}
+
+	private renderEvent(
+		eventWrapper: EventWrapper,
+		position: SimplePosRect,
+		eventStart: Date,
+		firstDayOfWeek: Date,
+		firstDayOfNextWeek: Date,
+		eventEnd: Date,
+		attrs: CalendarMonthAttrs,
+		isDisabled: boolean,
+	): Children {
+		const isTemporary = attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, eventWrapper.event))
+
+		const normalizedColor = normalizeColorHex(eventWrapper.color)
+
+		return m(
+			".abs.overflow-hidden",
+			{
+				key: eventWrapper.event._id[0] + eventWrapper.event._id[1] + eventWrapper.event.startTime.getTime(),
+				style: {
+					top: px(position.top),
+					height: px(CALENDAR_EVENT_HEIGHT),
+					left: px(position.left),
+					right: px(position.right),
+					pointerEvents: !styles.isUsingBottomNavigation() ? "auto" : "none",
+				},
+				onmousedown: () => {
+					let dayUnderMouse = this.dayUnderMouse
+					let lastMousePos = this.lastMousePos
+
+					if (dayUnderMouse && lastMousePos && !isTemporary) {
+						this.eventDragHandler.prepareDrag(eventWrapper, dayUnderMouse, lastMousePos, true)
+					}
+				},
+			},
+			m(LegacyContinuingCalendarEventBubble, {
+				eventWrapper: eventWrapper,
+				startsBefore: isBefore(eventStart, firstDayOfWeek),
+				endsAfter: firstDayOfNextWeek <= eventEnd,
+				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : normalizedColor,
+				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg(normalizedColor),
+				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid ${normalizedColor}`,
+				height: styles.isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
+				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
+				user: locator.logins.getUserController().user,
+				onEventClicked: (e, domEvent) => {
+					attrs.onEventClicked(eventWrapper.event, domEvent)
+				},
+				onEventKeyDown: (e, domEvent) => {
+					attrs.onEventKeyDown(eventWrapper.event, domEvent)
+				},
+				fadeIn: !this.eventDragHandler.isDragging,
+				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
+				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice() && !isDisabled,
+			} satisfies LegacyContinuingCalendarEventBubbleAttrs),
+		)
+	}
+
+	private getEventPosition(
+		eventStart: Date,
+		eventEnd: Date,
+		firstDayOfWeek: Date,
+		firstDayOfNextWeek: Date,
+		calendarDayWidth: number,
+		calendarDayHeight: number,
+		columnIndex: number,
+	): SimplePosRect {
+		const top = (CALENDAR_EVENT_HEIGHT + SPACE_BETWEEN_EVENTS) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
+		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
+		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
+		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
+		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
+		const right = (eventEnd >= firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
+		return {
+			top,
+			left,
+			right,
+		}
+	}
+
+	private getHeightForWeek(): number {
+		if (!this.monthDom) {
+			return 1
+		}
+
+		const monthDomHeight = this.monthDom.offsetHeight
+		return monthDomHeight / 6
+	}
+
+	private getWidthForDay(): number {
+		if (!this.monthDom) {
+			return 1
+		}
+
+		const monthDomWidth = this.monthDom.offsetWidth
+		return monthDomWidth / 7
+	}
+}
+
+/**
+ * Optimization to not create luxon's DateTime in simple case.
+ * May not work if we allow override time zones.
+ */
+function getDiffIn24IntervalsFast(left: Date, right: Date): number {
+	if (left.getMonth() === right.getMonth()) {
+		return left.getDate() - right.getDate()
+	} else {
+		return getDiffIn24hIntervals(right, left)
+	}
+}

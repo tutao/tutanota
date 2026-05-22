@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
-import { EntityIdEncoding, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/meta"
+import { ListModel, ListModelConfig } from "../../../src/applications/common/misc/ListModel.js"
+import { EntityIdEncoding, getElementId, sortCompareById, timestampToGeneratedId } from "@tutao/meta"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/ui/base/List.js"
 import * as restError from "@tutao/rest-client/error"
 import { createTestEntity } from "../TestUtils.js"
-import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
+import { ListAutoSelectBehavior } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("ListModel", function () {

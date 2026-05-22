@@ -1,8 +1,12 @@
 import o, { verify } from "@tutao/otest"
-import { DriveTransferController, DriveTransferState, FINISHED_TRANSFER_RETAIN_TIMEOUT_MS } from "../../../src/drive-app/drive/view/DriveTransferController"
-import { DriveFacade } from "../../../src/common/api/worker/facades/lazy/DriveFacade"
-import { BlobFacade } from "../../../src/common/api/worker/facades/lazy/BlobFacade"
-import { FileController } from "../../../src/common/file/FileController"
+import {
+	DriveTransferController,
+	DriveTransferState,
+	FINISHED_TRANSFER_RETAIN_TIMEOUT_MS,
+} from "../../../src/applications/drive-app/drive/view/DriveTransferController"
+import { DriveFacade } from "../../../src/applications/common/api/worker/facades/lazy/DriveFacade"
+import { BlobFacade } from "../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
+import { FileController } from "../../../src/applications/common/file/FileController"
 import { defer, DeferredObject } from "@tutao/utils"
 import { matchers, object, when } from "testdouble"
 import { createTestEntity, SchedulerMock } from "../TestUtils"

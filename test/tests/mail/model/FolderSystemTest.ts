@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { getElementId } from "../../../../src/meta"
-import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
+import { getElementId } from "@tutao/meta"
+import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem.js"
 import { createTestEntity } from "../../TestUtils.js"
 
 import { MailSetKind } from "../../../../src/entities/tutanota"

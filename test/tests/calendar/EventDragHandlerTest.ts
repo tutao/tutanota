@@ -1,12 +1,12 @@
 import o, { spy } from "@tutao/otest"
-import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar-app/calendar/view/EventDragHandler.js"
+import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/applications/calendar-app/calendar/view/EventDragHandler.js"
 import { defer, downcast } from "@tutao/utils"
-import type { DraggedEventContainer } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
+import type { DraggedEventContainer } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel.js"
 import { makeEvent } from "./CalendarTestUtils.js"
-import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { isAllDayEvent } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
-import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { DAY_IN_MILLIS } from "../../../src/app-env"
+import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
+import { DAY_IN_MILLIS } from "@tutao/app-env"
 
 const INIT_MOUSE_POS = {
 	x: 0,

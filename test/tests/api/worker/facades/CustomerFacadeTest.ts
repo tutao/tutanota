@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { simplifyMailAddress } from "../../../../../src/common/api/worker/facades/lazy/CustomerFacade"
+import { simplifyMailAddress } from "../../../../../src/applications/common/api/worker/facades/lazy/CustomerFacade"
 
 o.spec("CustomerFacadeTest", function () {
 	o("simplifyMailAddress", function () {

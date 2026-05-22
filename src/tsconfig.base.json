@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["base", "../types/"],
+	"include": ["platform-kits/base", "../types/"],
 	"compilerOptions": {
-		"rootDir": "base",
+		"rootDir": "platform-kits/base",
 		"outDir": "../build/base",
 		"tsBuildInfoFile": "../build/base/tsbuildinfo",
 		"composite": true
@@ -15,7 +15,7 @@
 			"path": "tsconfig.utils.json"
 		},
 		{
-			"path": "tsconfig.crypto-primitives.json"
+			"path": "tsconfig.crypto.json"
 		},
 		{
 			"path": "tsconfig.usagetests.json"

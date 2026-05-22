@@ -1,5 +1,5 @@
 import o, { spy } from "@tutao/otest"
-import { FaqModel } from "../../../src/common/support/FaqModel.js"
+import { FaqModel } from "../../../src/applications/common/support/FaqModel.js"
 import { downcast } from "@tutao/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 

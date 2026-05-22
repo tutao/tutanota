@@ -1,5 +1,5 @@
-import { TypeRef } from "../../meta/TypeRef.js"
-import { create, StrippedEntity } from "../../meta/EntityUtils.js"
+import { TypeRef } from "@tutao/meta"
+import { create, StrippedEntity } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 

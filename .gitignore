@@ -30,11 +30,11 @@ DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
 import-trace.json
-src/crypto/crypto-primitives
+src/platform-kits/crypto/crypto-primitives
 **/fastlane/README.md
 **/fastlane/report.xml
 **/fastlane/Preview.html
 **/fastlane/screenshots
 **/fastlane/test_output
-src/mimimi/napi-out
+src/app-kits/mimimi/napi-out
 fdroid-metadata-workaround

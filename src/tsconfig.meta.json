@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["meta", "./../types/"],
+	"include": ["platform-kits/meta", "./../types/"],
 	"compilerOptions": {
-		"rootDir": "meta",
+		"rootDir": "platform-kits/meta",
 		"outDir": "../build/meta",
 		"tsBuildInfoFile": "../build/meta/tsbuildinfo",
 		"composite": true

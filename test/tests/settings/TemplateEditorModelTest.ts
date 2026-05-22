@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 
-import { TemplateEditorModel } from "../../../src/mail-app/settings/TemplateEditorModel.js"
-import { EntityClient } from "../../../src/network/EntityClient.js"
+import { TemplateEditorModel } from "../../../src/applications/mail-app/settings/TemplateEditorModel.js"
+import { EntityClient } from "../../../src/platform-kits/network/EntityClient.js"
 import { downcast } from "@tutao/utils"
 import { LanguageNames, languages } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createTestEntity } from "../TestUtils.js"

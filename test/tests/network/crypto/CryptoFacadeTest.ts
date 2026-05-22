@@ -1,12 +1,12 @@
 import o, { spy } from "@tutao/otest"
 import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
-import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/platform-kits/base/crypto/CryptoFacade.js"
 import { CryptoProtocolVersion, EncryptionAuthStatus, EncryptionKeyVerificationState, PresentableKeyVerificationState } from "@tutao/app-env"
-import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/base/crypto/Constants.js"
-import { AttributeModel, elementIdPart, getListId, isSameId, listIdPart, ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../src/meta"
+import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/platform-kits/base/crypto/Constants.js"
+import { AttributeModel, elementIdPart, getListId, isSameId, listIdPart, ServerModelUntypedInstance, TypeModel, UntypedInstance } from "@tutao/meta"
 import { RestClient, restError } from "@tutao/rest-client"
 import { HttpMethod } from "@tutao/rest-client/types"
-import { EntityClient } from "../../../../src/network/EntityClient.js"
+import { EntityClient } from "../../../../src/platform-kits/network/EntityClient.js"
 import {
 	Aes256Key,
 	aes256RandomKey,
@@ -32,25 +32,25 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../../src/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../../src/platform-kits/network/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../../src/base/facades/UserFacade.js"
+import { UserFacade } from "../../../../src/platform-kits/base/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { WASMKyberFacade } from "../../../../src/base/crypto/KyberFacade.js"
-import { PQFacade } from "../../../../src/base/crypto/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/base/crypto/PQMessage.js"
+import { WASMKyberFacade } from "../../../../src/platform-kits/base/crypto/KyberFacade.js"
+import { PQFacade } from "../../../../src/platform-kits/base/crypto/PQFacade.js"
+import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/platform-kits/base/crypto/PQMessage.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
-import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { AsymmetricCryptoFacade } from "../../../../src/base/crypto/AsymmetricCryptoFacade.js"
-import { VerifiedPublicEncryptionKey } from "../../../../src/base/facades/lazy/KeyVerificationFacade"
-import { KeyLoaderFacade } from "../../../../src/base/crypto/KeyLoaderFacade.js"
-import PublicEncryptionKeyProvider from "../../../../src/base/crypto/PublicEncryptionKeyProvider.js"
-import { KeyRotationFacade } from "../../../../src/base/crypto/KeyRotationFacade.js"
+import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { AsymmetricCryptoFacade } from "../../../../src/platform-kits/base/crypto/AsymmetricCryptoFacade.js"
+import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kits/base/facades/lazy/KeyVerificationFacade"
+import { KeyLoaderFacade } from "../../../../src/platform-kits/base/crypto/KeyLoaderFacade.js"
+import PublicEncryptionKeyProvider from "../../../../src/platform-kits/base/crypto/PublicEncryptionKeyProvider.js"
+import { KeyRotationFacade } from "../../../../src/platform-kits/base/crypto/KeyRotationFacade.js"
 import { EntityAdapter, TypeModelResolver } from "@tutao/instance-pipeline"
-import { KeyVerificationMismatchError } from "../../../../src/network/error/KeyVerificationMismatchError"
+import { KeyVerificationMismatchError } from "../../../../src/platform-kits/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import { CacheManagementInterface } from "../../../../src/local-store/CacheManagementInterface"
+import { CacheManagementInterface } from "../../../../src/app-kits/local-store/CacheManagementInterface"
 import { ProcessingState } from "../../../../src/entities/tutanota"
 import { PermissionType } from "../../../../src/entities/sys"
 import {
@@ -93,7 +93,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { InstanceSessionKeysCache } from "../../../../src/local-store/InstanceSessionKeysCache.js"
+import { InstanceSessionKeysCache } from "../../../../src/app-kits/local-store/InstanceSessionKeysCache.js"
 
 const { anything, argThat } = matchers
 

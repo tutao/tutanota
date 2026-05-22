@@ -1,0 +1,99 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { windowFacade } from "../../misc/WindowFacade.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { client } from "../../../../platform-kits/app-env/boot/ClientDetector"
+import { TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { locator } from "../../api/main/CommonLocator.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
+import { Card } from "../../../../ui/base/Card"
+import { SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+
+type SupportSuccessPageAttrs = {
+	dialog: Dialog
+}
+
+export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
+	view(vnode: Vnode<SupportSuccessPageAttrs>): Children {
+		return m(
+			".pt-16.pb-16",
+			m(
+				Card,
+				m(
+					".plr-12",
+					m(".h4.pb-8.pt-8", lang.get("supportSuccess_msg")),
+					m("p.m-0", lang.get("supportRatingRequest_msg")),
+					m(
+						".mt-32.mb-8",
+						{},
+						m(
+							".block.full-width.height-100p",
+							m(DynamicColorSvg, {
+								path: `/images/dynamic-color-svg/rate-us.svg`,
+							}),
+						),
+					),
+				),
+			),
+			m(".pb-8.pt-8.flex.row.gap-8.fit-height.box-content", this.renderAppStoreLinks(vnode.attrs.dialog)),
+		)
+	}
+
+	/**
+	 * Desktop, Web -> Rate Tuta Mail on Google Play and App Store
+	 * Tuta Mail App -> Rate Tuta Mail on Google Play and App Store
+	 * Tuta Calendar App -> Rate Tuta Calendar on Google Play and App Store
+	 */
+	private renderAppStoreLinks(dialog: Dialog) {
+		const closeDialog = () => dialog.close()
+
+		if (client.isCalendarApp()) {
+			return m.fragment({}, [
+				this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
+			])
+		} else {
+			return m.fragment({}, [
+				this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
+			])
+		}
+	}
+
+	private renderAppStoreLink(url: string, onClick: VoidFunction) {
+		return m(SecondaryButton, {
+			label: "rateAppStore_action",
+			class: "flex-grow white-space smaller",
+			onclick: () => {
+				const usageTest = locator.usageTestController.getTest("support.rating")
+				const stage = usageTest.getStage(0)
+				stage.setMetric({ name: "Result", value: "RatedAppStore" })
+				void stage.complete()
+
+				onClick()
+
+				windowFacade.openLink(url)
+			},
+			icon: Icons.OpenOutline,
+		})
+	}
+
+	private renderGooglePlayLink(url: string, onClick: VoidFunction) {
+		return m(SecondaryButton, {
+			label: "rateGooglePlay_action",
+			class: "flex-grow white-space smaller",
+			onclick: () => {
+				const usageTest = locator.usageTestController.getTest("support.rating")
+				const stage = usageTest.getStage(0)
+				stage.setMetric({ name: "Result", value: "RatedGooglePlay" })
+				void stage.complete()
+
+				onClick()
+
+				windowFacade.openLink(url)
+			},
+			icon: Icons.OpenOutline,
+		})
+	}
+}

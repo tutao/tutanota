@@ -31,8 +31,8 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			fs.rmSync(buildDir, { recursive: true, force: true })
-			fs.rmSync("src/mimimi/dist", { recursive: true, force: true })
-			fs.rmSync("src/mimimi/napi-out", { recursive: true, force: true })
+			fs.rmSync("src/app-kits/mimimi/dist", { recursive: true, force: true })
+			fs.rmSync("src/app-kits/mimimi/napi-out", { recursive: true, force: true })
 			spawnSync("cargo", ["clean"])
 			spawnSync("npx", ["tsc", "--build", "--clean"])
 		})
@@ -68,7 +68,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 
 		for (const key of Object.keys(tsImportAliases)) delete tsImportAliases[key] // See: devbuild.js
 		const bundle = await rolldown({
-			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
+			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/applications/common/api/common/pow-worker.ts"],
 			platform: "neutral",
 			transform: {
 				define: {

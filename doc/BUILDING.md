@@ -32,7 +32,7 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 > the following error:
 >
 > ```
-> Build error: Error: Could not load wasm-loader:liboqs.wasm (imported by src/common/api/worker/facades/KyberFacade.ts): Command failed: make -f Makefile_liboqs build
+> Build error: Error: Could not load wasm-loader:liboqs.wasm (imported by src/applications/common/api/worker/facades/KyberFacade.ts): Command failed: make -f Makefile_liboqs build
 > liboqs/src/kem/kem.c:12:10: fatal error: 'oqs/oqs.h' file not found
 > ```
 >

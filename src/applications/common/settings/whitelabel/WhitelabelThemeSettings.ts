@@ -1,0 +1,185 @@
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "@tutao/app-env"
+import m, { Children, Component, Vnode } from "mithril"
+import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
+import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
+import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
+import { locator } from "../../api/main/CommonLocator.js"
+import { showFileChooser } from "../../file/FileController.js"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
+import type { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
+import { DomainInfo, WhitelabelConfig } from "@tutao/entities/sys"
+import { ThemeCustomizations } from "../../../../ui/WhitelabelCustomizations"
+
+export type WhitelabelData = {
+	customTheme: ThemeCustomizations
+	whitelabelConfig: WhitelabelConfig
+	whitelabelDomainInfo: DomainInfo
+}
+export type WhitelabelThemeSettingsAttrs = {
+	whitelabelData: null | WhitelabelData
+	whitelabelThemeGenerator: WhitelabelThemeGenerator
+}
+
+export class WhitelabelThemeSettings implements Component<WhitelabelThemeSettingsAttrs> {
+	view(vnode: Vnode<WhitelabelThemeSettingsAttrs>): Children {
+		const { whitelabelData } = vnode.attrs
+		return [this.renderCustomColorsField(whitelabelData), this.renderCustomLogoField(whitelabelData)]
+	}
+
+	private renderCustomColorsField(data: WhitelabelData | null): Children {
+		return m(LegacyTextField, {
+			label: "customColors_label",
+			value: this.areCustomColorsDefined(data?.customTheme ?? null) ? lang.get("activated_label") : lang.get("deactivated_label"),
+			isReadOnly: true,
+			injectionsRight: () => (data ? this.renderCustomColorsFieldButtons(data) : null),
+		})
+	}
+
+	private renderCustomColorsFieldButtons(whitelabelData: WhitelabelData): Children {
+		return [
+			this.areCustomColorsDefined(whitelabelData.customTheme)
+				? m(IconButton, {
+						title: "deactivate_action",
+						click: () => this.deactivateCustomColors(whitelabelData),
+						icon: Icons.X,
+						size: ButtonSize.Compact,
+					})
+				: null,
+			m(IconButton, {
+				title: "edit_action",
+				click: () => this.showCustomColorsDialog(whitelabelData),
+				icon: Icons.PenFilled,
+				size: ButtonSize.Compact,
+			}),
+		]
+	}
+
+	private async deactivateCustomColors({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
+		const confirmed = await Dialog.confirm("confirmDeactivateCustomColors_msg")
+
+		if (confirmed) {
+			for (const key of Object.keys(customTheme)) {
+				if (key !== "logo") {
+					delete downcast(customTheme)[key]
+				}
+			}
+			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
+
+			if (locator.logins.isWhitelabel()) {
+				await locator.themeController.applyCustomizations(customTheme)
+			}
+		}
+	}
+
+	private renderCustomLogoField(data: WhitelabelData | null): Children {
+		const customLogoTextfieldAttrs: LegacyTextFieldAttrs = {
+			label: "customLogo_label",
+			helpLabel: () => lang.get("customLogoInfo_msg"),
+			value: lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label"),
+			isReadOnly: true,
+			injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
+		}
+		return m(LegacyTextField, customLogoTextfieldAttrs)
+	}
+
+	private renderCustomLogoFieldButtons(whitelabelData: WhitelabelData): Children {
+		return [
+			whitelabelData.customTheme.logo
+				? m(IconButton, {
+						title: "deactivate_action",
+						click: async () => {
+							await this.deactivateCustomLogo(whitelabelData)
+						},
+						icon: Icons.X,
+						size: ButtonSize.Compact,
+					})
+				: null,
+			m(IconButton, {
+				title: "edit_action",
+				click: () => this.editCustomLogo(whitelabelData),
+				icon: Icons.PenFilled,
+				size: ButtonSize.Compact,
+			}),
+		]
+	}
+
+	private async editCustomLogo({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
+		const [file] = await showFileChooser(false)
+		if (!file) return
+
+		let extension = file.name.toLowerCase().substring(file.name.lastIndexOf(".") + 1)
+
+		if (file.size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
+			Dialog.message("customLogoInfo_msg")
+		} else {
+			let imageData: string
+
+			if (extension === "svg") {
+				imageData = utf8Uint8ArrayToString(file.data)
+			} else {
+				const ext = extension === "jpeg" ? "jpg" : extension
+				const b64 = uint8ArrayToBase64(file.data)
+				imageData = `<img src="data:image/${ext};base64,${b64}">`
+			}
+
+			customTheme.logo = imageData
+			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
+
+			if (locator.logins.isWhitelabel()) {
+				await locator.themeController.applyCustomizations(customTheme)
+			}
+		}
+	}
+
+	private async deactivateCustomLogo({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
+		const confirmed = await Dialog.confirm("confirmDeactivateCustomLogo_msg")
+
+		if (confirmed) {
+			delete customTheme.logo
+			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
+
+			if (locator.logins.isWhitelabel()) {
+				await locator.themeController.applyCustomizations(customTheme)
+			}
+		}
+	}
+
+	private async showCustomColorsDialog({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
+		const currentTheme = locator.themeController.getCurrentTheme()
+		const viewModel = new CustomColorsEditorViewModel(
+			currentTheme,
+			customTheme,
+			whitelabelConfig,
+			assertNotNull(whitelabelDomainInfo),
+			locator.themeController,
+			locator.entityClient,
+			locator.logins,
+			locator.whitelabelThemeGenerator,
+		)
+		EditCustomColorsDialog.show(viewModel)
+	}
+
+	private areCustomColorsDefined(theme: ThemeCustomizations | null): boolean {
+		if (theme) {
+			return Object.keys(theme).some(
+				(key) =>
+					key !== "logo" &&
+					// @ts-ignore
+					theme?.[key],
+			)
+		} else {
+			return false
+		}
+	}
+
+	private saveCustomTheme(customTheme: ThemeCustomizations, whitelabelConfig: WhitelabelConfig, whitelabelDomainInfo: DomainInfo) {
+		whitelabelConfig.jsonTheme = JSON.stringify(customTheme)
+		locator.entityClient.update(whitelabelConfig)
+		customTheme.themeId = whitelabelDomainInfo.domain
+	}
+}

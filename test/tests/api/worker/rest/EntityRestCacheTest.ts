@@ -18,22 +18,22 @@ import {
 	ServerModelParsedInstance,
 	SomeEntity,
 	TypeRef,
-} from "../../../../../src/meta"
+} from "@tutao/meta"
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "@tutao/utils"
-import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/local-store/OfflineStorage.js"
-import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
+import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/app-kits/local-store/OfflineStorage.js"
+import { NoZoneDateProvider } from "../../../../../src/applications/common/api/common/utils/NoZoneDateProvider.js"
 import { RestClient, restError } from "@tutao/rest-client"
-import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage.js"
-import { OfflineStorageMigrator } from "../../../../../src/local-store/OfflineStorageMigrator.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import { EphemeralCacheStorage } from "../../../../../src/app-kits/local-store/EphemeralCacheStorage.js"
+import { OfflineStorageMigrator } from "../../../../../src/app-kits/local-store/OfflineStorageMigrator.js"
+import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { SqlCipherFacade } from "../../../../../src/app-kits/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kits/local-store/CustomCacheHandler"
 import { ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "@tutao/instance-pipeline"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { CacheStorage } from "../../../../../src/app-kits/local-store/CacheStorage"
 import {
 	BodyTypeRef,
 	ContactTypeRef,
@@ -61,18 +61,18 @@ import {
 	PermissionTypeRef,
 	RootInstanceTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
-import { CacheMode, EntityRestClient } from "../../../../../src/network/EntityRestClient"
-import { LastProcessedEventBatchProvider } from "../../../../../src/network/LastProcessedEventBatchProvider"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheMode, EntityRestClient } from "../../../../../src/platform-kits/network/EntityRestClient"
+import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kits/network/LastProcessedEventBatchProvider"
 
 const { anything } = matchers
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap): Promise<CacheStorage> {
-	const { PerWindowSqlCipherFacade } = await import("../../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js")
-	const { OfflineDbRefCounter } = await import("../../../../../src/common/desktop/db/OfflineDbRefCounter.js")
-	const { DesktopSqlCipher } = await import("../../../../../src/common/desktop/db/DesktopSqlCipher.js")
+	const { PerWindowSqlCipherFacade } = await import("../../../../../src/applications/common/desktop/db/PerWindowSqlCipherFacade.js")
+	const { OfflineDbRefCounter } = await import("../../../../../src/applications/common/desktop/db/OfflineDbRefCounter.js")
+	const { DesktopSqlCipher } = await import("../../../../../src/applications/common/desktop/db/DesktopSqlCipher.js")
 
 	const odbRefCounter = new OfflineDbRefCounter({
 		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {

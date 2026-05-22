@@ -8,7 +8,7 @@ import {
 	iterateBinaryBlocks,
 	numberOfBytes,
 	removeBinaryBlockRanges,
-} from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
+} from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
 import { concat } from "@tutao/utils"
 
 o.spec("SearchIndexEncoding test", function () {

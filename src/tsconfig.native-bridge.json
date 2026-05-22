@@ -1,8 +1,8 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["native-bridge", "../types/", "types.d.ts"],
+	"include": ["app-kits/native-bridge", "../types/", "types.d.ts"],
 	"compilerOptions": {
-		"rootDir": "native-bridge",
+		"rootDir": "app-kits/native-bridge",
 		"outDir": "../build/native-bridge",
 		"tsBuildInfoFile": "../build/native-bridge/tsbuildinfo",
 		"composite": true
@@ -12,7 +12,7 @@
 			"path": "tsconfig.meta.json"
 		},
 		{
-			"path": "tsconfig.crypto-primitives.json"
+			"path": "tsconfig.crypto.json"
 		},
 		{
 			"path": "tsconfig.entities.sys.json"

@@ -6,15 +6,15 @@ import {
 	serializeExcludedDates,
 	serializeRepeatRule,
 	serializeTrigger,
-} from "../../../src/calendar-app/calendar/export/CalendarExporter.js"
+} from "../../../src/applications/calendar-app/calendar/export/CalendarExporter.js"
 
 import { DateTime } from "luxon"
-import { EndType, RepeatPeriod } from "../../../src/app-env"
-import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import { EndType, RepeatPeriod } from "@tutao/app-env"
+import { getAllDayDateUTC } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
 import { getFirstOrThrow, Require } from "@tutao/utils"
 import { createTestEntity } from "../TestUtils.js"
-import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { getAllDayDateUTCFromZone } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 import {
 	checkURLString,
 	EventImportRejectionReason,
@@ -25,7 +25,7 @@ import {
 	ParsedCalendarData,
 	ParsedEvent,
 	sortOutParsedEvents,
-} from "../../../src/common/calendar/gui/ImportExportUtils.js"
+} from "../../../src/applications/common/calendar/gui/ImportExportUtils.js"
 
 import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
 import {

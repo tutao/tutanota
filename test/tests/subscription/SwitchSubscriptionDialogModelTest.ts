@@ -1,7 +1,7 @@
-import { FeatureType } from "../../../src/app-env"
+import { FeatureType } from "@tutao/app-env"
 import o from "@tutao/otest"
-import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/SwitchSubscriptionDialogModel.js"
-import { PaymentInterval } from "../../../src/common/subscription/utils/PriceUtils.js"
+import { SwitchSubscriptionDialogModel } from "../../../src/applications/common/subscription/SwitchSubscriptionDialogModel.js"
+import { PaymentInterval } from "../../../src/applications/common/subscription/utils/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
 import { AccountType, BookingItemFeatureType, PlanType } from "../../../src/entities/sys"

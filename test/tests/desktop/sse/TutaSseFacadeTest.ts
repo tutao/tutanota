@@ -1,13 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
-import { MISSED_NOTIFICATION_TTL, TutaSseFacade } from "../../../../src/common/desktop/sse/TutaSseFacade.js"
+import { MISSED_NOTIFICATION_TTL, TutaSseFacade } from "../../../../src/applications/common/desktop/sse/TutaSseFacade.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
-import TutaNotificationHandler from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
-import { SseClient, SseConnectOptions } from "../../../../src/common/desktop/sse/SseClient.js"
+import { SseStorage } from "../../../../src/applications/common/desktop/sse/SseStorage.js"
+import TutaNotificationHandler from "../../../../src/applications/common/desktop/sse/TutaNotificationHandler.js"
+import { SseClient, SseConnectOptions } from "../../../../src/applications/common/desktop/sse/SseClient.js"
 import { fetch as undiciFetch } from "undici"
 
 import { assertNotNull, deepEqual, downcast, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
-import { DateProvider } from "../../../../src/utils/DateProvider.js"
+import { DateProvider } from "@tutao/utils"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -16,12 +16,12 @@ import {
 	removeAggregateIds,
 	removeOriginals,
 } from "../../TestUtils.js"
-import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
+import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo.js"
 import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { aes256RandomKey } from "@tutao/crypto"
-import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage"
-import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler"
-import { EncryptedMissedNotification } from "../../../../src/native-bridge/common/EncryptedMissedNotification"
+import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop/sse/DesktopAlarmStorage"
+import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler"
+import { EncryptedMissedNotification } from "../../../../src/app-kits/native-bridge/common/EncryptedMissedNotification"
 import { CryptoError } from "@tutao/crypto/error"
 import { AttributeModel, OperationType, ServerModelUntypedInstance, UntypedInstance } from "@tutao/meta"
 import {

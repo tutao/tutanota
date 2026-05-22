@@ -247,8 +247,8 @@ export async function run({ integration, filter, regexp, exclude }: { integratio
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { random } = await import("@tutao/crypto")
-	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl")
+	const { random } = await import("../../src/platform-kits/crypto")
+	const { WorkerImpl } = await import("../../src/applications/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 
 	if (typeof process !== "undefined") {

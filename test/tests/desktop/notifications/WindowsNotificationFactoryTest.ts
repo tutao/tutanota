@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import type { Notifier } from "@indutny/simple-windows-notifications"
-import { WindowsNotificationFactory } from "../../../../src/common/desktop/notifications/WindowsNotificationFactory"
+import { WindowsNotificationFactory } from "../../../../src/applications/common/desktop/notifications/WindowsNotificationFactory"
 import { matchers, object, verify } from "testdouble"
-import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../../../../src/common/desktop/DesktopUtils"
+import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../../../../src/applications/common/desktop/DesktopUtils"
 import NativeImage = Electron.NativeImage
 
 o.spec("WindowsNotificationFactory", () => {

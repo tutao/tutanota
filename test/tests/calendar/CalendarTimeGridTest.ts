@@ -7,15 +7,15 @@ import {
 	RowBounds,
 	TimeRange,
 	TimeScale,
-} from "../../../src/common/calendar/gui/CalendarTimeGrid"
-import { Time } from "../../../src/common/calendar/date/Time"
-import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
-import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
+} from "../../../src/applications/common/calendar/gui/CalendarTimeGrid"
+import { Time } from "../../../src/applications/common/calendar/date/Time"
+import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
+import { MIN_ROW_SPAN } from "../../../src/applications/common/calendar/gui/CalendarEventBubble"
 import { incrementDate } from "@tutao/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
-import { clone } from "../../../src/meta"
-import { RepeatPeriod } from "../../../src/app-env"
+import { clone } from "@tutao/meta"
+import { RepeatPeriod } from "@tutao/app-env"
 import { CalendarRepeatRuleTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("CalendarTimeGrid", function () {

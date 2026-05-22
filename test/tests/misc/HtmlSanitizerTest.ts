@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { getCssValueUrls, HtmlSanitizer, parseSrcsetUrls } from "../../../src/common/misc/HtmlSanitizer.js"
+import { getCssValueUrls, HtmlSanitizer, parseSrcsetUrls } from "../../../src/applications/common/misc/HtmlSanitizer.js"
 
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { textIncludes } from "../TestUtils"
-import { createDataFile } from "../../../src/common/api/worker/utils/DataFile.js"
+import { createDataFile } from "../../../src/applications/common/api/worker/utils/DataFile.js"
 
 o.spec("HtmlSanitizer", function () {
 	o.spec(

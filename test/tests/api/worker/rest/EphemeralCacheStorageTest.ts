@@ -1,9 +1,9 @@
 import o, { verify } from "@tutao/otest"
-import { EphemeralCacheStorage } from "../../../../../src/local-store/EphemeralCacheStorage.js"
-import { ServerModelParsedInstance } from "../../../../../src/meta"
+import { EphemeralCacheStorage } from "../../../../../src/app-kits/local-store/EphemeralCacheStorage.js"
+import { ServerModelParsedInstance } from "@tutao/meta"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/local-store/CustomCacheHandler"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kits/local-store/CustomCacheHandler"
 import { object, when } from "testdouble"
 
 import {

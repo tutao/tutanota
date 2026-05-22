@@ -1,0 +1,156 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { ButtonColor } from "../../../../ui/base/Button.js"
+import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
+import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../../../ui/utils/RouteChange"
+import { getSafeAreaInsetLeft } from "../../../../ui/HtmlUtils"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { AriaLandmarks, landmarkAttrs } from "../../../../ui/AriaUtils"
+import { createDropdown } from "../../../../ui/base/Dropdown.js"
+import { keyManager } from "../../../../ui/utils/KeyManager"
+import { CounterBadge } from "../../../../ui/base/CounterBadge.js"
+import { px, size } from "../../../../ui/size.js"
+import { theme } from "../../../../ui/theme.js"
+import { showNewsDialog } from "../../misc/news/NewsDialog.js"
+import { LoginController } from "../../api/main/LoginController.js"
+import { NewsModel } from "../../misc/news/NewsModel.js"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { styles } from "../../../../ui/styles.js"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { FeatureType, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+
+export interface DrawerMenuAttrs {
+	logins: LoginController
+	newsModel: NewsModel
+	desktopSystemFacade: DesktopSystemFacade | null
+	isPartnerEnabled: boolean
+}
+
+export class DrawerMenu implements Component<DrawerMenuAttrs> {
+	view(vnode: Vnode<DrawerMenuAttrs>): Children {
+		const { logins, newsModel, desktopSystemFacade, isPartnerEnabled } = vnode.attrs
+		const liveNewsCount = newsModel.liveNewsIds.length
+
+		const isInternalUser = logins.isInternalUserLoggedIn()
+		const isLoggedIn = logins.isUserLoggedIn()
+		const userController = logins.getUserController()
+
+		const customer = logins.getUserController().getCustomer()
+		return m(
+			"drawer-menu.flex.col.items-center.pt-16.pb-16.noprint",
+			{
+				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
+				style: {
+					"padding-left": getSafeAreaInsetLeft(),
+					"border-top-right-radius": styles.isDesktopLayout() ? px(size.radius_12) : "",
+				},
+			},
+			[
+				m(".flex-grow"),
+				isInternalUser && isLoggedIn
+					? m(".news-button", [
+							m(IconButton, {
+								icon: Icons.LightbulbFilled,
+								title: "news_label",
+								click: () => showNewsDialog(newsModel),
+								colors: ButtonColor.DrawerNav,
+							}),
+							liveNewsCount > 0
+								? m(CounterBadge, {
+										count: liveNewsCount,
+										position: {
+											top: px(0),
+											right: px(3),
+										},
+										color: theme.on_primary,
+										background: theme.primary,
+									})
+								: null,
+						])
+					: null,
+				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
+					? m(IconButton, {
+							icon: Icons.GiftFilled,
+							title: "buyGiftCard_label",
+							click: () => {
+								m.route.set("/settings/subscription")
+								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
+									return showPurchaseGiftCardDialog()
+								})
+							},
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
+				desktopSystemFacade
+					? m(IconButton, {
+							icon: Icons.BrowserAddOutline,
+							title: "openNewWindow_action",
+							click: () => {
+								desktopSystemFacade.openNewWindow()
+							},
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
+				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
+					? m(IconButton, {
+							icon: Icons.TrophyFilled,
+							title: "upgradePremium_label",
+							click: () => showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON),
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
+				m(IconButton, {
+					title: "showHelp_action",
+					icon: Icons.QuestionmarkFilled,
+					click: (e, dom) =>
+						createDropdown({
+							width: 300,
+							lazyButtons: () => [
+								{
+									icon: Icons.ChatbubbleFilled,
+									label: "supportMenu_label",
+									click: () => void showSupportDialog(logins),
+								},
+								{
+									icon: Icons.KeyboardFilled,
+									label: "keyboardShortcuts_title",
+									click: () => keyManager.openF1Help(true),
+								},
+							],
+						})(e, dom),
+					colors: ButtonColor.DrawerNav,
+				}),
+				isPartnerEnabled
+					? m(IconButton, {
+							icon: Icons.HeartFilled,
+							title: { testId: "partner_label", text: "Partner" },
+							click: () => m.route.set(PARTNER_PREFIX),
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
+				isInternalUser
+					? m(IconButton, {
+							icon: Icons.GearWheelFilled,
+							title: "settings_label",
+							click: () => m.route.set(SETTINGS_PREFIX),
+							colors: ButtonColor.DrawerNav,
+						})
+					: null,
+				m(IconButton, {
+					icon: Icons.Logout,
+					title: "switchAccount_action",
+					click: () => m.route.set(LogoutUrl),
+					colors: ButtonColor.DrawerNav,
+				}),
+			],
+		)
+	}
+}
+
+export function isPartnerEnabled(loginController: LoginController): boolean {
+	return (
+		loginController.isInternalUserLoggedIn() &&
+		isBrowser() &&
+		loginController.isEnabled(FeatureType.SolutionPartner) &&
+		loginController.getUserController().isGlobalAdmin()
+	)
+}

@@ -1,29 +1,29 @@
 import o, { mockAttribute } from "@tutao/otest"
 import fs from "node:fs"
-import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
+import { parseCsv } from "../../../../../../src/applications/common/misc/parsing/CsvParser"
 import {
 	Classifier,
 	DEFAULT_PREDICTION_THRESHOLD,
 	SpamClassificationModelMetaData,
 	SpamClassifier,
-} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+} from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { matchers, object, when } from "testdouble"
 import { assertNotNull } from "@tutao/utils"
-import { SpamClassifierDataDealer, TrainingDataset } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
+import { SpamClassifierDataDealer, TrainingDataset } from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import "@tensorflow/tfjs-backend-cpu"
-import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
+import { LayersModel, tensor1d } from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
 
 import { Sequential } from "@tensorflow/tfjs-layers"
-import { SparseVectorCompressor } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
+import { SparseVectorCompressor } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import {
 	DEFAULT_IS_SPAM_CONFIDENCE,
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamMailDatum,
 	SpamMailProcessor,
-} from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { GENERATED_MIN_ID } from "../../../../../../src/meta"
-import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+} from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { GENERATED_MIN_ID } from "@tutao/meta"
+import { SpamClassifierStorageFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { SpamDecision } from "../../../../../../src/entities/tutanota"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 

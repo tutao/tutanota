@@ -1,24 +1,14 @@
 import o from "@tutao/otest"
-import { ApplicationTypesFacade } from "../../../src/instance-pipeline/ApplicationTypesFacade"
+import { ApplicationTypesFacade } from "../../../src/platform-kits/instance-pipeline/ApplicationTypesFacade"
 import { matchers, object, verify, when } from "testdouble"
-import {
-	AppName,
-	AppNameEnum,
-	AssociationType,
-	Cardinality,
-	getServiceRestPath,
-	ModelAssociation,
-	ServerTypeModel,
-	ServiceDefinition,
-	Type,
-} from "../../../src/meta"
+import { AppName, AppNameEnum, AssociationType, Cardinality, getServiceRestPath, ModelAssociation, ServerTypeModel, ServiceDefinition, Type } from "@tutao/meta"
 import { downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { ApplicationTypesGetOut, compressString, decompressString, ServerModelInfo, ServerModels } from "@tutao/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "@tutao/app-env"
-import { FileFacade } from "../../../src/native-bridge/common/generatedipc/types/FileFacade.js"
+import { FileFacade } from "../../../src/app-kits/native-bridge/common/generatedipc/types/FileFacade.js"
 import { ApplicationTypesService, baseModelInfo } from "@tutao/entities/base"
 
 const { anything } = matchers

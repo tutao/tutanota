@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
+import { initLocator, locator } from "../../src/applications/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
-import { SessionType } from "../../src/app-env/SessionType.js"
+import { SessionType } from "../../src/platform-kits/app-env/SessionType.js"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,

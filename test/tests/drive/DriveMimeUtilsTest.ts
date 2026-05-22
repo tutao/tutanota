@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { FileType, getDisplayType } from "../../../src/drive-app/drive/model/DriveMimeUtils"
+import { FileType, getDisplayType } from "../../../src/applications/drive-app/drive/model/DriveMimeUtils"
 
 /*
 ⠀⠀⠀⠀⠀⠀⠀⢠⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀

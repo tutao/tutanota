@@ -1,9 +1,9 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestClientOptions } from "@tutao/rest-client/types"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../src/platform-kits/base/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
-import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/meta"
+import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "@tutao/meta"
 import { deepEqual, downcast } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
@@ -13,7 +13,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
-import { ServiceExecutor } from "../../../src/network/ServiceExecutor"
+import { ServiceExecutor } from "../../../src/platform-kits/network/ServiceExecutor"
 
 const { anything } = matchers
 

@@ -11,12 +11,12 @@ import {
 } from "@tutao/crypto"
 import { convertJsToDbType, encryptValue, PatchMerger, PatchOperationError, PatchOperationType } from "@tutao/instance-pipeline"
 import { instance, matchers, object, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../src/base/crypto/KeyLoaderFacade"
-import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
-import { UserFacade } from "../../../src/base/facades/UserFacade"
-import { EntityClient } from "../../../src/network/EntityClient"
-import { AsymmetricCryptoFacade } from "../../../src/base/crypto/AsymmetricCryptoFacade"
-import { KeyRotationFacade } from "../../../src/base/crypto/KeyRotationFacade"
+import { KeyLoaderFacade } from "../../../src/platform-kits/base/crypto/KeyLoaderFacade"
+import { CryptoFacade } from "../../../src/platform-kits/base/crypto/CryptoFacade"
+import { UserFacade } from "../../../src/platform-kits/base/facades/UserFacade"
+import { EntityClient } from "../../../src/platform-kits/network/EntityClient"
+import { AsymmetricCryptoFacade } from "../../../src/platform-kits/base/crypto/AsymmetricCryptoFacade"
+import { KeyRotationFacade } from "../../../src/platform-kits/base/crypto/KeyRotationFacade"
 
 import { assertNotNull, base64ToUint8Array, downcast, noOp, Nullable, stringToBase64, stringToUtf8Uint8Array } from "@tutao/utils"
 import { RestClient } from "@tutao/rest-client"
@@ -27,14 +27,14 @@ import {
 	modelMapperFromTypeModelResolver,
 	removeOriginals,
 } from "../TestUtils"
-import { CustomCacheHandlerMap } from "../../../src/local-store/CustomCacheHandler"
-import { EphemeralCacheStorage } from "../../../src/local-store/EphemeralCacheStorage"
+import { CustomCacheHandlerMap } from "../../../src/app-kits/local-store/CustomCacheHandler"
+import { EphemeralCacheStorage } from "../../../src/app-kits/local-store/EphemeralCacheStorage"
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "@tutao/app-env"
-import PublicEncryptionKeyProvider from "../../../src/base/crypto/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../src/local-store/InstanceSessionKeysCache"
-import { CacheStorage } from "../../../src/local-store/CacheStorage"
-import { CacheManagementInterface } from "../../../src/local-store/CacheManagementInterface"
+import PublicEncryptionKeyProvider from "../../../src/platform-kits/base/crypto/PublicEncryptionKeyProvider"
+import { InstanceSessionKeysCache } from "../../../src/app-kits/local-store/InstanceSessionKeysCache"
+import { CacheStorage } from "../../../src/app-kits/local-store/CacheStorage"
+import { CacheManagementInterface } from "../../../src/app-kits/local-store/CacheManagementInterface"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -55,7 +55,7 @@ import {
 import { AttributeModel, Entity, ModelValue, ServerModelParsedInstance } from "@tutao/meta"
 
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
-import { ServiceExecutor } from "../../../src/network/ServiceExecutor"
+import { ServiceExecutor } from "../../../src/platform-kits/network/ServiceExecutor"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

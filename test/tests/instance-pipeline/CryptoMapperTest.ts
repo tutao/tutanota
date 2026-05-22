@@ -19,7 +19,7 @@ import {
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	ValueType,
-} from "../../../src/meta"
+} from "@tutao/meta"
 import { base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import {
 	ClientTypeReferenceResolver,

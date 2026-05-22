@@ -3,7 +3,7 @@ import { object } from "testdouble"
 import { KeyVersion } from "@tutao/utils"
 
 import { createTestEntity } from "../../../TestUtils"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/app-kits/local-store/PublicEncryptionKeyCache"
 
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
 

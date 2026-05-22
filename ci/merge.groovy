@@ -218,7 +218,7 @@ pipeline {
 						}
 					}
 					steps {
-						sh 'cd src/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../build-drive-app && node make ../../test/build && cd -'
+						sh 'cd src/platform-kits/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../build-drive-app && node make ../../test/build && cd -'
 					}
 				}
 

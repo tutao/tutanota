@@ -1,0 +1,70 @@
+import m, { Children } from "mithril"
+import { ExternalLink } from "../../../ui/base/ExternalLink.js"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
+import { createDropdown } from "../../../ui/base/Dropdown.js"
+import { mapNullable } from "@tutao/utils"
+import { getWhitelabelCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
+import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
+import { LanguageDropdown } from "./LanguageDropdown"
+import { isApp } from "@tutao/app-env"
+import { deviceConfig } from "../misc/DeviceConfig"
+
+export function renderInfoLinks(): Children {
+	const privacyPolicyLink = getPrivacyStatementLink()
+	const imprintLink = getImprintLink()
+
+	return m(
+		".flex.col.mt-32",
+		m(
+			".flex.wrap.justify-center.gap-16",
+			!isApp() && privacyPolicyLink
+				? m(ExternalLink, {
+						href: privacyPolicyLink,
+						text: lang.get("privacyLink_label"),
+						isCompanySite: true,
+						specialType: "privacy-policy",
+					})
+				: null,
+			!isApp() && imprintLink
+				? m(ExternalLink, {
+						href: imprintLink,
+						text: lang.get("imprint_label"),
+						isCompanySite: true,
+						specialType: "license",
+					})
+				: null,
+
+			m(LanguageDropdown, { variant: "Link", deviceConfig }),
+		),
+		m(
+			".mt-16.mb-16.center.small.full-width",
+			{
+				onclick: (e: MouseEvent) => showVersionDropdown(e),
+			},
+			`v${env.versionNumber}`,
+		),
+	)
+}
+
+function getImprintLink(): string | null {
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.imprintUrl) || InfoLink.About
+}
+
+function getPrivacyStatementLink(): string | null {
+	return mapNullable(getWhitelabelCustomizations(window), (c) => c.privacyStatementUrl) || InfoLink.Privacy
+}
+
+/**
+ * Show a simple dialog with client info and all the logs inside of it.
+ */
+function showVersionDropdown(e: MouseEvent) {
+	// A semi-hidden option to get the logs before logging in, in a text form
+	createDropdown({
+		lazyButtons: () => [
+			{
+				label: "getLogs_action",
+				click: () => prepareLogContent().then((logInfo) => showLogsDialog(logInfo)),
+			},
+		],
+	})(e, e.target as HTMLElement)
+}

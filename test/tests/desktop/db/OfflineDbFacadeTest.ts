@@ -1,8 +1,8 @@
 import o, { verify } from "@tutao/otest"
 import { object, when } from "testdouble"
-import { OfflineDbFactory } from "../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js"
-import { DesktopSqlCipher } from "../../../../src/common/desktop/db/DesktopSqlCipher.js"
-import { OfflineDbRefCounter } from "../../../../src/common/desktop/db/OfflineDbRefCounter.js"
+import { OfflineDbFactory } from "../../../../src/applications/common/desktop/db/PerWindowSqlCipherFacade.js"
+import { DesktopSqlCipher } from "../../../../src/applications/common/desktop/db/DesktopSqlCipher.js"
+import { OfflineDbRefCounter } from "../../../../src/applications/common/desktop/db/OfflineDbRefCounter.js"
 
 o.spec("OfflineDbFacade", function () {
 	let factory: OfflineDbFactory

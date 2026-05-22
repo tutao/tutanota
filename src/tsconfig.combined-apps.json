@@ -1,10 +1,10 @@
 {
 	"extends": "./../tsconfig_common.json",
 	"include": [
-		"common",
-		"mail-app",
-		"calendar-app",
-		"drive-app",
+		"applications/common",
+		"applications/mail-app",
+		"applications/calendar-app",
+		"applications/drive-app",
 		"../types/",
 		"./*.ts",
 		"../libs/luxon.js",
@@ -24,7 +24,7 @@
 			"path": "tsconfig.utils.json"
 		},
 		{
-			"path": "tsconfig.crypto-primitives.json"
+			"path": "tsconfig.crypto.json"
 		},
 		{
 			"path": "tsconfig.usagetests.json"

@@ -9,7 +9,7 @@ import { goEuropeanBlue } from "./builtinThemes"
 import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
-import { client } from "../app-env/boot/ClientDetector"
+import { client } from "../platform-kits/app-env/boot/ClientDetector"
 
 assertMainOrNode()
 
