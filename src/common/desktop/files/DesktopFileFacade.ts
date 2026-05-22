@@ -10,13 +10,12 @@ import { FileUri } from "../../native/common/FileApp.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { sha256Hash } from "@tutao/crypto"
-import { assertNotNull, newPromise, splitUint8ArrayInChunks, stringToUtf8Uint8Array, throttle, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { assertNotNull, newPromise, throttle, uint8ArrayToBase64 } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
-import type { WriteStream } from "node:fs"
-import FsModule from "node:fs"
+import FsModule, { WriteStream } from "node:fs"
 import { Buffer } from "node:buffer"
-import type { ReadableStream } from "node:stream/web"
+import { ReadableStream } from "node:stream/web"
 import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { log } from "../DesktopLog.js"
@@ -31,7 +30,7 @@ import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade"
 import { ProgrammingError } from "@tutao/app-env"
-import { FileTooLargeError } from "../../api/common/error/FileTooLargeError"
+import { createHash } from "node:crypto"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -62,8 +61,7 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async deleteFile(filePath: string): Promise<void> {
-		this.tfs.assertInTmpDir(filePath)
-		return await this.fs.promises.unlink(filePath)
+		await this.tfs.deleteFile(filePath)
 	}
 
 	private async deleteFileQuietly(filePath: string): Promise<void> {
@@ -154,10 +152,15 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async hashFile(filePath: string): Promise<string> {
-		this.tfs.assertInTmpDir(filePath)
-		const data = await this.fs.promises.readFile(filePath)
-		const checksum = sha256Hash(data).slice(0, 6)
-		return uint8ArrayToBase64(checksum)
+		const fileStream = this.tfs.fileStream(filePath)
+		try {
+			const hash = createHash("sha256")
+			await pipeline(fileStream, hash)
+			const checksum = hash.digest().subarray(0, 6)
+			return uint8ArrayToBase64(checksum)
+		} finally {
+			this.tfs.closeFileStream(fileStream)
+		}
 	}
 
 	async joinFiles(filename: string, files: Array<string>): Promise<string> {
@@ -287,40 +290,26 @@ export class DesktopFileFacade implements FileFacade {
 
 	/** can be used with arbitrary paths, is run on the selected file locations */
 	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
-		const tempDir = await this.tfs.ensureUnencrytpedDir()
-		let fullBytes: Buffer<ArrayBufferLike>
-
-		try {
-			fullBytes = await this.fs.promises.readFile(fileUri)
-		} catch (e) {
-			if (e.code === "ERR_FS_FILE_TOO_LARGE") {
-				throw new FileTooLargeError("file too large")
-			} else {
-				throw e
-			}
+		// Instead of actually splitting the file into small files return a bunch of virtual
+		// URIs that point to a specific part of the file. aesEncryptFile() knows how to read them
+		const fileSize = await this.getSize(fileUri)
+		let currentOffset = 0
+		const chunks: string[] = []
+		while (currentOffset < fileSize) {
+			const start = currentOffset
+			// FIXME maybe put it in a helper function to test it
+			const length = start + maxChunkSizeBytes > fileSize ? fileSize - start : maxChunkSizeBytes
+			const chunkUri = this.tfs.createFileChunkUri(fileUri, start, length)
+			chunks.push(chunkUri)
+			currentOffset = start + length
 		}
-		const chunks = splitUint8ArrayInChunks(maxChunkSizeBytes, fullBytes)
-		// this could just be randomized, we don't seem to care about the blob file names
-		const filenameHash = uint8ArrayToHex(sha256Hash(stringToUtf8Uint8Array(fileUri)))
-		const chunkPaths: string[] = []
-
-		for (let i = 0; i < chunks.length; i++) {
-			const chunk = chunks[i]
-			const fileName = `${filenameHash}.${i}.blob`
-			const chunkPath = path.join(tempDir, fileName)
-			await this.fs.promises.writeFile(chunkPath, chunk)
-			chunkPaths.push(chunkPath)
-		}
-
-		return chunkPaths
+		return chunks
 	}
 
 	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
-		// we only upload encrypted blobs so it should be safe
-		this.tfs.assertInTmpDir(fileUri)
-		const fileStream = this.fs.createReadStream(fileUri)
-		const stat = await this.fs.promises.stat(fileUri)
-		headers["Content-Length"] = `${stat.size}`
+		const fileStream: NodeJS.ReadableStream = this.tfs.fileStream(fileUri)
+		const size = await this.tfs.getFileSize(fileUri)
+		headers["Content-Length"] = `${size}`
 
 		const abortController = new AbortController()
 		this.activeRequests.set(fileId, abortController)
@@ -349,7 +338,7 @@ export class DesktopFileFacade implements FileFacade {
 				responseBody,
 			}
 		} finally {
-			fileStream.close()
+			this.tfs.closeFileStream(fileStream)
 			this.activeRequests.delete(fileId)
 		}
 	}
@@ -477,7 +466,7 @@ function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
 	})
 }
 
-export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8Array> {
+export async function readStreamToBuffer(stream: NodeJS.ReadableStream): Promise<Uint8Array> {
 	return newPromise((resolve, reject) => {
 		const data: Buffer[] = []
 
@@ -509,7 +498,7 @@ function bodyToReadable(body: ReadableStream<unknown>): stream.Readable {
  * Make a new Readable stream that counts the data read from the upstream {@param upstream} and invokes
  * {@param onProgress} for every chunk read.
  */
-function wrapReadableAsCountable(upstream: Readable, onProgress: (bytes: number) => void): Readable {
+function wrapReadableAsCountable(upstream: NodeJS.ReadableStream, onProgress: (bytes: number) => void): Readable {
 	let writtenBytes = 0
 	const progressStream: Transform = new Transform({
 		transform(chunk, _encoding, callback) {

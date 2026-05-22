@@ -1,4 +1,12 @@
-import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	base64ToUint8Array,
+	filterInt,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "@tutao/utils"
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type * as FsModule from "node:fs"
 import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/crypto"
@@ -18,6 +26,7 @@ import { IPCEd25519KeyPair } from "../native/common/generatedipc/IPCEd25519KeyPa
 import { IPCEd25519Signature } from "../native/common/generatedipc/IPCEd25519Signature"
 import { IPCEd25519PrivateKey } from "../native/common/generatedipc/IPCEd25519PrivateKey"
 import { IPCEd25519PublicKey } from "../native/common/generatedipc/IPCEd25519PublicKey"
+import { readStreamToBuffer } from "./files/DesktopFileFacade"
 
 type FsExports = typeof FsModule
 
@@ -53,21 +62,18 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
-		// at the moment, this is randomized if the file to be encrypted
-		// was created with FileFacade.writeDataFile.
-		// to make it safe in all conditions, we should re-generate a random file name.
-		// we're also not checking if the file to be encrypted is actually located in
-		// the temp scratch space
-		const bytes = await this.fs.promises.readFile(fileUri)
-		const keyBits = this.cryptoFns.bytesToKey(key)
-		const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
-		const targetDir = await this.tfs.ensureEncryptedDir()
-		const writtenFileName = path.basename(fileUri)
-		const filePath = path.join(targetDir, writtenFileName)
-		await this.fs.promises.writeFile(filePath, encrypted)
-		return {
-			uri: filePath,
-			unencryptedSize: bytes.length,
+		const fileStream = this.tfs.fileStream(fileUri)
+		try {
+			const bytes = await readStreamToBuffer(fileStream)
+			const keyBits = this.cryptoFns.bytesToKey(key)
+			const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
+			const encryptedUri = this.tfs.createInMemoryFile(encrypted)
+			return {
+				uri: encryptedUri,
+				unencryptedSize: bytes.length,
+			}
+		} finally {
+			this.tfs.closeFileStream(fileStream)
 		}
 	}
 
