@@ -1,15 +1,14 @@
-import { elementIdPart, getElementId, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, isSameId, listIdPart, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedRouter"
 import m from "mithril"
-import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "../../../../platform-kit/utils"
+import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
-
-import { Const, OperationStatus, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
+import { Const, OperationStatus, SECOND_IN_MILLIS } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
@@ -35,11 +34,11 @@ import { UserError } from "../../../common/api/main/UserError"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
-import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { isWebFile } from "../../../../ui/utils/FileUtils"
+import { isOfflineError, handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -194,13 +193,21 @@ export class DriveViewModel {
 			return
 		}
 
-		await this.loginController.waitForFullLogin()
+		try {
+			this.roots = await this.driveFacade.loadRootFolders("cached")
+		} catch (e) {
+			if (isOfflineError(e)) {
+				await this.loginController.waitForFullLogin()
 
-		// do not finish init if the plan does not support it
-		if (await this.currentPlanSupportsDrive()) {
-			this.roots = await this.driveFacade.loadRootFolders()
-		} else {
-			return
+				// do not finish init if the plan does not support it
+				if (await this.currentPlanSupportsDrive()) {
+					this.roots = await this.driveFacade.loadRootFolders("withNetwork")
+				} else {
+					return
+				}
+			} else {
+				throw e
+			}
 		}
 
 		this.eventController.addEntityListener({
@@ -242,7 +249,7 @@ export class DriveViewModel {
 			}
 		})
 
-		this.refreshStorage()
+		this.loginController.waitForFullLogin().then(() => this.refreshStorage())
 		this.resolveInitialized()
 	}
 

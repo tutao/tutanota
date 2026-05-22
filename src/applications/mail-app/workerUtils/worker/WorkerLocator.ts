@@ -950,6 +950,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.serviceExecutor,
 			locator.crypto,
 			locator.cryptoWrapper,
+			locator.cacheStorage,
 		)
 	})
 }

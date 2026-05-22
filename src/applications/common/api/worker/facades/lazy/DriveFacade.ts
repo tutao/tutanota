@@ -10,7 +10,7 @@ import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@t
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { NotFoundError } from "@tutao/rest-client/error"
+import { ConnectionError, NotFoundError } from "@tutao/rest-client/error"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
@@ -43,6 +43,7 @@ import {
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
+import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -86,6 +87,7 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly cacheStorage: ExposedCacheStorage,
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -133,17 +135,27 @@ export class DriveFacade {
 		return result.operationId
 	}
 
-	public async loadRootFolders(): Promise<DriveRootFolders> {
-		const { fileGroupId } = await this.getCryptoInfo()
+	public async loadRootFolders(cacheMode: "cached" | "withNetwork"): Promise<DriveRootFolders> {
+		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
 
 		let driveGroupRoot: DriveGroupRoot
-		try {
-			driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-		} catch (e) {
-			if (e instanceof NotFoundError) {
-				driveGroupRoot = await this.createGroupRoot(fileGroupId)
+
+		if (cacheMode === "withNetwork") {
+			try {
+				driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					driveGroupRoot = await this.createGroupRoot(fileGroupId)
+				} else {
+					throw e
+				}
+			}
+		} else {
+			const maybeDriveGroupRoot = await this.cacheStorage.get(DriveGroupRootTypeRef, null, fileGroupId)
+			if (maybeDriveGroupRoot) {
+				driveGroupRoot = maybeDriveGroupRoot
 			} else {
-				throw e
+				throw new ConnectionError("cannot load DriveGroupRoot from cache")
 			}
 		}
 
@@ -223,7 +235,7 @@ export class DriveFacade {
 	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
 	 */
 	public async createFolder(folderName: string, parentFolder: IdTuple): Promise<DriveFolder> {
-		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
+		const { fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
