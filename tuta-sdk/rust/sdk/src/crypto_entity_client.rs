@@ -129,6 +129,22 @@ impl CryptoEntityClient {
 		self.process_server_response(parsed_entities).await
 	}
 
+	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
+	/// Loads and decrypts multiple list element entities by their element IDs.
+	/// Does not guarantee order or completeness of returned elements.
+	pub async fn load_multiple<T: Entity + DeserializeOwned>(
+		&self,
+		list_id: &GeneratedId,
+		element_ids: &[GeneratedId],
+	) -> Result<Vec<T>, ApiCallError> {
+		let parsed_entities = self
+			.entity_client
+			.load_multiple(&T::type_ref(), list_id, element_ids)
+			.await?;
+
+		self.process_server_response(parsed_entities).await
+	}
+
 	pub fn serialize_entity<Instance: Entity + Serialize>(
 		&self,
 		instance: Instance,
