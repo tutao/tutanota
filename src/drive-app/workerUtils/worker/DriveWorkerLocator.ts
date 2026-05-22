@@ -29,6 +29,7 @@ import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/C
 import {
 	ApplicationTypesFacade,
 	InstancePipeline,
+	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
 	TypeModelResolver,
@@ -172,6 +173,7 @@ export type DriveWorkerLocatorType = {
 	// used to cache between resets
 	_worker: DriveWorkerImpl
 	_browserData: BrowserData
+	_apps: Array<NamedClientModel>
 
 	// drive
 	driveFacade: lazyAsync<DriveFacade>
@@ -180,9 +182,10 @@ export type DriveWorkerLocatorType = {
 }
 export const locator: DriveWorkerLocatorType = {} as any
 
-export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserData) {
+export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserData, apps: Array<NamedClientModel>) {
 	locator._worker = worker
 	locator._browserData = browserData
+	locator._apps = apps
 	locator.keyCache = new KeyCache()
 	const cryptoWrapper = new CryptoWrapper()
 	locator.user = new UserFacade(locator.keyCache, cryptoWrapper)
@@ -198,7 +201,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		})
 	})
 
-	const clientModelInfo = initClientModels()
+	const clientModelInfo = initClientModels(apps)
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash) =>
 		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
@@ -628,7 +631,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 
 export async function resetLocator(): Promise<void> {
 	await locator.login.resetSession()
-	await initLocator(locator._worker, locator._browserData)
+	await initLocator(locator._worker, locator._browserData, locator._apps)
 }
 
 if (typeof self !== "undefined") {

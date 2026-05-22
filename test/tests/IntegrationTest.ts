@@ -10,8 +10,19 @@ import {
 	MailSet,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
+	tutanotaModelInfo,
+	tutanotaTypeModels,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../src/entities/sys/Utils"
+import { NamedClientModel } from "@tutao/instance-pipeline"
+import { AppNameEnum } from "@tutao/meta"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 
 function loadFolders(folderListId: Id): Promise<MailSet[]> {
 	return locator.cachingEntityClient.loadAll(MailSetTypeRef, folderListId)
@@ -31,7 +42,17 @@ o.spec("integration test", function () {
 	let mailbox = null
 	o("login, read mails, update contact", async function () {
 		env.staticUrl = "http://localhost:9000"
-		initLocator(null as any, browserDataStub)
+		const apps: Array<NamedClientModel> = [
+			{ app: AppNameEnum.Base, clientModel: baseTypeModels, modelInfo: baseModelInfo },
+			{ app: "sys", clientModel: sysTypeModels, modelInfo: sysModelInfo },
+			{ app: "tutanota", clientModel: tutanotaTypeModels, modelInfo: tutanotaModelInfo },
+			{ app: "drive", clientModel: driveTypeModels, modelInfo: driveModelInfo },
+			{ app: "storage", clientModel: storageTypeModels, modelInfo: storageModelInfo },
+			{ app: "monitor", clientModel: monitorTypeModels, modelInfo: monitorModelInfo },
+			{ app: "usage", clientModel: usageTypeModels, modelInfo: usageModelInfo },
+			{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
+		]
+		initLocator(null as any, browserDataStub, apps)
 		o.timeout(20000)
 		await locator.login.createSession("map-free@tutanota.de", "map", "Linux node", SessionType.Temporary, null)
 		const folders = await loadMailboxSystemFolders()

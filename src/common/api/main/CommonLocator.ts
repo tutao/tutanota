@@ -88,8 +88,10 @@ import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
 import { Header } from "../../../ui/Header"
 import { Router } from "../../../ui/ScopedRouter"
 import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 
 export interface CommonLocator {
+	clientModelInfo: ClientModelInfo
 	worker: WorkerClient
 	fileController: FileController
 	credentialsProvider: CredentialsProvider

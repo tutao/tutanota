@@ -33,10 +33,7 @@ import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvide
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
-import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
-import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
@@ -111,8 +108,7 @@ import { IdentityKeyCreator } from "../base/crypto/IdentityKeyCreator"
 import { WhitelabelThemeGenerator } from "../ui/WhitelabelThemeGenerator"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
 import { EntropyFacade } from "../base/facades/EntropyFacade"
-import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { Router, ScopedRouter, ThrottledRouter } from "../ui/ScopedRouter"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
@@ -124,11 +120,11 @@ import { lang } from "../ui/utils/LanguageViewModel"
 import { SearchToken } from "../ui/utils/QueryTokenUtils"
 import { KdfType } from "../base/crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
-import { ShareableGroupType } from "../entities/sys/Utils"
 
 assertMainOrNode()
 
 class DriveLocator implements CommonLocator {
+	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	search!: DriveSearchModelStub
 	mailboxModel!: MailboxModel
@@ -190,10 +186,6 @@ class DriveLocator implements CommonLocator {
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 
-	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
-		return initClientModels()
-	})
-
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
 		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
@@ -233,21 +225,6 @@ class DriveLocator implements CommonLocator {
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
-	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
-	})
-
-	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
-		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-		return new SearchRouter(this.throttledRouter())
-	})
-
-	async receivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType>(groupType: TypeOfGroup): Promise<ReceivedGroupInvitationsModel<TypeOfGroup>> {
-		const { ReceivedGroupInvitationsModel } = await import("../common/sharing/model/ReceivedGroupInvitationsModel.js")
-		return new ReceivedGroupInvitationsModel<TypeOfGroup>(groupType, this.eventController, this.entityClient, this.logins)
-	}
-
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("./drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
@@ -283,21 +260,6 @@ class DriveLocator implements CommonLocator {
 			return new WebFilePicker()
 		}
 	}
-
-	readonly calendarEventsRepository: lazyAsync<CalendarEventsRepository> = lazyMemoized(async () => {
-		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
-		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
-		const timeZone = new DefaultDateProvider().timeZone()
-		return new CalendarEventsRepository(
-			await this.calendarModel(),
-			this.calendarFacade,
-			timeZone,
-			this.entityClient,
-			this.eventController,
-			this.contactModel,
-			this.logins,
-		)
-	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
 	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
@@ -516,7 +478,8 @@ class DriveLocator implements CommonLocator {
 		this._workerDeferred = defer()
 	}
 
-	async init(): Promise<void> {
+	async init(clientModelInfo: ClientModelInfo): Promise<void> {
+		this.clientModelInfo = clientModelInfo
 		// Split init in two separate parts: creating modules and causing side effects.
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
@@ -596,7 +559,7 @@ class DriveLocator implements CommonLocator {
 		this.eventController = new EventController(driveLocator.logins, this.progressTracker)
 		this.syncTracker = new SyncTracker()
 		this.search = new DriveSearchModelStub()
-		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
+		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -628,7 +591,7 @@ class DriveLocator implements CommonLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
-			this.typeModelResolver(),
+			this.clientModelInfo,
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 

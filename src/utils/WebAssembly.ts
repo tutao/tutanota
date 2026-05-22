@@ -36,11 +36,17 @@ export interface WASMExports {
 }
 
 export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath: string, baseUrl: string): Promise<T> {
-	const wasmUrl = new URL(wasmPath, baseUrl).href
-	const response = await fetch(wasmUrl)
+	const wasmUrl = new URL(wasmPath, baseUrl)
 
-	const { instance } = await WebAssembly.instantiateStreaming(response)
-	return downcast<T>(instance.exports)
+	let instantiatedSource: WebAssembly.WebAssemblyInstantiatedSource
+	if (wasmUrl.protocol === "file:") {
+		const bytes = await (await import("node:fs/promises")).readFile(wasmUrl)
+		instantiatedSource = await WebAssembly.instantiate(bytes)
+	} else {
+		const response = await fetch(wasmUrl)
+		instantiatedSource = await WebAssembly.instantiateStreaming(response)
+	}
+	return downcast<T>(instantiatedSource.instance.exports)
 }
 
 /**

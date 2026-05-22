@@ -14,6 +14,7 @@ self.onmessage = function (msg) {
 			.then(async () => {
 				const initialRandomizerEntropy = data.args[1]
 				const browserData = data.args[2]
+				const apps = data.args[3]
 
 				if (initialRandomizerEntropy == null || browserData == null) {
 					throw new Error("Invalid Worker arguments")
@@ -21,7 +22,7 @@ self.onmessage = function (msg) {
 
 				// @ts-ignore
 				const workerImpl = new DriveWorkerImpl(typeof self !== "undefined" ? self : null)
-				await workerImpl.init(browserData)
+				await workerImpl.init(browserData, apps)
 				workerImpl.exposedInterface.entropyFacade().then((entropyFacade) => entropyFacade.addEntropy(initialRandomizerEntropy))
 				self.postMessage({
 					id: data.id,

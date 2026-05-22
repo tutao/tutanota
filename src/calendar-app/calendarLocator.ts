@@ -133,14 +133,14 @@ import { SystemPermissionHandler } from "../common/native/SystemPermissionHandle
 import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
 import { KdfType } from "../base/crypto/Constants"
-import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNode()
 
 class CalendarLocator implements CommonLocator {
+	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	search!: CalendarSearchModel
 	mailboxModel!: MailboxModel
@@ -201,10 +201,6 @@ class CalendarLocator implements CommonLocator {
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
-
-	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
-		return initClientModels()
-	})
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -563,7 +559,8 @@ class CalendarLocator implements CommonLocator {
 		this._workerDeferred = defer()
 	}
 
-	async init(): Promise<void> {
+	async init(clientModelInfo: ClientModelInfo): Promise<void> {
+		this.clientModelInfo = clientModelInfo
 		// Split init in two separate parts: creating modules and causing side effects.
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
@@ -643,7 +640,7 @@ class CalendarLocator implements CommonLocator {
 		this.eventController = new EventController(calendarLocator.logins, this.progressTracker)
 		this.syncTracker = new SyncTracker()
 		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
-		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
+		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -675,7 +672,7 @@ class CalendarLocator implements CommonLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
-			this.typeModelResolver(),
+			this.clientModelInfo,
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 

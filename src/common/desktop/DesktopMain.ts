@@ -72,12 +72,21 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+import { InstancePipeline, NamedClientModel } from "@tutao/instance-pipeline"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "@tutao/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
 import { initClientModels } from "../api/common/ClientModelInfoInitializer"
+import { AppNameEnum } from "@tutao/meta"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 
 mp()
 
@@ -188,7 +197,18 @@ async function createComponents(): Promise<Components> {
 	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
 
 	const dateProvider = new DefaultDateProvider()
-	const clientModelInfo = initClientModels()
+
+	const apps: Array<NamedClientModel> = [
+		{ app: AppNameEnum.Base, clientModel: baseTypeModels, modelInfo: baseModelInfo },
+		{ app: "sys", clientModel: sysTypeModels, modelInfo: sysModelInfo },
+		{ app: "tutanota", clientModel: tutanotaTypeModels, modelInfo: tutanotaModelInfo },
+		{ app: "drive", clientModel: driveTypeModels, modelInfo: driveModelInfo },
+		{ app: "storage", clientModel: storageTypeModels, modelInfo: storageModelInfo },
+		{ app: "monitor", clientModel: monitorTypeModels, modelInfo: monitorModelInfo },
+		{ app: "usage", clientModel: usageTypeModels, modelInfo: usageModelInfo },
+		{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
+	]
+	const clientModelInfo = initClientModels(apps)
 
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
 	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially

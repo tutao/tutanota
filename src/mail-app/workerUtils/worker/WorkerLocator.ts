@@ -71,6 +71,7 @@ import { KeyRotationFacade } from "../../../base/crypto/KeyRotationFacade.js"
 import {
 	ApplicationTypesFacade,
 	InstancePipeline,
+	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
 	TypeModelResolver,
@@ -206,6 +207,7 @@ export type WorkerLocatorType = {
 	// used to cache between resets
 	_worker: WorkerImpl
 	_browserData: BrowserData
+	_apps: Array<NamedClientModel>
 
 	//contact
 	contactFacade: lazyAsync<ContactFacade>
@@ -221,11 +223,12 @@ export type WorkerLocatorType = {
 }
 export const locator: WorkerLocatorType = {} as any
 
-export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
+export async function initLocator(worker: WorkerImpl, browserData: BrowserData, apps: Array<NamedClientModel>) {
 	const { IdentityKeyTrustDatabase } = await import("../../../local-store/IdentityKeyTrustDatabase")
 
 	locator._worker = worker
 	locator._browserData = browserData
+	locator._apps = apps
 	locator.keyCache = new KeyCache()
 	locator.cryptoWrapper = new CryptoWrapper()
 	locator.user = new UserFacade(locator.keyCache, locator.cryptoWrapper)
@@ -250,7 +253,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		() => new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo),
 	)
 
-	const clientModelInfo = initClientModels()
+	const clientModelInfo = initClientModels(apps)
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: string | null) => {
 		return applicationTypesFacade().getServerApplicationTypesJson(expectedHash)
 	})
@@ -981,7 +984,7 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 
 export async function resetLocator(): Promise<void> {
 	await locator.login.resetSession()
-	await initLocator(locator._worker, locator._browserData)
+	await initLocator(locator._worker, locator._browserData, locator._apps)
 }
 
 if (typeof self !== "undefined") {

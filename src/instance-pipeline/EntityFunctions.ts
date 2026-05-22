@@ -56,6 +56,14 @@ export class ClientModelInfo {
 		this.modelInfos[app] = modelInfo
 	}
 
+	public getApps(): Array<NamedClientModel> {
+		const apps: Array<NamedClientModel> = []
+		for (const appName of Object.keys(this.typeModels)) {
+			apps.push({ app: appName, clientModel: this.typeModels[appName], modelInfo: this.modelInfos[appName] })
+		}
+		return apps
+	}
+
 	public applicationVersionSum(): ApplicationVersionSum {
 		return Object.values(this.modelInfos).reduce((sum, i) => sum + i.version, 0)
 	}

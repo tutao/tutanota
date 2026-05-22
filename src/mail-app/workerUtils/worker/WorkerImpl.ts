@@ -52,6 +52,7 @@ import { ExposedCacheStorage } from "../../../local-store/CacheStorage"
 
 import { EntityRestInterface } from "../../../network/EntityRestCacheInterface"
 import { BrowserData } from "../../../app-env/boot/ClientConstants"
+import { NamedClientModel } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 
@@ -112,7 +113,7 @@ export class WorkerImpl implements NativeInterface {
 		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
 	}
 
-	async init(browserData: BrowserData): Promise<void> {
+	async init(browserData: BrowserData, apps: Array<NamedClientModel>): Promise<void> {
 		// import("tuta-sdk").then(async (module) => {
 		// 	// await module.default("wasm/tutasdk.wasm")
 		// 	const entityClient = new module.EntityClient()
@@ -122,7 +123,7 @@ export class WorkerImpl implements NativeInterface {
 		// 	entityClient.free()
 		// })
 
-		await initLocator(this, browserData)
+		await initLocator(this, browserData, apps)
 		const workerScope = this._scope
 
 		// only register oncaught error handler if we are in the *real* worker scope

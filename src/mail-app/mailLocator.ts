@@ -167,12 +167,12 @@ import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
-import { ClientTypeModelResolver } from "../instance-pipeline/EntityFunctions"
-import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { ClientModelInfo } from "../instance-pipeline/EntityFunctions"
 
 assertMainOrNode()
 
 class MailLocator implements CommonLocator {
+	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	search!: SearchModel
 	mailboxModel!: MailboxModel
@@ -245,10 +245,6 @@ class MailLocator implements CommonLocator {
 	private mailImporter: MailImporter | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
-
-	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
-		return initClientModels()
-	})
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -766,7 +762,8 @@ class MailLocator implements CommonLocator {
 		this._workerDeferred = defer()
 	}
 
-	async init(): Promise<void> {
+	async init(clientModelInfo: ClientModelInfo): Promise<void> {
+		this.clientModelInfo = clientModelInfo
 		// Split init in two separate parts: creating modules and causing side effects.
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
@@ -856,7 +853,7 @@ class MailLocator implements CommonLocator {
 		this.eventController = new EventController(mailLocator.logins, this.progressTracker)
 		this.syncTracker = new SyncTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
-		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
+		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -900,7 +897,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
-			this.typeModelResolver(),
+			this.clientModelInfo,
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const

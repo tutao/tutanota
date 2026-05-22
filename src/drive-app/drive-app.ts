@@ -24,6 +24,17 @@ import { DRIVE_PREFIX } from "../ui/utils/RouteChange"
 import { TopLevelAttrs, TopLevelView } from "../ui/base/TopLevelView"
 import { client } from "../app-env/boot/ClientDetector"
 import { initUiSingletons } from "../common/app-common"
+import { NamedClientModel } from "@tutao/instance-pipeline"
+import { AppNameEnum } from "@tutao/meta"
+import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
+import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
+import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
+import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
+import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
+import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -65,7 +76,17 @@ import("../ui/translations/en.js")
 		// do this after lang initialized
 		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
 		const { driveLocator } = await import("./driveLocator.js")
-		await driveLocator.init()
+		const apps: Array<NamedClientModel> = [
+			{ app: AppNameEnum.Base, clientModel: baseTypeModels, modelInfo: baseModelInfo },
+			{ app: "sys", clientModel: sysTypeModels, modelInfo: sysModelInfo },
+			{ app: "tutanota", clientModel: tutanotaTypeModels, modelInfo: tutanotaModelInfo },
+			{ app: "drive", clientModel: driveTypeModels, modelInfo: driveModelInfo },
+			{ app: "storage", clientModel: storageTypeModels, modelInfo: storageModelInfo },
+			{ app: "monitor", clientModel: monitorTypeModels, modelInfo: monitorModelInfo },
+			{ app: "usage", clientModel: usageTypeModels, modelInfo: usageModelInfo },
+			{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
+		]
+		await driveLocator.init(initClientModels(apps))
 
 		initCommonLocator(driveLocator)
 		await initUiSingletons(windowFacade, driveLocator.themeController)

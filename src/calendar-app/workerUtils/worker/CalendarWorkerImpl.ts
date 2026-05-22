@@ -12,6 +12,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { errorToObj } from "@tutao/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { BrowserData } from "../../../app-env/boot/ClientConstants"
+import { NamedClientModel } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 
@@ -26,8 +27,8 @@ export class CalendarWorkerImpl implements NativeInterface {
 		this._dispatcher = new MessageDispatcher(new WebWorkerTransport(this._scope), this.queueCommands(this.exposedInterface), "worker-main", objToError)
 	}
 
-	async init(browserData: BrowserData): Promise<void> {
-		await initLocator(this, browserData)
+	async init(browserData: BrowserData, apps: Array<NamedClientModel>): Promise<void> {
+		await initLocator(this, browserData, apps)
 		const workerScope = this._scope
 
 		// only register oncaught error handler if we are in the *real* worker scope
