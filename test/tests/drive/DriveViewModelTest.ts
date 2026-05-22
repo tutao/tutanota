@@ -10,17 +10,13 @@ import { DriveViewModel } from "../../../src/applications/drive-app/drive/view/D
 import { matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
-
 import { UserController } from "../../../src/applications/common/api/main/UserController"
-
 import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
 import { FolderItemId } from "../../../src/applications/drive-app/drive/view/DriveUtils"
 import { DriveTransferController } from "../../../src/applications/drive-app/drive/view/DriveTransferController"
-
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 
 o.spec("DriveViewModel", function () {
@@ -88,7 +84,8 @@ o.spec("DriveViewModel", function () {
 		userManagementFacade = object()
 
 		when(loginController.getUserController()).thenReturn(userController)
-		when(driveFacade.loadRootFolders()).thenResolve(rootIds)
+		when(loginController.waitForFullLogin()).thenResolve()
+		when(driveFacade.loadRootFolders(matchers.anything())).thenResolve(rootIds)
 		entityRestClientMock.addListInstances(rootFolders.root)
 
 		transferController = object()
