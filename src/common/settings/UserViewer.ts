@@ -234,7 +234,11 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				},
 			],
 			selectedValue: this.userGroupInfo.deleted == null,
-			selectionChangedHandler: (activate: boolean) => {
+			selectionChangedHandler: async (activate: boolean) => {
+				const user = await this.user.getAsync()
+				if (user.enabled === activate) {
+					return
+				}
 				if (this.isAdmin) {
 					Dialog.message("deactivateOwnAccountInfo_msg")
 				} else if (activate) {
