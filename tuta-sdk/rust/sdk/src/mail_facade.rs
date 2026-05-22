@@ -1,14 +1,20 @@
+use crate::blobs::blob_facade::BlobFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Group, GroupInfo};
 use crate::entities::generated::tutanota::{
-	Mail, MailBox, MailSet, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
+	Mail, MailBox, MailDetails, MailDetailsBlob, MailSet, MailboxGroupRoot, SimpleMoveMailPostIn,
+	UnreadMailStatePostIn,
 };
 use crate::entities::Entity;
 use crate::folder_system::{FolderSystem, MailSetKind};
 use crate::groups::GroupType;
 use crate::id::id_tuple::IdTupleGenerated;
+use crate::json_element::RawEntity;
+use crate::json_serializer::JsonSerializer;
+#[cfg_attr(test, mockall_double::double)]
+use crate::key_loader_facade::KeyLoaderFacade;
 use crate::rest_error::HttpError;
 use crate::services::generated::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
@@ -25,6 +31,9 @@ pub struct MailFacade {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	user_facade: Arc<UserFacade>,
 	service_executor: Arc<ResolvingServiceExecutor>,
+	blob_facade: Arc<BlobFacade>,
+	key_loader_facade: Arc<KeyLoaderFacade>,
+	json_serializer: Arc<JsonSerializer>,
 }
 
 impl MailFacade {
@@ -32,11 +41,17 @@ impl MailFacade {
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
 		service_executor: Arc<ResolvingServiceExecutor>,
+		blob_facade: Arc<BlobFacade>,
+		key_loader_facade: Arc<KeyLoaderFacade>,
+		json_serializer: Arc<JsonSerializer>,
 	) -> Self {
 		MailFacade {
 			crypto_entity_client,
 			user_facade,
 			service_executor,
+			blob_facade,
+			key_loader_facade,
+			json_serializer,
 		}
 	}
 }
@@ -86,6 +101,73 @@ impl MailFacade {
 
 	pub fn get_crypto_entity_client(&self) -> Arc<CryptoEntityClient> {
 		self.crypto_entity_client.clone()
+	}
+
+	/// Load and decrypt the `MailDetails` for the given `Mail`.
+	///
+	/// Blob elements don't carry their own `_ownerEncSessionKey`, so the session
+	/// key is resolved from the parent `Mail` — mirroring TS
+	/// `MailFacade.loadMailDetailsBlob()` + `keyProviderFromInstance()`.
+	pub async fn load_mail_details_blob(
+		&self,
+		mail: &Mail,
+	) -> Result<MailDetails, ApiCallError> {
+		if mail.mailDetailsDraft.is_some() {
+			return Err(ApiCallError::internal(
+				"not supported, must be mail details blob".to_owned(),
+			));
+		}
+		let details_id = mail
+			.mailDetails
+			.as_ref()
+			.ok_or_else(|| ApiCallError::internal("Mail has no mailDetails ID".to_owned()))?;
+		let list_id = &details_id.list_id;
+		let element_id = &details_id.element_id;
+
+		let owner_enc_sk = mail
+			._ownerEncSessionKey
+			.as_ref()
+			.ok_or_else(|| ApiCallError::internal("Mail missing _ownerEncSessionKey".to_owned()))?;
+		let owner_group = mail
+			._ownerGroup
+			.as_ref()
+			.ok_or_else(|| ApiCallError::internal("Mail missing _ownerGroup".to_owned()))?;
+		let owner_key_version = mail._ownerKeyVersion.unwrap_or(0).unsigned_abs();
+
+		let group_key = self
+			.key_loader_facade
+			.load_sym_group_key(owner_group, owner_key_version, None)
+			.await
+			.map_err(|e| {
+				ApiCallError::internal(format!("Failed to load group key: {e}"))
+			})?;
+		let session_key = group_key.decrypt_aes_key(owner_enc_sk).map_err(|e| {
+			ApiCallError::internal(format!("Failed to decrypt session key: {e}"))
+		})?;
+
+		let type_ref = MailDetailsBlob::type_ref();
+
+		let body = self
+			.blob_facade
+			.load_blob_element(&type_ref, list_id, element_id, list_id)
+			.await?;
+
+		let raw_entities: Vec<RawEntity> =
+			serde_json::from_slice(&body).map_err(|e| {
+				ApiCallError::internal(format!("Failed to parse blob response: {e}"))
+			})?;
+		let raw = raw_entities.into_iter().next().ok_or_else(|| {
+			ApiCallError::internal("Empty blob response".to_owned())
+		})?;
+		let parsed = self.json_serializer.parse(&type_ref, raw)?;
+
+		let blob: MailDetailsBlob = self.crypto_entity_client.decrypt_with_owner_key(
+			parsed,
+			&session_key,
+			owner_enc_sk.clone(),
+			owner_key_version,
+		)?;
+		Ok(blob.details)
 	}
 
 	/// Invoke the SimpleMoveMail service to move mail(s) to the first folder of a given folder
@@ -233,19 +315,55 @@ fn get_enabled_mail_addresses_for_group_info(group_info: &GroupInfo) -> Vec<Stri
 #[cfg(test)]
 mod tests {
 	use super::UnreadMailStatePostIn;
+	use crate::bindings::file_client::MockFileClient;
+	use crate::bindings::rest_client::MockRestClient;
+	use crate::blobs::blob_access_token_facade::MockBlobAccessTokenFacade;
+	use crate::blobs::blob_facade::BlobFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::entities::generated::tutanota::{MoveMailPostOut, SimpleMoveMailPostIn};
 	use crate::folder_system::MailSetKind;
+	use crate::instance_mapper::InstanceMapper;
+	use crate::json_serializer::JsonSerializer;
+	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::mail_facade::MailFacade;
 	use crate::services::generated::tutanota::SimpleMoveMailService;
 	use crate::services::generated::tutanota::UnreadMailStateService;
 	use crate::services::service_executor::MockResolvingServiceExecutor;
+	use crate::type_model_provider::TypeModelProvider;
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::create_test_entity;
 	use crate::GeneratedId;
+	use crate::HeadersProvider;
 	use crate::IdTupleGenerated;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
+	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use mockall::predicate::{always, eq};
 	use std::sync::Arc;
+
+	fn make_test_facade(executor: MockResolvingServiceExecutor) -> MailFacade {
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+			Arc::new(MockRestClient::new()),
+			Arc::new(MockFileClient::new()),
+			"http://localhost:9000".to_string(),
+		));
+		let blob_facade = Arc::new(BlobFacade::new(
+			MockBlobAccessTokenFacade::default(),
+			Arc::new(MockRestClient::new()),
+			RandomizerFacade::from_core(DeterministicRng(42)),
+			Arc::new(HeadersProvider { access_token: None }),
+			Arc::new(InstanceMapper::new(type_model_provider.clone())),
+			Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			type_model_provider.clone(),
+		));
+		MailFacade::new(
+			Arc::new(MockCryptoEntityClient::default()),
+			Arc::new(MockUserFacade::default()),
+			Arc::new(executor),
+			blob_facade,
+			Arc::new(MockKeyLoaderFacade::default()),
+			Arc::new(JsonSerializer::new(type_model_provider.clone())),
+		)
+	}
 
 	#[tokio::test]
 	async fn mark_mail_split() {
@@ -273,11 +391,7 @@ mod tests {
 				.with(eq(second_invocation), always())
 				.returning(|_, _| Ok(()));
 
-			let facade = MailFacade::new(
-				Arc::new(MockCryptoEntityClient::default()),
-				Arc::new(MockUserFacade::default()),
-				Arc::new(executor),
-			);
+			let facade = make_test_facade(executor);
 			facade
 				.set_unread_status_for_mails(mails, unread)
 				.await
@@ -309,11 +423,7 @@ mod tests {
 				.with(eq(invocation), always())
 				.returning(|_, _| Ok(()));
 
-			let facade = MailFacade::new(
-				Arc::new(MockCryptoEntityClient::default()),
-				Arc::new(MockUserFacade::default()),
-				Arc::new(executor),
-			);
+			let facade = make_test_facade(executor);
 			facade
 				.set_unread_status_for_mails(mails, unread)
 				.await
@@ -337,11 +447,7 @@ mod tests {
 				.expect_post::<UnreadMailStateService>()
 				.with(eq(invocation), always())
 				.returning(|_, _| Ok(()));
-			let facade = MailFacade::new(
-				Arc::new(MockCryptoEntityClient::default()),
-				Arc::new(MockUserFacade::default()),
-				Arc::new(executor),
-			);
+			let facade = make_test_facade(executor);
 			facade
 				.set_unread_status_for_mails(mails, unread)
 				.await
@@ -386,11 +492,7 @@ mod tests {
 				})
 			});
 
-		let facade = MailFacade::new(
-			Arc::new(MockCryptoEntityClient::default()),
-			Arc::new(MockUserFacade::default()),
-			Arc::new(executor),
-		);
+		let facade = make_test_facade(executor);
 		facade.trash_mails(mails).await.unwrap();
 	}
 
@@ -417,11 +519,7 @@ mod tests {
 					..create_test_entity()
 				})
 			});
-		let facade = MailFacade::new(
-			Arc::new(MockCryptoEntityClient::default()),
-			Arc::new(MockUserFacade::default()),
-			Arc::new(executor),
-		);
+		let facade = make_test_facade(executor);
 		facade.trash_mails(mails).await.unwrap();
 	}
 
@@ -443,11 +541,7 @@ mod tests {
 					..create_test_entity()
 				})
 			});
-		let facade = MailFacade::new(
-			Arc::new(MockCryptoEntityClient::default()),
-			Arc::new(MockUserFacade::default()),
-			Arc::new(executor),
-		);
+		let facade = make_test_facade(executor);
 		facade.trash_mails(mails).await.unwrap();
 	}
 

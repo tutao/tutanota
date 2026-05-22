@@ -578,10 +578,18 @@ impl LoggedInSdk {
 	/// Generates a new interface to operate on mail entities
 	#[must_use]
 	pub fn mail_facade(&self) -> MailFacade {
+		let key_loader = self
+			.crypto_entity_client
+			.get_crypto_facade()
+			.get_key_loader_facade()
+			.clone();
 		MailFacade::new(
 			self.crypto_entity_client.clone(),
 			self.user_facade.clone(),
 			self.service_executor.clone(),
+			self.blob_facade.clone(),
+			key_loader,
+			self.json_serializer.clone(),
 		)
 	}
 
@@ -729,4 +737,5 @@ mod tests {
 		let parsed_mail = create_test_entity_dict::<Mail>();
 		let _ = sdk.serialize_mail(parsed_mail);
 	}
+
 }

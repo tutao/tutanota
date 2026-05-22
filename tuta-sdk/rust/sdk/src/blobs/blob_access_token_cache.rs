@@ -6,10 +6,6 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::sync::{Arc, RwLock};
 
-/// still missing ReadArchive(archive_id) and ReadBlob(archive_id, blob_id)
-/// (see TS impl of the cache)
-/// once we have those, it should be made even more type safe by restricting the input to
-/// reading/writing functions on blob facade to the right kind of token.
 #[derive(Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(test, derive(Debug))]
 pub(crate) struct BlobWriteTokenKey(String, ArchiveDataType);
@@ -20,20 +16,32 @@ impl BlobWriteTokenKey {
 	}
 }
 
+#[derive(Clone, Hash, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
+pub(crate) struct BlobReadArchiveTokenKey(String);
+
+impl BlobReadArchiveTokenKey {
+	pub fn new(archive_id: &GeneratedId) -> Self {
+		Self(archive_id.to_string())
+	}
+}
+
 pub(super) struct BlobAccessTokenCache {
-	cache: RwLock<HashMap<BlobWriteTokenKey, BlobServerAccessInfo>>,
+	write_cache: RwLock<HashMap<BlobWriteTokenKey, BlobServerAccessInfo>>,
+	read_cache: RwLock<HashMap<BlobReadArchiveTokenKey, BlobServerAccessInfo>>,
 	date_provider: Arc<dyn DateProvider>,
 }
 
 impl BlobAccessTokenCache {
 	pub fn new(date_provider: Arc<dyn DateProvider>) -> Self {
 		Self {
-			cache: RwLock::default(),
+			write_cache: RwLock::default(),
+			read_cache: RwLock::default(),
 			date_provider,
 		}
 	}
 
-	pub async fn try_get_token<F, E, Loader>(
+	pub async fn try_get_write_token<F, E, Loader>(
 		&self,
 		key: &BlobWriteTokenKey,
 		loader: Loader,
@@ -43,28 +51,57 @@ impl BlobAccessTokenCache {
 		Loader: FnOnce() -> F + Send,
 	{
 		{
-			let cache = self.cache.read().expect("poisoned lock");
-			let maybe_value = cache.get(key);
-			if let Some(value) = maybe_value {
+			let cache = self.write_cache.read().expect("poisoned lock");
+			if let Some(value) = cache.get(key) {
 				if can_be_used_for_another_request(value, self.date_provider.as_ref()) {
 					return Ok(value.clone());
 				}
 			}
 		}
 		let loaded = loader().await?;
-		self.insert(key.to_owned(), loaded.clone());
+		self.insert_write(key.to_owned(), loaded.clone());
 		Ok(loaded)
 	}
 
-	fn insert(&self, key: BlobWriteTokenKey, value: BlobServerAccessInfo) {
-		let mut cache = self.cache.write().expect("poisoned lock");
-		// someone else might have inserted something while we were loading.
-		// we're just replacing + dropping that value.
+	pub async fn try_get_read_token<F, E, Loader>(
+		&self,
+		key: &BlobReadArchiveTokenKey,
+		loader: Loader,
+	) -> Result<BlobServerAccessInfo, E>
+	where
+		F: Future<Output = Result<BlobServerAccessInfo, E>> + Sized + Send,
+		Loader: FnOnce() -> F + Send,
+	{
+		{
+			let cache = self.read_cache.read().expect("poisoned lock");
+			if let Some(value) = cache.get(key) {
+				if can_be_used_for_another_request(value, self.date_provider.as_ref()) {
+					return Ok(value.clone());
+				}
+			}
+		}
+		let loaded = loader().await?;
+		self.insert_read(key.to_owned(), loaded.clone());
+		Ok(loaded)
+	}
+
+	fn insert_write(&self, key: BlobWriteTokenKey, value: BlobServerAccessInfo) {
+		let mut cache = self.write_cache.write().expect("poisoned lock");
 		let _previous = cache.insert(key, value);
 	}
 
-	pub fn evict(&self, key: &BlobWriteTokenKey) {
-		let mut cache = self.cache.write().expect("poisoned lock");
+	fn insert_read(&self, key: BlobReadArchiveTokenKey, value: BlobServerAccessInfo) {
+		let mut cache = self.read_cache.write().expect("poisoned lock");
+		let _previous = cache.insert(key, value);
+	}
+
+	pub fn evict_write(&self, key: &BlobWriteTokenKey) {
+		let mut cache = self.write_cache.write().expect("poisoned lock");
+		cache.remove(key);
+	}
+
+	pub fn evict_read(&self, key: &BlobReadArchiveTokenKey) {
+		let mut cache = self.read_cache.write().expect("poisoned lock");
 		cache.remove(key);
 	}
 }
@@ -81,7 +118,8 @@ fn can_be_used_for_another_request(
 #[cfg(test)]
 mod tests {
 	use crate::blobs::blob_access_token_cache::{
-		can_be_used_for_another_request, BlobAccessTokenCache, BlobWriteTokenKey,
+		can_be_used_for_another_request, BlobAccessTokenCache, BlobReadArchiveTokenKey,
+		BlobWriteTokenKey,
 	};
 	use crate::date::date_provider::stub::DateProviderStub;
 	use crate::date::DateTime;
@@ -102,8 +140,8 @@ mod tests {
 			expires: DateTime::from_millis(10),
 			..create_test_entity()
 		};
-		cache.insert(key.clone(), test_token.clone());
-		let loaded = cache.try_get_token(&key, || async {
+		cache.insert_write(key.clone(), test_token.clone());
+		let loaded = cache.try_get_write_token(&key, || async {
 			// helps type inference
 			if true {
 				panic!("should be in cache");
@@ -124,7 +162,7 @@ mod tests {
 			..create_test_entity()
 		};
 		let test_clone = test_token.clone();
-		let loaded = cache.try_get_token(&key, || async move {
+		let loaded = cache.try_get_write_token(&key, || async move {
 			Ok(test_clone) as Result<BlobServerAccessInfo, ()>
 		});
 		assert_eq!(test_token, loaded.await.unwrap())
@@ -141,13 +179,13 @@ mod tests {
 			expires: DateTime::from_millis(10),
 			..create_test_entity()
 		};
-		cache.insert(key.clone(), expired_token.clone());
+		cache.insert_write(key.clone(), expired_token.clone());
 		let new_token = BlobServerAccessInfo {
 			expires: DateTime::from_millis(30),
 			..create_test_entity()
 		};
 		let expected_token = new_token.clone();
-		let loaded = cache.try_get_token(&key, || async move {
+		let loaded = cache.try_get_write_token(&key, || async move {
 			Ok(new_token) as Result<BlobServerAccessInfo, ()>
 		});
 		assert_eq!(expected_token, loaded.await.unwrap())
@@ -183,9 +221,41 @@ mod tests {
 			expires: DateTime::from_millis(10),
 			..create_test_entity()
 		};
-		cache.insert(key.clone(), expired_token.clone());
+		cache.insert_write(key.clone(), expired_token.clone());
 
-		cache.evict(&key);
-		assert!(!cache.cache.read().unwrap().contains_key(&key));
+		cache.evict_write(&key);
+		assert!(!cache.write_cache.read().unwrap().contains_key(&key));
+	}
+
+	#[tokio::test]
+	async fn get_read_cached() {
+		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(0)));
+		let key = BlobReadArchiveTokenKey::new(&GeneratedId("archive1".to_owned()));
+		let test_token = BlobServerAccessInfo {
+			expires: DateTime::from_millis(10),
+			..create_test_entity()
+		};
+		cache.insert_read(key.clone(), test_token.clone());
+		let loaded = cache.try_get_read_token(&key, || async {
+			if true {
+				panic!("should be in cache");
+			}
+			Err(())
+		});
+		assert_eq!(test_token, loaded.await.unwrap())
+	}
+
+	#[test]
+	fn evict_read() {
+		let cache = BlobAccessTokenCache::new(Arc::new(DateProviderStub::new(20)));
+		let key = BlobReadArchiveTokenKey::new(&GeneratedId("archive1".to_owned()));
+		let token = BlobServerAccessInfo {
+			expires: DateTime::from_millis(10),
+			..create_test_entity()
+		};
+		cache.insert_read(key.clone(), token);
+
+		cache.evict_read(&key);
+		assert!(!cache.read_cache.read().unwrap().contains_key(&key));
 	}
 }
