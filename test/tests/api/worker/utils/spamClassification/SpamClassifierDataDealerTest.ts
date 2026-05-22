@@ -12,7 +12,6 @@ import { MailFacade } from "../../../../../../src/applications/common/api/worker
 import { createTestEntity } from "../../../../TestUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { last } from "@tutao/utils"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/entities/tutanota"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -28,6 +27,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/entities/tutanota/Utils"
 
 const { anything } = matchers
 

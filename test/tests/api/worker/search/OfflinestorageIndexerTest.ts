@@ -8,7 +8,8 @@ import { ContactIndexer } from "../../../../../src/applications/mail-app/workerU
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
 import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { GroupMembershipTypeRef, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade

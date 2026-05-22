@@ -6,7 +6,7 @@ import type { LoginController } from "../../../src/applications/common/api/main/
 import { appendEmailSignature, prependEmailSignature } from "../../../src/applications/mail-app/mail/signature/Signature.js"
 import { LINE_BREAK } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
 
-import { EmailSignatureType } from "../../../src/entities/tutanota"
+import { EmailSignatureType } from "../../../src/entities/tutanota/Utils"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 o.spec("MailUtilsSignatureTest", function () {

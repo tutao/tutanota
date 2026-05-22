@@ -10,8 +10,8 @@ import { isSystemNotification } from "../../../../../src/applications/mail-app/m
 import { compareMails } from "../../../../../src/applications/mail-app/mail/model/MailUtils"
 import { isTutanotaTeamAddress, isTutaTeamMail } from "../../../../../src/applications/common/mailFunctionality/SharedMailUtils"
 
-import { MailState } from "../../../../../src/entities/tutanota"
 import { createMail, createMailAddress, Mail, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { MailState } from "../../../../../src/entities/tutanota/Utils"
 
 export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	return createTestEntity(MailTypeRef, {

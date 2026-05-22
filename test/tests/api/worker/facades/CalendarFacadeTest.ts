@@ -25,7 +25,6 @@ import {
 	AlarmInfoTypeRef,
 	CalendarEventRefTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	PushIdentifierListTypeRef,
 	PushIdentifierTypeRef,
 	User,
@@ -38,6 +37,7 @@ import { AlarmFacade } from "../../../../../src/applications/common/api/worker/f
 import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
 import { ExposedOperationProgressTracker } from "../../../../../src/applications/common/api/main/OperationProgressTracker"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id

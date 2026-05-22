@@ -6,7 +6,6 @@ import { BlobAccessTokenFacade } from "../../../../src/platform-kits/network/Blo
 import { DateTime } from "luxon"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../TestUtils.js"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
-import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys"
 import { FileTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import {
 	BlobAccessTokenPostOutTypeRef,
@@ -20,6 +19,7 @@ import {
 } from "@tutao/entities/storage"
 
 import { BlobTypeRef } from "@tutao/entities/sys"
+import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys/Utils"
 
 const { anything, captor } = matchers
 

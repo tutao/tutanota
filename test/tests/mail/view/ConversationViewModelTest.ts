@@ -13,7 +13,7 @@ import { MailboxDetail, MailboxModel } from "../../../../src/applications/common
 import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel.js"
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 
-import { MailSetKind, MailState } from "../../../../src/entities/tutanota"
+import { MailSetKind, MailState } from "../../../../src/entities/tutanota/Utils"
 import {
 	ConversationEntry,
 	ConversationEntryTypeRef,

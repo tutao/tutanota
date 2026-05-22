@@ -27,10 +27,9 @@ import { MailModel } from "../../../../src/applications/mail-app/mail/model/Mail
 import { downcast } from "@tutao/utils"
 import { CalendarEventsRepository } from "../../../../src/applications/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/applications/mail-app/UndoModel"
-import { CommonSystemFacade } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/CommonSystemFacade.js"
+import { CommonSystemFacade } from "../../../../src/app-kits/native-bridge/common/generatedipc/types"
 import { unsubscribe } from "../../../../src/applications/mail-app/mail/view/MailViewerUtils"
 import { TransferProgressDispatcher } from "../../../../src/applications/common/api/main/TransferProgressDispatcher"
-import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -43,6 +42,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
+import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail

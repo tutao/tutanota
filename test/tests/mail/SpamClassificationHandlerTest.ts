@@ -13,7 +13,7 @@ import { MailFacade } from "../../../src/applications/common/api/worker/facades/
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { assert, assertNotNull } from "@tutao/utils"
 
-import { MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "../../../src/entities/tutanota"
+import { MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {
 	Body,
 	BodyTypeRef,

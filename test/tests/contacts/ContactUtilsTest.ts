@@ -9,7 +9,7 @@ import {
 	formatBirthdayNumeric,
 } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
 
-import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
 import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("ContactUtilsTest", function () {

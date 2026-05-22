@@ -13,10 +13,10 @@ import { createTestEntity, SchedulerMock } from "../TestUtils"
 
 import { CancelledError } from "@tutao/app-env"
 import * as restError from "@tutao/rest-client/error"
-import { ArchiveDataType } from "../../../src/entities/sys"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TransferId } from "../../../src/entities/drive/Utils"
 import { DriveFile, DriveFileTypeRef } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../src/entities/sys/Utils"
 
 o.spec("DriveTransferController", function () {
 	let transferController: DriveTransferController

@@ -32,7 +32,7 @@ import { WebsocketConnectivityModel } from "../../../../src/applications/common/
 import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 
 import { ExposedCacheStorage } from "../../../../src/app-kits/local-store/CacheStorage"
-import { MailSetKind } from "../../../../src/entities/tutanota"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import {
 	createMailSetEntry,
 	Mail,

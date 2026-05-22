@@ -11,18 +11,9 @@ import { CryptoProtocolVersion, ProgrammingError, TutanotaError } from "@tutao/a
 import { CryptoError } from "@tutao/crypto/error"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/AdminKeyLoaderFacade"
 
-import {
-	Group,
-	GroupKey,
-	GroupKeysRefTypeRef,
-	GroupKeyTypeRef,
-	GroupType,
-	GroupTypeRef,
-	KeyMac,
-	KeyMacTypeRef,
-	PubEncKeyDataTypeRef,
-} from "@tutao/entities/sys"
+import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyMac, KeyMacTypeRef, PubEncKeyDataTypeRef } from "@tutao/entities/sys"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kits/network/KeyAuthenticationFacade"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 const { anything, argThat, captor } = matchers
 

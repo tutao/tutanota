@@ -17,9 +17,8 @@ import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFa
 import { DbFacade, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
 import { Metadata } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 
-import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota"
-
 import { UserTypeRef } from "@tutao/entities/sys"
+import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota/Utils"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade

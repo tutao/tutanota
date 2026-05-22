@@ -19,7 +19,7 @@ import * as restError from "@tutao/rest-client/error"
 import { ProcessInboxHandler } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
-import { MailSetKind, ProcessingState } from "../../../src/entities/tutanota"
+import { MailSetKind, ProcessingState } from "../../../src/entities/tutanota/Utils"
 import {
 	BodyTypeRef,
 	Mail,

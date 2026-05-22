@@ -53,7 +53,6 @@ import { CalendarInfo } from "../../../src/applications/calendar-app/calendar/mo
 import { Time } from "../../../src/applications/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
-import { AccountType, hasCapabilityOnGroup } from "../../../src/entities/sys"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
@@ -65,8 +64,9 @@ import {
 	EncryptedMailAddressTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupType, GroupTypeRef, RepeatRule, UserTypeRef } from "@tutao/entities/sys"
+import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "@tutao/entities/sys"
 import { clone, StrippedEntity } from "@tutao/meta"
+import { AccountType, GroupType, hasCapabilityOnGroup } from "../../../src/entities/sys/Utils"
 
 const zone = "Europe/Berlin"
 

@@ -56,8 +56,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/platform-kits/base/
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kits/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kits/network/error/KeyVerificationMismatchError"
-import { SessionType } from "../../../../../src/platform-kits/app-env/SessionType"
-import { AccountType } from "../../../../../src/entities/sys"
+import { SessionType } from "@tutao/platform-kits/app-env"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 import {
 	AdminGroupKeyRotationGetOutTypeRef,
@@ -77,7 +76,6 @@ import {
 	GroupKeyUpdatesRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
-	GroupType,
 	GroupTypeRef,
 	IdentityKeyPairTypeRef,
 	KeyMac,
@@ -100,6 +98,7 @@ import {
 } from "@tutao/entities/sys"
 import { PublicKeySignatureType } from "../../../../../src/platform-kits/base/crypto/Constants.js"
 import { ServiceExecutor } from "../../../../../src/platform-kits/network/ServiceExecutor"
+import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

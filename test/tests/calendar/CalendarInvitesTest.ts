@@ -12,8 +12,6 @@ import { CalendarNotificationSender } from "../../../src/applications/calendar-a
 import { SendMailModel } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { CalendarEventProgenitor } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
-import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
-import { AccountType } from "../../../src/entities/sys"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
@@ -31,6 +29,8 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../src/entities/sys/Utils"
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,

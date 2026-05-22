@@ -9,9 +9,9 @@ import { createTestEntity } from "../../../TestUtils.js"
 
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kits/network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "../../../../../src/rest-client/types"
-import { ArchiveDataType } from "../../../../../src/entities/sys"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { createReferencingInstance } from "@tutao/entities/storage"
+import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("MailExportFacade", () => {
 	const token = "my token"

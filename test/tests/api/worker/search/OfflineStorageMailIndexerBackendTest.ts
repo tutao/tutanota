@@ -7,7 +7,7 @@ import { MailWithDetailsAndAttachments } from "../../../../../src/applications/m
 import { createTestEntity } from "../../../TestUtils"
 
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence

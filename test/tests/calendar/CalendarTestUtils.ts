@@ -10,8 +10,6 @@ import { AlarmScheduler } from "../../../src/applications/common/calendar/date/A
 import { CalendarType } from "../../../src/applications/common/calendar/date/CalendarUtils"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 
-import { ContactAddressType } from "../../../src/entities/tutanota"
-import { AccountType } from "../../../src/entities/sys"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -20,8 +18,6 @@ import {
 	ContactTypeRef,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
-	Recipient,
-	RecipientType,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
 } from "@tutao/entities/tutanota"
@@ -33,7 +29,6 @@ import {
 	FeatureTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MailAddressAliasTypeRef,
 	PlanConfigurationTypeRef,
@@ -41,6 +36,8 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { GENERATED_MAX_ID } from "@tutao/meta"
+import { ContactAddressType, Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
+import { AccountType, GroupType } from "../../../src/entities/sys/Utils"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const

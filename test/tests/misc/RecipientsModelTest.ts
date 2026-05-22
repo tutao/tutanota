@@ -12,9 +12,10 @@ import { ContactModel } from "../../../src/applications/common/contactsFunctiona
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../src/platform-kits/base/facades/lazy/KeyVerificationFacade"
 import { ProgrammingError } from "@tutao/app-env"
 import { KeyVerificationMismatchError } from "../../../src/platform-kits/network/error/KeyVerificationMismatchError"
-
-import { ContactMailAddressTypeRef, ContactTypeRef, Recipient, RecipientType } from "@tutao/entities/tutanota"
-import { GroupInfoTypeRef, GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
+import { GroupInfoTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../src/entities/sys/Utils"
+import { ContactMailAddressTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
 
 o.spec("RecipientsModelTest", function () {
 	const contactListId = "contactListId"

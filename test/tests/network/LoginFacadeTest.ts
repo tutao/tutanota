@@ -36,7 +36,6 @@ import { ConnectMode } from "../../../src/platform-kits/network/Constants"
 import { CacheStorageLateInitializer } from "../../../src/app-kits/local-store/Types"
 import { Argon2idFacade } from "../../../src/platform-kits/base/crypto/WasmArgon2idFacade"
 import { Credentials } from "@tutao/network/types"
-import { AccountType } from "../../../src/entities/sys"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
 	ChangeKdfService,
@@ -55,6 +54,7 @@ import {
 import { CredentialType } from "../../../src/network/types"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kits/base/crypto/Constants.js"
 import { CacheMode } from "../../../src/platform-kits/network/EntityRestClient"
+import { AccountType } from "../../../src/entities/sys/Utils"
 
 const { anything, argThat } = matchers
 

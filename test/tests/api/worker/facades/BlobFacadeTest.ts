@@ -6,7 +6,7 @@ import {
 	pipelineEncryptAndUpload,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
-import { HttpMethod, RestClientOptions } from "../../../../../src/rest-client/types"
+import { HttpMethod, RestClientOptions } from "../../../../src/rest-client/types"
 import { NativeFileApp } from "../../../../../src/app-kits/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../../src/app-kits/native-bridge/worker/AesApp.js"
 import { Mode, ProgrammingError } from "@tutao/app-env"
@@ -15,11 +15,9 @@ import { func, instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, DeferredObject, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../src/platform-kits/base/crypto/CryptoFacade.js"
-import { File, FileReference, FileTypeRef } from "@tutao/entities/tutanota"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kits/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { ArchiveDataType, BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef } from "../../../../../src/entities/sys"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	BlobGetIn,
@@ -32,7 +30,11 @@ import {
 	storageTypeModels,
 } from "@tutao/entities/storage"
 
-import { BlobTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
+
+import { File, FileTypeRef } from "@tutao/entities/tutanota"
+import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 
 const { anything, captor } = matchers
 

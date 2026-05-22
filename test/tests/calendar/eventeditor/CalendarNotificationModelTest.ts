@@ -6,9 +6,8 @@ import { object, replace, when } from "testdouble"
 import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
 import { createTestEntity } from "../../TestUtils.js"
 
-import { AccountType } from "../../../../src/entities/sys"
-
 import { Customer, PlanConfigurationTypeRef } from "@tutao/entities/sys"
+import { AccountType } from "../../../../src/entities/sys/Utils"
 
 o.spec("CalendarNotificationModel", function () {
 	let userController: UserController

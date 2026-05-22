@@ -22,7 +22,6 @@ import { SpamClassifier } from "../../../../../src/applications/mail-app/workerU
 
 import { CacheStorage } from "../../../../../src/app-kits/local-store/CacheStorage"
 import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportedMailFieldType } from "../../../../../src/entities/tutanota"
 import {
 	DataFile,
 	FileTypeRef,
@@ -33,7 +32,6 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	Recipient,
 	ReportedMailFieldMarkerTypeRef,
 	SecureExternalRecipientKeyDataTypeRef,
 	SendDraftData,
@@ -45,13 +43,14 @@ import {
 	BucketKeyTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	InstanceSessionKey,
 	InstanceSessionKeyTypeRef,
 	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { elementIdPart, getElementId } from "@tutao/meta"
+import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } from "../../../../../src/entities/tutanota/Utils"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

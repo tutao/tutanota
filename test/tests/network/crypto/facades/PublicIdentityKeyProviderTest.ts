@@ -15,8 +15,8 @@ import { EntityClient } from "../../../../../src/platform-kits/network/EntityCli
 import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/app-kits/local-store/IdentityKeyTrustDatabase"
 import { CryptoError } from "@tutao/crypto/error"
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
 import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPair, IdentityKeyService, KeyMacTypeRef } from "@tutao/entities/sys"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor

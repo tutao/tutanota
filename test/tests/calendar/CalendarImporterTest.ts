@@ -27,7 +27,6 @@ import {
 	sortOutParsedEvents,
 } from "../../../src/applications/common/calendar/gui/ImportExportUtils.js"
 
-import { CalendarAttendeeStatus } from "../../../src/entities/tutanota"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,
@@ -38,6 +37,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { AlarmInfo, AlarmInfoTypeRef, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")

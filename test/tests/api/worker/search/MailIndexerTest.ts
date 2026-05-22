@@ -27,7 +27,6 @@ import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../.
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import * as restError from "@tutao/rest-client/error"
-import { MailState } from "../../../../../src/entities/tutanota"
 import {
 	BodyTypeRef,
 	File,
@@ -51,8 +50,10 @@ import {
 	tutanotaTypeModels,
 } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { GroupMembershipTypeRef, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { ProgressMonitor } from "../../../../../src/platform-kits/network/ProgressMonitorInterface"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { MailState } from "../../../../../src/entities/tutanota/Utils"
 
 class FixedDateProvider implements DateProvider {
 	now: number

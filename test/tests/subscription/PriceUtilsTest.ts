@@ -12,7 +12,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { createUpgradePriceServiceMock, PLAN_PRICES } from "./priceTestUtils.js"
 import { UserError } from "../../../src/applications/common/api/main/UserError.js"
 import { clone } from "@tutao/meta"
-import { PlanType } from "../../../src/entities/sys"
+import { PlanType } from "../../../src/entities/sys/Utils"
 
 o.spec("PriceUtilsTest", function () {
 	o.before(async function () {

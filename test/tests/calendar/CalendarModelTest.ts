@@ -31,7 +31,6 @@ import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEvent } from "../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
-import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
@@ -52,7 +51,6 @@ import {
 	GroupMembership,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MailAddressAlias,
 	RepeatRuleTypeRef,
@@ -63,6 +61,8 @@ import {
 import { clone, elementIdPart, getListId, listIdPart } from "@tutao/meta"
 import { ProgressMonitorInterface } from "../../../src/platform-kits/network/ProgressMonitorInterface"
 import { EntityUpdateData } from "../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
+import { GroupType } from "../../../src/entities/sys/Utils"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers

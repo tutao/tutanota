@@ -34,10 +34,10 @@ import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { makePopulatedClientModelInfo } from "../TestUtils.js"
-import { GroupType } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
 import { ProgressMonitor } from "../../../src/platform-kits/network/ProgressMonitorInterface"
 import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
+import { GroupType } from "../../../src/entities/sys/Utils"
 
 let saveAndSendMock
 let rescheduleEventMock
