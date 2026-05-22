@@ -321,7 +321,9 @@ export class BlobFacade {
 				throw new CancelledError("Upload canceled")
 			}
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return this.uploadNativeEncryptedChunk(encryptedChunk.chunkUri, blobServerAccessInfo, encryptedChunk.chunkId)
+			const tokenWrapper = await this.uploadNativeEncryptedChunk(encryptedChunk.chunkUri, blobServerAccessInfo, encryptedChunk.chunkId)
+			await this.fileApp.deleteFile(encryptedChunk.chunkUri)
+			return tokenWrapper
 		}
 		const referenceTokens: BlobReferenceTokenWrapper[] = []
 

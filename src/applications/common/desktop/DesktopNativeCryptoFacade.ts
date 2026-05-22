@@ -20,6 +20,7 @@ import { FileUri } from "../../../app-kit/native-bridge/common/FileApp.js"
 import path from "node:path"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
+import { readStreamToBuffer } from "./files/DesktopFileFacade"
 
 type FsExports = typeof FsModule
 
@@ -55,21 +56,18 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
-		// at the moment, this is randomized if the file to be encrypted
-		// was created with FileFacade.writeDataFile.
-		// to make it safe in all conditions, we should re-generate a random file name.
-		// we're also not checking if the file to be encrypted is actually located in
-		// the temp scratch space
-		const bytes = await this.fs.promises.readFile(fileUri)
-		const keyBits = this.cryptoFns.bytesToKey(key)
-		const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
-		const targetDir = await this.tfs.ensureEncryptedDir()
-		const writtenFileName = path.basename(fileUri)
-		const filePath = path.join(targetDir, writtenFileName)
-		await this.fs.promises.writeFile(filePath, encrypted)
-		return {
-			uri: filePath,
-			unencryptedSize: bytes.length,
+		const fileStream = this.tfs.fileStream(fileUri)
+		try {
+			const bytes = await readStreamToBuffer(fileStream)
+			const keyBits = this.cryptoFns.bytesToKey(key)
+			const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
+			const encryptedUri = this.tfs.createInMemoryFile(encrypted)
+			return {
+				uri: encryptedUri,
+				unencryptedSize: bytes.length,
+			}
+		} finally {
+			this.tfs.closeFileStream(fileStream)
 		}
 	}
 

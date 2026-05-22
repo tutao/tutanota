@@ -9,15 +9,15 @@ import { HttpMethod } from "../../../../src/platform-kit/rest-client/types"
 import type fs from "node:fs"
 import { stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import { DesktopConfig } from "../../../../src/applications/common/desktop/config/DesktopConfig.js"
-import { DateProvider } from "../../../../src/platform-kit/utils/DateProvider.js"
+import { DateProvider } from "../../../../src/platform-kit/utils"
 import { TempFs } from "../../../../src/applications/common/desktop/files/TempFs.js"
-import { BuildConfigKey, DesktopConfigKey } from "../../../../src/platform-kit/app-env/ConfigKeys.js"
+import { BuildConfigKey, DesktopConfigKey, ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { FetchImpl, FetchResult } from "../../../../src/applications/common/desktop/net/NetAgent"
 import { CommandExecutor } from "../../../../src/applications/common/desktop/CommandExecutor"
 import stream from "node:stream"
 import nodePath from "node:path"
-import { ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
+import { mockFsReadStream } from "../desktopTestUtils"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 const USER_DATA_PATH = "/path/to/user/data"
@@ -237,8 +237,8 @@ o.spec("DesktopFileFacade", function () {
 			const headers = {
 				blobAccessToken: "1236",
 			}
-			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
-			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
+			const fileStreamMock = mockFsReadStream(new Buffer([1, 2, 3, 4]))
+			when(tfs.fileStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			when(
 				fetch(urlMatches(new URL(targetUrl)), {
 					method: HttpMethod.POST,
@@ -254,13 +254,12 @@ o.spec("DesktopFileFacade", function () {
 			o(uploadResult.precondition).equals(null)
 			o(uploadResult.suspensionTime).equals(null)
 			o(Array.from(uploadResult.responseBody)).deepEquals(Array.from(body))
-			verify(tfs.assertInTmpDir(fileToUploadPath))
 		})
 
 		o("when 404 is returned it returns correct result", async function () {
 			const errorId = "123"
-			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
-			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
+			const fileStreamMock = mockFsReadStream(new Buffer([1, 2, 3, 4]))
+			when(tfs.fileStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			const response = mockResponse(404, { responseHeaders: { "error-id": errorId } })
 			when(fetch(matchers.anything(), matchers.anything())).thenResolve(response)
 			const uploadResult = await ff.upload(fileToUploadPath, targetUrl, HttpMethod.POST, {}, "abc")
@@ -274,8 +273,8 @@ o.spec("DesktopFileFacade", function () {
 		o("when retry-after is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
-			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
+			const fileStreamMock = mockFsReadStream(new Buffer([1, 2, 3, 4]))
+			when(tfs.fileStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			const response = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
@@ -296,8 +295,8 @@ o.spec("DesktopFileFacade", function () {
 		o("when suspension-time is returned, it is propagated", async function () {
 			const retryAFter = "20"
 			const errorId = "123"
-			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
-			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
+			const fileStreamMock = mockFsReadStream(new Buffer([1, 2, 3, 4]))
+			when(tfs.fileStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			const response = mockResponse(restError.TooManyRequestsError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
@@ -317,8 +316,8 @@ o.spec("DesktopFileFacade", function () {
 		o("when precondition-time is returned, it is propagated", async function () {
 			const precondition = "a.2"
 			const errorId = "123"
-			const fileStreamMock = mockReadStream(new Buffer([1, 2, 3, 4]))
-			when(fs.createReadStream(fileToUploadPath)).thenReturn(fileStreamMock)
+			const fileStreamMock = mockFsReadStream(new Buffer([1, 2, 3, 4]))
+			when(tfs.fileStream(fileToUploadPath)).thenReturn(fileStreamMock)
 			const response = mockResponse(restError.PreconditionFailedError.CODE, {
 				responseHeaders: {
 					"error-id": errorId,
@@ -392,7 +391,7 @@ o.spec("DesktopFileFacade", function () {
 	o.spec("join", function () {
 		o("join a single file", async function () {
 			const ws: fs.WriteStream = mockWriteStream()
-			const rs: fs.ReadStream = mockReadStream(new Buffer([10, 2, 3, 4]))
+			const rs: fs.ReadStream = mockFsReadStream(new Buffer([10, 2, 3, 4]))
 			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws)
 			when(fs.createReadStream(matchers.anything())).thenReturn(rs)
 			when(fs.promises.readdir("/tutanota/tmp/path/unencrypted")).thenResolve(["folderContents"])
@@ -408,30 +407,28 @@ o.spec("DesktopFileFacade", function () {
 			// fs mock returns file name as the content
 			const filename = "/tutanota/tmp/path/download/small.txt"
 			const fileContent = stringToUtf8Uint8Array(filename)
-			const filenameHash = "9ca089f82e397e9e860daa312ac25def39f2da0e066f0de94ffc02aa7b3a6250"
-			const expectedChunkPath = `/tutanota/tmp/path/unencrypted/${filenameHash}.0.blob`
-			when(tfs.ensureUnencrytpedDir()).thenResolve("/tutanota/tmp/path/unencrypted")
-			when(fs.promises.writeFile(expectedChunkPath, fileContent)).thenResolve()
-			when(fs.promises.readFile(filename)).thenResolve(Buffer.from(fileContent))
+			when(fs.promises.stat(filename)).thenResolve({ size: fileContent.length })
+			when(tfs.createFileChunkUri(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
+				(path, start, length) => `tuta-chunk:${path}?start=${start}&length=${length}`,
+			)
 			const chunks = await ff.splitFile(filename, 1024)
-			o(chunks).deepEquals([expectedChunkPath])("only one chunk")
+			o(chunks).deepEquals([`tuta-chunk:/tutanota/tmp/path/download/small.txt?start=0&length=${fileContent.length}`])("only one chunk")
 		})
 
 		o("returns multiple slices for a bigger file", async function () {
 			// fs mock returns file name as the content
 			const filename = "/tutanota/tmp/path/download/big.txt"
-			// length 37
+			// length 35
 			const fileContent = stringToUtf8Uint8Array(filename)
-			const filenameHash = "c24646a4738a92d624cd03134f26c371d8a2950d2b3bbce7921c288de9a56fd3"
-			const expectedChunkPath0 = `/tutanota/tmp/path/unencrypted/${filenameHash}.0.blob`
-			const expectedChunkPath1 = `/tutanota/tmp/path/unencrypted/${filenameHash}.1.blob`
-
-			when(tfs.ensureUnencrytpedDir()).thenResolve("/tutanota/tmp/path/unencrypted")
-			when(fs.promises.writeFile(expectedChunkPath0, fileContent.slice(0, 30))).thenResolve()
-			when(fs.promises.writeFile(expectedChunkPath1, fileContent.slice(30))).thenResolve()
-			when(fs.promises.readFile(filename)).thenResolve(Buffer.from(fileContent))
+			when(fs.promises.stat(filename)).thenResolve({ size: fileContent.length })
+			when(tfs.createFileChunkUri(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
+				(path, start, length) => `tuta-chunk:${path}?start=${start}&length=${length}`,
+			)
 			const chunks = await ff.splitFile(filename, 30)
-			o(chunks).deepEquals([expectedChunkPath0, expectedChunkPath1])("both written files are in the returned array")
+			o(chunks).deepEquals([
+				`tuta-chunk:/tutanota/tmp/path/download/big.txt?start=0&length=30`,
+				`tuta-chunk:/tutanota/tmp/path/download/big.txt?start=30&length=5`,
+			])
 		})
 	})
 
@@ -479,9 +476,9 @@ o.spec("DesktopFileFacade", function () {
 
 	o.spec("hash", function () {
 		o("hash", async function () {
-			when(fs.promises.readFile("/file1")).thenResolve(new Uint8Array([0, 1, 2, 3]) as Buffer)
+			const fileContent = Buffer.from([0, 1, 2, 3])
+			when(tfs.fileStream("/file1")).thenReturn(mockFsReadStream(fileContent))
 			o(await ff.hashFile("/file1")).equals("BU7ewdAh")
-			verify(tfs.assertInTmpDir("/file1"))
 		})
 	})
 
@@ -535,12 +532,6 @@ o.spec("DesktopFileFacade", function () {
 		})
 	})
 })
-
-function mockReadStream(buffer: Buffer): fs.ReadStream {
-	const s = stream.Readable.from(buffer) as unknown as fs.ReadStream
-	s.close = () => {}
-	return s
-}
 
 const urlMatches = matchers.create({
 	name: "urlMatches",
