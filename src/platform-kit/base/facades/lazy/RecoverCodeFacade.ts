@@ -5,6 +5,7 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
+	AesKeyLength,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	cryptoUtils,
@@ -64,7 +65,7 @@ export class RecoverCodeFacade {
 		return uint8ArrayToHex(keyToUint8Array(rawRecoverCode))
 	}
 
-	async getRawRecoverCode(passphraseKey: AesKey): Promise<AesKey> {
+	async getRawRecoverCode(passphraseKey: AesKey): Promise<Aes256Key> {
 		const user = this.userFacade.getLoggedInUser()
 		const recoverCodeId = user.auth?.recoverCode
 		if (recoverCodeId == null) {
@@ -77,7 +78,7 @@ export class RecoverCodeFacade {
 
 		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
-		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
+		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode, AesKeyLength.Aes256)
 	}
 
 	private async getPassphraseKey(user: User, passphrase: string) {

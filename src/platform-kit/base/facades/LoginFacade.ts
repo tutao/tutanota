@@ -20,10 +20,10 @@ import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
-	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
+	AesKeyLength,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -699,7 +699,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
 	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
-		const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
+		const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode), AesKeyLength.Aes256)
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
 		const sessionData = createCreateSessionData({
@@ -738,7 +738,6 @@ export class LoginFacade implements SessionTypeProvider {
 			getDefaultSymmetricEncryptionScheme(): SymmetricEncryptionScheme {
 				throw new Error("No loggedInUser to have an encryption scheme")
 			}
-
 		})()
 		const lazyCrypto = () => this.cryptoFacade
 		const eventRestClient = new EntityRestClient(
@@ -1163,7 +1162,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @param accessToken
 	 * @param userPassphraseKey
 	 */
-	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
+	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: AesKey) {
 		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
 			console.log("Auth verifier has changed")
 			// delete the obsolete session to make sure it can not be used anymore

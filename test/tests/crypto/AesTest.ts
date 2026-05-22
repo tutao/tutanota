@@ -1,14 +1,16 @@
 import o, { assertThrows, throwsErrorWithMessage } from "@tutao/otest"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
 import {
-	Aes128Key, aes256RandomKey,
+	Aes128Key,
+	Aes256Key,
+	aes256RandomKey,
 	AesKey,
 	AesKeyLength,
 	base64ToKey,
 	getKeyLengthInBytes,
 	keyToBase64,
 	random,
-	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { BLOCK_SIZE_BYTES, validateInitializationVectorLength } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
@@ -78,13 +80,13 @@ o.spec("aes", function () {
 	}
 
 	o("encryptWithInvalidKey", async function () {
-		let key = new Array<number>(2)
+		let key = new Array<number>(2) as AesKey
 		const e = await assertThrows(CryptoError, async () => aesEncrypt(key, stringToUtf8Uint8Array("hello")))
 		o(e.message.startsWith("Illegal key length")).equals(true)
 	})
 
 	o("decryptWithInvalidKey", async function () {
-		let key = new Array<number>(2).fill(0)
+		let key = new Array<number>(2).fill(0) as AesKey
 		const e = await assertThrows(CryptoError, async () => aesDecrypt(key, new Uint8Array(BLOCK_SIZE_BYTES)))
 		o(e.message.startsWith("Illegal key length")).equals(true)
 	})
@@ -100,14 +102,14 @@ o.spec("aes", function () {
 	}
 
 	o("decryptManipulatedData 128 without mac", function () {
-		const key = [151050668, 1341212767, 316219065, 2150939763]
+		const key = [151050668, 1341212767, 316219065, 2150939763, 151050668, 1341212767, 316219065, 2150939763] as Aes256Key
 		let encrypted = aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array("hello"), initializationVector)
 		encrypted[0] = encrypted[0] + 1
 		let decrypted = aesDecryptUnauthenticated(key, encrypted)
 		o(utf8Uint8ArrayToString(decrypted)).equals("kello") // => encrypted data has been manipulated (missing MAC)
 	})
 	o("decryptManipulatedData 128 with mac", function () {
-		let key = [151050668, 1341212767, 316219065, 2150939763]
+		let key = [151050668, 1341212767, 316219065, 2150939763] as Aes128Key
 		let encrypted = aesEncrypt(key, stringToUtf8Uint8Array("hello"))
 		encrypted[1] = encrypted[1] + 1
 
@@ -121,7 +123,7 @@ o.spec("aes", function () {
 		}
 	})
 	o("decryptManipulatedMac 128 with mac", function () {
-		let key = [151050668, 1341212767, 316219065, 2150939763]
+		let key = [151050668, 1341212767, 316219065, 2150939763] as Aes128Key
 		let encrypted = aesEncrypt(key, stringToUtf8Uint8Array("hello"))
 		encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1
 
@@ -163,5 +165,5 @@ o.spec("aes", function () {
 })
 
 export function _aes128RandomKey(): Aes128Key {
-	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)))
+	return uint8ArrayToKey(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)), AesKeyLength.Aes128)
 }

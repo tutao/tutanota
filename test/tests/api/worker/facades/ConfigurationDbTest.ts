@@ -10,6 +10,7 @@ import {
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { DbStub } from "../search/DbStub.js"
 import {
+	Aes256Key,
 	aes256RandomKey,
 	AesKey,
 	generateInitializationVector,
@@ -180,7 +181,7 @@ o.spec("ConfigurationDbTest", function () {
 		let dbFacade: DbFacade
 		let transaction: DbTransaction
 		let currentUserGroupKey: VersionedKey
-		let dbKey: AesKey
+		let dbKey: Aes256Key
 		let initializationVector: InitializationVector
 		let encIv: Uint8Array
 

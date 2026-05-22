@@ -13,6 +13,7 @@ import {
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import {
+	Aes128Key,
 	aes256RandomKey,
 	AesKey,
 	cryptoUtils,
@@ -26,7 +27,6 @@ import {
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,
-	uint8ArrayToBitArray,
 	X25519KeyPair,
 } from "../../../../src/platform-kit/crypto"
 import { KeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
@@ -254,8 +254,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const senderIdentifier = object<string>()
 			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
 
-			const symKey = keyToUint8Array(aes256RandomKey())
-			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(symKey)
+			const symKey = aes256RandomKey()
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(symKey))
 
 			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData, {
 				identifier: senderIdentifier,
@@ -263,7 +263,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			})
 
 			verify(publicEncryptionKeyProvider, { times: 0 })
-			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })
+			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: symKey })
 		})
 	})
 
@@ -330,7 +330,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o.beforeEach(function () {
 			recipientKyberPublicKey = object<KyberPublicKey>()
-			symKey = [1, 2, 3, 4]
+			symKey = [1, 2, 3, 4] as Aes128Key
 			pubEncSymKeyBytes = object<Uint8Array>()
 			senderPqKeyPair = {
 				object: { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair: object(), kyberKeyPair: object() },

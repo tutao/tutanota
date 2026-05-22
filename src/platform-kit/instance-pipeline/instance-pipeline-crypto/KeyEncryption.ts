@@ -6,8 +6,8 @@ import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPr
 import { X25519PrivateKey } from "../../crypto/encryption/X25519.js"
 import { AsymmetricKeyPair, KeyPairType } from "../../crypto/encryption/AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "../../crypto/encryption/PQKeyPairs.js"
-import { Aes256Key, AesKey } from "../../crypto/encryption/symmetric/SymmetricCipherUtils.js"
-import { AesKeyLength, getKeyLengthInBytes } from "../../crypto/encryption/symmetric/AesKeyLength.js"
+import { Aes128Key, Aes256Key, AesKey } from "../../crypto/encryption/symmetric/SymmetricCipherUtils.js"
+import { AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../../crypto/encryption/symmetric/AesKeyLength.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
@@ -67,8 +67,11 @@ export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uin
 	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
 }
 
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): AesKey {
-	return SYMMETRIC_CIPHER_FACADE.decryptKey(encryptionKey, keyToBeDecrypted)
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): AesKey
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+	return SYMMETRIC_CIPHER_FACADE.decryptKey(encryptionKey, keyToBeDecrypted, acceptedBitLength)
 }
 
 /**
@@ -78,7 +81,7 @@ export function decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encr
 	return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticated(key, encryptedBytes)
 }
 
-export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
+export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): AesKey {
 	// legacy case: recovery code with fixed initialization vector and without mac
 	if (keyToBeDecrypted.length === getKeyLengthInBytes(AesKeyLength.Aes128)) {
 		return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(encryptionKey, keyToBeDecrypted)
@@ -111,7 +114,7 @@ export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs
 	if (keyPair.symEncPrivRsaKey) {
 		return decryptRsaOrRsaX25519KeyPair(encryptionKey, keyPair)
 	} else {
-		return decryptPQKeyPair(encryptionKey, keyPair)
+		return decryptPQKeyPair(assert256BitKey(encryptionKey), keyPair)
 	}
 }
 

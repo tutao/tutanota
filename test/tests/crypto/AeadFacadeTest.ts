@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadFacade, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { AeadFacade, Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -30,7 +30,7 @@ o.spec("AeadFacadeTest", function () {
 	o("encrypt_wrong_key_length", async function () {
 		const subKeys = {
 			cipherVersion,
-			encryptionKey: _aes128RandomKey(),
+			encryptionKey: _aes128RandomKey() as any as Aes256Key,
 			authenticationKey: keys.authenticationKey,
 		}
 		const e = await assertThrows(CryptoError, async () => aeadFacade.encrypt(subKeys, plaintext, associatedData))
@@ -40,7 +40,7 @@ o.spec("AeadFacadeTest", function () {
 	o("decrypt_wrong_key_length", async function () {
 		const subKeys = {
 			cipherVersion,
-			encryptionKey: _aes128RandomKey(),
+			encryptionKey: _aes128RandomKey() as any as Aes256Key,
 			authenticationKey: keys.authenticationKey,
 		}
 		const emptyAd = new Uint8Array()

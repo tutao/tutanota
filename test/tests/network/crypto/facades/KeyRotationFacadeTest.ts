@@ -24,6 +24,7 @@ import {
 	PQPublicKeys,
 	PublicKeyIdentifierType,
 	RsaPublicKey,
+	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
@@ -109,49 +110,49 @@ import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4
 
-const PW_KEY: AesKey = [0]
+const PW_KEY: Aes256Key = [0] as Aes256Key
 PW_KEY.length = PQ_SAFE_BITARRAY_KEY_LENGTH
 
 const CURRENT_USER_GROUP_KEY: VersionedKey = {
-	object: [1],
+	object: [1] as AesKey,
 	version: 0,
 }
 CURRENT_USER_GROUP_KEY.object.length = PQ_SAFE_BITARRAY_KEY_LENGTH
 
 const CURRENT_ADMIN_GROUP_KEY: VersionedKey = {
-	object: [2],
+	object: [2] as AesKey,
 	version: 0,
 }
 CURRENT_ADMIN_GROUP_KEY.object.length = PQ_SAFE_BITARRAY_KEY_LENGTH
 
-const NEW_USER_GROUP_KEY: VersionedKey = {
-	object: [3, 3, 3, 3],
+const NEW_USER_GROUP_KEY: VersionedAes256Key = {
+	object: [3, 3, 3, 3] as Aes256Key,
 	version: 1,
 }
-const NEW_ADMIN_GROUP_KEY: VersionedKey = {
-	object: [4],
+const NEW_ADMIN_GROUP_KEY: VersionedAes256Key = {
+	object: [4] as Aes256Key,
 	version: 1,
 }
 
-const RECOVER_CODE: Aes256Key = [8]
+const RECOVER_CODE: Aes256Key = [8] as Aes256Key
 const RECOVER_CODE_VERIFIER = new Uint8Array([9])
 const AUTH_VERIFIER = createAuthVerifier(PW_KEY)
-const DISTRIBUTION_KEY = [10]
+const DISTRIBUTION_KEY = [10] as Aes256Key
 
 const CURRENT_USER_AREA_GROUP_KEY: VersionedKey = {
-	object: [11],
+	object: [11] as AesKey,
 	version: 0,
 }
 
-const NEW_GROUP_KEY: VersionedKey = {
-	object: [12],
+const NEW_GROUP_KEY: VersionedAes256Key = {
+	object: [12] as Aes256Key,
 	version: 1,
 }
-const MEMBER1_BUCKET_KEY: Aes256Key = [13]
-const MEMBER1_SESSION_KEY: Aes256Key = [14]
+const MEMBER1_BUCKET_KEY: Aes256Key = [13] as Aes256Key
+const MEMBER1_SESSION_KEY: Aes256Key = [14] as Aes256Key
 
 const OTHER_MEMBER_USER_GROUP_KEY: VersionedKey = {
-	object: [15],
+	object: [15] as AesKey,
 	version: 0,
 }
 OTHER_MEMBER_USER_GROUP_KEY.object.length = PQ_SAFE_BITARRAY_KEY_LENGTH
@@ -474,7 +475,7 @@ o.spec("KeyRotationFacade", function () {
 		asymmetricCryptoFacade = object()
 		keyAuthenticationFacade = object()
 		publicEncryptionKeyProvider = object()
-		groupKeyVersion0 = [1, 2, 3]
+		groupKeyVersion0 = [1, 2, 3] as AesKey
 		publicKeySignatureFacade = object()
 		adminKeyLoader = object()
 		keyRotationFacade = new KeyRotationFacade(
@@ -1881,7 +1882,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareKeyMocks(cryptoWrapperMock)
 				// make admin group key at 128-bit key
 				const insecureUserGroupKey: VersionedKey = {
-					object: [666],
+					object: [666] as AesKey,
 					version: 0,
 				}
 				insecureUserGroupKey.object.length = 4
@@ -2061,7 +2062,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareKeyMocks(cryptoWrapperMock)
 				// make admin group key a 128-bit key
 				const insecureAdminGroupKey: VersionedKey = {
-					object: [666],
+					object: [666] as AesKey,
 					version: 0,
 				}
 				insecureAdminGroupKey.object.length = 4
@@ -2231,7 +2232,8 @@ o.spec("KeyRotationFacade", function () {
 				when(userFacadeMock.getUser()).thenReturn(user)
 
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
-				const passphraseKey: AesKey = object()
+				const passphraseKey: Aes256Key = object()
+				passphraseKey.length = AesKeyLength.Aes256 / 32
 
 				const rolloutAction = new KeyRotationRolloutAction(
 					keyRotationFacadeMock,

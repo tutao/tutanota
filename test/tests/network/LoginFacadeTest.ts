@@ -4,6 +4,7 @@ import td, { instance, matchers, object, when } from "testdouble"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
+	Aes128Key,
 	aes256RandomKey,
 	AesKey,
 	AesKeyLength,
@@ -57,7 +58,7 @@ import { _encryptString } from "../../../src/platform-kit/instance-pipeline/inst
 
 const { anything, argThat } = matchers
 
-const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
+const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()), AesKeyLength.Aes256)
 
 /** Verify using testdouble, but register as an ospec assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
@@ -82,7 +83,7 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
 async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: AesKey = PASSWORD_KEY): Promise<User> {
-	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676])
+	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676] as Aes128Key)
 
 	return createTestEntity(UserTypeRef, {
 		_id: userId,
@@ -305,7 +306,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 
 			let credentials: Credentials
@@ -449,7 +450,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 
 			let user: User
@@ -644,7 +645,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
@@ -752,7 +753,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
@@ -818,7 +819,7 @@ o.spec("LoginFacadeTest", function () {
 		o.spec("external sessions", function () {
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 
 			let user: User
@@ -906,7 +907,7 @@ o.spec("LoginFacadeTest", function () {
 		o.spec("external sessions bcrypt", function () {
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
 			const accessToken = "accessToken"
 
 			let user: User
@@ -963,7 +964,7 @@ o.spec("LoginFacadeTest", function () {
 			const user = await makeUser("userId", KdfType.Bcrypt)
 			user.salt = SALT
 
-			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4], version: 0 })
+			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4] as Aes128Key, version: 0 })
 			Const.EXECUTE_KDF_MIGRATION = true
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 

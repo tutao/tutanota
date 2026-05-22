@@ -3,7 +3,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { AesKey, bitArrayToUint8Array, uint8ArrayToBitArray } from "./symmetric/SymmetricCipherUtils.js"
 import { getAndVerifyAesKeyLength } from "./symmetric/AesKeyLength.js"
 
-export type MacTag = Uint8Array & { __brand: "macTag" }
+export type MacTag = Uint8Array & { readonly __brand: "macTag" }
 
 /**
  * Create an HMAC-SHA-256 tag over the given data using the given key.

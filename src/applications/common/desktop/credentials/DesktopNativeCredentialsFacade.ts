@@ -2,7 +2,7 @@ import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
 import { NativeCredentialsFacade, PersistedCredentials, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { CredentialEncryptionMode } from "../../../../platform-kit/app-env"
-import { AesKey, BitArray } from "../../../../platform-kit/crypto"
+import { Aes256Key, assert256BitKey } from "../../../../platform-kit/crypto"
 import { KeyPermanentlyInvalidatedError } from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
 import { DesktopCredentialsStorage } from "../db/DesktopCredentialsStorage.js"
 import { assertDesktopEncryptionMode, assertSupportedEncryptionMode, DesktopCredentialsMode, SUPPORTED_MODES } from "./CredentialCommons.js"
@@ -48,7 +48,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		return encryptedCredentials ? this.decryptCredentials(encryptedCredentials, credentialsKey) : null
 	}
 
-	private decryptCredentials(persistedCredentials: PersistedCredentials, credentialsKey: BitArray): UnencryptedCredentials {
+	private decryptCredentials(persistedCredentials: PersistedCredentials, credentialsKey: Aes256Key): UnencryptedCredentials {
 		try {
 			return {
 				credentialInfo: persistedCredentials.credentialInfo,
@@ -62,7 +62,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		}
 	}
 
-	private encryptCredentials(unencryptedCredentials: UnencryptedCredentials, credentialsEncryptionKey: BitArray): PersistedCredentials {
+	private encryptCredentials(unencryptedCredentials: UnencryptedCredentials, credentialsEncryptionKey: Aes256Key): PersistedCredentials {
 		return {
 			credentialInfo: unencryptedCredentials.credentialInfo,
 			accessToken: this.crypto.aesEncryptBytes(credentialsEncryptionKey, stringToUtf8Uint8Array(unencryptedCredentials.accessToken)),
@@ -106,7 +106,7 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		this.credentialDb.store(credentials)
 	}
 
-	private async getOrCreateCredentialEncryptionKey(): Promise<AesKey> {
+	private async getOrCreateCredentialEncryptionKey(): Promise<Aes256Key> {
 		const existingKey = await this.getCredentialsEncryptionKey()
 		if (existingKey != null) {
 			return existingKey
@@ -119,11 +119,12 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		}
 	}
 
-	private async getCredentialsEncryptionKey(): Promise<AesKey | null> {
+	private async getCredentialsEncryptionKey(): Promise<Aes256Key | null> {
 		const encryptionMode = this.getDesktopCredentialEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
 		const keyChainEncCredentialsKey = this.credentialDb.getCredentialEncryptionKey()
 		if (keyChainEncCredentialsKey != null) {
-			return await this.keychainEncryption.decryptUsingKeychain(keyChainEncCredentialsKey, encryptionMode)
+			const credentialsEncryptionKey = await this.keychainEncryption.decryptUsingKeychain(keyChainEncCredentialsKey, encryptionMode)
+			return assert256BitKey(credentialsEncryptionKey)
 		} else {
 			return null
 		}

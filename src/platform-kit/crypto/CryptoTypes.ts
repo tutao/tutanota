@@ -1,5 +1,5 @@
 import { KeyVersion, Versioned } from "@tutao/utils"
-import { AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
+import { Aes256Key, AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
 
 export type HkdfKeyDerivationDomains =
 	| "userGroupKeyDistributionKey"
@@ -10,7 +10,7 @@ export type HkdfKeyDerivationDomains =
 	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
 	| "versionedUserGroupKeyDistributionKey"
 	| "publicIdentityKey"
-export type MacTag = Uint8Array & { __brand: "macTag" }
+export type MacTag = Uint8Array & { readonly __brand: "macTag" }
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
 export type EntropySource = "mouse" | "touch" | "key" | "random" | "static" | "time" | "accel"
@@ -38,7 +38,7 @@ export type PublicKeyIdentifier = {
  * An AesKey (usually a group key) and its version.
  */
 export type VersionedKey = Versioned<AesKey>
-
+export type VersionedAes256Key = Versioned<Aes256Key>
 /**
  * A key that is encrypted with a given version of some other key.
  */

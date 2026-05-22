@@ -6,9 +6,7 @@ import { CacheManagementFacade } from "../../../../../src/applications/common/ap
 import { AsymmetricCryptoFacade } from "../../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	AesKey,
-	cryptoUtils,
-	MacTag,
+	Aes128Key, Aes256Key, AesKey, AesKeyLength, cryptoUtils, MacTag,
 	PQKeyPairs,
 	PublicKeyIdentifierType,
 	VersionedKey,
@@ -24,7 +22,7 @@ import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams 
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
-const { anything, argThat, captor } = matchers
+const { anything, captor } = matchers
 
 o.spec("AdminKeyLoaderFacadeTest", function () {
 	let userFacade: UserFacade
@@ -70,7 +68,8 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		const groupKeyVersion = 2
 
 		const pubUserGroupEccKey = object<X25519PublicKey>()
-		const groupKeyBytes = object<AesKey>()
+		const groupKeyBytes = object<Aes256Key>()
+		groupKeyBytes.length = AesKeyLength.Aes256 / 32
 		const adminGroupEncGKey = object<Uint8Array>()
 		const pubAdminGroupEncSymKey = object<Uint8Array>()
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
@@ -196,10 +195,10 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
                     It is authenticated using userGroupKeyV0.
                     The userGroupKeyV0 is symmetrically encrypted for/by the admin with adminGroupSymKeyV0, therefore it is already trusted.
                  */
-				let userGroupSymKeyV0: AesKey
+				let userGroupSymKeyV0: Aes128Key
 				let groupKeysV0: GroupKey
 				let groupKeysV1: GroupKey
-				let userGroupSymKeyV1: AesKey
+				let userGroupSymKeyV1: Aes256Key
 
 				o.beforeEach(async function () {
 					group.formerGroupKeys = createTestEntity(GroupKeysRefTypeRef, { list: formerGroupKeyListId })
@@ -226,7 +225,8 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 						}),
 						adminGroupKeyVersion: "1",
 					})
-					userGroupSymKeyV1 = object<AesKey>()
+					userGroupSymKeyV1 = object<Aes256Key>()
+					userGroupSymKeyV1.length = AesKeyLength.Aes256 / 32
 					const adminKeyPairV1 = object<PQKeyPairs>()
 					when(keyLoaderFacade.loadKeypair(adminGroupId, 1)).thenResolve(adminKeyPairV1)
 					when(
@@ -247,7 +247,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 					})
 					const adminSymKeyV0 = object<AesKey>()
 					when(keyLoaderFacade.loadSymGroupKey(adminGroupId, 0)).thenResolve(adminSymKeyV0)
-					userGroupSymKeyV0 = object<AesKey>()
+					userGroupSymKeyV0 = object<Aes128Key>()
 					when(cryptoWrapper.decryptKey(adminSymKeyV0, anything())).thenReturn(userGroupSymKeyV0)
 				})
 

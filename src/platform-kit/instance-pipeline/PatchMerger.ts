@@ -6,7 +6,7 @@
 import { AssociationType, AttributeModel, hasError, isSameId, isSameTypeRef, TypeRef } from "../meta"
 import { assertNotNull, deepEqual, isEmpty, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
 import { convertDbToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
-import { Aes256Key, AesKey, InstanceTypeId, VersionedEncryptedKey, validateKdfNonceLength, VersionedKey } from "@tutao/crypto"
+import { AesKey, InstanceTypeId, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import {
 	EncryptedModelValue,
@@ -57,7 +57,7 @@ export interface SessionKeyResolver {
 	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
 	 *
 	 */
-	resolveServiceSessionKey(instance: EntityAdapter): Promise<Aes256Key | null>
+	resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null>
 }
 /*
  * Note:

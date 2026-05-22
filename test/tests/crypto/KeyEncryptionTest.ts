@@ -1,9 +1,11 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, concat } from "../../../src/platform-kit/utils"
 import {
+	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
+	AesKeyLength,
 	bitArrayToUint8Array,
 	FIXED_INITIALIZATION_VECTOR,
 	hexToRsaPrivateKey,
@@ -30,14 +32,14 @@ o.spec("key encryption", function () {
 		"02008e8bf43e2990a46042da8168aebec699d62e1e1fd068c5582fd1d5433cee8c8b918799e8ee1a22dd9d6e21dd959d7faed8034663225848c21b88c2733c73788875639425a87d54882285e598bf7e8c83861e8b77ab3cf62c53d35e143cee9bb8b3f36850aebd1548c1881dc7485bb51aa13c5a0391b88a8d7afce88ecd4a7e231ca7cfd063216d1d573ad769a6bb557c251ad34beb393a8fff4a886715315ba9eac0bc31541999b92fcb33d15efd2bd50bf77637d3fc5ba1c21082f67281957832ac832fbad6c383779341555993bd945659d7797b9c993396915e6decee9da2d5e060c27c3b5a9bc355ef4a38088af53e5f795ccc837f45d0583052547a736f"
 
 	o("encrypt / decrypt aes128 key with aes128", function () {
-		const gk = [3957386659, 354339016, 3786337319, 3366334248]
-		const sk = [3229306880, 2716953871, 4072167920, 3901332676]
+		const gk = [3957386659, 354339016, 3786337319, 3366334248] as Aes128Key
+		const sk = [3229306880, 2716953871, 4072167920, 3901332676] as Aes128Key
 		const encryptedKey = encryptKey(gk, sk)
 		o(Array.from(encryptedKey)).deepEquals(Array.from(base64ToUint8Array("O3cyw7uo5DMm655aQiw0Xw==")))
 		o(decryptKey(gk, encryptedKey)).deepEquals(sk)
 	})
 	o("encrypt / decrypt private rsa key with aes128", function () {
-		const gk = [3957386659, 354339016, 3786337319, 3366334248]
+		const gk = [3957386659, 354339016, 3786337319, 3366334248] as Aes128Key
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
@@ -58,7 +60,7 @@ o.spec("key encryption", function () {
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = encryptKey(encryptionKey, key)
-		const decryptedKey = decryptKey(encryptionKey, encryptedKey)
+		const decryptedKey = decryptKey(encryptionKey, encryptedKey, AesKeyLength.Aes256)
 
 		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key)("It isn't somehow a no-op at least")
 		o(key).deepEquals(decryptedKey)("The round trip works")
@@ -71,7 +73,7 @@ o.spec("key encryption", function () {
 		const encryptedKey = legacyAes256EncryptWithRecoveryKey(encryptionKey, keyToUint8Array(key))
 		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
-		o(key).deepEquals(decryptedKey)("decrypting legacy recovery code")
+		o(key as AesKey).deepEquals(decryptedKey)("decrypting legacy recovery code")
 	})
 
 	o("encrypt / decrypt legacy recovery code without fixed initialization vector aes256", function () {
@@ -81,7 +83,7 @@ o.spec("key encryption", function () {
 		const encryptedKey = encryptKey(encryptionKey, key)
 		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
-		o(key).deepEquals(decryptedKey)("decrypting recovery code (with random initialization vector and mac, but no padding)")
+		o(key as AesKey).deepEquals(decryptedKey)("decrypting recovery code (with random initialization vector and mac, but no padding)")
 	})
 
 	o("encrypt / decrypt key with device / key chain key", function () {
@@ -91,7 +93,7 @@ o.spec("key encryption", function () {
 		const encryptedKey = encryptKey(keyChainKey, keyToBeEncrypted)
 		const decryptedKey = decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
 
-		o(keyToBeEncrypted).deepEquals(decryptedKey)
+		o(keyToBeEncrypted as AesKey).deepEquals(decryptedKey)
 	})
 
 	o("encrypt / decrypt key with device / key chain key legacy case", function () {
@@ -101,7 +103,7 @@ o.spec("key encryption", function () {
 		const encryptedKey = legacyEncryptKeyWithDeviceKeyChain(keyChainKey, keyToBeEncrypted)
 		const decryptedKey = decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
 
-		o(keyToBeEncrypted).deepEquals(decryptedKey)
+		o(keyToBeEncrypted as AesKey).deepEquals(decryptedKey)
 	})
 })
 

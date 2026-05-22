@@ -13,6 +13,7 @@ import { EntityRestClientLoadOptions } from "../../../../../src/platform-kit/net
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { Aes128Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
@@ -42,7 +43,7 @@ o.spec("MailAddressFacadeTest", function () {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: mailboxPropertiesId,
 			})
-			const mailGroupKey = freshVersioned([1, 2, 3])
+			const mailGroupKey = freshVersioned([1, 2, 3, 4] as Aes128Key)
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				mailAddressProperties: [
 					createTestEntity(MailAddressPropertiesTypeRef, {
@@ -84,7 +85,7 @@ o.spec("MailAddressFacadeTest", function () {
 				_ownerGroup: mailGroupId,
 				mailboxProperties: null,
 			})
-			const mailGroupKey = freshVersioned([1, 2, 3])
+			const mailGroupKey = freshVersioned([1, 2, 3, 4] as Aes128Key)
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				_id: mailboxPropertiesId,
 				_ownerGroup: mailGroupId,

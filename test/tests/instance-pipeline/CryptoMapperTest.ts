@@ -1,5 +1,6 @@
 import o, { assertThrows, spy } from "@tutao/otest"
 import {
+	Aes256Key,
 	aes256RandomKey,
 	generateKdfNonce,
 	InstanceTypeId,
@@ -265,7 +266,7 @@ o.spec("CryptoMapper", () => {
 	})
 
 	o.test("decryptParsedInstance happy path works", async () => {
-		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205] as Aes256Key
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
 			3: [{ 2: "123", 6: "someCustomId", 9: [], 10: [] }],
@@ -283,7 +284,7 @@ o.spec("CryptoMapper", () => {
 		o.check(typeof decryptedInstance._errors).equals("undefined")
 	})
 	o.test("encryptParsedInstance happy path works", async () => {
-		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205] as Aes256Key
 
 		const parsedInstance: ClientModelParsedInstance = {
 			1: "encrypted string",
@@ -332,7 +333,7 @@ o.spec("CryptoMapper", () => {
 	})
 
 	o.test("decrypting default values works correctly", async () => {
-		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205] as Aes256Key
 
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "",
@@ -350,7 +351,7 @@ o.spec("CryptoMapper", () => {
 	})
 
 	o.test("decryption errors are written to _errors field", async () => {
-		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205] as Aes256Key
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2pmlpWEhgG5iwzqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
 			3: [{ 2: "123", 6: "someCustomId", 9: [], 10: [] }],
@@ -433,7 +434,7 @@ o.spec("CryptoMapper", () => {
 		})
 	})
 	o.test("encryptParsedInstance assembles correct field paths", async () => {
-		const sessionKey = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const sessionKey = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205] as Aes256Key
 		const encryptBytesWithAead = (symmetricCipherFacade.encryptBytesWithAead = spy(symmetricCipherFacade.encryptBytesWithAead))
 		const parsedInstance: ClientModelParsedInstance = {
 			1: "encrypted string",

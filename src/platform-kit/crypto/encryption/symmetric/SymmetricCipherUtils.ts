@@ -13,8 +13,8 @@ export const SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES = 1
 export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
 
 export type BitArray = number[]
-export type Aes256Key = BitArray
-export type Aes128Key = BitArray
+export type Aes256Key = BitArray & { readonly __brand: "Aes256Key" }
+export type Aes128Key = BitArray & { readonly __brand: "Aes128Key" }
 export type AesKey = Aes128Key | Aes256Key
 
 /**
@@ -58,18 +58,39 @@ export function keyToBase64(key: AesKey): Base64 {
  * @return The key.
  * @throws {CryptoError} If the conversion fails.
  */
-export function base64ToKey(base64: Base64): AesKey {
+export function base64ToKey(base64: Base64): AesKey
+/**
+ * Converts the given base64 coded string to a key.
+ * @param base64 The base64 coded string representation of the key.
+ * @param acceptedBitLength The accepted key length for the decoded key.
+ * @return The key.
+ * @throws {CryptoError} If the conversion fails.
+ */
+export function base64ToKey(base64: Base64, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
+/**
+ * Converts the given base64 coded string to a key.
+ * @param base64 The base64 coded string representation of the key.
+ * @param acceptedBitLength The accepted key length for the decoded key.
+ * @return The key.
+ * @throws {CryptoError} If the conversion fails.
+ */
+export function base64ToKey(base64: Base64, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
+export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): AesKey {
 	try {
-		return uint8ArrayToKey(base64ToUint8Array(base64))
+		return uint8ArrayToKey(base64ToUint8Array(base64), acceptedBitLength)
 	} catch (e) {
 		throw new CryptoError("hex to aes key failed", e as Error)
 	}
 }
 
-export function uint8ArrayToKey(array: Uint8Array): AesKey {
+export function uint8ArrayToKey(array: Uint8Array): AesKey
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
-	getAndVerifyAesKeyLength(key)
-	return key
+	getAndVerifyAesKeyLength(key, acceptedBitLength ? [acceptedBitLength] : undefined)
+	return key as AesKey
 }
 
 export function keyToUint8Array(key: BitArray): Uint8Array {
@@ -82,12 +103,12 @@ export function keyToUint8Array(key: BitArray): Uint8Array {
  * @return The key.
  */
 export function aes256RandomKey(): Aes256Key {
-	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256)))
+	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))) as Aes256Key
 }
 
-export type InitializationVector = Uint8Array & { __brand: "InitializationVector" }
+export type InitializationVector = Uint8Array & { readonly __brand: "InitializationVector" }
 
-export type KdfNonce = Uint8Array & { __brand: "KdfNonce" }
+export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
 
 export function generateInitializationVector(): InitializationVector {
 	return random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES) as InitializationVector

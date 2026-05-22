@@ -9,6 +9,7 @@ import {
 	Aes256Key,
 	AesKey,
 	AesKeyLength,
+	assert256BitKey,
 	createAuthVerifier,
 	cryptoUtils,
 	getAndVerifyAesKeyLength,
@@ -19,6 +20,7 @@ import {
 	PublicKey,
 	PublicKeyIdentifierType,
 	uint8ArrayToKey,
+	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
 	X25519KeyPair,
@@ -119,7 +121,7 @@ type EncryptedPqKeyPairsMaybeWithSignature = EncryptedPqKeyPairs & {
 	signature: PublicKeySignature | null
 }
 type GeneratedGroupKeys = {
-	symGroupKey: VersionedKey
+	symGroupKey: VersionedAes256Key
 	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature | null
 }
 
@@ -896,7 +898,7 @@ export class KeyRotationFacade {
 	 * @param userGroupKeyRotation
 	 * @private
 	 */
-	private async rotateUserGroupKey(user: User, pwKey: AesKey, userGroupKeyRotation: KeyRotation) {
+	private async rotateUserGroupKey(user: User, pwKey: Aes256Key, userGroupKeyRotation: KeyRotation) {
 		const userGroupMembership = user.userGroup
 		const userGroupId = userGroupMembership.group
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
@@ -1062,7 +1064,7 @@ export class KeyRotationFacade {
 			distEncAdminGroupSymKey,
 			senderIdentifier,
 		)
-		const versionedNewAdminGroupKey = {
+		const versionedNewAdminGroupKey: VersionedAes256Key = {
 			object: decapsulatedNewAdminGroupKey.decryptedAesKey,
 			version: cryptoUtils.parseKeyVersion(pubAdminEncGKeyAuthHash.taggedKeyVersion),
 		}
@@ -1203,7 +1205,7 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async performMultiAdminKeyRotation(keyRotation: KeyRotation, user: User, passphraseKey: number[], distributionKeys: PubDistributionKey[]) {
+	private async performMultiAdminKeyRotation(keyRotation: KeyRotation, user: User, passphraseKey: Aes256Key, distributionKeys: PubDistributionKey[]) {
 		const adminGroupId = this.getTargetGroupId(keyRotation)
 
 		// load current admin group key
@@ -1390,7 +1392,7 @@ export class KeyRotationRolloutAction implements RolloutAction {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {
 				const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
-				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
+				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, assert256BitKey(requiredPasswordKey))
 			}
 		}
 	}

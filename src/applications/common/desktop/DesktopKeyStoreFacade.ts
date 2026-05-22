@@ -2,7 +2,7 @@ import type { SecretStorage } from "./sse/SecretStorage"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { log } from "./DesktopLog"
 import { getFromMap } from "@tutao/utils"
-import { Aes256Key, base64ToKey, keyToBase64 } from "@tutao/crypto"
+import { Aes256Key, AesKeyLength, base64ToKey, keyToBase64 } from "@tutao/crypto"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
 import { CancelledError } from "@tutao/app-env"
 
@@ -98,7 +98,7 @@ export class DesktopKeyStoreFacade {
 		if (base64 == null) {
 			return null
 		}
-		return base64ToKey(base64)
+		return base64ToKey(base64, AesKeyLength.Aes256)
 	}
 
 	private async generateAndStoreKey(spec: NativeKeySpec): Promise<Aes256Key> {

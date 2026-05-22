@@ -6,7 +6,7 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { DesktopKeyStoreFacade } from "../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/applications/common/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey } from "../../../../src/platform-kit/crypto"
 import { CredentialEncryptionMode } from "../../../../src/platform-kit/app-env"
 
 o.spec("KeychainEncryption", () => {
@@ -17,7 +17,7 @@ o.spec("KeychainEncryption", () => {
 	const unencryptedKey = aes256RandomKey()
 	const encryptedData = new Uint8Array([0x0e, 0x04, 0x0c, 0x01, 0x03])
 	const wrappedData = new Uint8Array([0x03, 0x01, 0x03, 0x0a, 0x07, 0x07, 0x0e, 0x0d])
-	const keychainKey = [0x02, 0x0e, 0x04, 0x0c, 0x04, 0x0a, 0x01, 0x04]
+	const keychainKey = [0x02, 0x0e, 0x04, 0x0c, 0x04, 0x0a, 0x01, 0x04] as Aes256Key
 
 	o.beforeEach(() => {
 		encryption = new KeychainEncryption(appPassHandler, crypto, keystore)

@@ -1,5 +1,6 @@
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/utils"
 import { Aes256Key, uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
+import { AesKeyLength } from "../../encryption/symmetric/AesKeyLength"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
@@ -38,7 +39,7 @@ export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: s
 		ARGON2ID_KEY_LENGTH,
 	)
 
-	return uint8ArrayToKey(hash)
+	return uint8ArrayToKey(hash, AesKeyLength.Aes256)
 }
 
 async function argon2idHashRaw(

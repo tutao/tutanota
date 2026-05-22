@@ -4,7 +4,7 @@ import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { AesKey, cryptoUtils, PublicKeyIdentifierType, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, assert256BitKey, cryptoUtils, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
 import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
@@ -129,7 +129,7 @@ export class AdminKeyLoaderFacade {
 
 		// this function is called recursively. therefore we must not return the group key version from the group but from the pubAdminEncUserKeyData
 		const versionedDecryptedUserGroupKey = {
-			object: decryptedUserGroupKey,
+			object: assert256BitKey(decryptedUserGroupKey),
 			version: cryptoUtils.parseKeyVersion(assertNotNull(pubAdminEncUserKeyData.symKeyMac).taggedKeyVersion),
 		}
 
@@ -138,7 +138,7 @@ export class AdminKeyLoaderFacade {
 		return versionedDecryptedUserGroupKey
 	}
 
-	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, receivedUserGroupKey: VersionedKey) {
+	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, receivedUserGroupKey: VersionedAes256Key) {
 		const givenUserGroupKeyMac = brandKeyMac(assertNotNull(pubEncKeyData.symKeyMac))
 
 		// The given mac is authenticated by the previous user group key, so we can get the version from there.

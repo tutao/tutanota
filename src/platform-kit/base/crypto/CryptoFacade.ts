@@ -339,7 +339,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 	 */
 	private async collectAllInstanceSessionKeysAndAuthenticate(
 		instance: Entity,
-		decBucketKey: number[],
+		decBucketKey: AesKey,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: X25519PublicKey | null,
 	): Promise<ResolvedSessionKeys> {
@@ -585,7 +585,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 		return sk
 	}
 
-	async resolveServiceSessionKey(instance: EntityAdapter): Promise<Aes256Key | null> {
+	async resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null> {
 		if (instance._ownerPublicEncSessionKey) {
 			// we assume the server uses the current key pair of the recipient
 			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), undefined)

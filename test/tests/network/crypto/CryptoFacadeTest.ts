@@ -1643,7 +1643,7 @@ o.spec("CryptoFacadeTest", function () {
 		mail: Mail
 		sk: Aes256Key
 		bk: Aes256Key
-		mailGroupKey: Aes256Key
+		mailGroupKey: AesKey
 		userGroupId: Id
 	}> {
 		// configure test user

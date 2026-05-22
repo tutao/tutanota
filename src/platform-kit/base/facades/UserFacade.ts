@@ -90,7 +90,7 @@ export class UserFacade extends LoggedInUserProvider {
 	 * @param userGroupId user group id of the logged-in user
 	 * @param userPasswordKey current password key of the user
 	 */
-	deriveLegacyUserDistKey(userGroupId: Id, userPasswordKey: AesKey): AesKey {
+	deriveLegacyUserDistKey(userGroupId: Id, userPasswordKey: AesKey): Aes256Key {
 		// we prepare a key to encrypt potential user group key rotations with
 		// when passwords are changed clients are logged-out of other sessions
 		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync

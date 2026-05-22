@@ -14,7 +14,6 @@ import {
 } from "@tutao/meta"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
-	Aes128Key,
 	aes256RandomKey,
 	AesKey,
 	createAuthVerifier,
@@ -456,7 +455,7 @@ export class MailFacade {
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
-		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKey(mail))
+		const mailSessionKey: AesKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
 		const postData = createReportMailPostData({
 			mailId: mail._id,
 			mailSessionKey: keyToUint8Array(mailSessionKey),

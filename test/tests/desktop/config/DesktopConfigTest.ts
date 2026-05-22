@@ -7,6 +7,7 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { DesktopConfigKey } from "../../../../src/platform-kit/app-env/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/applications/common/desktop/config/ConfigFile.js"
 import { function as fn, matchers, object, verify, when } from "testdouble"
+import { Aes256Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 o.spec("DesktopConfigTest", function () {
 	let desktopConfig: DesktopConfig
@@ -41,8 +42,8 @@ o.spec("DesktopConfigTest", function () {
 		when(configMigrator.applyMigrations(matchers.anything(), configCaptor.capture())).thenDo(() => Promise.resolve(configCaptor.value))
 
 		keyStoreFacade = object()
-		when(keyStoreFacade.getDeviceKey()).thenResolve([1, 2, 3])
-		when(keyStoreFacade.getKeyChainKey()).thenResolve([4, 5, 6])
+		when(keyStoreFacade.getDeviceKey()).thenResolve([1, 2, 3, 4, 5, 6, 7, 8] as Aes256Key)
+		when(keyStoreFacade.getKeyChainKey()).thenResolve([4, 5, 6, 7, 8, 9, 10, 11] as Aes256Key)
 
 		desktopCrypto = object()
 		when(desktopCrypto.aesDecryptObject(matchers.anything(), matchers.anything())).thenReturn("decrypted")

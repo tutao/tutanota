@@ -141,7 +141,7 @@ export class CryptoWrapper {
 			key,
 			info: context,
 			length: getKeyLengthInBytes(AesKeyLength.Aes256),
-		})
+		}) as Aes256Key
 	}
 
 	hmacSha256(key: AesKey, data: Uint8Array): MacTag {

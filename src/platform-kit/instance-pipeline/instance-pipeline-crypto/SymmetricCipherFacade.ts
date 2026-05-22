@@ -216,14 +216,15 @@ export class SymmetricCipherFacade {
 	 *
 	 * @param key   The key to use for the decryption.
 	 * @param bytes The key that shall be decrypted.
+	 * @param acceptedBitLength The accepted length of the key that shall be decrypted.
 	 * @return The decrypted key.
 	 */
-	decryptKey(key: AesKey, bytes: Uint8Array): AesKey {
+	decryptKey(key: AesKey, bytes: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 		switch (getAndVerifyAesKeyLength(key)) {
 			case AesKeyLength.Aes128:
-				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed))
+				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed), acceptedBitLength)
 			case AesKeyLength.Aes256:
-				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None))
+				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None), acceptedBitLength)
 		}
 	}
 

@@ -1,4 +1,4 @@
-import { Aes256Key, uint8ArrayToKey } from "@tutao/crypto"
+import { Aes256Key, AesKeyLength, uint8ArrayToKey } from "@tutao/crypto"
 import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { Argon2idFacade } from "./WasmArgon2idFacade"
@@ -13,6 +13,6 @@ export class NativeArgon2idFacade implements Argon2idFacade {
 
 	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key> {
 		const passphraseKeyBytes = await this.nativeCryptoFacade.argon2idGeneratePassphraseKey(passphrase, salt)
-		return uint8ArrayToKey(passphraseKeyBytes)
+		return uint8ArrayToKey(passphraseKeyBytes, AesKeyLength.Aes256)
 	}
 }

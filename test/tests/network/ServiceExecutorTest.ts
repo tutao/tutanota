@@ -8,7 +8,7 @@ import { deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../src/platform-kit/crypto"
+import { Aes128Key, aes256RandomKey } from "../../../src/platform-kit/crypto"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 
@@ -205,7 +205,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const sessionKey = [1, 2, 3]
+			const sessionKey = [1, 2, 3, 4] as Aes128Key
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
@@ -326,7 +326,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const sessionKey = [1, 2, 3]
+			const sessionKey = [1, 2, 3, 4] as Aes128Key
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
@@ -641,7 +641,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
-			const sessionKey = [1, 2, 3]
+			const sessionKey = [1, 2, 3, 4] as Aes128Key
 			const encrypted = { encrypted: "1" }
 			when(instancePipeline.mapAndEncrypt(GiftCardCreateDataTypeRef, giftCardCreateData, sessionKey)).thenResolve(encrypted)
 

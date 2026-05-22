@@ -19,6 +19,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import {
 	aes256RandomKey,
 	AesKey,
+	AesKeyLength,
 	generateInitializationVector,
 	validateInitializationVectorLength,
 	VersionedKey,
@@ -338,7 +339,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
-		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
+		const key = decryptKey(userGroupKey, metaData.userEncDbKey, AesKeyLength.Aes256)
 		const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv)))
 		this.db.init({ key, initializationVector })
 		const groupDiff = await this._loadGroupDiff(user)

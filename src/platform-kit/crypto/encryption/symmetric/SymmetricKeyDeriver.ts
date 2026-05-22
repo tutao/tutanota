@@ -106,8 +106,8 @@ export class SymmetricKeyDeriver {
 	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, cipherVersion: SymmetricAeadCipherVersionMaybeWithGroupKeyVersion): AeadSubKeys {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 
-		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES))
-		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES))
+		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)
+		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES), AesKeyLength.Aes256)
 
 		if (cipherVersion.cipherVersion === SymmetricCipherVersion.AeadWithGroupKey) {
 			return {

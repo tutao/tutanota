@@ -5,6 +5,7 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
+	AesKeyLength,
 	cryptoUtils,
 	generateInitializationVector,
 	InitializationVector,
@@ -41,7 +42,7 @@ const NewsletterBannerListOS: ObjectStoreName = "NewsletterBannerListOS"
 
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
-	readonly key: Aes128Key
+	readonly key: Aes256Key
 	readonly initializationVector: InitializationVector
 }
 type ConfigDb = {
@@ -382,7 +383,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 
 async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
-	const key = decryptKey(userGroupKey, metaData.userEncDbKey)
+	const key = decryptKey(userGroupKey, metaData.userEncDbKey, AesKeyLength.Aes256)
 	const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, metaData.encDbIv))
 	return {
 		key,

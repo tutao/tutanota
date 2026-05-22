@@ -14,7 +14,7 @@ import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platfo
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { AesKey, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
+import { Aes128Key, AesKey, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
 import { RecipientsNotFoundError } from "../../../../../src/platform-kit/network/error/RecipientsNotFoundError"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { SpamClassifier } from "../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
@@ -540,7 +540,7 @@ o.spec("MailFacade test", function () {
 				mail.attachments.push(["someListId", attachmentId])
 			}
 			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
-				resolvedSessionKeyForInstance: [],
+				resolvedSessionKeyForInstance: [0, 1, 2, 3] as Aes128Key,
 				instanceSessionKeys,
 			})
 			return mail
