@@ -18,7 +18,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, getLetId, isSameId, OperationType } from "@tutao/meta"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 
 export const SELECT_NEXT_ENTRY = "next"
 

@@ -36,7 +36,7 @@ import {
 	createContactWebsite,
 } from "@tutao/entities/tutanota"
 import { elementIdPart, getElementId, OperationType, StrippedEntity } from "@tutao/meta"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 

@@ -33,8 +33,6 @@ import { createDropdown } from "../../../ui/base/Dropdown.js"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AccountType,
-	AvailablePlans,
 	BookingTypeRef,
 	createDebitServicePutData,
 	Customer,
@@ -42,9 +40,8 @@ import {
 	DebitService,
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
-	NewPaidPlans,
-	PaymentMethodType,
 } from "@tutao/entities/sys"
+import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../entities/sys/Utils"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting } from "@tutao/entities/accounting"

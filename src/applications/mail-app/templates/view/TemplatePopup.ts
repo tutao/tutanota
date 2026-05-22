@@ -31,7 +31,7 @@ import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_CO
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

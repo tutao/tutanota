@@ -32,7 +32,8 @@ import { getExistingRuleForType } from "../model/MailUtils.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
-import { File, InboxRuleType, Mail, MailSetKind, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { File, Mail } from "@tutao/entities/tutanota"
+import { InboxRuleType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../entities/tutanota/Utils"
 import { createEmailSenderListElement } from "@tutao/entities/sys"
 
 assertMainOrNode()

@@ -1,18 +1,15 @@
 import { UserSettingsGroupRoot } from "@tutao/entities/tutanota"
 import {
-	getInvitationGroupType,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMember,
-	GroupMemberInfo,
 	GroupMemberTypeRef,
-	GroupType,
-	GroupTypeNameByCode,
 	ReceivedGroupInvitation,
 	ReceivedGroupInvitationTypeRef,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
+import { getInvitationGroupType, GroupMemberInfo, GroupType, GroupTypeNameByCode } from "../../entities/sys/Utils"
 import { ShareCapability } from "@tutao/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"

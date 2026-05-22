@@ -41,7 +41,6 @@ import { RolloutAction } from "../facades/RolloutFacade"
 import { RecoverCodeFacade } from "../facades/lazy/RecoverCodeFacade.js"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
 import {
-	AccountType,
 	AdminGroupKeyDistributionElement,
 	AdminGroupKeyRotationService,
 	createAdminGroupKeyDistributionElement,
@@ -71,7 +70,6 @@ import {
 	GroupMembershipKeyData,
 	GroupMembershipUpdateData,
 	GroupMemberTypeRef,
-	GroupType,
 	GroupTypeRef,
 	KeyMac,
 	KeyPair,
@@ -88,6 +86,7 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { AccountType, GroupType } from "../../../entities/sys/Utils"
 import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "../../meta"
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"

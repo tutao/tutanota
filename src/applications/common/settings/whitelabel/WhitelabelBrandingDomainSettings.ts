@@ -14,7 +14,8 @@ import { locator } from "../../api/main/CommonLocator"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
-import { CertificateInfo, CustomerInfo, PlanType } from "@tutao/entities/sys"
+import { CertificateInfo, CustomerInfo } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo

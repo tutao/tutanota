@@ -16,7 +16,6 @@ import { CryptoNetworkHelper } from "./CryptoNetworkHelper.js"
 import {
 	createWebsocketLeaderStatus,
 	EntityUpdate,
-	GroupType,
 	OperationStatusUpdate,
 	OperationStatusUpdateTypeRef,
 	sysModelInfo,
@@ -25,6 +24,7 @@ import {
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatusTypeRef,
 } from "@tutao/entities/sys"
+import { GroupType } from "../entities/sys/Utils"
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"

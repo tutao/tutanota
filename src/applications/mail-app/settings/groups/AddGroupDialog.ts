@@ -18,7 +18,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
-import { BookingItemFeatureType, GroupType } from "@tutao/entities/sys"
+import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 

@@ -1,6 +1,6 @@
 import { isMailAddress } from "@tutao/utils"
 import { convertTextToHtml } from "../../../../ui/utils/Formatter.js"
-import { PartialRecipient } from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 
 export type ParsedMailto = {
 	recipients: {

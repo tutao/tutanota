@@ -32,7 +32,8 @@ import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
-import { File, InboxRuleType, NewsletterBannerRule } from "@tutao/entities/tutanota"
+import { File } from "@tutao/entities/tutanota"
+import { InboxRuleType, NewsletterBannerRule } from "../../../entities/tutanota/Utils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 
 export type MailAddressDropdownCreator = (args: {

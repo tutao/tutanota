@@ -8,7 +8,7 @@ import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/Pla
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { px, size } from "../../../../ui/size"
 import { SignupFlowUsageTestController } from "../../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { AvailablePlanType, NewPersonalPlans, PlanType } from "@tutao/entities/sys"
+import { AvailablePlanType, NewPersonalPlans, PlanType } from "../../../entities/sys/Utils"
 
 type SignupInlinePlanSelectorAttrs = {
 	viewModel: SignupViewModel

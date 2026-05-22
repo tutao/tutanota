@@ -1,15 +1,8 @@
 import { assertWorkerOrNode, Const } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { IServiceExecutor } from "../../../../../../platform-kits/network/ServiceRequest.js"
-import {
-	BookingItemFeatureType,
-	createPriceRequestData,
-	createPriceServiceData,
-	PriceData,
-	PriceItemData,
-	PriceService,
-	PriceServiceReturn,
-} from "@tutao/entities/sys"
+import { createPriceRequestData, createPriceServiceData, PriceData, PriceItemData, PriceService, PriceServiceReturn } from "@tutao/entities/sys"
+import { BookingItemFeatureType } from "../../../../../entities/sys/Utils"
 
 assertWorkerOrNode()
 

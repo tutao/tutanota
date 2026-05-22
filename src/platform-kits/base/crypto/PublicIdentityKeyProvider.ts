@@ -8,7 +8,8 @@ import { CryptoError } from "../../crypto/error"
 import { EntityClient } from "../../network/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
 import { SigningPublicKey } from "../../crypto/encryption/Ed25519"
-import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/entities/sys"
+import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "../../app-env"
 
 type IdentityKeyRawData = {

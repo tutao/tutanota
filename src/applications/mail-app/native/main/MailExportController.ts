@@ -15,7 +15,8 @@ import { ExportError, ExportErrorReason } from "../../../common/api/common/error
 import { MailModel } from "../../mail/model/MailModel"
 import { isOfflineError } from "@tutao/rest-client/error"
 import { BlobServerUrl } from "@tutao/entities/storage"
-import { MailBag, MailboxExportState } from "@tutao/entities/tutanota"
+import { MailBag } from "@tutao/entities/tutanota"
+import { MailboxExportState } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 

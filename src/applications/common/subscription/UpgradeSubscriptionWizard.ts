@@ -31,7 +31,8 @@ import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
 import type { UsageTest } from "@tutao/usagetests"
-import { AccountingInfo, AvailablePlans, AvailablePlanType, Customer, NewPaidPlans, PlanType, SubscriptionType } from "@tutao/entities/sys"
+import { AccountingInfo, Customer } from "@tutao/entities/sys"
+import { AvailablePlans, AvailablePlanType, NewPaidPlans, PlanType, SubscriptionType } from "../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
 
 assertMainOrNode()

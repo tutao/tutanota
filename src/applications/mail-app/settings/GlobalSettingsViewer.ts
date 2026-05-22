@@ -1,4 +1,4 @@
-import { SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { SpamRuleFieldType, SpamRuleType } from "../../entities/tutanota/Utils"
 import {
 	createEmailSenderListElement,
 	Customer,
@@ -9,11 +9,11 @@ import {
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	DomainInfo,
-	GroupType,
 	GroupTypeRef,
 	RejectedSenderTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 import m, { Children } from "mithril"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"

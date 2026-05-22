@@ -5,7 +5,7 @@ import { EntityClient } from "../../../platform-kits/network/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { CounterFacade } from "../../../platform-kits/network/CounterFacade.js"
 import { CancelledError } from "@tutao/app-env"
-import { CounterType } from "@tutao/entities/monitor"
+import { CounterType } from "../../entities/monitor/Utils"
 import { createDataFile } from "../api/worker/utils/DataFile"
 
 const GROUP_DOWNLOAD_SIZE = 50

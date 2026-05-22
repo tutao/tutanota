@@ -12,7 +12,7 @@ import { InfoIcon } from "../../../ui/base/InfoIcon.js"
 import { isDarkTheme, theme } from "../../../ui/theme.js"
 import { goEuropeanBlue } from "../../../ui/builtinThemes.js"
 import { isIOSApp } from "@tutao/app-env"
-import { AvailablePlanType, PlanType } from "@tutao/entities/sys"
+import { AvailablePlanType, PlanType } from "../../entities/sys/Utils"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children

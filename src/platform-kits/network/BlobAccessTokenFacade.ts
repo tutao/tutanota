@@ -4,7 +4,7 @@ import { DateProvider, deduplicate, first, isEmpty, lazyMemoized } from "@tutao/
 import { SuspensionBehavior } from "@tutao/rest-client/types"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
-import { ArchiveDataType, BlobAccessTokenKind } from "@tutao/entities/sys"
+import { ArchiveDataType, BlobAccessTokenKind } from "../entities/sys/Utils"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "@tutao/entities/storage"
 import { BlobAccessTokenService } from "@tutao/entities/storage"
 import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"

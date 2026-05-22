@@ -15,7 +15,8 @@ import { PaymentInterval } from "./PriceUtils"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonType } from "../../../../ui/base/Button"
-import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef, PaymentMethodType, PlanType } from "@tutao/entities/sys"
+import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
+import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
 	EntityEventsListener,
 	EntityUpdateData,

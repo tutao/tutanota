@@ -64,7 +64,7 @@ import { client } from "../../../../platform-kits/app-env/boot/ClientDetector"
 import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 import { ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
-import { PartialRecipient } from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 
 assertMainOrNode()

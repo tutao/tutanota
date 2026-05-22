@@ -12,7 +12,7 @@ import { px } from "../../../ui/size"
 import { styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { AvailablePlanType, PlanType } from "@tutao/entities/sys"
+import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
 
 export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {

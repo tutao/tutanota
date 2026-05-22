@@ -1,6 +1,7 @@
 import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
 import * as restError from "@tutao/rest-client/error"
-import { ArchiveDataType, Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { ArchiveDataType } from "../../../../../entities/sys/Utils"
 import { HttpMethod, MediaType } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kits/base/crypto/CryptoFacade.js"
 import {
@@ -31,7 +32,7 @@ import { InstancePipeline } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kits/network/EntityRestClient"
-import { TransferId, UploadProgressInfo } from "@tutao/entities/drive"
+import { TransferId, UploadProgressInfo } from "../../../../../entities/drive/Utils"
 import {
 	BlobGetInTypeRef,
 	BlobPostOutTypeRef,
@@ -42,7 +43,7 @@ import {
 	createBlobId,
 	storageTypeModels,
 } from "@tutao/entities/storage"
-import { FileReference } from "@tutao/entities/tutanota"
+import { FileReference } from "../../../../../entities/tutanota/Utils"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`

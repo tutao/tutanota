@@ -1,8 +1,8 @@
 import type { MaybeTranslation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EntityIdEncoding, sortCompareByReverseId } from "@tutao/meta"
+import { Contact } from "@tutao/entities/tutanota"
 import {
-	Contact,
 	ContactAddressType,
 	ContactCustomDateType,
 	ContactMessengerHandleType,
@@ -10,7 +10,7 @@ import {
 	ContactRelationshipType,
 	ContactSocialType,
 	ContactWebsiteType,
-} from "@tutao/entities/tutanota"
+} from "../../../entities/tutanota/Utils"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {
 	[ContactAddressType.PRIVATE]: "private_label",

@@ -13,7 +13,6 @@ import { CacheMode } from "../../../../platform-kits/network/EntityRestClient"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AccountType,
 	CloseSessionService,
 	Customer,
 	CustomerInfo,
@@ -25,11 +24,8 @@ import {
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupMembership,
-	GroupType,
-	LegacyPlans,
 	PlanConfiguration,
 	PlanService,
-	PlanType,
 	SessionTypeRef,
 	sysTypeModels,
 	User,
@@ -37,6 +33,7 @@ import {
 	WhitelabelConfig,
 	WhitelabelConfigTypeRef,
 } from "@tutao/entities/sys"
+import { AccountType, GroupType, LegacyPlans, PlanType } from "../../../entities/sys/Utils"
 import {
 	createUserSettingsGroupRoot,
 	TutanotaProperties,

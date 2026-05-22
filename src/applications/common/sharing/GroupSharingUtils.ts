@@ -3,8 +3,9 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getSharedGroupName } from "./GroupUtils"
 import { getDefaultSender, getSenderNameForUser, isAliasEnabledWithUser } from "../mailFunctionality/SharedMailUtils.js"
-import { getInvitationGroupType, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
-import { MailMethod, PartialRecipient, VerificationRecipients } from "@tutao/entities/tutanota"
+import { GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { getInvitationGroupType } from "../../entities/sys/Utils"
+import { MailMethod, PartialRecipient, VerificationRecipients } from "../../entities/tutanota/Utils"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {

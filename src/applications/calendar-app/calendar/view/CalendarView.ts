@@ -7,7 +7,8 @@ import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/utils"
 import { elementIdPart } from "@tutao/meta"
-import { Group, GroupInfo, GroupType, hasCapabilityOnGroup, NewPaidPlans, User } from "@tutao/entities/sys"
+import { Group, GroupInfo, User } from "@tutao/entities/sys"
+import { GroupType, hasCapabilityOnGroup, NewPaidPlans } from "../../../entities/sys/Utils"
 import {
 	DEFAULT_CALENDAR_COLOR,
 	isAndroidApp,
@@ -103,8 +104,8 @@ import {
 	ContactTypeRef,
 	createDefaultAlarmInfo,
 	GroupSettings,
-	PartialRecipient,
 } from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { client } from "../../../../platform-kits/app-env/boot/ClientDetector"
 

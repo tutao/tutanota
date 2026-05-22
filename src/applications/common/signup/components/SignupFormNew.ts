@@ -24,7 +24,7 @@ import { styles } from "../../../../ui/styles"
 import { SignupViewModel } from "../SignupView"
 import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/WhitelabelUtils"
 
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.

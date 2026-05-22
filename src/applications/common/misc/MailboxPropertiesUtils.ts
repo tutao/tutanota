@@ -1,5 +1,6 @@
 import { downcast } from "@tutao/utils"
-import { MailboxProperties, ReportMovedMailsType } from "@tutao/entities/tutanota"
+import { MailboxProperties } from "@tutao/entities/tutanota"
+import { ReportMovedMailsType } from "../../entities/tutanota/Utils"
 
 /**
  * @returns ALWAYS_ASK if not set yet.

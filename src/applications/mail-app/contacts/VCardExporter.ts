@@ -2,16 +2,8 @@ import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { assertMainOrNode } from "@tutao/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { getSocialUrl, getWebsiteUrl } from "../../common/contactsFunctionality/ContactUtils.js"
-import {
-	Contact,
-	ContactAddress,
-	ContactAddressType,
-	ContactMailAddress,
-	ContactPhoneNumber,
-	ContactPhoneNumberType,
-	ContactSocialId,
-	createFile,
-} from "@tutao/entities/tutanota"
+import { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId, createFile } from "@tutao/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType } from "../../entities/tutanota/Utils"
 import { convertToDataFile } from "../../common/api/worker/utils/DataFile"
 
 assertMainOrNode()

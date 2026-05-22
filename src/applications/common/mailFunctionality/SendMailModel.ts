@@ -7,12 +7,9 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import {
-	Attachment,
-	CalendarAttendeeStatus,
 	ContactTypeRef,
 	ConversationEntry,
 	ConversationEntryTypeRef,
-	ConversationType,
 	File,
 	FileTypeRef,
 	Mail,
@@ -20,8 +17,13 @@ import {
 	MailboxPropertiesTypeRef,
 	MailDetails,
 	MailDetailsDraftTypeRef,
-	MailMethod,
 	MailTypeRef,
+} from "@tutao/entities/tutanota"
+import {
+	Attachment,
+	CalendarAttendeeStatus,
+	ConversationType,
+	MailMethod,
 	MAX_ATTACHMENT_SIZE,
 	PartialRecipient,
 	Recipient,
@@ -29,7 +31,7 @@ import {
 	RecipientType,
 	ReplyType,
 	VerificationRecipients,
-} from "@tutao/entities/tutanota"
+} from "../../entities/tutanota/Utils"
 import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import {
 	assertNotNull,

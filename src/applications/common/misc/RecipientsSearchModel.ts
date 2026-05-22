@@ -8,7 +8,8 @@ import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtil
 import { EntityClient } from "../../../platform-kits/network/EntityClient.js"
 import { ContactSuggestion } from "@tutao/native-bridge/generatedIpc/types"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
-import { ContactListEntryTypeRef, ContactTypeRef, PartialRecipient, Recipient } from "@tutao/entities/tutanota"
+import { ContactListEntryTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { PartialRecipient, Recipient } from "../../entities/tutanota/Utils"
 
 const MaxNativeSuggestions = 10
 

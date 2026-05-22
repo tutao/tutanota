@@ -14,22 +14,18 @@ import { getContactDisplayName } from "../../../../common/contactsFunctionality/
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import {
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendee,
-	ConversationType,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
 	Mail,
-	PartialRecipient,
-	Recipient,
-	RecipientType,
 } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, ConversationType, PartialRecipient, Recipient, RecipientType } from "../../../../entities/tutanota/Utils"
 import { clone, haveSameId, Stripped } from "@tutao/meta"
 
 import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
 type AttendanceModelResult = {

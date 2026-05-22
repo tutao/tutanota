@@ -1,4 +1,5 @@
-import { createMail, createMailAddress, Mail, ProcessingState } from "@tutao/entities/tutanota"
+import { createMail, createMailAddress, Mail } from "@tutao/entities/tutanota"
+import { ProcessingState } from "../../../entities/tutanota/Utils"
 import m, { Children, Component } from "mithril"
 import { component_size, layout_size, px } from "../../../../ui/size"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"

@@ -2,7 +2,8 @@ import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/Fo
 import { assertNotNull, first } from "@tutao/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { Header, InboxRule, Mail, MailDetails, MailSet, MailSetKind, ReplyType, SystemFolderType, TutanotaProperties } from "@tutao/entities/tutanota"
+import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
+import { MailSetKind, ReplyType, SystemFolderType } from "../../../entities/tutanota/Utils"
 import { EntityIdEncoding, isSameId, sortCompareByReverseId } from "@tutao/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
 

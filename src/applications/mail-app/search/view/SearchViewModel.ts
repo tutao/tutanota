@@ -78,7 +78,8 @@ import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { isMailDeletable } from "../../mail/model/MailChecks"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailSetKind, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
+import { MailSetKind } from "../../../entities/tutanota/Utils"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
 import {
 	EntityEventsListener,

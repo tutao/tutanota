@@ -11,7 +11,7 @@ import { MailAddressTableModel } from "./MailAddressTableModel.js"
 import { Autocomplete, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { NewPaidPlans } from "@tutao/entities/sys"
+import { NewPaidPlans } from "../../../entities/sys/Utils"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 

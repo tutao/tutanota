@@ -17,7 +17,7 @@ import { PlanConfig } from "./BusinessPlanContainer"
 import { boxShadowHigh } from "../../../../ui/main-styles"
 import { DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getCampaignTheme, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 type PersonalPlanBoxAttrs = {
 	planConfig: PlanConfig

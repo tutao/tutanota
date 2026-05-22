@@ -20,7 +20,7 @@ import { handleCalendarImport } from "./CalendarImporterDialog.js"
 import { parseCalendarStringData, ParsedCalendarData, ParsedEvent } from "./ImportExportUtils.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { CalendarEvent, DataFile } from "@tutao/entities/tutanota"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
 export function parseCalendarFile(file: DataFile): ParsedCalendarData {

@@ -2,25 +2,27 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
-	Attachment,
 	Contact,
 	ContactTypeRef,
 	ConversationEntry,
 	ConversationEntryTypeRef,
-	ConversationType,
 	createTranslationGetIn,
 	DataFile,
-	ExternalImageRule,
-	FileReference,
-	isTutanotaFile,
 	Mail,
 	MailboxProperties,
 	MailDetails,
+	TranslationService,
+} from "@tutao/entities/tutanota"
+import {
+	Attachment,
+	ConversationType,
+	ExternalImageRule,
+	FileReference,
+	isTutanotaFile,
 	MailMethod,
 	RecipientType,
-	TranslationService,
 	VerificationRecipients,
-} from "@tutao/entities/tutanota"
+} from "../../../../entities/tutanota/Utils"
 import { Editor, ImagePasteEvent } from "../../../../ui/editor/Editor"
 import {
 	InitAsResponseArgs,

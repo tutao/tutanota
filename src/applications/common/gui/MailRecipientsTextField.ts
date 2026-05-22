@@ -14,7 +14,8 @@ import { theme } from "../../../ui/theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { PresentableKeyVerificationState } from "@tutao/app-env"
-import { Contact, Recipient } from "@tutao/entities/tutanota"
+import { Contact } from "@tutao/entities/tutanota"
+import { Recipient } from "../../entities/tutanota/Utils"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey

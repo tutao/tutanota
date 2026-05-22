@@ -1,11 +1,5 @@
-import {
-	CalendarAttendeeStatus,
-	CalendarEventAttendee,
-	CalendarMethod,
-	createCalendarEventAttendee,
-	createEncryptedMailAddress,
-	EncryptedMailAddress,
-} from "@tutao/entities/tutanota"
+import { CalendarEventAttendee, createCalendarEventAttendee, createEncryptedMailAddress, EncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
 import { filterInt, neverNull } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"

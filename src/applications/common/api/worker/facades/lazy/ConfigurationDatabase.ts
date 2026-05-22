@@ -31,7 +31,7 @@ import { KeyLoaderFacade } from "../../../../../../platform-kits/base/crypto/Key
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
-import { ExternalImageRule, NewsletterBannerRule } from "@tutao/entities/tutanota"
+import { ExternalImageRule, NewsletterBannerRule } from "../../../../../entities/tutanota/Utils"
 import { User, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"

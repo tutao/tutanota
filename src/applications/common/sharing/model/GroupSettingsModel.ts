@@ -15,7 +15,8 @@
  */
 import { getEtId, isSameId } from "@tutao/meta"
 import { createGroupSettings, GroupSettings } from "@tutao/entities/tutanota"
-import { GroupInfo, GroupTypeRef, isSharedGroupOwner } from "@tutao/entities/sys"
+import { GroupInfo, GroupTypeRef } from "@tutao/entities/sys"
+import { isSharedGroupOwner } from "../../../entities/sys/Utils"
 import { LoginController } from "../../api/main/LoginController"
 import { EntityClient } from "../../../../platform-kits/network/EntityClient"
 import { getCustomSharedGroupName, getSharedGroupName, loadGroupMembers } from "../GroupUtils"

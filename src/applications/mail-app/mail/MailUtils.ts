@@ -2,8 +2,10 @@
 import { Const, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "@tutao/app-env"
 import { downcast } from "@tutao/utils"
 import { getAsEnumValue } from "@tutao/meta"
-import { MailSet, MailSetKind, SpamRuleFieldType, SpamRuleType, SYSTEM_FOLDERS } from "@tutao/entities/tutanota"
-import { AccountType, EmailSenderListElement } from "@tutao/entities/sys"
+import { MailSet } from "@tutao/entities/tutanota"
+import { MailSetKind, SpamRuleFieldType, SpamRuleType, SYSTEM_FOLDERS } from "../../entities/tutanota/Utils"
+import { EmailSenderListElement } from "@tutao/entities/sys"
+import { AccountType } from "../../entities/sys/Utils"
 
 export const getMailFolderType = (folder: MailSet): MailSetKind => downcast(folder.folderType)
 

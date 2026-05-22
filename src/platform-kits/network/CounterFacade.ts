@@ -2,7 +2,7 @@ import { assertWorkerOrNode } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest.js"
 import { CounterValue, createReadCounterData } from "@tutao/entities/monitor"
 import { CounterService } from "@tutao/entities/monitor"
-import { CounterType } from "@tutao/entities/monitor"
+import { CounterType } from "../../entities/monitor/Utils"
 
 assertWorkerOrNode()
 

@@ -1,5 +1,6 @@
 import { clone } from "@tutao/meta"
-import { CalendarAttendeeStatus, CalendarEvent, CalendarEventAttendee } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventAttendee } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import {
 	addDaysForRecurringEvent,
 	calendarEventHasMoreThanOneOccurrencesLeft,

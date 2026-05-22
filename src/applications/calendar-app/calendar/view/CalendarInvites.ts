@@ -16,19 +16,8 @@ import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtil
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
-import {
-	CalendarAttendeeStatus,
-	CalendarEvent,
-	CalendarEventAttendee,
-	CalendarMethod,
-	ConversationType,
-	DataFile,
-	File,
-	Mail,
-	MailboxProperties,
-	Recipient,
-	RecipientList,
-} from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventAttendee, DataFile, File, Mail, MailboxProperties } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, CalendarMethod, ConversationType, Recipient, RecipientList } from "../../../entities/tutanota/Utils"
 import { clone, getAsEnumValue } from "@tutao/meta"
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

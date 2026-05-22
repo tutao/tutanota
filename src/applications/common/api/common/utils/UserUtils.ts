@@ -1,5 +1,6 @@
 import { TimeFormat } from "@tutao/app-env"
-import { AccountType, GroupType, User } from "@tutao/entities/sys"
+import { User } from "@tutao/entities/sys"
+import { AccountType, GroupType } from "../../../../entities/sys/Utils"
 import { UserSettingsGroupRoot } from "@tutao/entities/tutanota"
 
 /**

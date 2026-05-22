@@ -17,8 +17,8 @@ import {
 	createOutOfOfficeNotificationMessage,
 	OutOfOfficeNotification,
 	OutOfOfficeNotificationMessage,
-	OutOfOfficeNotificationMessageType,
 } from "@tutao/entities/tutanota"
+import { OutOfOfficeNotificationMessageType } from "../../entities/tutanota/Utils"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,

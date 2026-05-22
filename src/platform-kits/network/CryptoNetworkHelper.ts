@@ -14,11 +14,11 @@ import {
 	createPatchList,
 	GroupInfoTypeRef,
 	GroupMembership,
-	GroupType,
 	PatchListTypeRef,
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "@tutao/entities/sys"
+import { GroupType } from "../entities/sys/Utils"
 import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { PatchOperationType } from "../instance-pipeline/PatchGenerator"
 

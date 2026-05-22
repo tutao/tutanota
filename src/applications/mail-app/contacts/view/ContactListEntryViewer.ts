@@ -4,7 +4,8 @@ import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { responsiveCardHMargin } from "../../../../ui/cards.js"
 import { ContactCardViewer } from "./ContactCardViewer.js"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel.js"
-import { Contact, ContactAddressType, ContactListEntry, createContact, createContactMailAddress, PartialRecipient } from "@tutao/entities/tutanota"
+import { Contact, ContactListEntry, createContact, createContactMailAddress } from "@tutao/entities/tutanota"
+import { ContactAddressType, PartialRecipient } from "../../../../entities/tutanota/Utils"
 
 export interface ContactListEntryViewerAttrs {
 	entry: ContactListEntry

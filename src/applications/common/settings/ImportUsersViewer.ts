@@ -10,7 +10,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { OperationId } from "../api/main/OperationProgressTracker.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 
-import { BookingItemFeatureType } from "@tutao/entities/sys"
+import { BookingItemFeatureType } from "../../entities/sys/Utils"
 
 const delayTime = 900
 type UserImportDetails = {

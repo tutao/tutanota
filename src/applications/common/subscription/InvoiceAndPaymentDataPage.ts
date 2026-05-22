@@ -4,7 +4,8 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
-import { AccountingInfo, AvailablePlanType, Braintree3ds2Request, InvoiceInfoTypeRef, PaymentMethodType } from "@tutao/entities/sys"
+import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
+import { AvailablePlanType, PaymentMethodType } from "../../entities/sys/Utils"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel"

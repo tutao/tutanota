@@ -21,7 +21,8 @@ import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/Com
 import { Time } from "../../../../common/calendar/date/Time"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils"
-import { CalendarAttendeeStatus, CalendarEvent, createEncryptedMailAddress, RecipientList } from "@tutao/entities/tutanota"
+import { CalendarEvent, createEncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, RecipientList } from "../../../../entities/tutanota/Utils"
 
 /** when starting an edit or delete operation of an event, we
  * need to know how to apply it and whether to send updates. */

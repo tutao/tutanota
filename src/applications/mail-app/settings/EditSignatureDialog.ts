@@ -9,7 +9,8 @@ import { downcast, neverNull, ofClass } from "@tutao/utils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
-import { EmailSignatureType, TutanotaProperties } from "@tutao/entities/tutanota"
+import { TutanotaProperties } from "@tutao/entities/tutanota"
+import { EmailSignatureType } from "../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 assertMainOrNode()

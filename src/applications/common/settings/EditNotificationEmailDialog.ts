@@ -7,8 +7,8 @@ import {
 	CustomerProperties,
 	CustomerPropertiesTypeRef,
 	NotificationMailTemplate,
-	PlanType,
 } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor.js"
 import { InfoLink, lang, languages } from "../../../ui/utils/LanguageViewModel.js"

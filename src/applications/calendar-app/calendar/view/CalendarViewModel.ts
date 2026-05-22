@@ -6,7 +6,8 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
-import { CustomerInfoTypeRef, GroupInfo, GroupType, NewPaidPlans, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { GroupType, NewPaidPlans } from "../../../entities/sys/Utils"
 import {
 	$Promisable,
 	assertNotNull,

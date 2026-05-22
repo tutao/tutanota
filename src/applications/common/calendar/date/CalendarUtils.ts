@@ -1,7 +1,6 @@
 import { clone, isSameId, StrippedEntity } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendee,
 	CalendarEventTypeRef,
@@ -12,6 +11,7 @@ import {
 	GroupSettings,
 	UserSettingsGroupRoot,
 } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "@tutao/entities/sys"
 import {
 	assert,

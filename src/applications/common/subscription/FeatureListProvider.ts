@@ -3,7 +3,8 @@ import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { downcast, getFromMap } from "@tutao/utils"
 import { isIOSApp } from "@tutao/app-env"
-import { AvailablePlans, PlanName, PlanPrices, PlanType } from "@tutao/entities/sys"
+import { PlanPrices } from "@tutao/entities/sys"
+import { AvailablePlans, PlanName, PlanType } from "../../entities/sys/Utils"
 import { PlanTypeToName } from "./utils/SubscriptionUtils"
 
 let dataProvider: FeatureListProvider | null = null

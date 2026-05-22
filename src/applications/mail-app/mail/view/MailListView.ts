@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { Mail, MailSetKind, SystemFolderType } from "@tutao/entities/tutanota"
+import { Mail } from "@tutao/entities/tutanota"
+import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { assertMainOrNode, Keys } from "@tutao/app-env"
 import { getElementId, getLetId, haveSameId } from "@tutao/meta"
 import { component_size } from "../../../../ui/size"

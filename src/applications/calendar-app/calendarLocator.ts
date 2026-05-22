@@ -133,7 +133,7 @@ import { SystemPermissionHandler } from "../common/native/SystemPermissionHandle
 import { ExposedCacheStorage } from "../../app-kits/local-store/CacheStorage"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { GroupType, ShareableGroupType } from "@tutao/entities/sys"
+import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
 import { KdfType } from "../../platform-kits/base/crypto/Constants"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { CALENDAR_MIME_TYPE } from "../../platform-kits/utils/FileConstants"

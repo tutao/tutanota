@@ -24,8 +24,8 @@ import {
 	GiftCardRedeemGetReturn,
 	GiftCardRedeemService,
 	GiftCardService,
-	GroupType,
 } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../entities/sys/Utils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24

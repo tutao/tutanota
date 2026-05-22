@@ -1,6 +1,6 @@
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigKey } from "@tutao/app-env"
-import { MailboxExportState } from "@tutao/entities/tutanota"
+import { MailboxExportState } from "../../../entities/tutanota/Utils"
 
 export class MailboxExportPersistence {
 	constructor(private readonly conf: DesktopConfig) {}

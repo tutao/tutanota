@@ -23,8 +23,9 @@ import { KeyLoaderFacade } from "../../../../../../platform-kits/base/crypto/Key
 import { RecoverCodeFacade, RecoverData } from "../../../../../../platform-kits/base/facades/lazy/RecoverCodeFacade.js"
 import { AdminKeyLoaderFacade } from "../../../../../../platform-kits/base/crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../../platform-kits/base/crypto/IdentityKeyCreator"
-import { CounterType } from "@tutao/entities/monitor"
-import { createResetPasswordPostIn, createUserDataDelete, GroupType, ResetPasswordService, User, UserService } from "@tutao/entities/sys"
+import { CounterType } from "../../../../../../entities/monitor/Utils"
+import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService, User, UserService } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../../entities/sys/Utils"
 import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kits/base/crypto/Constants"
 

@@ -17,7 +17,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetailsModel.js"
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 

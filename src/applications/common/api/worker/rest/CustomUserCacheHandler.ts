@@ -3,7 +3,8 @@ import { isSameId } from "@tutao/meta"
 import { difference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../facades/lazy/SpamClassifierStorageFacade"
 import { CacheStorage } from "../../../../../app-kits/local-store/CacheStorage"
-import { GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../entities/sys/Utils"
 
 /**
  * Handles tracking dropped memberships for users by clearing entities the user no longer has access to.

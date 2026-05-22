@@ -15,7 +15,7 @@ import { Callback } from "@tutao/utils"
 import { boxShadowHigh } from "../../../../ui/main-styles"
 import { DiscountDetail, getBorderRadius, getBorderWidth } from "../utils/PlanSelectorUtils"
 
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean

@@ -123,7 +123,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { KdfType } from "../../platform-kits/base/crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
-import { ShareableGroupType } from "@tutao/entities/sys"
+import { ShareableGroupType } from "../../entities/sys/Utils"
 import { CALENDAR_MIME_TYPE } from "../../platform-kits/utils/FileConstants"
 
 assertMainOrNode()

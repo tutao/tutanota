@@ -17,7 +17,6 @@ import {
 	File,
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
-	ImportStatus,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -27,10 +26,10 @@ import {
 	MailDetailsDraftTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
-	MailSetKind,
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
+import { ImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { User } from "@tutao/entities/sys"
 import { isFolder } from "../../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"

@@ -33,21 +33,8 @@ import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
 import { EntityRestClientLoadOptions } from "../../../../platform-kits/network/EntityRestClient"
-import {
-	Mail,
-	MailboxGroupRoot,
-	MailboxProperties,
-	MailReportType,
-	MailSet,
-	MailSetEntryTypeRef,
-	MailSetKind,
-	MailSetTypeRef,
-	MailTypeRef,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	MovedMails,
-	ReportMovedMailsType,
-	SystemFolderType,
-} from "@tutao/entities/tutanota"
+import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
+import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"

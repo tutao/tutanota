@@ -13,7 +13,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { showUpgradeWizard } from "../subscription/UpgradeSubscriptionWizard.js"
-import { BookingItemFeatureType } from "@tutao/entities/sys"
+import { BookingItemFeatureType } from "../../entities/sys/Utils"
 
 assertMainOrNode()
 

@@ -29,8 +29,8 @@ import {
 	createContactPhoneNumber,
 	createContactRelationship,
 	createContactWebsite,
-	FileReference,
 } from "@tutao/entities/tutanota"
+import { FileReference } from "../../entities/tutanota/Utils"
 
 export class ContactImporter {
 	constructor(

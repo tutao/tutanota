@@ -6,7 +6,8 @@ import { EventController } from "../../api/main/EventController"
 import { loadReceivedGroupInvitations } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { promiseMap } from "@tutao/utils"
-import { getInvitationGroupType, ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef, ShareableGroupType } from "@tutao/entities/sys"
+import { ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef } from "@tutao/entities/sys"
+import { getInvitationGroupType, ShareableGroupType } from "../../../entities/sys/Utils"
 import { isSameId, OperationType } from "@tutao/meta"
 import {
 	EntityEventsListener,

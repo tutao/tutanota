@@ -3,7 +3,8 @@ import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { assertMainOrNode } from "@tutao/app-env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { EmailSignatureType, TutanotaProperties } from "@tutao/entities/tutanota"
+import { TutanotaProperties } from "@tutao/entities/tutanota"
+import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 
