@@ -21,7 +21,7 @@ import {
 	MembershipService,
 	User,
 } from "@tutao/entities/sys"
-import { GroupType } from "../../../entities/sys/Utils"
+import { GroupType } from "../../../../entities/sys/Utils"
 import {
 	CalendarService,
 	ContactListGroupRoot,

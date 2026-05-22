@@ -44,20 +44,6 @@ import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../c
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../../platform-kits/network/ServiceRequest.js"
 import { CryptoFacade } from "../../platform-kits/base/crypto/CryptoFacade.js"
-import {
-	CommonSystemFacade,
-	ContactSuggestion,
-	DesktopSystemFacade,
-	ExternalCalendarFacade,
-	MobileContactsFacade,
-	MobilePaymentsFacade,
-	MobileSystemFacade,
-	NativeCredentialsFacade,
-	SearchTextInAppFacade,
-	SettingsFacade,
-	SqlCipherFacade,
-	ThemeFacade,
-} from "../../app-kits/native-bridge/common/generatedipc/types/"
 import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { NativeFileApp } from "../../app-kits/native-bridge/common/FileApp.js"
 import { WorkerFacade } from "../common/api/worker/facades/WorkerFacade.js"
@@ -133,10 +119,22 @@ import { SystemPermissionHandler } from "../common/native/SystemPermissionHandle
 import { ExposedCacheStorage } from "../../app-kits/local-store/CacheStorage"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
 import { KdfType } from "../../platform-kits/base/crypto/Constants"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { CALENDAR_MIME_TYPE } from "../../platform-kits/utils/FileConstants"
+import { SearchTextInAppFacade } from "../../app-kits/native-bridge/common/generatedipc/types/SearchTextInAppFacade"
+import { SettingsFacade } from "../../app-kits/native-bridge/common/generatedipc/types/SettingsFacade"
+import { DesktopSystemFacade } from "../../app-kits/native-bridge/common/generatedipc/types/DesktopSystemFacade"
+import { SqlCipherFacade } from "../../app-kits/native-bridge/common/generatedipc/types/SqlCipherFacade"
+import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
+import { ContactSuggestion } from "../../app-kits/native-bridge/common/generatedipc/types/ContactSuggestion"
+import { CommonSystemFacade } from "../../app-kits/native-bridge/common/generatedipc/types/CommonSystemFacade"
+import { ThemeFacade } from "../../app-kits/native-bridge/common/generatedipc/types/ThemeFacade"
+import { ExternalCalendarFacade } from "../../app-kits/native-bridge/common/generatedipc/types/ExternalCalendarFacade"
+import { MobileSystemFacade } from "../../app-kits/native-bridge/common/generatedipc/types/MobileSystemFacade"
+import { MobileContactsFacade } from "../../app-kits/native-bridge/common/generatedipc/types/MobileContactsFacade"
+import { NativeCredentialsFacade } from "../../app-kits/native-bridge/common/generatedipc/types/NativeCredentialsFacade"
+import { MobilePaymentsFacade } from "../../app-kits/native-bridge/common/generatedipc/types/MobilePaymentsFacade"
 
 assertMainOrNode()
 
