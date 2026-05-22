@@ -20,8 +20,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 

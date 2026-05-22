@@ -25,7 +25,6 @@ import { DateProvider } from "../../../src/utils/DateProvider"
 import { ProgrammingError } from "@tutao/app-env"
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
-import { ConversationType, MailMethod } from "../../../src/entities/tutanota"
 import {
 	BodyTypeRef,
 	Contact,
@@ -51,12 +50,13 @@ import {
 	CustomerTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { isSameId, isSameTypeRef, OperationType } from "@tutao/meta"
+import { GroupType } from "../../../src/entities/sys/Utils"
+import { ConversationType, MailMethod } from "../../../src/entities/tutanota/Utils"
 
 const { anything, argThat } = matchers
 

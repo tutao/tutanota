@@ -5,11 +5,10 @@ import { KeyVersion } from "@tutao/utils"
 import { createTestEntity } from "../../../TestUtils"
 import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
 
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys"
-
 import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

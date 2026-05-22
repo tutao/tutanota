@@ -7,11 +7,11 @@ import { formatDateTimeUTC } from "../../../src/calendar-app/calendar/export/Cal
 import { CounterFacade } from "../../../src/network/CounterFacade.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { CounterType } from "../../../src/entities/monitor"
 import { CounterValueTypeRef } from "@tutao/entities/monitor"
 import { TypeRef } from "@tutao/meta"
 
 import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { CounterType } from "../../../src/entities/monitor/Utils"
 
 o.spec("user data export", function () {
 	const customerId = "customerId"

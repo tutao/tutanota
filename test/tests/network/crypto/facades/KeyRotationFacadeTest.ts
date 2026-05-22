@@ -56,8 +56,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicK
 import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/network/error/KeyVerificationMismatchError"
-import { SessionType } from "../../../../../src/app-env/SessionType"
-import { AccountType } from "../../../../../src/entities/sys"
+import { SessionType } from "@tutao/app-env"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 import {
 	AdminGroupKeyRotationGetOutTypeRef,
@@ -77,7 +76,6 @@ import {
 	GroupKeyUpdatesRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
-	GroupType,
 	GroupTypeRef,
 	IdentityKeyPairTypeRef,
 	KeyMac,
@@ -100,6 +98,7 @@ import {
 } from "@tutao/entities/sys"
 import { PublicKeySignatureType } from "../../../../../src/base/crypto/Constants.js"
 import { ServiceExecutor } from "../../../../../src/network/ServiceExecutor"
+import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

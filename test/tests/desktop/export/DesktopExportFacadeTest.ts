@@ -12,7 +12,7 @@ import { DateProvider } from "../../../../src/utils/DateProvider.js"
 import { ExportError } from "../../../../src/common/api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "../../../../src/common/desktop/export/DesktopExportLock"
 import { elementIdPart } from "../../../../src/meta"
-import { MailboxExportState } from "@tutao/entities/tutanota"
+import { MailboxExportState } from "../../../../src/entities/tutanota/Utils"
 
 function enoentError() {
 	const err = new Error()

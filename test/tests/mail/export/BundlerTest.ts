@@ -9,7 +9,6 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { createTestEntity } from "../../TestUtils.js"
 import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
 
-import { MailState } from "../../../../src/entities/tutanota"
 import {
 	BodyTypeRef,
 	DataFile,
@@ -22,6 +21,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
+import { MailState } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient

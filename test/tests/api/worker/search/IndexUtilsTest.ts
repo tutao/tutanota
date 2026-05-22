@@ -22,7 +22,8 @@ import {
 } from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
+import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

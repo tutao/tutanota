@@ -16,18 +16,9 @@ import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoa
 import { Versioned } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 
-import {
-	Group,
-	GroupMembershipTypeRef,
-	GroupType,
-	GroupTypeRef,
-	IdentityKeyPostIn,
-	IdentityKeyService,
-	PublicKeySignature,
-	User,
-	UserTypeRef,
-} from "@tutao/entities/sys"
+import { Group, GroupMembershipTypeRef, GroupTypeRef, IdentityKeyPostIn, IdentityKeyService, PublicKeySignature, User, UserTypeRef } from "@tutao/entities/sys"
 import { KeyAuthenticationFacade } from "../../../../../src/network/KeyAuthenticationFacade"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 const { anything, argThat, captor } = matchers
 

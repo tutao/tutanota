@@ -24,7 +24,7 @@ import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js
 import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/app-env"
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota/Utils"
 import {
 	BirthdayTypeRef,
 	Contact,

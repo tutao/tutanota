@@ -17,7 +17,7 @@ import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.j
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "../../../../src/app-env"
+import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "@tutao/app-env"
 import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
@@ -27,10 +27,9 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
-import { CommonSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types/CommonSystemFacade.js"
+import { CommonSystemFacade } from "../../../../src/native-bridge/common/generatedipc/types"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { TransferProgressDispatcher } from "../../../../src/common/api/main/TransferProgressDispatcher"
-import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -43,6 +42,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
+import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail

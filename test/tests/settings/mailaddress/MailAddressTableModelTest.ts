@@ -13,7 +13,7 @@ import { UserError } from "../../../../src/common/api/main/UserError.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { clone } from "../../../../src/meta"
 
-import { PlanType } from "../../../../src/entities/sys"
+import { PlanType } from "../../../../src/entities/sys/Utils"
 
 import { MailAddressAliasTypeRef } from "@tutao/entities/sys"
 

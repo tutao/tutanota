@@ -5,7 +5,7 @@ import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { isApp } from "@tutao/app-env"
-import { PlanType } from "../../../src/entities/sys"
+import { PlanType } from "../../../src/entities/sys/Utils"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()

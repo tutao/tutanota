@@ -36,8 +36,6 @@ import { ApplicationTypesFacade } from "../../../../src/instance-pipeline/Applic
 import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../src/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { MailSetKind } from "../../../../src/entities/tutanota"
-import { AccountType } from "../../../../src/entities/sys"
 import {
 	BodyTypeRef,
 	ContactListTypeRef,
@@ -63,6 +61,8 @@ import { expandId } from "@tutao/meta"
 import { SqlType } from "../../../../src/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { AccountType } from "../../../../src/entities/sys/Utils"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)

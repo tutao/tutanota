@@ -13,7 +13,7 @@ import { neverNull } from "@tutao/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, ContactWebsiteType } from "../../../src/entities/tutanota/Utils"
 import {
 	BirthdayTypeRef,
 	Contact,

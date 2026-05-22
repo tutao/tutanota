@@ -29,17 +29,16 @@ import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 import {
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
-	Recipient,
-	RecipientType,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { AccountType, UserTypeRef } from "@tutao/entities/sys"
+import { UserTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus, Recipient, RecipientType } from "../../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../../src/entities/sys/Utils"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1

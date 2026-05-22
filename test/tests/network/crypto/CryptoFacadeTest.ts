@@ -51,8 +51,6 @@ import { EntityAdapter, TypeModelResolver } from "@tutao/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
 import { CacheManagementInterface } from "../../../../src/local-store/CacheManagementInterface"
-import { ProcessingState } from "../../../../src/entities/tutanota"
-import { PermissionType } from "../../../../src/entities/sys"
 import {
 	createMail,
 	createMailAddress,
@@ -80,7 +78,6 @@ import {
 	Group,
 	GroupKeysRefTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	GroupTypeRef,
 	InstanceSessionKey,
 	InstanceSessionKeyTypeRef,
@@ -94,6 +91,8 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { InstanceSessionKeysCache } from "../../../../src/local-store/InstanceSessionKeysCache.js"
+import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
+import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 
 const { anything, argThat } = matchers
 

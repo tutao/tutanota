@@ -5,7 +5,7 @@ import { object, when } from "testdouble"
 import { MailListDisplayMode } from "../../../../src/common/misc/DeviceConfig"
 import { listByConversationInFolder } from "../../../../src/mail-app/mail/view/MailViewModel"
 
-import { MailSetKind } from "../../../../src/entities/tutanota"
+import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { MailSetTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("MailViewModelTest", () => {

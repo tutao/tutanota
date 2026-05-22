@@ -24,8 +24,8 @@ import {
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { GENERATED_MIN_ID } from "../../../../../../src/meta"
 import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { SpamDecision } from "../../../../../../src/entities/tutanota"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { SpamDecision } from "../../../../../../src/entities/tutanota/Utils"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"

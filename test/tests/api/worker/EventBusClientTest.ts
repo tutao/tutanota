@@ -17,7 +17,6 @@ import { MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	EntityUpdateTypeRef,
 	GroupMembershipTypeRef,
-	GroupType,
 	User,
 	UserTypeRef,
 	WebsocketCounterData,
@@ -29,6 +28,7 @@ import {
 import { WebsocketConnectivityListener } from "../../../../src/network/WebsocketConnectivityListener"
 import { LastProcessedEventBatchProvider } from "../../../../src/network/LastProcessedEventBatchProvider"
 import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { GroupType } from "../../../../src/entities/sys/Utils"
 
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 	instance: null,

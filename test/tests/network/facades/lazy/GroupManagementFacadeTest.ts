@@ -13,8 +13,8 @@ import { AdminKeyLoaderFacade } from "../../../../../src/base/crypto/AdminKeyLoa
 import { IdentityKeyCreator } from "../../../../../src/base/crypto/IdentityKeyCreator"
 import { freshVersioned } from "@tutao/utils"
 import { AesKey, CryptoWrapper, KeyPairType, PQKeyPairs } from "@tutao/crypto"
-
-import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "@tutao/entities/sys"
 
 const { anything } = matchers
 

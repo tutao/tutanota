@@ -1,12 +1,11 @@
 import o from "@tutao/otest"
 import { ServiceExecutor } from "../../../../src/network/ServiceExecutor"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, getEtId, getListId } from "../../../../src/meta"
+import { getElementId, getEtId, getListId } from "@tutao/meta"
 import { BlobAccessTokenFacade } from "../../../../src/network/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../TestUtils.js"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
-import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys"
 import { FileTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import {
 	BlobAccessTokenPostOutTypeRef,
@@ -20,6 +19,7 @@ import {
 } from "@tutao/entities/storage"
 
 import { BlobTypeRef } from "@tutao/entities/sys"
+import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys/Utils"
 
 const { anything, captor } = matchers
 

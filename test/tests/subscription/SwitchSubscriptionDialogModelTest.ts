@@ -4,9 +4,8 @@ import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/
 import { PaymentInterval } from "../../../src/common/subscription/utils/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
-import { AccountType, BookingItemFeatureType, PlanType } from "../../../src/entities/sys"
-
 import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerTypeRef, FeatureTypeRef } from "@tutao/entities/sys"
+import { AccountType, BookingItemFeatureType, PlanType } from "../../../src/entities/sys/Utils"
 
 o.spec("SwitchSubscriptionDialogModelTest", function () {
 	const paidPlanType = PlanType.Premium

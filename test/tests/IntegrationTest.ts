@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
-import { SessionType } from "../../src/app-env/SessionType.js"
+import { SessionType } from "@tutao/app-env"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
@@ -11,7 +11,7 @@ import {
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../src/entities/sys/Utils"
 
 function loadFolders(folderListId: Id): Promise<MailSet[]> {
 	return locator.cachingEntityClient.loadAll(MailSetTypeRef, folderListId)

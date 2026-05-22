@@ -20,8 +20,6 @@ import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/comm
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
-import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota"
-import { AccountType } from "../../../../src/entities/sys"
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
@@ -45,6 +43,8 @@ import {
 	RepeatRuleTypeRef,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
+import { AccountType } from "../../../../src/entities/sys/Utils"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender

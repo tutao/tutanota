@@ -25,9 +25,10 @@ import { DateProvider } from "../../../../../src/utils/DateProvider"
 import { ProgrammingError } from "@tutao/app-env"
 import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { EntityUpdateTypeRef, GroupMembershipTypeRef, GroupType, UserTypeRef } from "@tutao/entities/sys"
+import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {

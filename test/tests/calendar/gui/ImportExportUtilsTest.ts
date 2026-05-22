@@ -13,7 +13,6 @@ import { clone } from "@tutao/meta"
 
 import {
 	AdvancedRepeatRuleTypeRef,
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
@@ -23,6 +22,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { CalendarAdvancedRepeatRuleTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("ImportExportUtilsTest", function () {
 	o.spec("makeCalendarEventFromIcsCalendarEvent", function () {

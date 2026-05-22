@@ -13,7 +13,7 @@ import { MailboxDetail } from "../../../src/common/mailFunctionality/MailboxMode
 import { LoginController } from "../../../src/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/base/crypto/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
-import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {
 	Body,
 	BodyTypeRef,
