@@ -9,7 +9,8 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { Mail, MailDetails, MailPhishingStatus, MailSet, MailSetKind } from "@tutao/entities/tutanota"
+import { Mail, MailDetails, MailSet } from "@tutao/entities/tutanota"
+import { MailPhishingStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 

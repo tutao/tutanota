@@ -1,11 +1,5 @@
-import {
-	CalendarAttendeeStatus,
-	CalendarEvent,
-	CalendarEventAttendee,
-	EncryptedMailAddress,
-	MailMethod,
-	mailMethodToCalendarMethod,
-} from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../../entities/tutanota/Utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { getAttendeeStatus, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"

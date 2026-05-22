@@ -11,7 +11,8 @@ import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { CacheManagementInterface } from "../../local-store/CacheManagementInterface"
 import { KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
-import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupType, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
+import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 
 assertWorkerOrNode()
 

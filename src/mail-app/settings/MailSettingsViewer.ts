@@ -55,22 +55,19 @@ import { MoveMode } from "../mail/model/MailModel"
 import { ProgressBar, ProgressBarType } from "../../ui/base/ProgressBar"
 import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import {
-	InboxRuleType,
 	MailboxGroupRoot,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailSet,
 	MailSetEntryTypeRef,
-	MailSetKind,
 	MailSetTypeRef,
 	MailTypeRef,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OutOfOfficeNotification,
 	OutOfOfficeNotificationTypeRef,
-	ReportMovedMailsType,
 	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
+import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType } from "../../entities/tutanota/Utils"
 import { OperationType } from "@tutao/meta"
 import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../ui/base/Button"

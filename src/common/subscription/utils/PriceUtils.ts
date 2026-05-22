@@ -10,16 +10,14 @@ import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
 import { SignupViewModel } from "../../signup/SignupView"
 import {
 	AccountingInfo,
-	BookingItemFeatureType,
 	createUpgradePriceServiceData,
-	PaymentMethodType,
 	PlanPrices,
-	PlanType,
 	PriceData,
 	PriceItemData,
 	UpgradePriceService,
 	UpgradePriceServiceReturn,
 } from "@tutao/entities/sys"
+import { BookingItemFeatureType, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { PlanTypeToName } from "./SubscriptionUtils"
 
 export enum PaymentInterval {

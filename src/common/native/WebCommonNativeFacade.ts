@@ -14,7 +14,7 @@ import { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { NativePushServiceApp } from "./NativePushServiceApp.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade"
-import { isHighestTierPlan } from "@tutao/entities/sys"
+import { isHighestTierPlan } from "../../entities/sys/Utils"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {

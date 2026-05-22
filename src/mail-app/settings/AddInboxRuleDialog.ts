@@ -24,7 +24,8 @@ import {
 } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../ui/base/Checkbox"
-import { createInboxRule, InboxRule, InboxRuleType, MailSetKind } from "@tutao/entities/tutanota"
+import { createInboxRule, InboxRule } from "@tutao/entities/tutanota"
+import { InboxRuleType, MailSetKind } from "../../entities/tutanota/Utils"
 
 assertMainOrNode()
 

@@ -19,7 +19,7 @@ import { PrimaryButton } from "../../ui/base/buttons/VariantButtons.js"
 import { CAMPAIGN_NAME, shouldFixButtonPosition } from "../subscription/utils/PlanSelectorUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { AvailablePlanType, PlanType } from "@tutao/entities/sys"
+import { AvailablePlanType, PlanType } from "../../entities/sys/Utils"
 import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
 

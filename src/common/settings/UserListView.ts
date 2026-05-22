@@ -25,7 +25,8 @@ import { keyManager } from "../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
-import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupType } from "@tutao/entities/sys"
+import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()

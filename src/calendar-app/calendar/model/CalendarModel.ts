@@ -103,14 +103,12 @@ import { NoopProgressMonitor, ProgressMonitorInterface } from "../../../network/
 import { getEnabledMailAddressesForGroupInfo } from "../../../network/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import {
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
-	CalendarMethod,
 	createDefaultAlarmInfo,
 	createGroupSettings,
 	FileTypeRef,
@@ -118,6 +116,7 @@ import {
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../entities/tutanota/Utils"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
@@ -126,12 +125,12 @@ import {
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
-	isSharedGroupOwner,
 	MembershipService,
 	User,
 	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
+import { isSharedGroupOwner } from "../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../utils/Utils"

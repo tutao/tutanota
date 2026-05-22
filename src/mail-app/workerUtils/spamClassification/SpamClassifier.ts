@@ -22,7 +22,8 @@ import {
 } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { Mail, MailDetails, SpamDecision } from "@tutao/entities/tutanota"
+import { Mail, MailDetails } from "@tutao/entities/tutanota"
+import { SpamDecision } from "../../../entities/tutanota/Utils"
 
 export type SpamClassificationModelMetaData = {
 	hamCount: number

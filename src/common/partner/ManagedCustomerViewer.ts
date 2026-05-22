@@ -6,7 +6,8 @@ import { LegacyTextField } from "../../ui/base/LegacyTextField.js"
 import { UpdatableSettingsDetailsViewer } from "../settings/Interfaces.js"
 import { getDisplayNameOfPlanType } from "../subscription/FeatureListProvider"
 import { Button, ButtonType } from "../../ui/base/Button"
-import { CustomerInfo, PlanType } from "@tutao/entities/sys"
+import { CustomerInfo } from "@tutao/entities/sys"
+import { PlanType } from "../../entities/sys/Utils"
 import { EntityUpdateData } from "../../instance-pipeline/utils/EntityUpdateUtils"
 
 assertMainOrNode()

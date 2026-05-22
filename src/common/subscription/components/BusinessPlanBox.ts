@@ -16,7 +16,7 @@ import { PlanBadge } from "./PlanBadge"
 import { DiscountDetail, getCampaignTheme, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 import Stream from "mithril/stream"
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 type BusinessPlanBoxAttrs = {
 	planConfig: PlanConfig

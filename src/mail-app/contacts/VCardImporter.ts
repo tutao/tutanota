@@ -6,17 +6,12 @@ import {
 	Birthday,
 	Contact,
 	ContactAddress,
-	ContactAddressType,
 	ContactMailAddress,
 	ContactMessengerHandle,
-	ContactMessengerHandleType,
 	ContactPhoneNumber,
-	ContactPhoneNumberType,
 	ContactPronouns,
 	ContactRelationship,
-	ContactRelationshipType,
 	ContactWebsite,
-	ContactWebsiteType,
 	createBirthday,
 	createContact,
 	createContactAddress,
@@ -27,6 +22,13 @@ import {
 	createContactRelationship,
 	createContactWebsite,
 } from "@tutao/entities/tutanota"
+import {
+	ContactAddressType,
+	ContactMessengerHandleType,
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactWebsiteType,
+} from "../../entities/tutanota/Utils"
 
 assertMainOrNode()
 

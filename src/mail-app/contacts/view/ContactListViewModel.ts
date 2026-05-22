@@ -21,7 +21,8 @@ import {
 	ContactTypeRef,
 	createContactListEntry,
 } from "@tutao/entities/tutanota"
-import { GroupInfo, GroupType, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getEtId, isSameId } from "@tutao/meta"
 

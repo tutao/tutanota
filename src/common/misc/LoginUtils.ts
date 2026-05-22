@@ -17,7 +17,8 @@ import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { deviceConfig } from "./DeviceConfig"
 import { CacheMode } from "../../network/EntityRestClient"
-import { AvailablePlans, AvailablePlanType, Customer, NewBusinessPlans, SubscriptionType } from "@tutao/entities/sys"
+import { Customer } from "@tutao/entities/sys"
+import { AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "../../entities/sys/Utils"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)

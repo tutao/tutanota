@@ -70,25 +70,23 @@ import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model
 import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"
 import {
-	ArchiveDataType,
 	BlobReferenceTokenWrapper,
 	createGeneratedIdWrapper,
 	ExternalUserReference,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
-	GroupType,
 	GroupTypeRef,
 	InstanceSessionKey,
-	SYSTEM_GROUP_MAIL_ADDRESS,
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { CounterService, CounterType, createWriteCounterData } from "@tutao/entities/monitor"
+import { ArchiveDataType, GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../entities/sys/Utils"
+import { CounterService, createWriteCounterData } from "@tutao/entities/monitor"
+import { CounterType } from "../../../../../entities/monitor/Utils"
 import {
 	ApplyLabelService,
 	Contact,
-	ConversationType,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
 	createCreateExternalUserGroupData,
@@ -128,40 +126,26 @@ import {
 	EncryptedMailAddress,
 	ExternalUserService,
 	File,
-	FileReference,
 	FileTypeRef,
 	InternalRecipientKeyData,
 	InternalRecipientKeyDataTypeRef,
-	isDataFile,
-	isFileReference,
 	ListUnsubscribeService,
 	Mail,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailFolderService,
-	MailMethod,
-	MailReportType,
 	MailService,
 	MailSet,
-	MailSetKind,
 	MailTypeRef,
 	ManageLabelService,
-	MAX_NBR_OF_CONVERSATIONS,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	MovedMails,
 	MoveMailService,
-	PartialRecipient,
-	PhishingMarkerStatus,
 	PopulateClientSpamTrainingDataService,
 	PopulateClientSpamTrainingDatum,
 	ProcessInboxDatum,
 	ProcessInboxService,
-	Recipient,
-	RecipientList,
-	RecipientType,
 	ReportedMailFieldMarker,
-	ReportedMailFieldType,
 	ReportMailService,
 	ResolveConversationsService,
 	SendDraftParameters,
@@ -173,6 +157,23 @@ import {
 	TutanotaPropertiesTypeRef,
 	UnreadMailStateService,
 } from "@tutao/entities/tutanota"
+import {
+	ConversationType,
+	FileReference,
+	isDataFile,
+	isFileReference,
+	MailMethod,
+	MailReportType,
+	MailSetKind,
+	MAX_NBR_OF_CONVERSATIONS,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
+	PartialRecipient,
+	PhishingMarkerStatus,
+	Recipient,
+	RecipientList,
+	RecipientType,
+	ReportedMailFieldType,
+} from "../../../../../entities/tutanota/Utils"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../base/crypto/Constants.js"
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../instance-pipeline/utils/EntityUpdateUtils"

@@ -23,7 +23,8 @@ import { Icon, IconSize } from "../../../ui/base/Icon"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
-import { GiftCard, GiftCardOption, GiftCardService, GiftCardTypeRef, PaymentMethodType, PlanType } from "@tutao/entities/sys"
+import { GiftCard, GiftCardOption, GiftCardService, GiftCardTypeRef } from "@tutao/entities/sys"
+import { PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")

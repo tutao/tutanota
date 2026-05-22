@@ -20,7 +20,8 @@ import { ofClass } from "@tutao/utils"
 import { DialogHeaderBarAttrs } from "../../ui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
-import { OUT_OF_OFFICE_SUBJECT_PREFIX, OutOfOfficeNotification } from "@tutao/entities/tutanota"
+import { OutOfOfficeNotification } from "@tutao/entities/tutanota"
+import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {

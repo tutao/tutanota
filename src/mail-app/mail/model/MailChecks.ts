@@ -2,7 +2,8 @@
 
 import { MailModel } from "./MailModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
-import { Mail, MailSet, MailSetKind, MailState, SystemFolderType } from "@tutao/entities/tutanota"
+import { Mail, MailSet } from "@tutao/entities/tutanota"
+import { MailSetKind, MailState, SystemFolderType } from "../../../entities/tutanota/Utils"
 import { isFolderReadOnly } from "../MailUtils"
 
 export function isSubfolderOfType(system: FolderSystem, folder: MailSet, type: SystemFolderType): boolean {

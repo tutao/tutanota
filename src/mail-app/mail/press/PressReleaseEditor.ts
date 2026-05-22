@@ -18,7 +18,7 @@ import { RichTextToolbar } from "../../../ui/base/RichTextToolbar.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getDefaultSender } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { MailMethod } from "@tutao/entities/tutanota"
+import { MailMethod } from "../../../entities/tutanota/Utils"
 
 type PressContact = {
 	email: string

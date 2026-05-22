@@ -5,7 +5,8 @@ import { isSameId } from "../../meta"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyCache } from "../../local-store/KeyCache"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
-import { createWebsocketLeaderStatus, GroupMembership, GroupType, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
+import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 
 /** Holder for the user and session-related data on the worker side. */

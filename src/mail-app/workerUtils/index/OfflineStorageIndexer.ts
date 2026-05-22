@@ -7,7 +7,7 @@ import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 import { EntityUpdateData } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 
 export class OfflineStorageIndexer implements Indexer {

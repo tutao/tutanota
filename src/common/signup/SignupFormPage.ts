@@ -8,7 +8,7 @@ import { theme } from "../../ui/theme"
 import { layout_size, px, size } from "../../ui/size"
 import { styles } from "../../ui/styles"
 
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../entities/sys/Utils"
 
 export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {

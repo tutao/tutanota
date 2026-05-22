@@ -1,5 +1,6 @@
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { DataFile, MailboxExportState } from "@tutao/entities/tutanota"
+import { DataFile } from "@tutao/entities/tutanota"
+import { MailboxExportState } from "../../../entities/tutanota/Utils"
 import { fileExists } from "../PathUtils.js"
 import path from "node:path"
 import { CancelledError, DesktopConfigKey, ProgrammingError } from "@tutao/app-env"

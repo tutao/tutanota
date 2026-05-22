@@ -9,7 +9,7 @@ import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/Upgr
 import { createAccount } from "./utils/PaymentUtils"
 import { Dialog } from "../../ui/base/Dialog"
 import { isIOSApp } from "@tutao/app-env"
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../entities/sys/Utils"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement

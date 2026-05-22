@@ -36,7 +36,8 @@ import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/cal
 import { AriaRole } from "../../../ui/AriaUtils"
 import { isKeyPressed } from "../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { CalendarAttendeeStatus, CalendarEvent, CalendarMethod, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
+import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../entities/tutanota/Utils"
 import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-env"
 import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 

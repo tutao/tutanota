@@ -5,7 +5,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel } from "../../mail/model/MailModel.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 
-import { MailSetKind } from "@tutao/entities/tutanota"
+import { MailSetKind } from "../../../entities/tutanota/Utils"
 
 /**
  * Handles requests for opening mailbox paths from native.

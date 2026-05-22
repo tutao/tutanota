@@ -28,7 +28,8 @@ import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
-import { Mail, MailSet, MailSetKind, ReplyType } from "@tutao/entities/tutanota"
+import { Mail, MailSet } from "@tutao/entities/tutanota"
+import { MailSetKind, ReplyType } from "../../../entities/tutanota/Utils"
 import { getMailFolderType } from "../MailUtils"
 
 const iconMap: Record<MailSetKind, string> = {

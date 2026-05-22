@@ -7,7 +7,7 @@ import { elementIdPart, getTypeString, ListElementEntity, listIdPart, TypeRef } 
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import type { OfflineStorageTable } from "../../../local-store/OfflineStorage"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
 import { SqlValue } from "../../../local-store/Types"
 

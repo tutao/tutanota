@@ -37,7 +37,8 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { AlarmInfo, Group, GroupType, PushIdentifierTypeRef, User, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { AlarmInfo, Group, PushIdentifierTypeRef, User, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../../../../entities/sys/Utils"
 import {
 	CalendarEvent,
 	CalendarEventTypeRef,

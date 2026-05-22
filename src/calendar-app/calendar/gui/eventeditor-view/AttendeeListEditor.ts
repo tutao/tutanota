@@ -28,8 +28,9 @@ import { Switch } from "../../../../ui/base/Switch.js"
 import { Divider } from "../../../../ui/Divider.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils"
 import { cleanMailAddress } from "@tutao/utils"
-import { CalendarAttendeeStatus, createEncryptedMailAddress, RecipientType } from "@tutao/entities/tutanota"
-import { AccountType } from "@tutao/entities/sys"
+import { createEncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, RecipientType } from "../../../../entities/tutanota/Utils"
+import { AccountType } from "../../../../entities/sys/Utils"
 
 export type AttendeeListEditorAttrs = {
 	/** the event that is currently being edited */

@@ -46,7 +46,8 @@ import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedD
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../app-env/OutOfSyncError"
 import { MailTypeRef } from "@tutao/entities/tutanota"
-import { getMembershipGroupType, GroupMembership, GroupType, User, UserTypeRef } from "@tutao/entities/sys"
+import { GroupMembership, User, UserTypeRef } from "@tutao/entities/sys"
+import { getMembershipGroupType, GroupType } from "../../../entities/sys/Utils"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 

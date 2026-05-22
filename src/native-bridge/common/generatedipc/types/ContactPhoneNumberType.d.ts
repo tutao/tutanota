@@ -1,3 +1,3 @@
 /* generated file, don't edit. */
 
-export { ContactPhoneNumberType } from "@tutao/entities/tutanota"
+export { ContactPhoneNumberType } from "../../../../entities/tutanota/Utils"

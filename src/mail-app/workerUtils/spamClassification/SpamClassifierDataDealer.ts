@@ -15,13 +15,11 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailSet,
-	MailSetKind,
 	MailSetTypeRef,
 	MailTypeRef,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	PopulateClientSpamTrainingDatum,
-	SpamDecision,
 } from "@tutao/entities/tutanota"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../entities/tutanota/Utils"
 import { getMailSetKind, isFolder } from "../../mail/MailUtils"
 
 // visible for testing

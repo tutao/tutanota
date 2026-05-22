@@ -62,9 +62,10 @@ import {
 	EncryptedMailAddress,
 	Mail,
 	MailboxProperties,
-	PartialRecipient,
 } from "@tutao/entities/tutanota"
-import { AccountType, User } from "@tutao/entities/sys"
+import { PartialRecipient } from "../../../../entities/tutanota/Utils"
+import { User } from "@tutao/entities/sys"
+import { AccountType } from "../../../../entities/sys/Utils"
 import { getStrippedClone, Stripped, StrippedEntity } from "@tutao/meta"
 import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {

@@ -1,6 +1,7 @@
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { PublicKey, PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
-import { PublicKeySignature, SYSTEM_GROUP_MAIL_ADDRESS } from "@tutao/entities/sys"
+import { PublicKeySignature } from "@tutao/entities/sys"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../entities/sys/Utils"
 
 export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: PublicKeySignature | null }
 

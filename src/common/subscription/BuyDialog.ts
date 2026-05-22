@@ -1,4 +1,5 @@
-import { AccountingInfoTypeRef, BookingItemFeatureType, PriceData, PriceItemData, PriceServiceReturn } from "@tutao/entities/sys"
+import { AccountingInfoTypeRef, PriceData, PriceItemData, PriceServiceReturn } from "@tutao/entities/sys"
+import { BookingItemFeatureType } from "../../entities/sys/Utils"
 import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@tutao/utils"
 import { LegacyTextField, LegacyTextFieldType } from "../../ui/base/LegacyTextField.js"

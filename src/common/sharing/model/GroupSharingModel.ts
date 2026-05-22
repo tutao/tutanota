@@ -17,19 +17,10 @@ import type { GroupManagementFacade } from "../../../base/facades/lazy/GroupMana
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
-import { MailAddress, Recipient, RecipientType } from "@tutao/entities/tutanota"
-import {
-	Group,
-	GroupInfo,
-	GroupMember,
-	GroupMemberInfo,
-	GroupMemberTypeRef,
-	GroupTypeRef,
-	hasCapabilityOnGroup,
-	isSharedGroupOwner,
-	SentGroupInvitation,
-	SentGroupInvitationTypeRef,
-} from "@tutao/entities/sys"
+import { MailAddress } from "@tutao/entities/tutanota"
+import { Recipient, RecipientType } from "../../../entities/tutanota/Utils"
+import { Group, GroupInfo, GroupMember, GroupMemberTypeRef, GroupTypeRef, SentGroupInvitation, SentGroupInvitationTypeRef } from "@tutao/entities/sys"
+import { GroupMemberInfo, hasCapabilityOnGroup, isSharedGroupOwner } from "../../../entities/sys/Utils"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo

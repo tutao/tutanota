@@ -60,25 +60,18 @@ import { TransferProgressDispatcher } from "../../../common/api/main/TransferPro
 import { locator } from "../../../common/api/main/CommonLocator"
 import { CALENDAR_MIME_TYPE } from "../../../utils/FileConstants"
 import { SanitizedFragment } from "../../../ui/utils/HtmlSanitizerInterface"
-import { ArchiveDataType } from "@tutao/entities/sys"
+import { ArchiveDataType } from "../../../entities/sys/Utils"
+import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailDetails, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	ConversationType,
-	createMailAddress,
-	EncryptedMailAddress,
 	ExternalImageRule,
-	File,
-	Mail,
-	MailAddress,
-	MailDetails,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
-	MailSet,
 	MailSetKind,
 	MailState,
-	MailTypeRef,
 	NewsletterBannerRule,
-} from "@tutao/entities/tutanota"
+} from "../../../entities/tutanota/Utils"
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
 import { haveSameId, isSameId, OperationType } from "@tutao/meta"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"

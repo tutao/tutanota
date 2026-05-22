@@ -39,21 +39,14 @@ import { PasswordField } from "../../common/misc/passwords/PasswordField.js"
 import {
 	Contact,
 	ContactAddress,
-	ContactAddressType,
 	ContactCustomDate,
-	ContactCustomDateType,
 	ContactMailAddress,
 	ContactMessengerHandle,
-	ContactMessengerHandleType,
 	ContactPhoneNumber,
-	ContactPhoneNumberType,
 	ContactPronouns,
 	ContactRelationship,
-	ContactRelationshipType,
 	ContactSocialId,
-	ContactSocialType,
 	ContactWebsite,
-	ContactWebsiteType,
 	createBirthday,
 	createContact,
 	createContactAddress,
@@ -66,9 +59,18 @@ import {
 	createContactSocialId,
 	createContactWebsite,
 } from "@tutao/entities/tutanota"
+import {
+	ContactAddressType,
+	ContactCustomDateType,
+	ContactMessengerHandleType,
+	ContactPhoneNumberType,
+	ContactRelationshipType,
+	ContactSocialType,
+	ContactWebsiteType,
+} from "../../entities/tutanota/Utils"
 import { clone, timestampToGeneratedId } from "@tutao/meta"
 import { assertMainOrNode, Keys, ProgrammingError } from "@tutao/app-env"
-import { GroupType } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 
 assertMainOrNode()
 

@@ -14,7 +14,7 @@ import * as restError from "@tutao/rest-client/error"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { UserSettingsGroupRootTypeRef } from "../../entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
-import { getHourCycle } from "@tutao/entities/tutanota"
+import { getHourCycle } from "../../entities/tutanota/Utils"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null

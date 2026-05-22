@@ -1,7 +1,8 @@
 import { neverNull, promiseMap } from "@tutao/utils"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../network/GroupUtils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { Customer, GroupInfoTypeRef, GroupType, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { Customer, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { GroupType } from "../../entities/sys/Utils"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.

@@ -2,9 +2,10 @@ import { assertMainOrNode } from "@tutao/app-env"
 import { downloadAndDecryptFromArchive, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import { ArchiveDataType } from "@tutao/entities/sys"
-import { assertOnlyDataFiles, DataFile, FileReference } from "@tutao/entities/tutanota"
-import { TransferId } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../entities/sys/Utils"
+import { DataFile } from "@tutao/entities/tutanota"
+import { assertOnlyDataFiles, FileReference } from "../../entities/tutanota/Utils"
+import { TransferId } from "../../entities/drive/Utils"
 import { DownloadableFileEntity } from "@tutao/entities/storage"
 
 assertMainOrNode()

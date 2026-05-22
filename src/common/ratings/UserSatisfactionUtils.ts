@@ -5,7 +5,7 @@ import { Stage } from "@tutao/usagetests"
 import { isEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
 import { isAndroidApp, isApp, isBrowser, isDesktop } from "@tutao/app-env"
-import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "@tutao/entities/sys"
+import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "../../entities/sys/Utils"
 import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
 
 export function createEvent(deviceConfig: DeviceConfig): void {

@@ -10,18 +10,18 @@ import { _encryptKeyWithVersionedKey, _encryptString, AesKey, CryptoWrapper, PQK
 import { IdentityKeyCreator } from "../../crypto/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../crypto/AdminKeyLoaderFacade"
 import { CacheManagementInterface } from "../../../local-store/CacheManagementInterface"
-import { CounterType } from "@tutao/entities/monitor"
+import { CounterType } from "../../../entities/monitor/Utils"
 import {
 	createMembershipAddData,
 	createMembershipRemoveData,
 	CustomerTypeRef,
 	Group,
 	GroupInfoTypeRef,
-	GroupType,
 	GroupTypeRef,
 	MembershipService,
 	User,
 } from "@tutao/entities/sys"
+import { GroupType } from "../../../entities/sys/Utils"
 import {
 	CalendarService,
 	ContactListGroupRoot,

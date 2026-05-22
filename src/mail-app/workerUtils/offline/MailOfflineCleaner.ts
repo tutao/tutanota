@@ -2,7 +2,8 @@ import { assertNotNull, groupByAndMap } from "@tutao/utils"
 import { constructMailSetEntryId, elementIdPart, firstBiggerThanSecondBase64Url, GENERATED_MAX_ID, getElementId, listIdPart } from "@tutao/meta"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../local-store/OfflineStorage.js"
 import { daysToMillis } from "@tutao/app-env"
-import { AccountType, UserTypeRef } from "@tutao/entities/sys"
+import { UserTypeRef } from "@tutao/entities/sys"
+import { AccountType } from "../../../entities/sys/Utils"
 import { getOfflineStorageDefaultTimeRangeDays } from "../../mail/MailUtils"
 import {
 	FileTypeRef,

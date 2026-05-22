@@ -7,7 +7,7 @@ import { styles } from "../../../ui/styles"
 import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { isDarkTheme, Theme, theme } from "../../../ui/theme"
 import { getRawApplePrice, hasAppleIntroOffer } from "./SubscriptionUtils"
-import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "@tutao/entities/sys"
+import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "../../../entities/sys/Utils"
 
 export type DiscountDetail = {
 	ribbonTranslation: Translation

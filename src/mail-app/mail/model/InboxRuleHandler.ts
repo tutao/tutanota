@@ -9,7 +9,8 @@ import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { InboxRule, InboxRuleType, Mail, MailSet, MailSetKind, ProcessingState } from "@tutao/entities/tutanota"
+import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
+import { InboxRuleType, MailSetKind, ProcessingState } from "../../../entities/tutanota/Utils"
 import { elementIdPart } from "@tutao/meta"
 
 assertMainOrNode()

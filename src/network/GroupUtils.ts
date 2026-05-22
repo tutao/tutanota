@@ -1,4 +1,5 @@
-import { GroupInfo, GroupMembership, GroupType, User } from "@tutao/entities/sys"
+import { GroupInfo, GroupMembership, User } from "@tutao/entities/sys"
+import { GroupType } from "../entities/sys/Utils"
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)

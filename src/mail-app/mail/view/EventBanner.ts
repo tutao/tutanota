@@ -10,7 +10,8 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
 import { type IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { CalendarAttendeeStatus, Mail } from "@tutao/entities/tutanota"
+import { Mail } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../entities/tutanota/Utils"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent

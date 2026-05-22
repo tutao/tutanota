@@ -1,6 +1,5 @@
 import {
 	AdvancedRepeatRule,
-	CalendarAttendeeStatus,
 	CalendarEvent,
 	CalendarEventAttendee,
 	CalendarRepeatRule,
@@ -8,6 +7,7 @@ import {
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
 } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { RepeatRule } from "@tutao/entities/sys"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../ui/base/Icon.js"

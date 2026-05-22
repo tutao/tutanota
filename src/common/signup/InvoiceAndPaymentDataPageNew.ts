@@ -22,7 +22,8 @@ import { styles } from "../../ui/styles"
 import { LegacyTextFieldType } from "../../ui/base/LegacyTextField"
 import { Icons } from "../../ui/base/icons/Icons"
 
-import { LocationService, LocationServiceGetReturn, PaymentMethodType } from "@tutao/entities/sys"
+import { LocationService, LocationServiceGetReturn } from "@tutao/entities/sys"
+import { PaymentMethodType } from "../../entities/sys/Utils"
 import { renderCountryDropdownNew } from "../gui/CountryDropdown"
 import { Countries, CountryType } from "../gui/CountryList"
 

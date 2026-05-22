@@ -49,22 +49,19 @@ import { InstanceSessionKeysCache } from "../../local-store/InstanceSessionKeysC
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
 import { EntityClient } from "../../network/EntityClient"
 import {
-	AccountType,
 	BucketPermission,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
 	createUpdatePermissionKeyData,
 	createUpdateSessionKeysPostIn,
-	GroupType,
 	GroupTypeRef,
 	InstanceSessionKey,
 	Permission,
-	PermissionType,
 	PermissionTypeRef,
-	SYSTEM_GROUP_MAIL_ADDRESS,
 	UpdatePermissionKeyService,
 	UpdateSessionKeysService,
 } from "@tutao/entities/sys"
+import { AccountType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../entities/sys/Utils"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
 import { Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../meta/EntityTypes"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "./Constants"

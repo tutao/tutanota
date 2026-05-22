@@ -166,7 +166,7 @@ import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { GroupType, ShareableGroupType } from "@tutao/entities/sys"
+import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
 import { ClientTypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 

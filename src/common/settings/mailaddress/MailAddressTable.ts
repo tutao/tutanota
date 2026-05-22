@@ -17,7 +17,7 @@ import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddress
 import { showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
-import { NewPaidPlans } from "@tutao/entities/sys"
+import { NewPaidPlans } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 

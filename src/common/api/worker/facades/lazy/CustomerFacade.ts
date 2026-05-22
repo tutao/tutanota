@@ -33,13 +33,12 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { CacheMode } from "../../../../../network/EntityRestClient"
-import { CounterType } from "@tutao/entities/monitor"
-import { createCustomerAccountCreateData, CustomerAccountService, DataFile, SpamRuleFieldType, SpamRuleType } from "@tutao/entities/tutanota"
+import { CounterType } from "../../../../../entities/monitor/Utils"
+import { createCustomerAccountCreateData, CustomerAccountService, DataFile } from "@tutao/entities/tutanota"
+import { SpamRuleFieldType, SpamRuleType } from "../../../../../entities/tutanota/Utils"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AccountType,
-	BookingItemFeatureType,
 	BrandingDomainService,
 	createBrandingDomainData,
 	createBrandingDomainDeleteData,
@@ -56,13 +55,13 @@ import {
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	EmailSenderListElement,
-	GroupType,
 	InvoiceDataService,
 	PaymentDataService,
 	PaymentDataServicePutReturn,
 	SystemKeysService,
 	User,
 } from "@tutao/entities/sys"
+import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../entities/sys/Utils"
 import { getByAbbreviation } from "../../../../gui/CountryList"
 
 assertWorkerOrNode()

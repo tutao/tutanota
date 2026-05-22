@@ -1,4 +1,5 @@
-import { Mail, MailSet, MailSetKind, ProcessInboxDatum } from "@tutao/entities/tutanota"
+import { Mail, MailSet, ProcessInboxDatum } from "@tutao/entities/tutanota"
+import { MailSetKind } from "../../../entities/tutanota/Utils"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"

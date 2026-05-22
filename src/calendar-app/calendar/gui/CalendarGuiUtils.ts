@@ -88,8 +88,9 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../ui/utils/KeyManager.js"
 import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
-import { AdvancedRepeatRule, CalendarAttendeeStatus, CalendarEvent } from "@tutao/entities/tutanota"
-import { AccountType, hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { AdvancedRepeatRule, CalendarEvent } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../entities/tutanota/Utils"
+import { AccountType, hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 import { clone } from "@tutao/meta"
 
 export interface IntervalOption {

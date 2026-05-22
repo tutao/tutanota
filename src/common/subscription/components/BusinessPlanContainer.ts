@@ -10,7 +10,7 @@ import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
 
-import { PlanType } from "@tutao/entities/sys"
+import { PlanType } from "../../../entities/sys/Utils"
 
 export type PlanFeature = {
 	label: TranslationKey

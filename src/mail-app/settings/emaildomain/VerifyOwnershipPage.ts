@@ -15,7 +15,7 @@ import { getAvailableMatchingPlans } from "../../../common/subscription/utils/Su
 import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerUtils.js"
 import { assertEnumValue } from "../../../meta"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
-import { CustomDomainType, CustomDomainTypeCount } from "@tutao/entities/sys"
+import { CustomDomainType, CustomDomainTypeCount } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 

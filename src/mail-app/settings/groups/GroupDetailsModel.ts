@@ -8,18 +8,8 @@ import { compareGroupInfos, getGroupInfoDisplayName } from "../../../network/Gro
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import {
-	BookingItemFeatureType,
-	createGroupInfo,
-	CustomerTypeRef,
-	Group,
-	GroupInfo,
-	GroupInfoTypeRef,
-	GroupMemberTypeRef,
-	GroupType,
-	GroupTypeRef,
-	UserTypeRef,
-} from "@tutao/entities/sys"
+import { createGroupInfo, CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GENERATED_MIN_ID, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../instance-pipeline/utils/EntityUpdateUtils"

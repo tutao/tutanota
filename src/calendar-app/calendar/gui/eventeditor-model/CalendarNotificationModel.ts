@@ -7,8 +7,9 @@ import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { getNonOrganizerAttendees } from "./CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
-import { CalendarAttendeeStatus, CalendarEvent } from "@tutao/entities/tutanota"
-import { AccountType } from "@tutao/entities/sys"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
+import { AccountType } from "../../../../entities/sys/Utils"
 
 /** all the people that may be interested in changes to an event get stored in these models.
  * if one of them is null, it's because there is no one that needs that kind of update.

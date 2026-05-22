@@ -27,7 +27,8 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
-import { getMemberCapability, GroupInfo, GroupType, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "@tutao/entities/sys"
+import { GroupInfo } from "@tutao/entities/sys"
+import { getMemberCapability, GroupType, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner } from "../../../entities/sys/Utils"
 import { ShareCapability, UpgradePromptType } from "@tutao/app-env"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {

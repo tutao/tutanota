@@ -30,7 +30,8 @@ import { DateTime } from "luxon"
 import { formatDate } from "../../ui/utils/Formatter.js"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
-import { AccountType, createSwitchAccountTypePostIn, PaymentMethodType, SwitchAccountTypeService } from "@tutao/entities/sys"
+import { createSwitchAccountTypePostIn, SwitchAccountTypeService } from "@tutao/entities/sys"
+import { AccountType, PaymentMethodType } from "../../entities/sys/Utils"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement

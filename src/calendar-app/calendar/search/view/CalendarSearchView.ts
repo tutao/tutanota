@@ -22,7 +22,8 @@ import { MobileHeader } from "../../../../ui/MobileHeader.js"
 import { searchBar } from "../CalendarSearchBar.js"
 import { ProgressBar } from "../../../../ui/base/ProgressBar.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
-import { CalendarEvent, Contact, PartialRecipient } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,

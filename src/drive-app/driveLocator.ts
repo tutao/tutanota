@@ -124,7 +124,7 @@ import { lang } from "../ui/utils/LanguageViewModel"
 import { SearchToken } from "../ui/utils/QueryTokenUtils"
 import { KdfType } from "../base/crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
-import { ShareableGroupType } from "@tutao/entities/sys"
+import { ShareableGroupType } from "../entities/sys/Utils"
 
 assertMainOrNode()
 

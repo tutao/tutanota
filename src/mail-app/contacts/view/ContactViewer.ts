@@ -21,16 +21,8 @@ import type { AllIcons } from "../../../ui/base/Icon.js"
 
 import { SearchToken } from "../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../ui/TextHighlightViewUtils"
-import {
-	Contact,
-	ContactAddress,
-	ContactAddressType,
-	ContactMessengerHandle,
-	ContactPhoneNumber,
-	ContactPhoneNumberType,
-	ContactSocialId,
-	ContactWebsite,
-} from "@tutao/entities/tutanota"
+import { Contact, ContactAddress, ContactMessengerHandle, ContactPhoneNumber, ContactSocialId, ContactWebsite } from "@tutao/entities/tutanota"
+import { ContactAddressType, ContactPhoneNumberType } from "../../../entities/tutanota/Utils"
 import { PartialRecipient } from "../../../entities/tutanota/Utils"
 import { getContactSocialType, getCustomDateType, getRelationshipType } from "../ContactUtils"
 

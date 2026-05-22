@@ -3,7 +3,7 @@ import type { LoginController } from "../../api/main/LoginController"
 import { assertMainOrNode } from "@tutao/app-env"
 import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/SharedMailUtils.js"
 import { theme } from "../../../ui/theme"
-import { PartialRecipient } from "@tutao/entities/tutanota"
+import { PartialRecipient } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 /** password strength resulting in a full bar */

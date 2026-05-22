@@ -43,7 +43,8 @@ import SignupWizardLayout from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
 import { Icons } from "../../ui/base/icons/Icons"
 import { mailLocator } from "../../mail-app/mailLocator"
-import { AccountingInfo, AvailablePlanType, Customer, PlanType, SubscriptionType } from "@tutao/entities/sys"
+import { AccountingInfo, Customer } from "@tutao/entities/sys"
+import { AvailablePlanType, PlanType, SubscriptionType } from "../../entities/sys/Utils"
 
 assertMainOrNode()
 

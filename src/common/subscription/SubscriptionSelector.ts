@@ -29,16 +29,8 @@ import {
 	shouldShowApplePrices,
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
-import {
-	AccountingInfo,
-	AvailablePlanType,
-	LegacyPlans,
-	LegacyPrivatePlans,
-	NewBusinessPlans,
-	NewPersonalPlans,
-	PaymentMethodType,
-	PlanType,
-} from "@tutao/entities/sys"
+import { AccountingInfo } from "@tutao/entities/sys"
+import { AvailablePlanType, LegacyPlans, LegacyPrivatePlans, NewBusinessPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../entities/sys/Utils"
 import { PrimaryButton, PrimaryButtonAttrs } from "../../ui/base/buttons/VariantButtons.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [

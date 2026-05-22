@@ -8,7 +8,8 @@ import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/Sha
 import { EncryptionKeyVerificationState, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "../../../base/facades/lazy/KeyVerificationFacade"
-import { Contact, ContactTypeRef, PartialRecipient, Recipient, RecipientType } from "@tutao/entities/tutanota"
+import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
+import { PartialRecipient, Recipient, RecipientType } from "../../../entities/tutanota/Utils"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type

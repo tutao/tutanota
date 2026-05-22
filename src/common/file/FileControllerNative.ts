@@ -4,9 +4,10 @@ import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/uti
 import type { NativeFileApp } from "../../native-bridge/common/FileApp.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
-import { ArchiveDataType } from "@tutao/entities/sys"
-import { assertOnlyFileReferences, DataFile, File, FileReference } from "@tutao/entities/tutanota"
-import { TransferId } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../entities/sys/Utils"
+import { DataFile, File } from "@tutao/entities/tutanota"
+import { assertOnlyFileReferences, FileReference } from "../../entities/tutanota/Utils"
+import { TransferId } from "../../entities/drive/Utils"
 import { createReferencingInstance } from "@tutao/entities/storage"
 
 assertMainOrNode()

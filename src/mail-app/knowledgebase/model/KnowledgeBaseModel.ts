@@ -13,7 +13,7 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { EmailTemplate, EmailTemplateTypeRef, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
 import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, getLetId, isSameId, OperationType } from "@tutao/meta"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 
 export const SELECT_NEXT_ENTRY = "next"
 

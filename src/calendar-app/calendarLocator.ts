@@ -134,7 +134,7 @@ import { ExposedCacheStorage } from "../local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE } from "../utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
-import { GroupType, ShareableGroupType } from "@tutao/entities/sys"
+import { GroupType, ShareableGroupType } from "../entities/sys/Utils"
 import { KdfType } from "../base/crypto/Constants"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 

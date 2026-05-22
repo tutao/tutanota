@@ -13,7 +13,8 @@ import { px } from "../../../ui/size.js"
 import { assertNotNull, last, neverNull } from "@tutao/utils"
 import { GENERATED_MAX_ID } from "../../../meta"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
-import { BookingTypeRef, LegacyPrivatePlans, NewPaidPlans, PlanType } from "@tutao/entities/sys"
+import { BookingTypeRef } from "@tutao/entities/sys"
+import { LegacyPrivatePlans, NewPaidPlans, PlanType } from "../../../entities/sys/Utils"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog

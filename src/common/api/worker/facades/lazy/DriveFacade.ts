@@ -7,14 +7,15 @@ import { UserFacade } from "../../../../../base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
-import { ArchiveDataType, BlobReferenceTokenWrapper, GroupType } from "@tutao/entities/sys"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { ArchiveDataType, GroupType } from "../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../base/crypto/CryptoFacade"
 import * as restError from "@tutao/rest-client/error"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
 import { isWebFile } from "../../../../../ui/utils/FileUtils"
-import { FileReference, WebFile } from "@tutao/entities/tutanota"
+import { FileReference, WebFile } from "../../../../../entities/tutanota/Utils"
 import {
 	createDriveCopyServicePostIn,
 	createDriveFolderServiceDeleteIn,
@@ -39,8 +40,8 @@ import {
 	DriveItemService,
 	DriveRenameData,
 	DriveService,
-	TransferId,
 } from "@tutao/entities/drive"
+import { TransferId } from "../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 
 export interface BreadcrumbEntry {

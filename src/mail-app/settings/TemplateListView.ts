@@ -26,7 +26,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { isSameId } from "@tutao/meta"
 import { EmailTemplate, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../instance-pipeline/utils/EntityUpdateUtils"
-import { hasCapabilityOnGroup } from "@tutao/entities/sys"
+import { hasCapabilityOnGroup } from "../../entities/sys/Utils"
 
 assertMainOrNode()
 

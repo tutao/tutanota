@@ -5,24 +5,18 @@ import { ButtonType } from "../../ui/base/Button.js"
 import { createUserAreaGroupDeleteData, TemplateGroupService } from "@tutao/entities/tutanota"
 import {
 	AccountingInfo,
-	AccountType,
-	AvailablePlanType,
 	Booking,
 	createSurveyData,
 	createSwitchAccountTypePostIn,
 	Customer,
 	GroupInfo,
 	GroupInfoTypeRef,
-	GroupType,
 	GroupTypeRef,
-	LegacyPlans,
-	NewBusinessPlans,
-	PaymentMethodType,
-	PlanType,
 	SurveyData,
 	SwitchAccountTypeService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../entities/sys/Utils"
 import { BookingFailureReason, Const, InvoiceData, isIOSApp, Keys, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
