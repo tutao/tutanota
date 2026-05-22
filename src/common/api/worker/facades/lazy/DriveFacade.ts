@@ -11,10 +11,12 @@ import { CryptoFacade } from "../../crypto/CryptoFacade"
 import { getCleanedMimeType } from "../../../common/DataFile"
 import { TransferId } from "../../../common/drive/DriveTypes"
 import * as restError from "@tutao/rest-client/error"
+import { ConnectionError } from "@tutao/rest-client/error"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
 import { FileReference, isWebFile, WebFile } from "../../../common/utils/FileUtils"
+import { ExposedCacheStorage } from "../../rest/DefaultEntityRestCache"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -58,6 +60,7 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly cacheStorage: ExposedCacheStorage,
 	) {}
 
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
@@ -111,17 +114,27 @@ export class DriveFacade {
 		return result.operationId
 	}
 
-	public async loadRootFolders(): Promise<DriveRootFolders> {
-		const { fileGroupId } = await this.getCryptoInfo()
+	public async loadRootFolders(cacheMode: "cached" | "withNetwork"): Promise<DriveRootFolders> {
+		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
 
 		let driveGroupRoot: driveTypeRefs.DriveGroupRoot
-		try {
-			driveGroupRoot = await this.entityClient.load(driveTypeRefs.DriveGroupRootTypeRef, fileGroupId)
-		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
-				driveGroupRoot = await this.createGroupRoot(fileGroupId)
+
+		if (cacheMode === "withNetwork") {
+			try {
+				driveGroupRoot = await this.entityClient.load(driveTypeRefs.DriveGroupRootTypeRef, fileGroupId)
+			} catch (e) {
+				if (e instanceof restError.NotFoundError) {
+					driveGroupRoot = await this.createGroupRoot(fileGroupId)
+				} else {
+					throw e
+				}
+			}
+		} else {
+			const maybeDriveGroupRoot = await this.cacheStorage.get(driveTypeRefs.DriveGroupRootTypeRef, null, fileGroupId)
+			if (maybeDriveGroupRoot) {
+				driveGroupRoot = maybeDriveGroupRoot
 			} else {
-				throw e
+				throw new ConnectionError("cannot load DriveGroupRoot from cache")
 			}
 		}
 

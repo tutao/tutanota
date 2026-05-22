@@ -37,6 +37,7 @@ import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
 import { FileReference, isWebFile, WebFile } from "../../../common/api/common/utils/FileUtils"
+import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -191,13 +192,21 @@ export class DriveViewModel {
 			return
 		}
 
-		await this.loginController.waitForFullLogin()
+		try {
+			this.roots = await this.driveFacade.loadRootFolders("cached")
+		} catch (e) {
+			if (isOfflineError(e)) {
+				await this.loginController.waitForFullLogin()
 
-		// do not finish init if the plan does not support it
-		if (await this.currentPlanSupportsDrive()) {
-			this.roots = await this.driveFacade.loadRootFolders()
-		} else {
-			return
+				// do not finish init if the plan does not support it
+				if (await this.currentPlanSupportsDrive()) {
+					this.roots = await this.driveFacade.loadRootFolders("withNetwork")
+				} else {
+					return
+				}
+			} else {
+				throw e
+			}
 		}
 
 		this.eventController.addEntityListener({
@@ -239,7 +248,7 @@ export class DriveViewModel {
 			}
 		})
 
-		this.refreshStorage()
+		this.loginController.waitForFullLogin().then(() => this.refreshStorage())
 		this.resolveInitialized()
 	}
 
