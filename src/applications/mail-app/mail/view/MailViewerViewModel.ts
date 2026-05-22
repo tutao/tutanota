@@ -1317,7 +1317,13 @@ export class MailViewerViewModel {
 			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
-			await importCalendarFile(await mailLocator.calendarModel(), this.logins.getUserController(), data.contents)
+			await importCalendarFile(
+				await mailLocator.calendarModel(),
+				this.logins.getUserController(),
+				data.contents,
+				this.entityClient,
+				this.logins.getUserController().user,
+			)
 		} catch (e) {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")

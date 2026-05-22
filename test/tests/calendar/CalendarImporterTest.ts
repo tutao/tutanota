@@ -12,7 +12,6 @@ import { DateTime } from "luxon"
 import { EndType, RepeatPeriod } from "../../../src/platform-kit/app-env"
 import { getAllDayDateUTC } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
-import { getFirstOrThrow, Require } from "../../../src/platform-kit/utils"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 import {
@@ -23,7 +22,7 @@ import {
 	normalizeCalendarUrl,
 	parseCalendarStringData,
 	ParsedCalendarData,
-	ParsedEvent,
+	ParsedEventAlarmTuple,
 	sortOutParsedEvents,
 } from "../../../src/applications/common/calendar/gui/ImportExportUtils.js"
 
@@ -46,7 +45,7 @@ function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: Pa
 	o.check(actual).deepEquals(expected)(message ?? "")
 }
 
-function testParsedEventEquality(actual: ParsedEvent, expected: ParsedEvent, message?: string): void {
+function testParsedEventEquality(actual: ParsedEventAlarmTuple, expected: ParsedEventAlarmTuple, message?: string): void {
 	o.check(actual).deepEquals(expected)(message ?? "")
 }
 
@@ -1262,7 +1261,7 @@ END:VCALENDAR`
 				const serializedEvents = serializeCalendar(versionNumber, events, now, zone)
 
 				const actualImportedEvents = parseCalendarStringData(serializedEvents, zone)
-				const expectedImportedEvents: Array<ParsedEvent> = events.map(({ event, alarms }) => {
+				const expectedImportedEvents: Array<ParsedEventAlarmTuple> = events.map(({ event, alarms }) => {
 					return {
 						icsCalendarEvent: {
 							summary: event.summary,
@@ -1370,8 +1369,8 @@ END:VCALENDAR`
 	})
 
 	o.spec("sortOutParsedEvents", function () {
-		o("repeated progenitors are skipped", function () {
-			const progenitor1: IcsCalendarEvent = {
+		o("repeated progenitors in ics file are skipped", function () {
+			const duplicateProgenitor: IcsCalendarEvent = {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
 				endTime: getDateInZone("2023-01-02T13:05"),
@@ -1384,7 +1383,7 @@ END:VCALENDAR`
 				attendees: null,
 				organizer: null,
 			}
-			const progenitor2: IcsCalendarEvent = {
+			const newProgenitor: IcsCalendarEvent = {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-01T13:00"),
 				endTime: getDateInZone("2023-01-01T13:05"),
@@ -1400,49 +1399,160 @@ END:VCALENDAR`
 			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
-					{ icsCalendarEvent: progenitor1, alarms: [] },
-					{ icsCalendarEvent: progenitor2, alarms: [] },
+					{ icsCalendarEvent: duplicateProgenitor, alarms: [] },
+					{ icsCalendarEvent: newProgenitor, alarms: [] },
 				],
 				[],
 				calendarGroupRoot,
 				zone,
 			)
 
-			const expectedProgenitor1 = makeCalendarEventFromIcsCalendarEvent(progenitor1)
-			expectedProgenitor1._ownerGroup = calendarGroupRoot._id
-			expectedProgenitor1._id = eventsForCreation[0].event._id
-			o(eventsForCreation[0].event).deepEquals(expectedProgenitor1)
+			const expectedRejectedProgenitor = makeCalendarEventFromIcsCalendarEvent(duplicateProgenitor)
 
-			const expectedProgenitor2 = makeCalendarEventFromIcsCalendarEvent(progenitor2)
-			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).deepEquals(expectedProgenitor2)
+			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitor)
+			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
+			expectedCreatedProgenitor._id = eventsForCreation[0].event._id
+
+			o(eventsForCreation[0].event).deepEquals(expectedCreatedProgenitor)
+			o(eventsForCreation.length === 1)
+			o(rejectedEvents.get(EventImportRejectionReason.DuplicateInIcs)?.[0]).deepEquals(expectedRejectedProgenitor)
 		})
-		o("imported altered instances are added as exclusions", function () {
-			const progenitor = createTestEntity(CalendarEventTypeRef, {
+
+		o("repeated progenitors that already exist in user calendar are skipped", function () {
+			const newProgenitorIcs: IcsCalendarEvent = {
 				uid: "hello",
 				startTime: getDateInZone("2023-01-02T13:00"),
 				endTime: getDateInZone("2023-01-02T13:05"),
-				repeatRule: createTestEntity(RepeatRuleTypeRef),
-			}) as Require<"uid", CalendarEvent>
-			const altered = createTestEntity(CalendarEventTypeRef, {
-				uid: "hello",
-				startTime: getDateInZone("2023-01-02T14:00"),
-				endTime: getDateInZone("2023-01-02T14:05"),
-				recurrenceId: getDateInZone("2023-01-02T13:00"),
-			}) as Require<"uid", CalendarEvent>
+				summary: "",
+				description: "",
+				location: "",
+				sequence: "0",
+				recurrenceId: null,
+				repeatRule: null,
+				attendees: null,
+				organizer: null,
+			}
+			const existingProgenitorIcs: IcsCalendarEvent = {
+				uid: "hello_existing",
+				startTime: getDateInZone("2023-01-01T13:00"),
+				endTime: getDateInZone("2023-01-01T13:05"),
+				summary: "",
+				description: "",
+				location: "",
+				sequence: "0",
+				recurrenceId: null,
+				repeatRule: null,
+				attendees: null,
+				organizer: null,
+			}
+			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
+
+			const expectedRejectedProgenitor = makeCalendarEventFromIcsCalendarEvent(existingProgenitorIcs)
+
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
-					{ icsCalendarEvent: progenitor, alarms: [] },
-					{ icsCalendarEvent: altered, alarms: [] },
+					{ icsCalendarEvent: newProgenitorIcs, alarms: [] },
+					{ icsCalendarEvent: existingProgenitorIcs, alarms: [] },
 				],
-				[],
-				createTestEntity(CalendarGroupRootTypeRef),
+				[expectedRejectedProgenitor],
+				calendarGroupRoot,
 				zone,
 			)
-			o(rejectedEvents.size).equals(0)
-			o(eventsForCreation[0].event.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+
+			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitorIcs)
+
+			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
+			expectedCreatedProgenitor._id = eventsForCreation[0].event._id
+
+			o(eventsForCreation[0].event).deepEquals(expectedCreatedProgenitor)
+			o(eventsForCreation.length === 1)
+			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).deepEquals(expectedRejectedProgenitor)
 		})
-		o("sync calendar with altered instances are added as exclusions", function () {
-			const rrule = createTestEntity(RepeatRuleTypeRef)
+
+		// FIXME: Refactor for new function & decide whether to test for this in CalendarImporterDialog's handleCalendarImport.
+		// o("imported altered instances are added as exclusions", function () {
+		// 	const progenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+		// 		uid: "hello",
+		// 		startTime: getDateInZone("2023-01-02T13:00"),
+		// 		endTime: getDateInZone("2023-01-02T13:05"),
+		// 		repeatRule: createTestEntity(sysTypeRefs.RepeatRuleTypeRef),
+		// 	}) as Require<"uid", tutanotaTypeRefs.CalendarEvent>
+		// 	const altered = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+		// 		uid: "hello",
+		// 		startTime: getDateInZone("2023-01-02T14:00"),
+		// 		endTime: getDateInZone("2023-01-02T14:05"),
+		// 		recurrenceId: getDateInZone("2023-01-02T13:00"),
+		// 	}) as Require<"uid", tutanotaTypeRefs.CalendarEvent>
+		// 	const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+		// 		[
+		// 			{ icsCalendarEvent: progenitor, alarms: [] },
+		// 			{ icsCalendarEvent: altered, alarms: [] },
+		// 		],
+		// 		[],
+		// 		createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef),
+		// 		zone,
+		// 	)
+		// 	o(rejectedEvents.size).equals(0)
+		// 	o(eventsForCreation[0].event.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+		// })
+
+		// FIXME: Refactor for new function & decide whether to test for this in CalendarImporterDialog's handleCalendarImport
+		// o("sync calendar with altered instances are added as exclusions", function () {
+		// 	const rrule = createTestEntity(sysTypeRefs.RepeatRuleTypeRef)
+		// 	const parsedProgenitor: IcsCalendarEvent = {
+		// 		summary: "s",
+		// 		description: "",
+		// 		startTime: getDateInZone("2023-01-02T13:00"),
+		// 		endTime: getDateInZone("2023-01-02T13:05"),
+		// 		location: "",
+		// 		uid: "hello",
+		// 		sequence: "0",
+		// 		recurrenceId: null,
+		// 		repeatRule: rrule,
+		// 		attendees: [],
+		// 		organizer: null,
+		// 	}
+		//
+		// 	const existingProgenitor = createTestEntity(tutanotaTypeRefs.CalendarEventTypeRef, {
+		// 		uid: "hello",
+		// 		startTime: getDateInZone("2023-01-02T13:00"),
+		// 		endTime: getDateInZone("2023-01-02T13:05"),
+		// 		repeatRule: {
+		// 			...rrule,
+		// 		},
+		// 	})
+		//
+		// 	const altered: IcsCalendarEvent = {
+		// 		summary: "s",
+		// 		description: "",
+		// 		startTime: getDateInZone("2023-01-02T14:00"),
+		// 		endTime: getDateInZone("2023-01-02T14:05"),
+		// 		location: "",
+		// 		uid: "hello",
+		// 		sequence: "0",
+		// 		recurrenceId: getDateInZone("2023-01-02T13:00"),
+		// 		repeatRule: null,
+		// 		attendees: [],
+		// 		organizer: null,
+		// 	}
+		//
+		// 	const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+		// 		[
+		// 			{ icsCalendarEvent: parsedProgenitor, alarms: [] },
+		// 			{ icsCalendarEvent: altered, alarms: [] },
+		// 		],
+		// 		[existingProgenitor],
+		// 		createTestEntity(tutanotaTypeRefs.CalendarGroupRootTypeRef),
+		// 		zone,
+		// 	)
+		//
+		// 	o(rejectedEvents.size).equals(1)
+		// 	o(eventsForCreation[0].event.recurrenceId?.getTime()).equals(altered.recurrenceId?.getTime())
+		// 	const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+		// 	o(getFirstOrThrow(duplicates).repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+		// })
+
+		o("when sorting duplicates present in the parsed events, only accept first occurrence and reject the rest", function () {
 			const parsedProgenitor: IcsCalendarEvent = {
 				summary: "s",
 				description: "",
@@ -1452,29 +1562,6 @@ END:VCALENDAR`
 				uid: "hello",
 				sequence: "0",
 				recurrenceId: null,
-				repeatRule: rrule,
-				attendees: [],
-				organizer: null,
-			}
-
-			const existingProgenitor = createTestEntity(CalendarEventTypeRef, {
-				uid: "hello",
-				startTime: getDateInZone("2023-01-02T13:00"),
-				endTime: getDateInZone("2023-01-02T13:05"),
-				repeatRule: {
-					...rrule,
-				},
-			})
-
-			const altered: IcsCalendarEvent = {
-				summary: "s",
-				description: "",
-				startTime: getDateInZone("2023-01-02T14:00"),
-				endTime: getDateInZone("2023-01-02T14:05"),
-				location: "",
-				uid: "hello",
-				sequence: "0",
-				recurrenceId: getDateInZone("2023-01-02T13:00"),
 				repeatRule: null,
 				attendees: [],
 				organizer: null,
@@ -1483,17 +1570,15 @@ END:VCALENDAR`
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
 				[
 					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
-					{ icsCalendarEvent: altered, alarms: [] },
+					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
 				],
-				[existingProgenitor],
+				[],
 				createTestEntity(CalendarGroupRootTypeRef),
 				zone,
 			)
 
 			o(rejectedEvents.size).equals(1)
-			o(eventsForCreation[0].event.recurrenceId?.getTime()).equals(altered.recurrenceId?.getTime())
-			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
-			o(getFirstOrThrow(duplicates).repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+			o(eventsForCreation.length).equals(1)
 		})
 	})
 

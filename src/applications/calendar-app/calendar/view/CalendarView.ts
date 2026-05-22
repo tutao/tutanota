@@ -84,7 +84,7 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { FloatingActionButton } from "../../../../ui/base/FloatingActionButton.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
-import { getExternalCalendarName, parseCalendarStringData, ParsedEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
+import { getExternalCalendarName, parseCalendarStringData, ParsedEventAlarmTuple } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
@@ -946,7 +946,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const iCalStr = await handleUrlSubscription(calendarModel, properties.sourceUrl!)
 			if (iCalStr instanceof Error) throw iCalStr
 
-			let events: ParsedEvent[] = []
+			let events: ParsedEventAlarmTuple[] = []
 			try {
 				events = parseCalendarStringData(iCalStr, getTimeZone()).contents
 			} catch (e) {
@@ -969,7 +969,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					type: CalendarType.External,
 				}
 			}
-			await handleCalendarImport(calendarGroupRoot, calendarInfo, events, CalendarType.External)
+			await handleCalendarImport(
+				calendarGroupRoot,
+				calendarInfo,
+				events,
+				CalendarType.External,
+				locator.entityClient,
+				locator.logins.getUserController().user,
+			)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
@@ -1407,7 +1414,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			actions.push({
 				label: "import_action",
 				icon: Icons.CloudUploadFilled,
-				click: () => handleCalendarImport(groupRoot, calendarInfo),
+				click: () =>
+					handleCalendarImport(groupRoot, calendarInfo, null, calendarInfo.type, locator.entityClient, locator.logins.getUserController().user),
 			})
 		}
 

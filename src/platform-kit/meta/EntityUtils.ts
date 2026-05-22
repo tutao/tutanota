@@ -230,7 +230,7 @@ export function getEtId(entity: Element): Id {
 }
 
 export function getLetId(entity: ListElement): IdTuple {
-	if (typeof entity._id === "undefined") {
+	if (typeof entity._id === "undefined" || entity._id === null) {
 		throw new Error("listId is not defined for " + (typeof (entity as any)._type === "undefined" ? JSON.stringify(entity) : (entity as any)))
 	}
 

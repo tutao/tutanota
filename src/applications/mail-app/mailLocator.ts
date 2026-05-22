@@ -155,7 +155,7 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { ParsedEvent } from "../common/calendar/gui/ImportExportUtils"
+import { ParsedEventAlarmTuple } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
@@ -1149,7 +1149,7 @@ class MailLocator implements CommonLocator {
 			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
 			const { handleCalendarImport } = await import("../common/calendar/gui/CalendarImporterDialog.js")
 
-			let parsedEvents: ParsedEvent[] = []
+			let parsedEvents: ParsedEventAlarmTuple[] = []
 
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
@@ -1161,7 +1161,14 @@ class MailLocator implements CommonLocator {
 
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
 				dialog.close()
-				handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, parsedEvents)
+				handleCalendarImport(
+					selectedCalendar.groupRoot,
+					selectedCalendar,
+					parsedEvents,
+					selectedCalendar.type,
+					this.entityClient,
+					this.logins.getUserController().user,
+				)
 			})
 		}
 	}
