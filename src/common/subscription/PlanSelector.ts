@@ -15,7 +15,7 @@ import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
-import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
+import { DiscountDetails, hasRelevantGlobalFirstYearCampaign, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { styles } from "../gui/styles"
 import { AvailablePlanType, isIOSApp, PlanType } from "@tutao/app-env"
 
@@ -80,7 +80,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			}
 			const { referencePriceStr: legendRefPriceStr } = isApplePrice ? getApplePriceStr(getLegendPriceStrProps) : getPriceStr(getLegendPriceStrProps)
 
-			if (!options.businessUse() && anyHasGlobalFirstYearCampaign(discountDetails)) {
+			if (!options.businessUse() && hasRelevantGlobalFirstYearCampaign(discountDetails ?? null)) {
 				return m(
 					".flex.column-gap-4",
 					m("span", m("sup", "1")),

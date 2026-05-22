@@ -7,7 +7,7 @@ import { styles } from "../../gui/styles"
 import { lang, Translation } from "../../misc/LanguageViewModel"
 import { isDarkTheme, Theme, theme } from "../../gui/theme"
 import { getRawApplePrice, hasAppleIntroOffer } from "./SubscriptionUtils"
-import { AvailablePlans, AvailablePlanType, NewPersonalPaidPlans, NewPersonalPlans, PlanType } from "@tutao/app-env"
+import { AvailablePlans, AvailablePlanType, NewBusinessPlans, NewPersonalPaidPlans, NewPersonalPlans, PlanType, SubscriptionType } from "@tutao/app-env"
 
 export type DiscountDetail = {
 	ribbonTranslation: Translation
@@ -128,9 +128,31 @@ export function getHasCampaign(discountDetail: DiscountDetail | undefined, isYea
 	return !!(discountDetail && (discountDetail.discountType === "Permanent" || isYearly))
 }
 
-export function anyHasGlobalFirstYearCampaign(discountDetails?: DiscountDetails): boolean {
-	if (!discountDetails) return false
-	return Object.values(discountDetails).some((v) => v.discountType === "GlobalFirstYear")
+function isRelevantNewPlanName(planName: string, subscriptionType: SubscriptionType): boolean {
+	const planType = planName as AvailablePlanType
+
+	if (!AvailablePlans.includes(planType)) {
+		return false
+	}
+
+	switch (subscriptionType) {
+		case SubscriptionType.Personal:
+		case SubscriptionType.PaidPersonal:
+			return NewPersonalPlans.includes(planType)
+		case SubscriptionType.Business:
+			return NewBusinessPlans.includes(planType)
+	}
+}
+
+export function hasRelevantGlobalFirstYearCampaign(
+	discountDetails: DiscountDetails | null,
+	subscriptionType: SubscriptionType = SubscriptionType.Personal,
+): boolean {
+	if (discountDetails == null) return false
+	return Object.entries(discountDetails)
+		.filter(([planName, _]) => isRelevantNewPlanName(planName, subscriptionType))
+		.map((v) => v[1])
+		.some((v) => v.discountType === "GlobalFirstYear")
 }
 
 export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider: PriceAndConfigProvider): DiscountDetails {

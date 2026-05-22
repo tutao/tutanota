@@ -6,7 +6,7 @@ import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
 import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { Icons } from "../../gui/base/icons/Icons"
-import { anyHasGlobalFirstYearCampaign, filterPlanConfigsAndGetSelectedPlan, getHasCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
+import { filterPlanConfigsAndGetSelectedPlan, getHasCampaign, hasRelevantGlobalFirstYearCampaign, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 import { PaymentInterval } from "../utils/PriceUtils"
 import { PlanType } from "@tutao/app-env"
 
@@ -106,7 +106,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 			discountDetails && (getHasCampaign(discountDetails[PlanType.Revolutionary], isYearly) || getHasCampaign(discountDetails[PlanType.Legend], isYearly))
 
 		return m(
-			`#plan-selector.flex-column${allowSwitchingPaymentInterval ? "" : ".mt-16"}${anyHasGlobalFirstYearCampaign(discountDetails) || anyPaidPlanHasCampaign ? ".mt-32" : ""}`,
+			`#plan-selector.flex-column${allowSwitchingPaymentInterval ? "" : ".mt-16"}${hasRelevantGlobalFirstYearCampaign(discountDetails ?? null) || anyPaidPlanHasCampaign ? ".mt-32" : ""}`,
 			{
 				"data-testid": "dialog:select-subscription",
 				style: {

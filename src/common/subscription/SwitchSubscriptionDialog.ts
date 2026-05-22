@@ -50,7 +50,7 @@ import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
+import { hasRelevantGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../gui/size"
 import { Icons } from "../gui/base/icons/Icons"
 import { getUserGroupMemberships } from "../api/common/utils/GroupUtils"
@@ -122,7 +122,7 @@ export async function showSwitchDialog({
 			".pt-16",
 			// Headline for a global campaign
 			!businessUse() &&
-				anyHasGlobalFirstYearCampaign(discountDetails) &&
+				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
 					icon: Icons.HeartFilled,

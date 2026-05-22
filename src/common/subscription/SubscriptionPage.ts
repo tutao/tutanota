@@ -23,7 +23,7 @@ import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { hasRelevantGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../misc/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { px } from "../gui/size"
@@ -88,7 +88,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		return m("div", [
 			// Headline for a global campaign
 			!data.options.businessUse() &&
-				anyHasGlobalFirstYearCampaign(discountDetails) &&
+				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
 					translation: lang.getTranslation("pricing.cyber_monday_msg"),
 					icon: Icons.HeartFilled,
