@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveTransferState, DriveTransferType } from "./DriveTransferController"
 import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../../../ui/ProgressSnackBar"
-import { px, size } from "../../../../ui/size"
-import { fabBottomSpacing } from "../../../../ui/base/FloatingActionButton"
+import { component_size, px, size } from "../../../../ui/size"
+import { isFabShown } from "../../../../ui/base/FloatingActionButton"
 import { theme } from "../../../../ui/theme"
 import { boxShadowHigh } from "../../../../ui/main-styles"
 import { IconButton } from "../../../../ui/base/IconButton"
@@ -118,7 +118,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				"data-testid": "drive:transferstack",
 				style: {
 					width: `min(calc(100vw - ${size.spacing_12}px * 2), 500px)`,
-					bottom: px(size.spacing_12 + fabBottomSpacing()),
+					bottom: px((isFabShown() ? component_size.button_floating_size + size.spacing_16 : 0) + size.spacing_12),
 					right: px(size.spacing_12),
 					background: theme.surface,
 					"box-shadow": boxShadowHigh,
