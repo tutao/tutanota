@@ -2308,3 +2308,4 @@ export type TranslationKeyType =
 	| "defaultCalendarView_label"
 	| "uploadFolders_action"
 	| "emptyString_msg"
+	| "showQuickActionsBar_action"
