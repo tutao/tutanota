@@ -9,7 +9,6 @@ import { isApp, isDesktop } from "@tutao/app-env"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 
-
 export async function setupCalendarModels(
 	lazyCalendarModel: lazyAsync<CalendarModel>,
 	entityClient: EntityClient,

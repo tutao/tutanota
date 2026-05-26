@@ -2,11 +2,7 @@ import { formatDate } from "../../../ui/utils/Formatter"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { getDayShifted } from "@tutao/utils"
-import {
-	MailboxGroupRootTypeRef,
-	OutOfOfficeNotification,
-	OutOfOfficeNotificationTypeRef
-} from "@tutao/entities/tutanota"
+import { MailboxGroupRootTypeRef, OutOfOfficeNotification, OutOfOfficeNotificationTypeRef } from "@tutao/entities/tutanota"
 import m, { Component } from "mithril"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { ButtonType } from "../../../ui/base/Button"
