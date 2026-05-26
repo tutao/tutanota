@@ -80,6 +80,7 @@ export class Dialog implements ModalComponent {
 	private static keyboardHeight: number = 0
 	private domDialog: HTMLElement | null = null
 	private _shortcuts: Shortcut[]
+	view: ModalComponent["view"]
 	visible: boolean
 	private focusOnLoadFunction: (dom: HTMLElement) => void
 	private wasFocusOnLoadCalled: boolean
@@ -110,101 +111,101 @@ export class Dialog implements ModalComponent {
 				help: "selectNext_action",
 			},
 		]
-	}
-	view(): Children {
-		const isEditLarge = this.dialogType === DialogType.EditLarge
-		const isKeyboardOpen = Dialog.keyboardHeight > 0
-		const margin = size.spacing_12
-		const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
-		const bottomMarginForType = isEditLarge ? 0 : margin
-		// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
-		const marginBottom = isAndroidApp()
-			? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
-			: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
-		return m(
-			this.getDialogWrapperClasses(this.dialogType),
-			{
-				style: {
-					paddingTop: "var(--safe-area-inset-top)",
-					paddingLeft: "var(--safe-area-inset-left)",
-					paddingRight: "var(--safe-area-inset-right)",
-				},
-			},
-			/** controls vertical alignment
-			 * we need overflow-hidden (actually resulting in min-height: 0 instead of auto)
-			 * here because otherwise the content of the dialog may make this wrapper grow bigger outside
-			 * the window on some browsers, e.g. upgrade reminder on Firefox mobile */
-			m(
-				".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (isEditLarge ? ".flex-grow" : ".transition-margin"),
+
+		this.view = (): Children => {
+			const isEditLarge = dialogType === DialogType.EditLarge
+			const isKeyboardOpen = Dialog.keyboardHeight > 0
+			const margin = size.spacing_12
+			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
+			const bottomMarginForType = isEditLarge ? 0 : margin
+			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
+			const marginBottom = isAndroidApp()
+				? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
+				: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
+			return m(
+				this.getDialogWrapperClasses(this.dialogType),
 				{
-					// controls horizontal alignment
 					style: {
-						marginTop: px(margin),
-						marginLeft: sidesMargin,
-						marginRight: sidesMargin,
-						marginBottom,
+						paddingTop: "var(--safe-area-inset-top)",
+						paddingLeft: "var(--safe-area-inset-left)",
+						paddingRight: "var(--safe-area-inset-right)",
 					},
 				},
-				[
-					m(
-						this.getDialogStyle(this.dialogType),
-						{
-							role: AriaWindow.Dialog,
-							"aria-modal": "true",
-							"aria-labelledby": "dialog-title",
-							"aria-describedby": "dialog-message",
-							onclick: (e: MouseEvent) => e.stopPropagation(),
-							// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
-							oncreate: (vnode) => {
-								this.domDialog = vnode.dom as HTMLElement
-								let animation: AnimationPromise | null = null
-
-								if (isEditLarge) {
-									this.domDialog.style.transform = `translateY(${window.innerHeight}px)`
-									animation = animations.add(this.domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
-								} else {
-									const bgcolor = getElevatedBackground()
-									const children = Array.from(this.domDialog.children) as Array<HTMLElement>
-									for (let child of children) {
-										child.style.opacity = "0"
-									}
-									this.domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
-									animation = Promise.all([
-										animations.add(this.domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
-										animations.add(children, opacity(0, 1, true), {
-											delay: DefaultAnimationTime / 2,
-										}),
-									])
-								}
-
-								// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
-								window.requestAnimationFrame(() => {
-									const activeElement = document.activeElement as HTMLElement | null
-									if (activeElement && typeof activeElement.blur === "function") {
-										activeElement.blur()
-									}
-								})
-								animation.then(() => {
-									this.focusOnLoadFunction(assertNotNull(this.domDialog))
-
-									this.wasFocusOnLoadCalled = true
-
-									// Fall back to the CSS classes after completing the opening animation.
-									// Because `bgcolor` is only calculated on create and not on theme change.
-									if (this.domDialog != null && !isEditLarge) {
-										this.domDialog.style.removeProperty("background-color")
-									}
-								})
-							},
+				/** controls vertical alignment
+				 * we need overflow-hidden (actually resulting in min-height: 0 instead of auto)
+				 * here because otherwise the content of the dialog may make this wrapper grow bigger outside
+				 * the window on some browsers, e.g. upgrade reminder on Firefox mobile */
+				m(
+					".flex.justify-center.align-self-stretch.rel.overflow-hidden" + (isEditLarge ? ".flex-grow" : ".transition-margin"),
+					{
+						// controls horizontal alignment
+						style: {
+							marginTop: px(margin),
+							marginLeft: sidesMargin,
+							marginRight: sidesMargin,
+							marginBottom,
 						},
-						m(this.childComponent),
-					),
-					this.injectionRightAttrs ? m(DialogInjectionRight, this.injectionRightAttrs) : null,
-				],
-			),
-		)
-	}
+					},
+					[
+						m(
+							this.getDialogStyle(this.dialogType),
+							{
+								role: AriaWindow.Dialog,
+								"aria-modal": "true",
+								"aria-labelledby": "dialog-title",
+								"aria-describedby": "dialog-message",
+								onclick: (e: MouseEvent) => e.stopPropagation(),
+								// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
+								oncreate: (vnode) => {
+									this.domDialog = vnode.dom as HTMLElement
+									let animation: AnimationPromise | null = null
 
+									if (isEditLarge) {
+										this.domDialog.style.transform = `translateY(${window.innerHeight}px)`
+										animation = animations.add(this.domDialog, transform(TransformEnum.TranslateY, window.innerHeight, 0))
+									} else {
+										const bgcolor = getElevatedBackground()
+										const children = Array.from(this.domDialog.children) as Array<HTMLElement>
+										for (let child of children) {
+											child.style.opacity = "0"
+										}
+										this.domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
+										animation = Promise.all([
+											animations.add(this.domDialog, alpha(AlphaEnum.BackgroundColor, bgcolor, 0, 1)),
+											animations.add(children, opacity(0, 1, true), {
+												delay: DefaultAnimationTime / 2,
+											}),
+										])
+									}
+
+									// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
+									window.requestAnimationFrame(() => {
+										const activeElement = document.activeElement as HTMLElement | null
+										if (activeElement && typeof activeElement.blur === "function") {
+											activeElement.blur()
+										}
+									})
+									animation.then(() => {
+										this.focusOnLoadFunction(assertNotNull(this.domDialog))
+
+										this.wasFocusOnLoadCalled = true
+
+										// Fall back to the CSS classes after completing the opening animation.
+										// Because `bgcolor` is only calculated on create and not on theme change.
+										if (this.domDialog != null && !isEditLarge) {
+											this.domDialog.style.removeProperty("background-color")
+										}
+									})
+								},
+							},
+							m(this.childComponent),
+						),
+						this.injectionRightAttrs ? m(DialogInjectionRight, this.injectionRightAttrs) : null,
+					],
+				),
+			)
+		}
+	}
 	setInjectionRight(injectionRightAttrs: DialogInjectionRightAttrs<any>) {
 		this.injectionRightAttrs = injectionRightAttrs
 	}
