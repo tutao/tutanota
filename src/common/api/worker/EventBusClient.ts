@@ -114,6 +114,7 @@ export class EventBusClient {
 
 	private progressMonitor: ProgressMonitorDelegate | null = null
 	private isInitialSyncDone: boolean = false
+	private lastMissedBatchId: Id | null = null
 
 	/**
 	 * The artificial work that is added as an overstatement, to make sure the progress bar is not completed too early.
@@ -317,10 +318,14 @@ export class EventBusClient {
 
 				// We only process entity updates for apps and types the clients know about.
 				// We drop the other entity updates early on before constructing TypeRefs for them.
-				const entityUpdatesForClientApps = entityUpdateData.entityUpdates.filter(async (entityUpdate) => {
-					return await this.typeModelResolver.isKnownClientTypeReference(entityUpdate.application, parseInt(entityUpdate.typeId))
+				const filteredUpdates = await promiseMap(entityUpdateData.entityUpdates, async (entityUpdate) => {
+					return {
+						entityUpdate,
+						isKnown: await this.typeModelResolver.isKnownClientTypeReference(entityUpdate.application, parseInt(entityUpdate.typeId)),
+					}
 				})
 
+				const entityUpdatesForClientApps = filteredUpdates.filter((x) => x.isKnown).map((x) => x.entityUpdate)
 				const updates = await promiseMap(entityUpdatesForClientApps, async (event) => {
 					let { parsedInstance, parsedBlobInstance } = await this.getParsedInstanceFromEntityEvent(event)
 					return entityUpdateUtils.entityUpdateToUpdateData(event, parsedInstance, parsedBlobInstance)
@@ -332,6 +337,10 @@ export class EventBusClient {
 					// the initial sync is done; this is to add work for entity updates we receive right after the initial sync is done,
 					// such as two entity updates per mail after the ProcessInboxService call. We complete this added work in the EventController
 					await this.progressMonitor?.updateTotalWork(this.progressMonitor.totalWork + 1)
+				}
+				// update the lastMissedBatchId as long as the initial sync is not done
+				if (!this.isInitialSyncDone) {
+					this.lastMissedBatchId = batchId
 				}
 				// if the updates were not added to the queue, since the array is empty because it was optimized away,
 				// we need to complete the work for the batch here, since the processEventBatch function
@@ -375,8 +384,10 @@ export class EventBusClient {
 				console.log("Reached final event, sync is done")
 
 				this.isInitialSyncDone = true
-				this.listener.onSyncDone()
-
+				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
+				if (this.lastMissedBatchId === null) {
+					this.listener.onSyncDone()
+				}
 				setTimeout(() => this.progressMonitor?.workDone(this.artificialWorkEstimate), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
 				break
 			}
@@ -681,6 +692,10 @@ export class EventBusClient {
 					progressMonitorId,
 					assertNotNull(batch.isInitialSyncDone),
 				)
+			}
+			// call syncDone listener right after the last missed batch is processed
+			if (batch.batchId === this.lastMissedBatchId) {
+				this.listener.onSyncDone()
 			}
 		} catch (e) {
 			if (e instanceof restError.ServiceUnavailableError) {

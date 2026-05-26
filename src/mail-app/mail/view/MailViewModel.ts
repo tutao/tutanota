@@ -30,7 +30,7 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 type Mail = tutanotaTypeRefs.Mail
 type MailSet = tutanotaTypeRefs.MailSet
@@ -82,7 +82,7 @@ export class MailViewModel {
 	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
 
-	private debouncedListModelReloadPromise: Promise<void> = Promise.resolve()
+	private listModelReloadPromise: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -434,6 +434,16 @@ export class MailViewModel {
 			// if the preference for conversation in the list has changed, we need to re-create the list model
 			this.updateListModel()
 		}
+		this.syncTracker.addSyncDoneListener({
+			onSyncDone: async () => {
+				if (this.listModel) {
+					this.listModelReloadPromise = this.listModel?.reload()
+				} else {
+					this.updateListModel()
+				}
+			},
+			priority: SyncDonePriority.HIGH,
+		})
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
@@ -725,21 +735,10 @@ export class MailViewModel {
 
 			if (isInitialSyncDone) {
 				// we need to await the reload promise here, to populate the map (conversationMap/mailMap) inside the list model
-				this.debouncedListModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
-			} else {
-				this.debouncedListReload(listModel)
+				this.listModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
 			}
 		}
 	}
-
-	/**
-	 * When handling missedEntityUpdates, we reload the entire listModel instead of inserting/updating/removing individual mails.
-	 */
-	private readonly debouncedListReload = debounce(SYNC_RELOAD_DEBOUNCE_MS, async (listModel: MailSetListModel) => {
-		console.log("reload listModel due to missedEntityUpdates")
-		this.debouncedListModelReloadPromise = listModel.reload()
-		await this.debouncedListModelReloadPromise
-	})
 
 	private async deleteMailSetEntryRangeForImportTargetFolder(update: entityUpdateUtils.EntityUpdateData) {
 		// We delete the range of MailSetEntries for the targetFolder entries list of the import.
