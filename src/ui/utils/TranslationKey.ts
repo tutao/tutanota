@@ -2289,3 +2289,4 @@ export type TranslationKeyType =
 	| "referAFriendMoreInfo_label"
 	| "referAFriendBothBenefit_label"
 	| "emptyString_msg"
+	| "showQuickActionsBar_action"

@@ -61,7 +61,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			exec: () => {
 				quickActionsModel().then(showQuickActionBar)
 			},
-			help: "search_label",
+			help: "showQuickActionsBar_action",
 		},
 	])
 }
