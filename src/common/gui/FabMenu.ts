@@ -28,9 +28,13 @@ export class FabMenu implements Component<FabMenuAttrs> {
 
 	oncreate() {
 		onFabShown(DisplayState.Shown)
+		// need additional redraw to adjust position of other components
+		m.redraw()
 	}
 	onremove() {
 		onFabShown(DisplayState.Hidden)
+		// need additional redraw to adjust position of other components
+		m.redraw()
 	}
 
 	view({ attrs: { actions, title } }: Vnode<FabMenuAttrs>): Children {
