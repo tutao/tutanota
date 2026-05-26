@@ -33,11 +33,11 @@ o.spec("HtmlSanitizer", function () {
 					},
 					{
 						html: "<IMG SRC=\"javascript:alert('XSS');\">",
-						expected: `<img style="max-width: 100%;">`,
+						expected: `<img style="max-width: 100cqw;">`,
 					},
 					{
 						html: "<IMG SRC=javascript:alert('XSS')>",
-						expected: `<img style="max-width: 100%;">`,
+						expected: `<img style="max-width: 100cqw;">`,
 					},
 				]
 				for (const test of tests) {
@@ -732,7 +732,7 @@ o.spec("HtmlSanitizer", function () {
 				o.check(result.inlineImageCids).deepEquals(["asbasdf-safd_d"])
 				o.check(result.html.includes(`cid="asbasdf-safd_d"`)).equals(true)
 				o.check(result.html.includes(`data:image/svg+xml;utf8,sadfsdasdf`)).equals(true)
-				o.check(result.html.match(/max-width: 100%;/g)!.length).equals(2)
+				o.check(result.html.match(/max-width: 100cqw;/g)!.length).equals(2)
 			})
 			o.test("audio tag", function () {
 				let result = htmlSanitizer.sanitizeHTML(
@@ -791,13 +791,13 @@ o.spec("HtmlSanitizer", function () {
 				}).html
 
 				o.check(r1).satisfies(textIncludes(`src="${replacementImageUrl}"`))
-				o.check(r1).satisfies(textIncludes(`style="max-width: 100%;"`))
+				o.check(r1).satisfies(textIncludes(`style="max-width: 100cqw;"`))
 				o.check(r1).satisfies(textIncludes(`cid="123456"`))
 				o.check(r1).satisfies(textIncludes(`class="tutanota-placeholder"`))
 
 				const r2 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`).html
 				o.check(r2).satisfies(textIncludes(`src="${replacementImageUrl}"`))
-				o.check(r2).satisfies(textIncludes(`style="max-width: 100%;"`))
+				o.check(r2).satisfies(textIncludes(`style="max-width: 100cqw;"`))
 				o.check(r2).satisfies(textIncludes(`cid="123456"`))
 				o.check(r2).satisfies(textIncludes(`class="tutanota-placeholder"`))
 			})
@@ -805,28 +805,40 @@ o.spec("HtmlSanitizer", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 					usePlaceholderForInlineImages: false,
 				}).html
-				o.check(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
+				o.check(result).equals(`<img src="cid:123456" style="max-width: 100cqw;">`)
 			})
 			o.test("add max-width to images", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 					usePlaceholderForInlineImages: false,
 				}).html
-				o.check(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
+				o.check(result).equals(`<img src="cid:123456" style="max-width: 100cqw;">`)
 			})
 			o.test("add max-width to images that have a given width", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="width: 150px;">`, {
 					usePlaceholderForInlineImages: false,
 				}).html
-				o.check(result).equals(`<img src="cid:123456" style="width: 150px; max-width: 100%;">`)
+				o.check(result).equals(`<img src="cid:123456" style="width: 150px; max-width: 100cqw;">`)
 			})
 			o.test("replace max-width for inline images", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="max-width: 60%;">`, {
+					usePlaceholderForInlineImages: false,
+				}).html
+				o.check(result).equals(`<img src="cid:123456" style="max-width: 100cqw;">`)
+			})
+			o.test("do not replace max-width=100% for inline images", function () {
+				const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="max-width: 100%;">`, {
 					usePlaceholderForInlineImages: false,
 				}).html
 				o.check(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
 			})
 			o.test("replace max-width for external images", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<img src="https://tutanota.com/images/favicon/favicon.ico">`, {
+					blockExternalContent: false,
+				}).html
+				o.check(result).equals(`<img src="https://tutanota.com/images/favicon/favicon.ico" style="max-width: 100cqw;">`)
+			})
+			o.test("do not replace max-width=100% for external images", function () {
+				const result = htmlSanitizer.sanitizeHTML(`<img src="https://tutanota.com/images/favicon/favicon.ico" style="max-width: 100%;">`, {
 					blockExternalContent: false,
 				}).html
 				o.check(result).equals(`<img src="https://tutanota.com/images/favicon/favicon.ico" style="max-width: 100%;">`)
