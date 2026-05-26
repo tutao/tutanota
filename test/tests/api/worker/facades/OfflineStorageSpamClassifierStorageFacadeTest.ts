@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { SqlCipherFacade } from "../../../../../src/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
+import { SqlCipherFacade } from "../../../../../src/app-kits/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
+import { DesktopSqlCipher } from "../../../../../src/applications/common/desktop/db/DesktopSqlCipher"
 import {
 	OfflineStorageSpamClassifierStorageFacade,
 	SpamClassificationTableDefinitions,
-} from "../../../../../src/common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade"
 import { SpamClassificationModel } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])

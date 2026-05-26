@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kits/app-env"
 import {
 	constructMailSetEntryId,
 	isSameId,
@@ -8,25 +8,25 @@ import {
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 	timestampToGeneratedId,
-} from "../../../../../src/meta"
+} from "../../../../../src/platform-kits/meta"
 import {
 	_getCurrentIndexTimestamp,
 	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
 	MailIndexer,
 	MboxIndexData,
-} from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
+} from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { assertNotNull, defer, downcast, getDayShifted } from "@tutao/utils"
+import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kits/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
-import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
+import type { DateProvider } from "../../../../../src/applications/common/api/worker/DateProvider.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
-import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { EntityClient } from "../../../../../src/network/EntityClient.js"
-import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
-import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
-import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
-import * as restError from "@tutao/rest-client/error"
+import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler.js"
+import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
+import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
+import { SearchIndexStateInfo } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import * as restError from "../../../../../src/platform-kits/rest-client/error"
 import {
 	BodyTypeRef,
 	File,
@@ -49,9 +49,9 @@ import {
 	RecipientsTypeRef,
 	tutanotaTypeModels,
 } from "@tutao/entities/tutanota"
-import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { ClientTypeModelResolver } from "../../../../../src/platform-kits/instance-pipeline"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
-import { ProgressMonitor } from "../../../../../src/network/ProgressMonitorInterface"
+import { ProgressMonitor } from "../../../../../src/platform-kits/network/ProgressMonitorInterface"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { MailState } from "../../../../../src/entities/tutanota/Utils"
 

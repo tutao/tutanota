@@ -7,7 +7,7 @@
  * https://www.w3.org/TR/wai-aria-1.1/
  *
  */
-import { assertMainOrNodeBoot, TabIndex } from "@tutao/app-env"
+import { assertMainOrNodeBoot, TabIndex } from "../platform-kits/app-env"
 
 assertMainOrNodeBoot()
 

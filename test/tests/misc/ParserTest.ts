@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { parseCsv } from "../../../src/common/misc/parsing/CsvParser.js"
+import { parseCsv } from "../../../src/applications/common/misc/parsing/CsvParser.js"
 
 o.spec("Parser combinator test", function () {})
 o.spec("CSV parsing test", function () {

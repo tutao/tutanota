@@ -1,0 +1,196 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { Autocapitalize, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
+import { ButtonType } from "../../../ui/base/Button.js"
+import { Dialog } from "../../../ui/base/Dialog"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
+import type { Language } from "../../../ui/utils/LanguageViewModel"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { getLanguageName, TemplateEditorModel } from "./TemplateEditorModel"
+import { locator } from "../../common/api/main/CommonLocator"
+import { showUserError } from "../../common/misc/ErrorHandlerImpl"
+import { UserError } from "../../common/api/main/UserError"
+import { HtmlEditor } from "../../../ui/editor/HtmlEditor"
+import { ofClass } from "../../../platform-kits/utils"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { EmailTemplate, TemplateGroupRoot } from "@tutao/entities/tutanota"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
+
+/**
+ * Creates an Editor Popup in which you can create a new template or edit an existing one
+ */
+export function showTemplateEditor(template: EmailTemplate | null, templateGroupRoot: TemplateGroupRoot): void {
+	const entityClient = locator.entityClient
+	const editorModel = new TemplateEditorModel(template, templateGroupRoot, entityClient)
+
+	const dialogCloseAction = () => {
+		dialog.close()
+	}
+
+	const saveAction = () => {
+		editorModel
+			.save()
+			.then(() => {
+				dialogCloseAction()
+			})
+			.catch(ofClass(UserError, showUserError))
+	}
+
+	let headerBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "cancel_action",
+				click: dialogCloseAction,
+				type: ButtonType.Secondary,
+			},
+		],
+		right: [
+			{
+				label: "save_action",
+				click: saveAction,
+				type: ButtonType.Primary,
+			},
+		],
+		middle: editorModel.template._id ? "editTemplate_action" : "createTemplate_action",
+	}
+	const dialog = Dialog.editDialog(headerBarAttrs, TemplateEditor, {
+		model: editorModel,
+	})
+	dialog.show()
+}
+
+type TemplateEditorAttrs = {
+	model: TemplateEditorModel
+}
+
+class TemplateEditor implements Component<TemplateEditorAttrs> {
+	private model: TemplateEditorModel
+	private readonly templateContentEditor: HtmlEditor
+
+	constructor(vnode: Vnode<TemplateEditorAttrs>) {
+		this.model = vnode.attrs.model
+		this.templateContentEditor = new HtmlEditor(getHtmlSanitizer(), "content_label").showBorders().setMinHeight(500).enableToolbar()
+
+		this.model.setContentProvider(() => {
+			return this.templateContentEditor.getValue()
+		})
+		// init all input fields
+		this.model.title(this.model.template.title)
+		this.model.tag(this.model.template.tag)
+		const content = this.model.selectedContent()
+
+		if (content) {
+			this.templateContentEditor.setValue(content.text)
+		}
+	}
+
+	view(): Children {
+		return m("", [
+			m(LegacyTextField, {
+				label: "title_placeholder",
+				value: this.model.title(),
+				oninput: this.model.title,
+			}),
+			m(LegacyTextField, {
+				label: "shortcut_label",
+				autocapitalize: Autocapitalize.none,
+				value: this.model.tag(),
+				oninput: this.model.tag,
+			}),
+			m(LegacyTextField, {
+				label: "language_label",
+				value: this.model.selectedContent() ? lang.getTranslationText(getLanguageName(this.model.selectedContent())) : "",
+				injectionsRight: () =>
+					m(".flex.ml-between-4", [
+						this.model.getAddedLanguages().length > 1 ? [this.renderRemoveLangButton(), this.renderSelectLangButton()] : null,
+						this.renderAddLangButton(),
+					]),
+				isReadOnly: true,
+			}),
+			m(this.templateContentEditor),
+		])
+	}
+
+	private renderAddLangButton() {
+		return m(IconButton, {
+			title: "addLanguage_action",
+			icon: Icons.Plus,
+			size: ButtonSize.Compact,
+			click: createDropdown({
+				lazyButtons: () =>
+					this.model
+						.getAdditionalLanguages()
+						.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+						.map((lang) => this.createAddNewLanguageButtonAttrs(lang)),
+				width: 250,
+			}),
+		})
+	}
+
+	private renderSelectLangButton() {
+		return m(IconButton, {
+			title: "languages_label",
+			icon: Icons.Language,
+			size: ButtonSize.Compact,
+			click: createDropdown({
+				lazyButtons: () => {
+					// save current content with language & create a dropdwon with all added languages & an option to add a new language
+					this.model.updateContent()
+					return this.model.template.contents.map((content) => {
+						return {
+							label: getLanguageName(content),
+							click: () => {
+								this.model.selectedContent(content)
+
+								this.templateContentEditor.setValue(content.text)
+							},
+						}
+					})
+				},
+			}),
+		})
+	}
+
+	private renderRemoveLangButton() {
+		return m(IconButton, {
+			title: "removeLanguage_action",
+			icon: Icons.TrashFilled,
+			click: () => this.removeLanguage(),
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private removeLanguage() {
+		return Dialog.confirm(
+			lang.getTranslation("deleteLanguageConfirmation_msg", {
+				"{language}": getLanguageName(this.model.selectedContent()),
+			}),
+		).then((confirmed) => {
+			if (confirmed) {
+				this.model.removeContent()
+				this.model.selectedContent(this.model.template.contents[0])
+
+				this.templateContentEditor.setValue(this.model.selectedContent().text)
+			}
+
+			return confirmed
+		})
+	}
+
+	createAddNewLanguageButtonAttrs(lang: Language): DropdownButtonAttrs {
+		return {
+			label: lang.textId,
+			click: () => {
+				// save the current state of the content editor in the model,
+				// because we will overwrite it when a new language is added
+				this.model.updateContent()
+				const newContent = this.model.createContent(lang.code)
+				this.model.selectedContent(newContent)
+
+				this.templateContentEditor.setValue("")
+			},
+		}
+	}
+}

@@ -2,9 +2,9 @@ import m, { Children, ClassComponent, CVnode } from "mithril"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { getElevatedBackground, theme } from "../theme"
-import { noOp } from "@tutao/utils"
+import { noOp } from "../../platform-kits/utils"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode } from "../../platform-kits/app-env"
 import { BaseButton } from "./buttons/BaseButton.js"
 
 assertMainOrNode()

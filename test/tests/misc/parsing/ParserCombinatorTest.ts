@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { makeEscapedStringParser, ParserError, StringIterator } from "../../../../src/common/misc/parsing/ParserCombinator"
+import { makeEscapedStringParser, ParserError, StringIterator } from "../../../../src/applications/common/misc/parsing/ParserCombinator"
 
 o.spec("ParserCombinator", function () {
 	o.spec("makeEscapedStringParser", function () {

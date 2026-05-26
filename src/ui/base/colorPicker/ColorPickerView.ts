@@ -5,10 +5,10 @@ import { LegacyTextField } from "../LegacyTextField.js"
 import { lang } from "../../utils/LanguageViewModel.js"
 import { hexToHSL, hslToHex, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color.js"
 import { ColorPickerModel } from "./ColorPickerModel.js"
-import { client } from "../../../app-env/boot/ClientDetector.js"
+import { client } from "../../../platform-kits/app-env/boot/ClientDetector.js"
 import { isDarkTheme, theme } from "../../theme.js"
-import { assertNotNull, clamp, filterInt } from "@tutao/utils"
-import { Keys, TabIndex } from "@tutao/app-env"
+import { assertNotNull, clamp, filterInt } from "../../../platform-kits/utils"
+import { Keys, TabIndex } from "../../../platform-kits/app-env"
 import { isKeyPressed } from "../../utils/KeyManager"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1

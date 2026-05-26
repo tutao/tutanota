@@ -1,13 +1,13 @@
-import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "../../../src/app-env"
-import type { UserController } from "../../../src/common/api/main/UserController.js"
+import { FeatureType, PresentableKeyVerificationState, ShareCapability, TimeFormat } from "../../../src/platform-kits/app-env"
+import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 
-import { downcast, LazyLoaded } from "@tutao/utils"
+import { downcast, LazyLoaded } from "../../../src/platform-kits/utils"
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
-import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
-import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
+import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler.js"
+import { CalendarType } from "../../../src/applications/common/calendar/date/CalendarUtils"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 
 import {
@@ -35,7 +35,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { GENERATED_MAX_ID } from "../../../src/platform-kits/meta"
 import { ContactAddressType, Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
 import { AccountType, GroupType } from "../../../src/entities/sys/Utils"
 

@@ -1,5 +1,5 @@
-import { assertNotNull } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertNotNull } from "../platform-kits/utils"
+import { assertMainOrNodeBoot } from "../platform-kits/app-env"
 
 assertMainOrNodeBoot()
 

@@ -1,16 +1,16 @@
 import o from "@tutao/otest"
-import { DesktopNativeCredentialsFacade } from "../../../../src/common/desktop/credentials/DesktopNativeCredentialsFacade.js"
-import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
+import { DesktopNativeCredentialsFacade } from "../../../../src/applications/common/desktop/credentials/DesktopNativeCredentialsFacade.js"
+import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { object, verify, when } from "testdouble"
-import { DesktopCredentialsStorage } from "../../../../src/common/desktop/db/DesktopCredentialsStorage.js"
-import { KeychainEncryption } from "../../../../src/common/desktop/credentials/KeychainEncryption.js"
-import { CredentialEncryptionMode } from "@tutao/app-env"
-import { PersistedCredentials } from "../../../../src/native-bridge/common/generatedipc/types/PersistedCredentials.js"
-import { UnencryptedCredentials } from "../../../../src/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
+import { DesktopCredentialsStorage } from "../../../../src/applications/common/desktop/db/DesktopCredentialsStorage.js"
+import { KeychainEncryption } from "../../../../src/applications/common/desktop/credentials/KeychainEncryption.js"
+import { CredentialEncryptionMode } from "../../../../src/platform-kits/app-env"
+import { PersistedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/PersistedCredentials.js"
+import { UnencryptedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
 
-import { aes256RandomKey } from "@tutao/crypto"
-import { stringToUtf8Uint8Array } from "@tutao/utils"
-import { CredentialType } from "../../../../src/network/types"
+import { aes256RandomKey } from "../../../../src/platform-kits/crypto"
+import { stringToUtf8Uint8Array } from "../../../../src/platform-kits/utils"
+import { CredentialType } from "../../../../src/platform-kits/network/types"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()

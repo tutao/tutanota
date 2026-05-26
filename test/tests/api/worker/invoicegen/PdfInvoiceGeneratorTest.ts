@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { PdfWriter } from "../../../../../src/common/api/worker/pdf/PdfWriter.js"
+import { PdfWriter } from "../../../../../src/applications/common/api/worker/pdf/PdfWriter.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { PdfInvoiceGenerator } from "../../../../../src/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
+import { PdfInvoiceGenerator } from "../../../../../src/applications/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
 import { invoiceItemListMock } from "./invoiceTestUtils.js"
-import { PaymentMethod, VatType } from "../../../../../src/common/api/worker/invoicegen/InvoiceUtils.js"
+import { PaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef } from "@tutao/entities/sys"
 

@@ -49,7 +49,7 @@ import {
 	verifyHmacSha256Async,
 	x25519Decapsulate,
 	x25519Encapsulate,
-} from "@tutao/crypto"
+} from "../../../../../src/platform-kits/crypto"
 import {
 	base64ToUint8Array,
 	byteArraysToBytes,
@@ -61,14 +61,14 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 	Versioned,
-} from "@tutao/utils"
+} from "../../../../../src/platform-kits/utils"
 import testData from "./CompatibilityTestData.json"
-import { uncompress } from "@tutao/instance-pipeline"
+import { uncompress } from "../../../../../src/platform-kits/instance-pipeline"
 import { matchers, object, when } from "testdouble"
-import { PQFacade } from "../../../../../src/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/base/crypto/KyberFacade.js"
-import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/base/crypto/PublicKeySignatureFacade"
+import { PQFacade } from "../../../../../src/platform-kits/base/crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kits/base/crypto/KyberFacade.js"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kits/base/crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kits/base/crypto/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 

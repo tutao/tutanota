@@ -1,0 +1,34 @@
+{
+	"name": "@tutao/node-mimimi",
+	"version": "345.260421.2",
+	"main": "./napi-out/binding.js",
+	"types": "./napi-out/binding.d.ts",
+	"napi": {
+		"binaryName": "mimimi",
+		"targets": [
+			"x86_64-pc-windows-msvc",
+			"x86_64-unknown-linux-gnu",
+			"universal-apple-darwin"
+		]
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@napi-rs/cli": "3.0.0-alpha.68",
+		"typescript": "5.8.3",
+		"zx": "8.6.1"
+	},
+	"engines": {
+		"node": ">= 20"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "node make",
+		"prepublishOnly": "node_modules/.bin/napi prepublish -t npm",
+		"test": "node make && cargo test",
+		"universal": "node_modules/.bin/napi universal",
+		"version": "node_modules/.bin/napi version"
+	},
+	"sideEffects": [
+		"./napi-out/*.node"
+	]
+}

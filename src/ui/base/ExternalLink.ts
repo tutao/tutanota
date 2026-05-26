@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Keys, TabIndex } from "@tutao/app-env"
+import { Keys, TabIndex } from "../../platform-kits/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
 
 export type relDocument = "privacy-policy" | "terms-of-service" | "license" | "me"

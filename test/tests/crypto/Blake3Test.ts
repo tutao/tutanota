@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
+import { aes256RandomKey, blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array } from "../../../src/platform-kits/crypto"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
 
 o.spec("blake3", function () {
 	o.spec("hash", function () {

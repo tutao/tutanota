@@ -1,0 +1,102 @@
+import m, { Children } from "mithril"
+import { UpdatableSettingsViewer } from "./Interfaces.js"
+import { IconButton } from "../../../ui/base/IconButton.js"
+import { Icons } from "../../../ui/base/icons/Icons.js"
+import { ButtonSize } from "../../../ui/base/ButtonSize.js"
+import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { formatPrice } from "../subscription/utils/PriceUtils.js"
+import { Button, ButtonType } from "../../../ui/base/Button.js"
+import { ListColumnWrapper } from "../../../ui/ListColumnWrapper.js"
+import { lang } from "../../../ui/utils/LanguageViewModel.js"
+import { locator } from "../api/main/CommonLocator"
+import { copyToClipboard } from "../../../ui/utils/ClipboardUtils.js"
+import { mailLocator } from "../../mail-app/mailLocator.js"
+import { showInfoSnackbar } from "../../../ui/base/SnackBar.js"
+import { LazyLoaded } from "../../../platform-kits/utils"
+import { AffiliateViewModel } from "./AffiliateViewModel.js"
+import { EntityUpdateData } from "../../../platform-kits/instance-pipeline/utils/EntityUpdateUtils"
+
+/**
+ * Section in user settings to display the referral link and let users share it.
+ */
+export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
+	private readonly affiliateViewModel = new LazyLoaded<AffiliateViewModel>(async () => await mailLocator.affiliateViewModel())
+	private readonly domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
+
+	constructor(
+		private readonly getIsShowingKpis: () => boolean,
+		private readonly toggleKpiColumn: () => unknown,
+	) {}
+
+	oninit(): any {
+		this.affiliateViewModel.getAsync().then((avm) => avm.load().finally(m.redraw))
+	}
+
+	view(): Children {
+		if (this.affiliateViewModel.isLoaded()) {
+			const avm = this.affiliateViewModel.getSync() as AffiliateViewModel
+			if (avm.isLoading) {
+				return m(ListColumnWrapper, m("p", "Loading..."))
+			}
+
+			if (avm.data === null) {
+				return m(ListColumnWrapper, m("p", "Error"))
+			}
+
+			const shareUrl = `${this.domainConfig.websiteBaseUrl}?t-src=${avm.data.promotionId}`
+
+			return m(
+				ListColumnWrapper,
+				m(
+					"section.fill-absolute.scroll.plr-24",
+					m("h4.mt-32", lang.get("affiliateSettings_label")),
+					m(LegacyTextField, {
+						isReadOnly: true,
+						label: "referralLink_label",
+						value: shareUrl,
+						injectionsRight: () =>
+							m(IconButton, {
+								title: "copy_action",
+								click: () => this.onCopyButtonClick(shareUrl),
+								icon: Icons.CopyFilled,
+								size: ButtonSize.Compact,
+							}),
+					}),
+					m(LegacyTextField, {
+						isReadOnly: true,
+						label: "affiliateSettingsAccumulated_label",
+						helpLabel: () => lang.get("affiliateSettingsAccumulated_msg"),
+						value: formatPrice(Number(avm!.data!.accumulatedCommission), true),
+					}),
+					m(LegacyTextField, {
+						isReadOnly: true,
+						label: "affiliateSettingsCredited_label",
+						helpLabel: () => lang.get("affiliateSettingsCredited_msg"),
+						value: formatPrice(Number(avm!.data!.creditedCommission), true),
+					}),
+					m(
+						".flex.center-horizontally.mt-12",
+						m(Button, {
+							label: this.getIsShowingKpis() ? "affiliateSettingsHideKpis_label" : "affiliateSettingsShowKpis_label",
+							type: ButtonType.Secondary,
+							click: () => this.toggleKpiColumn(),
+						}),
+					),
+				),
+			)
+		} else {
+			return m("")
+		}
+	}
+
+	private onCopyButtonClick(shareUrl: string): void {
+		copyToClipboard(shareUrl).then(() => {
+			showInfoSnackbar("linkCopied_msg")
+		})
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		// can be a noop because the referral code will never change once it was created
+		// we trigger creation in the constructor if there is no code yet
+	}
+}

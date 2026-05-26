@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
-import { initLocator, locator } from "../../src/mail-app/workerUtils/worker/WorkerLocator.js"
+import { initLocator, locator } from "../../src/applications/mail-app/workerUtils/worker/WorkerLocator.js"
 import { browserDataStub, createTestEntity } from "./TestUtils.js"
-import { SessionType } from "@tutao/app-env"
+import { SessionType } from "../../src/platform-kits/app-env"
 import {
 	ContactAddressTypeRef,
 	ContactListTypeRef,
@@ -14,8 +14,8 @@ import {
 	tutanotaTypeModels,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../src/entities/sys/Utils"
-import { NamedClientModel } from "@tutao/instance-pipeline"
-import { AppNameEnum } from "@tutao/meta"
+import { NamedClientModel } from "../../src/platform-kits/instance-pipeline"
+import { AppNameEnum } from "../../src/platform-kits/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"

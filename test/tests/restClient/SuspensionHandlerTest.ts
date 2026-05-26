@@ -1,6 +1,6 @@
 import o, { spy, verify } from "@tutao/otest"
-import { restSuspension } from "@tutao/rest-client"
-import { deferWithHandler } from "@tutao/utils"
+import { restSuspension } from "../../../src/platform-kits/rest-client"
+import { deferWithHandler } from "../../../src/platform-kits/utils"
 import { func } from "testdouble"
 
 o.spec("SuspensionHandler test", () => {

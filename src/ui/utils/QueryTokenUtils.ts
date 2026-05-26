@@ -1,4 +1,4 @@
-import { assertNotNull, isEmpty } from "@tutao/utils"
+import { assertNotNull, isEmpty } from "../../platform-kits/utils"
 
 /**
  * A token that was found in {@link splitQuery}

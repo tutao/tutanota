@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/ui/utils/LanguageViewModel.js"
 import { formatDate, urlEncodeHtmlTags } from "../../../src/ui/utils/Formatter.js"
 
-import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/common/misc/DateParser.js"
+import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/applications/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
 import { BirthdayTypeRef } from "@tutao/entities/tutanota"
 

@@ -1,0 +1,54 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": [
+		"./common/",
+		"./mail-app/",
+		"./calendar-app/",
+		"./drive-app/",
+		"../../types/",
+		"../global.d.ts",
+		"../../libs/tensorflow-platform-stub.js",
+		"../../libs/luxon.js"
+	],
+	"compilerOptions": {
+		"rootDir": "../..",
+		"outDir": "../../build/common",
+		"tsBuildInfoFile": "../../build/common/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../app-kits/tsconfig.mimimi.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.utils.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.crypto.json"
+		},
+		{
+			"path": "../usagetests/tsconfig.usagetests.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.rest-client.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.base.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.meta.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "../app-kits/tsconfig.native-bridge.json"
+		},
+		{
+			"path": "../app-kits/tsconfig.local-store.json"
+		},
+		{
+			"path": "../ui/tsconfig.ui.json"
+		}
+	]
+}

@@ -1,0 +1,704 @@
+import { DateTime } from "luxon"
+import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
+import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
+import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "../../../../platform-kits/utils"
+import {
+	CalendarTimeGrid,
+	CalendarTimeGridAttributes,
+	getIntervalAsMinutes,
+	SUBROWS_PER_INTERVAL,
+	TIME_SCALE_BASE_VALUE,
+	TimeRange,
+	TimeScale,
+	TimeScaleTuple,
+} from "../../../common/calendar/gui/CalendarTimeGrid"
+import { Time } from "../../../common/calendar/date/Time"
+import { theme } from "../../../../ui/theme"
+import { styles } from "../../../../ui/styles"
+import { layout_size, px, size } from "../../../../ui/size"
+import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
+import { collidesWith, formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
+import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
+import stream from "mithril/stream"
+import { isRepliedTo } from "../../mail/model/MailUtils"
+import { EventBannerSkeleton } from "../EventBannerSkeleton"
+import type { EventBannerAttrs } from "../../mail/view/EventBanner"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../ui/base/ExpandableTextArea.js"
+import { ExpanderPanel } from "../../../../ui/base/Expander.js"
+import { formatDateTime, formatTime } from "../../../../ui/utils/Formatter.js"
+import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
+import { AriaRole } from "../../../../ui/AriaUtils"
+import { isKeyPressed } from "../../../../ui/utils/KeyManager"
+import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
+import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "../../../../platform-kits/app-env"
+import { clone, GENERATED_MIN_ID } from "../../../../platform-kits/meta"
+
+export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
+	iCalContents: ParsedIcalFileContentData
+	sendResponse: (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
+	usesAmPmTimeFormat: boolean
+}
+
+export interface InviteAgenda {
+	before: EventWrapper | null
+	after: EventWrapper | null
+	main: EventWrapper
+	allDayEvents: Array<EventWrapper>
+	regularEvents: Array<EventWrapper>
+	existingEvent?: EventWrapper
+	conflictCount: number
+}
+
+export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
+	private agenda: Map<string, InviteAgenda> | null = null
+	private comment: string = ""
+	private displayConflictingAgenda: boolean = false
+	private readonly gridRowHeight = 4
+
+	async oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
+		this.agenda = await loadEventsAroundInvite(attrs.eventsRepository, attrs.iCalContents, attrs.recipient)
+		m.redraw()
+	}
+
+	view({ attrs: { iCalContents, eventsRepository, mail, recipient, sendResponse, usesAmPmTimeFormat } }: Vnode<EventBannerImplAttrs>): Children {
+		const agenda = this.agenda
+		if (!agenda) {
+			return m(EventBannerSkeleton)
+		}
+
+		const replyCallback = async (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
+			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
+			if (responded) {
+				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, true)
+				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent?.event)
+				m.redraw()
+			}
+			return responded
+		}
+
+		const eventsReplySection = iCalContents.events
+			.map((event: IcsCalendarEvent): { event: IcsCalendarEvent; replySection: Children } | None => {
+				const replySection = this.buildReplySection(agenda, event, mail, recipient, iCalContents.method, replyCallback)
+				return replySection == null ? null : { event, replySection }
+			})
+			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
+			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
+			// banner for events that do not mention us.
+			.filter(isNotNull)
+
+		return eventsReplySection.map(({ event, replySection }) => {
+			if (agenda.get(event.uid ?? "")?.conflictCount === 1) {
+				this.displayConflictingAgenda = true
+			}
+
+			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection, usesAmPmTimeFormat)
+		}) as Children
+	}
+
+	private buildEventBanner(icsCalendarEvent: IcsCalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
+		const event = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
+		const recipientIsOrganizer = recipient === event.organizer?.address
+
+		if (!agenda) {
+			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
+		}
+		const hasConflict = Boolean(agenda?.conflictCount! > 0)
+		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
+
+		let eventFocusBound = agenda?.main.event?.startTime!
+		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate
+		if (agenda?.before) {
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
+		}
+		if (!agenda?.before && agenda?.after) {
+			if (agenda?.after?.flags?.isConflict) {
+				eventFocusBound = agenda.after.event.startTime
+			}
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
+		}
+
+		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
+		const timeInterval = getIntervalAsMinutes(timeScale)
+		const timeRange: TimeRange = {
+			start: Time.fromDate(eventFocusBound).sub({ minutes: timeInterval }),
+			end: Time.fromDate(eventFocusBound).add({ minutes: timeInterval }),
+		}
+
+		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
+		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
+
+		const timeColumnWidth = layout_size.calendar_hour_width_mobile + size.spacing_16
+
+		/* Event Banner */
+		return m(
+			".border-radius-8.border-sm.grid.full-width.mb-8",
+			{
+				style: styles.isSingleColumnLayout()
+					? {
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "auto 1fr",
+							"max-width": "100%",
+							"border-color": theme.surface_container_high,
+						}
+					: {
+							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
+							"max-width": recipientIsOrganizer ? "max-content" : px(layout_size.two_column_layout_width),
+							"border-color": theme.surface_container_high,
+						},
+			},
+			[
+				/* Date Column */
+				m(
+					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
+					{
+						class: styles.isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
+						style: {
+							"background-color": theme.surface_container_high,
+							color: theme.on_surface,
+						},
+					},
+					[
+						m("span.normal-font-size", event.startTime.toLocaleString("default", { month: "short" })),
+						m("span.big.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
+						m("span.normal-font-size", event.startTime.toLocaleString("default", { year: "numeric" })),
+					],
+				),
+				/* Invite Column */
+				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
+					m(".flex", [
+						m(Icon, {
+							icon: Icons.CalendarFilled,
+							container: "div",
+							class: "mr-4",
+							style: { fill: theme.on_surface },
+							size: IconSize.PX24,
+						}),
+						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
+					]),
+					event.organizer?.address
+						? m(".flex.items-center.small.mt-8", [
+								m("span.b", lang.getTranslation("when_label").text),
+								m("span.ml-4", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+							])
+						: null,
+					replySection,
+				]),
+				/* Time Overview */
+				!recipientIsOrganizer
+					? m(
+							".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
+							{
+								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+								style: {
+									"border-color": theme.surface_container_high,
+									color: theme.on_surface,
+								},
+							},
+							[
+								m(".flex.flex-column.mb-8", [
+									m(".flex.items-center.gap-4", [
+										m(Icon, {
+											icon: Icons.ClockOutlines,
+											container: "div",
+											style: { fill: theme.on_surface },
+											size: IconSize.PX24,
+										}),
+										m("span.b.h5", lang.getTranslation("timeOverview_title").text),
+									]),
+									agenda
+										? m(".mb-8", [
+												m(
+													".flex.mt-4.fit-content",
+													agenda.conflictCount > 1
+														? {
+																class: "nav-button",
+																role: AriaRole.Button,
+																ariaExpanded: this.displayConflictingAgenda,
+																tabIndex: TabIndex.Default,
+																onclick: () => this.toggleConflictingAgenda(),
+																onkeydown: (e: KeyboardEvent) => {
+																	if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+																		this.toggleConflictingAgenda()
+																		e.preventDefault()
+																	}
+																},
+															}
+														: {},
+													[
+														m(Icon, {
+															icon: hasConflict ? Icons.ExclamationFilled : Icons.SuccessFilled,
+															container: "div",
+															class: "mr-4",
+															style: {
+																fill: hasConflict ? theme.warning : theme.success,
+															},
+															size: IconSize.PX24,
+														}),
+														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
+													],
+												),
+												agenda.conflictCount > 0
+													? m(
+															"",
+															{
+																style: {
+																	"margin-left": px(size.icon_24 + size.spacing_4),
+																},
+															},
+															[
+																agenda.conflictCount > 1
+																	? m(
+																			ExpanderPanel,
+																			{
+																				expanded: this.displayConflictingAgenda,
+																			},
+																			this.conflictingAgenda(agenda, event),
+																		)
+																	: this.conflictingAgenda(agenda, event),
+															],
+														)
+													: null,
+											])
+										: null,
+								]),
+								agenda
+									? m(".flex.rel", [
+											m(CalendarTimeColumn, {
+												intervals,
+												layout: {
+													width: timeColumnWidth,
+													subColumnCount: 1,
+													rowCount: rowCountForRange,
+													gridRowHeight: this.gridRowHeight,
+												},
+												amPm,
+											} satisfies CalendarTimeColumnAttrs),
+											m(
+												".full-width",
+												m(CalendarTimeGrid, {
+													events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+													timeScale,
+													timeRange,
+													dates: [getStartOfDay(agenda.main.event.startTime)],
+													intervals,
+													layout: {
+														gridRowHeight: this.gridRowHeight,
+														rowCountForRange,
+														hideRightBorder: true,
+														showLeftBorderAtFirstColumn: false,
+													},
+												} satisfies CalendarTimeGridAttributes),
+											),
+										])
+									: m("", "ERROR: Could not load the agenda for this day."),
+							],
+						)
+					: null,
+			],
+		)
+	}
+
+	private toggleConflictingAgenda() {
+		this.displayConflictingAgenda = !this.displayConflictingAgenda
+	}
+
+	private conflictingAgenda(agenda: InviteAgenda, event: CalendarEvent): m.Children {
+		return m(".selectable", [
+			agenda.regularEvents && agenda.regularEvents.length > 0
+				? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents, agenda.conflictCount > 1)
+				: null,
+			agenda.allDayEvents.length > 0 ? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents, agenda.conflictCount > 1) : null,
+		])
+	}
+
+	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
+		const totalConflicts = allDayEventsConflictCount + normalEventsConflictCount
+		const stringParts: Array<string> = []
+
+		if (totalConflicts === 0) {
+			stringParts.push(lang.getTranslation("noSimultaneousEvents_msg").text)
+		} else if (totalConflicts === 1) {
+			stringParts.push(lang.getTranslation("conflict_label").text)
+		} else {
+			stringParts.push(lang.getTranslation("conflicts_label", { "{count}": totalConflicts }).text)
+		}
+
+		return m(
+			".small.flex.gap-8.items-center.fit-content",
+			{
+				style: {
+					"line-height": px(19.5),
+				},
+			},
+			[
+				m("span", { class: totalConflicts > 0 ? "b" : "" }, stringParts.join(" ")),
+				totalConflicts > 1
+					? m(Icon, {
+							icon: Icons.ArrowDown,
+							container: "div",
+							class: `fit-content`,
+							size: IconSize.PX24,
+							style: {
+								fill: theme.on_surface,
+								rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
+							},
+						})
+					: null,
+			],
+		)
+	}
+
+	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<EventWrapper>, showLabel: boolean) {
+		return m("", [
+			showLabel ? m("strong.small.content-fg", lang.getTranslationText("allDayEvents_label")) : null,
+			conflictingAllDayEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, true)),
+		])
+	}
+
+	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<EventWrapper>, showLabel: boolean) {
+		return m("", [
+			showLabel ? m("strong.small.content-fg", lang.getTranslationText("simultaneousEvents_msg")) : null,
+			conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, false)),
+		])
+	}
+
+	private getTimeParts(referenceDate: Date, eventWrapper: EventWrapper): Array<string> {
+		if (isAllDayEvent(eventWrapper.event)) {
+			return [lang.getTranslationText("allDay_label")]
+		}
+
+		const timeParts: Array<string> = []
+
+		if (isSameDay(referenceDate, eventWrapper.event.startTime)) {
+			timeParts.push(formatTime(eventWrapper.event.startTime))
+		} else {
+			timeParts.push(formatDateTime(eventWrapper.event.startTime))
+		}
+
+		if (isSameDay(referenceDate, eventWrapper.event.endTime)) {
+			timeParts.push(formatTime(eventWrapper.event.endTime))
+		} else {
+			timeParts.push(formatDateTime(eventWrapper.event.endTime))
+		}
+
+		return timeParts
+	}
+
+	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: EventWrapper, isAllDay: boolean) {
+		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
+		const eventTitle = eventWrapper.event.summary.trim() !== "" ? eventWrapper.event.summary : lang.getTranslationText("noTitle_label")
+		return m(".small.selectable", `• ${eventTitle} ${timeText}`)
+	}
+
+	private buildReplySection(
+		agenda: Map<string, InviteAgenda>,
+		icsCalendarEvent: IcsCalendarEvent,
+		mail: Mail,
+		recipient: string,
+		method: CalendarMethod,
+		sendResponse: EventBannerImplAttrs["sendResponse"],
+	): Children {
+		const existingEventWrapper = agenda.get(icsCalendarEvent.uid)?.existingEvent
+		let ownAttendee = findAttendeeInAddresses(existingEventWrapper?.event.attendees ?? [], [recipient])
+
+		if (!existingEventWrapper || !ownAttendee) {
+			const icsAttendee = findAttendeeInAddresses(icsCalendarEvent.attendees ?? [], [recipient])
+			if (!icsAttendee) {
+				console.warn("Trying to build a reply section for an event we were not invited")
+				return null
+			}
+			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
+		}
+
+		const children: Children = [] as ChildArray
+		const viewOnCalendarButton = m(BannerButton, {
+			borderColor: theme.outline,
+			color: theme.on_surface,
+			click: () => this.handleViewOnCalendarAction(existingEventWrapper?.event),
+			text: {
+				testId: "",
+				text: lang.getTranslation("viewOnCalendar_action").text,
+			} as Translation,
+		})
+
+		if (method === CalendarMethod.REQUEST && ownAttendee != null) {
+			// some mails contain more than one event that we want to be able to respond to
+			// separately.
+
+			const needsAction =
+				(!isRepliedTo(mail) && !existingEventWrapper) ||
+				ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION ||
+				ownAttendee.status === CalendarAttendeeStatus.ADDED
+			if (needsAction) {
+				children.push(
+					m("", [
+						m(ReplyButtons, {
+							ownAttendee,
+							setParticipation: async (status: CalendarAttendeeStatus) => {
+								sendResponse(icsCalendarEvent, recipient, status, mail)
+							},
+						}),
+						this.renderCommentInputBox(),
+					]),
+				)
+			} else if (!needsAction) {
+				children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("alreadyReplied_msg").text))
+				children.push(viewOnCalendarButton)
+			}
+		} else if (method === CalendarMethod.REPLY) {
+			children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("eventNotificationUpdated_msg").text))
+			children.push(viewOnCalendarButton)
+		} else {
+			return null
+		}
+
+		return children
+	}
+
+	private renderCommentInputBox(): Children {
+		return m(ExpandableTextArea, {
+			classes: ["mt-8"],
+			variant: "outlined",
+			value: this.comment,
+			oninput: (newValue: string) => {
+				this.comment = newValue
+			},
+			oncreate: (node) => {
+				node.dom.addEventListener("keydown", (e) => {
+					// disable shortcuts
+					e.stopPropagation()
+					return true
+				})
+			},
+			maxLines: 2,
+			maxLength: 250,
+			ariaLabel: lang.getTranslation("addComment_label").text,
+			placeholder: lang.getTranslation("addComment_label").text,
+		} satisfies ExpandableTextAreaAttrs)
+	}
+
+	private handleViewOnCalendarAction(event: CalendarEvent | undefined) {
+		if (!event) {
+			throw new ProgrammingError("Tried to render 'View on Calendar' button, but we are missing the corresponding event")
+		}
+		const eventDate = formatJSDate(event.startTime)
+		const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
+		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
+	}
+
+	private findShortestDuration(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): number {
+		const durationA = getDurationInMinutes(a)
+		const durationB = getDurationInMinutes(b)
+		return durationA < durationB ? durationA : durationB
+	}
+
+	private filterOutOfRangeEvents(range: TimeRange, events: Array<EventWrapper>, baseDate: Date, timeInterval: number): Array<EventWrapper> {
+		const rangeStartDate = range.start.toDate(baseDate)
+		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
+
+		return events.flatMap((eventWrapper) => {
+			if (
+				(eventWrapper.event.endTime > rangeStartDate && eventWrapper.event.endTime <= rangeEndDate) || // Ends during event
+				(eventWrapper.event.startTime >= rangeStartDate && eventWrapper.event.startTime < rangeEndDate) || // Starts during event
+				(eventWrapper.event.startTime <= rangeStartDate && eventWrapper.event.endTime >= rangeEndDate)
+			) {
+				// Overlaps range
+				return [eventWrapper]
+			}
+
+			return []
+		})
+	}
+
+	/**
+	 * @param eventDuration - Duration in minutes
+	 * @private
+	 */
+	private getTimeScaleAccordingToEventDuration(eventDuration: number): TimeScale {
+		const scalesInMinutes: Array<TimeScaleTuple> = [
+			[1, TIME_SCALE_BASE_VALUE],
+			[2, TIME_SCALE_BASE_VALUE / 2],
+			[4, TIME_SCALE_BASE_VALUE / 4],
+		]
+		const entry = scalesInMinutes.reduce((smallestScale, currentScale) => {
+			const [_, scaleInMinutes] = currentScale
+			if (eventDuration <= scaleInMinutes) return currentScale
+			return smallestScale
+		}, scalesInMinutes[0])
+		return (entry ? entry[0] : 1) as TimeScale
+	}
+}
+
+export async function loadEventsAroundInvite(
+	eventsRepository: CalendarEventsRepository,
+	iCalContents: ParsedIcalFileContentData,
+	recipient: string,
+	forceReload: boolean = false,
+) {
+	/*
+	 * - Load events that occurs on the same day as event start/end, load both because an event can start at one day and ends in another
+	 * - Extract conflicting events following the logic bellow
+	 *           [==============] (event)
+	 *   [=========] ev.endTime > event.startTime && ev.endTime <= event.endTime
+	 *     					[=========] ev.startTime >= event.startTime && ev.startTime < event.endTime
+	 *				[========]	ev.startTime >= event.startTime && ev.startTime < event.endTime
+	 * [=========]
+	 * [==================================] ev.startTime <= event.startTime && ev.endTime >= event.endTime
+	 *  						[=========]
+	 * - If there's no conflicting before event, get one from event list that starts and ends before the invitation
+	 * - If there's no conflicting after event, get one from event list that starts and ends after the invitation
+	 * - Build an object that should contain the event before and after, these can be null, meaning that there's no event at the time
+	 */
+	const eventToAgenda: Map<string, InviteAgenda> = new Map()
+	const datesToLoad = iCalContents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
+	const hasNewPaidPlan = await eventsRepository.canLoadBirthdaysCalendar()
+	if (hasNewPaidPlan) {
+		await eventsRepository.loadContactsBirthdays()
+	}
+	if (forceReload) {
+		await eventsRepository.forceLoadEventsAt(datesToLoad)
+	} else {
+		await eventsRepository.loadMonthsIfNeeded(datesToLoad, stream(false), null)
+	}
+	const events = eventsRepository.getDaysToEvents()() // Short and long events
+
+	for (const iCalEvent of iCalContents.events) {
+		const startOfDay = getStartOfDay(iCalEvent.startTime)
+		const endOfDay = getStartOfDay(iCalEvent.endTime)
+		const eventsForStartDay = events.get(startOfDay.getTime()) ?? []
+		const eventsForEndDay = events.get(endOfDay.getTime()) ?? []
+		const allExistingEvents: Array<EventWrapper> = Array.from(new Set([...eventsForStartDay, ...eventsForEndDay]))
+
+		const currentExistingEvent = allExistingEvents.find((e) => isSameExternalEvent(e.event, iCalEvent))
+
+		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent?.event)
+
+		const [allDayAndLongEvents, normalEvents] = partition(allExistingEvents, (ev) => {
+			const eventHas24HoursOrMore = getDurationInMinutes(ev.event) >= 60 * 24
+			return isAllDayEvent(ev.event) || eventHas24HoursOrMore
+		})
+
+		const conflictingNormalEvents = normalEvents.filter((ev) => !isSameExternalEvent(ev.event, iCalEvent) && collidesWith(ev.event, iCalEvent))
+
+		// Decides if we already have a conflicting event or if we should pick an event from event list that happens before the invitation
+		const closestConflictingEventBeforeStartTime = conflictingNormalEvents
+			.filter((ev) => ev.event.startTime <= iCalEvent.startTime)
+			.reduce((closest: EventWrapper | null, ev) => {
+				if (!closest) return ev
+				if (iCalEvent.startTime.getTime() - ev.event.startTime.getTime() < iCalEvent.startTime.getTime() - closest.event.startTime.getTime()) return ev
+				return closest
+			}, null)
+
+		// Decides if we already have a conflicting event or if we should pick an event from event list that happens after the invitation
+		const closestConflictingEventAfterStartTime = conflictingNormalEvents
+			.filter((ev) => ev.event.startTime > iCalEvent.startTime)
+			.reduce((closest: EventWrapper | null, ev) => {
+				if (!closest) return ev
+				if (
+					Math.abs(iCalEvent.startTime.getTime() - ev.event.startTime.getTime()) <
+					Math.abs(iCalEvent.startTime.getTime() - closest.event.startTime.getTime())
+				)
+					return ev
+				return closest
+			}, null)
+
+		// Placeholder id
+		const generatedCalendarEvent = makeCalendarEventFromIcsCalendarEvent(iCalEvent)
+		generatedCalendarEvent._id = [GENERATED_MIN_ID, GENERATED_MIN_ID]
+
+		let eventList: InviteAgenda = {
+			before: null,
+			after: null,
+			main: {
+				event: generatedCalendarEvent,
+				color: theme.success_container,
+				flags: {
+					isFeatured: true,
+					isConflict: conflictingNormalEvents.length + allDayAndLongEvents.length > 0,
+					hasAlarms: false,
+					isAlteredInstance: false,
+				},
+			},
+			allDayEvents: allDayAndLongEvents.map((wrapper) => ({
+				...wrapper,
+			})),
+			existingEvent: currentExistingEvent,
+			conflictCount: conflictingNormalEvents.length + allDayAndLongEvents.length,
+			regularEvents: conflictingNormalEvents.map((wrapper) => ({
+				...wrapper,
+			})),
+		}
+
+		const oneHour = SECOND_IN_MILLIS * 3600
+		if (!closestConflictingEventBeforeStartTime) {
+			const eventBefore = normalEvents
+				.sort((a, b) => b.event.startTime.getTime() - a.event.startTime.getTime())
+				.find(
+					(ev) =>
+						!isSameExternalEvent(ev.event, iCalEvent) &&
+						ev.event.startTime <= iCalEvent.startTime &&
+						iCalEvent.startTime.getTime() - ev.event.endTime.getTime() <= oneHour,
+				)
+
+			if (eventBefore) {
+				eventList.before = eventBefore
+			}
+		} else {
+			eventList.before = {
+				...closestConflictingEventBeforeStartTime,
+			}
+		}
+
+		if (!closestConflictingEventAfterStartTime) {
+			const eventAfter = normalEvents
+				.sort((a, b) => a.event.startTime.getTime() - b.event.startTime.getTime())
+				.find(
+					(ev) =>
+						!isSameExternalEvent(ev.event, iCalEvent) &&
+						ev.event.startTime > iCalEvent.startTime &&
+						ev.event.startTime.getTime() - iCalEvent.endTime.getTime() <= oneHour,
+				)
+
+			if (eventAfter) {
+				eventList.after = eventAfter
+			}
+		} else {
+			eventList.after = {
+				...closestConflictingEventAfterStartTime,
+			}
+		}
+
+		if (eventList.conflictCount > 0) {
+			eventList.main.color = theme.warning_container
+		}
+		eventToAgenda.set(iCalEvent.uid ?? "", eventList)
+	}
+
+	return eventToAgenda
+}
+
+function getDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
+	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
+}
+
+function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
+	if (!existingEvent) {
+		return
+	}
+
+	const icsOwnAttendee = findAttendeeInAddresses(inviteEvent.attendees ?? [], [ownAttendeeAddress])
+	const existingOwnAttendee = findAttendeeInAddresses(existingEvent.attendees, [ownAttendeeAddress])
+	if (!icsOwnAttendee || !existingOwnAttendee) {
+		return
+	}
+
+	icsOwnAttendee.status = existingOwnAttendee.status
+}

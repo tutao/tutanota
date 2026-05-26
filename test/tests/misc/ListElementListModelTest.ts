@@ -1,14 +1,14 @@
 import o from "@tutao/otest"
-import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "../../../src/meta"
-import { defer, DeferredObject } from "@tutao/utils"
+import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "../../../src/platform-kits/meta"
+import { defer, DeferredObject } from "../../../src/platform-kits/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ListAutoSelectBehavior } from "../../../src/common/misc/DeviceConfig.js"
-import { ListElementListModel, ListElementListModelConfig } from "../../../src/common/misc/ListElementListModel"
-import * as restError from "@tutao/rest-client/error"
+import { ListAutoSelectBehavior } from "../../../src/applications/common/misc/DeviceConfig.js"
+import { ListElementListModel, ListElementListModelConfig } from "../../../src/applications/common/misc/ListElementListModel"
+import * as restError from "../../../src/platform-kits/rest-client/error"
 
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
-import { OperationType } from "@tutao/meta"
+import { OperationType } from "../../../src/platform-kits/meta"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"

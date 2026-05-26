@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { AppType, assertMainOrNodeBoot, isApp, isDesktop } from "@tutao/app-env"
-import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/utils"
+import { AppType, assertMainOrNodeBoot, isApp, isDesktop } from "../platform-kits/app-env"
+import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "../platform-kits/utils"
 import m from "mithril"
 import { BaseThemeId, BaseThemeProvider, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
@@ -10,7 +10,7 @@ import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 import { ThemeCustomizations, UnknownThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "./WhitelabelCustomizations"
 import { HtmlSanitizerInterface } from "./utils/HtmlSanitizerInterface"
-import { type ThemeFacade } from "../native-bridge/common/generatedipc/types/ThemeFacade"
+import { type ThemeFacade } from "../app-kits/native-bridge/common/generatedipc/types/ThemeFacade"
 
 assertMainOrNodeBoot()
 

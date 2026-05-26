@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
-import { aes256RandomKey, AesKeyLength, getKeyLengthInBytes, keyToUint8Array, sha256Hash, sha512Hash, uint8ArrayToKey } from "@tutao/crypto"
+import { aes256RandomKey, AesKeyLength, getKeyLengthInBytes, keyToUint8Array, sha256Hash, sha512Hash, uint8ArrayToKey } from "../../../src/platform-kits/crypto"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { _aes128RandomKey } from "./AesTest.js"
 

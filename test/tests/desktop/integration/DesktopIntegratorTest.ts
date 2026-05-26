@@ -1,15 +1,15 @@
 import o, { spy } from "@tutao/otest"
 import n from "../../nodemocker.js"
-import { getDesktopIntegratorForPlatform } from "../../../../src/common/desktop/integration/DesktopIntegrator.js"
-import { downcast, LazyLoaded } from "@tutao/utils"
-import type { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
+import { getDesktopIntegratorForPlatform } from "../../../../src/applications/common/desktop/integration/DesktopIntegrator.js"
+import { downcast, LazyLoaded } from "../../../../src/platform-kits/utils"
+import type { WindowManager } from "../../../../src/applications/common/desktop/DesktopWindowManager.js"
 import { lang } from "../../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../../src/ui/translations/en.js"
-import { DesktopIntegratorLinux } from "../../../../src/common/desktop/integration/DesktopIntegratorLinux.js"
-import { DesktopIntegratorDarwin } from "../../../../src/common/desktop/integration/DesktopIntegratorDarwin.js"
-import { DesktopIntegratorWin32 } from "../../../../src/common/desktop/integration/DesktopIntegratorWin32.js"
+import { DesktopIntegratorLinux } from "../../../../src/applications/common/desktop/integration/DesktopIntegratorLinux.js"
+import { DesktopIntegratorDarwin } from "../../../../src/applications/common/desktop/integration/DesktopIntegratorDarwin.js"
+import { DesktopIntegratorWin32 } from "../../../../src/applications/common/desktop/integration/DesktopIntegratorWin32.js"
 import { object, verify, when } from "testdouble"
-import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/common/desktop/integration/WindowsRegistryFacade"
+import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/applications/common/desktop/integration/WindowsRegistryFacade"
 
 const desktopEntry = `[Desktop Entry]
 Name=Tuta Mail

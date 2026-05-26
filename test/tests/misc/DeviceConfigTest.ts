@@ -6,12 +6,12 @@ import {
 	MailListDisplayMode,
 	migrateConfigV2to3,
 	migrateConfigV5to6,
-} from "../../../src/common/misc/DeviceConfig.js"
+} from "../../../src/applications/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 
-import { getDayShifted, getStartOfDay } from "@tutao/utils"
-import { CredentialEncryptionMode } from "@tutao/app-env"
-import { CredentialType } from "../../../src/network/types"
+import { getDayShifted, getStartOfDay } from "../../../src/platform-kits/utils"
+import { CredentialEncryptionMode } from "../../../src/platform-kits/app-env"
+import { CredentialType } from "../../../src/platform-kits/network/types"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {

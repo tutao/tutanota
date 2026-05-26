@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { Captor, matchers, object, verify, when } from "testdouble"
-import { CommandExecutor, ProcessIOEncoding, RunParams } from "../../../src/common/desktop/CommandExecutor"
-import { ChildProcessExports } from "../../../src/common/desktop/ElectronExportTypes"
+import { CommandExecutor, ProcessIOEncoding, RunParams } from "../../../src/applications/common/desktop/CommandExecutor"
+import { ChildProcessExports } from "../../../src/applications/common/desktop/ElectronExportTypes"
 import { ChildProcessWithoutNullStreams } from "node:child_process"
 import { Readable } from "node:stream"
 

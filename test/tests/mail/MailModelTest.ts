@@ -1,22 +1,22 @@
 import o, { mock, Spy, spy, verify } from "@tutao/otest"
 import { Notifications } from "../../../src/ui/Notifications.js"
 
-import { EntityClient } from "../../../src/network/EntityClient.js"
+import { EntityClient } from "../../../src/platform-kits/network/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
-import { downcast } from "@tutao/utils"
-import { LoginController } from "../../../src/common/api/main/LoginController.js"
+import { downcast } from "../../../src/platform-kits/utils"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { instance, matchers, object, when } from "testdouble"
-import { UserController } from "../../../src/common/api/main/UserController.js"
+import { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { createTestEntity, makePopulatedClientModelInfo } from "../TestUtils.js"
-import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
-import { EventController } from "../../../src/common/api/main/EventController.js"
-import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
-import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
-import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import * as restError from "@tutao/rest-client/error"
-import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
+import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { MailModel } from "../../../src/applications/mail-app/mail/model/MailModel.js"
+import { EventController } from "../../../src/applications/common/api/main/EventController.js"
+import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
+import { InboxRuleHandler } from "../../../src/applications/mail-app/mail/model/InboxRuleHandler"
+import { WebsocketConnectivityModel } from "../../../src/applications/common/misc/WebsocketConnectivityModel"
+import { FolderSystem } from "../../../src/applications/common/api/common/mail/FolderSystem"
+import * as restError from "../../../src/platform-kits/rest-client/error"
+import { ProcessInboxHandler } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 import { MailSetKind, ProcessingState } from "../../../src/entities/tutanota/Utils"
@@ -32,8 +32,8 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { OperationType } from "@tutao/meta"
-import { EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { OperationType } from "../../../src/platform-kits/meta"
+import { EntityUpdateData } from "../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 

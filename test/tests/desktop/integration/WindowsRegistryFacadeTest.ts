@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/common/desktop/integration/WindowsRegistryFacade.js"
-import { CommandExecutor, CommandOutput } from "../../../../src/common/desktop/CommandExecutor"
+import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/applications/common/desktop/integration/WindowsRegistryFacade.js"
+import { CommandExecutor, CommandOutput } from "../../../../src/applications/common/desktop/CommandExecutor"
 import { object, verify, when } from "testdouble"
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull } from "../../../../src/platform-kits/utils"
 
 o.spec("WindowsRegistryFacade", () => {
 	let executor: CommandExecutor

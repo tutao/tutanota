@@ -1,6 +1,6 @@
 import { lang } from "./LanguageViewModel"
-import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "../../platform-kits/utils"
+import { assertMainOrNodeBoot } from "../../platform-kits/app-env"
 
 assertMainOrNodeBoot()
 

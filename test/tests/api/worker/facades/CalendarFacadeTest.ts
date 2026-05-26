@@ -6,18 +6,18 @@ import {
 	CalendarFacade,
 	EventWithUserAlarmInfos,
 	sortByRecurrenceId,
-} from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { downcast, first } from "@tutao/utils"
-import { clone, elementIdPart, getElementId, getLetId, getListId } from "@tutao/meta"
-import { SetupMultipleError } from "../../../../../src/network/error/SetupMultipleError.js"
-import { GroupManagementFacade } from "../../../../../src/base/facades/lazy/GroupManagementFacade.js"
+import { DefaultEntityRestCache } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { downcast, first } from "../../../../../src/platform-kits/utils"
+import { clone, elementIdPart, getElementId, getLetId, getListId } from "../../../../../src/platform-kits/meta"
+import { SetupMultipleError } from "../../../../../src/platform-kits/network/error/SetupMultipleError.js"
+import { GroupManagementFacade } from "../../../../../src/platform-kits/base/facades/lazy/GroupManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { IServiceExecutor } from "../../../../../src/network/ServiceRequest"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade"
+import { IServiceExecutor } from "../../../../../src/platform-kits/network/ServiceRequest"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { TypeModelResolver } from "@tutao/instance-pipeline"
+import { TypeModelResolver } from "../../../../../src/platform-kits/instance-pipeline"
 
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettingsTypeRef, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
@@ -33,10 +33,10 @@ import {
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { AlarmFacade } from "../../../../../src/common/api/worker/facades/lazy/AlarmFacade"
-import { EventAlarmInfoTemplatesTuple } from "../../../../../src/common/calendar/gui/ImportExportUtils"
-import { EntityClient } from "../../../../../src/network/EntityClient"
-import { ExposedOperationProgressTracker } from "../../../../../src/common/api/main/OperationProgressTracker"
+import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/gui/ImportExportUtils"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
+import { ExposedOperationProgressTracker } from "../../../../../src/applications/common/api/main/OperationProgressTracker"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 
 o.spec("CalendarFacadeTest", function () {

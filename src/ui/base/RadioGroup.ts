@@ -2,7 +2,7 @@ import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys } from "@tutao/app-env"
+import { Keys } from "../../platform-kits/app-env"
 import { AriaRole } from "../AriaUtils.js"
 
 export interface SingularOrPluralLabel {

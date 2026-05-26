@@ -4,7 +4,7 @@ import { lang } from "../utils/LanguageViewModel"
 import type { AllIcons } from "./Icon"
 import { Icon } from "./Icon"
 import { px, size } from "../size"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode } from "../../platform-kits/app-env"
 
 assertMainOrNode()
 

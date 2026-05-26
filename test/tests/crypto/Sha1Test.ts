@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { hexToUint8Array, stringToUtf8Uint8Array } from "@tutao/utils"
-import { sha1Hash } from "@tutao/crypto"
+import { hexToUint8Array, stringToUtf8Uint8Array } from "../../../src/platform-kits/utils"
+import { sha1Hash } from "../../../src/platform-kits/crypto"
 
 o.spec("Sha1", function () {
 	o("hash", function () {

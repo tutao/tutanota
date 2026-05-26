@@ -1,5 +1,5 @@
 import o, { assertThrows, throwsErrorWithMessage } from "@tutao/otest"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
+import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/platform-kits/utils"
 import {
 	Aes128Key,
 	aes256EncryptSearchIndexEntry,
@@ -16,9 +16,9 @@ import {
 	keyToBase64,
 	random,
 	uint8ArrayToBitArray,
-} from "@tutao/crypto"
+} from "../../../src/platform-kits/crypto"
 import { BLOCK_SIZE_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
-import { CryptoError } from "@tutao/crypto/error"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
 
 o.spec("aes", function () {
 	const iv = new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102])

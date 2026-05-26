@@ -6,10 +6,19 @@ import {
 	NewAdminPubKeyAuthenticationParams,
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
-} from "../../../../../src/network/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, cryptoUtils, CryptoWrapper, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
-import { KeyVersion } from "@tutao/utils"
+} from "../../../../../src/platform-kits/network/KeyAuthenticationFacade.js"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	cryptoUtils,
+	CryptoWrapper,
+	Ed25519PublicKey,
+	KeyPairType,
+	KyberPublicKey,
+	X25519PublicKey,
+} from "../../../../../src/platform-kits/crypto"
+import { CryptoError } from "../../../../../src/platform-kits/crypto/error"
+import { KeyVersion } from "../../../../../src/platform-kits/utils"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible

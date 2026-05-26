@@ -1,0 +1,161 @@
+import { createMail, createMailAddress, Mail } from "@tutao/entities/tutanota"
+import { ProcessingState } from "../../../../entities/tutanota/Utils"
+import m, { Children, Component } from "mithril"
+import { component_size, layout_size, px } from "../../../../ui/size"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
+import { MailRow } from "../../../mail-app/mail/view/MailRow"
+import { noOp } from "@tutao/utils"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { isApp, isDesktop } from "@tutao/app-env"
+
+export const BUTTON_WIDTH = 270
+
+export class CustomColorEditorPreview implements Component {
+	_mailRow: MailRow
+	_mailRow2: MailRow
+	private toggleSelected: boolean = false
+
+	constructor() {
+		this._mailRow = new MailRow(false, () => [], noOp)
+		this._mailRow2 = new MailRow(false, () => [], noOp)
+	}
+
+	view(): Children {
+		return m(
+			".editor-border.mt-32.flex.col",
+			{
+				style: {
+					alignItems: "center",
+				},
+			},
+			[
+				m(
+					".pt-16",
+					{
+						style: {
+							width: px(BUTTON_WIDTH),
+						},
+					},
+					m(PrimaryButton, {
+						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
+						onclick: noOp,
+					}),
+				),
+				m(".pt-16", [
+					m(Button, {
+						label: lang.makeTranslation("secondary", "Secondary"),
+						click: noOp,
+						type: ButtonType.Secondary,
+					}),
+					m(Button, {
+						label: lang.makeTranslation("primary", "Primary"),
+						click: noOp,
+						type: ButtonType.Primary,
+					}),
+				]),
+				m(".pt-16", [
+					m(IconButton, {
+						title: lang.makeTranslation("icon_button", "Icon button"),
+						icon: Icons.FolderFilled,
+						click: noOp,
+					}),
+					m(ToggleButton, {
+						title: lang.makeTranslation("toggle_button", "Toggle button"),
+						icon: this.toggleSelected ? Icons.GenericLockFilled : Icons.LockOpenFilled,
+						toggled: this.toggleSelected,
+						onToggled: () => (this.toggleSelected = !this.toggleSelected),
+					}),
+				]),
+				m(".pt-16", this.renderPreviewMailRow()),
+			],
+		)
+	}
+
+	renderPreviewMailRow(): Children {
+		const mailTemplate = {
+			receivedDate: new Date(),
+			attachments: [],
+			state: "2",
+			mailDetails: null,
+			authStatus: null,
+			encryptionAuthStatus: null,
+			method: "0",
+			bucketKey: null,
+			conversationEntry: ["listId", "conversationId"],
+			differentEnvelopeSender: null,
+			firstRecipient: null,
+			listUnsubscribe: false,
+			mailDetailsDraft: null,
+			movedTime: null,
+			phishingStatus: "0",
+			recipientCount: "0",
+			sets: [],
+			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
+			clientSpamClassifierResult: null,
+			processNeeded: true,
+			serverClassificationData: "0,1",
+		} satisfies Partial<Mail>
+		const mail = createMail({
+			sender: createMailAddress({
+				address: "m.mustermann@example.com",
+				name: "Max Mustermann",
+				contact: null,
+			}),
+			subject: "Mail 1",
+			unread: false,
+			replyType: "0",
+			confidential: true,
+			sendAt: null,
+			...mailTemplate,
+		})
+		const mail2 = createMail({
+			sender: createMailAddress({
+				address: "m.mustermann@example.com",
+				name: "Max Mustermann",
+				contact: null,
+			}),
+			subject: "Mail 2",
+			unread: true,
+			replyType: "1",
+			confidential: false,
+			sendAt: null,
+			...mailTemplate,
+		})
+		return m(
+			".rel",
+			{
+				style: {
+					width: px(layout_size.second_col_max_width),
+					height: px(component_size.list_row_height * 2),
+				},
+			},
+			[
+				m(
+					".list-row.pl-12.pr-24.odd-row",
+					{
+						oncreate: (vnode) => {
+							requestAnimationFrame(() => this._mailRow.update(mail, false, false))
+						},
+					},
+					this._mailRow.render(),
+				),
+				m(
+					".list-row.pl-12.pr-24",
+					{
+						oncreate: (vnode) => {
+							requestAnimationFrame(() => this._mailRow2.update(mail2, true, false))
+						},
+						style: {
+							top: px(component_size.list_row_height),
+						},
+					},
+					this._mailRow2.render(),
+				),
+			],
+		)
+	}
+}

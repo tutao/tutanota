@@ -5,10 +5,10 @@ import { IndexedDbContactSearchFacade } from "../../../../../src/mail-app/worker
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
 
-import { SearchRestriction, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { typedValues } from "@tutao/utils"
+import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import { typedValues } from "../../../../../src/platform-kits/utils"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
-import { TypeModelResolver } from "@tutao/instance-pipeline"
+import { TypeModelResolver } from "../../../../../src/platform-kits/instance-pipeline"
 
 o.spec("IndexedDbContactSearchFacade", () => {
 	let facade: IndexedDbContactSearchFacade

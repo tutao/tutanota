@@ -1,0 +1,60 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./base/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./base/",
+		"outDir": "../../build/base",
+		"tsBuildInfoFile": "../../build/base/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../app-kits/tsconfig.mimimi.json"
+		},
+		{
+			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.crypto.json"
+		},
+		{
+			"path": "../usagetests/tsconfig.usagetests.json"
+		},
+		{
+			"path": "tsconfig.rest-client.json"
+		},
+		{
+			"path": "tsconfig.network.json"
+		},
+		{
+			"path": "tsconfig.meta.json"
+		},
+		{
+			"path": "tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "../app-kits/tsconfig.native-bridge.json"
+		},
+		{
+			"path": "../app-kits/tsconfig.local-store.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.sys.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.accounting.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.usage.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.drive.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.storage.json"
+		}
+	]
+}

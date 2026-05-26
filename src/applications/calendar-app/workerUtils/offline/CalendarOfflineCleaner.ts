@@ -1,0 +1,8 @@
+import { OfflineStorage, OfflineStorageCleaner } from "../../../../app-kits/local-store/OfflineStorage.js"
+
+export class CalendarOfflineCleaner implements OfflineStorageCleaner {
+	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void> {
+		// nothing needs to specifically be done for Calendar right now,
+		// but we need to have this to complement the mail one.
+	}
+}

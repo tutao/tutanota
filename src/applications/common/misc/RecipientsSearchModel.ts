@@ -1,0 +1,170 @@
+import { RecipientsModel } from "../api/main/RecipientsModel.js"
+import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
+import { isMailAddress } from "../../../platform-kits/utils/FormatUtils.js"
+import { ofClass } from "@tutao/utils"
+import { DbError } from "../api/common/error/DbError.js"
+import { locator } from "../api/main/CommonLocator.js"
+import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
+import { EntityClient } from "../../../platform-kits/network/EntityClient.js"
+import { ContactSuggestion } from "../../../app-kits/native-bridge/common/generatedipc/types"
+import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { ContactListEntryTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { PartialRecipient, Recipient } from "../../../entities/tutanota/Utils"
+
+const MaxNativeSuggestions = 10
+
+export type RecipientSearchResultItem =
+	| { type: "recipient"; value: Recipient }
+	| {
+			type: "contactlist"
+			value: ContactListInfo
+	  }
+export type RecipientSearchResultFilter = (item: RecipientSearchResultItem) => boolean
+
+export interface ContactSuggestionProvider {
+	getContactSuggestions(query: string): Promise<readonly ContactSuggestion[]>
+}
+
+export class RecipientsSearchModel {
+	private searchResults: Array<RecipientSearchResultItem> = []
+	private loading: Promise<void> | null = null
+
+	private currentQuery = ""
+	private previousQuery = ""
+	private filter: RecipientSearchResultFilter | null = null
+
+	constructor(
+		private readonly recipientsModel: RecipientsModel,
+		private readonly contactModel: ContactModel,
+		private readonly suggestionsProvider: ContactSuggestionProvider,
+		private readonly entityClient: EntityClient,
+	) {}
+
+	results(): ReadonlyArray<RecipientSearchResultItem> {
+		return this.searchResults
+	}
+
+	isLoading(): boolean {
+		return this.loading != null
+	}
+
+	clear() {
+		this.searchResults = []
+		this.loading = null
+		this.currentQuery = ""
+		this.previousQuery = ""
+	}
+
+	async search(value: string): Promise<void> {
+		const query = value.trim()
+
+		this.currentQuery = query
+
+		if (this.loading != null) {
+			// fall through and await below
+		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.searchResults.length === 0)) {
+			const [newContactListSuggestions, newContactSuggestions] = await Promise.all([
+				this.findContactLists(query.toLowerCase()),
+				this.findContacts(query.toLowerCase()),
+			])
+			if (query === this.currentQuery) {
+				this.searchResults = [
+					...newContactListSuggestions.map(
+						(value) =>
+							({
+								type: "contactlist",
+								value,
+							}) satisfies RecipientSearchResultItem,
+					),
+					...newContactSuggestions.map(
+						(value) =>
+							({
+								type: "recipient",
+								value,
+							}) satisfies RecipientSearchResultItem,
+					),
+				].filter(this.filter ?? ((_) => true))
+				this.previousQuery = query
+			}
+			this.loading = null
+		} else if (query.length === 0 && query !== this.previousQuery) {
+			this.searchResults = []
+			this.previousQuery = query
+		}
+
+		await this.loading
+	}
+
+	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
+		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.entries)
+		return entries.map((entry) => {
+			// just create a resolvable recipient
+			// all the places resolve the recipients when they need to
+			return this.recipientsModel.initialize({ address: entry.emailAddress })
+		})
+	}
+
+	setFilter(filter: RecipientSearchResultFilter | null) {
+		this.filter = filter
+	}
+
+	private async findContacts(query: string): Promise<Array<Recipient>> {
+		if (isMailAddress(query, false)) {
+			return []
+		}
+
+		const contacts = await this.contactModel
+			.searchForContacts(query, null, 10)
+			.catch(
+				ofClass(DbError, async () => {
+					const listId = await this.contactModel.getContactListId()
+					if (listId) {
+						return locator.entityClient.loadAll(ContactTypeRef, listId)
+					} else {
+						return []
+					}
+				}),
+			)
+			.catch(ofClass(LoginIncompleteError, () => []))
+
+		let suggestedRecipients: Array<Recipient> = []
+		for (const contact of contacts) {
+			const name = `${contact.firstName} ${contact.lastName}`.trim()
+
+			const filter =
+				name.toLowerCase().indexOf(query) !== -1
+					? (address: string) => isMailAddress(address.trim(), false)
+					: (address: string) => isMailAddress(address.trim(), false) && address.toLowerCase().indexOf(query) !== -1
+
+			const recipientsOfContact = contact.mailAddresses
+				.map(({ address }) => address)
+				.filter(filter)
+				.map((address) => this.recipientsModel.initialize({ name, address, contact }))
+
+			suggestedRecipients = suggestedRecipients.concat(recipientsOfContact)
+		}
+
+		const additionalSuggestions = await this.findAdditionalSuggestions(query)
+
+		const contactSuggestions = additionalSuggestions
+			.filter((contact) => isMailAddress(contact.address, false) && !findRecipientWithAddress(suggestedRecipients, contact.address))
+			.slice(0, MaxNativeSuggestions)
+			.map((recipient) => this.recipientsModel.initialize(recipient))
+
+		suggestedRecipients.push(...contactSuggestions)
+
+		return suggestedRecipients.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
+	}
+
+	private async findAdditionalSuggestions(text: string): Promise<Array<PartialRecipient>> {
+		if (!this.suggestionsProvider) {
+			return []
+		}
+		const recipients = await this.suggestionsProvider.getContactSuggestions(text)
+		return recipients.map(({ name, mailAddress }) => ({ name, address: mailAddress }))
+	}
+
+	private async findContactLists(text: string): Promise<ContactListInfo[]> {
+		return this.contactModel.searchForContactLists(text)
+	}
+}

@@ -1,0 +1,415 @@
+import { KeyLoaderFacade } from "../../../../../../platform-kits/base/crypto/KeyLoaderFacade"
+import { EntityClient, loadMultipleFromLists } from "../../../../../../platform-kits/network/EntityClient"
+import { IServiceExecutor } from "../../../../../../platform-kits/network/ServiceRequest"
+import { ProgrammingError } from "@tutao/app-env"
+import { BlobFacade } from "./BlobFacade"
+import { UserFacade } from "../../../../../../platform-kits/base/facades/UserFacade"
+import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
+import { CryptoFacade } from "../../../../../../platform-kits/base/crypto/CryptoFacade"
+import * as restError from "@tutao/rest-client/error"
+import { MoveCycleError } from "../../../common/error/MoveCycleError"
+import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
+import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
+import { isWebFile } from "../../../../../../ui/utils/FileUtils"
+import { FileReference, WebFile } from "../../../../../../entities/tutanota/Utils"
+import {
+	createDriveCopyServicePostIn,
+	createDriveFolderServiceDeleteIn,
+	createDriveFolderServicePostIn,
+	createDriveFolderServicePutIn,
+	createDriveItemDeleteIn,
+	createDriveItemPostIn,
+	createDriveItemPutIn,
+	createDrivePostIn,
+	createDriveRenameData,
+	createDriveUploadedFile,
+	DriveCopyService,
+	DriveFile,
+	DriveFileRef,
+	DriveFileRefTypeRef,
+	DriveFileTypeRef,
+	DriveFolder,
+	DriveFolderService,
+	DriveFolderTypeRef,
+	DriveGroupRoot,
+	DriveGroupRootTypeRef,
+	DriveItemService,
+	DriveRenameData,
+	DriveService,
+} from "@tutao/entities/drive"
+import { TransferId } from "../../../../../../entities/drive/Utils"
+import { getCleanedMimeType } from "../../utils/DataFile"
+
+export interface BreadcrumbEntry {
+	folderName: string
+	folder: IdTuple
+}
+
+export type DriveCryptoInfo = {
+	fileGroupId: string
+	fileGroupKey: VersionedKey
+}
+
+export interface FolderContents {
+	files: DriveFile[]
+	folders: DriveFolder[]
+}
+
+function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
+	return isSameTypeRef(source._type, DriveFileTypeRef)
+}
+
+export interface DriveRootFolders {
+	root: IdTuple
+	trash: IdTuple
+}
+
+export const enum DriveFolderType {
+	Regular = "0",
+	Root = "1",
+	Trash = "2",
+}
+
+/**
+ * Exposes operations on the Drive.
+ */
+export class DriveFacade {
+	constructor(
+		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly blobFacade: BlobFacade,
+		private readonly userFacade: UserFacade,
+		private readonly entityClient: EntityClient,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly cryptoFacade: CryptoFacade,
+		private readonly cryptoWrapper: CryptoWrapper,
+	) {}
+
+	public async rename(item: DriveFile | DriveFolder, newName: string) {
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
+
+		const data = createDriveItemPutIn({
+			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
+			folder: isSameTypeRef(item._type, DriveFolderTypeRef) ? item._id : null,
+			newName,
+		})
+
+		await this.serviceExecutor.put(DriveItemService, data, { sessionKey })
+	}
+
+	public async moveToTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
+		for (const { left: filesChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, listIdPart, fileIds, folderIds)) {
+			const deleteData = createDriveFolderServiceDeleteIn({
+				files: filesChunk,
+				folders: foldersChunk,
+				restore: false,
+			})
+			await this.serviceExecutor.delete(DriveFolderService, deleteData)
+		}
+	}
+
+	public async restoreFromTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
+		for (const { left: fileChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, listIdPart, fileIds, folderIds)) {
+			const deleteData = createDriveFolderServiceDeleteIn({
+				files: fileChunk,
+				folders: foldersChunk,
+				restore: true,
+			})
+			await this.serviceExecutor.delete(DriveFolderService, deleteData)
+		}
+	}
+
+	public async deleteFromTrash(items: readonly (DriveFile | DriveFolder)[]): Promise<Id> {
+		const [files, folders] = partition(items, isDriveFile)
+
+		const deleteData = createDriveItemDeleteIn({
+			files: files.map((f) => f._id),
+			folders: folders.map((f) => f._id),
+		})
+		const result = await this.serviceExecutor.delete(DriveItemService, deleteData)
+		return result.operationId
+	}
+
+	public async loadRootFolders(): Promise<DriveRootFolders> {
+		const { fileGroupId } = await this.getCryptoInfo()
+
+		let driveGroupRoot: DriveGroupRoot
+		try {
+			driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+		} catch (e) {
+			if (e instanceof restError.NotFoundError) {
+				driveGroupRoot = await this.createGroupRoot(fileGroupId)
+			} else {
+				throw e
+			}
+		}
+
+		return { root: driveGroupRoot.root, trash: driveGroupRoot.trash }
+	}
+
+	public async getFolderContents(folderId: IdTuple): Promise<FolderContents> {
+		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
+		const refs = await this.entityClient.loadAll(DriveFileRefTypeRef, folder.files)
+		const isFileRef = (ref: DriveFileRef): ref is Require<"file", DriveFileRef> => ref.file != null
+		const [fileRefs, folderRefs] = partition(refs, isFileRef)
+		const files = await loadMultipleFromLists(
+			DriveFileTypeRef,
+			this.entityClient,
+			fileRefs.map((ref) => ref.file),
+		)
+		const folders = await loadMultipleFromLists(
+			DriveFolderTypeRef,
+			this.entityClient,
+			folderRefs.map((ref) => assertNotNull(ref.folder)),
+		)
+		return { files, folders }
+	}
+
+	/**
+	 * @param to this is the folder where the file will be uploaded
+	 */
+	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
+		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
+
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
+
+		const blobRefTokens: BlobReferenceTokenWrapper[] = []
+		if (isWebFile(file)) {
+			for await (const { referenceTokenWrapper } of this.blobFacade.streamEncryptAndUpload(
+				ArchiveDataType.DriveFile,
+				file.file,
+				assertNotNull(fileGroupId),
+				sessionKey,
+				fileId,
+			)) {
+				blobRefTokens.push(referenceTokenWrapper)
+			}
+		} else {
+			const tokens = await this.blobFacade.encryptAndUploadNative(
+				ArchiveDataType.DriveFile,
+				file.location,
+				assertNotNull(fileGroupId),
+				sessionKey,
+				fileId,
+			)
+			blobRefTokens.push(...tokens)
+		}
+
+		if (blobRefTokens.length === 0) {
+			console.debug("No blob reference tokens, looks like this upload has been cancelled.")
+			return null
+		}
+
+		const uploadedFile = createDriveUploadedFile({
+			referenceTokens: blobRefTokens,
+			fileName: fileName,
+			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
+			ownerEncSessionKey: ownerEncSessionKey,
+			ownerKeyVersion: String(fileGroupKey.version),
+			_ownerGroup: assertNotNull(fileGroupId),
+		})
+		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
+		const response = await this.serviceExecutor.post(DriveItemService, data, { sessionKey })
+
+		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
+	}
+
+	/**
+	 * @param folderName the name of the folder, duh
+	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
+	 */
+	public async createFolder(folderName: string, parentFolder: IdTuple): Promise<DriveFolder> {
+		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
+
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
+
+		const newFolder = createDriveFolderServicePostIn({
+			folderName,
+			parent: parentFolder,
+			ownerEncSessionKey,
+			ownerKeyVersion: String(fileGroupKey.version),
+		})
+		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { sessionKey })
+		return this.entityClient.load(DriveFolderTypeRef, response.folder)
+	}
+
+	/**
+	 * @throws MoveToTrashError
+	 */
+	public async copyItems(files: readonly DriveFile[], folders: readonly DriveFolder[], destination: DriveFolder, renamedFiles: Map<Id, string>): Promise<Id> {
+		if (destination.type === DriveFolderType.Trash) {
+			throw new MoveToTrashError("Cannot copy to trash")
+		}
+		const fileItems = await promiseMap(files, async (file) => {
+			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+
+			const newName = renamedFiles.get(getElementId(file)) ?? file.name
+			const encNewName = this.cryptoWrapper.encryptString(sk, newName)
+			return createDriveRenameData({
+				file: file._id,
+				folder: null,
+				encNewName,
+			})
+		})
+		const folderItems = await promiseMap(folders, async (folder) => {
+			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
+			const newName = renamedFiles.get(getElementId(folder)) ?? folder.name
+			const encNewName = this.cryptoWrapper.encryptString(sk, newName)
+			return createDriveRenameData({
+				file: null,
+				folder: folder._id,
+				encNewName,
+			})
+		})
+		const copyData = createDriveCopyServicePostIn({
+			items: [...fileItems, ...folderItems],
+			destination: destination._id,
+		})
+		const result = await this.serviceExecutor.post(DriveCopyService, copyData)
+		return result.operationId
+	}
+
+	/**
+	 * @throws MoveCycleError
+	 * @throws MoveToTrashError
+	 * @throws MoveDestinationIsSourceError
+	 */
+	public async move(files: readonly DriveFile[], folders: readonly DriveFolder[], destinationId: IdTuple, renamedFiles: Map<Id, string>) {
+		if (files.some((file) => isSameId(file.folder, destinationId)) || folders.some((folder) => isSameId(folder.parent, destinationId))) {
+			throw new MoveDestinationIsSourceError("Cannot move items to the location they are already in")
+		}
+
+		const destination = await this.entityClient.load(DriveFolderTypeRef, destinationId)
+		if (destination.type === DriveFolderType.Trash) {
+			throw new MoveToTrashError("Cannot move to the trash")
+		}
+		const parents = new Set((await this.getFolderParents(destinationId)).map(getElementId))
+		if (folders.some((f) => parents.has(getElementId(f)) || isSameId(f._id, destinationId))) {
+			throw new MoveCycleError(`Cannot move folder into its child ${destinationId.join("/")}`)
+		}
+
+		for (const { left: filesChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, getListId, files, folders)) {
+			const items: DriveRenameData[] = [
+				...(await promiseMap(filesChunk, async (file) => {
+					let encNewName: Uint8Array | null
+					const newName = renamedFiles.get(getElementId(file))
+					if (newName) {
+						const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+						encNewName = this.cryptoWrapper.encryptString(sk, newName)
+					} else {
+						encNewName = null
+					}
+					return createDriveRenameData({ file: file._id, folder: null, encNewName })
+				})),
+				...(await promiseMap(foldersChunk, async (folder) => {
+					let encNewName: Uint8Array | null
+					const newName = renamedFiles.get(getElementId(folder))
+					if (newName) {
+						const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
+						encNewName = this.cryptoWrapper.encryptString(sk, newName)
+					} else {
+						encNewName = null
+					}
+
+					return createDriveRenameData({ file: null, folder: folder._id, encNewName })
+				})),
+			]
+
+			const data = createDriveFolderServicePutIn({
+				items,
+				destination: destinationId,
+			})
+			await this.serviceExecutor.put(DriveFolderService, data)
+		}
+	}
+
+	async getFolderParents(folderId: IdTuple): Promise<DriveFolder[]> {
+		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
+		if (folder.parent == null) return []
+		const result: DriveFolder[] = []
+		let currentParent: DriveFolder = folder
+		do {
+			currentParent = await this.entityClient.load(DriveFolderTypeRef, assertNotNull(currentParent.parent))
+			result.unshift(currentParent)
+		} while (currentParent.parent != null)
+		return result
+	}
+
+	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
+		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
+		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
+		return { fileGroupId, fileGroupKey }
+	}
+
+	private async createGroupRoot(fileGroupId: Id): Promise<DriveGroupRoot> {
+		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
+		const rootFolderSessionKey = aes256RandomKey()
+		const trashFolderSessionKey = aes256RandomKey()
+		const encRootFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, rootFolderSessionKey)
+		const encTrashFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, trashFolderSessionKey)
+		await this.serviceExecutor.post(
+			DriveService,
+			createDrivePostIn({
+				fileGroupId: fileGroupId,
+				ownerKeyVersion: String(fileGroupKey.version),
+				ownerEncRootFolderSessionKey: encRootFolderSessionKey,
+				ownerEncTrashFolderSessionKey: encTrashFolderSessionKey,
+			}),
+		)
+		return this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+	}
+}
+
+/**
+ * Takes two lists of list entities and produces a sequence of chunks. Each chunk will have a total of
+ * {@param chunkSize} items in it. Each group in each chunk will have the same list id.
+ *
+ * @private visibleForTesting
+ */
+export function* splitListElementsIntoChunksByList<I, L extends I, R extends I>(
+	chunkSize: number,
+	itemListId: (item: I) => Id,
+	leftItems: readonly L[],
+	rightItems: readonly R[],
+): Generator<{ left: L[]; right: R[] }> {
+	if (Number.isNaN(chunkSize) || chunkSize < 1) {
+		throw new ProgrammingError("chunkSize must be positive")
+	}
+
+	// can't use itemListId directly because it fucks up the inference
+	const leftById = Array.from(groupBy(leftItems, (item) => itemListId(item)).values())
+	const rightById = Array.from(groupBy(rightItems, (item) => itemListId(item)).values())
+
+	// while there's at least a list of files or list of folders to process
+	while (!isEmpty(leftById) || !isEmpty(rightById)) {
+		const leftList = first(leftById)
+		// if we still have a list of files to process, take it
+		let leftItems: L[]
+		if (leftList) {
+			// remove the first chunk from the current list
+			leftItems = leftList.splice(0, chunkSize)
+			if (isEmpty(leftList)) {
+				// if we exhausted the list, yeet it out
+				leftById.shift()
+			}
+		} else {
+			leftItems = []
+		}
+		const rightList = first(rightById)
+		let rightItems: R[]
+		if (rightList) {
+			rightItems = rightList.splice(0, chunkSize - leftItems.length)
+			if (isEmpty(rightList)) {
+				rightById.shift()
+			}
+		} else {
+			rightItems = []
+		}
+		yield { left: leftItems, right: rightItems }
+	}
+}

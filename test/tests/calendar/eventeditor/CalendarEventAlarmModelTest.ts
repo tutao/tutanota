@@ -4,11 +4,11 @@ import { lang } from "../../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../../src/ui/translations/en.js"
 import { EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { object, when } from "testdouble"
-import { DateProvider } from "../../../../src/utils/DateProvider.js"
-import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/common/calendar/date/CalendarUtils.js"
+import { DateProvider } from "../../../../src/platform-kits/utils/DateProvider.js"
+import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/applications/common/calendar/date/CalendarUtils.js"
 import { createTestEntity } from "../../TestUtils"
 
-import { serializeAlarmInterval } from "../../../../src/common/api/common/utils/CommonCalendarUtils"
+import { serializeAlarmInterval } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils"
 import { DefaultAlarmInfoTypeRef, GroupSettingsTypeRef } from "@tutao/entities/tutanota"
 
 const dateProvider: DateProvider = object()

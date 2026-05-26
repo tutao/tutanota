@@ -1,0 +1,120 @@
+import m, { Children, Vnode } from "mithril"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { DROPDOWN_MARGIN } from "../../../../ui/base/Dropdown.js"
+import { MobileBottomActionBar } from "../../../../ui/MobileBottomActionBar.js"
+import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
+import { component_size, px } from "../../../../ui/size"
+
+import { PosRect } from "../../../../ui/utils/PosRect"
+
+export interface MobileMailMultiselectionActionBarAttrs {
+	selectNone: () => unknown
+	deleteMailsAction: (() => void) | null
+	trashMailsAction: (() => void) | null
+	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
+	applyLabelsAction: ((dom: HTMLElement, opts?: LabelsPopupOpts) => void) | null
+	setUnreadStateAction: ((unread: boolean) => void) | null
+}
+
+// Note: The MailViewerToolbar is the counterpart for this on non-mobile views. Please update there too if needed
+export class MobileMailMultiselectionActionBar {
+	private dom: HTMLElement | null = null
+
+	view({ attrs }: Vnode<MobileMailMultiselectionActionBarAttrs>): Children {
+		return m(
+			MobileBottomActionBar,
+			{
+				oncreate: ({ dom }) => (this.dom = dom as HTMLElement),
+			},
+			[
+				this.renderDeleteButton(attrs) ?? this.renderTrashAction(attrs) ?? this.placeholder(),
+				this.renderMoveButton(attrs) ?? this.placeholder(),
+				this.renderLabelsButton(attrs) ?? this.placeholder(),
+				this.renderUnreadButton(attrs),
+			],
+		)
+	}
+
+	private dropdownWidth(dom: HTMLElement): number {
+		return dom.offsetWidth - DROPDOWN_MARGIN * 2
+	}
+
+	private placeholder() {
+		return m("", {
+			style: {
+				width: px(component_size.button_height),
+			},
+		})
+	}
+
+	private renderUnreadButton({ setUnreadStateAction }: MobileMailMultiselectionActionBarAttrs) {
+		return setUnreadStateAction
+			? [
+					m(IconButton, {
+						icon: Icons.EyeFilled,
+						title: "markRead_action",
+						click: () => setUnreadStateAction(false),
+					}),
+					m(IconButton, {
+						icon: Icons.EyeCrossedFilled,
+						title: "markUnread_action",
+						click: () => setUnreadStateAction(true),
+					}),
+				]
+			: [this.placeholder(), this.placeholder()]
+	}
+
+	private renderLabelsButton({ applyLabelsAction }: MobileMailMultiselectionActionBarAttrs) {
+		return (
+			applyLabelsAction &&
+			m(IconButton, {
+				icon: Icons.LabelFilled,
+				title: "assignLabel_action",
+				click: (e, dom) => {
+					const referenceDom = this.dom ?? dom
+					applyLabelsAction(referenceDom, { width: this.dropdownWidth(referenceDom) })
+				},
+			})
+		)
+	}
+
+	private renderMoveButton({ moveMailsAction, selectNone }: MobileMailMultiselectionActionBarAttrs) {
+		return (
+			moveMailsAction &&
+			m(IconButton, {
+				icon: Icons.FolderFilled,
+				title: "move_action",
+				click: (e, dom) => {
+					const referenceDom = this.dom ?? dom
+					moveMailsAction(referenceDom.getBoundingClientRect(), {
+						onSelected: selectNone,
+						width: this.dropdownWidth(referenceDom),
+					})
+				},
+			})
+		)
+	}
+
+	private renderTrashAction({ trashMailsAction }: MobileMailMultiselectionActionBarAttrs) {
+		return (
+			trashMailsAction &&
+			m(IconButton, {
+				icon: Icons.TrashFilled,
+				title: "trash_action",
+				click: trashMailsAction,
+			})
+		)
+	}
+
+	private renderDeleteButton({ deleteMailsAction }: MobileMailMultiselectionActionBarAttrs) {
+		return (
+			deleteMailsAction &&
+			m(IconButton, {
+				icon: Icons.TrashCrossFilled,
+				title: "delete_action",
+				click: deleteMailsAction,
+			})
+		)
+	}
+}

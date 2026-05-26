@@ -1,4 +1,4 @@
-import { random } from "@tutao/crypto"
+import { random } from "../../../src/platform-kits/crypto"
 
 export async function bootstrapTests() {
 	await random.addEntropy([

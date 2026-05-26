@@ -1,6 +1,6 @@
-import { PresentableKeyVerificationState, ProgrammingError, TimeFormat } from "@tutao/app-env"
-import { isSameTypeRef } from "@tutao/meta"
-import { downcast } from "@tutao/utils"
+import { PresentableKeyVerificationState, ProgrammingError, TimeFormat } from "../../platform-kits/app-env"
+import { isSameTypeRef } from "../../platform-kits/meta"
+import { downcast } from "../../platform-kits/utils"
 import { Contact, File, FileTypeRef, UserSettingsGroupRoot } from "./TypeRefs"
 import { DataFile } from "./MailBundle"
 

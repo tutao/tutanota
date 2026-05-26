@@ -1,14 +1,14 @@
 import o from "@tutao/otest"
-import { AttributeModel, getElementId } from "../../../../../src/meta"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/app-env"
-import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
+import { AttributeModel, getElementId } from "../../../../../src/platform-kits/meta"
+import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/platform-kits/app-env"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
 import { clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { EntityClient } from "../../../../../src/network/EntityClient"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
 import { matchers, object, verify, when } from "testdouble"
 import { IndexedDbContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbContactIndexerBackend"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
-import { assertNotNull, neverNull } from "@tutao/utils"
+import { assertNotNull, neverNull } from "../../../../../src/platform-kits/utils"
 
 import {
 	Contact,

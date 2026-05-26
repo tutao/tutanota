@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode } from "../../platform-kits/app-env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 
 assertMainOrNode()

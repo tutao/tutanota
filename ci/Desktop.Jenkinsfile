@@ -360,7 +360,7 @@ def initBuildArea() {
 	sh 'npm -v'
 	sh 'npm ci'
 	sh 'cd src/mimimi && node make --release && cd -'
-	sh 'cd src/crypto && node make ../../build && cd -'
+	sh 'cd src/platform-kits/crypto && node make ../../build && cd -'
 	sh 'rm -rf ./build/*'
 	sh 'rm -rf ./native-cache/*'
 	unstash 'web_base'

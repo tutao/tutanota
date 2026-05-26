@@ -22,7 +22,7 @@ import {
 	splitArrayAt,
 	splitInChunks,
 	symmetricDifference,
-} from "@tutao/utils"
+} from "../../../src/platform-kits/utils"
 
 type ObjectWithId = {
 	v: number

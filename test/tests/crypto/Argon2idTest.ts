@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "@tutao/crypto"
+import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array } from "../../../src/platform-kits/crypto"
 import { loadWasmExports, loadWasmModuleFallback } from "./WebAssemblyTestUtils.js"
 
 o.spec("Argon2id", function () {

@@ -1,17 +1,17 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { EncryptionAuthStatus, MailAuthenticationStatus } from "../../../src/app-env"
-import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
+import { SpamClassifier } from "../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { EncryptionAuthStatus, MailAuthenticationStatus } from "../../../src/platform-kits/app-env"
+import { ClientClassifierType } from "../../../src/applications/common/api/common/ClientClassifierType"
 import { createTestEntity } from "../TestUtils"
-import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
-import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
-import { UserController } from "../../../src/common/api/main/UserController"
-import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel"
-import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
-import { LoginController } from "../../../src/common/api/main/LoginController"
-import { assert, assertNotNull } from "@tutao/utils"
+import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
+import { FolderSystem } from "../../../src/applications/common/api/common/mail/FolderSystem"
+import { UnencryptedProcessInboxDatum } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
+import { UserController } from "../../../src/applications/common/api/main/UserController"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
+import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade"
+import { LoginController } from "../../../src/applications/common/api/main/LoginController"
+import { assert, assertNotNull } from "../../../src/platform-kits/utils"
 
 import { MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {
@@ -29,7 +29,7 @@ import {
 	Recipients,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { isSameId } from "@tutao/meta"
+import { isSameId } from "../../../src/platform-kits/meta"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 

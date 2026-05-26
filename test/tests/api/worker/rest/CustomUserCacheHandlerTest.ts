@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { CustomUserCacheHandler } from "../../../../../src/common/api/worker/rest/CustomUserCacheHandler"
-import { SpamClassifierStorageFacade } from "../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { CustomUserCacheHandler } from "../../../../../src/applications/common/api/worker/rest/CustomUserCacheHandler"
+import { SpamClassifierStorageFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 
-import { CacheStorage } from "../../../../../src/local-store/CacheStorage"
+import { CacheStorage } from "../../../../../src/app-kits/local-store/CacheStorage"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 

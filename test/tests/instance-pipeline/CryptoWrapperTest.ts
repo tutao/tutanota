@@ -1,8 +1,8 @@
 import o, { assertThrows } from "@tutao/otest"
 import { RSA_TEST_KEYPAIR } from "../api/worker/facades/RsaPqPerformanceTest"
-import { CryptoWrapper, generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
-import { WASMKyberFacade } from "../../../src/base/crypto/KyberFacade"
+import { CryptoWrapper, generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "../../../src/platform-kits/crypto"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
+import { WASMKyberFacade } from "../../../src/platform-kits/base/crypto/KyberFacade"
 
 import { loadLibOQSWASM } from "../crypto/WebAssemblyTestUtils"
 

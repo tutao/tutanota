@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { random } from "@tutao/crypto"
+import { random } from "../../../src/platform-kits/crypto"
 import {
 	assertAndSupplyCorrectAssociationClientCardinality,
 	assertCorrectValueCardinality,
@@ -10,7 +10,7 @@ import {
 	ModelMapper,
 	ServerTypeReferenceResolver,
 	valueToDefault,
-} from "@tutao/instance-pipeline"
+} from "../../../src/platform-kits/instance-pipeline"
 import {
 	AssociationType,
 	Cardinality,
@@ -19,10 +19,10 @@ import {
 	ModelAssociation,
 	ServerModelParsedInstance,
 	ValueType,
-} from "../../../src/meta"
-import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/utils"
+} from "../../../src/platform-kits/meta"
+import { assertNotNull, downcast, uint8ArrayToBase64 } from "../../../src/platform-kits/utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
-import { InvalidModelError, ProgrammingError } from "@tutao/app-env"
+import { InvalidModelError, ProgrammingError } from "../../../src/platform-kits/app-env"
 import { removeOriginals } from "../TestUtils"
 
 o.spec("ModelMapper", function () {

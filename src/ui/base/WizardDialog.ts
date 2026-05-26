@@ -7,8 +7,8 @@ import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
-import { assertMainOrNode, Keys, TabIndex } from "@tutao/app-env"
-import { $Promisable } from "@tutao/utils"
+import { assertMainOrNode, Keys, TabIndex } from "../../platform-kits/app-env"
+import { $Promisable } from "../../platform-kits/utils"
 import { IWindowFacade } from "../IWindowFacade"
 
 assertMainOrNode()

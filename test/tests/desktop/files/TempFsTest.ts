@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/utils"
-import { TempFs } from "../../../../src/common/desktop/files/TempFs.js"
+import { base64ToUint8Array, base64UrlToBase64 } from "../../../../src/platform-kits/utils"
+import { TempFs } from "../../../../src/applications/common/desktop/files/TempFs.js"
 
 o.spec("TempFsTest", function () {
 	o("delete tutanotaTempDir can handle multiple subfolders, some of which aren't ours", function () {

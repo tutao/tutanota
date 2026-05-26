@@ -1,11 +1,11 @@
 import o, { verify } from "@tutao/otest"
-import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/common/desktop/sse/SseClient.js"
-import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/common/desktop/net/DesktopNetworkClient.js"
+import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/applications/common/desktop/sse/SseClient.js"
+import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/applications/common/desktop/net/DesktopNetworkClient.js"
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
-import { assertNotNull, defer, getFirstOrThrow } from "@tutao/utils"
+import { assertNotNull, defer, getFirstOrThrow } from "../../../../src/platform-kits/utils"
 import { SchedulerMock } from "../../TestUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import * as restError from "../../../../src/platform-kits/rest-client/error"
 
 o.spec("SseClient", function () {
 	const defaultOptions: SseConnectOptions = Object.freeze({

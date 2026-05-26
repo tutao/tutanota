@@ -1,6 +1,6 @@
-import { noOp } from "@tutao/utils"
+import { noOp } from "../platform-kits/utils"
 import { CalendarNotificationIcon, MailNotificationIcon } from "./base/icons/Icons.js"
-import { isApp, isDesktop } from "@tutao/app-env"
+import { isApp, isDesktop } from "../platform-kits/app-env"
 
 export const enum NotificationType {
 	Mail = "Mail",

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EndType, RepeatPeriod } from "../../../../src/app-env"
+import { EndType, RepeatPeriod } from "../../../../src/platform-kits/app-env"
 import { func, matchers, object, verify, when } from "testdouble"
 import {
 	CalendarOperation,
@@ -10,15 +10,15 @@ import {
 import { CalendarNotificationSender } from "../../../../src/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 
-import { EntityClient } from "../../../../src/network/EntityClient.js"
+import { EntityClient } from "../../../../src/platform-kits/network/EntityClient.js"
 import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
-import { identity, noOp } from "@tutao/utils"
-import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"
-import { LoginController } from "../../../../src/common/api/main/LoginController.js"
+import { identity, noOp } from "../../../../src/platform-kits/utils"
+import { RecipientsModel, ResolvableRecipient } from "../../../../src/applications/common/api/main/RecipientsModel.js"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
-import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
-import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
+import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/applications/common/calendar/date/CalendarUtils.js"
+import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { CalendarInviteHandler } from "../../../../src/calendar-app/calendar/view/CalendarInvites"
 import {
 	CalendarEventAttendeeTypeRef,
@@ -31,7 +31,7 @@ import {
 	MailBoxTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { clone } from "@tutao/meta"
+import { clone } from "../../../../src/platform-kits/meta"
 
 import {
 	AlarmInfoTypeRef,

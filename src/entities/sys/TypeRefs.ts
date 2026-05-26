@@ -1,5 +1,5 @@
-import { TypeRef } from "../../meta/TypeRef.js"
-import { create, StrippedEntity } from "../../meta/EntityUtils.js"
+import { TypeRef } from "../../platform-kits/meta/TypeRef.js"
+import { create, StrippedEntity } from "../../platform-kits/meta/EntityUtils.js"
 import { default as typeModels } from "./TypeModels.js"
 
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", 0)

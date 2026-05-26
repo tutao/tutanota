@@ -28,10 +28,10 @@ import {
 	isEventBetweenDays,
 	parseAlarmInterval,
 	StandardAlarmInterval,
-} from "../../../src/common/calendar/date/CalendarUtils.js"
+} from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
-import { EndType, RepeatPeriod, ShareCapability } from "../../../src/app-env"
+import { EndType, RepeatPeriod, ShareCapability } from "../../../src/platform-kits/app-env"
 import { timeStringFromParts } from "../../../src/ui/utils/Formatter.js"
 import { DateTime } from "luxon"
 import {
@@ -39,19 +39,19 @@ import {
 	getAllDayDateUTC,
 	prepareCalendarDescription,
 	serializeAlarmInterval,
-} from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { getStartOfDay, identity, lastThrow, neverNull } from "@tutao/utils"
+} from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
+import { getStartOfDay, identity, lastThrow, neverNull } from "../../../src/platform-kits/utils"
 import { replace } from "testdouble"
-import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
+import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeEventWrapper, makeUserController } from "./CalendarTestUtils.js"
-import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.js"
+import { ParserError } from "../../../src/applications/common/misc/parsing/ParserCombinator.js"
 import { createTestEntity } from "../TestUtils.js"
 
 import { getCalendarMonth, getEventType } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { Time } from "../../../src/common/calendar/date/Time.js"
-import type { UserController } from "../../../src/common/api/main/UserController.js"
+import { Time } from "../../../src/applications/common/calendar/date/Time.js"
+import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 import {
 	AdvancedRepeatRule,
@@ -65,7 +65,7 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "@tutao/entities/sys"
-import { clone, StrippedEntity } from "@tutao/meta"
+import { clone, StrippedEntity } from "../../../src/platform-kits/meta"
 import { AccountType, GroupType, hasCapabilityOnGroup } from "../../../src/entities/sys/Utils"
 
 const zone = "Europe/Berlin"

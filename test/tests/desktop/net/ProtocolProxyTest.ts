@@ -2,8 +2,8 @@ import o, { assertThrows } from "@tutao/otest"
 import path from "node:path"
 import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"
-import { doHandleProtocols, handleProtocols } from "../../../../src/common/desktop/net/ProtocolProxy.js"
-import { utf8Uint8ArrayToString } from "@tutao/utils"
+import { doHandleProtocols, handleProtocols } from "../../../../src/applications/common/desktop/net/ProtocolProxy.js"
+import { utf8Uint8ArrayToString } from "../../../../src/platform-kits/utils"
 
 o.spec("ProtocolProxy", function () {
 	let fetchMock

@@ -17,13 +17,13 @@ import {
 	timestampToGeneratedId,
 	Type,
 	TypeRef,
-} from "../../../../../src/meta"
-import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "@tutao/instance-pipeline"
-import * as restError from "@tutao/rest-client/error"
-import { downcast } from "@tutao/utils"
+} from "../../../../../src/platform-kits/meta"
+import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kits/instance-pipeline"
+import * as restError from "../../../../../src/platform-kits/rest-client/error"
+import { downcast } from "../../../../../src/platform-kits/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { getIdOfInstance } from "@tutao/meta"
-import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/network/EntityRestClient"
+import { getIdOfInstance } from "../../../../../src/platform-kits/meta"
+import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kits/network/EntityRestClient"
 
 const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {

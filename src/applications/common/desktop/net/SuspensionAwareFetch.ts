@@ -1,0 +1,24 @@
+import { RequestInit } from "undici"
+import { assertNotNull, filterInt } from "../../../../platform-kits/utils"
+import { customFetch, FetchImpl, UndiciResponse } from "./NetAgent"
+import { restSuspension } from "../../../../platform-kits/rest-client"
+
+const TAG = "[suspending-fetch]"
+
+export function makeSuspensionAwareFetch(suspensionHandler: restSuspension.SuspensionHandler): FetchImpl {
+	const fetch = async (input: string | URL, init?: RequestInit): Promise<UndiciResponse> => {
+		if (suspensionHandler._isSuspended && input.toString().includes("rest/sys/missednotification")) {
+			return await suspensionHandler.deferRequest(() => fetch(input, init))
+		}
+		const res = await customFetch(input, init)
+		const suspensionTime = res.headers.get("retry-after") || res.headers.get("suspension-time")
+		if (restSuspension.isSuspensionResponse(res.status, suspensionTime)) {
+			// isSuspensionResponse checks that the header is correct
+			suspensionHandler.activateSuspensionIfInactive(filterInt(assertNotNull(suspensionTime)), new URL(input))
+			return await suspensionHandler.deferRequest(() => fetch(input, init))
+		} else {
+			return res
+		}
+	}
+	return fetch
+}

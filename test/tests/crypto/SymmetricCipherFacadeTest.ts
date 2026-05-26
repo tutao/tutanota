@@ -14,10 +14,10 @@ import {
 	keyToUint8Array,
 	SymmetricKeyDeriver,
 	SymmetricSubKeys,
-} from "@tutao/crypto"
+} from "../../../src/platform-kits/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
-import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
-import { CryptoError } from "@tutao/crypto/error"
+import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kits/utils"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
 
 o.spec("SymmetricCipherFacade", function () {
 	const customIv = object<Uint8Array>()

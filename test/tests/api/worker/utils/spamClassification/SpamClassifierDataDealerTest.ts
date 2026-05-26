@@ -4,14 +4,14 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/meta"
+import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/platform-kits/meta"
 import { matchers, object, verify, when } from "testdouble"
-import { EntityClient } from "../../../../../../src/network/EntityClient"
+import { EntityClient } from "../../../../../../src/platform-kits/network/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
-import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy/MailFacade"
+import { MailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
-import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { last } from "@tutao/utils"
+import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { last } from "../../../../../../src/platform-kits/utils"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,

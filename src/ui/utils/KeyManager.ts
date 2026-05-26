@@ -1,6 +1,6 @@
 import type { TranslationKey } from "./LanguageViewModel"
-import { assertMainOrNodeBoot, isAppleDevice, Keys } from "@tutao/app-env"
-import { lazy, mod } from "@tutao/utils"
+import { assertMainOrNodeBoot, isAppleDevice, Keys } from "../../platform-kits/app-env"
+import { lazy, mod } from "../../platform-kits/utils"
 import m from "mithril"
 
 assertMainOrNodeBoot()

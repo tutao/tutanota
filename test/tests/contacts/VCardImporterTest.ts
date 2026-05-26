@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 
-import { neverNull } from "@tutao/utils"
-import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
+import { neverNull } from "../../../src/platform-kits/utils"
+import { vCardFileToVCards, vCardListToContacts } from "../../../src/applications/mail-app/contacts/VCardImporter.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/ui/translations/en.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"

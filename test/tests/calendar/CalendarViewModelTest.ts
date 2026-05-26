@@ -1,14 +1,14 @@
 import o, { assertThrows, spy } from "@tutao/otest"
 import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTestUtils.js"
-import type { LoginController } from "../../../src/common/api/main/LoginController.js"
-import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/utils"
-import { getElementId, getListId } from "../../../src/meta"
-import { EntityClient } from "../../../src/network/EntityClient.js"
-import { EventController } from "../../../src/common/api/main/EventController.js"
-import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
-import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
+import type { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
+import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "../../../src/platform-kits/utils"
+import { getElementId, getListId } from "../../../src/platform-kits/meta"
+import { EntityClient } from "../../../src/platform-kits/network/EntityClient.js"
+import { EventController } from "../../../src/applications/common/api/main/EventController.js"
+import { ProgressTracker } from "../../../src/applications/common/api/main/ProgressTracker.js"
+import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
-import { ReceivedGroupInvitationsModel } from "../../../src/common/sharing/model/ReceivedGroupInvitationsModel.js"
+import { ReceivedGroupInvitationsModel } from "../../../src/applications/common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { object, when } from "testdouble"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -18,21 +18,25 @@ import {
 	CalendarEventPreviewModelFactory,
 	CalendarViewModel,
 	EventWrapper,
-} from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
-import { CalendarInfo, CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarEventsRepository, DaysToEvents } from "../../../src/common/calendar/date/CalendarEventsRepository.js"
-import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
+} from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel.js"
+import { CalendarInfo, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
+import { CalendarEventsRepository, DaysToEvents } from "../../../src/applications/common/calendar/date/CalendarEventsRepository.js"
+import { MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
+import { addDaysForEventInstance, getMonthRange } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
+import {
+	CalendarEventModel,
+	CalendarOperation,
+	EventSaveResult,
+} from "../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel.js"
 
 import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { makePopulatedClientModelInfo } from "../TestUtils.js"
-import { OperationType } from "@tutao/meta"
-import { ProgressMonitor } from "../../../src/network/ProgressMonitorInterface"
-import { EntityEventsListener, EntityUpdateData } from "../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { OperationType } from "../../../src/platform-kits/meta"
+import { ProgressMonitor } from "../../../src/platform-kits/network/ProgressMonitorInterface"
+import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 
 let saveAndSendMock

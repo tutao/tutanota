@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, hmacSha256, verifyHmacSha256 } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
+import { aes256RandomKey, hmacSha256, verifyHmacSha256 } from "../../../src/platform-kits/crypto"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
 
 o.spec("hmac", function () {
 	o("round trip", function () {

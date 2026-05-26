@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./storage/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./storage/",
+		"outDir": "../../build/entities/storage",
+		"tsBuildInfoFile": "../../build/entities/storage/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kits/tsconfig.meta.json"
+		},
+		{
+			"path": "tsconfig.entities.sys.json"
+		}
+	]
+}

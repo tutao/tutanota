@@ -1,0 +1,56 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { component_size } from "../../../../ui/size"
+import { getCapabilityText } from "../GroupUtils"
+import { downcast } from "../../../../platform-kits/utils"
+import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog.js"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import type { AllIcons } from "../../../../ui/base/Icon"
+import { IconButton } from "../../../../ui/base/IconButton.js"
+import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
+import { ReceivedGroupInvitation } from "@tutao/entities/sys"
+
+export type GroupInvitationFolderRowAttrs = {
+	invitation: ReceivedGroupInvitation
+	icon?: AllIcons
+}
+
+export class GroupInvitationFolderRow implements Component<GroupInvitationFolderRowAttrs> {
+	view(vnode: Vnode<GroupInvitationFolderRowAttrs>): Children {
+		const { invitation, icon } = vnode.attrs
+		return [
+			m(".folder-row.flex-start.plr-24", [
+				m(
+					".flex-v-center.flex-grow.button-height",
+					{
+						style: {
+							// It's kinda hard to tell this element to not eat up all the row and truncate text instead because it
+							// is vertical flex. With this it will stop at 80% of what it could be and that's enough for the button.
+							"max-width": `calc(100% - ${component_size.button_height}px)`,
+						},
+					},
+					[
+						m(
+							".b.text-ellipsis",
+							{
+								title: getCapabilityText(downcast(invitation.capability)),
+							},
+							invitation.sharedGroupName,
+						),
+						m(
+							".small.text-ellipsis",
+							{
+								title: invitation.inviterMailAddress,
+							},
+							getMailAddressDisplayText(invitation.inviterName, invitation.inviterMailAddress, true),
+						),
+					],
+				),
+				m(IconButton, {
+					title: "show_action",
+					click: () => showGroupInvitationDialog(invitation),
+					icon: icon ?? Icons.EyeFilled,
+				}),
+			]),
+		]
+	}
+}

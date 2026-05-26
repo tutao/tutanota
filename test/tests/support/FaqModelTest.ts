@@ -1,6 +1,6 @@
 import o, { spy } from "@tutao/otest"
-import { FaqModel } from "../../../src/common/support/FaqModel.js"
-import { downcast } from "@tutao/utils"
+import { FaqModel } from "../../../src/applications/common/support/FaqModel.js"
+import { downcast } from "../../../src/platform-kits/utils"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
 async function collect(generator: AsyncGenerator): Promise<Array<unknown>> {

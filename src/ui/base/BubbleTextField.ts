@@ -1,9 +1,9 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "./LegacyTextField.js"
 import { MaybeTranslation, Translation } from "../utils/LanguageViewModel"
-import { Keys } from "@tutao/app-env"
+import { Keys } from "../../platform-kits/app-env"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
-import { lazy } from "@tutao/utils"
+import { lazy } from "../../platform-kits/utils"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
 export enum BubbleTextFieldClickBehaviour {

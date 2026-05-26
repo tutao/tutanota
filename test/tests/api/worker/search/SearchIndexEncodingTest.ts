@@ -8,8 +8,8 @@ import {
 	iterateBinaryBlocks,
 	numberOfBytes,
 	removeBinaryBlockRanges,
-} from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
-import { concat } from "@tutao/utils"
+} from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
+import { concat } from "../../../../../src/platform-kits/utils"
 
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {

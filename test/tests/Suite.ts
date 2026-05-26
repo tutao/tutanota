@@ -235,7 +235,7 @@ import "./utils/TokenizerTest.js"
 import "./app-env/TimeConstants.js"
 
 import * as td from "testdouble"
-import { Mode } from "@tutao/app-env"
+import { Mode } from "../../src/platform-kits/app-env"
 
 export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
 	await setupSuite({ integration })
@@ -247,7 +247,7 @@ export async function run({ integration, filter, regexp, exclude }: { integratio
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { random } = await import("@tutao/crypto")
+	const { random } = await import("../../src/platform-kits/crypto")
 	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 

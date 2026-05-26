@@ -1,12 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import type { WorkerClient } from "../../../../src/common/api/main/WorkerClient.js"
-import * as restError from "@tutao/rest-client/error"
-import { Request } from "../../../../src/native-bridge/shared/MessageTypes.js"
-import { ProgrammingError } from "@tutao/app-env"
-import { initCommonLocator, locator } from "../../../../src/common/api/main/CommonLocator.js"
-import { SessionType } from "../../../../src/app-env/SessionType.js"
-import { CryptoError } from "@tutao/crypto/error"
-import { mailLocator } from "../../../../src/mail-app/mailLocator.js"
+import type { WorkerClient } from "../../../../src/applications/common/api/main/WorkerClient.js"
+import * as restError from "../../../../src/platform-kits/rest-client/error"
+import { Request } from "../../../../src/app-kits/native-bridge/shared/MessageTypes.js"
+import { ProgrammingError } from "../../../../src/platform-kits/app-env"
+import { initCommonLocator, locator } from "../../../../src/applications/common/api/main/CommonLocator.js"
+import { SessionType } from "../../../../src/platform-kits/app-env/SessionType.js"
+import { CryptoError } from "../../../../src/platform-kits/crypto/error"
+import { mailLocator } from "../../../../src/applications/mail-app/mailLocator.js"
 
 o.spec(
 	"WorkerTest request / response",

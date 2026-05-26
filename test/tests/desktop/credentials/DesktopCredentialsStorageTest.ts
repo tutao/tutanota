@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { DesktopCredentialsStorage } from "../../../../src/common/desktop/db/DesktopCredentialsStorage.js"
+import { DesktopCredentialsStorage } from "../../../../src/applications/common/desktop/db/DesktopCredentialsStorage.js"
 import { object } from "testdouble"
 
-import { CredentialEncryptionMode } from "@tutao/app-env"
-import { PersistedCredentials } from "../../../../src/native-bridge/common/generatedipc/types/PersistedCredentials.js"
-import { CredentialType } from "../../../../src/network/types"
+import { CredentialEncryptionMode } from "../../../../src/platform-kits/app-env"
+import { PersistedCredentials } from "../../../../src/app-kits/native-bridge/common/generatedipc/types/PersistedCredentials.js"
+import { CredentialType } from "../../../../src/platform-kits/network/types"
 
 const encryptedCredentials1: PersistedCredentials = {
 	credentialInfo: {

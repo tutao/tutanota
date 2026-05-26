@@ -7,7 +7,7 @@ import {
 	extractStructuredMailAddresses,
 	extractStructuredPhoneNumbers,
 	formatBirthdayNumeric,
-} from "../../../src/common/contactsFunctionality/ContactUtils.js"
+} from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
 
 import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
 import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"

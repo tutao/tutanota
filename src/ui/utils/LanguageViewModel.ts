@@ -1,7 +1,7 @@
-import { downcast, lazy, typedEntries } from "@tutao/utils"
+import { downcast, lazy, typedEntries } from "../../platform-kits/utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations } from "./WhitelabelUtils"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../../platform-kits/app-env"
 import { WhitelabelCustomizations } from "../WhitelabelCustomizations"
 
 /**

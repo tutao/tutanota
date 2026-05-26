@@ -18,7 +18,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	uint8ArrayToString,
-} from "@tutao/utils"
+} from "../../../src/platform-kits/utils"
 
 o.spec("Encoding", function () {
 	//TODO test missing encoder functions (only tested partially)

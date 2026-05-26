@@ -1,0 +1,106 @@
+import m, { Children, Vnode, VnodeDOM } from "mithril"
+import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import type { WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../../../ui/base/WizardDialog.js"
+import { locator } from "../api/main/CommonLocator"
+import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
+import { VisSignupImage } from "../../../ui/base/icons/Icons.js"
+import { assertNotNull, lazy } from "@tutao/utils"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { DisplayMode, LoginViewModel } from "../login/LoginViewModel"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+import { getSafeAreaInsetBottom } from "../../../ui/HtmlUtils"
+import { px, size } from "../../../ui/size"
+
+export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
+	private dom!: HTMLElement
+	private disabled: boolean = false
+
+	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		this.dom = vnode.dom as HTMLElement
+	}
+
+	view({ attrs }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		const { newAccountData } = attrs.data
+		const bottomPad = Math.max(size.spacing_16, getSafeAreaInsetBottom())
+
+		return [
+			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
+			newAccountData
+				? m(".plr-24", [
+						m(RecoverCodeField, {
+							showMessage: true,
+							recoverCode: assertNotNull(newAccountData.recoverCode),
+							image: {
+								src: VisSignupImage,
+								alt: "vitor_alt",
+							},
+						}),
+					])
+				: null,
+			m(
+				".flex-center.full-width.pt-32",
+				{ style: { "padding-bottom": px(bottomPad) } },
+				m(PrimaryButton, {
+					label: "ok_action",
+					class: "small-login-button",
+					disabled: this.disabled,
+					onclick: () => {
+						this.disabled = true
+						this.close(attrs.data, this.dom)
+					},
+				}),
+			),
+		]
+	}
+
+	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
+		let promise = Promise.resolve()
+
+		if (data.newAccountData && locator.logins.isUserLoggedIn()) {
+			promise = locator.logins.logout(false)
+		}
+
+		promise.then(async () => {
+			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+		})
+	}
+}
+
+export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+	data: UpgradeSubscriptionData
+	preventGoBack = true
+	hidePagingButtonForPage = true
+
+	constructor(
+		upgradeData: UpgradeSubscriptionData,
+		private readonly loginViewModelFactory: lazy<LoginViewModel>,
+	) {
+		this.data = upgradeData
+	}
+
+	headerTitle(): TranslationKey {
+		return "accountCongratulations_msg"
+	}
+
+	async nextAction(_showDialogs: boolean): Promise<boolean> {
+		await locator.logins.logout(true)
+		const loginViewModel = this.loginViewModelFactory()
+		loginViewModel.displayMode = DisplayMode.Form
+		loginViewModel.password(this.data.newAccountData!.password)
+		loginViewModel.mailAddress(this.data.newAccountData!.mailAddress)
+		loginViewModel.savePassword(true)
+		loginViewModel.skipPostLoginActions = true
+		await showProgressDialog("pleaseWait_msg", loginViewModel.login())
+		return true
+	}
+
+	isSkipAvailable(): boolean {
+		return false
+	}
+
+	isEnabled(): boolean {
+		return true
+	}
+}

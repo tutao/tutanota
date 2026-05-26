@@ -1,6 +1,6 @@
 import { Shortcut } from "../utils/KeyManager.js"
-import { isBrowser, Keys } from "@tutao/app-env"
-import { mapLazily, NBSP } from "@tutao/utils"
+import { isBrowser, Keys } from "../../platform-kits/app-env"
+import { mapLazily, NBSP } from "../../platform-kits/utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { SearchToken, splitTextForHighlighting } from "../utils/QueryTokenUtils"

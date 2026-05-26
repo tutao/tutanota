@@ -1,0 +1,33 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["local-store", "../../types/*.d.ts"],
+	"compilerOptions": {
+		"rootDir": "local-store",
+		"outDir": "../../build/local-store",
+		"tsBuildInfoFile": "../../build/local-store/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kits/tsconfig.utils.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.app-env.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.crypto.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.meta.json"
+		},
+		{
+			"path": "../platform-kits/tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "tsconfig.native-bridge.json"
+		}
+	]
+}

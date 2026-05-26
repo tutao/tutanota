@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ProgrammingError, TutanotaError } from "@tutao/app-env"
+import { ProgrammingError, TutanotaError } from "../../../src/platform-kits/app-env"
 
 o.spec("TutanotaErrorTest", function () {
 	o("error name should be correct", () => {

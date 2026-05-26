@@ -19,11 +19,11 @@ import {
 	mergeContacts,
 } from "../../../src/mail-app/contacts/ContactMergeUtils.js"
 import { createFilledContact } from "./VCardExporterTest.js"
-import { downcast, neverNull } from "@tutao/utils"
+import { downcast, neverNull } from "../../../src/platform-kits/utils"
 import { _contactToVCard } from "../../../src/mail-app/contacts/VCardExporter.js"
-import { birthdayToIsoDate } from "../../../src/common/api/common/utils/BirthdayUtils.js"
+import { birthdayToIsoDate } from "../../../src/applications/common/api/common/utils/BirthdayUtils.js"
 import { createTestEntity } from "../TestUtils.js"
-import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/app-env"
+import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../src/platform-kits/app-env"
 import { ContactAddressType, ContactPhoneNumberType, ContactSocialType } from "../../../src/entities/tutanota/Utils"
 import {
 	BirthdayTypeRef,

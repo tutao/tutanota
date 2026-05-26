@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { OfflineStorageContactIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageContactIndexerBackend"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
-import { EntityClient } from "../../../../../src/network/EntityClient"
+import { EntityClient } from "../../../../../src/platform-kits/network/EntityClient"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
 

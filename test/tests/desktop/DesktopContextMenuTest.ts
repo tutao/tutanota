@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import n from "../nodemocker.js"
-import { DesktopContextMenu } from "../../../src/common/desktop/DesktopContextMenu.js"
-import { downcast } from "@tutao/utils"
+import { DesktopContextMenu } from "../../../src/applications/common/desktop/DesktopContextMenu.js"
+import { downcast } from "../../../src/platform-kits/utils"
 import { object } from "testdouble"
-import { WindowManager } from "../../../src/common/desktop/DesktopWindowManager.js"
+import { WindowManager } from "../../../src/applications/common/desktop/DesktopWindowManager.js"
 import { ContextMenuParams } from "electron"
 
 o.spec("DesktopContextMenu Test", () => {

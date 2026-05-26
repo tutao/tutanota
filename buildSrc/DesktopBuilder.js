@@ -150,7 +150,7 @@ export async function buildDesktop({
 async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
 
-	const mainFiles = ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"]
+	const mainFiles = ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"]
 	const mainBundle = await rollup({
 		input: mainFiles,
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
@@ -164,7 +164,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		plugins: [
 			replace({
 				// AppType.Integrated
-				// see src/common/misc/ClientConstants.ts
+				// see src/applications/common/misc/ClientConstants.ts
 				APP_TYPE: JSON.stringify("0"),
 			}),
 			nodeGypPlugin({
@@ -190,7 +190,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			napiPlugin({
 				platform,
 				architecture,
-				modulePath: "src/mimimi",
+				modulePath: "src/app-kits/mimimi",
 			}),
 			typescript({
 				tsconfig: "tsconfig-dist-rollup.json",
@@ -210,8 +210,8 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		],
 	})
 	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })
-	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload.js"), path.join(outDir, "preload.js"))
-	await fs.promises.copyFile(path.join(dirname, "src/common/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
+	await fs.promises.copyFile(path.join(dirname, "src/applications/common/desktop/preload.js"), path.join(outDir, "preload.js"))
+	await fs.promises.copyFile(path.join(dirname, "src/applications/common/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
 }
 
 /**

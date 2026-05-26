@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./monitor/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./monitor/",
+		"outDir": "../../build/entities/monitor",
+		"tsBuildInfoFile": "../../build/entities/monitor/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kits/tsconfig.meta.json"
+		}
+	]
+}

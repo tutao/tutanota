@@ -1,0 +1,83 @@
+import m from "mithril"
+import stream from "mithril/stream"
+import * as restError from "@tutao/rest-client/error"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { isMailAddress } from "../../../../platform-kits/utils/FormatUtils.js"
+import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog"
+import { locator } from "../../api/main/CommonLocator"
+import { assertMainOrNode } from "@tutao/app-env"
+import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
+import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
+
+assertMainOrNode()
+
+export function showTakeOverDialog(mailAddress: string, password: string): Dialog {
+	const targetAccountAddress = stream("")
+	const recoverCodeInput = new RecoverCodeInput()
+	const takeoverDialog = Dialog.showActionDialog({
+		title: "help_label",
+		type: DialogType.EditSmall,
+		child: {
+			view: () => {
+				return [
+					m(".mt-16", lang.get("takeOverUnusedAddress_msg")),
+					m(MoreInfoLink, { link: InfoLink.InactiveAccounts }),
+					m(LegacyTextField, {
+						label: "targetAddress_label",
+						value: targetAccountAddress(),
+						autocompleteAs: Autocomplete.email,
+						type: LegacyTextFieldType.Email,
+						oninput: targetAccountAddress,
+					}),
+					m(recoverCodeInput),
+				]
+			},
+		},
+		okAction: () => {
+			const cleanTargetAccountAddress = targetAccountAddress().trim().toLowerCase()
+			const cleanMailAddress = mailAddress.trim().toLowerCase()
+			const cleanRecoveryCode = recoverCodeInput.getValue().replace(/\s/g, "").toLowerCase()
+
+			if (!isMailAddress(cleanMailAddress, true)) {
+				Dialog.message("mailAddressInvalid_msg")
+			} else if (!isMailAddress(cleanTargetAccountAddress, true)) {
+				Dialog.message("mailAddressInvalid_msg")
+			} else {
+				showProgressDialog(
+					"pleaseWait_msg",
+					locator.loginFacade.takeOverDeletedAddress(cleanMailAddress, password, cleanRecoveryCode, cleanTargetAccountAddress),
+				)
+					.then(() => Dialog.message("takeoverSuccess_msg"))
+					.then(() => {
+						takeoverDialog.close()
+						m.route.set("/login", {
+							loginWith: cleanTargetAccountAddress,
+							noAutoLogin: true,
+						})
+					})
+					.catch((e) => handleError(e))
+			}
+		},
+		cancelAction: () =>
+			m.route.set("/login", {
+				noAutoLogin: true,
+			}),
+	})
+	return takeoverDialog
+}
+
+function handleError(e: Error) {
+	if (e instanceof restError.NotAuthenticatedError) {
+		Dialog.message("loginFailed_msg")
+	} else if (e instanceof restError.TooManyRequestsError || e instanceof restError.AccessDeactivatedError) {
+		Dialog.message("loginFailedOften_msg")
+	} else if (e instanceof restError.AccessBlockedError) {
+		Dialog.message("takeoverAccountInvalid_msg")
+	} else if (e instanceof restError.InvalidDataError) {
+		Dialog.message("tooManyAttempts_msg")
+	} else {
+		throw e
+	}
+}

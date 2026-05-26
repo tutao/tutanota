@@ -1,16 +1,16 @@
 import o, { spy } from "@tutao/otest"
 import type { App } from "electron"
-import type { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { delay, downcast } from "@tutao/utils"
-import { ElectronUpdater } from "../../../src/common/desktop/ElectronUpdater.js"
-import type { UpdaterWrapper } from "../../../src/common/desktop/UpdaterWrapper.js"
+import type { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
+import { delay, downcast } from "../../../src/platform-kits/utils"
+import { ElectronUpdater } from "../../../src/applications/common/desktop/ElectronUpdater.js"
+import type { UpdaterWrapper } from "../../../src/applications/common/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"
-import type { DesktopConfig } from "../../../src/common/desktop/config/DesktopConfig.js"
-import type { DesktopNotifier } from "../../../src/common/desktop/notifications/DesktopNotifier.js"
+import type { DesktopConfig } from "../../../src/applications/common/desktop/config/DesktopConfig.js"
+import type { DesktopNotifier } from "../../../src/applications/common/desktop/notifications/DesktopNotifier.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../src/ui/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
-import { FsExports } from "../../../src/common/desktop/ElectronExportTypes.js"
+import { FsExports } from "../../../src/applications/common/desktop/ElectronExportTypes.js"
 
 lang.init(en)
 

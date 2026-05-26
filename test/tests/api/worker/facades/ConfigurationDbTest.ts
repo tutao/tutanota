@@ -6,16 +6,16 @@ import {
 	initializeDb,
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
-} from "../../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { downcast, KeyVersion } from "@tutao/utils"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { downcast, KeyVersion } from "../../../../../src/platform-kits/utils"
 import { DbStub } from "../search/DbStub.js"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random, VersionedKey } from "../../../../../src/platform-kits/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kits/base/crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { UserFacade } from "../../../../../src/base/facades/UserFacade.js"
-import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
-import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { UserFacade } from "../../../../../src/platform-kits/base/facades/UserFacade.js"
+import { DbFacade, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
+import { Metadata } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota/Utils"

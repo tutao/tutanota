@@ -1,0 +1,94 @@
+import m, { Component, Vnode } from "mithril"
+import { assertMainOrNode } from "../../../../platform-kits/app-env"
+import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox"
+import { lang, MaybeTranslation, Translation } from "../../../../ui/utils/LanguageViewModel"
+import { theme } from "../../../../ui/theme"
+import { Button, ButtonType } from "../../../../ui/base/Button.js"
+import { progressIcon } from "../../../../ui/base/Icon.js"
+import { deviceConfig, MailListDisplayMode } from "../../../common/misc/DeviceConfig"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { Mail } from "@tutao/entities/tutanota"
+
+assertMainOrNode()
+
+export type MultiItemViewerAttrs<T> = {
+	selectedEntities: readonly T[]
+	selectNone: () => unknown
+	loadingAll: "can_load" | "loading" | "none"
+	loadAll: () => unknown
+	stopLoadAll: () => unknown
+	getSelectionMessage: (entities: ReadonlyArray<T>) => MaybeTranslation
+}
+
+export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
+	view({ attrs }: Vnode<MultiItemViewerAttrs<T>>) {
+		const { selectedEntities } = attrs
+		return [
+			m(
+				".flex.col.fill-absolute",
+				m(
+					".flex-grow.rel.overflow-hidden",
+					m(ColumnEmptyMessageBox, {
+						message: attrs.getSelectionMessage(selectedEntities),
+						icon: Icons.MailFilled,
+						color: theme.on_surface_variant,
+						backgroundColor: theme.surface_container,
+						bottomContent: this.renderEmptyMessageButtons(attrs),
+					}),
+				),
+			),
+		]
+	}
+
+	private renderEmptyMessageButtons({ loadingAll, stopLoadAll, selectedEntities, selectNone, loadAll }: MultiItemViewerAttrs<T>) {
+		return loadingAll === "loading"
+			? m(".flex.items-center", [
+					m(Button, {
+						label: "cancel_action",
+						type: ButtonType.Secondary,
+						click: () => {
+							stopLoadAll()
+						},
+					}),
+					m(".flex.items-center.plr-8", progressIcon()),
+				])
+			: selectedEntities.length === 0
+				? null
+				: m(".flex", [
+						m(Button, {
+							label: "cancel_action",
+							type: ButtonType.Secondary,
+							click: () => {
+								selectNone()
+							},
+						}),
+						loadingAll === "can_load"
+							? m(Button, {
+									label: "loadAll_action",
+									type: ButtonType.Secondary,
+									click: () => {
+										loadAll()
+									},
+								})
+							: null,
+					])
+	}
+}
+
+export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): Translation {
+	let nbrOfSelectedMails = selectedEntities.length
+	let isConversationViewEnabled = deviceConfig.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
+
+	if (nbrOfSelectedMails === 0) {
+		return lang.getTranslation("noMail_msg")
+	}
+	if (isConversationViewEnabled) {
+		return nbrOfSelectedMails === 1
+			? lang.getTranslation("oneConversationSelected_msg")
+			: lang.getTranslation("nbrOfConversationsSelected_msg", { "{1}": nbrOfSelectedMails })
+	} else {
+		return nbrOfSelectedMails === 1
+			? lang.getTranslation("oneMailSelected_msg")
+			: lang.getTranslation("nbrOfMailsSelected_msg", { "{1}": nbrOfSelectedMails })
+	}
+}

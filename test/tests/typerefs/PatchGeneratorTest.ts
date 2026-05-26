@@ -18,10 +18,17 @@ import {
 	InstancePipeline,
 	PatchOperationType,
 	ServerTypeReferenceResolver,
-} from "@tutao/instance-pipeline"
-import { aes256RandomKey } from "@tutao/crypto"
-import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/utils"
-import { AttributeModel, ClientModelEncryptedParsedInstance, ClientTypeModel, GENERATED_MAX_ID, GENERATED_MIN_ID, ValueType } from "../../../src/meta"
+} from "../../../src/platform-kits/instance-pipeline"
+import { aes256RandomKey } from "../../../src/platform-kits/crypto"
+import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "../../../src/platform-kits/utils"
+import {
+	AttributeModel,
+	ClientModelEncryptedParsedInstance,
+	ClientTypeModel,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	ValueType,
+} from "../../../src/platform-kits/meta"
 
 import { createTestEntityWithDummyResolver } from "../TestUtils"
 

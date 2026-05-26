@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SyncDonePriority, SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
+import { SyncDonePriority, SyncTracker } from "../../../../src/applications/common/api/main/SyncTracker.js"
 
 o.spec("SyncTracker", () => {
 	o("should execute listeners in descending order of priority", async () => {

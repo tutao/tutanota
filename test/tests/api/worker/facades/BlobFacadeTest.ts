@@ -4,20 +4,29 @@ import {
 	BlobFacade,
 	parseMultipleBlobsResponse,
 	pipelineEncryptAndUpload,
-} from "../../../../../src/common/api/worker/facades/lazy/BlobFacade.js"
-import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
-import { HttpMethod, RestClientOptions } from "../../../../../src/rest-client/types"
-import { NativeFileApp } from "../../../../../src/native-bridge/common/FileApp.js"
-import { AesApp } from "../../../../../src/native-bridge/worker/AesApp.js"
-import { Mode, ProgrammingError } from "@tutao/app-env"
-import { elementIdPart, getElementId, listIdPart } from "../../../../../src/meta"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
+import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kits/rest-client"
+import { HttpMethod, RestClientOptions } from "../../../../../src/platform-kits/rest-client/types"
+import { NativeFileApp } from "../../../../../src/app-kits/native-bridge/common/FileApp.js"
+import { AesApp } from "../../../../../src/app-kits/native-bridge/worker/AesApp.js"
+import { Mode, ProgrammingError } from "../../../../../src/platform-kits/app-env"
+import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kits/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
-import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/crypto"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, DeferredObject, neverNull, stringToUtf8Uint8Array } from "@tutao/utils"
-import { CryptoFacade } from "../../../../../src/base/crypto/CryptoFacade.js"
-import { BlobAccessTokenFacade } from "../../../../../src/network/BlobAccessTokenFacade.js"
+import { aes256RandomKey, aesDecrypt, aesEncrypt } from "../../../../../src/platform-kits/crypto"
+import {
+	arrayEquals,
+	base64ExtToBase64,
+	base64ToUint8Array,
+	concat,
+	defer,
+	DeferredObject,
+	neverNull,
+	stringToUtf8Uint8Array,
+} from "../../../../../src/platform-kits/utils"
+import { CryptoFacade } from "../../../../../src/platform-kits/base/crypto/CryptoFacade.js"
+import { BlobAccessTokenFacade } from "../../../../../src/platform-kits/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
-import { InstancePipeline } from "@tutao/instance-pipeline"
+import { InstancePipeline } from "../../../../../src/platform-kits/instance-pipeline"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	BlobGetIn,

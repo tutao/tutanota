@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
 import { isSelectedPrefix, NavButton, NavButtonColor } from "./base/NavButton.js"
-import { assertMainOrNode, FeatureType } from "@tutao/app-env"
+import { assertMainOrNode, FeatureType } from "../platform-kits/app-env"
 import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, MAIL_PREFIX } from "./utils/RouteChange.js"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
@@ -9,7 +9,7 @@ import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 import { layout_size } from "./size"
 import { Icons } from "./base/icons/Icons"
 import { IOfflineIndicatorViewModel } from "./IOfflineIndicatorViewModel"
-import { lazy } from "@tutao/utils"
+import { lazy } from "../platform-kits/utils"
 
 assertMainOrNode()
 

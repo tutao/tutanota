@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
-import { ServiceExecutor } from "../../../../src/network/ServiceExecutor"
+import { ServiceExecutor } from "../../../../src/platform-kits/network/ServiceExecutor"
 import { matchers, object, verify, when } from "testdouble"
-import { getElementId, getEtId, getListId } from "@tutao/meta"
-import { BlobAccessTokenFacade } from "../../../../src/network/BlobAccessTokenFacade.js"
+import { getElementId, getEtId, getListId } from "../../../../src/platform-kits/meta"
+import { BlobAccessTokenFacade } from "../../../../src/platform-kits/network/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../TestUtils.js"
-import { LoggedInUserProvider } from "@tutao/instance-pipeline"
+import { LoggedInUserProvider } from "../../../../src/platform-kits/instance-pipeline"
 import { FileTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import {
 	BlobAccessTokenPostOutTypeRef,

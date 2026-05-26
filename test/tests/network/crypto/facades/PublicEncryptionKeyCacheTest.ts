@@ -1,11 +1,11 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
-import { KeyVersion } from "@tutao/utils"
+import { KeyVersion } from "../../../../../src/platform-kits/utils"
 
 import { createTestEntity } from "../../../TestUtils"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/local-store/PublicEncryptionKeyCache"
+import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/app-kits/local-store/PublicEncryptionKeyCache"
 
-import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
+import { PublicKeyIdentifier, PublicKeyIdentifierType } from "../../../../../src/platform-kits/crypto"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"

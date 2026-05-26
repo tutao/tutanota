@@ -12,10 +12,10 @@ import {
 	propertySequenceParser,
 	triggerToAlarmInterval,
 } from "../../../src/calendar-app/calendar/export/CalendarParser.js"
-import { ParserError, StringIterator } from "../../../src/common/misc/parsing/ParserCombinator.js"
+import { ParserError, StringIterator } from "../../../src/applications/common/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
-import { AlarmIntervalUnit } from "../../../src/common/calendar/date/CalendarUtils.js"
+import { AlarmIntervalUnit } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 
 import { createDateWrapper } from "@tutao/entities/sys"
 

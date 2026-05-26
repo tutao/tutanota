@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { searchInTemplates } from "../../../src/mail-app/templates/model/TemplatePopupModel.js"
+import { searchInTemplates } from "../../../src/applications/mail-app/templates/model/TemplatePopupModel.js"
 import { createTestEntity } from "../TestUtils.js"
 
 import { EmailTemplate, EmailTemplateContentTypeRef, EmailTemplateTypeRef } from "@tutao/entities/tutanota"

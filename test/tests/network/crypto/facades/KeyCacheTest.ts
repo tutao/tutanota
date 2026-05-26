@@ -1,11 +1,11 @@
 import o, { assertThrows } from "@tutao/otest"
-import { KeyCache } from "../../../../../src/local-store/KeyCache.js"
+import { KeyCache } from "../../../../../src/app-kits/local-store/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { aes256RandomKey, VersionedKey } from "@tutao/crypto"
-import * as restError from "@tutao/rest-client/error"
+import { aes256RandomKey, VersionedKey } from "../../../../../src/platform-kits/crypto"
+import * as restError from "../../../../../src/platform-kits/rest-client/error"
 import { object } from "testdouble"
-import { KeyVersion } from "@tutao/utils"
-import { CryptoError } from "@tutao/crypto/error"
+import { KeyVersion } from "../../../../../src/platform-kits/utils"
+import { CryptoError } from "../../../../../src/platform-kits/crypto/error"
 
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 

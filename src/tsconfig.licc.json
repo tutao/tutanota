@@ -10,8 +10,8 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"rootDir": "licc",
-		"outDir": "../build/licc",
-		"tsBuildInfoFile": "../build/licc/tsbuildinfo",
+		"outDir": "../../build/licc",
+		"tsBuildInfoFile": "../../build/licc/tsbuildinfo",
 		"incremental": true
 	}
 }

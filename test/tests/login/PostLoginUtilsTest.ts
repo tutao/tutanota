@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { UserController } from "../../../src/common/api/main/UserController.js"
-import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/common/login/PostLoginUtils.js"
+import { UserController } from "../../../src/applications/common/api/main/UserController.js"
+import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/applications/common/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
-import { Const } from "../../../src/app-env"
+import { Const } from "../../../src/platform-kits/app-env"
 import { createTestEntity } from "../TestUtils.js"
 
 import { Customer, CustomerInfo, CustomerInfoTypeRef, CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"

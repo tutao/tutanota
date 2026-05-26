@@ -1,17 +1,17 @@
 import o from "@tutao/otest"
-import { EventBusClient, EventBusListener } from "../../../../src/network/EventBusClient.js"
-import { OperationType, timestampToGeneratedId } from "@tutao/meta"
-import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OutOfSyncError } from "../../../../src/app-env/OutOfSyncError.js"
+import { EventBusClient, EventBusListener } from "../../../../src/platform-kits/network/EventBusClient.js"
+import { OperationType, timestampToGeneratedId } from "../../../../src/platform-kits/meta"
+import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
+import { OutOfSyncError } from "../../../../src/platform-kits/app-env/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
-import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
-import { UserFacade } from "../../../../src/base/facades/UserFacade"
+import { SleepDetector } from "../../../../src/applications/common/api/worker/utils/SleepDetector.js"
+import { UserFacade } from "../../../../src/platform-kits/base/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
-import { CryptoFacade } from "../../../../src/base/crypto/CryptoFacade"
-import { ProgrammingError } from "@tutao/app-env"
-import { Thunk } from "@tutao/utils"
-import { ConnectMode, WsConnectionState } from "../../../../src/network/Constants"
+import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kits/instance-pipeline"
+import { CryptoFacade } from "../../../../src/platform-kits/base/crypto/CryptoFacade"
+import { ProgrammingError } from "../../../../src/platform-kits/app-env"
+import { Thunk } from "../../../../src/platform-kits/utils"
+import { ConnectMode, WsConnectionState } from "../../../../src/platform-kits/network/Constants"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 
 import {
@@ -25,9 +25,9 @@ import {
 	WebsocketEntityData,
 	WebsocketEntityDataTypeRef,
 } from "@tutao/entities/sys"
-import { WebsocketConnectivityListener } from "../../../../src/network/WebsocketConnectivityListener"
-import { LastProcessedEventBatchProvider } from "../../../../src/network/LastProcessedEventBatchProvider"
-import { EntityUpdateData } from "../../../../src/instance-pipeline/utils/EntityUpdateUtils"
+import { WebsocketConnectivityListener } from "../../../../src/platform-kits/network/WebsocketConnectivityListener"
+import { LastProcessedEventBatchProvider } from "../../../../src/platform-kits/network/LastProcessedEventBatchProvider"
+import { EntityUpdateData } from "../../../../src/platform-kits/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../src/entities/sys/Utils"
 
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {

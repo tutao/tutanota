@@ -1,5 +1,5 @@
 import { px } from "./size"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { assertMainOrNodeBoot } from "../platform-kits/app-env"
 
 assertMainOrNodeBoot()
 export const noselect = {

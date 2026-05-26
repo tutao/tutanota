@@ -1,4 +1,4 @@
-import { TypeRef } from "../../meta/TypeRef.js"
+import { TypeRef } from "../../platform-kits/meta/TypeRef.js"
 
 
 export const PersistenceResourcePostReturnTypeRef: TypeRef<PersistenceResourcePostReturn> = new TypeRef("base", 0)

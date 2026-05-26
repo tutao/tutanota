@@ -1,10 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadFacade, PADDING_BYTE } from "@tutao/crypto"
+import { AeadFacade, PADDING_BYTE } from "../../../src/platform-kits/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, IV_BYTE_LENGTH } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
-import { CryptoError } from "@tutao/crypto/error"
-import { concat } from "@tutao/utils"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
+import { concat } from "../../../src/platform-kits/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
 
 o.spec("AeadFacadeTest", function () {

@@ -1,6 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
-import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
+import {
+	deriveX25519PublicKey,
+	generateX25519KeyPair,
+	hexToRsaPublicKey,
+	random,
+	x25519Decapsulate,
+	x25519Encapsulate,
+	X25519KeyPair,
+} from "../../../src/platform-kits/crypto"
+import { CryptoError } from "../../../src/platform-kits/crypto/error"
 
 const originalRandom = random.generateRandomData
 o.spec("X25519Test", function () {

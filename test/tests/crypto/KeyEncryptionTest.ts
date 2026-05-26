@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array, concat } from "@tutao/utils"
+import { base64ToUint8Array, concat } from "../../../src/platform-kits/utils"
 import {
 	aes256DecryptWithRecoveryKey,
 	Aes256Key,
@@ -15,7 +15,7 @@ import {
 	hexToRsaPrivateKey,
 	keyToUint8Array,
 	uint8ArrayToBitArray,
-} from "@tutao/crypto"
+} from "../../../src/platform-kits/crypto"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"

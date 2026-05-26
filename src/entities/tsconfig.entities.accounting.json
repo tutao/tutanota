@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./accounting/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./accounting/",
+		"outDir": "../../build/entities/accounting",
+		"tsBuildInfoFile": "../../build/entities/accounting/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../platform-kits/tsconfig.meta.json"
+		}
+	]
+}

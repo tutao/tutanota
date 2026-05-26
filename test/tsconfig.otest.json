@@ -10,7 +10,7 @@
 	},
 	"references": [
 		{
-			"path": "../src/tsconfig.utils.json"
+			"path": "../src/platform-kits/tsconfig.utils.json"
 		}
 	]
 }

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { difference } from "@tutao/utils"
+import { difference } from "../../../src/platform-kits/utils"
 import en from "../../../src/ui/translations/en.js"
 import de from "../../../src/ui/translations/de.js"
 import de_sie from "../../../src/ui/translations/de_sie.js"

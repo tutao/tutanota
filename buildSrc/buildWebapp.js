@@ -80,11 +80,11 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	await runStep("Build crypto-primitives", async () => {
 		const targetDir = path.resolve(buildDir)
-		execSync(`node make ${targetDir}`, { stdio: "inherit", cwd: "src/crypto" })
+		execSync(`node make ${targetDir}`, { stdio: "inherit", cwd: "src/platform-kits/crypto" })
 	})
 
 	await runStep("Build mimimi", async () => {
-		execSync("node make --release", { cwd: "src/mimimi", stdio: "inherit" })
+		execSync("node make --release", { cwd: "src/app-kits/mimimi", stdio: "inherit" })
 	})
 
 	await runStep("Types with emit", () => {
@@ -95,7 +95,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
+		input: { app: entryFile, worker: workerFile, "pow-worker": "src/applications/common/api/common/pow-worker.ts" },
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
@@ -114,7 +114,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
 			bundleDependencyCheckPlugin(),
 			replace({
-				// see AppType in src/common/misc/ClientConstants.ts
+				// see AppType in src/applications/common/misc/ClientConstants.ts
 				APP_TYPE: appTypeForApp(app),
 			}),
 			nodeResolve({
@@ -201,7 +201,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 		)
 		.concat(["images/apple-touch-icon.png", "images/logo-favicon.svg", "images/logo-favicon-192.png", "images/font.ttf"])
 	const swBundle = await rollup({
-		input: ["src/common/serviceworker/sw.ts"],
+		input: ["src/applications/common/serviceworker/sw.ts"],
 		plugins: [
 			typescript({
 				tsconfig: "tsconfig-dist-rollup.json",
@@ -251,7 +251,7 @@ function analyzer(projectDir, buildDir) {
 
 				console.log(fileName, "", info.code.length / 1024 + "K")
 				for (const module of Object.keys(info.modules)) {
-					if (module.includes("src/common/api/entities")) {
+					if (module.includes("src/applications/common/api/entities")) {
 						continue
 					}
 					const moduleName = module.startsWith(prefix) ? module.substring(prefix.length) : module

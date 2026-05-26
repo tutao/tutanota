@@ -1,0 +1,30 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["network", "../../types/*"],
+	"compilerOptions": {
+		"rootDir": "network",
+		"outDir": "../../build/network",
+		"tsBuildInfoFile": "../../build/network/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.instance-pipeline.json"
+		},
+		{
+			"path": "tsconfig.rest-client.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.storage.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.base.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.monitor.json"
+		}
+	]
+}

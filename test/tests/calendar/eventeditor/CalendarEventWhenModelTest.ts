@@ -1,10 +1,13 @@
 import o from "@tutao/otest"
-import { noOp } from "@tutao/utils"
-import { isAllDayEvent } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { EndType, RepeatPeriod } from "../../../../src/app-env"
+import { noOp } from "../../../../src/platform-kits/utils"
+import { isAllDayEvent } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
+import { EndType, RepeatPeriod } from "../../../../src/platform-kits/app-env"
 import { createTestEntity } from "../../TestUtils.js"
-import { CalendarEventWhenModel, getDefaultEndCountValue } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
-import { Time } from "../../../../src/common/calendar/date/Time.js"
+import {
+	CalendarEventWhenModel,
+	getDefaultEndCountValue,
+} from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
+import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 

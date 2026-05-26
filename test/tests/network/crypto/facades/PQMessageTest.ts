@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/base/crypto/PQMessage.js"
-import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
+import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/platform-kits/base/crypto/PQMessage.js"
+import { concat, stringToUtf8Uint8Array } from "../../../../../src/platform-kits/utils"
 
 o.spec("PQMessageTest", function () {
 	o.spec("encodeDecodeRoundtrip", function () {

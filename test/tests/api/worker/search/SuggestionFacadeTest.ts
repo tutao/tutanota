@@ -2,17 +2,17 @@
  * Created by bdeterding on 13.12.17.
  */
 import o, { spy } from "@tutao/otest"
-import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
-import { downcast } from "@tutao/utils"
-import { aes256RandomKey, FIXED_IV } from "@tutao/crypto"
-import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { SuggestionFacade } from "../../../../../src/applications/mail-app/workerUtils/index/SuggestionFacade.js"
+import { downcast } from "../../../../../src/platform-kits/utils"
+import { aes256RandomKey, FIXED_IV } from "../../../../../src/platform-kits/crypto"
+import { SearchTermSuggestionsOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
+import { DbEncryptionData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
-import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
+import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/worker/search/EncryptedDbWrapper"
 
-import { TypeModel } from "../../../../../src/meta"
+import { TypeModel } from "../../../../../src/platform-kits/meta"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
-import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
+import { ClientTypeModelResolver } from "../../../../../src/platform-kits/instance-pipeline"
 import { makePopulatedClientModelInfo } from "../../../TestUtils.js"
 
 o.spec("SuggestionFacade test", () => {

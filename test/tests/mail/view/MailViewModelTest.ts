@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { createTestEntity } from "../../TestUtils"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
 import { object, when } from "testdouble"
-import { MailListDisplayMode } from "../../../../src/common/misc/DeviceConfig"
+import { MailListDisplayMode } from "../../../../src/applications/common/misc/DeviceConfig"
 import { listByConversationInFolder } from "../../../../src/mail-app/mail/view/MailViewModel"
 
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"

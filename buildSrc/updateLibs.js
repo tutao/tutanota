@@ -12,7 +12,6 @@ import commonjs from "@rollup/plugin-commonjs"
 import child_process from "node:child_process"
 import { promisify } from "node:util"
 import alias from "@rollup/plugin-alias"
-import { bundleDependencyCheckPlugin } from "./RollupConfig.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -46,7 +45,7 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
-	{ src: "../src/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
+	{ src: "../src/applications/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
 ]
 
 /** Run special patches after bundling */
