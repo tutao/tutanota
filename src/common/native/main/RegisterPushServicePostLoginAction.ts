@@ -1,6 +1,7 @@
 import { LoggedInEvent, PostLoginAction } from "../../api/main/LoginController"
 import { NativePushServiceApp } from "./NativePushServiceApp"
 import { DeviceConfig } from "../../misc/DeviceConfig"
+import { isDesktop } from "@tutao/app-env"
 
 export class RegisterPushServicePostLoginAction implements PostLoginAction {
 	constructor(
@@ -15,7 +16,8 @@ export class RegisterPushServicePostLoginAction implements PostLoginAction {
 		// we don't want to ask for it while dialog is shown, we will ask in
 		// the dialog anyway.
 		// After dialog is finished or dismissed the setup is "complete".
-		if (this.deviceConfig.getIsSetupComplete()) {
+		// There is no setup dialog on Desktop
+		if (isDesktop() || this.deviceConfig.getIsSetupComplete()) {
 			// Await the push service registration so `storePushIdentifierLocally()` can set the extended notification mode on Android
 			// before `loadNewsIds()` runs the `isShown()` check of the `RichNotificationsNews` news item
 			await this.pushService.register()
