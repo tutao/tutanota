@@ -120,6 +120,15 @@ import("../../ui/translations/en.js")
 
 		calendarLocator.logins.addPostLoginAction(() => calendarLocator.postLoginActions())
 		calendarLocator.logins.addPostLoginAction(async () => {
+			const { setupCalendarModels } = await import("./calendar/login/SetupCalendarModels.js")
+			return await setupCalendarModels(
+				calendarLocator.calendarModel,
+				calendarLocator.entityClient,
+				calendarLocator.calendarEventUpdateCoordinator,
+				calendarLocator.syncTracker,
+			)
+		})
+		calendarLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
 					if (isApp()) {

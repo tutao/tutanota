@@ -336,7 +336,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "ui-extra"
 	} else if (isIn("src/applications/common/signup")) {
 		return "signup"
-	} else if (isIn("src/applications/common/login")) {
+	} else if (isIn("src/applications/common/login") || isIn("src/applications/calendar/login")) {
 		return "login"
 	} else if (
 		isIn("src/applications/common/api/common") ||
