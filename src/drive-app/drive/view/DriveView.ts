@@ -297,7 +297,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					}),
 					bottomNav:
 						styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
-							? this.driveViewModel.listState().inMultiselect
+							? this.driveViewModel.listState().inMultiselect && this.driveViewModel.listState().selectedItems.size > 0
 								? this.renderMobileActionBar(attrs.showMoveItemDialog)
 								: attrs.bottomNav()
 							: null,
