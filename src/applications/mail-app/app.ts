@@ -179,6 +179,15 @@ import("../../ui/translations/en.js")
 
 		mailLocator.logins.addPostLoginAction(() => mailLocator.postLoginActions())
 		mailLocator.logins.addPostLoginAction(async () => {
+			const { setupCalendarModels } = await import("../calendar-app/calendar/login/SetupCalendarModels.js")
+			return await setupCalendarModels(
+				mailLocator.calendarModel,
+				mailLocator.entityClient,
+				mailLocator.calendarEventUpdateCoordinator,
+				mailLocator.syncTracker,
+			)
+		})
+		mailLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess({ sessionType }) {
 					if (sessionType === SessionType.Temporary) {

@@ -1,15 +1,9 @@
-import m, { Component } from "mithril"
+import m from "mithril"
 import { LoginController } from "../api/main/LoginController"
-import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
+import { assertNotNull, DateProvider, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import { GENERATED_MIN_ID } from "@tutao/meta"
-import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
-import * as notificationOverlay from "../../../ui/base/NotificationOverlay"
-import { ButtonType } from "../../../ui/base/Button.js"
-import { Dialog } from "../../../ui/base/Dialog"
 import {
 	Const,
 	CredentialEncryptionMode,
@@ -30,15 +24,13 @@ import { getThemeCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { StorageBehavior } from "../misc/UsageTestModel.js"
 import type { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
-import { DateProvider } from "../../../platform-kit/utils/DateProvider.js"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { shouldShowStorageWarning, shouldShowUpgradeReminder } from "./PostLoginUtils.js"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../../../ui/ThemeController.js"
-import { showSnackBar } from "../../../ui/base/SnackBar"
-import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
+import { SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../../../platform-kit/base/facades/LoginFacade"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction.js"
@@ -46,6 +38,10 @@ import { createReceiveInfoServiceData, OutOfOfficeNotification, ReceiveInfoServi
 import { getHourCycle } from "../../../entities/tutanota/Utils"
 import { createCustomerProperties, SecondFactorTypeRef } from "@tutao/entities/sys"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
+import { lang } from "../../../ui/utils/LanguageViewModel"
+import { Dialog } from "../../../ui/base/Dialog"
+import { ButtonType } from "../../../ui/base/Button"
+import { GENERATED_MIN_ID } from "@tutao/meta"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -143,15 +139,6 @@ export class PostLoginActions implements PostLoginAction {
 		if (!isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
-			const calendarModel = await locator.calendarModel()
-			await calendarModel.init()
-			const calendarEventUpdateCoordinator = await locator.calendarEventUpdateCoordinator()
-			await calendarEventUpdateCoordinator.init()
-			await this.remindActiveOutOfOfficeNotification()
-		}
-
-		if (isApp() || isDesktop()) {
-			this.handleExternalSync()
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
@@ -189,31 +176,6 @@ export class PostLoginActions implements PostLoginAction {
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return this.entityClient.update(notification)
-	}
-
-	private remindActiveOutOfOfficeNotification(): Promise<void> {
-		return loadOutOfOfficeNotification().then((notification) => {
-			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
-				const notificationMessage: Component = {
-					view: () => {
-						return m("", lang.get("outOfOfficeReminder_label"))
-					},
-				}
-				notificationOverlay.show(
-					notificationMessage,
-					{
-						label: "close_alt",
-					},
-					[
-						{
-							label: "deactivate_action",
-							click: () => this.deactivateOutOfOfficeNotification(notification),
-							type: ButtonType.Primary,
-						},
-					],
-				)
-			}
-		})
 	}
 
 	/**
@@ -403,28 +365,6 @@ export class PostLoginActions implements PostLoginAction {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
 		if (isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
-		}
-	}
-
-	private async handleExternalSync() {
-		const calendarModel = await locator.calendarModel()
-		if (isApp() || isDesktop()) {
-			this.syncTracker.addSyncDoneListener({
-				onSyncDone: async () => {
-					calendarModel.syncExternalCalendars().catch(async (e) => {
-						showSnackBar({
-							message: lang.makeTranslation("exception_msg", e.message),
-							button: {
-								label: "ok_action",
-								click: noOp,
-							},
-							waitingTime: 1000,
-						})
-					})
-					calendarModel.scheduleExternalCalendarSync()
-				},
-				priority: SyncDonePriority.HIGH,
-			})
 		}
 	}
 }

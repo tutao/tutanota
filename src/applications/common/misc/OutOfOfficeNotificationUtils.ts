@@ -2,7 +2,15 @@ import { formatDate } from "../../../ui/utils/Formatter"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { getDayShifted } from "@tutao/utils"
-import { MailboxGroupRootTypeRef, OutOfOfficeNotification, OutOfOfficeNotificationTypeRef } from "@tutao/entities/tutanota"
+import {
+	MailboxGroupRootTypeRef,
+	OutOfOfficeNotification,
+	OutOfOfficeNotificationTypeRef
+} from "@tutao/entities/tutanota"
+import m, { Component } from "mithril"
+import { EntityClient } from "../../../platform-kit/network/EntityClient"
+import { ButtonType } from "../../../ui/base/Button"
+import * as notificationOverlay from "../../../ui/base/NotificationOverlay.js"
 
 /**
  * Returns true if notifications are currently sent.
@@ -68,6 +76,36 @@ export function loadOutOfOfficeNotification(): Promise<OutOfOfficeNotification |
 			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
 		} else {
 			return null
+		}
+	})
+}
+
+function deactivateOutOfOfficeNotification(entityClient: EntityClient, notification: OutOfOfficeNotification): Promise<void> {
+	notification.enabled = false
+	return entityClient.update(notification)
+}
+
+export function remindActiveOutOfOfficeNotification(entityClient: EntityClient): Promise<void> {
+	return loadOutOfOfficeNotification().then((notification) => {
+		if (notification && isNotificationCurrentlyActive(notification, new Date())) {
+			const notificationMessage: Component = {
+				view: () => {
+					return m("", lang.get("outOfOfficeReminder_label"))
+				},
+			}
+			notificationOverlay.show(
+				notificationMessage,
+				{
+					label: "close_alt",
+				},
+				[
+					{
+						label: "deactivate_action",
+						click: () => deactivateOutOfOfficeNotification(entityClient, notification),
+						type: ButtonType.Primary,
+					},
+				],
+			)
 		}
 	})
 }
