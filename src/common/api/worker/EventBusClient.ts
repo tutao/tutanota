@@ -318,10 +318,14 @@ export class EventBusClient {
 
 				// We only process entity updates for apps and types the clients know about.
 				// We drop the other entity updates early on before constructing TypeRefs for them.
-				const entityUpdatesForClientApps = entityUpdateData.entityUpdates.filter(async (entityUpdate) => {
-					return await this.typeModelResolver.isKnownClientTypeReference(entityUpdate.application, parseInt(entityUpdate.typeId))
+				const filteredUpdates = await promiseMap(entityUpdateData.entityUpdates, async (entityUpdate) => {
+					return {
+						entityUpdate,
+						isKnown: await this.typeModelResolver.isKnownClientTypeReference(entityUpdate.application, parseInt(entityUpdate.typeId)),
+					}
 				})
 
+				const entityUpdatesForClientApps = filteredUpdates.filter((x) => x.isKnown).map((x) => x.entityUpdate)
 				const updates = await promiseMap(entityUpdatesForClientApps, async (event) => {
 					let { parsedInstance, parsedBlobInstance } = await this.getParsedInstanceFromEntityEvent(event)
 					return entityUpdateUtils.entityUpdateToUpdateData(event, parsedInstance, parsedBlobInstance)
