@@ -270,10 +270,21 @@ export class HtmlSanitizer {
 	private replaceAttributes(htmlNode: HTMLElement, config: SanitizeConfig) {
 		// Don't allow inline images to have a bigger width than the email itself
 		// Otherwise this would lead to weird rendering with very large images and pinch zoom
-		// The order of the replacement should not be changed since maxWidth=100% is replaced with 100px in case of
-		// placeholder images further below in the code
+		// The order of the replacement should not be changed since maxWidth set here will be replaced with 100px in
+		// case of placeholder images further below in the code
 		if (htmlNode.tagName === "IMG") {
-			htmlNode.style.maxWidth = "100%"
+			// Use query container width with shadow mail body as the container (see main-styles.ts) when supported, so
+			// that an image with a set width greater than its parent's width isn't squished.
+			// Don't override maxWidth when it's explicitly set to 100% (e.g. inserted inline images)
+			if (
+				htmlNode.style.getPropertyValue("max-width") !== "100%" &&
+				CSS.supports("max-width", "100cqw") &&
+				CSS.supports("container-type", "inline-size")
+			) {
+				htmlNode.style.maxWidth = "100cqw"
+			} else {
+				htmlNode.style.maxWidth = "100%"
+			}
 		}
 
 		if (htmlNode.attributes) {
