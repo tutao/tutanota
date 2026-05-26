@@ -323,6 +323,9 @@ export class MainStyles {
 				".border-top": {
 					"border-top": `1px solid ${theme.outline_variant}`,
 				},
+				"#shadow-mail-body": {
+					"container-type": "inline-size",
+				},
 				"#shadow-mail-body.break-pre pre": {
 					"white-space": "pre-wrap",
 					"word-break": "normal",
