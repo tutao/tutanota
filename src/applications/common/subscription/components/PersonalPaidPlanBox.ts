@@ -81,7 +81,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 		}
 		const strikethroughPrice = hasCampaign || isYearly ? referencePrice : undefined
 
-		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider, localTheme)
+		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider, localTheme, hasCampaign)
 		const getPriceHintStr = (): string => {
 			if (showMultiUser) {
 				return lang.get("pricing.perUserMonth_label")
@@ -164,16 +164,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						},
 						disabled: isDisabled,
 					}),
-					m(
-						".text-center.flex.col.center-horizontally.m-0.font-mdio",
-						{
-							style: {
-								"font-size": px(styles.isMobileLayout() ? 18 : 20),
-								color: isSelected ? localTheme.primary : localTheme.on_surface,
-							},
-						},
-						PlanTypeToName[planConfig.type],
-					),
+					this.renderPlanName(isSelected, hasCampaign, localTheme, planConfig),
 				),
 
 				m("hr", {
@@ -185,19 +176,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						backgroundColor: isSelected ? localTheme.primary : localTheme.outline_variant,
 					},
 				}),
-				m(
-					".flex.mt-8",
-					{
-						style: {
-							"justify-content": position === "right" ? "start" : "end",
-							"flex-direction": position === "right" ? "row-reverse" : "row",
-							height: px(component_size.button_height_compact),
-						},
-					},
-					isCurrentPlan || isDisabled
-						? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
-						: m(".smaller", lang.get(planConfig.tagLine)),
-				),
+				this.renderTagLine(position, hasCampaign, localTheme, isCurrentPlan, isDisabled, planConfig),
 				m(".flex-space-between.gap-12.mt-16.mb-16", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
 					m(
 						"",
@@ -275,7 +254,50 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, localTheme: Theme) {
+	private renderTagLine(
+		position: "left" | "right",
+		hasCampaign: boolean,
+		localTheme: Theme,
+		isCurrentPlan: boolean,
+		isDisabled: boolean,
+		planConfig: PlanConfig,
+	) {
+		return m(
+			".flex.mt-8",
+			{
+				style: {
+					"justify-content": position === "right" ? "start" : "end",
+					"flex-direction": position === "right" ? "row-reverse" : "row",
+					height: px(component_size.button_height_compact),
+					color: hasCampaign ? localTheme.primary : undefined,
+				},
+			},
+			isCurrentPlan || isDisabled
+				? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
+				: m(".smaller", lang.get(planConfig.tagLine)),
+		)
+	}
+
+	private renderPlanName(isSelected: boolean, hasCampaign: boolean, localTheme: Theme, planConfig: PlanConfig) {
+		let color
+		if (hasCampaign) {
+			color = localTheme.primary
+		} else {
+			color = isSelected ? localTheme.primary : localTheme.on_surface
+		}
+		return m(
+			".text-center.flex.col.center-horizontally.m-0.font-mdio",
+			{
+				style: {
+					"font-size": px(styles.isMobileLayout() ? 18 : 20),
+					color,
+				},
+			},
+			PlanTypeToName[planConfig.type],
+		)
+	}
+
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, localTheme: Theme, hasCampaign: boolean) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -290,7 +312,11 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						fill: localTheme.secondary,
 					},
 				}),
-				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
+				m(
+					".smaller",
+					{ style: { color: hasCampaign ? localTheme.secondary : undefined } },
+					lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)),
+				),
 			)
 		}
 	}

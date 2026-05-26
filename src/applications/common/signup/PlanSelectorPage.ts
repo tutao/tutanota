@@ -38,8 +38,6 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 
 		return m(
 			`.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`,
-			// Headline for a global campaign
-			this.renderMessageBanner(discountDetails, isBusiness),
 			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
 			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
 			// Headline for promotional messages
@@ -54,17 +52,8 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 					},
 				},
 				[
-					m(
-						`h1.font-mdio${styles.isMobileLayout() ? ".h3" : ".h1"}`,
-						{
-							style: {
-								position: "relative",
-								top: px(-6),
-							},
-						},
-						lang.getTranslationText("planselector_page_title"),
-					),
-					m(`p.mb-32`, lang.getTranslationText("planselector_page_subtitle")),
+					this.renderHeadline(data),
+					this.renderSubtitle(data),
 					m(
 						`.flex.gap-64.full-width${isBusiness ? ".justify-center" : ""}`,
 						m(
@@ -101,29 +90,23 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			),
 		)
 	}
+	private renderSubtitle(data: SignupViewModel) {
+		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName)
+		return m(`p.mb-32`, lang.getTranslationText(subtitleTranslationKey))
+	}
 
-	private renderMessageBanner(discountDetails: DiscountDetails, isBusiness: boolean): Children {
-		if (hasRelevantGlobalFirstYearCampaign(discountDetails, isBusiness ? SubscriptionType.Business : SubscriptionType.Personal)) {
-			return m(
-				".flex.full-width",
-				isBusiness
-					? {
-							style: {
-								"justify-content": "center",
-							},
-						}
-					: {},
-				m(
-					".flex-grow",
-					{ style: { "max-width": isBusiness ? px(900) : px(530) } },
-					m(MessageBanner, {
-						translation: lang.getTranslation("pricing.cyber_monday_msg"),
-						type: "base",
-						icon: Icons.GiftFilled,
-					}),
-				),
-			)
-		}
-		return null
+	private renderHeadline(data: SignupViewModel) {
+		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName)
+
+		return m(
+			`h1.font-mdio${styles.isMobileLayout() ? ".h3" : ".h1"}`,
+			{
+				style: {
+					position: "relative",
+					top: px(-6),
+				},
+			},
+			lang.getTranslationText(titleTranslationKey),
+		)
 	}
 }

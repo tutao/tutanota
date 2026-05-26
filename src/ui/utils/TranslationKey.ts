@@ -2275,3 +2275,6 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "pricing.bonusMonthAndGlobalFirstYear_label"
 	| "pricing.firstYearDiscountOnly_msg"
+	| "planselector_page_sovereignty2026_title"
+	| "planselector_page_sovereignty2026_subtitle"
+	| "pricing.bonusMonthWithCampaign_label"

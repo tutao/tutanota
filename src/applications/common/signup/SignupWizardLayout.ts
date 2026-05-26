@@ -125,7 +125,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	}
 
 	oncreate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
-		const campaignName = (vnode.attrs.ctx.viewModel as SignupViewModel).planPrices?.getRawPricingData().globalCampaignName
+		const campaignName = (vnode.attrs.ctx.viewModel as SignupViewModel).globalCampaignName
 		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 			this.stepIllustrations = [
 				"signup-before-click-birthday.svg",
@@ -338,8 +338,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 												),
 										),
 									index <= 2 &&
-										viewModel.planPrices?.getRawPricingData().hasGlobalFirstYearDiscount &&
-										viewModel.planPrices?.getRawPricingData().globalCampaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
+										viewModel.globalCampaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
 										m(
 											".abs.z3",
 											{

@@ -461,3 +461,5 @@ export const themes = (): Themes => {
 // Fixed campaign colors
 export const goEuropeanBlue = "#003E85"
 export const goEuropeanLightBlue = "#ACC7FF"
+export const sovereignYellowDark = "#FEE06A"
+export const sovereignYellowLight = "#FEF9C3"

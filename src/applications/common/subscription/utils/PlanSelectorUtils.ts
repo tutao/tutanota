@@ -1,6 +1,5 @@
 import { PlanConfig } from "../components/BusinessPlanContainer"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
-import Stream from "mithril/stream"
 import { SelectedSubscriptionOptions } from "../FeatureListProvider"
 import { component_size, px, size } from "../../../../ui/size"
 import { styles } from "../../../../ui/styles"
@@ -229,9 +228,16 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 		const firstYearDiscountPercentage = Math.floor((firstYearDiscount / yearlyRefPrice) * 100)
 
 		if (bonusMonth > 0 && NewPersonalPaidPlans.includes(targetPlan)) {
-			discountDetails[targetPlan] = {
-				ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
-				discountType: "BonusMonths",
+			if (firstYearDiscount > 0) {
+				discountDetails[targetPlan] = {
+					ribbonTranslation: lang.getTranslation("pricing.bonusMonthWithCampaign_label", { "{months}": bonusMonth }),
+					discountType: "BonusMonthsAndGlobalFirstYear",
+				}
+			} else {
+				discountDetails[targetPlan] = {
+					ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
+					discountType: "BonusMonths",
+				}
 			}
 		} else if (permanentDiscountPercentage > 0) {
 			discountDetails[targetPlan] = {
@@ -258,6 +264,25 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 export const enum CAMPAIGN_NAME {
 	BIRTHDAY_12_CAMPAIGN = "birthday_12_campaign",
 	BLACKFRIDAY_CAMPAIGN = "blackfriday_campaign",
+	DIGITAL_SOVEREIGNTY_2026_CAMPAIGN = "sovereignty2026",
+}
+
+export function getPlanSelectorTitle(campaignName: string | null): TranslationKey {
+	switch (campaignName) {
+		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+			return "planselector_page_sovereignty2026_title"
+		default:
+			return "planselector_page_title"
+	}
+}
+
+export function getPlanSelectorSubtitle(campaignName: string | null): TranslationKey {
+	switch (campaignName) {
+		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+			return "planselector_page_sovereignty2026_subtitle"
+		default:
+			return "planselector_page_subtitle"
+	}
 }
 
 export const defaultCampaignTheme = () => ({
@@ -278,9 +303,25 @@ export const birthdayTheme = () => ({
 	surface_container_high: theme.tertiary_container,
 })
 
+export const sovereignty2026Theme = () => ({
+	...structuredClone(theme),
+	primary: goEuropeanBlue,
+	primary_container: goEuropeanBlue,
+	secondary: goEuropeanBlue,
+	tertiary: goEuropeanBlue,
+	on_tertiary: "#FFFFFF",
+	on_surface: "#111111",
+	surface_container_high: sovereignYellowDark,
+	surface: sovereignYellowLight,
+	on_surface_variant: "#111111",
+	outline_variant: goEuropeanBlue,
+})
+
 export function getCampaignTheme(campaignName: string | null) {
 	if (campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 		return birthdayTheme()
+	} else if (campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN) {
+		return sovereignty2026Theme()
 	}
 
 	return defaultCampaignTheme()
