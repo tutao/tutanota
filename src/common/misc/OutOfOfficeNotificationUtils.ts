@@ -3,6 +3,10 @@ import { lang } from "./LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { getDayShifted } from "@tutao/utils"
+import m, { Component } from "mithril"
+import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import { ButtonType } from "../gui/base/Button"
+import { EntityClient } from "../api/common/EntityClient"
 
 /**
  * Returns true if notifications are currently sent.
@@ -71,6 +75,36 @@ export function loadOutOfOfficeNotification(): Promise<tutanotaTypeRefs.OutOfOff
 			)
 		} else {
 			return null
+		}
+	})
+}
+
+function deactivateOutOfOfficeNotification(entityClient: EntityClient, notification: tutanotaTypeRefs.OutOfOfficeNotification): Promise<void> {
+	notification.enabled = false
+	return entityClient.update(notification)
+}
+
+export function remindActiveOutOfOfficeNotification(entityClient: EntityClient): Promise<void> {
+	return loadOutOfOfficeNotification().then((notification) => {
+		if (notification && isNotificationCurrentlyActive(notification, new Date())) {
+			const notificationMessage: Component = {
+				view: () => {
+					return m("", lang.get("outOfOfficeReminder_label"))
+				},
+			}
+			notificationOverlay.show(
+				notificationMessage,
+				{
+					label: "close_alt",
+				},
+				[
+					{
+						label: "deactivate_action",
+						click: () => deactivateOutOfOfficeNotification(entityClient, notification),
+						type: ButtonType.Primary,
+					},
+				],
+			)
 		}
 	})
 }

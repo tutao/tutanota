@@ -1,4 +1,4 @@
-import m, { Component } from "mithril"
+import m from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
@@ -8,8 +8,6 @@ import { locator } from "../api/main/CommonLocator"
 import { GENERATED_MIN_ID, sysTypeRefs, tutanotaServices, tutanotaTypeRefs } from "@tutao/typerefs"
 import { lang } from "../misc/LanguageViewModel.js"
 import { getHourCycle } from "../misc/Formatter.js"
-import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils.js"
-import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
 import { CloseEventBusOption, Const, FeatureType, isApp, isDesktop, LOGIN_TITLE, Mode, SecondFactorType, UpgradePromptType } from "@tutao/app-env"
@@ -30,8 +28,7 @@ import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementF
 import { CustomerFacade } from "../api/worker/facades/lazy/CustomerFacade.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { ThemeController } from "../gui/ThemeController.js"
-import { showSnackBar } from "../gui/base/SnackBar"
-import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
+import { SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../api/worker/facades/LoginFacade"
 
@@ -131,15 +128,6 @@ export class PostLoginActions implements PostLoginAction {
 		if (!(env.mode === Mode.Admin)) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
-			const calendarModel = await locator.calendarModel()
-			await calendarModel.init()
-			const calendarEventUpdateCoordinator = await locator.calendarEventUpdateCoordinator()
-			await calendarEventUpdateCoordinator.init()
-			await this.remindActiveOutOfOfficeNotification()
-		}
-
-		if (isApp() || isDesktop()) {
-			this.handleExternalSync()
 		}
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !(env.mode === Mode.Admin)) {
@@ -172,36 +160,6 @@ export class PostLoginActions implements PostLoginAction {
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && this.logins.getUserController().isGlobalAdmin()) {
 			await this.migrateWhiteLabelToMaterial3()
 		}
-	}
-
-	private deactivateOutOfOfficeNotification(notification: tutanotaTypeRefs.OutOfOfficeNotification): Promise<void> {
-		notification.enabled = false
-		return this.entityClient.update(notification)
-	}
-
-	private remindActiveOutOfOfficeNotification(): Promise<void> {
-		return loadOutOfOfficeNotification().then((notification) => {
-			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
-				const notificationMessage: Component = {
-					view: () => {
-						return m("", lang.get("outOfOfficeReminder_label"))
-					},
-				}
-				notificationOverlay.show(
-					notificationMessage,
-					{
-						label: "close_alt",
-					},
-					[
-						{
-							label: "deactivate_action",
-							click: () => this.deactivateOutOfOfficeNotification(notification),
-							type: ButtonType.Primary,
-						},
-					],
-				)
-			}
-		})
 	}
 
 	/**
@@ -397,28 +355,6 @@ export class PostLoginActions implements PostLoginAction {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
 		if (isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
-		}
-	}
-
-	private async handleExternalSync() {
-		const calendarModel = await locator.calendarModel()
-		if (isApp() || isDesktop()) {
-			this.syncTracker.addSyncDoneListener({
-				onSyncDone: async () => {
-					calendarModel.syncExternalCalendars().catch(async (e) => {
-						showSnackBar({
-							message: lang.makeTranslation("exception_msg", e.message),
-							button: {
-								label: "ok_action",
-								click: noOp,
-							},
-							waitingTime: 1000,
-						})
-					})
-					calendarModel.scheduleExternalCalendarSync()
-				},
-				priority: SyncDonePriority.HIGH,
-			})
 		}
 	}
 }
