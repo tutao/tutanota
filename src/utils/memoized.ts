@@ -74,3 +74,14 @@ export function memoizedWithHiddenArgument<T, R>(argumentProvider: () => T, comp
 	const memoizedComputation = memoized(computationFunction)
 	return () => memoizedComputation(argumentProvider())
 }
+
+/** Make a version of {@param fn} that will be called at most once. */
+export function once(fn: (...args: any[]) => void): (...args: any[]) => void {
+	let called = false
+	return (...args) => {
+		if (!called) {
+			called = true
+			fn(...args)
+		}
+	}
+}

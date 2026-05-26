@@ -2,6 +2,7 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import * as restError from "./error.js"
+import { once } from "../utils/memoized"
 
 assertWorkerOrNode()
 
@@ -77,7 +78,7 @@ export interface RestClientMiddleware {
  * upload progress with fetch (see https://stackoverflow.com/a/69400632)
  */
 export class RestClient {
-	private id: number
+	private lastRequestId: number
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 	private responseMiddlewares: Array<RestClientMiddleware> = new Array<RestClientMiddleware>()
@@ -87,7 +88,7 @@ export class RestClient {
 		private readonly domainConfig: DomainConfig,
 		private readonly clientPlatform: string,
 	) {
-		this.id = 0
+		this.lastRequestId = 0
 	}
 
 	addMiddleware(middleware: RestClientMiddleware): RestClient {
@@ -105,8 +106,11 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return newPromise((resolve, reject) => {
-				this.id++
+			return newPromise((resolve, _reject) => {
+				// Make sure to call reject() only once (e.g. if both xhr.onabort and xhr.upload.onabort fire) because
+				// it is illegal to call resolve/reject more than once
+				const reject = once(_reject)
+				const id = ++this.lastRequestId
 
 				const queryParams: Dict = options.queryParams ?? {}
 
@@ -132,18 +136,28 @@ export class RestClient {
 
 				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
 
-				const abortAfterTimeout = () => {
-					const res = {
-						timeoutId: 0 as TimeoutID,
-						abortFunction: () => {
-							if (this.usingTimeoutAbort()) {
-								console.log(TAG, `${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
-								xhr.abort()
-							}
-						},
-					}
-					return res
+				// We time out reqeuests if there is no progress for some time
+				let requestTimeoutTimeoutID: TimeoutID | null = null
+				const abortOnTimeout = () => {
+					console.log(TAG, `${id}: ${String(new Date())} aborting ${requestTimeoutTimeoutID}`)
+					xhr.abort()
 				}
+				const restartTimeoutTimer = () => {
+					if (!usingTimeoutAbort()) {
+						return
+					}
+
+					if (requestTimeoutTimeoutID != null) {
+						clearTimeout(requestTimeoutTimeoutID)
+					}
+					const isBlobRequest = options.body instanceof Uint8Array
+					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : env.timeout)
+				}
+				const cancelTimeoutTimer = () => {
+					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
+				}
+
+				restartTimeoutTimer()
 
 				if (options.abortSignal) {
 					options.abortSignal.addEventListener(
@@ -155,23 +169,18 @@ export class RestClient {
 					)
 				}
 
-				const t = abortAfterTimeout()
-				const isBlobRequest = options.body instanceof Uint8Array
-				let timeout = setTimeout(t.abortFunction, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : env.timeout)
-				t.timeoutId = timeout
-
 				if (verbose) {
-					console.log(TAG, `${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
+					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
 				}
 
 				xhr.onload = async () => {
 					try {
 						// XMLHttpRequestProgressEvent, but not needed
 						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
+							console.log(TAG, `${id}: ${String(new Date())} finished request. Clearing Timeout ${String(requestTimeoutTimeoutID)}.`)
 						}
 
-						clearTimeout(timeout)
+						cancelTimeoutTimer()
 
 						this.saveServerTimeOffsetFromRequest(xhr)
 
@@ -221,7 +230,7 @@ export class RestClient {
 
 				xhr.onerror = function () {
 					try {
-						clearTimeout(timeout)
+						cancelTimeoutTimer()
 						logFailedRequest(method, url, xhr, options)
 						reject(
 							restError.handleRestError(
@@ -242,16 +251,13 @@ export class RestClient {
 				if (!options.noCORS) {
 					xhr.upload.onprogress = (pe: ProgressEvent) => {
 						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
+							console.log(TAG, `${id}: ${String(new Date())} upload progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 						}
 
-						clearTimeout(timeout)
-						const t = abortAfterTimeout()
-						timeout = setTimeout(t.abortFunction, env.timeout)
-						t.timeoutId = timeout
+						restartTimeoutTimer()
 
 						if (verbose) {
-							console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
 						}
 
 						if (options.progressListener != null && pe.lengthComputable) {
@@ -262,25 +268,25 @@ export class RestClient {
 
 					xhr.upload.ontimeout = (e) => {
 						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload timeout. calling error handler.`, e)
+							console.log(TAG, `${id}: ${String(new Date())} upload timeout. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
 					xhr.upload.onerror = (e) => {
 						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload error. calling error handler.`, e)
+							console.log(TAG, `${id}: ${String(new Date())} upload error. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
 					xhr.upload.onabort = (e) => {
-						clearTimeout(timeout)
+						cancelTimeoutTimer()
 						if (options.abortSignal?.aborted) {
 							reject(new CancelledError(`upload has been aborted ${method} ${path}`))
 						} else {
 							if (verbose) {
-								console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
+								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 							}
 							reject(new restError.ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 						}
@@ -289,16 +295,13 @@ export class RestClient {
 
 				xhr.onprogress = (pe: ProgressEvent) => {
 					if (verbose) {
-						console.log(TAG, `${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
+						console.log(TAG, `${id}: ${String(new Date())} download progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 					}
 
-					clearTimeout(timeout)
-					let t = abortAfterTimeout()
-					timeout = setTimeout(t.abortFunction, env.timeout)
-					t.timeoutId = timeout
+					restartTimeoutTimer()
 
 					if (verbose) {
-						console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
 					}
 
 					if (options.progressListener != null && pe.lengthComputable) {
@@ -308,7 +311,7 @@ export class RestClient {
 				}
 
 				xhr.onabort = () => {
-					clearTimeout(timeout)
+					cancelTimeoutTimer()
 					if (options.abortSignal?.aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
@@ -323,11 +326,6 @@ export class RestClient {
 				}
 			})
 		}
-	}
-
-	/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
-	private usingTimeoutAbort() {
-		return isWebClient() || isAndroidApp()
 	}
 
 	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {
@@ -439,4 +437,9 @@ function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, opt
 		args.push("no body")
 	}
 	console.log(...args)
+}
+
+/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
+function usingTimeoutAbort(): boolean {
+	return isWebClient() || isAndroidApp()
 }
