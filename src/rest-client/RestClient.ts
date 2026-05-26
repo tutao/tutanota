@@ -275,10 +275,15 @@ export class RestClient {
 					}
 
 					xhr.upload.onabort = (e) => {
-						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
+						clearTimeout(timeout)
+						if (options.abortSignal?.aborted) {
+							reject(new CancelledError(`upload has been aborted ${method} ${path}`))
+						} else {
+							if (verbose) {
+								console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
+							}
+							reject(new restError.ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 						}
-						reject(new CancelledError("upload has been aborted, path: " + path))
 					}
 				}
 
