@@ -1,264 +1,177 @@
-import { clone, elementIdPart, isSameId, listIdPart } from "@tutao/meta"
+import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
 import { showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-import { Dialog } from "../../../../ui/base/Dialog.js"
-import { lang } from "../../../../ui/utils/LanguageViewModel.js"
+import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
+import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
-import { parseCalendarFile, showEventsImportDialog } from "./CalendarImporter.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import {
-	first,
-	getFirstOrThrow,
-	groupBy,
-	isNotEmpty,
-	isNotNull,
-	ofClass,
-	promiseMap,
-	stringToUtf8Uint8Array
-} from "@tutao/utils"
-import { CalendarType, getTimeZone, resolveCalendarEventProgenitor } from "../date/CalendarUtils.js"
+import { getFirstOrThrow, isNotEmpty, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
-import {
-	EventAlarmInfoTemplatesTuple,
-	EventImportRejectionReason,
-	ParsedEventAlarmTuple,
-	sortOutParsedEvents
-} from "./ImportExportUtils.js"
-import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
-import { isApp } from "@tutao/app-env"
+import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
+import { isApp, ShareCapability } from "@tutao/app-env"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, createFile } from "@tutao/entities/tutanota"
 import { convertToDataFile } from "../../api/worker/utils/DataFile"
-import { createDateWrapper, User, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
-import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
-import {
-	AlarmInfoTemplate,
-	CalendarEventAlteredInstance,
-	CalendarEventProgenitor
-} from "../../api/worker/facades/lazy/CalendarFacade"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api/worker/facades/lazy/CalendarFacade"
+
+import { CalendarImporter } from "../import/CalendarImporter"
+import { UserController } from "../../api/main/UserController.js"
+import { parseCalendarFile, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { EventAlarmInfoTemplatesTuple } from "../import/ImportExportUtils"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
+import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
+import { component_size } from "../../../../ui/size"
+import m from "mithril"
+import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar"
+import { ButtonType } from "../../../../ui/base/Button"
+import { GroupColors } from "../../../calendar-app/calendar/view/CalendarView"
+import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
+import { DropDownSelector, DropDownSelectorAttrs } from "../../../../ui/base/DropDownSelector"
+import { getSharedGroupName } from "../../sharing/GroupUtils"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 
 /**
- * show an error dialog detailing the reason and amount for events that failed to import
+ * Shows a dialog with a preview of a given list of events
+ * @param events The event list to be previewed
+ * @param okAction The action to be executed when the user press the ok or continue button
+ * @param title
+ * @param calendarInfo
  */
-async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirmationText: TranslationKeyType, total: number): Promise<boolean> {
-	return (
-		skippedEvents.length === 0 ||
-		(await Dialog.confirm(
-			lang.makeTranslation(
-				"confirm_msg",
-				lang.get(confirmationText, {
-					"{amount}": skippedEvents.length + "",
-					"{total}": total + "",
-				}),
-			),
-		))
-	)
-}
-
-/**
- * Prompts the user to get confirmation to continue the importing procces.
- *
- * We will show sequential dialogs stating the number of events and the reason why it is going to be skipped.
- *
- * @param rejectedEvents
- * @param importedParsedEvents
- */
-async function getPartialImportUserConfirmation(
-	rejectedEvents: Map<EventImportRejectionReason, Array<CalendarEvent>>,
-	importedParsedEvents: ParsedEventAlarmTuple[],
-) {
-	const acceptSkippingIcsDuplicates = await partialImportConfirmation(
-		rejectedEvents.get(EventImportRejectionReason.DuplicateInIcs) ?? [],
-		"importEventIcsDuplicate_msg",
-		importedParsedEvents.length,
-	)
-	if (!acceptSkippingIcsDuplicates) {
-		return false
-	}
-
-	const acceptSkippingExistingDuplicates = await partialImportConfirmation(
-		rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? [],
-		"importEventExistingUid_msg",
-		importedParsedEvents.length,
-	)
-	if (!acceptSkippingExistingDuplicates) {
-		return false
-	}
-
-	const acceptSkippingInvalideDates = await partialImportConfirmation(
-		rejectedEvents.get(EventImportRejectionReason.InvalidDate) ?? [],
-		"importInvalidDatesInEvent_msg",
-		importedParsedEvents.length,
-	)
-	if (!acceptSkippingInvalideDates) {
-		return false
-	}
-
-	const acceptSkippingInversedDates = await partialImportConfirmation(
-		rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [],
-		"importEndNotAfterStartInEvent_msg",
-		importedParsedEvents.length,
-	)
-	if (!acceptSkippingInversedDates) {
-		return false
-	}
-
-	const acceptSkippingPre1970 = await partialImportConfirmation(
-		rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [],
-		"importPre1970StartInEvent_msg",
-		importedParsedEvents.length,
-	)
-	if (!acceptSkippingPre1970) {
-		return false
-	}
-
-	return true
-}
-
-/**
- * Identifies progenitors that need to have their exclusion dates updated during an import.
- *
- * Separates progenitors that will be created for the first time (progenitorsToCreate) from progenitors that exist
- * already exist in the database and need to be updated (progenitorsToUpdate).
- *
- * @see {@link ProgenitorsToUpdateExclusionDates}
- *
- *
- * @param entityClient
- * @param alteredInstancesFromIcsFile
- * @param progenitorsFromIcsFile
- */
-async function findProgenitorsToAddExcludedDates(
-	entityClient: EntityClient,
-	alteredInstancesFromIcsFile: EventAlarmInfoTemplatesTuple[],
-	progenitorsFromIcsFile: EventAlarmInfoTemplatesTuple[],
-): Promise<ProgenitorsToUpdateExclusionDates> {
-	const result: ProgenitorsToUpdateExclusionDates = {
-		alteredInstancesForNewProgenitors: new Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>(),
-		alteredInstancesForExistingProgenitors: new Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>(),
-	}
-
-	const icsProgenitorsToCreate = groupBy(progenitorsFromIcsFile, (ev) => ev.event.uid)
-
-	for (const alteredInstance of alteredInstancesFromIcsFile) {
-		const typedAlteredInstance = alteredInstance.event as CalendarEventAlteredInstance
-
-		const icsProgenitorToCreate = first(icsProgenitorsToCreate.get(alteredInstance.event.uid) ?? [])
-		if (icsProgenitorToCreate && icsProgenitorToCreate.event.repeatRule) {
-			const newProgenitors = Array.from(result.alteredInstancesForNewProgenitors.keys())
-			const progenitorAsKey: CalendarEventProgenitor =
-				newProgenitors.find((progenitorAsKey) => progenitorAsKey.uid === icsProgenitorToCreate.event.uid) ??
-				(icsProgenitorToCreate.event as CalendarEventProgenitor)
-
-			const knownAlteredInstances = result.alteredInstancesForNewProgenitors.get(progenitorAsKey) ?? []
-			knownAlteredInstances.push(typedAlteredInstance)
-
-			result.alteredInstancesForNewProgenitors.set(progenitorAsKey, knownAlteredInstances)
-			continue
-		}
-
-		const existingProgenitors = Array.from(result.alteredInstancesForExistingProgenitors.keys())
-		const progenitorAsKey: CalendarEventProgenitor =
-			existingProgenitors.find((progenitorAsKey) => progenitorAsKey.uid === alteredInstance.event.uid) ??
-			((await resolveCalendarEventProgenitor(alteredInstance.event, entityClient)) as CalendarEventProgenitor)
-
-		const knownAlteredInstances = result.alteredInstancesForExistingProgenitors.get(progenitorAsKey) ?? []
-		knownAlteredInstances.push(typedAlteredInstance)
-		result.alteredInstancesForExistingProgenitors.set(progenitorAsKey, knownAlteredInstances)
-	}
-
-	return result
-}
-
-// FIXME: do we need to handle cases where altered instances already exist in the db, but not the iCal file?
-// This could happen if a user is already invited to only an altered instance, but then gets added to the series later.
-/**
- * Identifies progenitors in an incoming iCal (ics) file, and updates it with exclusion dates for all
- * altered instances that are also in the iCal file.
- *
- * The list of new progenitors should ALREADY have had duplicates removed in a previous step BEFORE doing this.
- *
- * This should be done BEFORE creating the events in the database, because doing so makes it possible
- * to create a progenitor with all its exclusion dates appended in a single server request.  Not doing so would
- * mean we must make a server request to update the progenitor each time we find a new altered instance.
- *
- * @param progenitorsToAddAlteredInstances
- * @param newProgenitors
- */
-export function addExclusionsToNewProgenitors(progenitorsToAddAlteredInstances: ProgenitorsToUpdateExclusionDates) {
-	for (const [progenitor, alteredInstances] of progenitorsToAddAlteredInstances.alteredInstancesForNewProgenitors.entries()) {
-		for (const alteredInstance of alteredInstances) {
-			const hasExcludedDate = progenitor.repeatRule?.excludedDates.some(
-				(dateWrapper) => dateWrapper.date.getTime() === alteredInstance.recurrenceId!.getTime(),
-			)
-			if (!hasExcludedDate && isNotNull(progenitor.repeatRule)) {
-				progenitor.repeatRule.excludedDates.push(createDateWrapper({ date: alteredInstance.recurrenceId! }))
-			}
-		}
-	}
-}
-
-/**
- * Adds exclusion dates to progenitor events that already exist in the database.
- * If it finds one, it updates that progenitor with a list of all the excluded dates.
- *
- * If no progenitor is found, it does nothing.  This could happen if the user is invited to an
- * altered instance but not the progenitor.
- *
- * @see {@link ProgenitorsToUpdateExclusionDates}
- *
- * @param progenitorsToAddAlteredInstances
- * @param progenitors
- */
-async function addExclusionsToExistingProgenitors(
-	progenitorsToAddAlteredInstances: ProgenitorsToUpdateExclusionDates,
-	entityClient: EntityClient,
-	user: User,
-) {
-	for (const [progenitor, alteredInstances] of progenitorsToAddAlteredInstances.alteredInstancesForExistingProgenitors.entries()) {
-		const updatedProgenitor = clone(progenitor)
-		for (const alteredInstance of alteredInstances) {
-			const hasExcludedDate = updatedProgenitor.repeatRule?.excludedDates.some(
-				(dateWrapper) => dateWrapper.date.getTime() === alteredInstance.recurrenceId!.getTime(),
-			)
-			if (!hasExcludedDate && isNotNull(updatedProgenitor.repeatRule)) {
-				updatedProgenitor.repeatRule.excludedDates.push(createDateWrapper({ date: alteredInstance.recurrenceId! }))
-			}
-		}
-
-		const userAlarmListId = user.alarmInfoList?.alarms
-		if (userAlarmListId) {
-			const ownedAlarms = updatedProgenitor.alarmInfos.filter((alarmIdTuple) => listIdPart(alarmIdTuple) === userAlarmListId).map(elementIdPart)
-			const userAlarmInfos = await entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmListId, ownedAlarms)
-			const alarmInfoTemplates: Array<AlarmInfoTemplate> = userAlarmInfos.map((userAlarmInfo) => userAlarmInfo.alarmInfo)
-			await locator.calendarFacade.updateCalendarEvent(updatedProgenitor, alarmInfoTemplates, progenitor)
-		}
-	}
-}
-
-async function reviewAndFinishImportingEvents(
-	eventsForCreation: Array<EventAlarmInfoTemplatesTuple>,
-	calendarType: CalendarType,
+export function showEventsImportDialog(
+	events: CalendarEvent[],
+	okAction: (dialog: Dialog) => unknown,
+	title: MaybeTranslation,
 	calendarInfo: CalendarInfoBase,
 ) {
-	if (eventsForCreation.length > 0) {
-		if (calendarType === CalendarType.External) {
-			await importEvents(eventsForCreation)
-		} else {
-			showEventsImportDialog(
-				eventsForCreation.map((ev) => ev.event),
-				async (dialog) => {
-					dialog.close()
-					await importEvents(eventsForCreation)
-				},
-				"importEvents_label",
-				calendarInfo,
-			)
-		}
+	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
+		itemHeight: component_size.list_row_height,
+		multiselectionAllowed: MultiselectMode.Disabled,
+		swipe: null,
+		createElement: (dom) => {
+			return new KindaCalendarRow(dom, [calendarInfo])
+		},
 	}
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
+						},
+					},
+				],
+				middle: title,
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "import_action",
+						click: () => {
+							okAction(dialog)
+						},
+					},
+				],
+			}),
+			/** variable-size child container that may be scrollable. */
+			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
+				m(
+					".flex.col.rel.mt-8",
+					{
+						style: {
+							height: "80vh",
+						},
+					},
+					m(List, {
+						renderConfig,
+						state: {
+							items: events,
+							loadingStatus: ListLoadingState.Done,
+							loadingAll: false,
+							inMultiselect: true,
+							activeIndex: null,
+							selectedItems: new Set(),
+						},
+						onLoadMore() {},
+						onRangeSelectionTowards(item: CalendarEvent) {},
+						onRetryLoading() {},
+						onSingleSelection(item: CalendarEvent) {},
+						onSingleTogglingMultiselection(item: CalendarEvent) {},
+						onStopLoading() {},
+					} satisfies ListAttrs<CalendarEvent, KindaCalendarRow>),
+				),
+			]),
+		],
+	}).show()
+}
+
+/**
+ * Shows a dialog with user's calendars that are able to receive new events
+ * @param calendars List of user's calendars
+ * @param userController
+ * @param groupColors List of calendar's colors
+ * @param okAction
+ */
+export function calendarSelectionDialog(
+	calendars: CalendarInfo[],
+	userController: UserController,
+	groupColors: GroupColors,
+	okAction: (dialog: Dialog, selectedCalendar: CalendarInfo) => unknown,
+) {
+	const availableCalendars = calendars.filter(
+		(calendarInfo) => hasCapabilityOnGroup(userController.user, calendarInfo.group, ShareCapability.Write) && !calendarInfo.isExternal,
+	)
+	let selectedCalendar = availableCalendars[0]
+
+	const dialog = new Dialog(DialogType.EditSmall, {
+		view: () => [
+			m(DialogHeaderBar, {
+				left: [
+					{
+						type: ButtonType.Secondary,
+						label: "cancel_action",
+						click: () => {
+							dialog.close()
+						},
+					},
+				],
+				middle: "calendar_label",
+				right: [
+					{
+						type: ButtonType.Primary,
+						label: "pricing.select_action",
+						click: () => {
+							okAction(dialog, selectedCalendar)
+						},
+					},
+				],
+			}),
+
+			m(".dialog-max-height.plr-24.pt-16.pb-16.text-break.scroll", [
+				m(".text-break.selectable", lang.get("calendarImportSelection_label")),
+				m(DropDownSelector, {
+					label: "calendar_label",
+					items: availableCalendars.map((calendarInfo) => {
+						return {
+							name: getSharedGroupName(calendarInfo.groupInfo, userController.userSettingsGroupRoot, calendarInfo.hasMultipleMembers),
+							value: calendarInfo,
+						}
+					}),
+					selectedValue: selectedCalendar,
+					selectionChangedHandler: (v) => (selectedCalendar = v),
+					icon: Icons.ArrowDown,
+					disabled: availableCalendars.length < 2,
+					helpLabel: () => renderCalendarColor(selectedCalendar, groupColors),
+				} satisfies DropDownSelectorAttrs<CalendarInfo>),
+			]),
+		],
+	}).show()
 }
 
 /**
@@ -281,41 +194,7 @@ export type ProgenitorsToUpdateExclusionDates = {
 	alteredInstancesForExistingProgenitors: Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>
 }
 
-export async function handleCalendarImport(
-	calendarGroupRoot: CalendarGroupRoot,
-	calendarInfo: CalendarInfoBase,
-	importedParsedEvents: ParsedEventAlarmTuple[] | null = null,
-	calendarType: CalendarType = CalendarType.Private,
-	entityClient: EntityClient,
-	user: User,
-): Promise<void> {
-	const parsedEvents: ParsedEventAlarmTuple[] = importedParsedEvents ?? (await showProgressDialog("loading_msg", selectAndParseIcalFile()))
-	if (parsedEvents.length === 0) {
-		return showInfoSnackbar("emptyIcsFile_msg")
-	}
-
-	const existingEvents = await showProgressDialog("loading_msg", loadAllEvents(calendarGroupRoot))
-	const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedEvents, existingEvents, calendarGroupRoot, getTimeZone())
-
-	const continueWithImportAndSkipRejectedEvents = await getPartialImportUserConfirmation(rejectedEvents, parsedEvents)
-	if (!continueWithImportAndSkipRejectedEvents) {
-		return
-	}
-
-	const alteredInstances = eventsForCreation.filter((ev) => isNotNull(ev.event.recurrenceId))
-	const progenitorsToCreate = eventsForCreation.filter((ev) => isNotNull(ev.event.repeatRule))
-	const progenitorsToAddAlteredInstances: ProgenitorsToUpdateExclusionDates = await findProgenitorsToAddExcludedDates(
-		entityClient,
-		alteredInstances,
-		progenitorsToCreate,
-	)
-
-	addExclusionsToNewProgenitors(progenitorsToAddAlteredInstances) // FIXME: Add Tests
-	await reviewAndFinishImportingEvents(eventsForCreation, calendarType, calendarInfo) // FIXME: Add Tests
-	await addExclusionsToExistingProgenitors(progenitorsToAddAlteredInstances, entityClient, user) // FIXME: Add Tests
-}
-
-async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
+export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 	try {
 		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
 		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(true, allowedExtensions)
@@ -337,35 +216,6 @@ async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 			throw e
 		}
 	}
-}
-
-async function importEvents(eventsForCreation: Array<EventAlarmInfoTemplatesTuple>): Promise<void> {
-	const operation = locator.operationProgressTracker.startNewOperation()
-	const result = await showProgressDialog(
-		"importCalendar_label",
-		(async () => {
-			const result = await locator.calendarFacade.createCalendarEvents(eventsForCreation, operation.id)
-			if (isNotEmpty(result.failedEventErrors)) {
-				throw new ImportError(getFirstOrThrow(result.failedEventErrors), "failed to create calendar events", result.failedEvents.length)
-			}
-			return
-		})(),
-		operation.progress,
-	)
-		.catch(
-			ofClass(ImportError, (e) =>
-				Dialog.message(
-					lang.makeTranslation(
-						"confirm_msg",
-						lang.get("importEventsError_msg", {
-							"{amount}": e.numFailed + "",
-							"{total}": eventsForCreation.length.toString(),
-						}),
-					),
-				),
-			),
-		)
-		.finally(() => operation.done())
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */
@@ -414,4 +264,30 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 			return shortEvents.concat(longEvents)
 		}),
 	)
+}
+
+/**
+ * Handle the import of calendar events with preview of events to be imported
+ * @param calendarModel
+ * @param userController
+ * @param events The event list to be previewed and imported
+ * @param calendarImporter
+ */
+export async function importCalendarFile(
+	calendarModel: CalendarModel,
+	userController: UserController,
+	events: ParsedEventAlarmTuple[],
+	calendarImporter: CalendarImporter,
+) {
+	const groupSettings = userController.userSettingsGroupRoot.groupSettings
+	const calendarInfos = await calendarModel.getCalendarInfos()
+	const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
+
+	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
+		dialog.close()
+		calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, events, selectedCalendar.type)
+	})
 }

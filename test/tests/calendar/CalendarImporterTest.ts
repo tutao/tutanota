@@ -24,7 +24,7 @@ import {
 	ParsedCalendarData,
 	ParsedEventAlarmTuple,
 	sortOutParsedEvents,
-} from "../../../src/applications/common/calendar/gui/ImportExportUtils.js"
+} from "../../../src/applications/common/calendar/import/ImportExportUtils.js"
 
 import {
 	CalendarEvent,
@@ -1397,7 +1397,7 @@ END:VCALENDAR`
 				organizer: null,
 			}
 			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
-			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = sortOutParsedEvents(
 				[
 					{ icsCalendarEvent: duplicateProgenitor, alarms: [] },
 					{ icsCalendarEvent: newProgenitor, alarms: [] },
@@ -1411,10 +1411,10 @@ END:VCALENDAR`
 
 			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitor)
 			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
-			expectedCreatedProgenitor._id = eventsForCreation[0].event._id
+			expectedCreatedProgenitor._id = eventsForCreationTuples[0].event._id
 
-			o(eventsForCreation[0].event).deepEquals(expectedCreatedProgenitor)
-			o(eventsForCreation.length === 1)
+			o(eventsForCreationTuples[0].event).deepEquals(expectedCreatedProgenitor)
+			o(eventsForCreationTuples.length === 1)
 			o(rejectedEvents.get(EventImportRejectionReason.DuplicateInIcs)?.[0]).deepEquals(expectedRejectedProgenitor)
 		})
 
@@ -1449,7 +1449,7 @@ END:VCALENDAR`
 
 			const expectedRejectedProgenitor = makeCalendarEventFromIcsCalendarEvent(existingProgenitorIcs)
 
-			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = classifyImportedEvents(
 				[
 					{ icsCalendarEvent: newProgenitorIcs, alarms: [] },
 					{ icsCalendarEvent: existingProgenitorIcs, alarms: [] },
@@ -1462,10 +1462,10 @@ END:VCALENDAR`
 			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitorIcs)
 
 			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
-			expectedCreatedProgenitor._id = eventsForCreation[0].event._id
+			expectedCreatedProgenitor._id = eventsForCreationTuples[0].event._id
 
-			o(eventsForCreation[0].event).deepEquals(expectedCreatedProgenitor)
-			o(eventsForCreation.length === 1)
+			o(eventsForCreationTuples[0].event).deepEquals(expectedCreatedProgenitor)
+			o(eventsForCreationTuples.length === 1)
 			o(rejectedEvents.get(EventImportRejectionReason.Duplicate)?.[0]).deepEquals(expectedRejectedProgenitor)
 		})
 
@@ -1567,7 +1567,7 @@ END:VCALENDAR`
 				organizer: null,
 			}
 
-			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = classifyImportedEvents(
 				[
 					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
 					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
@@ -1578,7 +1578,7 @@ END:VCALENDAR`
 			)
 
 			o(rejectedEvents.size).equals(1)
-			o(eventsForCreation.length).equals(1)
+			o(eventsForCreationTuples.length).equals(1)
 		})
 	})
 

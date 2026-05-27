@@ -3,7 +3,7 @@ import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEve
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "../../../../platform-kit/utils"
+import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
 import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
@@ -35,11 +35,12 @@ import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewMo
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
 import { AriaRole } from "../../../../ui/AriaUtils"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { fromStrippedCalendarEventAttendee, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "../../../../platform-kit/app-env"
-import { clone, GENERATED_MIN_ID } from "../../../../platform-kit/meta"
+import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-env"
+import { clone, GENERATED_MIN_ID } from "@tutao/meta"
+import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData

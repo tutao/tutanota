@@ -66,7 +66,7 @@ import {
 import { PartialRecipient } from "../../../../../entities/tutanota/Utils"
 import { User } from "@tutao/entities/sys"
 import { AccountType } from "../../../../../entities/sys/Utils"
-import { getStrippedClone, Stripped, StrippedEntity } from "../../../../../platform-kit/meta"
+import { getStrippedClone, Stripped, StrippedEntity } from "@tutao/meta"
 import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
@@ -77,7 +77,15 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, cleanMailAddress, identity, lazy, Require } from "../../../../../platform-kit/utils"
+import {
+	arrayEqualsWithPredicate,
+	assertNonNull,
+	assertNotNull,
+	cleanMailAddress,
+	identity,
+	lazy,
+	Require
+} from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -95,7 +103,7 @@ import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextVie
 import { UserController } from "../../../../common/api/main/UserController.js"
 import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
-import { ProgrammingError } from "../../../../../platform-kit/app-env"
+import { ProgrammingError } from "@tutao/app-env"
 import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"
