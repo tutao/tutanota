@@ -230,7 +230,7 @@ pipeline {
 						}
 					}
 					steps {
-						sh 'cd src/mimimi && node make --release && cd -'
+						sh 'cd src/app-kit/mimimi && node make --release && cd -'
 					}
 				}
 			}

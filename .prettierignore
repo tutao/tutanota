@@ -8,6 +8,6 @@ libs/
 app-android/
 app-ios/
 fdroid-metadata-workaround/
-src/crypto-primitives
+src/platform-kit/crypto/crypto-primitives/
 target/
 src/app-kit/mimimi/tests

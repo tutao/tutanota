@@ -1,7 +1,7 @@
 import typescriptEslint from "typescript-eslint"
 import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
-import { defineConfig, globalIgnores } from "eslint/config"
+import {defineConfig, globalIgnores} from "eslint/config"
 
 export default defineConfig([
 	{
@@ -35,7 +35,7 @@ export default defineConfig([
 			"no-useless-backreference": "warn",
 			"use-isnan": "error",
 			"valid-typeof": "error",
-			eqeqeq: ["error", "always", { null: "ignore" }],
+			eqeqeq: ["error", "always", {null: "ignore"}],
 			"no-case-declarations": "error",
 			"no-delete-var": "error",
 			"no-empty": "warn",
@@ -108,7 +108,7 @@ export default defineConfig([
 			"native-cache/",
 			"src/app-kit/mimimi/",
 			"src/platform-kit/crypto/internal/",
-			"src/platform-kit/crypto-primitives/",
+			"src/platform-kit/crypto/crypto-primitives/",
 			"resources/",
 			"schemas/",
 			"tuta-sdk/",

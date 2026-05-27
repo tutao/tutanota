@@ -112,12 +112,12 @@ pipeline {
 							steps {
 								bat "npm ci"
 
-								bat "cd src\\mimimi && node make --release && cd ..\\.."
+								bat "cd src\\app-kit\\mimimi && node make --release && cd ..\\..\\.."
 								bat "node buildSrc\\getNodeGypLibrary.js @signalapp/sqlcipher -e node --copy-target node_sqlcipher --force-rebuild --root-dir ${WORKSPACE}"
 								bat "node buildSrc\\getNodeGypLibrary.js @indutny/simple-windows-notifications -e node --copy-target simple-windows-notifications --force-rebuild --root-dir ${WORKSPACE}"
 								// napi-rs rollup plugin expects .node for the package to be next to the entry point
 								// so we stash and unstash it as-is
-								stash includes: 'native-cache/**/*,src/mimimi/napi-out/*.node', name: 'native_modules'
+								stash includes: 'native-cache/**/*,src/app-kit/mimimi/napi-out/*.node', name: 'native_modules'
 							}
 						}
 						stage("Client") {
@@ -359,8 +359,8 @@ def initBuildArea() {
 	sh 'node -v'
 	sh 'npm -v'
 	sh 'npm ci'
-	sh 'cd src/mimimi && node make --release && cd -'
-	sh 'cd src/platform-kit/crypto && node make ../../build && cd -'
+	sh 'cd src/app-kit/mimimi && node make --release && cd -'
+	sh 'cd src/platform-kit/crypto && node make ../../../build && cd -'
 	sh 'rm -rf ./build/*'
 	sh 'rm -rf ./native-cache/*'
 	unstash 'web_base'

@@ -90,8 +90,13 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await runStep("Types with emit", () => {
 		execSync(`npm run ${app ?? "mail"}:types`, { stdio: "inherit" })
 	})
-	await buildArgon2(resolvedBuildDir)
-	await buildLibOqs(resolvedBuildDir)
+
+	await runStep("Build Argon2 & Oqs", async () => {
+		execSync("make -f Makefile_liboqs clean", { cwd: "libs/webassembly", stdio: "inherit" })
+		execSync("make -f Makefile_argon2 clean", { cwd: "libs/webassembly", stdio: "inherit" })
+		await buildArgon2(resolvedBuildDir)
+		await buildLibOqs(resolvedBuildDir)
+	})
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({

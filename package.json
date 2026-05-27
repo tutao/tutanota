@@ -16,7 +16,6 @@
 		"calendar:types": "tsc --build --incremental true tsconfig-calendar-app.json",
 		"drive:types": "tsc --build --incremental true tsconfig-drive-app.json",
 		"test:types": "tsc --build --incremental true test/tsconfig.json",
-		"prebuild": "node buildSrc/prebuild.js",
 		"preinstall": "node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
@@ -29,7 +28,7 @@
 		"fix": "npm run style:fix && npm run lint:fix",
 		"trace-imports": "node --import ./buildSrc/review/import-hooks.js",
 		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json",
-		"ios:generate-project": "cd app-ios && xcodegen --spec mail-project.yml && xcodegen --spec calendar-project.yml"
+		"ios:generate-project": "cd app-ios && xcodegen --spec mail-project.yml && xcodegen --spec calendar-project.yml && cd ../tuta-sdk/ios && xcodegen --spec project.yml"
 	},
 	"dependencies": {
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
