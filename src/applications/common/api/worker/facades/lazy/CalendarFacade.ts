@@ -34,7 +34,6 @@ import {
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
-import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AlarmInfo, Group, PushIdentifierTypeRef, User, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
@@ -48,6 +47,7 @@ import {
 	createCalendarDeleteIn,
 } from "@tutao/entities/tutanota"
 import { AlarmFacade } from "./AlarmFacade"
+import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
 
 assertWorkerOrNode()
 

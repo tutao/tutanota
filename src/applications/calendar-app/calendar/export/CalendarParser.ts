@@ -1,7 +1,14 @@
-import { CalendarEventAttendee, createCalendarEventAttendee, createEncryptedMailAddress, EncryptedMailAddress } from "@tutao/entities/tutanota"
+import {
+	AdvancedRepeatRule,
+	CalendarEventAttendee,
+	CalendarRepeatRule,
+	createCalendarEventAttendee,
+	createEncryptedMailAddress,
+	EncryptedMailAddress,
+} from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
-import { filterInt, neverNull } from "../../../../platform-kit/utils"
+import { filterInt, neverNull, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
@@ -20,10 +27,94 @@ import {
 import WindowsZones from "./WindowsZones"
 import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
 import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platform-kit/app-env"
-import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../common/calendar/gui/ImportExportUtils"
+import { Stripped } from "@tutao/meta"
+import { DataFile } from "../../../../entities/tutanota/MailBundle"
+
+type PropertyParamValue = string
+type Property = {
+	name: string
+	params: Record<string, PropertyParamValue>
+	value: string
+}
+type ICalObject = {
+	type: string
+	properties: Array<Property>
+	children: Array<ICalObject>
+}
+
+/**
+ * This type is based on {@link CalendarEvent} and should have the basic values to create one using values
+ * from an ics file
+ */
+export type IcsCalendarEvent = {
+	summary: string
+	description: string
+	startTime: Date
+	endTime: Date
+	location: string
+	uid: string
+	sequence: NumberString
+	recurrenceId: null | Date
+	repeatRule: StrippedRepeatRule | null
+	attendees: Array<StrippedCalendarEventAttendee> | null
+	organizer: Stripped<EncryptedMailAddress> | null
+}
+export type ParsedEventAlarmTuple = {
+	icsCalendarEvent: IcsCalendarEvent
+	alarms: Array<AlarmInfoTemplate>
+}
+export type ParsedCalendarData = {
+	method: string
+	contents: Array<ParsedEventAlarmTuple>
+}
+export type StrippedCalendarEventAttendee = Stripped<
+	Omit<CalendarEventAttendee, "address"> & {
+		address: Stripped<EncryptedMailAddress>
+	}
+>
+export type StrippedRepeatRule = Stripped<
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
+>
+type ICalDuration = {
+	positive: boolean
+	day?: number
+	week?: number
+	hour?: number
+	minute?: number
+}
+type DateComponents = {
+	year: number
+	month: number
+	day: number
+	zone?: string
+}
+type TimeComponents = {
+	hour: number
+	minute: number
+}
+type DateTimeComponents = DateComponents & TimeComponents
+
+type TimeDuration = {
+	type: "time"
+	hour?: number
+	minute?: number
+	second?: number
+}
+type DateDuration = {
+	type: "date"
+	day: number
+	time: TimeDuration | null
+}
+type WeekDuration = {
+	type: "week"
+	week: number
+}
 
 function parseDateString(dateString: string): {
 	year: number
@@ -38,18 +129,6 @@ function parseDateString(dateString: string): {
 		month,
 		day,
 	}
-}
-
-type PropertyParamValue = string
-type Property = {
-	name: string
-	params: Record<string, PropertyParamValue>
-	value: string
-}
-type ICalObject = {
-	type: string
-	properties: Array<Property>
-	children: Array<ICalObject>
 }
 
 function getProp(obj: ICalObject, tag: string, optional: false): Property
@@ -497,6 +576,26 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 }
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
+/** importer internals exported for testing */
+export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
+	const tree = parseICalendar(value)
+	return parseCalendarEvents(tree, zone)
+}
+
+/** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
+export function parseCalendarFile(file: DataFile): ParsedCalendarData {
+	try {
+		const stringData = utf8Uint8ArrayToString(file.data)
+		return parseCalendarStringData(stringData, getTimeZone())
+	} catch (e) {
+		if (e instanceof ParserError) {
+			throw new ParserError(e.message, file.name)
+		} else {
+			throw e
+		}
+	}
+}
+
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
@@ -717,14 +816,6 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tz
 	}
 }
 
-type ICalDuration = {
-	positive: boolean
-	day?: number
-	week?: number
-	hour?: number
-	minute?: number
-}
-
 function icalFrequencyToRepeatPeriod(value: string): RepeatPeriod {
 	const convertedValue = {
 		DAILY: RepeatPeriod.DAILY,
@@ -748,18 +839,6 @@ export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
 	}
 	return mapping[repeatPeriod]
 }
-
-type DateComponents = {
-	year: number
-	month: number
-	day: number
-	zone?: string
-}
-type TimeComponents = {
-	hour: number
-	minute: number
-}
-type DateTimeComponents = DateComponents & TimeComponents
 
 /** parse a time */
 export function parseTimeIntoComponents(value: string): DateComponents | DateTimeComponents {
@@ -887,21 +966,7 @@ function parsePropertyName(iterator: StringIterator): string {
 const secondDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("S"))
 const minuteDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("M"))
 const hourDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("H"))
-type TimeDuration = {
-	type: "time"
-	hour?: number
-	minute?: number
-	second?: number
-}
-type DateDuration = {
-	type: "date"
-	day: number
-	time: TimeDuration | null
-}
-type WeekDuration = {
-	type: "week"
-	week: number
-}
+
 const durationTimeParser = mapParser(
 	combineParsers(makeCharacterParser("T"), maybeParse(hourDurationParser), maybeParse(minuteDurationParser), maybeParse(secondDurationParser)),
 	(parsed) => {

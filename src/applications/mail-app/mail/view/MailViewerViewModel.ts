@@ -18,11 +18,11 @@ import {
 	ofClass,
 	startsWith,
 	utf8Uint8ArrayToString,
-} from "../../../../platform-kit/utils"
+} from "@tutao/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
 import { FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -72,14 +72,18 @@ import {
 	NewsletterBannerRule,
 } from "../../../../entities/tutanota/Utils"
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
-import { haveSameId, isSameId, OperationType } from "../../../../platform-kit/meta"
+import { haveSameId, isSameId, OperationType } from "@tutao/meta"
 import {
 	EntityEventsListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
+import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
+import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
+import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -173,6 +177,7 @@ export class MailViewerViewModel {
 		readonly eventsRepository: CalendarEventsRepository,
 		private readonly undoModel: UndoModel,
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
+		private readonly operationProgressTracker: OperationProgressTracker,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1314,15 +1319,17 @@ export class MailViewerViewModel {
 	private async importCalendar(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
+			const { parseCalendarFile } = await import("../../../calendar-app/calendar/export/CalendarParser")
+			const { importCalendarFile } = await import("../../../common/calendar/gui/CalendarImporterDialog")
+
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
+			const calendarModel = await mailLocator.calendarModel()
 			await importCalendarFile(
-				await mailLocator.calendarModel(),
+				calendarModel,
 				this.logins.getUserController(),
 				data.contents,
-				this.entityClient,
-				this.logins.getUserController().user,
+				new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone()),
 			)
 		} catch (e) {
 			console.log(e)

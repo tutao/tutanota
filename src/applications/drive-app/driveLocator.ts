@@ -70,7 +70,6 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/work
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { ParsedEventAlarmTuple } from "../common/calendar/gui/ImportExportUtils"
 import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
@@ -132,6 +131,11 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
+
+import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
+import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
+import { getTimeZone } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -768,7 +772,8 @@ class DriveLocator implements CommonLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
-			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
+			const { parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarParser")
+			const { importCalendarFile } = await import("../common/calendar/gui/CalendarImporterDialog")
 
 			let parsedEvents: ParsedEventAlarmTuple[] = []
 			for (const fileRef of files) {
@@ -779,12 +784,13 @@ class DriveLocator implements CommonLocator {
 				parsedEvents.push(...data.contents)
 			}
 
+			const calendarModel = await this.calendarModel()
+
 			await importCalendarFile(
-				await this.calendarModel(),
+				calendarModel,
 				this.logins.getUserController(),
 				parsedEvents,
-				this.entityClient,
-				this.logins.getUserController().user,
+				new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone()),
 			)
 		}
 	}

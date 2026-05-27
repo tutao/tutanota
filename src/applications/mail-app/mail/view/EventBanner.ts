@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { LazyLoaded } from "../../../../platform-kit/utils"
+import { LazyLoaded } from "@tutao/utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -9,9 +9,9 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
-import { type IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
+import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent

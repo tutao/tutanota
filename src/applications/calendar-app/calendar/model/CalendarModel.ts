@@ -26,7 +26,7 @@ import {
 	isApp,
 	isDesktop,
 	TutanotaError,
-} from "../../../../platform-kit/app-env"
+} from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
 import Stream from "mithril/stream"
 import {
@@ -39,7 +39,7 @@ import {
 	OperationType,
 	POST_MULTIPLE_LIMIT,
 	removeTechnicalFields,
-} from "../../../../platform-kit/meta"
+} from "@tutao/meta"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
@@ -55,14 +55,14 @@ import {
 	CalendarEventAlteredInstance,
 	CalendarEventInstance,
 	CalendarEventProgenitor,
-	ResolvedUidIndexEntry,
 	CalendarFacade,
 	CreateCalendarEventsResult,
+	ResolvedUidIndexEntry,
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 import { FileController } from "../../../common/file/FileController"
 import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { SessionKeyNotFoundError } from "../../../../platform-kit/crypto/error"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 
@@ -82,20 +82,6 @@ import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/Gr
 import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import {
-	EventAlarmInfoTemplatesTuple,
-	eventHasSameFields,
-	EventImportRejectionReason,
-	IcsCalendarEvent,
-	makeCalendarEventFromIcsCalendarEvent,
-	normalizeCalendarUrl,
-	parseCalendarStringData,
-	ParsedCalendarData,
-	ParsedEventAlarmTuple,
-	shallowIsSameEvent,
-	sortOutParsedEvents,
-	SyncStatus,
-} from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
@@ -142,6 +128,16 @@ import {
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
+import {
+	EventAlarmInfoTemplatesTuple,
+	eventHasSameFields,
+	makeCalendarEventFromIcsCalendarEvent,
+	normalizeCalendarUrl,
+	shallowIsSameEvent,
+	SyncStatus,
+} from "../../../common/calendar/import/ImportExportUtils"
+import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "../export/CalendarParser"
+import { classifyImportedEvents, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -578,7 +574,7 @@ export class CalendarModel {
 				continue
 			}
 
-			const existingEventList = await loadAllEvents(currentCalendarGroupRoot)
+			const existingEventList = await this.loadAllEvents(currentCalendarGroupRoot)
 
 			/**
 			 * Sync strategy
@@ -587,7 +583,12 @@ export class CalendarModel {
 			 * - Update existing events
 			 * - Add new
 			 */
-			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
+			const { rejectedEvents, eventsForCreationTuples } = classifyImportedEvents(
+				parsedExternalEvents,
+				existingEventList,
+				currentCalendarGroupRoot,
+				getTimeZone(),
+			)
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
 			const eventsToUpdate = duplicates.filter((event) => {
 				const existingEvent = existingEventList.find((existing) => shallowIsSameEvent(event, existing))
@@ -605,7 +606,7 @@ export class CalendarModel {
 			)
 			eventsToRemove.push(...this.findDuplicatedEvents(existingEventList))
 
-			const creationRequests = Math.ceil(eventsForCreation.length / POST_MULTIPLE_LIMIT)
+			const creationRequests = Math.ceil(eventsForCreationTuples.length / POST_MULTIPLE_LIMIT)
 			const totalRequests = creationRequests + eventsToRemove.length + eventsToUpdate.length
 
 			try {
@@ -614,7 +615,7 @@ export class CalendarModel {
 					eventsToUpdate,
 					existingEventList,
 					duplicates.length,
-					eventsForCreation,
+					eventsForCreationTuples,
 					currentCalendarGroupRoot,
 					totalRequests > 50,
 				)
@@ -920,7 +921,7 @@ export class CalendarModel {
 			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
+			const { parseCalendarFile } = await import("../../../calendar-app/calendar/export/CalendarParser")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
@@ -1554,6 +1555,13 @@ export class CalendarModel {
 	getGroupSettings(): GroupSettings[] {
 		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
 	}
+
+	async loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
+		return Promise.all([
+			locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
+			locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
+		]).then((results) => results.flat())
+	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events
@@ -1590,11 +1598,4 @@ function* oneShotProgressMonitorGenerator(progressTracker: ProgressTracker, user
 	while (true) {
 		yield new NoopProgressMonitor()
 	}
-}
-
-async function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
-	return Promise.all([
-		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
-		locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
-	]).then((results) => results.flat())
 }

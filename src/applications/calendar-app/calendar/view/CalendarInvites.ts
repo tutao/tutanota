@@ -1,6 +1,5 @@
-import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { assert, assertNotNull, filterInt, Require } from "../../../../platform-kit/utils"
+import { assert, assertNotNull, filterInt, Require } from "@tutao/utils"
 import { CalendarNotificationSender } from "./CalendarNotificationSender.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { UserError } from "../../../common/api/main/UserError.js"
@@ -14,12 +13,13 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { ResolvedUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
 import { CalendarEvent, CalendarEventAttendee, File, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, Recipient, RecipientList } from "../../../../entities/tutanota/Utils"
-import { clone, getAsEnumValue } from "../../../../platform-kit/meta"
+import { clone, getAsEnumValue } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import { IcsCalendarEvent, parseCalendarFile } from "../export/CalendarParser"
+import { makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
 

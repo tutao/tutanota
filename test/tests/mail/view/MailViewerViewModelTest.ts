@@ -110,6 +110,7 @@ o.spec("MailViewerViewModel", function () {
 			eventsRepository,
 			undoModel,
 			transferProgressDispatcher,
+			object(),
 		)
 	}
 
