@@ -338,18 +338,19 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 												),
 										),
 									index <= 2 &&
-										viewModel.globalCampaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN &&
+										viewModel.globalCampaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN &&
 										m(
 											".abs.z3",
 											{
 												style: {
-													top: px(260),
-													right: px(14),
-													width: px(250),
+													top: px(-65),
+													left: px(48),
+													width: px(300),
+													zIndex: -1,
 												},
 											},
 											m(DynamicColorSvg, {
-												path: this.getIllustrationPath("signup-cake.svg"),
+												path: this.getIllustrationPath("eu-stars.svg"),
 											}),
 										),
 								]),
@@ -382,6 +383,9 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		let campaignIllustration = "signup-before-click.svg"
 		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 			campaignIllustration = "signup-before-click-birthday.svg"
+		}
+		if (campaignName && campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN) {
+			campaignIllustration = "signup-before-click-sovereignty.svg"
 		}
 		return this.stepIllustrations[step] ?? this.stepIllustrations[0] ?? campaignIllustration
 	}
