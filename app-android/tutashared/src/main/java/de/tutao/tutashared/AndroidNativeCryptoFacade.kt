@@ -7,16 +7,42 @@ import androidx.annotation.VisibleForTesting
 import de.tutao.tutasdk.KyberException
 import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
 import de.tutao.tutasdk.kyberEncapsulateWithPubKey
-import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.file.TempFs
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.EncryptedFileInfo
+import de.tutao.tutashared.ipc.IPCEd25519KeyPair
+import de.tutao.tutashared.ipc.IPCEd25519PrivateKey
+import de.tutao.tutashared.ipc.IPCEd25519PublicKey
+import de.tutao.tutashared.ipc.IPCEd25519Signature
+import de.tutao.tutashared.ipc.KyberEncapsulation
+import de.tutao.tutashared.ipc.KyberKeyPair
+import de.tutao.tutashared.ipc.KyberPrivateKey
+import de.tutao.tutashared.ipc.KyberPublicKey
+import de.tutao.tutashared.ipc.NativeCryptoFacade
+import de.tutao.tutashared.ipc.RsaPrivateKey
+import de.tutao.tutashared.ipc.RsaPublicKey
+import de.tutao.tutashared.ipc.wrap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.BoundedInputStream
-import java.io.*
-import java.security.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.security.InvalidKeyException
+import java.security.Key
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import java.security.spec.MGF1ParameterSpec
-import java.util.*
-import javax.crypto.*
+import javax.crypto.BadPaddingException
+import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.IllegalBlockSizeException
+import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 import javax.crypto.spec.PSource
@@ -25,6 +51,7 @@ import javax.crypto.spec.SecretKeySpec
 class AndroidNativeCryptoFacade(
 	private val context: Context,
 	private val tempDir: TempDir = TempDir(context),
+	private val tempFs: TempFs,
 	val randomizer: SecureRandom = SecureRandom(),
 ) : NativeCryptoFacade {
 
@@ -217,15 +244,15 @@ class AndroidNativeCryptoFacade(
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val parsedFileUri = Uri.parse(fileUri)
-		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
-		val inputStream = BoundedInputStream.builder()
-			.setInputStream(context.contentResolver.openInputStream(parsedFileUri))
-			.get()
+		val fileInfo = tempFs.fileInfo(fileUri)
+		val outputFile = File(tempDir.encrypt, fileInfo.name)
+
+		val inputStream = tempFs.fileStream(fileUri)
 		val out: OutputStream = withContext(Dispatchers.IO) {
 			FileOutputStream(outputFile)
 		}
 		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.count.toInt())
+		return EncryptedFileInfo(outputFile.toUri(), fileInfo.size.toInt())
 	}
 
 	@Throws(IOException::class, CryptoError::class)

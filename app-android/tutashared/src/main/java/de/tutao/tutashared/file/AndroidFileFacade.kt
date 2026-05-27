@@ -51,7 +51,6 @@ import okio.Buffer
 import okio.BufferedSink
 import okio.source
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.BoundedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -76,12 +75,14 @@ class AndroidFileFacade(
 	private val notificationSender: FileNotificationSender,
 	private val random: SecureRandom,
 	private val defaultClient: OkHttpClient,
+	private val tempFs: TempFs,
 	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 	private val uploadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 	private val providerAuthority: String,
 ) : FileFacade {
 
 	val tempDir = TempDir(context, random)
+
 	private val activeRequests = ConcurrentHashMap<String, Call>()
 
 	@Throws(Exception::class)
@@ -573,26 +574,23 @@ class AndroidFileFacade(
 	}
 
 	@Throws(IOException::class)
-	override suspend fun splitFile(fileUri: String, maxChunkSizeBytes: Int): List<String> =
-		withContext(Dispatchers.IO) {
-			val file = Uri.parse(fileUri)
-			val fileSize = getFileInfo(context, file).size
-			val inputStream = context.contentResolver.openInputStream(file)
-			val chunkUris: MutableList<String> = ArrayList()
-			var chunk = 0
-			while (chunk * maxChunkSizeBytes <= fileSize) {
-				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
-				val chunkedInputStream = BoundedInputStream.builder()
-					.setInputStream(inputStream)
-					.setMaxCount(maxChunkSizeBytes.toLong())
-					.get()
-				val tmpFile = File(tempDir.decrypt, tmpFilename)
-				writeFileStream(tmpFile, chunkedInputStream)
-				chunkUris.add(tmpFile.toUri().toString())
-				chunk++
-			}
-			chunkUris
+	override suspend fun splitFile(fileUri: String, maxChunkSizeBytes: Int): List<String> {
+		val fileSize = withContext(Dispatchers.IO) {
+			getFileInfo(context, fileUri.toUri()).size
 		}
+
+		val chunkUris: MutableList<String> = ArrayList()
+		var currentOffset = 0L
+		while (currentOffset < fileSize) {
+			val start = currentOffset
+			val length = if (start + maxChunkSizeBytes > fileSize) fileSize - start else maxChunkSizeBytes.toLong()
+			val chunkUri = tempFs.createFileChunkUri(fileUri, start, length).toString()
+			chunkUris += chunkUri
+			currentOffset += start + length
+		}
+
+		return chunkUris
+	}
 
 	@Throws(IOException::class, NoSuchAlgorithmException::class)
 	override suspend fun hashFile(fileUri: String): String {

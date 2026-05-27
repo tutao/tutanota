@@ -58,6 +58,7 @@ import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
@@ -67,7 +68,6 @@ import de.tutao.tutashared.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.remote.RemoteBridge
-import de.tutao.tutashared.remote.RemoteExecutionException
 import de.tutao.tutashared.toDp
 import de.tutao.tutashared.toPx
 import de.tutao.tutashared.webauthn.AndroidWebauthnFacade
@@ -131,6 +131,8 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		val localNotificationsFacade = LocalNotificationsFacade(this)
 
+		val tempFs = TempFs(this, SecureRandom())
+
 		val fileFacade =
 			AndroidFileFacade(
 				this,
@@ -138,6 +140,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				localNotificationsFacade,
 				SecureRandom(),
 				NetworkUtils.defaultClient,
+				tempFs,
 				{ fileId, bytes ->
 					lifecycleScope.launch {
 						commonNativeFacade.downloadProgress(fileId, bytes)
@@ -151,7 +154,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				BuildConfig.FILE_PROVIDER_AUTHORITY
 			)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
-		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
+		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir, tempFs)
 
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
