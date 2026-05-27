@@ -14,7 +14,11 @@ mod test_utils;
 
 use ed25519::Ed25519KeyPair;
 use randomizer_facade::RandomizerFacade;
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 
+use crate::aead_facade::{AeadFacade, AeadSubKeys};
+use crate::aes::{Aes256Key, AesDecryptError, Iv, PaddingMode, PlaintextAndIv};
 use crate::ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature};
 use wasm_bindgen::prelude::*;
 
@@ -36,4 +40,69 @@ pub fn ed25519_verify(
 	signature: Ed25519Signature,
 ) -> bool {
 	public_key.verify(message, &signature).is_ok()
+}
+
+#[derive(Tsify, Serialize, Deserialize)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub enum AesDecryptErrorWasm {
+	InvalidDataSizeError,
+	PaddingError,
+	HmacError,
+}
+
+impl From<AesDecryptError> for AesDecryptErrorWasm {
+	fn from(value: AesDecryptError) -> Self {
+		match value {
+			AesDecryptError::InvalidDataSizeError => Self::InvalidDataSizeError,
+			AesDecryptError::PaddingError(_) => Self::PaddingError,
+			AesDecryptError::MacError(_) => Self::HmacError,
+		}
+	}
+}
+
+#[wasm_bindgen]
+pub fn aes_256_decrypt(key: Aes256Key, encrypted_bytes: &[u8]) -> Option<PlaintextAndIv> {
+	aes::aes_256_decrypt(&key, encrypted_bytes).ok()
+}
+
+#[wasm_bindgen]
+pub fn aes_256_encrypt(key: Aes256Key, encrypted_bytes: &[u8], iv_bytes: &[u8]) -> Option<Vec<u8>> {
+	let iv = Iv(iv_bytes.try_into().expect("iv is correct size"));
+	// let randomizer_facade = RandomizerFacade::from_core(rand_core::OsRng {});
+	// let iv = Iv::generate(&randomizer_facade);
+	aes::aes_256_encrypt(&key, encrypted_bytes, &iv, PaddingMode::WithPadding).ok()
+}
+
+#[wasm_bindgen]
+pub fn aead_encrypt(
+	encryption_key: Aes256Key,
+	authentication_key: Aes256Key,
+	plaintext: Vec<u8>,
+	associated_data: &[u8],
+) -> Vec<u8> {
+	let randomizer_facade = RandomizerFacade::from_core(rand_core::OsRng {});
+	let facade = AeadFacade::new(randomizer_facade);
+	let sub_keys: AeadSubKeys = AeadSubKeys {
+		encryption_key,
+		authentication_key,
+	};
+	facade.encrypt(&sub_keys, plaintext, associated_data)
+}
+
+#[wasm_bindgen]
+pub fn aead_decrypt(
+	encryption_key: Aes256Key,
+	authentication_key: Aes256Key,
+	tagged_ciphertext: &[u8],
+	associated_data: &[u8],
+) -> Option<Vec<u8>> {
+	let randomizer_facade = RandomizerFacade::from_core(rand_core::OsRng {});
+	let facade = AeadFacade::new(randomizer_facade);
+	let sub_keys: AeadSubKeys = AeadSubKeys {
+		encryption_key,
+		authentication_key,
+	};
+	facade
+		.decrypt(&sub_keys, tagged_ciphertext, associated_data)
+		.ok()
 }

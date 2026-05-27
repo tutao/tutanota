@@ -1,7 +1,15 @@
 import { uint8ArrayToBase64 } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { Aes256Key, AesKey, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils.js"
+import { Aes256Key, AesKey, bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
+import __wbg_init, { aes_256_decrypt, aes_256_encrypt } from "@tutao/crypto-primitives"
+import { AesKeyLength, getAndVerifyAesKeyLength } from "./symmetric/AesKeyLength"
+
+// a hack for having a single bundle with all the code in debug mode
+
+if (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) {
+	await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
+}
 
 /**
  * Encrypts bytes with AES128 or AES256 in CBC mode.
@@ -10,7 +18,17 @@ import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
  * @return The encrypted bytes
  */
 export function aesEncrypt(key: AesKey, bytes: Uint8Array) {
-	return SYMMETRIC_CIPHER_FACADE.encryptBytes(key, bytes)
+	try {
+		getAndVerifyAesKeyLength(key, [AesKeyLength.Aes256])
+		const iv = generateIV()
+		const result = aes_256_encrypt(Array.from(bitArrayToUint8Array(key)), bytes, iv)
+		if (result === undefined) {
+			throw new CryptoError("oh no!!!")
+		}
+		return new Uint8Array(result)
+	} catch (e) {
+		return SYMMETRIC_CIPHER_FACADE.encryptBytes(key, bytes)
+	}
 }
 
 /**
@@ -48,7 +66,16 @@ export function aes256EncryptSearchIndexEntryWithIV(key: Aes256Key, bytes: Uint8
  * @return The decrypted bytes.
  */
 export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array {
-	return SYMMETRIC_CIPHER_FACADE.decryptBytes(key, encryptedBytes)
+	try {
+		getAndVerifyAesKeyLength(key, [AesKeyLength.Aes256])
+		const result = aes_256_decrypt(Array.from(bitArrayToUint8Array(key)), encryptedBytes)
+		if (result === undefined) {
+			throw new CryptoError("oh no!!!")
+		}
+		return new Uint8Array(result.data)
+	} catch (e) {
+		return SYMMETRIC_CIPHER_FACADE.decryptBytes(key, encryptedBytes)
+	}
 }
 
 export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {

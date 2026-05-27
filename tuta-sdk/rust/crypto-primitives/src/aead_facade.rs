@@ -20,8 +20,8 @@ pub enum AeadDecryptError {
 #[derive(Clone, PartialEq)]
 #[cfg_attr(any(test, feature = "test_utils"), derive(Debug))]
 pub struct AeadSubKeys {
-	encryption_key: Aes256Key,
-	authentication_key: Aes256Key,
+	pub encryption_key: Aes256Key,
+	pub authentication_key: Aes256Key,
 }
 
 impl AeadSubKeys {

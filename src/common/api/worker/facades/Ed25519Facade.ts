@@ -51,7 +51,7 @@ export class WASMEd25519Facade implements Ed25519Facade {
 	constructor(private readonly testWASM?: BufferSource) {}
 
 	// loads liboqs WASM
-	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {
+	initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {
 		if (this.testWASM) {
 			return initEd25519(this.testWASM)
 		} else {

@@ -4,8 +4,11 @@ import { concat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateIV, IV_BYTE_LENGTH, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify, DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "../../hashes/Blake3.js"
-import { MacTag } from "../../misc/Constants"
 import { CryptoError } from "../../error.js"
+import __wbg_init, { aead_decrypt, aead_encrypt } from "@tutao/crypto-primitives"
+import { MacTag } from "../../misc/Constants"
+
+await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80
@@ -49,6 +52,19 @@ export class AeadFacade {
 		}
 	}
 
+	encrypt_rust(key: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		const result = aead_encrypt(
+			Array.from(bitArrayToUint8Array(key.encryptionKey)),
+			Array.from(bitArrayToUint8Array(key.authenticationKey)),
+			plaintext,
+			associatedData,
+		)
+		if (result === undefined) {
+			throw new CryptoError("oh no!!!")
+		}
+		return new Uint8Array(result)
+	}
+
 	/**
 	 * Encrypt with AEAD.
 	 */
@@ -76,6 +92,19 @@ export class AeadFacade {
 		const tag = blake3Mac(authenticationKey, concat(unauthenticatedCiphertextLength, unauthenticatedCiphertext, associatedData))
 
 		return concat(unauthenticatedCiphertext, tag)
+	}
+
+	decrypt_rust(key: AeadSubKeys, ciphertext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		const result = aead_decrypt(
+			Array.from(bitArrayToUint8Array(key.encryptionKey)),
+			Array.from(bitArrayToUint8Array(key.authenticationKey)),
+			ciphertext,
+			associatedData,
+		)
+		if (result === undefined) {
+			throw new CryptoError("oh no!!!")
+		}
+		return new Uint8Array(result)
 	}
 
 	/**

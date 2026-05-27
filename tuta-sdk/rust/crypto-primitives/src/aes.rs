@@ -179,7 +179,7 @@ impl Nonce {
 #[derive(Eq, PartialEq, Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the iv
-pub struct Iv([u8; IV_BYTE_SIZE]);
+pub struct Iv(pub [u8; IV_BYTE_SIZE]);
 
 impl Clone for Iv {
 	/// Clone the initialization vector

@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	AeadFacade,
 	aes256EncryptSearchIndexEntry,
+	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
 	AsymmetricKeyPair,
@@ -75,6 +76,8 @@ import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestU
 const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
+
+const ed25519Facade = await createEd25519Facade()
 
 o.spec("CompatibilityTest", function () {
 	o.afterEach(function () {
@@ -384,7 +387,6 @@ o.spec("CompatibilityTest", function () {
 
 	o("ed25519 - public key signature", async function () {
 		for (const td of testData.ed25519Tests) {
-			const ed25519Facade = await createEd25519Facade()
 			const cryptoWrapper = new CryptoWrapper()
 			const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 
@@ -540,6 +542,97 @@ o.spec("CompatibilityTest", function () {
 			}
 		})
 	})
+	o.spec("benchmark symmetric encryption", function () {
+		const string1B = stringToUtf8Uint8Array("1")
+		const string10B = stringToUtf8Uint8Array("1234567890")
+		const string100B = new Uint8Array(100)
+		const string1KiB = new Uint8Array(1024)
+		const string1MiB = new Uint8Array(1024 * 1024)
+		string100B.fill(0x41)
+		string1KiB.fill(0x41)
+		string1MiB.fill(0x41)
+		const plaintextTestData: Uint8Array[] = [string1B, string1B, string10B, string100B, string1KiB, string1MiB]
+		const associatedTestData: Uint8Array[] = [new Uint8Array(0), string1B, string10B, string100B, string1KiB]
+		const NUM_TEST_RUNS = 1000
+		const results = [[]]
+
+		o.before(async function () {
+			await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		})
+
+		o.spec("CBC-then-HMAC-SHA-256", function () {
+			o("encrypt " + NUM_TEST_RUNS + "x", function () {
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					const start = new Date()
+					for (let i = 0; i < NUM_TEST_RUNS; i++) {
+						aesEncrypt(keys.encryptionKey, plaintext)
+					}
+					const end = new Date()
+					console.log("plaintext length ", plaintext.length, "time in ms: ", end.getTime() - start.getTime())
+				}
+			})
+
+			o("decrypt " + NUM_TEST_RUNS + "x", function () {
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					const ciphertext: Uint8Array = aesEncrypt(keys.encryptionKey, plaintext)
+					const start = new Date()
+					for (let i = 0; i < NUM_TEST_RUNS; i++) {
+						const decrypted = aesDecrypt(keys.encryptionKey, ciphertext)
+					}
+					const end = new Date()
+					console.log("plaintext length ", plaintext.length, "time in ms: ", end.getTime() - start.getTime())
+				}
+			})
+		})
+
+		o.spec("CTR-then-Blake3", function () {
+			o("encrypt " + NUM_TEST_RUNS + "x", function () {
+				const aeadFacade = new AeadFacade()
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					for (const associatedData of associatedTestData) {
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							aeadFacade.encrypt_rust(keys, plaintext, associatedData)
+						}
+						const end = new Date()
+						console.log(
+							"plaintext length ",
+							plaintext.length,
+							" associated data of length: ",
+							associatedData.length,
+							"time in ms: ",
+							end.getTime() - start.getTime(),
+						)
+					}
+				}
+			})
+			o("decrypt " + NUM_TEST_RUNS + "x", function () {
+				const aeadFacade = new AeadFacade()
+				const keys = { encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+				for (const plaintext of plaintextTestData) {
+					for (const associatedData of associatedTestData) {
+						const ciphertext = aeadFacade.encrypt_rust(keys, plaintext, associatedData)
+						const start = new Date()
+						for (let i = 0; i < NUM_TEST_RUNS; i++) {
+							aeadFacade.decrypt_rust(keys, ciphertext, associatedData)
+						}
+						const end = new Date()
+						console.log(
+							"string of length ",
+							plaintext.length,
+							" associated data of length: ",
+							associatedData.length,
+							"time in ms: ",
+							end.getTime() - start.getTime(),
+						)
+					}
+				}
+			})
+		})
+	})
 
 	/**
 	 * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for
@@ -563,7 +656,9 @@ async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
 		const wasmBuffer = await readFile("../src/crypto-primitives/crypto_primitives_bg.wasm")
-		return new WASMEd25519Facade(wasmBuffer)
+		let wasmEd25519Facade = new WASMEd25519Facade(wasmBuffer)
+		await wasmEd25519Facade.initEd25519.getAsync()
+		return wasmEd25519Facade
 	} else {
 		return new WASMEd25519Facade()
 	}
