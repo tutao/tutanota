@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { getLetId } from "@tutao/meta"
+import { getLetId, isSameId, OperationType } from "@tutao/meta"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EventController } from "../../api/main/EventController"
 import { loadReceivedGroupInvitations } from "../GroupUtils"
@@ -8,7 +8,6 @@ import type { LoginController } from "../../api/main/LoginController"
 import { promiseMap } from "@tutao/utils"
 import { ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef } from "@tutao/entities/sys"
 import { getInvitationGroupType, ShareableGroupType } from "../../../../entities/sys/Utils"
-import { isSameId, OperationType } from "@tutao/meta"
 import {
 	EntityEventsListener,
 	EntityUpdateData,

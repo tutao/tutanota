@@ -5,7 +5,7 @@ import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "../../
 import { WebsocketConnectivityModel } from "../../../src/applications/common/misc/WebsocketConnectivityModel"
 import { EventController } from "../../../src/applications/common/api/main/EventController"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
-import { elementIdPart, listIdPart } from "../../../src/platform-kit/meta"
+import { elementIdPart, listIdPart, OperationType } from "../../../src/platform-kit/meta"
 import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel"
 import { createTestEntity } from "../TestUtils"
 import { defer } from "../../../src/platform-kit/utils"
@@ -13,7 +13,6 @@ import { SyncTracker } from "../../../src/applications/common/api/main/SyncTrack
 
 import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
 import { FileTypeRef } from "@tutao/entities/sys"
-import { OperationType } from "../../../src/platform-kit/meta"
 import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventUpdateCoordinatorTest", function () {

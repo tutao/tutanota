@@ -22,8 +22,7 @@ import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/pla
 import { AppLock } from "../../../src/applications/common/login/AppLock.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
-import { Credentials } from "../../../src/platform-kit/network/types"
-import { CredentialType } from "../../../src/platform-kit/network/types"
+import { Credentials, CredentialType } from "../../../src/platform-kit/network/types"
 
 import { GroupInfoTypeRef, UserTypeRef } from "@tutao/entities/sys"
 

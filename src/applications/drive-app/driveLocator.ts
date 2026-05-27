@@ -132,6 +132,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { KdfType } from "../../platform-kit/base/crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
+
 assertMainOrNode()
 
 class DriveLocator implements CommonLocator {

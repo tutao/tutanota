@@ -10,10 +10,15 @@ import { PermissionType } from "../../../../src/app-kit/native-bridge/common/gen
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/platform-kit/base/crypto/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
-import { ProgrammingError } from "../../../../src/platform-kit/app-env"
+import {
+	IdentityKeyQrVerificationResult,
+	IdentityKeySourceOfTrust,
+	IdentityKeyVerificationMethod,
+	Mode,
+	ProgrammingError,
+} from "../../../../src/platform-kit/app-env"
 import { DesktopSystemFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/DesktopSystemFacade.js"
 import { withOverriddenEnv } from "../../TestUtils"
-import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Mode } from "../../../../src/platform-kit/app-env"
 import { SigningPublicKey } from "../../../../src/platform-kit/crypto/encryption/Ed25519"
 import { PublicKeyIdentifierType } from "../../../../src/platform-kit/crypto"
 

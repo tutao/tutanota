@@ -10,6 +10,7 @@ import {
 	getListId,
 	isSameId,
 	listIdPart,
+	OperationType,
 } from "../../../../src/platform-kit/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/applications/mail-app/mail/view/ConversationViewModel"
@@ -42,7 +43,6 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { OperationType } from "../../../../src/platform-kit/meta"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"

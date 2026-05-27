@@ -10,7 +10,7 @@ import {
 	UpgradePromptType,
 } from "../../../platform-kit/app-env"
 import { lang, type MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
-import { elementIdPart, isSameId } from "../../../platform-kit/meta"
+import { elementIdPart, isSameId, OperationType } from "../../../platform-kit/meta"
 import { assertNotNull, defer, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "../../../platform-kit/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
@@ -68,7 +68,6 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType } from "../../../entities/tutanota/Utils"
-import { OperationType } from "../../../platform-kit/meta"
 import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"

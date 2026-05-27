@@ -35,7 +35,7 @@ import { RolloutFacade } from "../../../src/platform-kit/base/facades/RolloutFac
 import { ConnectMode } from "../../../src/platform-kit/network/Constants"
 import { CacheStorageLateInitializer } from "../../../src/app-kit/local-store/Types"
 import { Argon2idFacade } from "../../../src/platform-kit/base/crypto/WasmArgon2idFacade"
-import { Credentials } from "../../../src/platform-kit/network/types"
+import { Credentials, CredentialType } from "../../../src/platform-kit/network/types"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
 	ChangeKdfService,
@@ -51,7 +51,6 @@ import {
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { CredentialType } from "../../../src/platform-kit/network/types"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/crypto/Constants.js"
 import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"

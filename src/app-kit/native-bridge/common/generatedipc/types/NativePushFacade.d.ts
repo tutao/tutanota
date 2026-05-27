@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { ExtendedNotificationMode } from "../types/ExtendedNotificationMode"
+
 /**
  * Push notifications and alarms operations
  */

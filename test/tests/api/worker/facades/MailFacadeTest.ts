@@ -1,7 +1,7 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 
-import { CryptoProtocolVersion, MailAuthenticationStatus } from "../../../../../src/platform-kit/app-env"
+import { CryptoProtocolVersion, MailAuthenticationStatus, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { matchers, object, when } from "testdouble"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest.js"
@@ -11,7 +11,6 @@ import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFac
 import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
 import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platform-kit/utils"
-import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"

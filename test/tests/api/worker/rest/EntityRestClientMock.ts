@@ -7,6 +7,7 @@ import {
 	elementIdPart,
 	firstBiggerThanSecond,
 	getElementId,
+	getIdOfInstance,
 	getListId,
 	getServerIdEncodingForType,
 	isSameId,
@@ -22,7 +23,6 @@ import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../.
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { downcast } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { getIdOfInstance } from "../../../../../src/platform-kit/meta"
 import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 
 const authDataProvider: LoggedInUserProvider = downcast({

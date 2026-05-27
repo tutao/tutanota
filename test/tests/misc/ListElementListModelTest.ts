@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EntityIdEncoding, getElementId, getListId, sortCompareById } from "../../../src/platform-kit/meta"
+import { EntityIdEncoding, getElementId, getListId, OperationType, sortCompareById } from "../../../src/platform-kit/meta"
 import { defer, DeferredObject } from "../../../src/platform-kit/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { createTestEntity } from "../TestUtils.js"
@@ -8,7 +8,6 @@ import { ListElementListModel, ListElementListModelConfig } from "../../../src/a
 import * as restError from "../../../src/platform-kit/rest-client/error"
 
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
-import { OperationType } from "../../../src/platform-kit/meta"
 
 o.spec("ListElementListModel", function () {
 	const listId = "listId"

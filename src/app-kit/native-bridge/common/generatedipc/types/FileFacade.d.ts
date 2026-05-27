@@ -4,6 +4,7 @@ import { IpcClientRect } from "../types/IpcClientRect"
 import { UploadTaskResponse } from "../types/UploadTaskResponse"
 import { DownloadTaskResponse } from "../types/DownloadTaskResponse"
 import { DataFile } from "../types/DataFile"
+
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */

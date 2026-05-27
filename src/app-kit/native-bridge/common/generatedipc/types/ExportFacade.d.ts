@@ -3,6 +3,7 @@
 import { MailBundle } from "../types/MailBundle"
 import { DataFile } from "../types/DataFile"
 import { MailboxExportState } from "../types/MailboxExportState"
+
 export interface ExportFacade {
 	/**
 	 * Convert mail to .msg format.

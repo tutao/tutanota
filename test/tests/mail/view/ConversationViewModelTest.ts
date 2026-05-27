@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { ConversationItem, ConversationPrefProvider, ConversationViewModel } from "../../../../src/applications/mail-app/mail/view/ConversationViewModel.js"
-import { isSameId, isSameTypeRef } from "../../../../src/platform-kit/meta"
+import { isSameId, isSameTypeRef, OperationType } from "../../../../src/platform-kit/meta"
 import { CreateMailViewerOptions } from "../../../../src/applications/mail-app/mail/view/MailViewer.js"
 import { MailViewerViewModel } from "../../../../src/applications/mail-app/mail/view/MailViewerViewModel.js"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
@@ -23,8 +23,6 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-
-import { OperationType } from "../../../../src/platform-kit/meta"
 import { EntityEventsListener } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("ConversationViewModel", function () {

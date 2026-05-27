@@ -1,8 +1,11 @@
 import {
 	AttributeModel,
+	BlobElementEntity,
 	collapseId,
 	CUSTOM_MIN_ID,
+	ElementEntity,
 	elementIdPart,
+	Entity,
 	expandId,
 	firstBiggerThanSecond,
 	firstBiggerThanSecondBase64Ext,
@@ -11,11 +14,15 @@ import {
 	getServerIdEncodingForType,
 	getTypeString,
 	isCustomIdType,
+	ListElementEntity,
 	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
+	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
+	SomeEntity,
 	Type as TypeId,
+	TypeModel,
 	TypeRef,
 } from "../../platform-kit/meta"
 import * as cborg from "cborg"
@@ -45,7 +52,6 @@ import { ModelMapper, TypeModelResolver } from "../../platform-kit/instance-pipe
 import { isAdminClient, isBrowser, isDesktop, isTest } from "../../platform-kit/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { FormattedQuery, OfflineStorageInitArgs, TaggedSqlValue } from "./Types"
-import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../platform-kit/meta"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
 import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"

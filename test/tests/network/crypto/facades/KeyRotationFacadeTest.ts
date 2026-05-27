@@ -44,6 +44,7 @@ import {
 	EncryptionKeyVerificationState,
 	GroupKeyRotationType,
 	RolloutType,
+	SessionType,
 	ShareCapability,
 	TutanotaError,
 } from "../../../../../src/platform-kit/app-env"
@@ -63,7 +64,6 @@ import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/c
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
-import { SessionType } from "../../../../../src/platform-kit/app-env"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 import {
 	AdminGroupKeyRotationGetOutTypeRef,

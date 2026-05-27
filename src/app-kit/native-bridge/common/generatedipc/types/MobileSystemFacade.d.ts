@@ -2,6 +2,7 @@
 
 import { PermissionType } from "../types/PermissionType"
 import { AppLockMethod } from "../types/AppLockMethod"
+
 /**
  * Common operations implemented by each mobile platform.
  */

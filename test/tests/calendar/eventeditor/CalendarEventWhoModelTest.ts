@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 
 import { matchers, object, replace, verify, when } from "testdouble"
 import { RecipientsModel } from "../../../../src/applications/common/api/main/RecipientsModel.js"
-import { PresentableKeyVerificationState, ShareCapability } from "../../../../src/platform-kit/app-env"
+import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "../../../../src/platform-kit/app-env"
 import { UserController } from "../../../../src/applications/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import {
@@ -24,7 +24,6 @@ import {
 } from "../CalendarTestUtils.js"
 import { assertNotNull, downcast, neverNull } from "../../../../src/platform-kit/utils"
 import { RecipientField } from "../../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
-import { ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/applications/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"

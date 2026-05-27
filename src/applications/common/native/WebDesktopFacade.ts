@@ -1,11 +1,10 @@
-import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut, SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Shortcut } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import { lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
-import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 export class WebDesktopFacade implements DesktopFacade {
 	constructor(

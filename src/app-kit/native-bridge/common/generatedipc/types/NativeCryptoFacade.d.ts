@@ -11,6 +11,7 @@ import { IPCEd25519KeyPair } from "../types/IPCEd25519KeyPair"
 import { IPCEd25519PrivateKey } from "../types/IPCEd25519PrivateKey"
 import { IPCEd25519Signature } from "../types/IPCEd25519Signature"
 import { IPCEd25519PublicKey } from "../types/IPCEd25519PublicKey"
+
 export interface NativeCryptoFacade {
 	rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array>
 

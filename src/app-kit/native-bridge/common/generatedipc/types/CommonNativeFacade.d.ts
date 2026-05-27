@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { CalendarOpenAction } from "../types/CalendarOpenAction"
+
 /**
  * Common operations used by all native platforms.
  */

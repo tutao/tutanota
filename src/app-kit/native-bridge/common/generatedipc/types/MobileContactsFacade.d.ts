@@ -4,6 +4,7 @@ import { ContactSuggestion } from "../types/ContactSuggestion"
 import { StructuredContact } from "../types/StructuredContact"
 import { ContactSyncResult } from "../types/ContactSyncResult"
 import { ContactBook } from "../types/ContactBook"
+
 /**
  * Contact-related funcionality on mobile.
  */

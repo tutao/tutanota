@@ -5,6 +5,7 @@ import o, { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@t
 import {
 	AttributeModel,
 	clone,
+	collapseId,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	Entity,
@@ -15,6 +16,7 @@ import {
 	getListId,
 	isSameTypeRef,
 	listIdPart,
+	OperationType,
 	ServerModelParsedInstance,
 	SomeEntity,
 	TypeRef,
@@ -46,7 +48,6 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { collapseId, OperationType } from "../../../../../src/platform-kit/meta"
 
 import {
 	createEntityUpdate,

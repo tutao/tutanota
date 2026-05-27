@@ -1,5 +1,6 @@
-import { AssociationType, Cardinality, TypeModel, ValueType } from "../../../../platform-kit/meta"
 import {
+	AssociationType,
+	Cardinality,
 	compareNewestFirst,
 	elementIdPart,
 	EntityIdEncoding,
@@ -7,7 +8,9 @@ import {
 	getServerIdEncodingForType,
 	isSameTypeRef,
 	timestampToGeneratedId,
+	TypeModel,
 	TypeRef,
+	ValueType,
 } from "../../../../platform-kit/meta"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {

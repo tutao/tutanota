@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { Result } from "../types/Result"
+
 /**
  * Operations for in-app search.
  */

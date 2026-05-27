@@ -5,8 +5,7 @@ import { ResolvableRecipient } from "../../../src/applications/common/api/main/R
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { TrustDBEntry } from "../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
-import { ProgrammingError } from "../../../src/platform-kit/app-env"
-import { IdentityKeySourceOfTrust } from "../../../src/platform-kit/app-env"
+import { IdentityKeySourceOfTrust, ProgrammingError } from "../../../src/platform-kit/app-env"
 
 const RECIPIENT_ADDRESS = "recipient@tuta.com"
 const RECIPIENT2_ADDRESS = "recipient2@tuta.com"

@@ -3,6 +3,7 @@
 import { DesktopConfigKey } from "../types/DesktopConfigKey"
 import { UpdateInfo } from "../types/UpdateInfo"
 import { IntegrationInfo } from "../types/IntegrationInfo"
+
 /**
  * Desktop preferences.
  */

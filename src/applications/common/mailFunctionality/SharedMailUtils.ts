@@ -12,10 +12,9 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { ImageHandler } from "../../../ui/editor/Editor"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../../../entities/sys/TypeRefs"
 import { Contact, createContact, createContactMailAddress, Mail } from "../../../entities/tutanota/TypeRefs"
-import { ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
+import { Attachment, ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
 import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
-import { Attachment } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"

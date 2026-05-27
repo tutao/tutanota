@@ -8,6 +8,7 @@ import {
 	deconstructMailSetEntryId,
 	elementIdPart,
 	Entity,
+	expandId,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
@@ -57,7 +58,6 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "@tutao/entities/storage"
-import { expandId } from "../../../../src/platform-kit/meta"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"

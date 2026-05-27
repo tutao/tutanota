@@ -1,8 +1,7 @@
 import o from "@tutao/otest"
-import { EncryptionAuthStatus } from "../../../../../src/platform-kit/app-env"
+import { EncryptionAuthStatus, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/ui/base/icons/Icons.js"
-import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { getDisplayedSender } from "../../../../../src/applications/common/api/common/CommonMailUtils.js"
 import { getConfidentialIcon } from "../../../../../src/applications/mail-app/mail/view/MailGuiUtils.js"
 
