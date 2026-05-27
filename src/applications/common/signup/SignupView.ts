@@ -40,7 +40,7 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "..
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import SignupWizardLayout from "./SignupWizardLayout"
-import { noOp } from "@tutao/utils"
+import { filterInt, noOp } from "@tutao/utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
@@ -78,6 +78,7 @@ export class SignupViewModel {
 	public acceptedPlans: AvailablePlanType[] = []
 	public msg?: Translation | null
 	public firstMonthForFreeOfferActive?: boolean
+	public bonusMonthForYearlyPlans: number = 0
 	public isCalledBySatisfactionDialog: boolean
 	public registrationCode?: string
 	public powChallengeSolutionPromise?: Promise<PowSolution>
@@ -193,6 +194,8 @@ export class SignupViewModel {
 		this.featureListProvider = featureListProvider
 		this.msg = message
 		this.firstMonthForFreeOfferActive = prices.firstMonthForFreeForYearlyPlan
+		const bonusMonths = filterInt(prices.bonusMonthsForYearlyPlan)
+		this.bonusMonthForYearlyPlans = Number.isNaN(bonusMonths) ? 0 : bonusMonths
 		this._isInitialized = true
 	}
 }

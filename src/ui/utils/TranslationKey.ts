@@ -2278,3 +2278,5 @@ export type TranslationKeyType =
 	| "planselector_page_sovereignty2026_title"
 	| "planselector_page_sovereignty2026_subtitle"
 	| "pricing.bonusMonthWithCampaign_label"
+	| "planselector_page_sovereignty2026_referred_title"
+	| "planselector_page_sovereignty2026_referred_subtitle"

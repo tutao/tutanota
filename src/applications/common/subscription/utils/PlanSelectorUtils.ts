@@ -266,18 +266,24 @@ export const enum CAMPAIGN_NAME {
 	DIGITAL_SOVEREIGNTY_2026_CAMPAIGN = "sovereignty2026",
 }
 
-export function getPlanSelectorTitle(campaignName: string | null): TranslationKey {
+export function getPlanSelectorTitle(campaignName: string | null, isReferred: boolean): TranslationKey {
 	switch (campaignName) {
 		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+			if (isReferred) {
+				return "planselector_page_sovereignty2026_referred_title"
+			}
 			return "planselector_page_sovereignty2026_title"
 		default:
 			return "planselector_page_title"
 	}
 }
 
-export function getPlanSelectorSubtitle(campaignName: string | null): TranslationKey {
+export function getPlanSelectorSubtitle(campaignName: string | null, isReferred: boolean): TranslationKey {
 	switch (campaignName) {
 		case CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN:
+			if (isReferred) {
+				return "planselector_page_sovereignty2026_referred_subtitle"
+			}
 			return "planselector_page_sovereignty2026_subtitle"
 		default:
 			return "planselector_page_subtitle"

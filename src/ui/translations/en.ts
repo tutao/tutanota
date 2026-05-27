@@ -2277,8 +2277,10 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"pricing.bonusMonthAndGlobalFirstYear_label": "+{months} months free & {amount} discount",
 		"pricing.firstYearDiscountOnly_msg": "Discount only applies for the first year.",
-		"planselector_page_sovereignty2026_title": "Get 50% off",
-		"planselector_page_sovereignty2026_subtitle": "Switch to Tuta Mail and become digitally sovereign! Get this one-time offer now and break free from US Big Tech.",
-		"pricing.bonusMonthWithCampaign_label": "Bonus: {months} month(s) free!"
+		"planselector_page_sovereignty2026_referred_title": "Get 50% off",
+		"planselector_page_sovereignty2026_referred_subtitle": "Switch to Tuta Mail and become digitally sovereign! Get this one-time offer now and break free from US Big Tech.",
+		"pricing.bonusMonthWithCampaign_label": "Bonus: {months} month(s) free!",
+		"planselector_page_sovereignty2026_title": "Choose Digital Sovereignty",
+		"planselector_page_sovereignty2026_subtitle": "Switch to Tuta Mail with 50% discount! Get this one-time offer now and break free from US monopolists.",
 	}
 }

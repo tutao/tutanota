@@ -91,12 +91,12 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		)
 	}
 	private renderSubtitle(data: SignupViewModel) {
-		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName)
+		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
 		return m(`p.mb-32`, lang.getTranslationText(subtitleTranslationKey))
 	}
 
 	private renderHeadline(data: SignupViewModel) {
-		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName)
+		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
 
 		return m(
 			`h1.font-mdio${styles.isMobileLayout() ? ".h3" : ".h1"}`,
