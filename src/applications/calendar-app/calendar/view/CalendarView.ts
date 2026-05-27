@@ -55,7 +55,6 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { component_size, layout_size } from "../../../../ui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
-import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
@@ -84,7 +83,6 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { FloatingActionButton } from "../../../../ui/base/FloatingActionButton.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
-import { getExternalCalendarName, parseCalendarStringData, ParsedEventAlarmTuple } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
@@ -119,6 +117,12 @@ import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
+
+import { parseCalendarStringData, ParsedEventAlarmTuple } from "../export/CalendarParser"
+import { getExternalCalendarName } from "../../../common/calendar/import/ImportExportUtils"
+import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDialog"
+import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
+import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 
 export type GroupColors = Map<Id, string>
 
@@ -969,14 +973,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					type: CalendarType.External,
 				}
 			}
-			await handleCalendarImport(
-				calendarGroupRoot,
-				calendarInfo,
-				events,
-				CalendarType.External,
-				locator.entityClient,
-				locator.logins.getUserController().user,
+			const calendarImporter = new CalendarImporter(
+				this.viewModel.getCalendarModel(),
+				new ImportInteractionHandler(),
+				locator.operationProgressTracker,
+				getTimeZone(),
 			)
+
+			await calendarImporter.import(calendarGroupRoot, calendarInfo, events, CalendarType.External)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
@@ -1414,8 +1418,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			actions.push({
 				label: "import_action",
 				icon: Icons.CloudUploadFilled,
-				click: () =>
-					handleCalendarImport(groupRoot, calendarInfo, null, calendarInfo.type, locator.entityClient, locator.logins.getUserController().user),
+				click: () => this.viewModel.importIcsFile(groupRoot, calendarInfo),
 			})
 		}
 

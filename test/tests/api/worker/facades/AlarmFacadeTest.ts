@@ -8,7 +8,6 @@ import { AlarmFacade } from "../../../../../src/applications/common/api/worker/f
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
 import { AlarmInfoTemplate, EventWithUserAlarmInfos } from "../../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
 import { makeEmptyCalendarEvent } from "../../../../../src/applications/common/api/common/utils/CommonCalendarUtils"
-import type { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/gui/ImportExportUtils"
 import { NativePushFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
@@ -35,6 +34,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "@tutao/entities/tutanota"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/import/ImportExportUtils"
 
 o.spec("AlarmFacadeTest", function () {
 	let nativePushFacadeMock: NativePushFacade

@@ -87,11 +87,11 @@ import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../../ui/utils/KeyManager.js"
-import { IcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { AdvancedRepeatRule, CalendarEvent } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { clone } from "../../../../platform-kit/meta"
+import { IcsCalendarEvent } from "../export/CalendarParser"
 
 export interface IntervalOption {
 	value: number

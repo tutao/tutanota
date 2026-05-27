@@ -2293,6 +2293,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"importEventIcsDuplicate_msg": "{amount} of {total} events are duplicated in the file. Duplicates will not be imported. Will continue with the remaining events...",
-		"emptyIcsFile_msg": "The file was empty. No events to import."
+		"emptyIcsFile_msg": "The file was empty. No events to import.",
+		"noImportableEvents_msg": "Import operation had no results. All events were rejected."
 	}
 }

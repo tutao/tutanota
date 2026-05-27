@@ -42,7 +42,7 @@ import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsReposi
 import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
-import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
 
