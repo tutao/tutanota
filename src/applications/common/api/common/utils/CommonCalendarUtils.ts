@@ -1,9 +1,9 @@
 import { cleanMailAddress, stringToBase64UrlCustomId } from "@tutao/utils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
-import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../calendar/gui/ImportExportUtils"
 import { DAY_IN_MILLIS } from "@tutao/app-env"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { StrippedEntity } from "@tutao/meta"
+import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../../calendar-app/calendar/export/CalendarParser"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 

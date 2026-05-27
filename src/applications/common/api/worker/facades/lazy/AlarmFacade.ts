@@ -1,5 +1,4 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
-import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
 import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
@@ -28,6 +27,7 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarRepeatRule } from "@tutao/entities/tutanota"
+import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
 
 export class AlarmFacade {
 	constructor(

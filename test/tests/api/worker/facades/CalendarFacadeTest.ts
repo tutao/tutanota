@@ -47,7 +47,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
-import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/gui/ImportExportUtils"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/import/ImportExportUtils"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { ExposedOperationProgressTracker } from "../../../../../src/applications/common/api/main/OperationProgressTracker"
 import { GroupType } from "../../../../../src/entities/sys/Utils"

@@ -29,7 +29,7 @@ import { AlarmScheduler } from "../../../src/applications/common/calendar/date/A
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/common/calendar/gui/ImportExportUtils"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/common/calendar/import/ImportExportUtils"
 import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
 	CalendarEvent,

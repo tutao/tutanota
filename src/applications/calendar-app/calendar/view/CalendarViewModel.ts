@@ -5,7 +5,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
@@ -77,12 +77,17 @@ import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDial
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { formatDate, formatTime } from "../../../../ui/utils/Formatter"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
+import { SyncStatus } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
+import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
+import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 
 export interface EventWrapperFlags {
 	/**
@@ -241,6 +246,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly mailboxModel: MailboxModel,
 		private readonly contactModel: ContactModel,
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
+		private readonly operationProgressTracker: OperationProgressTracker,
 	) {
 		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
 			const calendarColors = new Map()
@@ -936,6 +942,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get isAmPm() {
 		return getTimeFormatForUser(this.logins.getUserController().userSettingsGroupRoot) === TimeFormat.TWELVE_HOURS
+	}
+
+	async importIcsFile(groupRoot: CalendarGroupRoot, calendarInfo: CalendarInfoBase) {
+		const parsedEventAlarmTuples = await showProgressDialog("loading_msg", selectAndParseIcalFile())
+		const importer = new CalendarImporter(this.calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, this.timeZone)
+		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, calendarInfo.type)
 	}
 }
 

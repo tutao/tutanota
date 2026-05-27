@@ -155,7 +155,6 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { ParsedEventAlarmTuple } from "../common/calendar/gui/ImportExportUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
@@ -168,6 +167,11 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../pla
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
+
+import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
+import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
+import { getTimeZone } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -432,6 +436,7 @@ class MailLocator implements CommonLocator {
 			this.mailboxModel,
 			this.contactModel,
 			this.groupSettingsModel,
+			this.operationProgressTracker,
 		)
 	})
 
@@ -588,6 +593,7 @@ class MailLocator implements CommonLocator {
 				eventRepository,
 				undoModel,
 				this.transferProgressDispatcher,
+				this.operationProgressTracker,
 			)
 	}
 
@@ -1146,8 +1152,8 @@ class MailLocator implements CommonLocator {
 				return acc
 			}, new Map())
 
-			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
-			const { handleCalendarImport } = await import("../common/calendar/gui/CalendarImporterDialog.js")
+			const { parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarParser")
+			const { calendarSelectionDialog } = await import("../common/calendar/gui/CalendarImporterDialog")
 
 			let parsedEvents: ParsedEventAlarmTuple[] = []
 
@@ -1159,16 +1165,12 @@ class MailLocator implements CommonLocator {
 				parsedEvents.push(...data.contents)
 			}
 
-			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
+			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, async (dialog, selectedCalendar) => {
 				dialog.close()
-				handleCalendarImport(
-					selectedCalendar.groupRoot,
-					selectedCalendar,
-					parsedEvents,
-					selectedCalendar.type,
-					this.entityClient,
-					this.logins.getUserController().user,
-				)
+
+				const calendarModel = await this.calendarModel()
+				const calendarImporter = new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone())
+				await calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, parsedEvents, selectedCalendar.type)
 			})
 		}
 	}
