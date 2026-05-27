@@ -121,13 +121,6 @@ export async function showSwitchDialog({
 
 		return m(
 			".pt-16",
-			// Headline for a global campaign
-			!businessUse() &&
-				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
-				m(PlanSelectorHeadline, {
-					translation: lang.getTranslation("pricing.cyber_monday_msg"),
-					icon: Icons.HeartFilled,
-				}),
 			// Headline for general messages
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
 			m(

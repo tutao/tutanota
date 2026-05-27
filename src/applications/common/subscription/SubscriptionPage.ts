@@ -86,13 +86,6 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m("div", [
-			// Headline for a global campaign
-			!data.options.businessUse() &&
-				hasRelevantGlobalFirstYearCampaign(discountDetails) &&
-				m(PlanSelectorHeadline, {
-					translation: lang.getTranslation("pricing.cyber_monday_msg"),
-					icon: Icons.HeartFilled,
-				}),
 			// Headline for general messages
 			data.msg && m(PlanSelectorHeadline, { translation: data.msg }),
 			// Headline for promotional messages
