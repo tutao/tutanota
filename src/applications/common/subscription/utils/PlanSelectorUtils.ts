@@ -32,7 +32,7 @@ export type PlanBoxContainerAttrs = {
 	currentPlan: PlanType | undefined
 	isApplePrice: boolean
 	priceAndConfigProvider: PriceAndConfigProvider
-	selectedPlan: Stream<PlanType>
+	selectedPlan: Stream<PlanType | null>
 	selectedSubscriptionOptions: SelectedSubscriptionOptions
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
@@ -56,11 +56,11 @@ export function isPersonalPlanAvailable(availablePlans: readonly AvailablePlanTy
 export function filterPlanConfigsAndGetSelectedPlan(
 	planConfigs: PlanConfig[],
 	availablePlans: readonly PlanType[],
-	selectedPlan: PlanType,
+	selectedPlan: PlanType | null,
 	currentPlan: PlanType | undefined,
 ): {
 	planConfigs: PlanConfig[]
-	selectedPlan: PlanType
+	selectedPlan: PlanType | null
 } {
 	planConfigs = planConfigs.map((planConfig) => {
 		if (!availablePlans.includes(planConfig.type)) {
@@ -76,17 +76,16 @@ export function filterPlanConfigsAndGetSelectedPlan(
 	const availablePlansForCurrentView = planConfigs
 		.filter((planConfig) => !planConfig.isDisabled && planConfig.type !== currentPlan)
 		.map((config) => config.type)
-	if (!availablePlansForCurrentView.includes(selectedPlan)) {
-		const filteredPlans = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)
-		selectedPlan = filteredPlans.length > 0 ? filteredPlans[0].type : PlanType.Free
+	if (selectedPlan == null || !availablePlansForCurrentView.includes(selectedPlan)) {
+		const enabledAndNotCurrentPlans = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)
+		selectedPlan = enabledAndNotCurrentPlans.length > 0 ? enabledAndNotCurrentPlans[0].type : PlanType.Free
 
 		const isPrivate = availablePlansForCurrentView.includes(PlanType.Free)
-		const defaultPlanForCurrentView = isPrivate ? PlanType.Revolutionary : PlanType.Advanced
-		if (availablePlansForCurrentView.includes(defaultPlanForCurrentView)) {
+		const defaultPlanForCurrentView = isPrivate ? PlanType.Revolutionary : null
+		if (defaultPlanForCurrentView == null || availablePlansForCurrentView.includes(defaultPlanForCurrentView)) {
 			selectedPlan = defaultPlanForCurrentView
 		}
 	}
-
 	return { planConfigs, selectedPlan }
 }
 

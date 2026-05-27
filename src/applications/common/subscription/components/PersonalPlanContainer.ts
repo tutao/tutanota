@@ -79,7 +79,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
 			this.paidPlanConfigs,
 			attrs.availablePlans,
-			attrs.selectedPlan(),
+			PlanType.Revolutionary,
 			attrs.currentPlan,
 		)
 		this.paidPlanConfigs = planConfigs

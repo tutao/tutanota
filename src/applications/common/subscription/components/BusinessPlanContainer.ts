@@ -125,12 +125,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 	]
 
 	oncreate({ attrs }: Vnode<PlanBoxContainerAttrs>) {
-		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
-			this.planConfigs,
-			attrs.availablePlans,
-			attrs.selectedPlan(),
-			attrs.currentPlan,
-		)
+		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(this.planConfigs, attrs.availablePlans, null, attrs.currentPlan)
 		this.planConfigs = planConfigs
 		attrs.selectedPlan(selectedPlan)
 		m.redraw()

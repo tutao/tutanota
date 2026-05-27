@@ -122,6 +122,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					width: getContinueButtonWidth(),
 					onclick: temp,
 					style: { order: 0 },
+					disabled: this.selectedPlan() == null,
 				}),
 			)
 		}
