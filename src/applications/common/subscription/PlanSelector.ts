@@ -211,7 +211,15 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								"margin-inline": "auto",
 							},
 						},
-						[m(".small.mb-16", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb-16", renderFootnoteElement())],
+						[
+							m(
+								".small.mb-16",
+								options.businessUse()
+									? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
+									: lang.get("pricing.subscriptionPeriodInfoPrivate_msg"),
+							),
+							m(".small.mb-16", renderFootnoteElement()),
+						],
 					),
 			],
 		)
