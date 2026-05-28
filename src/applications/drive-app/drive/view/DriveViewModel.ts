@@ -5,7 +5,7 @@ import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from 
 import { Router } from "../../../../ui/ScopedRouter"
 import m from "mithril"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
-import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
+import { DriveTransferController, DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { Const, OperationStatus, SECOND_IN_MILLIS } from "@tutao/app-env"
@@ -703,8 +703,8 @@ export class DriveViewModel {
 		return this.driveFacade.getFolderParents(firstLoadedParent._id)
 	}
 
-	transfers(): DriveTransferState[] {
-		return Array.from(this.transferController.state)
+	transfers(): DriveTransfers {
+		return this.transferController.state
 	}
 
 	cancelTransfer(transferId: TransferId) {

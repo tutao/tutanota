@@ -4,7 +4,6 @@ import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
-import { Scheduler } from "../../../common/api/common/utils/Scheduler"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isOfflineError } from "@tutao/rest-client/error"
 import { DriveFile } from "@tutao/entities/drive"
@@ -44,39 +43,32 @@ type QueuedTransfer =
 			targetFolderId: IdTuple
 	  }
 
+export interface DriveTransfers {
+	/** All the transfers: current batch and the ones from finished batches */
+	allTransfers: readonly DriveTransferState[]
+	/**
+	 * Transfers from the current batch. Newly queued transfers are going here. Some of them can be finished.
+	 * Current transfer batch is emptied once all the transfers in it finish or fail.
+	 */
+	currentTransfers: readonly DriveTransferState[]
+}
+
 type FileId = TransferId
 
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []
-
-	get state(): DriveTransferState[] {
-		return this.queue.map((transfer) => {
-			let fileSize: number
-			if (transfer.file._type === "WebFile") {
-				fileSize = transfer.file.file.size
-			} else if (transfer.file._type === "FileReference") {
-				fileSize = transfer.file.size
-			} else {
-				// DriveFile
-				fileSize = filterInt(transfer.file.size)
-			}
-
-			return {
-				id: transfer.id,
-				state: transfer.state,
-				type: transfer.type,
-				filename: transfer.filename,
-				totalSize: fileSize,
-				transferredSize: transfer.transferredSize,
-			}
-		})
+	private finishedTransfers: DriveTransferState[] = []
+	get state(): DriveTransfers {
+		const currentTransfers = this.queue.map(queuedTransferToState)
+		const allTransfers = [...this.finishedTransfers, ...currentTransfers]
+		return { allTransfers, currentTransfers }
 	}
+
 	constructor(
 		private readonly driveFacade: DriveFacade,
 		private readonly blobFacade: BlobFacade,
 		private readonly updateUi: () => unknown,
 		private readonly fileController: FileController,
-		private readonly scheduler: Scheduler,
 	) {}
 
 	async upload(file: WebFile | FileReference, filename: string, targetFolderId: IdTuple) {
@@ -190,22 +182,15 @@ export class DriveTransferController {
 	async flush() {
 		const activeTransfers = this.queue.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
 		this.queue.splice(0, this.queue.length, ...activeTransfers)
+		this.finishedTransfers.splice(0)
 	}
 
 	private finishUpload(fileId: FileId) {
-		const stateForThisFile = this.transferForId(fileId)
-		if (stateForThisFile) {
-			stateForThisFile.state = "finished"
-			this.updateUi()
-		}
+		this.finalizeTransfer(fileId, "finished")
 	}
 
 	private transferFailed(fileId: FileId) {
-		const fileState = this.transferForId(fileId)
-		if (fileState) {
-			fileState.state = "failed"
-			this.updateUi()
-		}
+		this.finalizeTransfer(fileId, "failed")
 	}
 
 	async download(file: DriveFile, intent: "download" | "open") {
@@ -239,11 +224,7 @@ export class DriveTransferController {
 	}
 
 	private finishDownload(transferId: TransferId) {
-		const stateForThisFile = this.transferForId(transferId)
-		if (stateForThisFile) {
-			stateForThisFile.state = "finished"
-			this.updateUi()
-		}
+		this.finalizeTransfer(transferId, "finished")
 	}
 
 	private removeTransfer(fileId: TransferId) {
@@ -252,5 +233,40 @@ export class DriveTransferController {
 			this.queue.splice(index, 1)
 		}
 		this.updateUi()
+	}
+
+	private finalizeTransfer(transferId: TransferId, newState: "finished" | "failed") {
+		const stateForThisFile = this.transferForId(transferId)
+		if (stateForThisFile) {
+			stateForThisFile.state = newState
+			// once all transfers are done move them to the finished, which are not used for progress
+			const allTransfersDone: boolean = this.queue.every((transfer) => transfer.state === "finished" || transfer.state === "failed")
+			if (allTransfersDone) {
+				this.finishedTransfers.push(...this.queue.splice(0).map(queuedTransferToState))
+			}
+			this.updateUi()
+		}
+	}
+}
+
+function transferSize(transfer: QueuedTransfer): number {
+	if (transfer.file._type === "WebFile") {
+		return transfer.file.file.size
+	} else if (transfer.file._type === "FileReference") {
+		return transfer.file.size
+	} else {
+		let file: DriveFile = transfer.file // assert that this is a DriveFile
+		return filterInt(file.size)
+	}
+}
+
+function queuedTransferToState(transfer: QueuedTransfer): DriveTransferState {
+	return {
+		id: transfer.id,
+		state: transfer.state,
+		type: transfer.type,
+		filename: transfer.filename,
+		totalSize: transferSize(transfer),
+		transferredSize: transfer.transferredSize,
 	}
 }

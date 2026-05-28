@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveTransferState, DriveTransferType } from "./DriveTransferController"
+import { DriveTransfers, DriveTransferState, DriveTransferType } from "./DriveTransferController"
 import { ProgressSnackBar, ProgressSnackBarAttrs, ProgressState } from "../../../../ui/ProgressSnackBar"
 import { component_size, px, size } from "../../../../ui/size"
 import { isFabShown } from "../../../../ui/base/FloatingActionButton"
@@ -14,7 +14,7 @@ import { TransferId } from "../../../../entities/drive/Utils"
 import { CircleLoadingBar, CircleLoadingBarAttrs } from "../../../../ui/CircleLoadingBar"
 
 export interface DriveTransferStackAttrs {
-	transfers: readonly DriveTransferState[]
+	driveTransfers: DriveTransfers
 	cancelTransfer: (transferId: TransferId) => unknown
 	cancelAllTransfers: () => unknown
 }
@@ -40,19 +40,19 @@ interface TransferStackStatus {
 
 export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 	private expanded: boolean = false
-
-	getStackStatus(transfers: readonly DriveTransferState[]): TransferStackStatus {
+	getStackStatus(driveTransfers: DriveTransfers): TransferStackStatus {
 		let progressState: ProgressState
 		let mainText: string
 		let infoText: Translation
+		const { currentTransfers, allTransfers } = driveTransfers
 
-		const doneTransfers = transfers.reduce((acc, curr) => {
+		const doneTransfers = allTransfers.reduce((acc, curr) => {
 			if (this.getProgressState(curr.state) === ProgressState.done) {
 				acc++
 			}
 			return acc
 		}, 0)
-		const totalTransfers = transfers.length
+		const totalTransfers = allTransfers.length
 
 		const allTransfersDone = doneTransfers === totalTransfers
 		if (allTransfersDone) {
@@ -60,7 +60,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 			mainText = lang.getTranslationText("transfersDone_label")
 			infoText = lang.getTranslation("transfersCompleted_msg", { "{done}": doneTransfers, "{total}": totalTransfers })
 		} else {
-			const anyTransferFailed = transfers.some((transfer) => this.getProgressState(transfer.state) === ProgressState.error)
+			const anyTransferFailed = allTransfers.some((transfer) => this.getProgressState(transfer.state) === ProgressState.error)
 			if (anyTransferFailed) {
 				progressState = ProgressState.error
 				mainText = lang.getTranslationText("transfersFailed_label")
@@ -71,9 +71,8 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				infoText = lang.getTranslation("transfersCompleted_msg", { "{done}": doneTransfers, "{total}": totalTransfers })
 			}
 		}
-
-		const percentagesSum = transfers.reduce((acc, cur, index) => (cur.transferredSize / cur.totalSize) * 100 + acc, 0)
-		const percentage = Math.min(Math.round(percentagesSum / transfers.length), 100)
+		const percentagesSum = currentTransfers.reduce((acc, cur) => (cur.transferredSize / cur.totalSize) * 100 + acc, 0)
+		const percentage = Math.min(Math.round(percentagesSum / currentTransfers.length), 100)
 
 		return { progressState, percentage, mainText, infoText }
 	}
@@ -93,15 +92,15 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		return 0
 	}
 
-	view({ attrs: { transfers, cancelTransfer, cancelAllTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
-		if (transfers.length === 0) {
+	view({ attrs: { driveTransfers, cancelTransfer, cancelAllTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
+		const allTransfers = driveTransfers.allTransfers
+		if (allTransfers.length === 0) {
 			return
 		}
-		const isAnyTransferActive = transfers.some((transfer) => this.getProgressState(transfer.state) === ProgressState.running)
 
-		const stackStatus = this.getStackStatus(transfers)
+		const stackStatus = this.getStackStatus(driveTransfers)
 
-		const sortedTransfers = transfers.toSorted(this.compareTransfers)
+		const sortedTransfers = allTransfers.toSorted(this.compareTransfers)
 		const transferSnackBars = sortedTransfers.map((transferState, index) => {
 			return m(ProgressSnackBar, {
 				key: transferState.id,
