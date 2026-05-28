@@ -1,6 +1,7 @@
-import { EnumDeclaration, SourceFile, ts, TypeAliasDeclaration } from "ts-morph"
+import { CallExpression, EnumDeclaration, ExpressionStatement, ImportDeclaration, Node, SourceFile, ts, TypeAliasDeclaration } from "ts-morph"
 import { getRelativePath, joinPaths, TUTANOTA_ROOT } from "./Constants.js"
 import fs from "node:fs"
+import SyntaxKind = ts.SyntaxKind
 
 export abstract class CommonTarget {
 	protected outputContent: string = ""
@@ -10,21 +11,41 @@ export abstract class CommonTarget {
 		this.writeDontEditComment()
 	}
 
-	protected abstract generateEnum(enumDefination: EnumDeclaration): string
-	protected abstract generateTypeAliasDecleration(enumDefination: TypeAliasDeclaration): string
+	protected abstract generateEnumDecleration(enumDefination: EnumDeclaration): string
+	protected abstract generateTypeAliasDecleration(typeAliasDeclaration: TypeAliasDeclaration): string
+	protected abstract generateCallExpression(callExpression: CallExpression): string
+	protected abstract generateImportDecleration(importDecleration: ImportDeclaration): string
 
 	public generate() {
 		console.log("Generating kotlin for file: " + this.sourceFile.getFilePath())
 
-		this.sourceFile.getEnums().map((enumDecleration) => {
-			const enumOut = this.generateEnum(enumDecleration)
-			this.outputContent += enumOut + "\n"
-		})
-		this.sourceFile.getTypeAliases().map((typeAlisDeclaration) => {
-			const decOut = this.generateTypeAliasDecleration(typeAlisDeclaration)
-			this.outputContent += decOut + "\n"
-		})
+		const collectedOutputs = this.sourceFile.forEachChildAsArray().map((node) => this.redirectNode(node))
+		this.outputContent += collectedOutputs.join("\n\n")
 	}
+
+	private redirectNode(node: Node<ts.Node>) {
+		const _kindName = node.getKindName()
+		const typedNode = node.asKindOrThrow(node.getKind())
+
+		if (typedNode instanceof ImportDeclaration) {
+			return this.generateImportDecleration(typedNode)
+		} else if (typedNode instanceof EnumDeclaration) {
+			return this.generateEnumDecleration(typedNode)
+		} else if (typedNode instanceof TypeAliasDeclaration) {
+			return this.generateTypeAliasDecleration(typedNode)
+		} else if (typedNode instanceof CallExpression) {
+			const parentExpressionStatement = node.getParent()
+			const callOut = this.generateCallExpression(typedNode)
+			if (parentExpressionStatement.getParent().getKind() === SyntaxKind.SourceFile) {
+				return `/*TRANSPILIER: CallExpression at topLevel is not repersentable outside ts\n${callOut}\n*/`
+			}
+			return callOut
+		} else if (typedNode instanceof ExpressionStatement) {
+			const expression = typedNode.getExpression()
+			return this.redirectNode(expression)
+		}
+	}
+
 	public async writeToFile(): Promise<void> {
 		const { outDir, outFileName } = this.getOutputPath()
 		fs.mkdirSync(outDir, { recursive: true })
