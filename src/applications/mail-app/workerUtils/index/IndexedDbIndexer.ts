@@ -1,5 +1,5 @@
 import { CancelledError, daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
@@ -197,7 +197,7 @@ export class IndexedDbIndexer implements Indexer {
 					aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
 					indexedMailCount: 0,
 					failedIndexingUpTo: this.mailIndexer.currentIndexTimestamp,
-					error: e instanceof restError.ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+					error: e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
 				})
 
 				this.initDeferred.reject(e)
@@ -219,7 +219,7 @@ export class IndexedDbIndexer implements Indexer {
 			}
 		} catch (e) {
 			// external users have no contact list.
-			if (!(e instanceof restError.NotFoundError)) {
+			if (!(e instanceof NotFoundError)) {
 				throw e
 			}
 		}
@@ -518,7 +518,7 @@ export class IndexedDbIndexer implements Indexer {
 							break
 					}
 				} catch (e) {
-					if (e instanceof restError.NotAuthorizedError || e instanceof restError.NotFoundError) {
+					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
 						continue
 					} else {
 						throw e

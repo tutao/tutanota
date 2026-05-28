@@ -1,4 +1,3 @@
-import * as restError from "../../../../platform-kit/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "./DriveWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
@@ -14,6 +13,7 @@ import { Request } from "../../../../app-kit/native-bridge/shared/MessageTypes.j
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
+import { NotAuthenticatedError } from "../../../../platform-kit/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -215,7 +215,7 @@ export class DriveWorkerImpl implements NativeInterface {
 				const errorTypes = {
 					ProgrammingError,
 					CryptoError,
-					NotAuthenticatedError: restError.NotAuthenticatedError,
+					NotAuthenticatedError,
 				}
 				// @ts-ignore
 				let ErrorType = errorTypes[message.args[0].errorType]

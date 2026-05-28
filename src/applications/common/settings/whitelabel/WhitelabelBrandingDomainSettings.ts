@@ -16,6 +16,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
 import { CertificateInfo, CustomerInfo } from "@tutao/entities/sys"
 import { PlanType } from "../../../../entities/sys/Utils"
+import { PreconditionFailedError } from "@tutao/rest-client/error"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo
@@ -57,7 +58,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			try {
 				return await showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
 			} catch (e) {
-				if (e instanceof restError.PreconditionFailedError) {
+				if (e instanceof PreconditionFailedError) {
 					if (e.data === FAILURE_LOCKED) {
 						return await Dialog.message("operationStillActive_msg")
 					} else if (e.data === FAILURE_CONTACT_FORM_ACTIVE) {

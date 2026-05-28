@@ -82,6 +82,7 @@ import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
+import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 
 export interface EventWrapperFlags {
 	/**
@@ -796,10 +797,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 							const event = await this.entityClient.load(CalendarEventTypeRef, eventId)
 							await this.updatePreviewedEvent(event)
 						} catch (e) {
-							if (e instanceof restError.NotAuthorizedError) {
+							if (e instanceof NotAuthorizedError) {
 								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
 								console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
-							} else if (e instanceof restError.NotFoundError) {
+							} else if (e instanceof NotFoundError) {
 								console.log("Not found event in entityEventsReceived of view", e)
 							} else {
 								throw e

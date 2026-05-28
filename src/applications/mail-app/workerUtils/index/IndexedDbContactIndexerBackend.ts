@@ -7,7 +7,7 @@ import { SuggestionFacade } from "./SuggestionFacade"
 import { assertNotNull, neverNull, tokenize } from "../../../../platform-kit/utils"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { FULL_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Contact, ContactList, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 
@@ -57,7 +57,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 				this.suggestionFacade.store(),
 			])
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				return
 			}
 			throw e

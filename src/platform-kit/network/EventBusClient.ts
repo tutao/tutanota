@@ -1,6 +1,15 @@
 import { assertWorkerOrNode, CancelledError, isAdminClient, isBrowser, isTest, OutOfSyncError, SECOND_IN_MILLIS } from "@tutao/app-env"
-import * as restError from "@tutao/rest-client/error"
-import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	ConnectionError,
+	handleRestError,
+	isExpectedErrorForSynchronization,
+	NotAuthorizedError,
+	ServiceUnavailableError,
+	SessionExpiredError,
+	TooManyRequestsError,
+} from "@tutao/rest-client/error"
 import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "../meta"
 import { assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
@@ -484,10 +493,10 @@ export class EventBusClient {
 		// do not catch session expired here because websocket will be reused when we authenticate again
 		const serverCode = event.code - 4000
 
-		if ([restError.NotAuthorizedError.CODE, restError.AccessDeactivatedError.CODE, restError.TooManyRequestsError.CODE].includes(serverCode)) {
+		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this.terminate()
-			this.listener.onError(restError.handleRestError(serverCode, "web socket error", null, null))
-		} else if (serverCode === restError.SessionExpiredError.CODE) {
+			this.listener.onError(handleRestError(serverCode, "web socket error", null, null))
+		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this.state = EventBusState.Suspended
 			this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
@@ -500,7 +509,7 @@ export class EventBusClient {
 			} else {
 				let reconnectionInterval: readonly [number, number]
 
-				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE || serverCode === restError.TooManyRequestsError.CODE) {
+				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE || serverCode === TooManyRequestsError.CODE) {
 					reconnectionInterval = RECONNECT_INTERVAL.LARGE
 				} else if (this.failedConnectionAttempts === 1) {
 					reconnectionInterval = RECONNECT_INTERVAL.SMALL
@@ -519,7 +528,7 @@ export class EventBusClient {
 		return this.initConnection()
 			.then(() => this.eventQueue.resume())
 			.catch(
-				ofClass(restError.ConnectionError, (e) => {
+				ofClass(ConnectionError, (e) => {
 					console.log("ws not connected in connect(), close websocket", e)
 					this.close(CloseEventBusOption.Reconnect)
 				}),
@@ -531,7 +540,7 @@ export class EventBusClient {
 				}),
 			)
 			.catch(
-				ofClass(restError.TooManyRequestsError, async (e) => {
+				ofClass(ServiceUnavailableError, async (e) => {
 					// a ServiceUnavailableError is a temporary error, and we have to retry to avoid data inconsistencies
 					console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
 					let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
@@ -687,7 +696,7 @@ export class EventBusClient {
 				this.listener.onSyncDone()
 			}
 		} catch (e) {
-			if (e instanceof restError.ServiceUnavailableError) {
+			if (e instanceof ServiceUnavailableError) {
 				// a ServiceUnavailableError is a temporary error, and we have to retry to avoid data inconsistencies
 				console.log("ws retry processing event in 30s", e)
 				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {

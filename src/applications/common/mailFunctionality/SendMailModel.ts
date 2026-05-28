@@ -76,7 +76,15 @@ import { EventController } from "../api/main/EventController.js"
 import { UserController } from "../api/main/UserController.js"
 import { findRecipientWithAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE } from "../misc/passwords/PasswordUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import {
+	AccessBlockedError,
+	LockedError,
+	NotAuthorizedError,
+	NotFoundError,
+	PayloadTooLargeError,
+	PreconditionFailedError,
+	TooManyRequestsError,
+} from "@tutao/rest-client/error"
 import { UserError } from "../api/main/UserError.js"
 import { getSenderName } from "../misc/MailboxPropertiesUtils.js"
 import { RecipientNotResolvedError } from "../../../platform-kit/network/error/RecipientNotResolvedError.js"
@@ -475,7 +483,7 @@ export class SendMailModel {
 				previousMessageId = ce.messageId
 			})
 			.catch(
-				ofClass(restError.NotFoundError, (e) => {
+				ofClass(NotFoundError, (e) => {
 					console.log("could not load conversation entry", e)
 				}),
 			)
@@ -520,7 +528,7 @@ export class SendMailModel {
 					previousMail = await this.entity.load(MailTypeRef, previousEntry.mail)
 				}
 			} catch (e) {
-				if (e instanceof restError.NotFoundError) {
+				if (e instanceof NotFoundError) {
 					// ignore
 				} else {
 					throw e
@@ -844,13 +852,13 @@ export class SendMailModel {
 				draft: draft,
 			})
 			.catch(
-				ofClass(restError.LockedError, (e) => {
+				ofClass(LockedError, (e) => {
 					console.log("updateDraft: operation is still active", e)
 					throw new UserError("operationStillActive_msg")
 				}),
 			)
 			.catch(
-				ofClass(restError.NotFoundError, (e) => {
+				ofClass(NotFoundError, (e) => {
 					console.log("draft has been deleted, creating new one")
 					return this.createDraft(body, attachments, downcast(draft.method))
 				}),
@@ -1069,7 +1077,7 @@ export class SendMailModel {
 		return waitHandler(this.getWaitMessage(), sendPromise)
 			.then(() => sendPromise, undefined)
 			.catch(
-				ofClass(restError.LockedError, () => {
+				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")
 				}),
 			) // catch all of the badness
@@ -1095,12 +1103,12 @@ export class SendMailModel {
 				}),
 			)
 			.catch(
-				ofClass(restError.TooManyRequestsError, () => {
+				ofClass(TooManyRequestsError, () => {
 					throw new UserError(tooManyRequestsError)
 				}),
 			)
 			.catch(
-				ofClass(restError.TooManyRequestsError, (e) => {
+				ofClass(AccessBlockedError, (e) => {
 					// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
 					return checkApprovalStatus(this.logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
 						console.log("could not send mail (blocked access)", e)
@@ -1117,7 +1125,7 @@ export class SendMailModel {
 				}),
 			)
 			.catch(
-				ofClass(restError.PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, (e) => {
 					if (e.data?.includes("send_mail.too_many_attachments")) {
 						throw new UserError("tooManyAttachments_msg")
 					} else {
@@ -1230,13 +1238,13 @@ export class SendMailModel {
 			this.setMailSavedAt(this.dateProvider.now())
 			this.mailRemotelyUpdatedAt = this.mailSavedAt
 		} catch (e) {
-			if (e instanceof restError.TooManyRequestsError) {
+			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
 			} else if (e instanceof MailBodyTooLargeError) {
 				throw new UserError("mailBodyTooLarge_msg")
 			} else if (e instanceof FileNotFoundError) {
 				throw new UserError("couldNotAttachFile_msg")
-			} else if (e instanceof restError.PreconditionFailedError) {
+			} else if (e instanceof PreconditionFailedError) {
 				throw new UserError("operationStillActive_msg")
 			} else {
 				throw e
@@ -1269,7 +1277,7 @@ export class SendMailModel {
 			range: null,
 			customer: null,
 		})
-		return this.entity.setup(listId, m).catch(ofClass(restError.NotAuthorizedError, (e) => console.log("not authorized for approval message")))
+		return this.entity.setup(listId, m).catch(ofClass(NotAuthorizedError, (e) => console.log("not authorized for approval message")))
 	}
 
 	getAvailableNotificationTemplateLanguages(): Array<Language> {
@@ -1310,7 +1318,7 @@ export class SendMailModel {
 				return Promise.resolve()
 			}
 
-			return this.entity.update(this.previousMail).catch(ofClass(restError.NotFoundError, noOp))
+			return this.entity.update(this.previousMail).catch(ofClass(NotFoundError, noOp))
 		} else {
 			return Promise.resolve()
 		}
@@ -1351,7 +1359,7 @@ export class SendMailModel {
 	async waitForResolvedRecipients(): Promise<Recipient[]> {
 		await this.recipientsResolved.getAsync()
 		return Promise.all(this.allRecipients().map((recipient) => recipient.resolve())).catch(
-			ofClass(restError.TooManyRequestsError, () => {
+			ofClass(TooManyRequestsError, () => {
 				throw new RecipientNotResolvedError("")
 			}),
 		)

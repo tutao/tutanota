@@ -7,7 +7,7 @@ import type { TableAttrs, TableLineAttrs } from "../../../../../ui/base/Table.js
 import { ColumnWidth, Table } from "../../../../../ui/base/Table.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SecondFactor, SecondFactorTypeRef, User } from "@tutao/entities/sys"
-import * as restError from "@tutao/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { locator } from "../../../api/main/CommonLocator.js"
 import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
 import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
@@ -142,7 +142,7 @@ export class SecondFactorsEditForm {
 					const token = await this.loginFacade.getVerifierToken(passphrase)
 					this.showAddSecondFactorDialog(token)
 				} catch (e) {
-					if (e instanceof restError.NotAuthorizedError) {
+					if (e instanceof NotAuthorizedError) {
 						return lang.get("invalidPassword_msg")
 					} else {
 						throw e
@@ -169,7 +169,7 @@ export class SecondFactorsEditForm {
 				try {
 					token = await this.loginFacade.getVerifierToken(passphrase)
 				} catch (e) {
-					if (e instanceof restError.NotAuthorizedError) {
+					if (e instanceof NotAuthorizedError) {
 						return lang.get("invalidPassword_msg")
 					} else {
 						throw e
@@ -195,7 +195,7 @@ export class SecondFactorsEditForm {
 			}
 			showProgressDialog("pleaseWait_msg", locator.entityClient.erase(secondFactorToRemove, options))
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("could not delete second factor (already deleted)")
 			} else {
 				throw e

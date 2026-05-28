@@ -20,6 +20,7 @@ import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/inst
 import { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -183,7 +184,7 @@ export async function loadMultipleFromLists<T extends ListElementEntity>(
 				} catch (e) {
 					// these are thrown if the list itself is inaccessible. elements will just be missing
 					// in the loadMultiple result.
-					if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
+					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 						console.log(`could not load entities of type ${type} from list ${listId}: ${e.name}`)
 						return []
 					} else {

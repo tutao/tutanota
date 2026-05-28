@@ -15,7 +15,7 @@ import {
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient, loadMultipleFromLists } from "../../../../../../platform-kit/network/EntityClient.js"
 import { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../../../../platform-kit/network/error/SetupMultipleError.js"
@@ -355,9 +355,7 @@ export class CalendarFacade {
 		if (newEvent._id == null) throw new Error("No id set on the event")
 		if (newEvent.uid == null) throw new Error("no uid set on the event")
 
-		await this.cachingEntityClient
-			.erase(oldEvent)
-			.catch(ofClass(restError.NotFoundError, () => console.log("could not delete old event when saving new one")))
+		await this.cachingEntityClient.erase(oldEvent).catch(ofClass(NotFoundError, () => console.log("could not delete old event when saving new one")))
 		return await this.setupMultipleCalendarEventsAndSaveAlarms([
 			{
 				event: newEvent,
@@ -445,7 +443,7 @@ export class CalendarFacade {
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
 			return this.cachingEntityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
 				// handle NotAuthorized here because user could have been removed from group.
-				if (error instanceof restError.NotAuthorizedError) {
+				if (error instanceof NotAuthorizedError) {
 					console.warn("NotAuthorized when downloading alarm events", error)
 					return []
 				}
@@ -509,7 +507,7 @@ export class CalendarFacade {
 					ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!"),
 				}
 			} catch (e) {
-				if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
+				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					continue
 				}
 				throw e

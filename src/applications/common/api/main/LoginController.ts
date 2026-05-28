@@ -14,6 +14,7 @@ import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 assertMainOrNodeBoot()
 
@@ -277,7 +278,7 @@ export class LoginController {
 		try {
 			await this.loginFacade.deleteSession(credentials.accessToken, pushIdentifier)
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("session already deleted")
 			} else {
 				throw e

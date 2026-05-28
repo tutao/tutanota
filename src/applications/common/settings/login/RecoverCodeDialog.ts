@@ -22,6 +22,7 @@ import { getEtId, isSameId } from "@tutao/meta"
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
+import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -56,8 +57,8 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action) {
 					showRecoverCodeDialog(recoverCode)
 					return ""
 				})
-				.catch(ofClass(restError.NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
-				.catch(ofClass(restError.TooManyRequestsError, () => lang.get("tooManyAttempts_msg")))
+				.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
+				.catch(ofClass(AccessBlockedError, () => lang.get("tooManyAttempts_msg")))
 		},
 		cancel: {
 			textId: "cancel_action",

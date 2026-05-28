@@ -4,7 +4,7 @@ import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { BlobAccessTokenFacade } from "../../../../../../platform-kit/network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "../../../../../../platform-kit/rest-client/types"
 import { Group } from "@tutao/entities/sys"
@@ -78,7 +78,7 @@ export class MailExportFacade {
 					return convertToDataFile(attachment, bytes)
 				}
 			} catch (e) {
-				if (e instanceof restError.NotFoundError) {
+				if (e instanceof NotFoundError) {
 					return null
 				} else {
 					throw e

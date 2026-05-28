@@ -4,8 +4,7 @@ import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tu
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { deduplicateFilenames, sanitizeFilename } from "../../../ui/utils/FileUtils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
-import * as restError from "@tutao/rest-client/error"
-import { isOfflineError } from "@tutao/rest-client/error"
+import { ConnectionError, isOfflineError } from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
@@ -83,7 +82,7 @@ export abstract class FileController {
 				}
 			}
 			if (isOffline) {
-				throw new restError.ConnectionError("currently local-store")
+				throw new ConnectionError("currently offline")
 			}
 		} finally {
 			// we don't necessarily know when the user is done with the temporary file that was opened

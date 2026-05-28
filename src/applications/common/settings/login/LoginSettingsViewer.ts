@@ -12,8 +12,7 @@ import { formatDateTimeFromYesterdayOn } from "../../../../ui/utils/Formatter.js
 import { assertMainOrNode, CredentialEncryptionMode, isDesktop, SessionState } from "@tutao/app-env"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
-import * as restError from "@tutao/rest-client/error"
-import { isOfflineError } from "@tutao/rest-client/error"
+import { isOfflineError, NotFoundError } from "@tutao/rest-client/error"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import { attachDropdown } from "../../../../ui/base/Dropdown.js"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander.js"
@@ -396,7 +395,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 	private _closeSession(session: Session) {
 		locator.entityClient.erase(session).catch(
-			ofClass(restError.NotFoundError, () => {
+			ofClass(NotFoundError, () => {
 				console.log(`session ${JSON.stringify(session._id)} already deleted`)
 			}),
 		)

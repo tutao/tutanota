@@ -12,8 +12,7 @@ import m, { Children } from "mithril"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
-import * as restError from "@tutao/rest-client/error"
-import { isOfflineError } from "@tutao/rest-client/error"
+import { BadRequestError, isOfflineError, NotFoundError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { SuspensionBehavior } from "../../../platform-kit/rest-client/types"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import {
@@ -436,7 +435,7 @@ export class UsageTestModel implements PingAdapter {
 			if (e instanceof SuspensionError) {
 				test.active = false
 				console.log("rate-limit for pings reached")
-			} else if (e instanceof restError.PreconditionFailedError) {
+			} else if (e instanceof PreconditionFailedError) {
 				if (e.data === "invalid_state") {
 					test.active = false
 					console.log(`Tried to send ping for paused test ${test.testName}`, e)
@@ -452,7 +451,7 @@ export class UsageTestModel implements PingAdapter {
 				} else {
 					throw e
 				}
-			} else if (e instanceof restError.NotFoundError) {
+			} else if (e instanceof NotFoundError) {
 				// Cached assignments are likely out of date if we run into a NotFoundError here.
 				// We should not attempt to re-send pings, as the relevant test has likely been deleted.
 				// Hence, we just remove the cached assignment and disable the test.
@@ -467,7 +466,7 @@ export class UsageTestModel implements PingAdapter {
 						assignments: storedAssignments.assignments.filter((assignment) => assignment.testId !== test.testId),
 					})
 				}
-			} else if (e instanceof restError.BadRequestError) {
+			} else if (e instanceof BadRequestError) {
 				test.active = false
 				console.log(`Tried to send ping. Setting test '${test.testName}' inactive because it is misconfigured`, e)
 			} else if (isOfflineError(e)) {

@@ -30,8 +30,7 @@ import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import * as restError from "../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
@@ -658,7 +657,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: createRowActions(
 							{
 								getArray: () => props.inboxRules,
-								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(restError.LockedError, noOp)),
+								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
 							},
 							rule,
 							index,

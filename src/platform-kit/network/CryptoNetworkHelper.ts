@@ -4,7 +4,6 @@ import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKe
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { HttpMethod, RestClientInterface } from "../rest-client/types"
-import { restError } from "@tutao/rest-client"
 import { EntityClient } from "./EntityClient"
 import { IServiceExecutor } from "./ServiceRequest"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
@@ -21,6 +20,7 @@ import {
 import { GroupType } from "../../entities/sys/Utils"
 import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { PatchOperationType } from "../instance-pipeline/PatchGenerator"
+import { PayloadTooLargeError } from "@tutao/rest-client/error"
 
 export class CryptoNetworkHelper {
 	constructor(
@@ -171,7 +171,7 @@ export class CryptoNetworkHelper {
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(
-				ofClass(restError.TooManyRequestsError, (e) => {
+				ofClass(PayloadTooLargeError, (e) => {
 					console.log("Could not update owner enc session key - PayloadTooLargeError", e)
 				}),
 			)

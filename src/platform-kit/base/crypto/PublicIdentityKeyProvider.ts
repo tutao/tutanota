@@ -3,8 +3,7 @@ import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { bytesToEd25519PublicKey, cryptoUtils, PublicKeyIdentifier, PublicKeyIdentifierType, SigningKeyPairType } from "@tutao/crypto"
 import { Versioned } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
-import { CryptoError } from "@tutao/crypto/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
 import { SigningPublicKey } from "../../crypto/encryption/Ed25519"
@@ -124,7 +123,7 @@ export class PublicIdentityKeyProvider {
 				}
 			}
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				return null
 			} else {
 				throw e

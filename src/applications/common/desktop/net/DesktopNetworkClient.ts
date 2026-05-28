@@ -1,6 +1,6 @@
 import http from "node:http"
 import https from "node:https"
-import * as restError from "@tutao/rest-client/error"
+import { ConnectionError } from "@tutao/rest-client/error"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
 import { newPromise } from "@tutao/utils"
@@ -59,7 +59,7 @@ export class DesktopNetworkClient {
 				.on("error", onerror)
 				.on("timeout", () => {
 					log.debug(TAG, "timed out req")
-					req.destroy(new restError.ConnectionError("timed out"))
+					req.destroy(new ConnectionError("timed out"))
 				})
 			if (uploadStream) {
 				uploadStream.on("error", onerror).pipe(req)

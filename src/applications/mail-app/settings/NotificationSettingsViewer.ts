@@ -16,9 +16,9 @@ import { IdentifierRow } from "../../common/settings/IdentifierRow.js"
 import { DropDownSelector, type DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { NotificationSettingsViewerModel } from "./NotificationSettingsViewerModel"
 import { noOp, ofClass } from "../../../platform-kit/utils"
-import * as restError from "../../../platform-kit/rest-client/error"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
@@ -89,7 +89,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 				identifier: identifier.identifier,
 				current: isCurrentDevice,
 				removeClicked: () => {
-					locator.entityClient.erase(identifier).catch(ofClass(restError.NotFoundError, noOp))
+					locator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
 				},
 				formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 				disableClicked: () => this.togglePushIdentifier(identifier),

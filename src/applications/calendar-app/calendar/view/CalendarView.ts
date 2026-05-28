@@ -46,7 +46,7 @@ import {
 import { ButtonColor } from "../../../../ui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../../ui/styles"
@@ -1063,9 +1063,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				),
 			).then((confirmed) => {
 				if (confirmed) {
-					this.viewModel
-						.deleteCalendar(calendarInfo)
-						.catch(ofClass(restError.NotFoundError, () => console.log("Calendar to be deleted was not found.")))
+					this.viewModel.deleteCalendar(calendarInfo).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 				}
 			})
 		})
@@ -1136,7 +1134,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						})
 					})
 			})
-			.catch(ofClass(restError.LockedError, noOp))
+			.catch(ofClass(LockedError, noOp))
 
 		if (client.isCalendarApp()) {
 			calendarLocator.systemFacade.requestWidgetRefresh()
@@ -1311,7 +1309,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const contactId = decodeBase64("utf8", base64ContactId).split("/")
 			const contact = await locator.entityClient.load(ContactTypeRef, [contactId[0], contactId[1]])
 			if (!contact) {
-				throw new restError.NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
+				throw new NotFoundError(`Could not find contact for this birthday event ${selectedEvent._id}`)
 			}
 			const popupModel = await locator.calendarContactPreviewModel(selectedEvent, contact!, true)
 			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)

@@ -2,7 +2,6 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { elementIdPart, OperationType } from "../../../../platform-kit/meta"
-import * as restError from "../../../../platform-kit/rest-client/error"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
@@ -14,6 +13,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 
 const TAG = "[CalendarEventUpdateCoordinator]"
 
@@ -79,7 +79,7 @@ export class CalendarEventUpdateCoordinator {
 					])
 					await this.handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate)
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId])
 					} else {
 						throw e

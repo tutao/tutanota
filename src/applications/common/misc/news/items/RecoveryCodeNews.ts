@@ -4,7 +4,6 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { Button, ButtonType } from "../../../../../ui/base/Button.js"
 import { NewsModel } from "../NewsModel.js"
 import { Dialog, DialogType } from "../../../../../ui/base/Dialog.js"
-import * as restError from "@tutao/rest-client/error"
 import { LazyLoaded, noOp, ofClass } from "@tutao/utils"
 import { copyToClipboard } from "../../../../../ui/utils/ClipboardUtils.js"
 import { UserController } from "../../../api/main/UserController.js"
@@ -13,6 +12,7 @@ import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog
 import { RecoverCodeFacade } from "../../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { daysToMillis, isApp } from "@tutao/app-env"
 import m, { Children } from "mithril"
+import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 
 /**
  * News item that informs admin users about their recovery code.
@@ -147,8 +147,8 @@ export class RecoveryCodeNews implements NewsListItem {
 						this.recoveryCode = recoverCode
 						return ""
 					})
-					.catch(ofClass(restError.NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
-					.catch(ofClass(restError.TooManyRequestsError, () => lang.get("tooManyAttempts_msg")))
+					.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
+					.catch(ofClass(AccessBlockedError, () => lang.get("tooManyAttempts_msg")))
 					.finally(m.redraw)
 			},
 			cancel: {

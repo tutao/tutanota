@@ -13,7 +13,7 @@ import {
 } from "@tutao/crypto"
 import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { getElementId, isSameId } from "../../meta"
 import { KeyCache } from "../../../app-kit/local-store/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
@@ -302,7 +302,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 
 	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey) {
 		if (keyPair == null) {
-			throw new restError.NotFoundError(`no key pair on group ${groupId}`)
+			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
 		const decryptedKeyPair = decryptKeyPair(groupKey.object, keyPair as EncryptedKeyPairs)

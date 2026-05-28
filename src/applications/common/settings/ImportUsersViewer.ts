@@ -3,7 +3,7 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
 import { contains, delay, ofClass, promiseMap } from "../../../platform-kit/utils"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
@@ -157,7 +157,7 @@ async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
 		}),
 		operation.progress,
 	)
-		.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
+		.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
 		.finally(() => operation.done)
 
 	if (notAvailableUsers.length > 0) {

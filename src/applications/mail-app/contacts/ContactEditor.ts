@@ -6,7 +6,7 @@ import { isMailAddress } from "../../../platform-kit/utils/FormatUtils"
 import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
 import { assertNotNull, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "../../../platform-kit/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError, PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 import type { ButtonAttrs } from "../../../ui/base/Button.js"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { birthdayToIsoDate } from "../../common/api/common/utils/BirthdayUtils"
@@ -347,10 +347,10 @@ export class ContactEditor {
 			this.close()
 		} catch (e) {
 			this.saving = false
-			if (e instanceof restError.TooManyRequestsError) {
+			if (e instanceof PayloadTooLargeError) {
 				return Dialog.message("requestTooLarge_msg")
 			}
-			if (e instanceof restError.LockedError) {
+			if (e instanceof LockedError) {
 				return Dialog.message("operationStillActive_msg")
 			}
 		}
@@ -361,7 +361,7 @@ export class ContactEditor {
 		try {
 			await this.entityClient.update(this.contact)
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log(TAG, `could not update contact ${this.contact._id}: not found`)
 			}
 		}

@@ -7,8 +7,7 @@ import { EntityClient, loadMultipleFromLists } from "../../../platform-kit/netwo
 import { LoginController } from "../api/main/LoginController.js"
 import { EventController } from "../api/main/EventController.js"
 import { DbError } from "../api/common/error/DbError.js"
-import * as restError from "@tutao/rest-client/error"
-import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { LoginIncompleteError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 import {
@@ -179,8 +178,8 @@ export class ContactModel {
 				// when the group root is already deleted, or we deleted our membership
 				(groupInfo) =>
 					this.getContactListInfo(groupInfo)
-						.catch(ofClass(restError.NotFoundError, () => null))
-						.catch(ofClass(restError.NotAuthorizedError, () => null)),
+						.catch(ofClass(NotFoundError, () => null))
+						.catch(ofClass(NotAuthorizedError, () => null)),
 			)
 		).filter(isNotNull)
 
@@ -227,7 +226,7 @@ export function lazyContactListId(logins: LoginController, entityClient: EntityC
 				return contactList.contacts
 			})
 			.catch(
-				ofClass(restError.NotFoundError, (e) => {
+				ofClass(NotFoundError, (e) => {
 					if (!logins.getUserController().isInternalUser()) {
 						return null // external users have no contact list.
 					} else {

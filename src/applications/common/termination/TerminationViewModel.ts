@@ -7,7 +7,7 @@ import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { TerminationPeriodOptions } from "../../../platform-kit/app-env"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { PreconditionFailedError } from "@tutao/rest-client/error"
 import { incrementDate } from "../../../platform-kit/utils"
 import {
 	createCustomerAccountTerminationPostIn,
@@ -60,7 +60,7 @@ export class TerminationViewModel {
 			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
 		} catch (e) {
-			if (e instanceof restError.PreconditionFailedError) {
+			if (e instanceof PreconditionFailedError) {
 				switch (e.data) {
 					case "invalidTerminationDate":
 						this.onTerminationRequestFailed("terminationInvalidDate_msg")

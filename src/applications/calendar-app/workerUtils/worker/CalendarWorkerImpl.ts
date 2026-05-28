@@ -1,6 +1,6 @@
 import { Commands, Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "../index/CalendarWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
@@ -214,7 +214,7 @@ export class CalendarWorkerImpl implements NativeInterface {
 				const errorTypes = {
 					ProgrammingError,
 					CryptoError,
-					NotAuthenticatedError: restError.NotAuthenticatedError,
+					NotAuthenticatedError,
 				}
 				// @ts-ignore
 				let ErrorType = errorTypes[message.args[0].errorType]

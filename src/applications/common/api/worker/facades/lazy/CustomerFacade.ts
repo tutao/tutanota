@@ -4,7 +4,7 @@ import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoF
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
-import * as restError from "@tutao/rest-client/error"
+import { LockedError } from "@tutao/rest-client/error"
 import type { RsaImplementation } from "../../../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
@@ -233,7 +233,7 @@ export class CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
-			return this.entityClient.update(props).catch(ofClass(restError.LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -249,7 +249,7 @@ export class CustomerFacade {
 			}
 
 			props.emailSenderList[index] = spamRule
-			return this.entityClient.update(props).catch(ofClass(restError.LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 		})
 	}
 

@@ -5,7 +5,7 @@ import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "../../../../platform-kit/utils"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { AppType, isApp, isBrowser, isDesktop, PushServiceType } from "../../../../platform-kit/app-env"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
@@ -50,7 +50,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 					identifier: identifier.identifier,
 					current: isCurrentDevice,
 					removeClicked: () => {
-						calendarLocator.entityClient.erase(identifier).catch(ofClass(restError.NotFoundError, noOp))
+						calendarLocator.entityClient.erase(identifier).catch(ofClass(NotFoundError, noOp))
 					},
 					formatIdentifier: identifier.pushServiceType !== PushServiceType.EMAIL,
 					disableClicked: () => this.togglePushIdentifier(identifier),

@@ -4,7 +4,6 @@ import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/ne
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedRouter"
 import m from "mithril"
-import * as restError from "../../../../platform-kit/rest-client/error"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "../../../../platform-kit/utils"
 import { DriveTransferController, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -40,6 +39,7 @@ import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -224,7 +224,7 @@ export class DriveViewModel {
 			if (op != null) {
 				let error: Error | null
 				if (update.status === OperationStatus.FAILURE) {
-					error = restError.handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
+					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
 				} else {
 					error = null
 				}
@@ -531,7 +531,7 @@ export class DriveViewModel {
 			this.listModel.loadInitial()
 			await this.loadParents(folder)
 		} catch (e) {
-			if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
+			if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 				this.navigateToRootFolder()
 			} else {
 				throw e

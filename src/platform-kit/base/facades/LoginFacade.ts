@@ -16,7 +16,7 @@ import {
 } from "@tutao/utils"
 import { AttributeModel, GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
-import { RestClient, restError } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
@@ -95,7 +95,15 @@ import {
 	VerifierTokenService,
 } from "@tutao/entities/sys"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { LoginIncompleteError } from "@tutao/rest-client/error"
+import {
+	AccessExpiredError,
+	ConnectionError,
+	LockedError,
+	LoginIncompleteError,
+	NotAuthenticatedError,
+	NotFoundError,
+	SessionExpiredError,
+} from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -470,14 +478,14 @@ export class LoginFacade implements SessionTypeProvider {
 		await this.serviceExecutor
 			.delete(SecondFactorAuthService, secondFactorAuthDeleteData)
 			.catch(
-				ofClass(restError.NotFoundError, (e) => {
+				ofClass(NotFoundError, (e) => {
 					// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
 					// cancel too late. No harm here anyway if the session is already gone.
 					console.warn("Tried to cancel second factor but it was not there anymore", e)
 				}),
 			)
 			.catch(
-				ofClass(restError.LockedError, (e) => {
+				ofClass(LockedError, (e) => {
 					// Might happen if we trigger cancel and confirm at the same time.
 					console.warn("Tried to cancel second factor but it is currently locked", e)
 				}),
@@ -606,12 +614,12 @@ export class LoginFacade implements SessionTypeProvider {
 				queryParams,
 			})
 			.catch(
-				ofClass(restError.NotAuthenticatedError, () => {
+				ofClass(NotAuthenticatedError, () => {
 					console.log("authentication failed => session is already closed")
 				}),
 			)
 			.catch(
-				ofClass(restError.NotFoundError, () => {
+				ofClass(NotFoundError, () => {
 					console.log("authentication failed => session instance is already deleted")
 				}),
 			)
@@ -925,7 +933,7 @@ export class LoginFacade implements SessionTypeProvider {
 				return this.waitUntilSecondFactorApproved(accessToken, sessionId, 0)
 			}
 		} catch (e) {
-			if (e instanceof restError.ConnectionError && retryOnNetworkError < 10) {
+			if (e instanceof ConnectionError && retryOnNetworkError < 10) {
 				// Connection error can occur on ios when switching between apps or just as a timeout (our request timeout is shorter than the overall
 				// auth flow timeout). Just retry in this case.
 				return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
@@ -966,13 +974,13 @@ export class LoginFacade implements SessionTypeProvider {
 		try {
 			await this.finishResumeSession(credentials, null, cacheInfo)
 		} catch (e) {
-			if (e instanceof restError.NotAuthenticatedError || e instanceof restError.SessionExpiredError) {
+			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
 				this.asyncLoginState = { state: "idle" }
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
 				this.asyncLoginState = { state: "failed", credentials, cacheInfo }
-				if (!(e instanceof restError.ConnectionError)) {
+				if (!(e instanceof ConnectionError)) {
 					await this.applicationTypesFacade.invalidateApplicationTypes()
 					await this.sendError(e)
 				}
@@ -1137,7 +1145,7 @@ export class LoginFacade implements SessionTypeProvider {
 			// Do not delete session or credentials, we can still use them if the password
 			// hasn't been changed.
 			this.resetSession()
-			throw new restError.AccessExpiredError("Salt changed, outdated link?")
+			throw new AccessExpiredError("Salt changed, outdated link?")
 		}
 	}
 
@@ -1155,7 +1163,7 @@ export class LoginFacade implements SessionTypeProvider {
 			// delete the obsolete session to make sure it can not be used any more
 			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
 			await this.resetSession()
-			throw new restError.NotAuthenticatedError("Auth verifier has changed")
+			throw new NotAuthenticatedError("Auth verifier has changed")
 		}
 	}
 

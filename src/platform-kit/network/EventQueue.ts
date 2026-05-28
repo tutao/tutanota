@@ -1,4 +1,4 @@
-import * as restError from "@tutao/rest-client/error"
+import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { purgeSyncMetrics, syncMetrics } from "@tutao/utils"
 import { EntityUpdateData, getLogStringForEntityEvent } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { ProgressMonitorInterface } from "./ProgressMonitorInterface"
@@ -114,7 +114,7 @@ export class EventQueue {
 					// processing continues if the event bus receives a new event
 					this.processingBatch = null
 
-					if (!(e instanceof restError.TooManyRequestsError || e instanceof restError.ConnectionError)) {
+					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
 						console.error(
 							"Uncaught EventQueue error!",
 							e,

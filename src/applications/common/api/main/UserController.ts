@@ -1,7 +1,7 @@
 import { assertMainOrNode, FeatureType, getApiBaseUrl, isDesktop, SessionType } from "@tutao/app-env"
 import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
 import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -399,7 +399,7 @@ export async function initUserController({
 	const [props, userSettingsGroupRoot, customer] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
 		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
-			ofClass(restError.NotFoundError, () =>
+			ofClass(NotFoundError, () =>
 				entityClient
 					.setup(
 						null,

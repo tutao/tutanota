@@ -1,5 +1,5 @@
 import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
-import * as restError from "@tutao/rest-client/error"
+import { handleRestError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { HttpMethod, MediaType } from "../../../../../../platform-kit/rest-client/types"
@@ -670,7 +670,7 @@ export class BlobFacade {
 			this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), serviceUrl)
 			return this.suspensionHandler.deferRequest(() => this.uploadNative(location, blobServerAccessInfo, serverUrl, blobHash, chunkId))
 		} else {
-			throw restError.handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
+			throw handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
 		}
 	}
 
@@ -855,7 +855,7 @@ export class BlobFacade {
 				this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, fileName, additionalParams, blobId),
 			)
 		} else {
-			throw restError.handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
+			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
 		}
 	}
 

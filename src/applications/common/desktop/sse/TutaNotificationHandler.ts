@@ -13,7 +13,7 @@ import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { ClientTypeModelResolver, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { handleRestError } from "@tutao/rest-client/error"
 import { IdTupleWrapper, NotificationInfo } from "@tutao/entities/sys"
 import { MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 
@@ -128,7 +128,7 @@ class TutaNotificationHandler {
 		try {
 			const response = await this.fetch(url, { headers })
 			if (!response.ok) {
-				throw restError.handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
+				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
 			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>

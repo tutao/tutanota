@@ -24,7 +24,7 @@ import {
 } from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../../../ui/Notifications"
-import * as restError from "@tutao/rest-client/error"
+import { LockedError, NotAuthorizedError } from "@tutao/rest-client/error"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import { getThemeCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
@@ -283,7 +283,7 @@ export class PostLoginActions implements PostLoginAction {
 
 			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())
 			newCustomerProperties.lastUpgradeReminder = new Date(this.dateProvider.now())
-			this.entityClient.update(newCustomerProperties).catch(ofClass(restError.LockedError, noOp))
+			this.entityClient.update(newCustomerProperties).catch(ofClass(LockedError, noOp))
 		}
 	}
 
@@ -375,7 +375,7 @@ export class PostLoginActions implements PostLoginAction {
 								},
 							})
 						} catch (e) {
-							if (e instanceof restError.NotAuthorizedError) {
+							if (e instanceof NotAuthorizedError) {
 								return lang.getTranslation("invalidPassword_msg").text
 							} else {
 								reject(e)

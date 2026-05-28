@@ -1,7 +1,7 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
 import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
-import * as restError from "@tutao/rest-client/error"
+import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
 import { InstancePipeline } from "@tutao/instance-pipeline"
@@ -130,7 +130,7 @@ export class AlarmFacade {
 		try {
 			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { sessionKey: notificationSessionKey })
 		} catch (e) {
-			if (e instanceof restError.TooManyRequestsError) {
+			if (e instanceof TooManyRequestsError) {
 				return this.infoMessageHandler.onInfoMessage({
 					translationKey: "calendarAlarmsTooBigError_msg",
 					args: {},

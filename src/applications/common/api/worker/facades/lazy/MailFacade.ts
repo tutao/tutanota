@@ -32,7 +32,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../../../../platform-kit/network/error/RecipientsNotFoundError.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import {
 	addressDomain,
 	assertNotNull,
@@ -715,7 +715,7 @@ export class MailFacade {
 			this.keyProviderFromInstance(draft),
 		)
 		if (mailDetails.length === 0) {
-			throw new restError.NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
+			throw new NotFoundError(`MailDetailsDraft ${draft.mailDetailsDraft}`)
 		}
 		return mailDetails[0].details.replyTos
 	}
@@ -927,7 +927,7 @@ export class MailFacade {
 		try {
 			externalUserReference = await this.entityClient.load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				return this.createExternalUser(cleanedMailAddress, externalUserKdfType, externalUserPwKey, verifier)
 			}
 			throw e
@@ -973,7 +973,7 @@ export class MailFacade {
 				identifier: mailAddress,
 			})
 			.then((value) => value)
-			.catch(ofClass(restError.NotFoundError, () => null))
+			.catch(ofClass(NotFoundError, () => null))
 	}
 
 	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
@@ -993,7 +993,7 @@ export class MailFacade {
 						deferredPromiseWrapper.resolve(mail)
 					})
 					.catch(
-						ofClass(restError.NotFoundError, () => {
+						ofClass(NotFoundError, () => {
 							console.log(`Could not find updated mail ${JSON.stringify([update.instanceListId, update.instanceId])}`)
 						}),
 					)
@@ -1097,7 +1097,7 @@ export class MailFacade {
 			if (filteredMemberships.length === 1) {
 				return filteredMemberships[0].group
 			} else {
-				throw new restError.NotFoundError("group for mail address not found " + mailAddress)
+				throw new NotFoundError("group for mail address not found " + mailAddress)
 			}
 		})
 	}
@@ -1165,7 +1165,7 @@ export class MailFacade {
 				this.keyProviderFromInstance(mail),
 			)
 			if (mailDetailsBlobs.length === 0) {
-				throw new restError.NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+				throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 			}
 			return mailDetailsBlobs[0].details
 		}
@@ -1199,7 +1199,7 @@ export class MailFacade {
 				this.keyProviderFromInstance(mail),
 			)
 			if (mailDetailsDrafts.length === 0) {
-				throw new restError.NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
+				throw new NotFoundError(`MailDetailsDraft ${detailsDraftId}`)
 			}
 			return mailDetailsDrafts[0].details
 		}

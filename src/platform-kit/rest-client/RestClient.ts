@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
-import * as restError from "./error.js"
+import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
 import { HttpMethod, MediaType, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { once } from "../utils/memoized"
 
@@ -150,7 +150,7 @@ export class RestClient implements RestClientInterface {
 
 							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
 								reject(
-									new restError.SuspensionError(
+									new SuspensionError(
 										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
 										suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
 									),
@@ -162,7 +162,7 @@ export class RestClient implements RestClientInterface {
 							} else {
 								logFailedRequest(method, url, xhr, options)
 								reject(
-									restError.handleRestError(
+									handleRestError(
 										xhr.status,
 										`| ${method} ${path}`,
 										xhr.getResponseHeader("Error-Id"),
@@ -182,14 +182,7 @@ export class RestClient implements RestClientInterface {
 					try {
 						cancelTimeoutTimer()
 						logFailedRequest(method, url, xhr, options)
-						reject(
-							restError.handleRestError(
-								xhr.status,
-								` | ${method} ${path}`,
-								xhr.getResponseHeader("Error-Id"),
-								xhr.getResponseHeader("Precondition"),
-							),
-						)
+						reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 					} catch (e) {
 						const msg = "unexpected error in RestClient::onerror handler: "
 						console.error(msg, e)
@@ -238,7 +231,7 @@ export class RestClient implements RestClientInterface {
 							if (verbose) {
 								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 							}
-							reject(new restError.ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+							reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 						}
 					}
 				}
@@ -265,7 +258,7 @@ export class RestClient implements RestClientInterface {
 					if (options.abortSignal?.aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
-						reject(new restError.ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+						reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 					}
 				}
 
@@ -322,7 +315,7 @@ export class RestClient implements RestClientInterface {
 		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
 
 		if (body && body.length > limit) {
-			throw new restError.PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
+			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
 		}
 	}
 

@@ -22,7 +22,7 @@ import { EncryptedMissedNotification } from "../../../../app-kit/native-bridge/c
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
 import { CryptoError } from "../../../../platform-kit/crypto/error"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { handleRestError } from "@tutao/rest-client/error"
 import {
 	AlarmNotificationTypeRef,
 	createGeneratedIdWrapper,
@@ -216,7 +216,7 @@ export class TutaSseFacade implements SseEventHandler {
 		const res = await this.fetch(url, { headers })
 
 		if (!res.ok) {
-			throw restError.handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
+			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
 			const untypedInstance = (await res.json()) as ServerModelUntypedInstance
 			log.debug("downloaded missed notification")

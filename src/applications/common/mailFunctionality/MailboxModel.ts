@@ -5,7 +5,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import { PreconditionFailedError } from "@tutao/rest-client/error"
 import { isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
@@ -190,7 +190,7 @@ export class MailboxModel {
 					}),
 				)
 				.catch(
-					ofClass(restError.PreconditionFailedError, (e) => {
+					ofClass(PreconditionFailedError, (e) => {
 						// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
 						// We send special precondition from the server with an existing id.
 						if (e.data && e.data.startsWith("exists:")) {

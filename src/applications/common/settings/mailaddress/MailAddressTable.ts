@@ -3,7 +3,7 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import type { TableLineAttrs } from "../../../../ui/base/Table.js"
 import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
-import * as restError from "@tutao/rest-client/error"
+import { LimitReachedError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { ofClass } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
@@ -214,8 +214,8 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 
 	const updateModel = attrs.model
 		.setAliasStatus(alias.address, !deactivateOrDeleteAlias)
-		.catch(ofClass(restError.PreconditionFailedError, handleSetAliasStatusPreconditionFailed))
-		.catch(ofClass(restError.TooManyRequestsError, () => attrs.model.handleTooManyAliases()))
+		.catch(ofClass(PreconditionFailedError, handleSetAliasStatusPreconditionFailed))
+		.catch(ofClass(LimitReachedError, () => attrs.model.handleTooManyAliases()))
 		.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(UpgradePromptType.ALIASES, e.plans, e.message)))
 	await showProgressDialog("pleaseWait_msg", updateModel)
 }
@@ -233,7 +233,7 @@ function showSenderNameChangeDialog(model: MailAddressTableModel, alias: { addre
 	}).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))
 }
 
-function handleSetAliasStatusPreconditionFailed(e: restError.PreconditionFailedError): void {
+function handleSetAliasStatusPreconditionFailed(e: PreconditionFailedError): void {
 	const reason = e.data
 
 	if (reason == null) {

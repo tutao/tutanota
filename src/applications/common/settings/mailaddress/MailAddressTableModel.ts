@@ -4,7 +4,6 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
 import { assertNotNull, lazyMemoized } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
@@ -20,6 +19,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "@tutao/meta"
+import { LimitReachedError } from "@tutao/rest-client/error"
 
 export enum AddressStatus {
 	Primary,
@@ -136,7 +136,7 @@ export class MailAddressTableModel {
 			await this.mailAddressFacade.addMailAlias(this.userInfo.userGroupInfo.group, alias)
 			await this.setAliasName(alias, senderName)
 		} catch (e) {
-			if (e instanceof restError.TooManyRequestsError) {
+			if (e instanceof LimitReachedError) {
 				await this.handleTooManyAliases()
 			}
 			throw e

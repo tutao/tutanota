@@ -9,7 +9,7 @@ import {
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
-import * as restError from "../../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { EndType, ProgrammingError } from "../../../../../platform-kit/app-env"
 import m from "mithril"
@@ -166,7 +166,7 @@ export class CalendarEventPreviewViewModel {
 			const model = await this.eventModelFactory(CalendarOperation.DeleteThis, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
-			if (!(e instanceof restError.NotFoundError)) {
+			if (!(e instanceof NotFoundError)) {
 				throw e
 			}
 		}
@@ -177,7 +177,7 @@ export class CalendarEventPreviewViewModel {
 			const model = await this.eventModelFactory(CalendarOperation.DeleteAll, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
-			if (!(e instanceof restError.NotFoundError)) {
+			if (!(e instanceof NotFoundError)) {
 				throw e
 			}
 		}
@@ -196,7 +196,7 @@ export class CalendarEventPreviewViewModel {
 				recurrenceId: this.calendarEvent.startTime,
 			})
 		} catch (err) {
-			if (err instanceof restError.NotFoundError) {
+			if (err instanceof NotFoundError) {
 				console.log("occurrence not found when clicking on the event")
 			} else {
 				throw err
@@ -219,7 +219,7 @@ export class CalendarEventPreviewViewModel {
 			const eventEditor = new EventEditorDialog()
 			await eventEditor.showNewCalendarEventEditDialog(newEventModel, async () => await this.finishThisAndFutureUpdate(progenitorModel, timeZone))
 		} catch (err) {
-			if (err instanceof restError.NotFoundError) {
+			if (err instanceof NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -235,7 +235,7 @@ export class CalendarEventPreviewViewModel {
 			}
 			await this.finishThisAndFutureUpdate(progenitorModel, this.calendarEvent.repeatRule?.timeZone ?? getTimeZone())
 		} catch (err) {
-			if (err instanceof restError.NotFoundError) {
+			if (err instanceof NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -338,7 +338,7 @@ export class CalendarEventPreviewViewModel {
 			const eventEditor = new EventEditorDialog()
 			return await eventEditor.showNewCalendarEventEditDialog(newEventModel)
 		} catch (err) {
-			if (err instanceof restError.NotFoundError) {
+			if (err instanceof NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err
@@ -377,7 +377,7 @@ export class CalendarEventPreviewViewModel {
 				recurrenceId: null,
 			})
 		} catch (err) {
-			if (err instanceof restError.NotFoundError) {
+			if (err instanceof NotFoundError) {
 				console.log("calendar event not found when clicking on the event")
 			} else {
 				throw err

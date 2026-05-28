@@ -10,7 +10,7 @@ import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@t
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
@@ -140,7 +140,7 @@ export class DriveFacade {
 		try {
 			driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				driveGroupRoot = await this.createGroupRoot(fileGroupId)
 			} else {
 				throw e

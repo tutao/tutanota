@@ -52,6 +52,7 @@ import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorag
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
+import { NotAuthenticatedError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -337,7 +338,7 @@ export class WorkerImpl implements NativeInterface {
 				const errorTypes = {
 					ProgrammingError,
 					CryptoError,
-					NotAuthenticatedError: restError.NotAuthenticatedError,
+					NotAuthenticatedError,
 				}
 				// @ts-ignore
 				let ErrorType = errorTypes[message.args[0].errorType]

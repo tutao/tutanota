@@ -2,7 +2,17 @@ import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../../../ui/base/Dialog"
 import { generatedIdToTimestamp } from "@tutao/meta"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
-import * as restError from "@tutao/rest-client/error"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	BadRequestError,
+	ConnectionError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	TooManyRequestsError,
+} from "@tutao/rest-client/error"
 import { ApprovalStatus, CancelledError } from "@tutao/app-env"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -102,18 +112,18 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 
 export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): MaybeTranslation {
 	switch (error.constructor) {
-		case restError.BadRequestError:
-		case restError.NotAuthenticatedError:
-		case restError.AccessDeactivatedError:
+		case BadRequestError:
+		case NotAuthenticatedError:
+		case AccessDeactivatedError:
 			return "loginFailed_msg"
 
-		case restError.AccessBlockedError:
+		case AccessBlockedError:
 			return "loginFailedOften_msg"
 
-		case restError.AccessExpiredError:
+		case AccessExpiredError:
 			return isExternalLogin ? "expiredLink_msg" : "inactiveAccount_msg"
 
-		case restError.TooManyRequestsError:
+		case TooManyRequestsError:
 			return "tooManyAttempts_msg"
 
 		case CancelledError:
@@ -124,7 +134,7 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Ma
 				"{reason}": error.message,
 			})
 
-		case restError.ConnectionError:
+		case ConnectionError:
 			return "connectionLostLong_msg"
 
 		default:
@@ -138,15 +148,15 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Ma
  */
 export function handleExpectedLoginError<E extends Error>(error: E, handler: (error: E) => void) {
 	if (
-		error instanceof restError.BadRequestError ||
-		error instanceof restError.NotAuthenticatedError ||
-		error instanceof restError.AccessExpiredError ||
-		error instanceof restError.TooManyRequestsError ||
-		error instanceof restError.AccessDeactivatedError ||
-		error instanceof restError.TooManyRequestsError ||
+		error instanceof BadRequestError ||
+		error instanceof NotAuthenticatedError ||
+		error instanceof AccessExpiredError ||
+		error instanceof AccessBlockedError ||
+		error instanceof AccessDeactivatedError ||
+		error instanceof TooManyRequestsError ||
 		error instanceof CancelledError ||
 		error instanceof CredentialAuthenticationError ||
-		error instanceof restError.ConnectionError
+		error instanceof ConnectionError
 	) {
 		handler(error)
 	} else {
@@ -157,9 +167,9 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 export function getLoginErrorStateAndMessage(error: Error): { errorMessage: MaybeTranslation; state: LoginState } {
 	let errorMessage = getLoginErrorMessage(error, false)
 	let state
-	if (error instanceof restError.BadRequestError || error instanceof restError.NotAuthenticatedError) {
+	if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {
 		state = LoginState.InvalidCredentials
-	} else if (error instanceof restError.AccessExpiredError) {
+	} else if (error instanceof AccessExpiredError) {
 		state = LoginState.AccessExpired
 	} else {
 		state = LoginState.UnknownError
@@ -285,7 +295,7 @@ export async function showGiftCardDialog(urlHash: string) {
 	showProgressDialog("loading_msg", loadRedeemGiftCardWizard(urlHash))
 		.then((dialog) => dialog.show())
 		.catch((e) => {
-			if (e instanceof restError.NotAuthorizedError || e instanceof restError.NotFoundError) {
+			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
 				throw new UserError("invalidGiftCard_msg")
 			} else {
 				throw e

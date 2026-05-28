@@ -13,7 +13,7 @@ import {
 	promiseMap,
 } from "../../../../platform-kit/utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -126,7 +126,7 @@ export class MailIndexer {
 					.then((d) => {
 						const draft = first(d)
 						if (draft == null) {
-							throw new restError.NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
+							throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
 						}
 						return draft.details
 					})
@@ -140,7 +140,7 @@ export class MailIndexer {
 					.then((d) => {
 						const blob = first(d)
 						if (blob == null) {
-							throw new restError.NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
+							throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 						}
 						return blob.details
 					})
@@ -153,10 +153,10 @@ export class MailIndexer {
 				attachments,
 			}
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("tried to index non existing mail", mailId)
 				return null
-			} else if (e instanceof restError.NotAuthorizedError) {
+			} else if (e instanceof NotAuthorizedError) {
 				console.log("tried to index mail without permission", mailId)
 				return null
 			} else {
@@ -287,7 +287,7 @@ export class MailIndexer {
 			const updatedIndexState: Partial<SearchIndexStateInfo> = {
 				progress: restarting ? 1 : 0,
 				failedIndexingUpTo: cancelled ? null : oldestTimestamp,
-				error: cancelled ? null : e instanceof restError.ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+				error: cancelled ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
 			}
 
 			if (cancelled) {

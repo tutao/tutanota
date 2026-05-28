@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import * as restError from "../../../platform-kit/rest-client/error"
 import { component_size } from "../../../ui/size.js"
 import { assertNotNull, noOp } from "../../../platform-kit/utils"
 import { assertMainOrNode, FeatureType } from "../../../platform-kit/app-env"
@@ -24,6 +23,7 @@ import { ManagedCustomerViewer } from "./ManagedCustomerViewer"
 import { CustomerInfo, CustomerInfoTypeRef, PartnerManagedCustomerTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { elementIdPart, listIdPart } from "../../../platform-kit/meta"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -183,7 +183,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 				try {
 					return await locator.entityClient.load<CustomerInfo>(CustomerInfoTypeRef, [_listId, elementId])
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						// we return null if the CustomerInfo does not exist
 						return null
 					} else {

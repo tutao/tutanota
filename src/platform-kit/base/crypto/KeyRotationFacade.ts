@@ -31,7 +31,7 @@ import { PQFacade } from "./PQFacade.js"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { CryptoFacade } from "./CryptoFacade.js"
 import { UserFacade } from "../facades/UserFacade.js"
-import * as restError from "@tutao/rest-client/error"
+import { LockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
@@ -185,7 +185,7 @@ export class KeyRotationFacade {
 			const pendingKeyRotations = await this.loadPendingKeyRotations(user)
 			await this.processPendingKeyRotation(pendingKeyRotations, user, pwKey)
 		} catch (e) {
-			if (e instanceof restError.LockedError || e instanceof restError.NotAuthenticatedError) {
+			if (e instanceof LockedError || e instanceof NotAuthenticatedError) {
 				// we catch here so that we also catch errors in the `finally` block
 				// NotAuthenticated error might happen when signing up (temporary session) and logging out too quickly again
 				console.log("error when processing key rotation or group key update", e)

@@ -1,5 +1,5 @@
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { NewsListItem } from "./NewsListItem.js"
 import { isIOSApp } from "@tutao/app-env"
 import { createNewsIn, NewsId, NewsOut, NewsService } from "@tutao/entities/tutanota"
@@ -62,7 +62,7 @@ export class NewsModel {
 			await this.serviceExecutor.post(NewsService, data)
 			return true
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				// NewsItem not found, likely deleted on the server
 				console.log(`Could not acknowledge newsItem with ID '${newsItemId}'`)
 				return false

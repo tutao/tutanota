@@ -1,7 +1,7 @@
 import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import * as restError from "@tutao/rest-client/error"
+import { AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
@@ -150,14 +150,14 @@ async function deleteCredentialsByMailAddress(cleanMailAddress: string) {
 }
 
 function handleError(e: Error) {
-	if (e instanceof restError.NotAuthenticatedError) {
+	if (e instanceof NotAuthenticatedError) {
 		Dialog.message("loginFailed_msg")
-	} else if (e instanceof restError.AccessBlockedError || e instanceof restError.AccessDeactivatedError) {
+	} else if (e instanceof AccessBlockedError || e instanceof AccessDeactivatedError) {
 		Dialog.message("loginFailedOften_msg")
 	} else if (e instanceof CancelledError) {
 		// Thrown when second factor dialog is cancelled
 		m.redraw()
-	} else if (e instanceof restError.TooManyRequestsError) {
+	} else if (e instanceof TooManyRequestsError) {
 		Dialog.message("tooManyAttempts_msg")
 	} else if (e.message.toLowerCase().includes("illegal key length")) {
 		// this error message comes from getAndVerifyAesKeyLength

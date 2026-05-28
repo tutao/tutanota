@@ -14,7 +14,7 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
 import { assertEnumValue, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
-import { RestClientInterface, restError } from "@tutao/rest-client"
+import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	Aes256Key,
@@ -43,7 +43,7 @@ import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./Asymmetr
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError"
-import { isOfflineError, NotFoundError } from "@tutao/rest-client/error"
+import { isOfflineError, NotFoundError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface.js"
 import { InstanceSessionKeysCache } from "../../../app-kit/local-store/InstanceSessionKeysCache.js"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
@@ -573,7 +573,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 			// is not defined for some old AccountingInfos
 			let bucketPermissionOwnerGroupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
 			await this.updateWithSymPermissionKey(instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
-				ofClass(restError.NotFoundError, () => {
+				ofClass(NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
 				}),
 			)
@@ -625,14 +625,14 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey.publicEncryptionKey, senderUserGroupId)
 			}
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				notFoundRecipients.push(recipientMailAddress)
 				return null
 			}
 			if (e instanceof KeyVerificationMismatchError) {
 				keyVerificationMismatchRecipients.push(recipientMailAddress)
 				return null
-			} else if (e instanceof restError.TooManyRequestsError) {
+			} else if (e instanceof TooManyRequestsError) {
 				throw new RecipientNotResolvedError("")
 			} else {
 				throw e

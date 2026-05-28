@@ -26,7 +26,7 @@ import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entiti
 import { Challenge, UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade.js"
-import { RestClient, restError, restSuspension as susHandler } from "../../../../platform-kit/rest-client"
+import { RestClient, restSuspension as susHandler } from "../../../../platform-kit/rest-client"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { DeviceEncryptionFacade } from "../../../../platform-kit/base/crypto/DeviceEncryptionFacade.js"
@@ -129,6 +129,7 @@ import { Credentials } from "../../../../platform-kit/network/types"
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -962,12 +963,12 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 			user: assertNotNull(locator.user.getUser()),
 		})
 	} catch (e) {
-		if (e instanceof restError.TooManyRequestsError) {
+		if (e instanceof ServiceUnavailableError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
 			return fullLoginIndexerInit(worker)
-		} else if (e instanceof restError.ConnectionError) {
+		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
 			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")

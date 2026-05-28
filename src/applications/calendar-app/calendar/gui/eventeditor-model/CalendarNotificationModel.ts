@@ -3,7 +3,7 @@ import { CalendarNotificationSender } from "../../view/CalendarNotificationSende
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { clone } from "../../../../../platform-kit/meta"
 import { ProgrammingError } from "../../../../../platform-kit/app-env"
-import * as restError from "../../../../../platform-kit/rest-client/error"
+import { TooManyRequestsError } from "../../../../../platform-kit/rest-client/error"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { getNonOrganizerAttendees } from "./CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
@@ -111,7 +111,7 @@ export class CalendarNotificationModel {
 			}
 			await this.notificationSender.sendCancellation(updatedEvent, cancelModel)
 		} catch (e) {
-			if (e instanceof restError.TooManyRequestsError) {
+			if (e instanceof TooManyRequestsError) {
 				throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
 			} else {
 				throw e

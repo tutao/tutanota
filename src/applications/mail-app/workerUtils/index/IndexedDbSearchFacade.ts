@@ -58,7 +58,7 @@ import {
 } from "../../../common/api/common/utils/IndexUtils.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
@@ -192,7 +192,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 					try {
 						entity = await this.entityClient.load(restriction.type, id)
 					} catch (e) {
-						if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
+						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 							continue
 						} else {
 							throw e
@@ -690,7 +690,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 					const mails = await Promise.all(
 						intermediateResults.map((intermediateResultId) =>
 							this.entityClient.load(MailTypeRef, intermediateResultId).catch(
-								ofClass(restError.NotFoundError, () => {
+								ofClass(NotFoundError, () => {
 									console.log(`Could not find updated mail ${JSON.stringify(intermediateResultId)}`)
 									return null
 								}),

@@ -10,7 +10,7 @@ import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../api/main/CommonLocator"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DateTime } from "luxon"
-import * as restError from "@tutao/rest-client/error"
+import { LockedError } from "@tutao/rest-client/error"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { UserSettingsGroupRootTypeRef } from "../../../entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -54,7 +54,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.timeFormat),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.timeFormat = value
-				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {
@@ -86,7 +86,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.startOfTheWeek),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.startOfTheWeek = value
-				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
 		return m(".fill-absolute.scroll.plr-24.pb-48", [

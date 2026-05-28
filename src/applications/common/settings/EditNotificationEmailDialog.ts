@@ -22,7 +22,7 @@ import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/utils"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
-import * as restError from "@tutao/rest-client/error"
+import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { SegmentControl } from "../../../ui/base/SegmentControl.js"
 import { UserError } from "../api/main/UserError.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../misc/SubscriptionDialogs.js"
@@ -245,7 +245,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 					}),
 				)
 				.catch(
-					ofClass(restError.TooManyRequestsError, () => {
+					ofClass(PayloadTooLargeError, () => {
 						template.subject = oldSubject
 						template.body = oldBody
 						template.language = oldLanguage

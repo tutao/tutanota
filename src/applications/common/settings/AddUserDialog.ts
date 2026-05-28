@@ -6,7 +6,7 @@ import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
 import { assertNotNull, getFirstOrThrow, ofClass } from "../../../platform-kit/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -114,7 +114,7 @@ export async function show(): Promise<void> {
 					p,
 					operation.progress,
 				)
-					.catch(ofClass(restError.PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
+					.catch(ofClass(PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
 					.then(() => dialog.close())
 					.finally(() => operation.done())
 			}

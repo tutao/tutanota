@@ -6,7 +6,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { assertMainOrNode, SessionState } from "@tutao/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { neverNull } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { WebauthnClient } from "./webauthn/WebauthnClient"
@@ -59,7 +59,7 @@ export class SecondFactorHandler {
 					try {
 						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
-						if (e instanceof restError.NotFoundError) {
+						if (e instanceof NotFoundError) {
 							console.log("Failed to load session", e)
 						} else {
 							throw e
@@ -83,7 +83,7 @@ export class SecondFactorHandler {
 					try {
 						session = await this.entityClient.load(SessionTypeRef, sessionId)
 					} catch (e) {
-						if (e instanceof restError.NotFoundError) {
+						if (e instanceof NotFoundError) {
 							console.log("Failed to load session", e)
 						} else {
 							throw e

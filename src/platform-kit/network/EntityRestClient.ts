@@ -1,4 +1,4 @@
-import { type RestClient, restError } from "@tutao/rest-client"
+import { type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, SuspensionBehavior } from "../rest-client/types"
 import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -37,7 +37,16 @@ import { PatchListTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { BlobServerUrl } from "@tutao/entities/storage"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
-import { isOfflineError, LoginIncompleteError } from "@tutao/rest-client/error"
+import {
+	ConnectionError,
+	InternalServerError,
+	isOfflineError,
+	LoginIncompleteError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	PayloadTooLargeError,
+} from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
@@ -453,7 +462,7 @@ export class EntityRestClient implements EntityRestInterface {
 				const untypedPersistencePostReturn = JSON.parse(persistencePostReturn)
 				return await this.parseSetupMultiple(untypedPersistencePostReturn)
 			} catch (e) {
-				if (e instanceof restError.PayloadTooLargeError) {
+				if (e instanceof PayloadTooLargeError) {
 					// If we try to post too many large instances then we get PayloadTooLarge
 					// So we fall back to posting single instances
 					const returnedIds = await promiseMap(instanceChunk, async (instance) => {
@@ -475,7 +484,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		if (errors.length) {
 			if (errors.some(isOfflineError)) {
-				throw new restError.ConnectionError("Setup multiple entities failed")
+				throw new ConnectionError("Setup multiple entities failed")
 			}
 			throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
 		} else {
@@ -595,7 +604,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const headers = Object.assign({}, this.authDataProvider.createAuthHeaders(), extraHeaders)
 
 		if (Object.keys(headers).length === 0) {
-			throw new restError.NotAuthenticatedError("user must be authenticated for entity requests")
+			throw new NotAuthenticatedError("user must be authenticated for entity requests")
 		}
 
 		headers.v = String(clientTypeModel.version)
@@ -649,7 +658,7 @@ export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<str
 			return await mapper(server.url, index)
 		} catch (e) {
 			// InternalServerError is returned when accessing a corrupted archive, so we retry
-			if (e instanceof restError.ConnectionError || e instanceof restError.InternalServerError || e instanceof restError.NotFoundError) {
+			if (e instanceof ConnectionError || e instanceof InternalServerError || e instanceof NotFoundError) {
 				console.log(`${errorMsg} ${server.url}`, e)
 				error = e
 			} else {
@@ -672,7 +681,7 @@ export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>,
 	return doBlobRequest().catch(
 		// in case one of the chunks could not be uploaded because of an invalid/expired token we upload all chunks again in order to guarantee that they are uploaded to the same archive.
 		// we don't have to take care of already uploaded chunks, as they are unreferenced and will be cleaned up by the server automatically.
-		ofClass(restError.NotAuthorizedError, (_) => {
+		ofClass(NotAuthorizedError, (_) => {
 			doEvictTokenBeforeRetry()
 			return doBlobRequest()
 		}),

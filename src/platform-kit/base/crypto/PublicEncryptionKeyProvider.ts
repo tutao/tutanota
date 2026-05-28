@@ -13,7 +13,7 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
+import { InvalidDataError } from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../facades/lazy/KeyVerificationFacade"
 import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../app-kit/local-store/PublicEncryptionKeyCache"
@@ -71,7 +71,7 @@ class PublicEncryptionKeyProvider {
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {
-			throw new restError.TooManyRequestsError("the server returned a key version that was not requested")
+			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
 		return publicEncryptionKey
 	}

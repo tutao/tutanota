@@ -17,7 +17,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "../../../../../platform-kit/utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
-import * as restError from "../../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../../platform-kit/rest-client/error"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -535,7 +535,7 @@ export class CalendarSearchViewModel {
 						.load(lastResult.restriction.type, id)
 						.then((entity) => new CalendarSearchResultListEntry(entity))
 						.catch(
-							ofClass(restError.NotFoundError, (_) => {
+							ofClass(NotFoundError, (_) => {
 								return null
 							}),
 						)

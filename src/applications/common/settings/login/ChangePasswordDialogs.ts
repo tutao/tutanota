@@ -7,6 +7,7 @@ import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNonNull, assertNotNull, newPromise, ofClass } from "@tutao/utils"
 import { User } from "@tutao/entities/sys"
 import { asKdfType, DEFAULT_KDF_TYPE } from "../../../../platform-kit/base/crypto/Constants"
+import { NotAuthenticatedError } from "@tutao/rest-client/error"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
@@ -92,7 +93,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 					await Dialog.message("pwChangeValid_msg")
 				})
 				.catch(
-					ofClass(restError.NotAuthenticatedError, (e) => {
+					ofClass(NotAuthenticatedError, (e) => {
 						Dialog.message("oldPasswordInvalid_msg")
 					}),
 				)

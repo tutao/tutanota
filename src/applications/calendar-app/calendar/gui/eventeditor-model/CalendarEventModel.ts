@@ -80,7 +80,6 @@ import {
 import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, cleanMailAddress, identity, lazy, Require } from "../../../../../platform-kit/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import * as restError from "../../../../../platform-kit/rest-client/error"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
@@ -102,6 +101,7 @@ import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/Ca
 import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
+import { NotFoundError, PayloadTooLargeError } from "@tutao/rest-client/error"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -383,9 +383,9 @@ export class CalendarEventModel {
 			await this.strategy.apply()
 			return EventSaveResult.Saved
 		} catch (e) {
-			if (e instanceof restError.PayloadTooLargeError) {
+			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
-			} else if (e instanceof restError.NotFoundError) {
+			} else if (e instanceof NotFoundError) {
 				return EventSaveResult.NotFound
 			} else {
 				throw e
