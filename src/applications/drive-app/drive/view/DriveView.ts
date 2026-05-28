@@ -459,21 +459,21 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						columnLayout: [
 							this.renderFolderView(listState, showMoveItemDialog),
 							m(DriveTransferStack, {
-								transfers: this.driveViewModel.transfers(),
+								driveTransfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
 								cancelAllTransfers: async () => {
-									const transfers = this.driveViewModel.transfers()
-									const activeTransfers = transfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
+									const { currentTransfers } = this.driveViewModel.transfers()
+									const activeTransfers = currentTransfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
 									if (isNotEmpty(activeTransfers)) {
 										const ok =
-											transfers.length === 1
+											currentTransfers.length === 1
 												? true
 												: await Dialog.confirm(
 														lang.getTranslation("confirmCancelTransfers_msg", { "{count}": activeTransfers.length }),
 														"confirmCancelTransfers_action",
 													)
 										if (ok) {
-											for (const { id } of transfers) {
+											for (const { id } of currentTransfers) {
 												this.driveViewModel.cancelTransfer(id)
 											}
 										}

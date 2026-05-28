@@ -243,7 +243,7 @@ class DriveLocator implements CommonLocator {
 		const { DriveTransferController } = await import("./drive/view/DriveTransferController.js")
 
 		const redraw = await this.redraw()
-		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController, await this.scheduler())
+		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 
 		return new DriveViewModel(
 			this.entityClient,
