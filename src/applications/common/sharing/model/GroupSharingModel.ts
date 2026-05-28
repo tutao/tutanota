@@ -26,6 +26,7 @@ import { MailAddress } from "@tutao/entities/tutanota"
 import { Recipient, RecipientType } from "../../../../entities/tutanota/Utils"
 import { Group, GroupInfo, GroupMember, GroupMemberTypeRef, GroupTypeRef, SentGroupInvitation, SentGroupInvitationTypeRef } from "@tutao/entities/sys"
 import { GroupMemberInfo, hasCapabilityOnGroup, isSharedGroupOwner } from "../../../../entities/sys/Utils"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -220,7 +221,7 @@ export class GroupSharingModel {
 								this.onEntityUpdate()
 							}
 						})
-						.catch(ofClass(restError.NotFoundError, (e) => console.log("sent invitation not found", update)))
+						.catch(ofClass(NotFoundError, (e) => console.log("sent invitation not found", update)))
 				}
 
 				if (update.operation === OperationType.DELETE) {
@@ -242,7 +243,7 @@ export class GroupSharingModel {
 								})
 							}
 						})
-						.catch(ofClass(restError.NotFoundError, (e) => console.log("group member not found", update)))
+						.catch(ofClass(NotFoundError, (e) => console.log("group member not found", update)))
 				}
 
 				if (update.operation === OperationType.DELETE) {

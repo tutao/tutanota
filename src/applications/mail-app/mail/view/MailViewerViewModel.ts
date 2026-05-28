@@ -22,8 +22,7 @@ import {
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
-import * as restError from "../../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
 import { FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -192,7 +191,7 @@ export class MailViewerViewModel {
 							const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
 							this.updateMail({ mail: updatedMail })
 						} catch (e) {
-							if (e instanceof restError.NotFoundError) {
+							if (e instanceof NotFoundError) {
 								console.log(`could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
 							} else {
 								throw e
@@ -612,7 +611,7 @@ export class MailViewerViewModel {
 				})
 			}
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
 			} else {
 				throw e
@@ -728,8 +727,8 @@ export class MailViewerViewModel {
 
 			await this.entityClient
 				.update(this.mail)
-				.catch(ofClass(restError.LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
-				.catch(ofClass(restError.NotFoundError, noOp))
+				.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
+				.catch(ofClass(NotFoundError, noOp))
 		}
 	}
 
@@ -887,13 +886,13 @@ export class MailViewerViewModel {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
 				this.errorOccurredWhileLoadingMailDetails = true
 				return []
 			}
 
-			if (e instanceof restError.NotAuthorizedError) {
+			if (e instanceof NotAuthorizedError) {
 				console.log("could load mail body as the permission is missing", e)
 				this.errorOccurredWhileLoadingMailDetails = true
 				return []
@@ -958,7 +957,7 @@ export class MailViewerViewModel {
 				}
 				m.redraw()
 			} catch (e) {
-				if (e instanceof restError.NotFoundError) {
+				if (e instanceof NotFoundError) {
 					console.log("could load attachments as they have been moved/deleted already", e)
 				} else {
 					throw e
@@ -982,8 +981,8 @@ export class MailViewerViewModel {
 
 					this.entityClient
 						.update(mail)
-						.catch(ofClass(restError.LockedError, (_) => console.log("could not update mail phishing status as mail is locked")))
-						.catch(ofClass(restError.NotFoundError, (_) => console.log("mail already moved")))
+						.catch(ofClass(LockedError, (_) => console.log("could not update mail phishing status as mail is locked")))
+						.catch(ofClass(NotFoundError, (_) => console.log("mail already moved")))
 
 					m.redraw()
 				}

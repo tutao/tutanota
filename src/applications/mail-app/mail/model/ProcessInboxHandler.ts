@@ -12,6 +12,7 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade"
 import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -47,7 +48,7 @@ export class ProcessInboxHandler {
 						try {
 							await mailFacade.processNewMails(mailGroup, processedMails)
 						} catch (e) {
-							if (e instanceof restError.LockedError) {
+							if (e instanceof LockedError) {
 								// retry in case of LockedError
 								this.processedMailsByMailGroup.set(mailGroup, processedMails)
 								this.sendProcessInboxServiceRequest(mailFacade)

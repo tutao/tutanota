@@ -34,6 +34,7 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import { InvalidDataError } from "../../../../../src/platform-kit/rest-client/error"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
@@ -269,9 +270,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				}),
 			)
 			o(currentVersion).notEquals(requestedVersion)
-			await assertThrows(restError.TooManyRequestsError, async () =>
-				publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion),
-			)
+			await assertThrows(InvalidDataError, async () => publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion))
 		})
 
 		o("rsa key in version other than 0", async function () {

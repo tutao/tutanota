@@ -9,7 +9,6 @@ import { Icons } from "../../../ui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../../../ui/base/Table.js"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { formatDate } from "../../../ui/utils/Formatter"
-import * as restError from "@tutao/rest-client/error"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -48,6 +47,7 @@ import { CustomerAccountPosting } from "@tutao/entities/accounting"
 import { CustomerAccountService } from "../../../entities/accounting/Services"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -465,10 +465,10 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						"pleaseWait_msg",
 						locator.serviceExecutor
 							.put(DebitService, createDebitServicePutData({}))
-							.catch(ofClass(restError.LockedError, () => "operationStillActive_msg" as TranslationKey))
-							.catch(ofClass(restError.PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
-							.catch(ofClass(restError.TooManyRequestsError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
-							.catch(ofClass(restError.TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
+							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
+							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
+							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
+							.catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
 					)
 				}
 			})

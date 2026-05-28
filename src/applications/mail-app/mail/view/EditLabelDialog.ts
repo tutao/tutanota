@@ -1,8 +1,7 @@
 import { Dialog } from "../../../../ui/base/Dialog"
 import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField"
 import m from "mithril"
-import * as restError from "../../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { MailViewModel } from "./MailViewModel"
 import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -26,13 +25,13 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 				await mailViewModel.createLabel(mailbox, { name, color })
 			}
 		} catch (error) {
-			if (error instanceof restError.PreconditionFailedError) {
+			if (error instanceof PreconditionFailedError) {
 				if (error.data === LIMIT_EXCEEDED_ERROR) {
 					showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
 				} else {
 					Dialog.message("unknownError_msg")
 				}
-			} else if (isOfflineError(error) || !(error instanceof restError.LockedError)) {
+			} else if (isOfflineError(error) || !(error instanceof LockedError)) {
 				throw error
 			}
 		}

@@ -9,7 +9,7 @@ import {
 	TimelockCaptchaService,
 } from "@tutao/entities/sys"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
-import * as restError from "@tutao/rest-client/error"
+import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "@tutao/rest-client/error"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { defer } from "@tutao/utils"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
@@ -97,7 +97,7 @@ export async function runCaptchaFlow({
 				}),
 			)
 		} catch (e) {
-			if (e instanceof restError.AccessExpiredError) {
+			if (e instanceof AccessExpiredError) {
 				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
 				return runCaptchaFlow({
 					mailAddress,
@@ -107,7 +107,7 @@ export async function runCaptchaFlow({
 					powChallengeSolution,
 				})
 			}
-			if (e instanceof restError.AccessDeactivatedError) {
+			if (e instanceof AccessDeactivatedError) {
 				await Dialog.message("createAccountAccessDeactivated_msg")
 				return null
 			} else {
@@ -120,7 +120,7 @@ export async function runCaptchaFlow({
 			try {
 				return await showCaptchaDialog(captchaReturn.audioChallenge, captchaReturn.visualChallenge, captchaReturn.token)
 			} catch (e) {
-				if (e instanceof restError.TooManyRequestsError) {
+				if (e instanceof InvalidDataError) {
 					await Dialog.message("createAccountInvalidCaptcha_msg")
 					return runCaptchaFlow({
 						mailAddress,
@@ -129,7 +129,7 @@ export async function runCaptchaFlow({
 						campaignToken,
 						powChallengeSolution,
 					})
-				} else if (e instanceof restError.AccessExpiredError) {
+				} else if (e instanceof AccessExpiredError) {
 					await Dialog.message("requestTimeout_msg")
 					return runCaptchaFlow({
 						mailAddress,

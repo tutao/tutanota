@@ -1,4 +1,4 @@
-import { resolveLibs } from "./RollupConfig.js"
+import { bundleDependencyCheckPlugin, resolveLibs } from "./RollupConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"

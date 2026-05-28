@@ -4,7 +4,7 @@ import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import * as restError from "../../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError } from "../../../../platform-kit/rest-client/error"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
@@ -126,7 +126,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 				}
 			}
 		} catch (error) {
-			if (isOfflineError(error) || !(error instanceof restError.LockedError)) {
+			if (isOfflineError(error) || !(error instanceof LockedError)) {
 				throw error
 			}
 		}

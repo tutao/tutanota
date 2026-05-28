@@ -12,7 +12,7 @@ import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { keyManager } from "../../../../ui/utils/KeyManager"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog } from "../../../../ui/base/Dialog"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { getContactSelectionMessage, MultiContactViewer } from "./MultiContactViewer"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -753,7 +753,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						return showProgressDialog(
 							"pleaseWait_msg",
 							locator.entityClient.update(contact1).then(() => locator.entityClient.erase(contact2)),
-						).catch(ofClass(restError.NotFoundError, noOp))
+						).catch(ofClass(NotFoundError, noOp))
 					} else if (action === ContactMergeAction.DeleteFirst) {
 						this._removeFromMergableContacts(mergable, contact1)
 
@@ -937,7 +937,7 @@ export function deleteContacts(contactList: Contact[], onConfirm: () => void = n
 		if (confirmed) {
 			onConfirm()
 			for (const contact of contactList) {
-				locator.entityClient.erase(contact).catch(ofClass(restError.NotFoundError, noOp)).catch(ofClass(restError.LockedError, noOp))
+				locator.entityClient.erase(contact).catch(ofClass(NotFoundError, noOp)).catch(ofClass(LockedError, noOp))
 			}
 		}
 	})
@@ -951,7 +951,7 @@ export function confirmMerge(keptContact: Contact, goodbyeContact: Contact): Pro
 				return showProgressDialog(
 					"pleaseWait_msg",
 					locator.entityClient.update(keptContact).then(() => locator.entityClient.erase(goodbyeContact)),
-				).catch(ofClass(restError.NotFoundError, noOp))
+				).catch(ofClass(NotFoundError, noOp))
 			}
 		})
 	} else {

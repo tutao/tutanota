@@ -11,7 +11,6 @@ import { showSwitchDialog } from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
-import * as restError from "@tutao/rest-client/error"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -84,6 +83,7 @@ import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -538,7 +538,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		try {
 			customerInfo = await userController.loadCustomerInfo()
 		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
+			if (e instanceof NotFoundError) {
 				console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
 				return
 			} else {

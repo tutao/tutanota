@@ -25,7 +25,6 @@ import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
-import * as restError from "@tutao/rest-client/error"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
@@ -56,6 +55,7 @@ import { Icons } from "../../../ui/base/icons/Icons"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -360,7 +360,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
  * @returns boolean true if we should re-try the switch, false if the customer cancelled the sub-flow or we can't handle
  * the issue automatically
  */
-export async function handleSwitchAccountPreconditionFailed(customer: Customer, e: restError.PreconditionFailedError): Promise<boolean> {
+export async function handleSwitchAccountPreconditionFailed(customer: Customer, e: PreconditionFailedError): Promise<boolean> {
 	const reason = e.data
 
 	if (reason == null) {
@@ -477,12 +477,12 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
 		return PlanType.Free
 	} catch (e) {
-		if (e instanceof restError.PreconditionFailedError) {
+		if (e instanceof PreconditionFailedError) {
 			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 			if (shouldRetry) {
 				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
 			}
-		} else if (e instanceof restError.TooManyRequestsError) {
+		} else if (e instanceof TooManyRequestsError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
 		} else {
 			throw e
@@ -556,7 +556,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
 			return
 		} catch (e) {
-			if (e instanceof restError.PreconditionFailedError) {
+			if (e instanceof PreconditionFailedError) {
 				const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 				if (shouldRetry) {
 					return switchSubscription(targetSubscription, dialog, currentPlanInfo)

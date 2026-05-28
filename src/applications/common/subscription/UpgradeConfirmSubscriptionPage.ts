@@ -32,6 +32,7 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { createSwitchAccountTypePostIn, SwitchAccountTypeService } from "@tutao/entities/sys"
 import { AccountType, PaymentMethodType } from "../../../entities/sys/Utils"
+import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -82,7 +83,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				return this.close(data, this.dom)
 			})
 			.catch(
-				ofClass(restError.PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"precondition_failed",
@@ -93,7 +94,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				}),
 			)
 			.catch(
-				ofClass(restError.TooManyRequestsError, (e) => {
+				ofClass(BadGatewayError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"payment_failed",

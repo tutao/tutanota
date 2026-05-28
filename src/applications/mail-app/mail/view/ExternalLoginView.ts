@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { AccessExpiredError } from "../../../../platform-kit/rest-client/error"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "../../../../platform-kit/utils"
 import type { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
@@ -132,7 +132,7 @@ export class ExternalLoginViewModel {
 		} catch (e) {
 			const messageId = getLoginErrorMessage(e, true)
 
-			if (e instanceof restError.AccessExpiredError) {
+			if (e instanceof AccessExpiredError) {
 				this.errorMessageId = messageId
 			} else {
 				this.helpText = messageId

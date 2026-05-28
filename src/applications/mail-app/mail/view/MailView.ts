@@ -88,6 +88,7 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -339,7 +340,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.mailViewModel.clearStickyMail()
 		viewModel
 			.reportSpamForMail(reportType)
-			.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
 

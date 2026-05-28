@@ -17,7 +17,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError.js"
 import { ContactStoreError } from "../../../common/api/common/error/ContactStoreError.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -328,7 +328,7 @@ export class NativeContactsSyncManager {
 				try {
 					await this.entityClient.update(updatedContact)
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						console.warn("Not found contact to update during sync: ", cleanContact._id, e)
 					} else {
 						throw e
@@ -344,7 +344,7 @@ export class NativeContactsSyncManager {
 				try {
 					await this.entityClient.erase(cleanContact)
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						console.warn("Not found contact to delete during sync: ", cleanContact._id, e)
 					} else {
 						throw e

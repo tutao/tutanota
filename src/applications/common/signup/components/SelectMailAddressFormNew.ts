@@ -16,6 +16,7 @@ import { locator } from "../../api/main/CommonLocator"
 import * as restError from "@tutao/rest-client/error"
 import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
+import { AccessDeactivatedError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -221,7 +222,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
 						}
 			} catch (e) {
-				if (e instanceof restError.AccessDeactivatedError) {
+				if (e instanceof AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e

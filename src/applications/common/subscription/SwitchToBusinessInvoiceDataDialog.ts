@@ -3,7 +3,7 @@ import m from "mithril"
 import { Dialog } from "../../../ui/base/Dialog"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
-import * as restError from "@tutao/rest-client/error"
+import { BadRequestError } from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { InvoiceData } from "@tutao/app-env"
 import { ProgrammingError } from "@tutao/app-env"
@@ -40,7 +40,7 @@ export function showSwitchToBusinessInvoiceDataDialog(customer: Customer, invoic
 				accountingInfo,
 			)
 				.catch(
-					ofClass(restError.BadRequestError, () => {
+					ofClass(BadRequestError, () => {
 						Dialog.message("paymentMethodNotAvailable_msg")
 						return false
 					}),

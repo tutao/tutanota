@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { getDayShifted, getStartOfDay, getStartOfNextDay, ofClass } from "../../../platform-kit/utils"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { InvalidDataError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { lang, LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
@@ -195,12 +195,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 				}
 			})
 			.catch(
-				ofClass(restError.TooManyRequestsError, (e) => {
+				ofClass(InvalidDataError, (e) => {
 					throw new UserError("outOfOfficeMessageInvalid_msg")
 				}),
 			)
 			.catch(
-				ofClass(restError.PreconditionFailedError, async (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === FAILURE_UPGRADE_REQUIRED) {
 						throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithAutoResponder())
 					} else {

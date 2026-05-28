@@ -14,7 +14,7 @@ import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { ExternalLink } from "../../../../ui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -127,7 +127,7 @@ export async function createEditDraftDialog(viewModel: MailViewerViewModel, loca
 				try {
 					conversationEntry = await locator.entityClient.load(ConversationEntryTypeRef, viewModel.mail.conversationEntry)
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						// draft was likely deleted
 						return null
 					} else {
@@ -553,7 +553,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 												}
 											})
 											.catch((e) => {
-												if (e instanceof restError.LockedError) {
+												if (e instanceof LockedError) {
 													return Dialog.message("operationStillActive_msg")
 												} else {
 													if (isEmpty(nextUnsubscribeActions)) {

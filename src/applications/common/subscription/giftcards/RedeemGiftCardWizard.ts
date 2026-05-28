@@ -38,6 +38,7 @@ import { renderCountryDropdown } from "../../gui/CountryDropdown"
 import { elementIdPart, isSameId } from "@tutao/meta"
 import { getByAbbreviation } from "../../gui/CountryList"
 import { windowFacade } from "../../misc/WindowFacade"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -152,12 +153,12 @@ class RedeemGiftCardModel {
 		return this.giftCardFacade
 			.redeemGiftCard(this.giftCardId, this.key, country?.a ?? null)
 			.catch(
-				ofClass(restError.NotFoundError, () => {
+				ofClass(NotFoundError, () => {
 					throw new UserError("invalidGiftCard_msg")
 				}),
 			)
 			.catch(
-				ofClass(restError.NotAuthorizedError, (e) => {
+				ofClass(NotAuthorizedError, (e) => {
 					throw new UserError(lang.makeTranslation("error_msg", e.message))
 				}),
 			)

@@ -16,7 +16,7 @@ import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { getInvitationGroupType, GroupType, isTemplateGroup } from "../../../../entities/sys/Utils"
 import { isSameId } from "../../../../platform-kit/meta"
@@ -65,7 +65,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}
 
-					locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
+					locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 				})
 			}
 		})

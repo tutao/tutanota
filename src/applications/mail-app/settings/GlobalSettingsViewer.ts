@@ -31,7 +31,7 @@ import {
 import stream from "mithril/stream"
 import { formatDateTime } from "../../../ui/utils/Formatter"
 import { Dialog } from "../../../ui/base/Dialog"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { LockedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName } from "./LoadingUtils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -188,7 +188,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					actionButtonAttrs: createRowActions(
 						{
 							getArray: () => props.emailSenderList,
-							updateInstance: () => locator.entityClient.update(props).catch(ofClass(restError.LockedError, noOp)),
+							updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
 						},
 						rule,
 						index,
@@ -425,7 +425,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				locator.customerFacade
 					.removeDomain(domainInfo.domain)
 					.catch(
-						ofClass(restError.PreconditionFailedError, () => {
+						ofClass(PreconditionFailedError, () => {
 							Dialog.message(
 								lang.getTranslation("customDomainDeletePreconditionFailed_msg", {
 									"{domainName}": domainInfo.domain,
@@ -433,7 +433,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							)
 						}),
 					)
-					.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
+					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			}
 		})
 	}

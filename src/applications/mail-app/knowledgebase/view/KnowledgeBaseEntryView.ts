@@ -4,7 +4,7 @@ import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSaniti
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getConfirmation } from "../../../../ui/base/GuiUtils.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { KnowledgeBaseEntry, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 
@@ -70,7 +70,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			title: "remove_action",
 			icon: Icons.TrashFilled,
 			click: () => {
-				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(restError.NotFoundError, noOp)))
+				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
 			},
 		})
 	}

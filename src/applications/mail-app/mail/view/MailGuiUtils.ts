@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { BadRequestError, LockedError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -252,10 +252,10 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 		return true
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
-		if (e instanceof restError.LockedError || e instanceof restError.PreconditionFailedError) {
+		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
 			await Dialog.message("operationStillActive_msg")
 			return false
-		} else if (e instanceof restError.BadRequestError) {
+		} else if (e instanceof BadRequestError) {
 			// This will be thrown when a mail is attempted to be moved between two different mailboxes
 			await Dialog.message("couldNotMoveMail_msg")
 			return false
@@ -374,7 +374,7 @@ export async function moveMailsToSystemFolder({
 
 function handleMoveError(err: Error) {
 	//LockedError should no longer be thrown!?!
-	if (err instanceof restError.LockedError || err instanceof restError.PreconditionFailedError) {
+	if (err instanceof LockedError || err instanceof PreconditionFailedError) {
 		return Dialog.message("operationStillActive_msg").then(() => false)
 	} else {
 		throw err

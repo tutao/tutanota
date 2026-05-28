@@ -10,8 +10,7 @@ import stream from "mithril/stream"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { Autocapitalize, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { neverNull } from "../../../platform-kit/utils"
-import * as restError from "../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { mailLocator } from "../mailLocator.js"
@@ -121,7 +120,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 						props.inboxRules = inboxRules
 						//do not close
 						throw error
-					} else if (error instanceof restError.LockedError) {
+					} else if (error instanceof LockedError) {
 						dialog.close()
 					} else {
 						props.inboxRules = inboxRules

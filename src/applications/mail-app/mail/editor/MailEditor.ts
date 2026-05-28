@@ -50,8 +50,7 @@ import {
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "../../../../platform-kit/app-env"
-import * as restError from "../../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, TooManyRequestsError } from "../../../../platform-kit/rest-client/error"
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../../ui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
@@ -1011,7 +1010,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				} catch (e) {
 					if (isOfflineError(e)) {
 						// we are offline but we want to show the error dialog only when we click on send.
-					} else if (e instanceof restError.TooManyRequestsError) {
+					} else if (e instanceof TooManyRequestsError) {
 						await Dialog.message("tooManyAttempts_msg")
 					} else {
 						throw e

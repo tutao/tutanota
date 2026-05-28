@@ -4,7 +4,7 @@ import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { Const, isIOSApp, SessionType } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import * as restError from "@tutao/rest-client/error"
+import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
 	appStorePlanName,
 	getPreconditionFailedPaymentMsg,
@@ -266,7 +266,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			// Order confirmation (click on Buy), send selected payment method as an enum
 			.then(() => ctx.goNext())
 			.catch(
-				ofClass(restError.PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(
 						lang.makeTranslation(
 							"precondition_failed",
@@ -277,7 +277,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 				}),
 			)
 			.catch(
-				ofClass(restError.TooManyRequestsError, () => {
+				ofClass(BadGatewayError, () => {
 					Dialog.message(
 						lang.makeTranslation(
 							"payment_failed",

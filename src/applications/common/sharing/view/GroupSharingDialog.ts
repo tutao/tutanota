@@ -9,7 +9,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ButtonType } from "../../../../ui/base/Button.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { PreconditionFailedError, TooManyRequestsError } from "../../../../platform-kit/rest-client/error"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { getCapabilityText, getSharedGroupName } from "../GroupUtils"
 import { sendShareNotificationEmail } from "../GroupSharingUtils"
@@ -282,7 +282,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						await import("../../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
 							({ showMultiRecipientsKeyVerificationRecoveryDialog }) => showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
 						)
-					} else if (e instanceof restError.PreconditionFailedError && e.data !== "keys.absent") {
+					} else if (e instanceof PreconditionFailedError && e.data !== "keys.absent") {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const { getAvailablePlansWithSharing } = await import("../../subscription/utils/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
@@ -292,7 +292,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						}
 					} else if (e instanceof UserError) {
 						showUserError(e)
-					} else if (e instanceof restError.TooManyRequestsError) {
+					} else if (e instanceof TooManyRequestsError) {
 						Dialog.message("tooManyAttempts_msg")
 					} else {
 						throw e

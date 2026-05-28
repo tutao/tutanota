@@ -15,6 +15,7 @@ import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
 import { Icons } from "../../../ui/base/icons/Icons"
+import { AccessDeactivatedError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -214,7 +215,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
 						}
 			} catch (e) {
-				if (e instanceof restError.AccessDeactivatedError) {
+				if (e instanceof AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e

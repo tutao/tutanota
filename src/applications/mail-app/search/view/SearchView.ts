@@ -78,7 +78,7 @@ import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../../ui/base/List.js"
 import { SearchViewModel } from "./SearchViewModel.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils.js"
 import { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
@@ -798,7 +798,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
 		viewModel
 			.reportSpamForMail(reportType)
-			.catch(ofClass(restError.LockedError, () => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			.finally(m.redraw)
 	}
 
@@ -1417,7 +1417,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 				for (const contact of selected) {
 					locator.entityClient.erase(contact).catch(
-						ofClass(restError.NotFoundError, (_) => {
+						ofClass(NotFoundError, (_) => {
 							// ignore because the delete key shortcut may be executed again while the contact is already deleted
 						}),
 					)

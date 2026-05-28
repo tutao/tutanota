@@ -6,7 +6,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../../ui/base/WizardDialog.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { isEmpty, ofClass } from "../../../../platform-kit/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -115,7 +115,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return true
 			})
 			.catch(
-				ofClass(restError.PreconditionFailedError, async (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 						const nbrOfCustomDomains = this.data.customerInfo.domainInfos.filter((domainInfo) => domainInfo.whitelabelConfig == null).length
 						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => {

@@ -28,6 +28,7 @@ import { ListElementListModel } from "../misc/ListElementListModel"
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { NotFoundError } from "../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -217,7 +218,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				try {
 					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						// we return null if the GroupInfo does not exist
 						return null
 					} else {

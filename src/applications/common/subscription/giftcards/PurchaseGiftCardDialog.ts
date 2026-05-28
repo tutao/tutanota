@@ -11,7 +11,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
 import { isIOSApp, Keys } from "@tutao/app-env"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
-import * as restError from "@tutao/rest-client/error"
+import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/utils"
@@ -80,7 +80,7 @@ class PurchaseGiftCardModel {
 	}
 
 	private handlePurchaseError(e: Error): never {
-		if (e instanceof restError.PreconditionFailedError) {
+		if (e instanceof PreconditionFailedError) {
 			const message = e.data
 
 			switch (message) {
@@ -101,7 +101,7 @@ class PurchaseGiftCardModel {
 				default:
 					throw new UserError(getPreconditionFailedPaymentMsg(e.data))
 			}
-		} else if (e instanceof restError.TooManyRequestsError) {
+		} else if (e instanceof BadGatewayError) {
 			throw new UserError("paymentProviderNotAvailableError_msg")
 		} else {
 			throw e

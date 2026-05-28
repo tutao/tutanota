@@ -22,6 +22,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { getCustomSharedGroupName, getSharedGroupName, loadGroupMembers } from "../GroupUtils"
 import { noOp, ofClass } from "@tutao/utils"
 import * as restError from "@tutao/rest-client/error"
+import { LockedError } from "@tutao/rest-client/error"
 
 /** When there is only a single name that can be edited */
 export interface SingleGroupNameData {
@@ -120,6 +121,6 @@ export class GroupSettingsModel {
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 		}
 
-		await this.entityClient.update(userSettingsGroupRoot).catch(ofClass(restError.LockedError, noOp))
+		await this.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 	}
 }

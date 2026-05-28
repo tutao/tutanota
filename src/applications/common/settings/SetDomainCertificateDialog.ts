@@ -10,6 +10,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { getWhitelabelDomainInfo } from "../api/common/utils/CustomerUtils.js"
 import { CustomerInfo } from "@tutao/entities/sys"
+import { InvalidDataError, LockedError, PreconditionFailedError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -22,13 +23,13 @@ function orderWhitelabelCertificate(domain: string, dialog: Dialog) {
 				dialog.close()
 			})
 			.catch(
-				ofClass(restError.TooManyRequestsError, (e) => {
+				ofClass(InvalidDataError, (e) => {
 					Dialog.message("certificateError_msg")
 				}),
 			)
-			.catch(ofClass(restError.LockedError, (e) => Dialog.message("operationStillActive_msg")))
+			.catch(ofClass(LockedError, (e) => Dialog.message("operationStillActive_msg")))
 			.catch(
-				ofClass(restError.PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, (e) => {
 					switch (e.data) {
 						case "lock.locked":
 							Dialog.message("operationStillActive_msg")

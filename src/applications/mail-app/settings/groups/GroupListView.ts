@@ -15,7 +15,7 @@ import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../ui/b
 import { component_size } from "../../../../ui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../../platform-kit/network/GroupUtils.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../../ui/base/ListUtils.js"
 import { keyManager } from "../../../../ui/utils/KeyManager.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar.js"
@@ -166,7 +166,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 				try {
 					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
 				} catch (e) {
-					if (e instanceof restError.NotFoundError) {
+					if (e instanceof NotFoundError) {
 						// we return null if the GroupInfo does not exist
 						return null
 					} else {

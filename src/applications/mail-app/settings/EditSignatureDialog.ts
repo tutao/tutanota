@@ -12,6 +12,7 @@ import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality
 import { TutanotaProperties } from "@tutao/entities/tutanota"
 import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
+import { PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
@@ -80,7 +81,7 @@ export function show(props: TutanotaProperties) {
 				return showProgressDialog("pleaseWait_msg", updatePromise)
 					.then(() => dialog.close())
 					.catch(
-						ofClass(restError.TooManyRequestsError, () => {
+						ofClass(PayloadTooLargeError, () => {
 							props.emailSignatureType = oldType
 							props.customEmailSignature = oldCustomValue
 							return Dialog.message("requestTooLarge_msg")

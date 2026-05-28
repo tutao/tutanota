@@ -7,7 +7,7 @@ import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
-import * as restError from "@tutao/rest-client/error"
+import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { SignupViewModel } from "../../signup/SignupView"
@@ -412,7 +412,7 @@ export async function signup(
 	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
 		.catch(
 			ofClass(
-				restError.TooManyRequestsError,
+				InvalidDataError,
 				() =>
 					({
 						variant: "fatalFailure",
@@ -421,7 +421,7 @@ export async function signup(
 			),
 		)
 		.catch(
-			ofClass(restError.PreconditionFailedError, (e) =>
+			ofClass(PreconditionFailedError, (e) =>
 				e.data === "registration-mail-address-unavailable"
 					? ({
 							variant: "recoverableFailure",

@@ -40,7 +40,7 @@ import {
 	YEAR_IN_MILLIS,
 } from "../../../../platform-kit/utils"
 import { SearchModel } from "../model/SearchModel.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {
@@ -914,7 +914,7 @@ export class SearchViewModel {
 						.load(lastResult.restriction.type, id)
 						.then((entity) => new SearchResultListEntry(entity))
 						.catch(
-							ofClass(restError.NotFoundError, (_) => {
+							ofClass(NotFoundError, (_) => {
 								return null
 							}),
 						)

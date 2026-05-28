@@ -5,8 +5,7 @@ import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
-import { isOfflineError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../../ui/ScopedRouter.js"
@@ -271,7 +270,7 @@ export class MailViewModel {
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
-			} else if (e instanceof restError.NotFoundError || e instanceof restError.NotAuthorizedError) {
+			} else if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 				mail = null
 			} else {
 				throw e
@@ -817,7 +816,7 @@ export class MailViewModel {
 		// the request is handled a little differently if it is the system folder vs. a subfolder
 		if (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM) {
 			return this.mailModel.clearFolder(folder).catch(
-				ofClass(restError.PreconditionFailedError, () => {
+				ofClass(PreconditionFailedError, () => {
 					throw new UserError("operationStillActive_msg")
 				}),
 			)
@@ -825,7 +824,7 @@ export class MailViewModel {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			if (isSubfolderOfType(folders, folder, MailSetKind.TRASH) || isSubfolderOfType(folders, folder, MailSetKind.SPAM)) {
 				return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
-					ofClass(restError.PreconditionFailedError, () => {
+					ofClass(PreconditionFailedError, () => {
 						throw new UserError("operationStillActive_msg")
 					}),
 				)

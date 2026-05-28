@@ -19,6 +19,7 @@ import { EmailDomainData, getAvailableDomains } from "../../../common/settings/m
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
+import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -202,7 +203,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			.createTemplateGroup(name)
 			.then(() => true)
 			.catch(
-				ofClass(restError.PreconditionFailedError, async (e) => {
+				ofClass(PreconditionFailedError, async (e) => {
 					if (
 						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED

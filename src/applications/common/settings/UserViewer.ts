@@ -4,7 +4,7 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { ColumnWidth, Table, TableAttrs } from "../../../ui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
@@ -206,7 +206,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 							.getAsync()
 							.then((user) => locator.userManagementFacade.changeAdminFlag(user, value))
 							.catch(
-								ofClass(restError.PreconditionFailedError, (e) => {
+								ofClass(PreconditionFailedError, (e) => {
 									if (e.data && e.data === "usergroup.pending-key-rotation") {
 										Dialog.message("makeAdminPendingUserGroupKeyRotationError_msg")
 									} else if (e.data === "multiadmingroup.pending-key-rotation") {
@@ -279,7 +279,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 							title: "remove_action",
 							click: () => {
 								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group)).catch(
-									ofClass(restError.NotAuthorizedError, (e) => {
+									ofClass(NotAuthorizedError, (e) => {
 										Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
 									}),
 								)
@@ -356,7 +356,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			m.redraw()
 		} catch (e) {
 			// may happen if the user gets the admin flag removed, so ignore it
-			if (!(e instanceof restError.BadRequestError)) {
+			if (!(e instanceof BadRequestError)) {
 				throw e
 			}
 		}
@@ -384,7 +384,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		if (confirmed) {
 			return locator.userManagementFacade
 				.deleteUser(await this.user.getAsync(), false)
-				.catch(ofClass(restError.PreconditionFailedError, () => Dialog.message("stillReferencedFromContactForm_msg")))
+				.catch(ofClass(PreconditionFailedError, () => Dialog.message("stillReferencedFromContactForm_msg")))
 		}
 	}
 
@@ -400,7 +400,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		})
 		if (confirmed) {
 			await locator.userManagementFacade.deleteUser(await this.user.getAsync(), true).catch(
-				ofClass(restError.PreconditionFailedError, (e) => {
+				ofClass(PreconditionFailedError, (e) => {
 					if (e.data === UnsubscribeFailureReason.NOT_ENOUGH_CREDIT) {
 						Dialog.message("insufficientBalanceError_msg")
 					} else {
