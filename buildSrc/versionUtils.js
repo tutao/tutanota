@@ -40,20 +40,22 @@ function parseCurrentVersion(currentVersionString) {
  * @return {number[]}
  */
 function makeNewVersion(currentVersion) {
-	const modelVersions = readModelVersions()
-	const majorVersion = modelVersions.reduce((sum, current) => sum + current, 0)
-
+	const majorVersion = parseInt(fs.readFileSync("src/entities/application-version-sum.txt", { encoding: "utf8" }))
 	const now = new Date()
 	const year = now.getFullYear().toString().substring(2, 4)
 	const month = now.getMonth() + 1
 	const formattedMonth = month >= 10 ? month : `0${month}`
 	const formattedDay = now.getDate() >= 10 ? now.getDate() : `0${now.getDate()}`
 	const minorVersion = parseInt(`${year}${formattedMonth}${formattedDay}`, 10)
+	const currentMajorVersion = currentVersion[0]
 
 	const current = currentVersion.slice()
 	let patchVersion = 0
-	if (current[0] === majorVersion && current[1] === minorVersion) {
+	if (currentMajorVersion === majorVersion && current[1] === minorVersion) {
 		patchVersion = current[2] + 1
+	}
+	if (majorVersion < currentMajorVersion) {
+		throw new Error("New version is older than current!")
 	}
 	return [majorVersion, minorVersion, patchVersion]
 }
