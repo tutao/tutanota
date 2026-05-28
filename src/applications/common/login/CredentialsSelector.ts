@@ -27,7 +27,7 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 			if (onCredentialsDeleted) {
 				buttons.push(
 					m(Button, {
-						label: "delete_action",
+						label: "remove_action",
 						click: () => onCredentialsDeleted(c),
 						type: ButtonType.Secondary,
 					}),
