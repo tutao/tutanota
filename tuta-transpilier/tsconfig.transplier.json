@@ -1,0 +1,19 @@
+{
+	"include": ["./"],
+	"compilerOptions": {
+		"rootDir": "./",
+		"composite": true,
+		"target": "es2022",
+		"module": "es2022",
+		"moduleResolution": "node",
+		"noEmitOnError": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"outDir": "../build/transpiler",
+		"tsBuildInfoFile": "../build/transpiler/tsbuildinfo",
+		"incremental": true,
+		"types": ["node"]
+	}
+}
