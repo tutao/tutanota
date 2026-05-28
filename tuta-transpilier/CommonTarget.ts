@@ -1,4 +1,15 @@
-import { CallExpression, EnumDeclaration, ExpressionStatement, ImportDeclaration, Node, SourceFile, ts, TypeAliasDeclaration } from "ts-morph"
+import {
+	CallExpression,
+	EnumDeclaration,
+	ExpressionStatement,
+	ImportDeclaration,
+	Node,
+	SourceFile,
+	ts,
+	TypeAliasDeclaration,
+	VariableDeclaration,
+	VariableStatement,
+} from "ts-morph"
 import { getRelativePath, joinPaths, TUTANOTA_ROOT } from "./Constants.js"
 import fs from "node:fs"
 import SyntaxKind = ts.SyntaxKind
@@ -15,6 +26,7 @@ export abstract class CommonTarget {
 	protected abstract generateTypeAliasDecleration(typeAliasDeclaration: TypeAliasDeclaration): string
 	protected abstract generateCallExpression(callExpression: CallExpression): string
 	protected abstract generateImportDecleration(importDecleration: ImportDeclaration): string
+	protected abstract generateVariableDeclaration(variableStatement: VariableDeclaration): string
 
 	public generate() {
 		console.log("Generating kotlin for file: " + this.sourceFile.getFilePath())
@@ -23,12 +35,14 @@ export abstract class CommonTarget {
 		this.outputContent += collectedOutputs.join("\n\n")
 	}
 
-	private redirectNode(node: Node<ts.Node>) {
+	private redirectNode(node: Node<ts.Node>): string | Array<string> {
 		const _kindName = node.getKindName()
 		const typedNode = node.asKindOrThrow(node.getKind())
 
 		if (typedNode instanceof ImportDeclaration) {
 			return this.generateImportDecleration(typedNode)
+		} else if (typedNode instanceof VariableStatement) {
+			return typedNode.getDeclarations().map((declaration) => this.generateVariableDeclaration(declaration))
 		} else if (typedNode instanceof EnumDeclaration) {
 			return this.generateEnumDecleration(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {

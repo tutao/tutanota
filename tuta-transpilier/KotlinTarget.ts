@@ -1,4 +1,15 @@
-import { CallExpression, EnumDeclaration, ImportDeclaration, PropertySignature, SourceFile, ts, Type, TypeAliasDeclaration } from "ts-morph"
+import {
+	CallExpression,
+	EnumDeclaration,
+	ImportDeclaration,
+	PropertySignature,
+	SourceFile,
+	ts,
+	Type,
+	TypeAliasDeclaration,
+	VariableDeclaration,
+	VariableDeclarationKind,
+} from "ts-morph"
 import { CommonTarget } from "./CommonTarget.js"
 import SyntaxKind = ts.SyntaxKind
 
@@ -66,6 +77,20 @@ export class KotlinTarget extends CommonTarget {
 			.map(({ ident, alias }) => `import ${mappedPackage}.${ident} as ${alias}`)
 
 		return [...mappedNamedImports, ...aliasedImports].join("")
+	}
+
+	generateVariableDeclaration(variableStatement: VariableDeclaration): string {
+		const identifierName = this.mapFromTsIdentifier(variableStatement.getSymbol().getName())
+
+		const declType = variableStatement.getVariableStatement().getDeclarationKind()
+		switch (declTypeq) {
+			case VariableDeclarationKind.Const:
+				return `const val ${identifierName} = `
+			case VariableDeclarationKind.Let:
+				return `val ${identifierName} = `
+			case VariableDeclarationKind.AwaitUsing || VariableDeclarationKind.Using:
+				throw new Error("awaitUsing or Using is not supported!!")
+		}
 	}
 
 	private getTypedProperty(propertySignature: PropertySignature) {
