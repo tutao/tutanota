@@ -10,6 +10,11 @@ import { defer, DeferredObject, getFromMap, isEmpty, LazyLoaded, noOp } from "@t
 export class DesktopNotifier {
 	private readonly initPromise: DeferredObject<void> = defer()
 	private readonly notificationDismissersPerUser: Map<string, Dismisser[]> = new Map()
+	// Retains dismissers for one-shot notifications until the user clicks
+	// one. Without this the JS-side electron.Notification can be collected
+	// before the click event fires, which on Linux/GTK intermittently kills
+	// the click handler (issue #10844).
+	private readonly oneShotDismissers: Set<Dismisser> = new Set()
 
 	constructor(
 		private readonly tray: DesktopTray,
@@ -48,11 +53,29 @@ export class DesktopNotifier {
 			throw new Error("Notifications are not supported")
 		}
 
-		const onClick = props.onClick ?? noOp
+		const userOnClick = props.onClick ?? noOp
 
 		await this.initPromise.promise
 
-		factory.makeNotification(params, onClick)
+		// Retain the dismisser so the underlying electron.Notification cannot
+		// be collected before the click event fires. When the click lands we
+		// run the user handler, then dismiss the OS notification through the
+		// retained closure and release the reference so the set stays bounded.
+		let dismisser: Dismisser | undefined
+		const onClick = () => {
+			try {
+				userOnClick()
+			} finally {
+				if (dismisser !== undefined) {
+					this.oneShotDismissers.delete(dismisser)
+					const toDismiss = dismisser
+					dismisser = undefined
+					toDismiss()
+				}
+			}
+		}
+		dismisser = factory.makeNotification(params, onClick)
+		this.oneShotDismissers.add(dismisser)
 	}
 
 	/**

@@ -153,4 +153,50 @@ o.spec("DesktopNotifier", function () {
 		await notifier.onNotificationClick("1234")
 		verify(factory.processNotification("1234"))
 	})
+
+	o.test("showOneShot retains the notification and closes it when the user clicks (issue #10844)", async function () {
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
+		await notifier.start(0)
+
+		let onClickInvoked = false
+		await notifier.showOneShot({
+			title: "Update available",
+			body: "Click to update",
+			onClick: () => {
+				onClickInvoked = true
+			},
+		})
+
+		o.check(createdNotifications.length).equals(1)
+		const created = createdNotifications[0]
+
+		created.click()
+
+		o.check(onClickInvoked).equals(true)
+		// Before the fix, showOneShot dropped the dismisser returned by the
+		// factory, so the underlying electron.Notification was eligible for
+		// GC immediately and was never closed via the dismisser. Retaining
+		// the dismisser and invoking it on click is what keeps the JS-side
+		// notification alive on Linux/GTK long enough for the click to land.
+		verify(created.close(), { times: 1 })
+	})
+
+	o.test("showOneShot retains dismissers independently for concurrent notifications (issue #10844)", async function () {
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
+		await notifier.start(0)
+
+		let clicks = 0
+		await notifier.showOneShot({ title: "T1", onClick: () => clicks++ })
+		await notifier.showOneShot({ title: "T2", onClick: () => clicks++ })
+		await notifier.showOneShot({ title: "T3", onClick: () => clicks++ })
+
+		o.check(createdNotifications.length).equals(3)
+
+		for (const n of createdNotifications) n.click()
+
+		o.check(clicks).equals(3)
+		for (const n of createdNotifications) {
+			verify(n.close(), { times: 1 })
+		}
+	})
 })
