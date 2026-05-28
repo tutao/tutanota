@@ -243,15 +243,16 @@ class AndroidNativeCryptoFacade(
 
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
-		val parsedFileUri = Uri.parse(fileUri)
 		val fileInfo = tempFs.fileInfo(fileUri)
 		val outputFile = File(tempDir.encrypt, fileInfo.name)
 
 		val inputStream = tempFs.fileStream(fileUri)
+		val bytes = inputStream.readBytes()
 		val out: OutputStream = withContext(Dispatchers.IO) {
 			FileOutputStream(outputFile)
 		}
-		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
+		val bais = ByteArrayInputStream(bytes)
+		aesEncrypt(key.data, bais, out, iv.data, usePadding = true, useMac = true)
 		return EncryptedFileInfo(outputFile.toUri(), fileInfo.size.toInt())
 	}
 

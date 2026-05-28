@@ -1,6 +1,8 @@
 package de.tutao.tutashared
 
+import org.apache.commons.io.input.BoundedInputStream
 import java.io.File
+import java.io.InputStream
 
 fun getNonClobberingFileName(parentFile: File, child: String): String {
 	// should only happen if parent is not a dir
@@ -27,4 +29,12 @@ fun getNonClobberingFileName(parentFile: File, child: String): String {
 		return doGetNonClobberingFileName(siblings, base, ext, suffix + 1)
 	}
 	return doGetNonClobberingFileName(siblings, base, ext)
+}
+
+fun InputStream.bounded(start: Long, length: Long): InputStream {
+	this.skip(start)
+	return BoundedInputStream.builder()
+		.setInputStream(this)
+		.setMaxCount(length)
+		.get()
 }

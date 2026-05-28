@@ -19,7 +19,7 @@ class TempFs(private val context: Context, private val random: SecureRandom) {
 
 	fun createFileChunkUri(fileUri: String, start: Long, length: Long): Uri {
 		val chunkId = random.bytes(16).toBase64().base64ToBase64Url()
-		val tutaUri = "tuta-chunk:${chunkId}?start=${start}&length=${length}".toUri()
+		val tutaUri = "tuta-chunk://${chunkId}?start=${start}&length=${length}".toUri()
 		tutaUriToNativeUri[tutaUri] = fileUri
 
 		return tutaUri
@@ -31,8 +31,7 @@ class TempFs(private val context: Context, private val random: SecureRandom) {
 			val contentInputStream = tutaUriToNativeUri[parsed]
 				?.let { context.contentResolver.openInputStream(it.toUri()) }
 				?: throw FileNotFoundException(uri)
-			val start = parsed.getQueryParameter("start")?.toLong() ?: throw Error("Invalid uri $uri")
-			val length = parsed.getQueryParameter("length")?.toLong() ?: throw Error("Invalid uri $uri")
+			val (_, start, length) = parsed.toChunkUri()
 
 			contentInputStream.skip(start)
 			return BoundedInputStream.builder()
@@ -49,10 +48,25 @@ class TempFs(private val context: Context, private val random: SecureRandom) {
 		if (parsed.scheme == "tuta-chunk") {
 			val native = tutaUriToNativeUri[parsed] ?: throw FileNotFoundException()
 			val fileInfo = getFileInfo(context, native.toUri())
-			fileInfo.size = parsed.getQueryParameter("length")?.toLong() ?: throw Error("Invalid uri $uri")
-			return fileInfo
+			val (_, start, length) = parsed.toChunkUri()
+			return FileInfo(
+				name = "${fileInfo.name}.${start}.chunk",
+				size = length
+			)
 		} else {
 			return getFileInfo(context, parsed)
 		}
 	}
 }
+
+private fun Uri.toChunkUri(): ChunkUri {
+	val start = getQueryParameter("start")?.toLong() ?: throw Error("Invalid uri $this")
+	val length = getQueryParameter("length")?.toLong() ?: throw Error("Invalid uri $this")
+	return ChunkUri(this, start, length)
+}
+
+private data class ChunkUri(
+	val uri: Uri,
+	val start: Long,
+	val length: Long
+)

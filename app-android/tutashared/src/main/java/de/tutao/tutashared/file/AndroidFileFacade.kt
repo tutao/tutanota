@@ -586,7 +586,7 @@ class AndroidFileFacade(
 			val length = if (start + maxChunkSizeBytes > fileSize) fileSize - start else maxChunkSizeBytes.toLong()
 			val chunkUri = tempFs.createFileChunkUri(fileUri, start, length).toString()
 			chunkUris += chunkUri
-			currentOffset += start + length
+			currentOffset = start + length
 		}
 
 		return chunkUris
