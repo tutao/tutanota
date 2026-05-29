@@ -113,6 +113,7 @@ impl ImportableMailAttachment {
 				encFileName: enc_file_name,
 				encMimeType: enc_mime_type,
 				ownerEncFileHashSessionKey: None,
+				ownerKeyVersion: None,
 				referenceTokens: reference_tokens,
 			}),
 		}
@@ -632,6 +633,8 @@ impl ImportableMail {
 			references,
 			importedAttachments: vec![],
 			_errors: Default::default(),
+			imapModSeq: None,
+			imapUid: None,
 		}
 	}
 }
