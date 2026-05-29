@@ -322,7 +322,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/mail-app/workerUtils/worker") ||
 		isIn("src/applications/calendar-app/worker") ||
 		isIn("src/applications/mail-app/workerUtils/offline") ||
-		isIn("src/applications/drive-app/workerUtils")
+		isIn("src/applications/drive-app/workerUtils") ||
+		isIn("src/applications/mail-app/workerUtils/imapimport")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
@@ -400,6 +401,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
+		// FIXME: Maybe bundle this with something that is not common?
+	} else if (isIn("libs/openid-client")) {
+		return "common"
 	} else if (isIn("node_modules/@material/material-color-utilities")) {
 		return "material-color-utilities"
 	} else if (isIn("libs/jsQR") || isIn("libs/qrcode")) {
