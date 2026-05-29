@@ -1,6 +1,8 @@
 import Combine
 import Foundation
 import MobileCoreServices
+import TutanotaSharedFramework
+import UniformTypeIdentifiers
 import os
 
 public typealias ProgressUpdater = @Sendable (String, Int) -> Void
@@ -59,8 +61,8 @@ public final class IosFileFacade: FileFacade {
 		self.uploadProgress = uploadProgress
 	}
 
-	public func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
-	public func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
+	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
+	func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
 
 	private func writeFile(at url: URL, _ content: DataWrapper) async throws { try content.data.write(to: url, options: .atomic) }
 
