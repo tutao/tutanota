@@ -65,7 +65,7 @@ public let MAILTO_SCHEME = "mailto"
 
 		self.viewController = ViewController(
 			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(),
-			themeManager: ThemeManager(userProferencesProvider: userPreferencesProvider),
+			themeManager: ThemeManager(userPreferencesProvider: userPreferencesProvider),
 			keychainManager: keychainManager,
 			notificationStorage: notificationStorage,
 			alarmManager: alarmManager,

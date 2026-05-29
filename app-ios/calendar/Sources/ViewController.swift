@@ -11,7 +11,7 @@ public enum InteropActions: String {
 }
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, MainPageLoader {
+class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, MainPageLoader, ThemeApplier {
 	private let themeManager: ThemeManager
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
@@ -78,7 +78,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
 			mobileContactsFacade: IosMobileContactsFacade(),
-			mobilePaymentsFacade: IosMobilePaymentsFacade(),
+			mobilePaymentsFacade: IosMobilePaymentsFacade(
+				mobilePaymentDomain: "de.tutao.calendar.MobilePayment",
+				productIdToPlanName: productIdToPlanName,
+				formatPlanType: formatPlanType,
+				windowScene: self.windowScene
+			),
 			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
@@ -90,8 +95,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
 			),
 			sqlCipherFacade: self.sqlCipherFacade,
-			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
-			webAuthnFacade: IosWebauthnFacade(viewController: self)
+			themeFacade: IosThemeFacade(themeManager: themeManager, themeApplier: self),
+			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutacalendar")
 		)
 		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
@@ -226,7 +231,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	private func getAssetUrl() -> URL { URL(string: "asset://app/index-app.html")! }
 
-	func applyTheme(_ theme: [String: String]) {
+	@MainActor func applyTheme(_ theme: [String: String]) {
 		let contentBgString = theme["surface"]!
 		let contentBg = UIColor(hex: contentBgString)!
 		self.isDarkTheme = !contentBg.isLight()
@@ -303,6 +308,10 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
+	@MainActor func windowScene() -> UIWindowScene {
+		let window = UIApplication.shared.connectedScenes.first
+		return window as! UIWindowScene
+	}
 }
 
 // Remove when webView config migration is removed
@@ -316,4 +325,23 @@ private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {
 	func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor { view.window! }
+}
+
+// FIXME: Move to separate file
+func formatPlanType(_ plan: String, _ interval: UInt) -> String {
+	let intervalString =
+		switch interval {
+		case 1: "monthly"
+		case 12: "yearly"
+		default: fatalError("invalid plan (\(plan)) interval (\(interval))")
+		}
+	let bundleID = Bundle.main.bundleIdentifier!
+	let stagingLevelString = (bundleID == "de.tutao.calendar.test") ? "testplans" : "plans"
+	return "\(stagingLevelString).calendar.\(plan).\(intervalString)"
+}
+
+func productIdToPlanName(_ productId: String) -> String {
+	// plans.calendar.legend.yearly -> legend
+	// plans.calendar.revolutionary.monthly -> revolutionary
+	String(productId.split(separator: ".")[2])
 }
