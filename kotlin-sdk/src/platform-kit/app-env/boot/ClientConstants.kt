@@ -1,4 +1,4 @@
-/* Generated file. timestamp: 29::1780050126734*/
+/* Generated file. timestamp: 29::1780060506844*/
 import org.tutao..Env.assertMainOrNodeBoot
 
 import org.tutao.ClientDetector.ClientPlatform
@@ -38,3 +38,4 @@ data class BrowserData(needsMicrotaskHack: bool, needsExplicitIDBIds: bool, inde
 
 const val companyTeamLabel = 
 
+NOT SUPPORTED

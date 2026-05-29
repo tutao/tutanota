@@ -1,4 +1,4 @@
-/* Generated file. timestamp: 29::1780050126293*/
+/* Generated file. timestamp: 29::1780060506405*/
 enum class AppType {
 	Integrated,
 	Mail,
@@ -6,3 +6,4 @@ enum class AppType {
 	Drive
 }
 
+NOT SUPPORTED

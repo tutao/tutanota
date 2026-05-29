@@ -1,11 +1,14 @@
 import {
+	BinaryExpression,
 	Block,
 	CallExpression,
 	EnumDeclaration,
 	ExpressionStatement,
 	FunctionDeclaration,
+	Identifier,
 	ImportDeclaration,
 	Node,
+	ReturnStatement,
 	SourceFile,
 	ts,
 	TypeAliasDeclaration,
@@ -24,37 +27,57 @@ export abstract class CommonTarget {
 		this.writeDontEditComment()
 	}
 
+	protected abstract mapFromTsIdentifier(identifier: string): string
 	protected abstract generateEnumDecleration(enumDefination: EnumDeclaration): string
 	protected abstract generateTypeAliasDecleration(typeAliasDeclaration: TypeAliasDeclaration): string
 	protected abstract generateCallExpression(callExpression: CallExpression): string
 	protected abstract generateImportDecleration(importDecleration: ImportDeclaration): string
 	protected abstract generateVariableDeclaration(variableStatement: VariableDeclaration): string
 	protected abstract generateFunctionDecleration(functionDecleration: FunctionDeclaration): string
-	protected abstract generateScopedBlock(blockContent: Block): string
+	protected abstract generateReturnStatement(returnStatement: ReturnStatement): string
 
 	public generate() {
 		console.log("Generating kotlin for file: " + this.sourceFile.getFilePath())
 
-		const collectedOutputs = this.sourceFile.forEachChildAsArray().map((node) => this.redirectNode(node))
+		const collectedOutputs = this.sourceFile.forEachChildAsArray().map((node) => this.joinOutputs(this.redirectNode(node)))
 		this.outputContent += collectedOutputs.join("\n\n")
 	}
 
 	protected redirectNode(node: Node<ts.Node>): string | Array<string> {
 		const _kindName = node.getKindName()
-		const typedNode = node.asKindOrThrow(node.getKind())
+		const nodeKind = node.getKind()
+		const typedNode = node.asKindOrThrow(nodeKind)
 
 		if (typedNode instanceof ImportDeclaration) {
 			return this.generateImportDecleration(typedNode)
+		} else if (nodeKind === SyntaxKind.ReturnKeyword) {
+			return "return "
+		} else if (nodeKind === SyntaxKind.AsteriskToken) {
+			const parentStatement = typedNode.getParent()
+			if (parentStatement.getKind() === SyntaxKind.BinaryExpression) {
+				return "*"
+			} else {
+				return "astrisk token in non-binary expression"
+			}
 		} else if (typedNode instanceof VariableStatement) {
 			return typedNode.getDeclarations().map((declaration) => this.generateVariableDeclaration(declaration))
+		} else if (typedNode instanceof Identifier) {
+			return this.mapFromTsIdentifier(typedNode.getSymbol().getName())
+		} else if (typedNode instanceof ReturnStatement) {
+			const returnValue = typedNode.getChildren().map((child) => this.joinOutputs(this.redirectNode(child)))
+			return this.joinOutputs(returnValue)
 		} else if (typedNode instanceof EnumDeclaration) {
 			return this.generateEnumDecleration(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {
 			return this.generateTypeAliasDecleration(typedNode)
 		} else if (typedNode instanceof Block) {
-			return this.generateScopedBlock(typedNode)
+			const blockStatements = typedNode.forEachChildAsArray().flatMap((blockContent) => this.redirectNode(blockContent))
+			return ["\n", ...blockStatements, "\n"]
 		} else if (typedNode instanceof FunctionDeclaration) {
 			return this.generateFunctionDecleration(typedNode)
+		} else if (typedNode instanceof BinaryExpression) {
+			const [lhs, operator, rhs] = typedNode.getChildren()
+			return [this.redirectNode(lhs), " ", this.redirectNode(operator), " ", this.redirectNode(rhs)].flat()
 		} else if (typedNode instanceof CallExpression) {
 			const parentExpressionStatement = node.getParent()
 			const callOut = this.generateCallExpression(typedNode)
@@ -65,6 +88,16 @@ export abstract class CommonTarget {
 		} else if (typedNode instanceof ExpressionStatement) {
 			const expression = typedNode.getExpression()
 			return this.redirectNode(expression)
+		} else {
+			return "NOT SUPPORTED"
+		}
+	}
+
+	protected joinOutputs(outputs: string | Array<string>): string {
+		if (typeof outputs === "string") {
+			return outputs
+		} else {
+			return outputs.join("")
 		}
 	}
 

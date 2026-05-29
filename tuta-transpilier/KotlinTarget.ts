@@ -1,10 +1,10 @@
 import {
-	Block,
 	CallExpression,
 	EnumDeclaration,
 	FunctionDeclaration,
 	ImportDeclaration,
 	PropertySignature,
+	ReturnStatement,
 	SourceFile,
 	ts,
 	Type,
@@ -108,14 +108,12 @@ export class KotlinTarget extends CommonTarget {
 				return `${name}: ${paramType}`
 			})
 			.join(",")
-		const functionBody = this.redirectNode(functionDecleration.getBody())
+		const functionBody = this.joinOutputs(this.redirectNode(functionDecleration.getBody()))
 
-		return `fun ${functionName}(${functionParameters}): ${returnType}`
+		return `fun ${functionName}(${functionParameters}): ${returnType} { ${functionBody} }`
 	}
 
-	generateScopedBlock(blockContent: Block): string {
-		return `{}`
-	}
+	generateReturnStatement(returnStatement: ReturnStatement): string {}
 
 	private getTypedProperty(propertySignature: PropertySignature) {
 		const identifier = propertySignature.getName()
@@ -133,7 +131,7 @@ export class KotlinTarget extends CommonTarget {
 		return typesMap[typeName] ?? typeName
 	}
 
-	private mapFromTsIdentifier(identifier: string): string {
+	protected mapFromTsIdentifier(identifier: string): string {
 		// todo: if identifier is a kotlin reservedName then santitize it somehow
 		return identifier
 	}
