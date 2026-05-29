@@ -12,6 +12,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import child_process from "node:child_process"
 import { promisify } from "node:util"
 import alias from "@rollup/plugin-alias"
+import json from "@rollup/plugin-json"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -22,7 +23,7 @@ export async function updateLibs() {
 /**
  * Should correspond to {@link import("./RollupConfig").dependencyMap}
  *
- * @typedef {"rollupWeb" | "rollupTF" | "rollupDesktop" | "copy"} BundlingStrategy
+ * @typedef {"rollupWeb" | "rollupTF" | "rollupImap" | "rollupDesktop" | "copy"} BundlingStrategy
  * @typedef {{src: string, target: string, bundling: BundlingStrategy, banner?: string, patch?: string}} DependencyDescription
  * @type Array<DependencyDescription>
  *
@@ -46,6 +47,9 @@ const clientDependencies = [
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
 	{ src: "../src/applications/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
+	{ src: "../src/applications/common/desktop/imapimport/imapsync/imapflow-custom.js", target: "imapflow.js", bundling: "rollupImap" },
+	{ src: "../src/applications/common/desktop/imapimport/imapsync/imapmail/postalmime-custom.js", target: "postal-mime.js", bundling: "rollupImap" },
+	{ src: "../src/applications/mail-app/settings/imapimport/oauth/openid-client-custom.js", target: "openid-client.js", bundling: "rollupImap" },
 ]
 
 /** Run special patches after bundling */
@@ -114,6 +118,9 @@ async function copyToLibs(dependencies) {
 			case "rollupTF":
 				await rollupTensorFlow(src, target, banner)
 				break
+			case "rollupImap":
+				await rollupImapLibraries(src, target, banner)
+				break
 			case "rollupDesktop":
 				await rollDesktopDep(src, target, banner)
 				break
@@ -168,6 +175,30 @@ async function rollupTensorFlow(src, target, banner) {
 			// logResolvePlugin,
 			nodeResolve(),
 			commonjs(),
+		],
+		output: {
+			format: "esm",
+		},
+	})
+	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
+}
+
+async function rollupImapLibraries(src, target, banner) {
+	console.log("rolling up Imap libraries with...", src, target, banner)
+	const bundle = await rollup({
+		input: path.join(__dirname, src),
+		treeshake: {
+			moduleSideEffects: false,
+			preset: "smallest",
+		},
+		plugins: [
+			alias({
+				entries: [],
+			}),
+			logResolvePlugin,
+			nodeResolve(),
+			commonjs(),
+			json(),
 		],
 		output: {
 			format: "esm",

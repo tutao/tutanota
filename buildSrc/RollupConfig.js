@@ -22,6 +22,9 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	"./imapflow-custom": path.normalize("./libs/imapflow.js"),
+	"./postalmime-custom": path.normalize("./libs/postalmime.js"),
+	"./openid-client-custom": path.normalize("./libs/openid-client.js"),
 }
 
 export let tsImportAliases = {
