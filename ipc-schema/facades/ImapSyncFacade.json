@@ -1,0 +1,84 @@
+{
+	"name": "ImapSyncFacade",
+	"type": "facade",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"doc": "Facade implemented by the web worker, receiving IMAP sync events.",
+	"methods": {
+		"onMailbox": {
+			"doc": "onMailbox IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapMailbox": "ImapMailbox"
+				},
+				{
+					"eventType": "ImapSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onMailboxStatus": {
+			"doc": "onMailboxStatus IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapMailboxStatus": "ImapMailboxStatus"
+				}
+			],
+			"ret": "void"
+		},
+		"onMultipleMails": {
+			"doc": "onMultipleMails IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapMails": "List<ImapMail>"
+				},
+				{
+					"eventType": "ImapSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onPostpone": {
+			"doc": "onPostpone IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"postponedUntil": "number"
+				}
+			],
+			"ret": "void"
+		},
+		"onFinish": {
+			"doc": "onFinish IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		},
+		"onError": {
+			"doc": "onError IMAP sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapError": "ImapError"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}
