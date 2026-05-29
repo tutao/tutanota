@@ -1,3 +1,5 @@
+import { Entity } from "./EntityTypes"
+
 export type AppName = string
 
 // Important: Keep ASC order for application names
@@ -44,13 +46,13 @@ export function getTypeString(typeRef: TypeRef<unknown>) {
 	return typeRef.app + "/" + typeRef.typeId
 }
 
-export function parseTypeString(s: string): TypeRef<unknown> {
+export function parseTypeString<T extends Entity>(s: string): TypeRef<T> {
 	const parts = s.split("/")
 	const [app, versionString] = parts
 	if (app == null || versionString == null) {
 		throw new TypeError(`invalid type string: ${s}`)
 	}
-	return new TypeRef(app as AppName, parseInt(parts[1], 10))
+	return new TypeRef<T>(app as AppName, parseInt(parts[1], 10))
 }
 
 export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, typeId: number): boolean {
@@ -59,8 +61,4 @@ export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, type
 
 export function isSameTypeRef(typeRef1: TypeRef<unknown>, typeRef2: TypeRef<unknown>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.typeId)
-}
-
-export function isSameTypeRefNullable(typeRef1: TypeRef<unknown> | null, typeRef2: TypeRef<unknown> | null): boolean {
-	return (typeRef1 == null && typeRef2 == null) || (typeRef1 != null && typeRef2 !== null && isSameTypeRef(typeRef1, typeRef2))
 }

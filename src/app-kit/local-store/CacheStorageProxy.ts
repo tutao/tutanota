@@ -1,7 +1,7 @@
 import { OfflineStorage, Range } from "./OfflineStorage.js"
-import { ProgrammingError } from "../../platform-kit/app-env"
-import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
-import { downcast, Nullable } from "../../platform-kit/utils"
+import { ProgrammingError } from "@tutao/app-env"
+import { Entity, ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
+import { downcast, Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage.js"
@@ -12,6 +12,7 @@ import {
 	OfflineStorageArgs,
 	StorageArgs,
 } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
+import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -39,7 +40,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this._inner?.isInitialized() ?? false
 	}
 
-	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<ServerModelParsedInstance | null> {
+	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
 		return await this.inner.getParsed(typeRef, listId, id)
 	}
 
@@ -49,15 +50,15 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		start: string,
 		count: number,
 		reverse: boolean,
-	): Promise<ServerModelParsedInstance[]> {
+	): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.provideFromRangeParsed(typeRef, listId, start, count, reverse)
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
+	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.provideMultipleParsed(typeRef, listId, elementIds)
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
+	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.getWholeListParsed(typeRef, listId)
 	}
 
@@ -158,11 +159,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.purgeStorage()
 	}
 
-	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
+	put(typeRef: TypeRef<unknown>, instance: DecryptedParsedInstance): Promise<void> {
 		return this.inner.put(typeRef, instance)
 	}
 
-	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void> {
+	putMultiple(typeRef: TypeRef<unknown>, instances: Array<DecryptedParsedInstance>): Promise<void> {
 		return this.inner.putMultiple(typeRef, instances)
 	}
 

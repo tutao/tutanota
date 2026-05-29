@@ -1,4 +1,4 @@
-import { EntityMigrator } from "../../../../platform-kit/network/EntityRestClient"
+import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 import { AttributeModel, elementIdPart, Entity, isSameTypeRef, TypeRef } from "@tutao/meta"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, PatchOperationType, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
 import {
@@ -12,16 +12,16 @@ import {
 } from "@tutao/entities/sys"
 import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
-import { GroupType } from "../../../../entities/sys/Utils"
+import { GroupType } from "../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
 import { HttpMethod, RestClientInterface, RestTextBody } from "@tutao/rest-client/types"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
-import { CryptoNetworkHelper } from "../../../../platform-kit/network/CryptoNetworkHelper"
-import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { EntityUtils } from "../../../../platform-kit/instance-pipeline/EntityUtils"
+import { EntityClient } from "../../../platform-kit/network/EntityClient"
+import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
+import { CryptoNetworkHelper } from "../../../platform-kit/network/CryptoNetworkHelper"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
+import { EntityUtils } from "../../../platform-kit/instance-pipeline/EntityUtils"
 
 export class TutanotaEntityMigrator implements EntityMigrator {
 	constructor(
@@ -131,7 +131,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 			],
 		})
 
-		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+		const patchPayload = await this.instancePipeline.mapAndEncryptToParsedInstance(PatchListTypeRef, patchList, null)
 
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {

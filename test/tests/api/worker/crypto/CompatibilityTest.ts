@@ -4,7 +4,6 @@ import {
 	AeadWithSessionKeySubKeys,
 	AesKeyLength,
 	AsymmetricKeyPair,
-	bitArrayToUint8Array,
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
 	bytesToEd25519Signature,
@@ -35,13 +34,13 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKey,
-	RsaKeyPair,
-	RsaX25519KeyPair,
-	RsaX25519PublicKey,
 	random,
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	RsaKeyPair,
+	RsaX25519KeyPair,
+	RsaX25519PublicKey,
 	SymmetricCipherVersion,
 	uint8ArrayToKey,
 	validateKdfNonceLength,
@@ -65,7 +64,6 @@ import {
 	Versioned,
 } from "../../../../../src/platform-kit/utils"
 import testData from "./CompatibilityTestData.json"
-import { uncompress } from "../../../../../src/platform-kit/instance-pipeline"
 import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
@@ -80,6 +78,7 @@ import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/i
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { uncompress } from "../../../../../src/platform-kit/instance-pipeline/Compression"
 
 const originalRandom = random.generateRandomData
 

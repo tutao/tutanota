@@ -77,7 +77,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
+import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -193,7 +193,7 @@ export async function makeCalendarEventModel(
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		const initialValueUid = assertNotNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
 		const indexEntry = await calendarModel.getEventsByUid(initialValueUid, selectedCalendar.id)
-		if (indexEntry?.progenitor) {
+		if (indexEntry != null && indexEntry.progenitor) {
 			initialValues = indexEntry.progenitor
 		}
 	}

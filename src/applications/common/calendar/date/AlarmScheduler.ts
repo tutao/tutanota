@@ -4,7 +4,7 @@ import { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler"
 import { AlarmInfo, RepeatRule } from "@tutao/entities/sys"
 
 type NotificationSender = (eventTime: Date, summary: string) => void
-type EventInfo = {
+export type EventInfo = {
 	startTime: Date
 	endTime: Date
 	summary: string

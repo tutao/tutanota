@@ -2,8 +2,7 @@ import { KeyVersion, Nullable } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
 import {
-	AeadSubKeys,
-	AesCbcSubKeys,
+	AeadSubKeys, AesCbcSubKeys,
 	InstanceTypeId,
 	SymmetricKeyDeriver,
 	UnusedReservedUnauthenticatedSubKeys,

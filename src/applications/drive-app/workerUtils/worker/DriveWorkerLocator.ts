@@ -57,6 +57,7 @@ import { createRsaImplementation } from "../../../../app-kit/native-bridge/worke
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade"
+import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 
 assertWorkerOrNode()
 
@@ -134,6 +135,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 				new DriveOfflineCleanerStub(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
+				new OfflineMapper(locator.base.typeModelResolver),
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)

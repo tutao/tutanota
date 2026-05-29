@@ -9,13 +9,14 @@ import {
 	compare,
 	downcast,
 	hexToBase64,
+	Nullable,
 	pad,
 	repeat,
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import { clone, isSameTypeRef, TypeRef } from "./index"
-import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
+import { clone, isSameTypeRef, TypeRef, ValueTypeEnum } from "./index"
+import { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -200,10 +201,15 @@ export function isSameId(id1: (Id | IdTuple) | null, id2: (Id | IdTuple) | null)
 	if (id1 === null || id2 === null) {
 		return false
 	} else if (id1 instanceof Array && id2 instanceof Array) {
-		return id1[0] === id2[0] && id1[1] === id2[1]
+		return isSameIdTuple(id1, id2)
 	} else {
 		return id1 === id2
 	}
+}
+
+export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null) {
+	if (id1 === null || id2 === null) return false
+	else return id1[0] === id2[0] && id1[1] === id2[1]
 }
 
 export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
@@ -300,23 +306,23 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 		return null
 	} else {
 		switch (value.type) {
-			case ValueType.Bytes:
+			case ValueTypeEnum.Bytes:
 				return new Uint8Array(0)
 
-			case ValueType.Date:
+			case ValueTypeEnum.Date:
 				return new Date()
 
-			case ValueType.Number:
+			case ValueTypeEnum.Number:
 				return "0"
 
-			case ValueType.String:
+			case ValueTypeEnum.String:
 				return ""
 
-			case ValueType.Boolean:
+			case ValueTypeEnum.Boolean:
 				return false
 
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
+			case ValueTypeEnum.CustomId:
+			case ValueTypeEnum.GeneratedId:
 				return null
 			// we have to use null although the value must be set to something different
 		}
@@ -569,15 +575,15 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
-	const downCastedInstance = downcast(instance)
-	if (!instance) {
+export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
+	if (instance == null) {
 		return true
-	} else {
-		const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
-
-		return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
 	}
+	// FIXME: what is this downcasting to? any?
+	const downCastedInstance = downcast(instance)
+	const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
+
+	return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
 }
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {

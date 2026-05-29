@@ -10,9 +10,9 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
+import { type AppName, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
-import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
+import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ProgressMonitorInterface } from "../../../platform-kit/network/ProgressMonitorInterface.js"
@@ -29,16 +29,24 @@ import {
 	sysModelInfo,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
+	WebsocketEntityData,
 	WebsocketEntityDataTypeRef,
+	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
-import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
+import {
+	MailTypeRef,
+	PhishingMarkerWebsocketData,
+	PhishingMarkerWebsocketDataTypeRef,
+	ReportedMailFieldMarker,
+	tutanotaModelInfo,
+} from "@tutao/entities/tutanota"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 import { validateKdfNonceLength } from "@tutao/crypto"
+import { IncomingServerJson } from "../../../platform-kit/instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -292,11 +300,6 @@ export class EventBusClient {
 		return p
 	}
 
-	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: ServerModelUntypedInstance): Promise<E> {
-		const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
-		return await this.instancePipeline.decryptAndMap(messageType, untypedInstanceSanitized, null)
-	}
-
 	private onError(error: Event) {
 		console.log(TAG, "ws error type:", error.type, JSON.stringify(error), "state:", this.state)
 	}
@@ -311,7 +314,11 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(WebsocketEntityDataTypeRef)
+				const entityUpdateData = await this.instancePipeline.decryptAndMap<WebsocketEntityData>(
+					IncomingServerJson.expectSingleInstance(value, typeModel),
+					null,
+				)
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
 
 				// We only process entity updates for apps and types the clients know about.
@@ -344,13 +351,21 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
-				const counterData = await this.decodeEntityEventValue(WebsocketCounterDataTypeRef, JSON.parse(value))
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(WebsocketCounterDataTypeRef)
+				const counterData = await this.instancePipeline.decryptAndMap<WebsocketCounterData>(
+					IncomingServerJson.expectSingleInstance(value, typeModel),
+					null,
+				)
 				this.typeModelResolver.setServerApplicationTypesModelHash(counterData.applicationTypesHash)
 				this.listener.onCounterChanged(counterData)
 				break
 			}
 			case MessageType.PhishingMarkers: {
-				const data = await this.decodeEntityEventValue(PhishingMarkerWebsocketDataTypeRef, JSON.parse(value))
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(PhishingMarkerWebsocketDataTypeRef)
+				const data = await this.instancePipeline.decryptAndMap<PhishingMarkerWebsocketData>(
+					IncomingServerJson.expectSingleInstance(value, typeModel),
+					null,
+				)
 				this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 
 				this.lastAntiphishingMarkersId = data.lastId
@@ -358,7 +373,8 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.LeaderStatus: {
-				const data = await this.decodeEntityEventValue(WebsocketLeaderStatusTypeRef, JSON.parse(value))
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(WebsocketLeaderStatusTypeRef)
+				const data = await this.instancePipeline.decryptAndMap<WebsocketLeaderStatus>(IncomingServerJson.expectSingleInstance(value, typeModel), null)
 				if (data.applicationTypesHash) {
 					this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 				}
@@ -368,7 +384,8 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.OperationStatusUpdate: {
-				const data = await this.decodeEntityEventValue(OperationStatusUpdateTypeRef, JSON.parse(value))
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(OperationStatusUpdateTypeRef)
+				const data = await this.instancePipeline.decryptAndMap<OperationStatusUpdate>(IncomingServerJson.expectSingleInstance(value, typeModel), null)
 				this.listener.onOperationStatusUpdate(data)
 				break
 			}
@@ -406,19 +423,21 @@ export class EventBusClient {
 
 	private async getParsedInstanceFromEntityEvent(
 		event: EntityUpdate,
-	): Promise<{ parsedInstance: Nullable<ServerModelParsedInstance>; parsedBlobInstance: Nullable<ServerModelParsedInstance> }> {
+	): Promise<{ parsedInstance: Nullable<DecryptedParsedInstance>; parsedBlobInstance: Nullable<DecryptedParsedInstance> }> {
 		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId))
 		if (event.instance != null) {
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 			try {
-				const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-				const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
-				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
-				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
-				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
+				const serverJson = IncomingServerJson.expectSingleInstance(event.instance, typeModel)
+				const encryptedParsedInstance = await this.instancePipeline.typeMapper.parseServerJson(serverJson)
+				const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
+					encryptedParsedInstance,
+					this.instancePipeline.modelMapper,
+					this.instancePipeline.cryptoMapper,
+				)
 				const migratedEntity = await this.entityMigrator.applyMigrations(typeRef, entityAdapter)
 				const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
 				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
-					serverTypeModel,
 					encryptedParsedInstance,
 					sessionKey,
 					validateKdfNonceLength(entityAdapter._kdfNonce),
@@ -426,18 +445,14 @@ export class EventBusClient {
 				)
 
 				// we do not want to process the instance if there are _errors (when decrypting)
-				if (!hasError(parsedInstance)) {
+				if (!parsedInstance.hasError()) {
 					if (isSameTypeRef(MailTypeRef, typeRef) && event.blobInstance != null) {
+						const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 						// handle MailDetails blobs
-						const mailDetailsBlobServerTypeModel = await this.typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
-						const mailDetailsBlobUntypedInstance = JSON.parse(event.blobInstance) as ServerModelUntypedInstance
-						const mailDetailsBlobUntypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(mailDetailsBlobUntypedInstance)
-						const mailDetailsBlobEncryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(
-							mailDetailsBlobServerTypeModel,
-							mailDetailsBlobUntypedInstanceSanitized,
+						const mailDetailsBlobEncryptedParsedInstance = await this.instancePipeline.typeMapper.parseServerJson(
+							IncomingServerJson.expectSingleInstance(event.blobInstance, typeModel),
 						)
 						const parsedBlobInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
-							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobEncryptedParsedInstance,
 							sessionKey,
 							validateKdfNonceLength(entityAdapter._kdfNonce),

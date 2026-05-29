@@ -6,13 +6,11 @@ import { BlobFacade } from "../../../../../src/applications/common/api/worker/fa
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
-
 import { BlobAccessTokenFacade, DEFAULT_BLOB_LOAD_OPTIONS } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "../../../../../src/platform-kit/rest-client/types"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { createReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 o.spec("MailExportFacade", () => {

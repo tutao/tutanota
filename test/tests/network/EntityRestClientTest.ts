@@ -2,15 +2,19 @@ import o, { assertThrows, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
-import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
-import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
+import { Entity, TypeRef } from "../../../src/platform-kit/meta"
+import {
+	doBlobRequestWithRetry,
+	EntityMigrator,
+	EntityRestClient,
+	tryServers,
+} from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
 	arrayEquals,
 	assertNotNull,
-	base64ToUint8Array,
 	deepEqual,
 	downcast,
 	KeyVersion,
@@ -25,12 +29,12 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import {
+	DecryptedParsedInstance,
 	EntityAdapter,
 	InstancePipeline,
 	LoggedInUserProvider,
 	PatchOperationType,
 	TypeModelResolver,
-	typeModelToRestPath,
 } from "../../../src/platform-kit/instance-pipeline"
 import {
 	aes256RandomKey,
@@ -66,6 +70,7 @@ import {
 	createPatchList,
 	CustomerTypeRef,
 	GroupMemberTypeRef,
+	PatchList,
 	PatchListTypeRef,
 	sysModelInfo,
 	UpdateKdfNoncePostIn,
@@ -75,8 +80,9 @@ import {
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { IncomingServerJson, OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
@@ -139,7 +145,7 @@ o.spec("EntityRestClient", function () {
 	let serviceExecutor: ServiceExecutor
 
 	async function typeRefToRestPath(typeRef: TypeRef<unknown>): Promise<string> {
-		return typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
+		return EntityUtils.typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
 	}
 
 	o.beforeEach(function () {
@@ -230,7 +236,7 @@ o.spec("EntityRestClient", function () {
 
 			// mapAndEncrypt is a convenient way to get an instance with network debugging info
 			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
-			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(instanceWithDebuggingInfo))
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(instanceWithDebuggingInfo.getJsonRepresentation())
 			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
 			removeOriginals(loadResult)
 			o(expectedInstance as any).deepEquals(loadResult)
@@ -255,7 +261,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
 				}),
-			).thenResolve(JSON.stringify(untypedCalendarInstance))
+			).thenResolve(untypedCalendarInstance.getJsonRepresentation())
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
 			removeOriginals(result)
@@ -278,7 +284,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					responseType: MediaType.Json,
 				}),
-			).thenResolve(JSON.stringify(untypedAccountingInfo))
+			).thenResolve(untypedAccountingInfo.getJsonRepresentation())
 
 			const result = await entityRestClient.load(AccountingInfoTypeRef, id1)
 			removeOriginals(result)
@@ -297,7 +303,7 @@ o.spec("EntityRestClient", function () {
 			})
 			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`
 			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
-			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
+			when(restClient.request(anything(), anything(), anything())).thenResolve(untypedCalendarInstance.getJsonRepresentation())
 
 			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
 				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -317,7 +323,7 @@ o.spec("EntityRestClient", function () {
 			// repeat once again with network debugging enables
 			env.networkDebugging = true
 			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
-			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(calendaroWithDebug))
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(calendaroWithDebug.getJsonRepresentation())
 			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
 			removeOriginals(resultWithDebug)
 			o(resultWithDebug as any).deepEquals(calendar)
@@ -351,7 +357,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
 				}),
-			).thenResolve(JSON.stringify(untypedCalendarInstance))
+			).thenResolve(untypedCalendarInstance.getJsonRepresentation())
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
 				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -394,7 +400,9 @@ o.spec("EntityRestClient", function () {
 			const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
 			const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
 
-			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedCalWithDebug1, untypedCalWithDebug2]))
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
+				OutgoingServerJson.getJsonRepresentationOfMultiple([untypedCalWithDebug1, untypedCalWithDebug2]),
+			)
 			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
 			loadRangeResult.map(removeOriginals)
 			o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
@@ -433,7 +441,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
 				}),
-			).thenResolve(JSON.stringify([untypedCal1, untypedCal2]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedCal1, untypedCal2]))
 
 			const result = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
 			result.map(removeOriginals)
@@ -469,7 +477,7 @@ o.spec("EntityRestClient", function () {
 
 			const requestPath = `${await typeRefToRestPath(SupportDataTypeRef)}`
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
-				JSON.stringify([instanceWithDebuggingInfo1, instanceWithDebuggingInfo2]),
+				OutgoingServerJson.getJsonRepresentationOfMultiple([instanceWithDebuggingInfo1, instanceWithDebuggingInfo2]),
 			)
 
 			const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
@@ -498,7 +506,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
 				}),
-			).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData1, untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 			result.map(removeOriginals)
@@ -519,7 +527,9 @@ o.spec("EntityRestClient", function () {
 			})
 			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
 			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
-			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
+			when(restClient.request(anything(), anything(), anything())).thenResolve(
+				OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData1, untypedSupportData2]),
+			)
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 
@@ -556,7 +566,7 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedSupportData1]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData1]))
 
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
@@ -566,7 +576,7 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedSupportData2]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 			result.map(removeOriginals)
@@ -602,7 +612,7 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedSupportData1]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData1]))
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
@@ -612,7 +622,7 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedSupportData2]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData2]))
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
@@ -622,7 +632,7 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedSupportData3]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedSupportData3]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 			result.map(removeOriginals)
@@ -680,7 +690,9 @@ o.spec("EntityRestClient", function () {
 				return Object.assign({ blobAccessToken: blobServerAccessInfo.blobAccessToken }, authHeaders)
 			})
 
-			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
+			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(
+				OutgoingServerJson.getJsonRepresentationOfMultiple([untypedBlob1, untypedBlob2]),
+			)
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 			result.map(removeOriginals)
@@ -791,7 +803,7 @@ o.spec("EntityRestClient", function () {
 					noCORS: true,
 					baseUrl: otherServer,
 				}),
-			).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 			result.map(removeOriginals)
@@ -846,21 +858,14 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
 					body: argThat(async (json: RestTextBody) => {
-						const untypedInstance = JSON.parse(json.payload)
-						const ownerEncSk = base64ToUint8Array(
-							AttributeModel.getAttribute<Base64>(
-								untypedInstance,
-								"_ownerEncSessionKey",
-								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),
-							),
-						)
-						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
-						const calendarInstance = await instancePipeline.decryptAndMap(CalendarEventTypeRef, untypedInstance, sk)
+						const accountingInfoTypeModel = await typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef)
+						const untypedInstance = IncomingServerJson.expectSingleInstance(json.payload, accountingInfoTypeModel)
+						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, sk)
 						return deepEqual(newCalendar, calendarInstance)
 					}),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
+			).thenResolve(untypedPersistentPostReturn.getJsonRepresentation())
 
 			const result = await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 
@@ -884,7 +889,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
-				JSON.stringify(untypedPersistentPostReturn),
+				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
 			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
@@ -895,7 +900,7 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -919,7 +924,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
-				JSON.stringify(untypedPersistentPostReturn),
+				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
 			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
@@ -933,7 +938,7 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -967,10 +972,10 @@ o.spec("EntityRestClient", function () {
 					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(v) },
 					responseType: MediaType.Json,
-					body: new RestTextBody(JSON.stringify(untypedSupportData)),
+					body: new RestTextBody(untypedSupportData.getJsonRepresentation()),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
+			).thenResolve(untypedPersistentPostReturn.getJsonRepresentation())
 
 			const result = await entityRestClient.setup(null, newSupportData, null, null)
 			o(result).equals(resultId)
@@ -997,7 +1002,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
-			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify(untypedPersistentPostReturn))
+			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(untypedPersistentPostReturn.getJsonRepresentation())
 			await entityRestClient.setup("listId", newCalendar, null, {
 				baseUrl: "some url",
 				ownerKey: ownerGroupKey,
@@ -1035,21 +1040,16 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					responseType: MediaType.Json,
 					body: argThat(async (json: RestTextBody) => {
-						const untypedInstance = JSON.parse(json.payload)
-						const ownerEncSk = base64ToUint8Array(
-							AttributeModel.getAttribute<Base64>(
-								untypedInstance,
-								"_ownerEncSessionKey",
-								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),
-							),
+						const untypedInstance = IncomingServerJson.expectSingleInstance(
+							json.payload,
+							await typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef),
 						)
-						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
-						const actualAccountingInfo = await instancePipeline.decryptAndMap(AccountingInfoTypeRef, untypedInstance, sk)
+						const actualAccountingInfo = await instancePipeline.decryptAndMap(untypedInstance, sk)
 						return deepEqual(newAccountingInfo, actualAccountingInfo)
 					}),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
+			).thenResolve(untypedPersistentPostReturn.getJsonRepresentation())
 
 			const result = await entityRestClient.setup(null, newAccountingInfo, null, { baseUrl: null, ownerKey: ownerGroupKey })
 			verify(cryptoFacadePartialStub.resolveSessionKey(anything()), { times: 0 })
@@ -1080,10 +1080,10 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: new RestTextBody(JSON.stringify(untypedGroupMembers)),
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([untypedPersistentPostReturn]))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedPersistentPostReturn]))
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 
@@ -1112,10 +1112,10 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: new RestTextBody(JSON.stringify(untypedGroupMembers)),
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPostReturns))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns))
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
@@ -1143,10 +1143,10 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: new RestTextBody(JSON.stringify(untypedGroupMembers.slice(0, 100))),
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers.slice(0, 100))),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPostReturns.slice(0, 100)))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns.slice(0, 100)))
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
@@ -1154,10 +1154,10 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: new RestTextBody(JSON.stringify(untypedGroupMembers.slice(100))),
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers.slice(100))),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify(untypedPostReturns.slice(100)))
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns.slice(100)))
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
@@ -1191,7 +1191,7 @@ o.spec("EntityRestClient", function () {
 
 				if (requestCounter % 2 === 0) {
 					// Second and Fourth requests are success
-					return JSON.stringify(untypedPostReturns.slice((requestCounter - 1) * 100, requestCounter * 100))
+					return OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns.slice((requestCounter - 1) * 100, requestCounter * 100))
 				} else {
 					// First and Third requests are failure
 					throw new restError.BadRequestError("It was a bad request")
@@ -1227,7 +1227,7 @@ o.spec("EntityRestClient", function () {
 					step += 1
 					throw new restError.InternalServerError("might happen")
 				} else {
-					return JSON.stringify(untypedPostReturns[step++])
+					return untypedPostReturns.at(step++)?.getJsonRepresentation()
 				}
 			})
 			const result = await assertThrows(SetupMultipleError, async () => {
@@ -1251,7 +1251,7 @@ o.spec("EntityRestClient", function () {
 			})
 			newSupportData._original = structuredClone(newSupportData)
 			const patchPayload = createPatchList({ patches: [] })
-			const untypedPatchPayload = await instancePipeline.mapAndEncrypt(PatchListTypeRef, patchPayload, null)
+			const untypedPatchPayload = await instancePipeline.mapAndEncryptToParsedInstance(PatchListTypeRef, patchPayload, null)
 
 			await entityRestClient.update(newSupportData)
 
@@ -1261,10 +1261,9 @@ o.spec("EntityRestClient", function () {
 					HttpMethod.PATCH,
 					argThat(async (options) => {
 						o(options.headers).deepEquals({ ...authHeader, v: String(version) })
-						const actual = JSON.parse(options.body)
-						const patchListClientTypeModel = await typeModelResolver.resolveClientTypeReference(PatchListTypeRef)
-						const patchesAttributeIdStr = String(assertNotNull(AttributeModel.getAttributeId(patchListClientTypeModel, "patches")))
-						o(untypedPatchPayload[patchesAttributeIdStr]).deepEquals(actual[patchesAttributeIdStr])
+						const patchListTypeModel = await typeModelResolver.resolveServerTypeReference(PatchListTypeRef)
+						const actual = IncomingServerJson.expectSingleInstance(options.body, patchListTypeModel)
+						o(untypedPatchPayload.getAttributeByName("patches")).deepEquals(actual.getValueByName("patches"))
 						o(options.queryParams).equals(undefined)
 						o(options.baseUrl).equals(undefined)
 						o(options.responseType).equals(MediaType.Json)
@@ -1281,7 +1280,7 @@ o.spec("EntityRestClient", function () {
 			})
 			dummyFileData._original = structuredClone(dummyFileData)
 			const patchPayload = createPatchList({ patches: [] })
-			const untypedPatchPayload = await instancePipeline.mapAndEncrypt(PatchListTypeRef, patchPayload, null)
+			const untypedPatchPayload = await instancePipeline.mapAndEncryptToParsedInstance(PatchListTypeRef, patchPayload, null)
 
 			await entityRestClient.update(dummyFileData)
 
@@ -1295,10 +1294,11 @@ o.spec("EntityRestClient", function () {
 							v: String(version),
 							dv: String(dependsOnVersion),
 						})
-						const actual = JSON.parse(options.body)
-						const patchListClientTypeModel = await typeModelResolver.resolveClientTypeReference(PatchListTypeRef)
-						const patchesAttributeIdStr = String(assertNotNull(AttributeModel.getAttributeId(patchListClientTypeModel, "patches")))
-						o(untypedPatchPayload[patchesAttributeIdStr]).deepEquals(actual[patchesAttributeIdStr])
+						const actual = IncomingServerJson.expectSingleInstance(
+							options.body,
+							await typeModelResolver.resolveServerTypeReference(PatchListTypeRef),
+						)
+						o(untypedPatchPayload.getAttributeByName("patches")).deepEquals(actual.getValueByName("patches"))
 						o(options.queryParams).equals(undefined)
 						o(options.baseUrl).equals(undefined)
 						o(options.responseType).equals(MediaType.Json)
@@ -1337,7 +1337,10 @@ o.spec("EntityRestClient", function () {
 					HttpMethod.PATCH,
 					argThat(async (options) => {
 						// this patch list must include two patch operations: replace for _ownerEncSessionKey and _ownerKeyVersion on newAccountingInfo
-						const patchList = await instancePipeline.decryptAndMap(PatchListTypeRef, JSON.parse(options.body), null)
+						const patchList = await instancePipeline.decryptAndMap<PatchList>(
+							IncomingServerJson.expectSingleInstance(options.body, typeModel),
+							null,
+						)
 						const ownerEncSessionKeyOperation = assertNotNull(
 							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name === "_ownerEncSessionKey"),
 						)
@@ -1379,7 +1382,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
-				JSON.stringify(untypedPersistentPostReturn),
+				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
 			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
@@ -1400,8 +1403,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
-			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			o.check(clientTypeModel).deepEquals((invocation[0] as DecryptedParsedInstance).ensureOutgoing())
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1427,7 +1430,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
-				JSON.stringify(untypedPersistentPostReturn),
+				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
 			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
@@ -1450,8 +1453,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
-			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			o.check(clientTypeModel).deepEquals((invocation[0] as DecryptedParsedInstance).ensureOutgoing())
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1479,7 +1482,7 @@ o.spec("EntityRestClient", function () {
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
-				JSON.stringify(untypedPersistentPostReturn),
+				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
 			instancePipeline.cryptoMapper.encryptParsedInstance = spy(instancePipeline.cryptoMapper.encryptParsedInstance)
@@ -1498,8 +1501,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
-			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			o.check(clientTypeModel).deepEquals((invocation[0] as DecryptedParsedInstance).ensureOutgoing())
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1633,7 +1636,3 @@ o.spec("EntityRestClient", function () {
 		})
 	})
 })
-
-function typeRefOfModel(model: TypeModel): TypeRef<unknown> {
-	return new TypeRef(model.app, model.id)
-}

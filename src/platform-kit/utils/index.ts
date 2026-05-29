@@ -195,6 +195,7 @@ export * from "./ErrorUtils.js"
 export * from "./SyncMetrics.js"
 export * from "./DateProvider.js"
 export * from "./FormatUtils.js"
+export { DeepEquals } from "./Utils"
 
 export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"

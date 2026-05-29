@@ -1,7 +1,6 @@
-import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
+import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
-import { Nullable } from "@tutao/utils"
-import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import { BlobElement, Element, ListElement } from "./EntityUtils.js"
 
 /**
  * Tuta Metamodel Entity Types
@@ -51,7 +50,7 @@ export type ModelValue = {
 	/* human-readable name */
 	name: AttributeName
 	/* the basic data type contained in the field*/
-	type: Values<typeof ValueType>
+	type: ValueTypeEnum
 	/* how many values can be assigned to the field */
 	cardinality: Values<typeof Cardinality>
 	/* whether the client is allowed to update the field */
@@ -93,6 +92,12 @@ export type ModelAssociation = {
 	dependency?: AppName | null
 }
 
+/** simple separator to distinguish between client model types and server model types */
+export type ClientModelTypeSeparator = "ServerModel"
+/** simple separator to distinguish between server model types and client model types */
+export type ServerModelTypeSeparator = "ServerModel"
+
+export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>
 export type ServerTypeModel = Distinct<TypeModel, ServerModelTypeSeparator>
 
@@ -140,86 +145,6 @@ export type TypeModel = {
 	isPublic: boolean
 }
 
-/**
- * Untyped Instance Stage - this is the result of deserializing a wire format representation of an entity instance.
- * it does not conform to a specific model type yet.
- */
-
-/*
- * at this stage, all values are encoded as strings or not present.
- */
-export type UntypedValue = Nullable<string>
-
-/**
- * the server sends the values of associations as arrays, the cardinality is checked just
- * before the actual instance is assembled for use by the business logic.
- */
-export type UntypedAssociation =
-	/** reference(s) to an ElementEntity instance or a list of ListElementEntity instances */
-	| Array<Id>
-	/** reference(s) to a specific ListElementEntity instance */
-	| Array<IdTuple>
-	/** compound AggregatedEntity instance(s) defined directly in its parent */
-	| Array<UntypedInstance>
-
-/**
- * Compound values. The keys are AttributeIds.
- */
-export type UntypedInstance = Record<string, UntypedValue | UntypedAssociation>
-
-/**
- * ParsedInstance stage. This exists in an encrypted and an unencrypted version.
- *
- * here the field values already conform to their types defined in the type model of the containing
- * entity.
- */
-
-export type EncryptedParsedValue =
-	| Id // element association or list association or _id
-	| IdTuple // list element association
-	| boolean // unencrypted
-	| Date // unencrypted
-	| number // unencrypted
-	| string // unencrypted
-	| Uint8Array // Either Bytes or encrypted value
-
-export type EncryptedParsedAssociation =
-	| Array<Id> // element references / list references
-	| Array<IdTuple> // list element ref, card any
-	| Array<EncryptedParsedInstance> // aggregate
-
-// this contains JS values except in encrypted fields, those are kept as a base64 string.
-export type EncryptedParsedInstance = Record<AttributeId, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation>
-
-/** only defined here for documentation purposes */
-export type ParsedValue = EncryptedParsedValue
-/** only defined here for documentation purposes */
-export type ParsedAssociation = EncryptedParsedAssociation
-
-/** a parsed instance after/before going through decryption/encryption */
-export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedAssociation> & {
-	/** crypto errors that happened during deserialization/serialization */
-	_errors?: Record<AttributeId, string>
-}
-
-/** simple separator to distinguish between client model types and server model types */
-export type ClientModelTypeSeparator = "ClientModel"
-
-/** simple separator to distinguish between server model types and client model types */
-export type ServerModelTypeSeparator = "ServerModel"
-
-export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
-
-export type ClientModelParsedInstance = Distinct<ParsedInstance, ClientModelTypeSeparator>
-
-export type ServerModelParsedInstance = Distinct<ParsedInstance, ServerModelTypeSeparator>
-export type ClientModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ClientModelTypeSeparator>
-
-export type ServerModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ServerModelTypeSeparator>
-export type ClientModelUntypedInstance = Distinct<UntypedInstance, ClientModelTypeSeparator>
-
-export type ServerModelUntypedInstance = Distinct<UntypedInstance, ServerModelTypeSeparator>
-
 // // //
 //
 // Model Types
@@ -236,6 +161,7 @@ export interface IBucketKey {
 	recipientKeyVersion: NumberString
 	senderKeyVersion: null | NumberString
 }
+
 export interface IInstanceSessionsKey {
 	instanceList: Id
 	instanceId: Id
@@ -254,6 +180,7 @@ export interface ITypeInfo {
 	application: string
 	typeId: NumberString
 }
+
 //	pubEncBucketKey: null | Uint8Array
 // 	groupEncBucketKey: null | Uint8Array
 // 	protocolVersion: NumberString
@@ -300,8 +227,60 @@ export type ListElementEntity = Entity & ListElement
 export type BlobElementEntity = Entity & BlobElement
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
+
 export const enum OperationType {
 	CREATE = "0",
 	UPDATE = "1",
 	DELETE = "2",
+}
+
+export const enum ValueTypeEnum {
+	String = "String",
+	Number = "Number",
+	Bytes = "Bytes",
+	Date = "Date",
+	Boolean = "Boolean",
+	GeneratedId = "GeneratedId",
+	CustomId = "CustomId",
+	CompressedString = "CompressedString",
+}
+
+/// How association are actually represented in metamodel
+export const enum AssociationReprType {
+	SingleId,
+	IdTuple,
+	Aggregation,
+}
+
+export const enum IdType {
+	SingleId,
+	IdTuple,
+}
+
+export function getIdType(typeModel: TypeModel) {
+	switch (typeModel.type) {
+		case Type.Element:
+		case Type.Aggregated:
+		case Type.DataTransfer:
+			return IdType.SingleId
+		case Type.BlobElement:
+		case Type.ListElement:
+			return IdType.IdTuple
+	}
+}
+
+export function getAssociationReprType(associationType: Values<typeof AssociationType>) {
+	switch (associationType) {
+		case AssociationType.Aggregation:
+			return AssociationReprType.Aggregation
+
+		case AssociationType.BlobElementAssociation:
+		case AssociationType.ListElementAssociationCustom:
+		case AssociationType.ListElementAssociationGenerated:
+			return AssociationReprType.IdTuple
+
+		case AssociationType.ListAssociation:
+		case AssociationType.ElementAssociation:
+			return AssociationReprType.SingleId
+	}
 }

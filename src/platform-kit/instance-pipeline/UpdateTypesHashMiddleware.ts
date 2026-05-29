@@ -2,7 +2,7 @@ import { HttpMethod, RestClientMiddleware } from "../rest-client/types"
 import { isNotNull } from "@tutao/utils"
 import { getServiceRestPath } from "../meta"
 import { ServerModelInfo } from "./EntityFunctions"
-import { ApplicationTypesService } from "../../entities/base/Services"
+import { ApplicationTypesService } from "@tutao/entities/base"
 
 export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, ServerModelParsedInstance } from "../../../../src/platform-kit/meta"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT } from "../../../../src/platform-kit/meta"
 import { createEventElementId } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { LateInitializedCacheStorageImpl } from "../../../../src/app-kit/local-store/CacheStorageProxy.js"
 import { numberRange, promiseMap } from "../../../../src/platform-kit/utils"
@@ -33,10 +33,7 @@ o.spec("Custom calendar events handler", function () {
 
 	o.spec("Load elements from cache", function () {
 		o.beforeEach(async function () {
-			const allListParsedInstance = await promiseMap(
-				allList,
-				async (instance) => (await modelMapper.mapToClientModelParsedInstance(CalendarEventTypeRef, instance)) as unknown as ServerModelParsedInstance,
-			)
+			const allListParsedInstance = await promiseMap(allList, async (instance) => await modelMapper.mapToDecryptedInstance(instance))
 			when(offlineStorageMock.getWholeListParsed(CalendarEventTypeRef, listId)).thenResolve(allListParsedInstance)
 			when(offlineStorageMock.getRangeForList(CalendarEventTypeRef, listId)).thenResolve({
 				lower: CUSTOM_MIN_ID,
@@ -57,10 +54,7 @@ o.spec("Custom calendar events handler", function () {
 	})
 	o.spec("Load elements from server when they are not in cache", function () {
 		o.beforeEach(async function () {
-			const allListParsedInstance = await promiseMap(
-				allList,
-				async (instance) => (await modelMapper.mapToClientModelParsedInstance(CalendarEventTypeRef, instance)) as unknown as ServerModelParsedInstance,
-			)
+			const allListParsedInstance = await promiseMap(allList, async (instance) => await modelMapper.mapToDecryptedInstance(instance))
 			when(entityRestClientMock.loadParsedInstancesRange(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(
 				allListParsedInstance,
 			)
@@ -79,11 +73,7 @@ o.spec("Custom calendar events handler", function () {
 		o(
 			"result of server request is inserted into cache and the range is set. Loads more than 100, but only count elements are returned.",
 			async function () {
-				const bigListParsedInstance = await promiseMap(
-					bigList,
-					async (instance) =>
-						(await modelMapper.mapToClientModelParsedInstance(CalendarEventTypeRef, instance)) as unknown as ServerModelParsedInstance,
-				)
+				const bigListParsedInstance = await promiseMap(bigList, async (instance) => await modelMapper.mapToDecryptedInstance(instance))
 				when(entityRestClientMock.loadParsedInstancesRange(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(
 					bigListParsedInstance.slice(0, 100),
 				)

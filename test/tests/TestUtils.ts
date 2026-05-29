@@ -1,7 +1,7 @@
 import { DbEncryptionData } from "../../src/applications/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/applications/common/api/worker/search/DbFacade.js"
-import { assertNotNull, deepEqual, defer, isNotNull, Thunk, typedEntries } from "../../src/platform-kit/utils"
+import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
 import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../src/platform-kit/crypto"
@@ -20,7 +20,15 @@ import {
 	ValueType,
 } from "../../src/platform-kit/meta"
 import { type fetch as undiciFetch, type Response } from "undici"
-import { ClientModelInfo, InstancePipeline, ModelMapper, ServerModelInfo, ServerModels, TypeModelResolver } from "../../src/platform-kit/instance-pipeline"
+import {
+	ClientModelInfo,
+	ClientOnlyTypeModelResolver,
+	InstancePipeline,
+	ModelMapper,
+	ServerModelInfo,
+	ServerModels,
+	TypeModelResolver,
+} from "../../src/platform-kit/instance-pipeline"
 import { dummyResolver } from "./instance-pipeline/InstancePipelineTestUtils"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
@@ -35,6 +43,7 @@ import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetect
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -334,6 +343,17 @@ export function removeOriginals<T extends Entity>(instance: T | null): T | null 
 	return instance
 }
 
+export function remove_typeFromEntity<T extends Entity>(instance: T | null): T | null {
+	if (isNotNull(instance) && typeof instance === "object") {
+		// @ts-ignore
+		delete instance["_type"]
+		for (const i of Object.values(instance).filter(isNotNull)) {
+			removeOriginals(i)
+		}
+	}
+	return instance
+}
+
 export function removeAggregateIds(instance: Entity, aggregate: boolean = false): Entity {
 	if (aggregate && instance["_id"] !== undefined) {
 		delete instance["_id"]
@@ -368,8 +388,7 @@ export function clientModelAsServerModel(clientModel: ClientModelInfo): ServerMo
 
 export function clientInitializedTypeModelResolver(): TypeModelResolver {
 	const clientModelInfo = makePopulatedClientModelInfo()
-	const serverModelInfo = clientModelAsServerModel(clientModelInfo)
-	return new TypeModelResolver(clientModelInfo, serverModelInfo)
+	return new ClientOnlyTypeModelResolver(clientModelInfo)
 }
 
 export function instancePipelineFromTypeModelResolver(
@@ -377,19 +396,19 @@ export function instancePipelineFromTypeModelResolver(
 	keyLoaderFacade: KeyLoaderFacade = object(),
 	symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE,
 ): InstancePipeline {
-	return new InstancePipeline(
-		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
-		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
-		() => keyLoaderFacade,
-		symmetricCipherFacade,
-	)
+	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade)
+}
+
+export function base64Decode(base64: Base64): string {
+	return uint8ArrayToString("utf-8", base64ToUint8Array(base64))
 }
 
 export function modelMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): ModelMapper {
-	return new ModelMapper(
-		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
-		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
-	)
+	return new ModelMapper(typeModelResolver)
+}
+
+export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): OfflineMapper {
+	return new OfflineMapper(typeModelResolver)
 }
 
 export async function withOverriddenEnv<F extends (...args: any[]) => any>(override: Partial<typeof env>, action: () => ReturnType<F>) {

@@ -181,12 +181,7 @@ export async function createBaseLocator({
 
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
-	const instancePipeline = new InstancePipeline(
-		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
-		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
-		() => keyLoader,
-		SYMMETRIC_CIPHER_FACADE,
-	)
+	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE)
 	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),
 	)

@@ -6,15 +6,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import {
-	assertWorkerOrNode,
-	Const,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isBrowser,
-	isOfflineStorageAvailable,
-	ProgrammingError,
-} from "../../../../platform-kit/app-env"
+import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAdminClient, isBrowser, isOfflineStorageAvailable, ProgrammingError } from "@tutao/app-env"
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -76,8 +68,7 @@ import { LastProcessedEventBatchProvider } from "../../../../platform-kit/networ
 import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
-import { random } from "../../../../platform-kit/crypto"
+import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "@tutao/utils"
 import { MailLoginListener } from "./MailLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
@@ -86,6 +77,7 @@ import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 
 assertWorkerOrNode()
 
@@ -302,6 +294,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				new MailOfflineCleaner(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
+				new OfflineMapper(locator.base.typeModelResolver),
 				customCacheHandler,
 				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationTableDefinitions),
 			)

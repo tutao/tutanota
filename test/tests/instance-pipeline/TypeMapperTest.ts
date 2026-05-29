@@ -1,111 +1,125 @@
-import {
-	AttributeModel,
-	ClientModelEncryptedParsedInstance,
-	ClientTypeModel,
-	ServerModelUntypedInstance,
-	ServerTypeModel,
-	TypeRef,
-} from "../../../src/platform-kit/meta"
-import { assertNotNull } from "../../../src/platform-kit/utils"
-import o, { assertThrows } from "@tutao/otest"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver, TypeMapper } from "../../../src/platform-kit/instance-pipeline"
-import { ProgrammingError } from "../../../src/platform-kit/app-env"
-import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
+import { ClientTypeModel, ServerTypeModel } from "../../../src/platform-kit/meta"
+import o from "@tutao/otest"
+import { EncryptedParsedInstance, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { changeInstanceDirection, DummyTypeModelResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
+import { IncomingServerJson, TypeMapper } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
-const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
+o.spec("TypeMapperTest", function () {
+	let typeMapper: TypeMapper
+	let jsonInstanceNetDebugged: string
+	let jsonInstance: string
+	let encryptedParsedInstance: EncryptedParsedInstance
+
+	o.beforeEach(() => {
+		typeMapper = new TypeMapper(new DummyTypeModelResolver() as TypeModelResolver)
+
+		jsonInstanceNetDebugged = `{
+	"13:_id": ["listId", "listElementId"],
 	"1:testValue": "test string",
+	"2:testValueZeroOrOne": null,
 	"3:testAssociation": [
 		{
 			"2:testNumber": "123",
+			"6:_id": "someCustomId",
 			"9:testSecondLevelAssociation": [],
-			"10:testZeroOrOneAggregation": [],
-		},
+			"10:testZeroOrOneAggregation": []
+		}
 	],
-	"4:testListAssociation": ["assocId"],
+	"4:testElementAssociation": ["assocId"],
 	"5:testDate": "1735736415000",
 	"7:testBoolean": "encryptedBool",
-	"15:testFinalBoolean": "encryptedFinalBool",
-} as unknown as ServerModelUntypedInstance
+	"8:testListElementAssociation": [],
+	"12:testGeneratedId": "some-id",
+	"14:_ownerEncSessionKey": null,
+	"16:_kdfNonce": null,
+	"17:testZeroOrOneListElementAssociation": [],
+	"15:testFinalBoolean": "encryptedFinalBool"
+}`
 
-const serverModelUntypedInstance: ServerModelUntypedInstance = {
+		jsonInstance = `{
 	"1": "test string",
-	"3": [{ "2": "123", "9": [], "10": [] }],
+	"2": null,
+	"3": [
+		{
+			"6": "someCustomId",
+			"2": "123",
+			"9": [],
+			"10": []
+		}
+	],
 	"4": ["assocId"],
 	"5": "1735736415000",
 	"7": "encryptedBool",
-	"15": "encryptedFinalBool",
-} as unknown as ServerModelUntypedInstance
+	"8": [],
+	"12": "some-id",
+	"13": ["listId", "listElementId"],
+	"14": null,
+	"16": null,
+	"17": [],
+	"15": "encryptedFinalBool"
+}`
 
-const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
-	"1": "base64EncodedString",
-	"2": "base64EncodedString",
-	"3": [{ "2": "123", "9": [], "10": [] }],
-	"4": ["assocId"],
-	"5": new Date("2025-01-01T13:00:15Z"),
-	"7": "encryptedBool",
-	"15": "encryptedFinalBool",
-} as unknown as ClientModelEncryptedParsedInstance
-
-const faultyEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
-	"1": new Uint8Array(2),
-	"3": [{ "2": "123", "9": [], "10": [] }],
-	"4": ["assocId"],
-	"5": new Date("2025-01-01T13:00:15Z"),
-} as unknown as ClientModelEncryptedParsedInstance
-
-o.spec("TypeMapper", function () {
-	let typeMapper: TypeMapper
-	o.beforeEach(() => {
-		const dummyResolver = (tr: TypeRef<unknown>) => {
-			const model = tr.typeId === 42 ? testTypeModel : testAggregateModel
-			return Promise.resolve(model)
-		}
-		typeMapper = new TypeMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
+		encryptedParsedInstance = EncryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
+			.addAttributeById(1, ParsedValue.fromString("test string"))
+			.addAttributeById(2, ParsedValue.fromNull())
+			.addAttributeById(
+				3,
+				ParsedValue.fromNestedItems([
+					EncryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
+						.addAttributeById(2, ParsedValue.fromString("123"))
+						.addAttributeById(6, ParsedValue.fromString("someCustomId"))
+						.addAttributeById(9, ParsedValue.fromIdList([]))
+						.addAttributeById(10, ParsedValue.fromIdList([])),
+				]),
+			)
+			.addAttributeById(4, ParsedValue.fromIdList(["assocId"]))
+			.addAttributeById(5, ParsedValue.fromString("1735736415000"))
+			.addAttributeById(7, ParsedValue.fromString("encryptedBool"))
+			.addAttributeById(8, ParsedValue.fromIdList([]))
+			.addAttributeById(12, ParsedValue.fromString("some-id"))
+			.addAttributeById(13, ParsedValue.fromIdTuple(["listId", "listElementId"]))
+			.addAttributeById(14, ParsedValue.fromNull())
+			.addAttributeById(16, ParsedValue.fromNull())
+			.addAttributeById(15, ParsedValue.fromString("encryptedFinalBool"))
+			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
 	})
 
-	o.spec("applyJsTypes", function () {
-		o("can handle associations and aggregations", async function () {
-			const encryptedParsedInstance = await typeMapper.applyJsTypes(testTypeModel as ServerTypeModel, serverModelUntypedInstance)
-			o(encryptedParsedInstance["1"]).equals("test string")
-			const listAssociation = assertNotNull(encryptedParsedInstance["4"])
-			const aggregation = assertNotNull(encryptedParsedInstance["3"])
-			o(aggregation[0]["2"]).equals("123")
-			o(listAssociation[0]).equals("assocId")
-			o((encryptedParsedInstance["5"] as Date).toISOString()).equals(new Date("2025-01-01T13:00:15Z").toISOString())
-		})
+	o("read incoming instances", async function () {
+		const resultingParsedInstance = await typeMapper.parseServerJson(
+			IncomingServerJson.expectSingleInstance(jsonInstance, testTypeModel as ServerTypeModel),
+		)
+		const resultingParsedInstanceNetDebug = await typeMapper.parseServerJson(
+			IncomingServerJson.expectSingleInstance(jsonInstanceNetDebugged, testTypeModel as ServerTypeModel),
+		)
+
+		changeInstanceDirection(encryptedParsedInstance, InstanceDirection.IncomingFromServer)
+		o(resultingParsedInstance).deepEquals(encryptedParsedInstance)
+		o(resultingParsedInstance).deepEquals(resultingParsedInstanceNetDebug)
 	})
 
-	o.spec("applyDbTypes", function () {
-		o("throws error for invalid encrypted values", async function () {
-			await assertThrows(ProgrammingError, () => typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, faultyEncryptedParsedInstance))
+	o.spec("jsonify outgoing instances", () => {
+		o("jsonify outgoing instances", async function () {
+			const outgoingJson = await typeMapper.makeServerJson(encryptedParsedInstance)
+
+			const instanceAsRecord = outgoingJson.getInnerJsonForTest()
+			o(instanceAsRecord["1"]).equals("test string")
+			o(instanceAsRecord["3"]![0]["2"]).equals("123")
+			o(instanceAsRecord["5"]).equals("1735736415000")
+
+			o(JSON.parse(outgoingJson.getJsonRepresentation())).deepEquals(JSON.parse(jsonInstance))
 		})
 
-		o("can apply db types", async function () {
-			const instance = await typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, clientModelEncryptedParsedInstance)
-			o(instance["1"]).equals("base64EncodedString")
-			o(instance["3"]![0]["2"]).equals("123")
-			o(instance["5"]).equals("1735736415000")
-		})
-	})
-
-	o.spec("networkDebugging works", function () {
-		o.before(() => {
+		o("jsonify outgoing instance with networkDebugging", async function () {
 			env.networkDebugging = true
-		})
+			const outgoingJsonNetDebugged = await typeMapper.makeServerJson(encryptedParsedInstance)
 
-		o.after(() => {
-			env.networkDebugging = false
-		})
+			const instanceAsRecord = outgoingJsonNetDebugged.getInnerJsonForTest()
+			o(instanceAsRecord["1:testValue"]).equals("test string")
+			o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
+			o(instanceAsRecord["5:testDate"]).equals("1735736415000")
 
-		o("can handle associations and aggregations with network debugging enabled", async function () {
-			o(AttributeModel.removeNetworkDebuggingInfoIfNeeded(serverModelUntypedInstanceNetworkDebugging)).deepEquals(serverModelUntypedInstance)
-		})
-
-		o("can apply db types with network debugging enabled", async function () {
-			const instance = await typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, clientModelEncryptedParsedInstance)
-			o(instance["1:testValue"]).equals("base64EncodedString")
-			o(instance["3:testAssociation"]![0]["2:testNumber"]).equals("123")
-			o(instance["5:testDate"]).equals("1735736415000")
+			o(JSON.parse(outgoingJsonNetDebugged.getJsonRepresentation())).deepEquals(JSON.parse(jsonInstanceNetDebugged))
 		})
 	})
 })

@@ -14,24 +14,30 @@ import {
 	getElementId,
 	getTypeString,
 	listIdPart,
-	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
 	SomeEntity,
 	timestampToGeneratedId,
 	Type as TypeId,
 	TypeRef,
 } from "../../../../src/platform-kit/meta"
-import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, lastThrow, mapNullable, promiseMap, typedKeys } from "../../../../src/platform-kit/utils"
+import { assertNotNull, getDayShifted, getFirstOrThrow, lastThrow, mapNullable, promiseMap, typedKeys } from "../../../../src/platform-kit/utils"
 import { DateProvider } from "../../../../src/platform-kit/utils/DateProvider.js"
 import { OfflineStorageMigrator } from "../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
 import { untagSqlObject } from "../../../../src/app-kit/local-store/SqlValue.js"
 import { FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../../src/platform-kit/app-env"
 import { DesktopSqlCipher } from "../../../../src/applications/common/desktop/db/DesktopSqlCipher.js"
-import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	IdGenerator,
+	modelMapperFromTypeModelResolver,
+	offlineMapperFromTypeModelResolver,
+	removeOriginals,
+} from "../../TestUtils.js"
 import { sql } from "../../../../src/app-kit/local-store/Sql.js"
 import { MailOfflineCleaner } from "../../../../src/applications/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/app-kit/local-store/CustomCacheHandler"
-import { ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
 import { ApplicationTypesFacade } from "../../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
 import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
@@ -63,6 +69,9 @@ import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { AccountType } from "../../../../src/entities/sys/Utils"
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
+import { OfflineMapper } from "../../../../src/platform-kit/instance-pipeline/OfflineMapper"
+import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { OfflineStorageArgs } from "../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
@@ -82,7 +91,7 @@ class MailSetEntryIdGenerator {
 const databasePath = ":memory:"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
 
-o.spec("OfflineStorageDb", function () {
+o.spec("OfflineStorageDbTest", function () {
 	const now = new Date("2022-01-01 00:00:00 UTC")
 	const timeRangeDate = new Date("2021-12-22 00:00:00 UTC")
 	const userId = "userId"
@@ -101,6 +110,7 @@ o.spec("OfflineStorageDb", function () {
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
 	let typeModelResolver: TypeModelResolver
 	let modelMapper: ModelMapper
+	let offlineMapper: OfflineMapper
 	let customCacheHandlerMap: CustomCacheHandlerMap
 	let applicationTypesFacadeMock: ApplicationTypesFacade
 
@@ -114,6 +124,7 @@ o.spec("OfflineStorageDb", function () {
 		offlineStorageCleanerMock = new MailOfflineCleaner()
 		typeModelResolver = clientInitializedTypeModelResolver()
 		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
+		offlineMapper = offlineMapperFromTypeModelResolver(typeModelResolver)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
 		customCacheHandlerMap = object()
 
@@ -125,6 +136,7 @@ o.spec("OfflineStorageDb", function () {
 			offlineStorageCleanerMock,
 			modelMapper,
 			typeModelResolver,
+			offlineMapper,
 			customCacheHandlerMap,
 			{},
 		)
@@ -134,8 +146,10 @@ o.spec("OfflineStorageDb", function () {
 		await dbFacade.closeDb()
 	})
 
-	async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
-		return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
+	async function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
+		const decryptedInstance = await modelMapper.mapToDecryptedInstance(entity)
+		changeInstanceDirection(decryptedInstance, InstanceDirection.IncomingFromServer)
+		return decryptedInstance
 	}
 
 	o.spec("additionalTables", () => {
@@ -149,7 +163,7 @@ o.spec("OfflineStorageDb", function () {
 		})
 
 		o.test("init calls createTables which initializes all tables", async () => {
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
 					purgedWithCache: false,
@@ -178,7 +192,7 @@ o.spec("OfflineStorageDb", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
 					purgedWithCache: false,
@@ -205,7 +219,7 @@ o.spec("OfflineStorageDb", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
 					purgedWithCache: false,
@@ -228,7 +242,7 @@ o.spec("OfflineStorageDb", function () {
 				metadata_exists: { type: SqlType.Number, value: 1 },
 			})
 
-			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
 					purgedWithCache: false,
@@ -364,7 +378,7 @@ o.spec("OfflineStorageDb", function () {
 					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 				})
 
-				o.test("calls the cache handler for list element types", async function () {
+				o.test("calls the cache handler for list element types xyz", async function () {
 					const id: IdTuple = ["listId", "id1"]
 					const entityToStore = createTestEntity(
 						MailTypeRef,
@@ -632,10 +646,14 @@ o.spec("OfflineStorageDb", function () {
 					const id: IdTuple = ["id1", "idPart2"]
 					const ownerGroup = "ownerGroup1"
 
-					const entity = createTestEntity(MailDetailsBlobTypeRef, {
-						_id: id,
-						_ownerGroup: ownerGroup,
-					})
+					const entity = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id,
+							_ownerGroup: ownerGroup,
+						},
+						{ populateAggregates: true },
+					)
 
 					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(entity))
 					const rowIdQuery = sql`SELECT rowid

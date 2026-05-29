@@ -1,5 +1,5 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
-import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
@@ -30,6 +30,8 @@ import { CalendarEvent, CalendarRepeatRule } from "@tutao/entities/tutanota"
 import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
+import { OutgoingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
+
 export class AlarmFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -37,6 +39,7 @@ export class AlarmFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly nativePushFacade: NativePushFacade,
+		// fixme: should this be InstancePipeline#newNativeOnly
 		private readonly instancePipeline: InstancePipeline,
 		private readonly infoMessageHandler: InfoMessageHandler,
 	) {}
@@ -64,16 +67,17 @@ export class AlarmFacade {
 		const sessionKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
-		const encryptedNotificationsWireFormat = JSON.stringify(
-			await Promise.all(
-				alarmNotifications.map(async (an) => {
-					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
-					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
-				}),
-			),
+		const encryptedNotificationsWireFormat = await Promise.all(
+			alarmNotifications.map(async (an) => {
+				const encryptedInstance = await this.instancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sessionKey)
+				return this.instancePipeline.typeMapper.makeServerJson(encryptedInstance)
+			}),
 		)
 
-		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, keyToBase64(sessionKey))
+		await this.nativePushFacade.scheduleAlarms(
+			OutgoingServerJson.getJsonRepresentationOfMultiple(encryptedNotificationsWireFormat),
+			keyToBase64(sessionKey),
+		)
 	}
 
 	private async prepareAlarmServicePostData(

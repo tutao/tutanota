@@ -1,14 +1,14 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
 import { getServiceRestPath, ServiceDefinition } from "../meta"
-import { ApplicationTypesService } from "../../entities/base/Services.js"
+import { ApplicationTypesService } from "@tutao/entities/base"
 import { baseModelInfo } from "../../entities/base"
 import { HttpMethod, MediaType, RestClientInterface } from "../rest-client/types"
 import { sha256Hash } from "@tutao/crypto"
 import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
-import { decompressString } from "./ModelMapper.js"
 import { ApplicationTypesHash, ServerModelInfo } from "./EntityFunctions"
-import { DEFAULT_REST_CLIENT_OPTIONS } from "./RestClientOptions"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
+import { EntityUtils } from "./EntityUtils"
 
 assertWorkerOrNode()
 
@@ -81,7 +81,7 @@ export class ApplicationTypesFacade {
 				responseType: MediaType.Binary,
 			},
 		)
-		return JSON.parse(decompressString(applicationTypesGetOutCompressed))
+		return JSON.parse(EntityUtils.decompressString(applicationTypesGetOutCompressed))
 	}
 
 	/**
