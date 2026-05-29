@@ -2282,5 +2282,6 @@ export default {
 		"pricing.bonusMonthWithCampaign_label": "Bonus: {months} month(s) free!",
 		"planselector_page_sovereignty2026_title": "Choose Digital Sovereignty",
 		"planselector_page_sovereignty2026_subtitle": "Switch to Tuta Mail with 50% discount! Get this one-time offer now and break free from US monopolists.",
+		"contactSales_action": "Contact Sales"
 	}
 }

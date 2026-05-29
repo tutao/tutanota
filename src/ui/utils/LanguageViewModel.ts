@@ -226,6 +226,7 @@ export const languageNative: ReadonlyArray<{
 export const enum InfoLink {
 	HomePage = "https://tuta.com",
 	About = "https://tuta.com/imprint",
+	Sales = "https://tuta.com/business/contact",
 	//terms
 	Terms = "https://tuta.com/terms",
 	Privacy = "https://tuta.com/privacy-policy",

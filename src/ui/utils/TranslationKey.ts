@@ -2280,3 +2280,4 @@ export type TranslationKeyType =
 	| "pricing.bonusMonthWithCampaign_label"
 	| "planselector_page_sovereignty2026_referred_title"
 	| "planselector_page_sovereignty2026_referred_subtitle"
+	| "contactSales_action"

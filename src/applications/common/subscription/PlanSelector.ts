@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../../ui/utils/LanguageViewModel"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/utils"
 import { component_size, px, size } from "../../../ui/size.js"
-import { PrimaryButton, PrimaryButtonAttrs, TertiaryButton, TertiaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
+import { PrimaryButton, PrimaryButtonAttrs, SecondaryButton, TertiaryButton, TertiaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../../../ui/theme.js"
@@ -104,18 +104,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						width: styles.isMobileLayout() || !newSignupFlow ? "100%" : "fit-content",
 					},
 				},
-				!this.shouldFixButtonPos &&
-					newSignupFlow &&
-					!isIOSApp() &&
-					personalPlansAvailable &&
-					m(TertiaryButton, {
-						label: isBusiness ? "privateUse_action" : "businessUse_action",
-						width: "flex",
-						onclick: () => options.businessUse(!isBusiness),
-						style: {
-							order: styles.isMobileLayout() ? 1 : -1,
-						},
-					} satisfies TertiaryButtonAttrs),
+				!this.shouldFixButtonPos && personalPlansAvailable && this.renderAdditionalButton(newSignupFlow, options),
 				m(PrimaryButton, {
 					// The label text for go european campaign shall not be translated.
 					label: "continue_action",
@@ -193,14 +182,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					renderActionButton(onContinue),
 				),
 
-				this.shouldFixButtonPos &&
-					newSignupFlow &&
-					!isIOSApp() &&
-					m(TertiaryButton, {
-						label: options.businessUse() ? "privateUse_action" : "businessUse_action",
-						width: "flex",
-						onclick: () => options.businessUse(!options.businessUse()),
-					} satisfies TertiaryButtonAttrs),
+				this.shouldFixButtonPos && this.renderAdditionalButton(newSignupFlow, options),
 
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(
@@ -223,6 +205,31 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					),
 			],
 		)
+	}
+
+	private renderAdditionalButton(newSignupFlow: undefined | boolean, options: SelectedSubscriptionOptions) {
+		if (!newSignupFlow || isIOSApp()) {
+			return null
+		}
+		if (options.businessUse()) {
+			return m(SecondaryButton, {
+				label: "contactSales_action",
+				width: "flex",
+				onclick: () => windowFacade.openLink(InfoLink.Sales),
+				style: {
+					order: styles.isMobileLayout() ? 1 : -1,
+				},
+			} satisfies TertiaryButtonAttrs)
+		} else {
+			return m(TertiaryButton, {
+				label: "businessUse_action",
+				width: "flex",
+				onclick: () => options.businessUse(true),
+				style: {
+					order: styles.isMobileLayout() ? 1 : -1,
+				},
+			} satisfies TertiaryButtonAttrs)
+		}
 	}
 
 	/**
