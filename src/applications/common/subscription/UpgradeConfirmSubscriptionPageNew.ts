@@ -236,22 +236,14 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
-		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
 		if (ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore) {
-			const success = await this.handleAppStorePayment(ctx.viewModel)
-			if (!success) {
-				return
-			}
-			const receivedNotification = await showProgressDialog(
-				"waitingForAppStoreConfirmation_msg",
-				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
-			)
-			if (receivedNotification) {
-				ctx.goNext()
-				return
-			}
+			return await this.upgradeWithAppStore(ctx)
+		} else {
+			return await this.upgradeWithTuta(ctx)
 		}
+	}
 
+	private async upgradeWithTuta(ctx: WizardStepContext<SignupViewModel>) {
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
@@ -262,31 +254,50 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
-			// Order confirmation (click on Buy), send selected payment method as an enum
-			.then(() => ctx.goNext())
-			.catch(
-				ofClass(PreconditionFailedError, (e) => {
-					Dialog.message(
-						lang.makeTranslation(
-							"precondition_failed",
-							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
-								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						),
-					)
-				}),
-			)
-			.catch(
-				ofClass(BadGatewayError, () => {
-					Dialog.message(
-						lang.makeTranslation(
-							"payment_failed",
-							lang.get("paymentProviderNotAvailableError_msg") +
-								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						),
-					)
-				}),
-			)
+		return (
+			showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
+				// Order confirmation (click on Buy), send selected payment method as an enum
+				.then(() => ctx.goNext())
+				.catch(
+					ofClass(PreconditionFailedError, (e) => {
+						Dialog.message(
+							lang.makeTranslation(
+								"precondition_failed",
+								lang.get(getPreconditionFailedPaymentMsg(e.data)) +
+									(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							),
+						)
+					}),
+				)
+				.catch(
+					ofClass(BadGatewayError, () => {
+						Dialog.message(
+							lang.makeTranslation(
+								"payment_failed",
+								lang.get("paymentProviderNotAvailableError_msg") +
+									(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							),
+						)
+					}),
+				)
+		)
+	}
+
+	private async upgradeWithAppStore(ctx: WizardStepContext<SignupViewModel>) {
+		const success = await this.handleAppStorePayment(ctx.viewModel)
+		if (!success) {
+			return
+		}
+		const receivedNotification = await showProgressDialog(
+			"waitingForAppStoreConfirmation_msg",
+			waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
+		)
+		if (!receivedNotification) {
+			// Fixme: show a dialog with "The confirmation was not received. Your account will be upgraded within
+			// the next 72 hours. If not, request a refund with apple via the subscription settings (link)"
+		}
+		ctx.goNext()
+		return
 	}
 
 	/** @return whether subscribed successfully */
@@ -320,15 +331,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 		}
 
-		return await updatePaymentData(
-			data.options.paymentInterval(),
-			data.invoiceData,
-			data.paymentData,
-			null,
-			data.newAccountData != null,
-			null,
-			data.accountingInfo!,
-		)
+		return true
 	}
 
 	private renderPriceNextYear(data: SignupViewModel) {
