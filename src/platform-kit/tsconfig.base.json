@@ -26,7 +26,9 @@
 		{
 			"path": "tsconfig.instance-pipeline.json"
 		},
-
+		{
+			"path": "../app-kit/tsconfig.local-store.json"
+		},
 		{
 			"path": "../entities/tsconfig.entities.sys.json"
 		},
