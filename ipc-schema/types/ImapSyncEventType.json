@@ -1,0 +1,7 @@
+{
+	"name": "ImapSyncEventType",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/entities/tutanota/Utils.ts"
+	}
+}

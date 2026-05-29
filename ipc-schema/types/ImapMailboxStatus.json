@@ -1,0 +1,7 @@
+{
+	"name": "ImapMailboxStatus",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox.js"
+	}
+}

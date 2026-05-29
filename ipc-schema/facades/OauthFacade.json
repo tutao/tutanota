@@ -1,0 +1,21 @@
+{
+	"name": "OauthFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Implemented by the native desktop client to handle opening the oauth window and handling the callback",
+	"methods": {
+		"openOauthWindow": {
+			"doc": "Opens a window with url that should target redirectUrl on success",
+			"arg": [
+				{
+					"url": "string"
+				},
+				{
+					"redirectUrl": "string"
+				}
+			],
+			"ret": "string?"
+		}
+	}
+}
