@@ -279,7 +279,13 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 											this.wizardViewModel.targetPlanType,
 											this.wizardViewModel.options.paymentInterval(),
 										),
-									onPrev: () => m.route.set("/"),
+									onPrev: (ctx) => {
+										if (ctx.viewModel.options.businessUse()) {
+											ctx.viewModel.options.businessUse(false)
+										} else {
+											m.route.set("/")
+										}
+									},
 									isBackButtonEnabled: () => true,
 									showProgress: () => false,
 								},
