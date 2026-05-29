@@ -10,4 +10,7 @@
    <FileRef
       location = "container:calendar.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "container:drive.xcodeproj">
+   </FileRef>
 </Workspace>

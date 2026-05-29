@@ -1,44 +1,52 @@
 import AuthenticationServices
 import Foundation
-import TutanotaSharedFramework
 
-let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
+struct WebauthnError: TutanotaError {
+	static let name: String = "de.tutao.tutanota.webauthn"
+	let message: String
+	let underlyingError: (any Error)? = nil
+	public init(message: String) { self.message = message }
+}
 
-@MainActor final class IosWebauthnFacade: WebAuthnFacade {
+@MainActor public class IosWebauthnFacade: WebAuthnFacade {
 
-	private let viewController: ViewController
 	private weak var currentSession: ASWebAuthenticationSession?
+	private let presentationContextProvider: any ASWebAuthenticationPresentationContextProviding
+	private let callbackURLScheme: String
 
-	init(viewController: ViewController) { self.viewController = viewController }
+	public init(presentationContextProvider: any ASWebAuthenticationPresentationContextProviding, callbackURLScheme: String) {
+		self.presentationContextProvider = presentationContextProvider
+		self.callbackURLScheme = callbackURLScheme
+	}
 
-	func register(_ challenge: WebAuthnRegistrationChallenge) async throws -> WebAuthnRegistrationResult {
+	@MainActor public func register(_ challenge: WebAuthnRegistrationChallenge) async throws -> WebAuthnRegistrationResult {
 		let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "register")
 
-		let result: TaggedWebauthnResult<WebAuthnRegistrationResult> = try await self.parseResult(url: url)
+		let result: TaggedWebauthnResult<WebAuthnRegistrationResult> = try self.parseResult(url: url)
 		switch result {
 		case let .success(value): return value
-		case let .error(_, stack): throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
+		case let .error(_, stack): throw WebauthnError(message: stack)
 		}
 	}
 
-	func sign(_ challenge: WebAuthnSignChallenge) async throws -> WebAuthnSignResult {
+	@MainActor public func sign(_ challenge: WebAuthnSignChallenge) async throws -> WebAuthnSignResult {
 		let url = try await sendRequest(challengeDomain: challenge.domain, challengeJson: toJson(challenge), actionType: "sign")
 
-		let result: TaggedWebauthnResult<WebAuthnSignResult> = try await self.parseResult(url: url)
+		let result: TaggedWebauthnResult<WebAuthnSignResult> = try self.parseResult(url: url)
 		switch result {
 		case let .success(value): return value
-		case let .error(_, stack): throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
+		case let .error(_, stack): throw WebauthnError(message: stack)
 		}
 	}
 
-	private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
+	@MainActor private func sendRequest(challengeDomain: String, challengeJson: String, actionType: String) async throws -> URL {
 		try await withCheckedThrowingContinuation { continuation in
 			var urlComponents = URLComponents(string: challengeDomain)!
 			urlComponents.queryItems = [
 				URLQueryItem(name: "action", value: actionType), URLQueryItem(name: "challenge", value: challengeJson),
-				URLQueryItem(name: "cbUrl", value: "tutanota://{result}"),
+				URLQueryItem(name: "cbUrl", value: "\(self.callbackURLScheme)://{result}"),
 			]
-			let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "tutanota") { url, error in
+			let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: self.callbackURLScheme) { url, error in
 				if let url {
 					continuation.resume(returning: url)
 				} else {
@@ -50,7 +58,7 @@ let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
 				}
 			}
 			session.prefersEphemeralWebBrowserSession = true
-			session.presentationContextProvider = viewController
+			session.presentationContextProvider = self.presentationContextProvider
 			self.currentSession = session
 			session.start()
 		}
@@ -64,16 +72,16 @@ let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
 		return result
 	}
 
-	func abortCurrentOperation() async throws { await Task { @MainActor in self.currentSession?.cancel() }.value }
+	@MainActor public func abortCurrentOperation() async throws { self.currentSession?.cancel() }
 
-	func isSupported() async throws -> Bool { true }
+	public func isSupported() async throws -> Bool { true }
 
-	func canAttemptChallengeForRpId(_ rpId: String) async throws -> Bool { true }
+	public func canAttemptChallengeForRpId(_ rpId: String) async throws -> Bool { true }
 
-	func canAttemptChallengeForU2FAppId(_ appId: String) async throws -> Bool { true }
+	public func canAttemptChallengeForU2FAppId(_ appId: String) async throws -> Bool { true }
 }
 
-enum TaggedWebauthnResult<T: Decodable & Sendable>: Decodable, Sendable {
+enum TaggedWebauthnResult<T: Decodable>: Decodable {
 	case success(value: T)
 	case error(name: String, stack: String)
 
@@ -95,7 +103,7 @@ enum TaggedWebauthnResult<T: Decodable & Sendable>: Decodable, Sendable {
 			let name = try container.decode(String.self, forKey: .name)
 			let stack = try container.decode(String.self, forKey: .stack)
 			self = .error(name: name, stack: stack)
-		default: throw GenericTutanotaError(message: "Invalid type: \(type)", underlyingError: nil)
+		default: throw GenericTutanotaError(message: "Invalid type: \(type)")
 		}
 	}
 }

@@ -5,14 +5,11 @@ import UIKit
 import UserNotifications
 import WebKit
 
-public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
-public let OPEN_SETTINGS = "settings"
+public enum InteropActions: String { case openSettings = "settings" }
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, MainPageLoader, ThemeApplier {
+class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, MainPageLoader, ThemeApplier {
 	private let themeManager: ThemeManager
-	private let alarmManager: AlarmManager
-	private let notificationsHandler: NotificationsHandler
 	private var bridge: RemoteBridge!
 	private(set) var webView: WKWebView!
 	private var sqlCipherFacade: IosSqlCipherFacade
@@ -25,9 +22,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
-		notificationStorage: UserPrefsNotificationStorage,
-		alarmManager: AlarmManager,
-		notificaionsHandler: NotificationsHandler,
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
@@ -36,8 +30,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 	) {
 
 		self.themeManager = themeManager
-		self.alarmManager = alarmManager
-		self.notificationsHandler = notificaionsHandler
 		self.bridge = nil
 		self.sqlCipherFacade = IosSqlCipherFacade()
 
@@ -50,9 +42,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "apis")
 		webViewConfig.setURLSchemeHandler(AssetSchemeHandler(folderPath: folderPath), forURLScheme: "asset")
 
-		// Necessary for decent UX during key verification
-		webViewConfig.allowsInlineMediaPlayback = true
-
 		self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
 		webView.navigationDelegate = self
 		webView.scrollView.bounces = false
@@ -60,14 +49,13 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		webView.scrollView.delegate = self
 		webView.isOpaque = false
 		webView.scrollView.contentInsetAdjustmentBehavior = .never
-		webView.uiDelegate = self
 
 		#if DEBUG
 			if #available(iOS 16.4, *) { webView.isInspectable = true }
 		#endif
 
-		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
+		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let globalDispatcher = IosGlobalDispatcher(
 			commonSystemFacade: commonSystemFacade,
 			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
@@ -79,26 +67,20 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } },
 				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
-			mobileContactsFacade: IosMobileContactsFacade(userDefaults: userPreferencesProvider),
+			mobileContactsFacade: IosMobileContactsFacade(),
 			mobilePaymentsFacade: IosMobilePaymentsFacade(
-				mobilePaymentDomain: "de.tutao.tutanota.MobilePayment",
-				productIdToPlanName: productIdToPlanName,
-				formatPlanType: formatPlanType,
+				mobilePaymentDomain: "de.tutao.drive.MobilePayment",
+				productIdToPlanName: { _ in fatalError("FIXME") },
+				formatPlanType: { _, _ in fatalError("FIXME") },
 				windowScene: self.windowScene
 			),
 			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
-			nativePushFacade: IosNativePushFacade(
-				appDelegate: self.appDelegate,
-				alarmManager: self.alarmManager,
-				notificationStorage: notificationStorage,
-				keychainManager: keychainManager,
-				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
-			),
-			sqlCipherFacade: sqlCipherFacade,
+			nativePushFacade: IosNativePushFacade(),
+			sqlCipherFacade: self.sqlCipherFacade,
 			themeFacade: IosThemeFacade(themeManager: themeManager, themeApplier: self),
-			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutanota")
+			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutadrive")
 		)
 		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
@@ -152,14 +134,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	func loadMainPage(params: [String: String]) { DispatchQueue.main.async { self._loadMainPage(params: params) } }
 
-	func handleAppleInAppEvents(_ action: String) {
-		Task {
-			do { try await MobileFacadeSendDispatcher(transport: self.bridge).handleAppleInAppEvents(action) } catch {
-				TUTSLog("failed to handle Apple in-app event: \(error)")
-			}
-		}
-	}
-
 	@objc private func onKeyboardDidShow(note: Notification) {
 		let rect = note.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! CGRect
 		self.onAnyKeyboardSizeChange(newHeight: rect.size.height)
@@ -206,7 +180,6 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		let theme = self.themeManager.currentThemeWithFallback
 		self.applyTheme(theme)
 
-		Task.detached { await self.notificationsHandler.initialize() }
 		Task { @MainActor in self._loadMainPage(params: [:]) }
 	}
 
@@ -227,18 +200,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		webView.load(URLRequest(url: url))
 	}
 
-	@available(iOS 15.0, *) func webView(
-		_ webView: WKWebView,
-		decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
-		initiatedBy frame: WKFrameInfo,
-		type: WKMediaCaptureType
-	) async -> WKPermissionDecision {
-		// Grant camera access for the web view. This does not affect the permission
-		// prompt issued by the Tuta app itself.
-		if type == .camera { return .grant } else { return .deny }
-	}
-
-	private func dictToJson(dictionary: [String: String]) -> String { try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8)! }
+	private func dictToJson(dictionary: [String: String]) -> String { try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8) ?? "" }
 
 	private func appUrl() -> URL {
 		// this var is stored in Info.plist and possibly manipulated by the build schemes:
@@ -252,7 +214,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	private func getAssetUrl() -> URL { URL(string: "asset://app/index-app.html")! }
 
-	func applyTheme(_ theme: [String: String]) {
+	@MainActor func applyTheme(_ theme: [String: String]) {
 		let contentBgString = theme["surface"]!
 		let contentBg = UIColor(hex: contentBgString)!
 		self.isDarkTheme = !contentBg.isLight()
@@ -272,54 +234,33 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		return readSharingInfo(infoLocation: infoLocation)
 	}
 
-	private func getInteropInfo(url: URL) async -> URLQueryItem? {
-		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
-
-		return components.queryItems?.first(where: { $0.name == OPEN_CONTACT_EDITOR_CONTACT_ID || $0.name == OPEN_SETTINGS })
-	}
-
 	func handleShare(_ url: URL) async throws {
 		guard let info = await getSharingInfo(url: url) else {
-			TUTSLog("unable to get sharingInfo from url: \(url)")
+			printLog("unable to get sharingInfo from url: \(url)")
 			return
 		}
 
+		// FIXME
 		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
-			TUTSLog("failed to open mail editor to share: \(error)")
+			printLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
 	}
 
-	func handleMailto(_ url: URL) async throws {
-		let mailTo = MailtoData(url: url)
-		try await self.commonNativeFacade.createMailEditor([], mailTo?.body ?? "", mailTo?.toRecipients ?? [], mailTo?.subject ?? "", url.absoluteString)
+	private func getInteropAction(url: URL) async -> URLQueryItem? {
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+
+		return components.queryItems?.first
 	}
 
 	func handleInterop(_ url: URL) async throws {
-		guard let info = await getInteropInfo(url: url) else {
-			TUTSLog("unable to get sharingInfo from url: \(url)")
+		guard let interopAction = await getInteropAction(url: url) else {
+			printLog("unable to get interop info from url: \(url)")
 			return
 		}
 
-		switch info.name {
-		case OPEN_CONTACT_EDITOR_CONTACT_ID:
-			do { try await self.commonNativeFacade.openContactEditor(info.value!) } catch { TUTSLog("failed to open contact editor: \(error)") }
-		case OPEN_SETTINGS: do { try await self.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
-		default: throw GenericTutanotaError(message: "Invalid interop operation", underlyingError: nil)
-		}
-	}
-
-	func handleOpenNotification(userId: String, address: String, mailId: (String, String)) {
-		// Will be formatted as "<domain>/mail<requestedPath>" in TypeScript code
-		//
-		// requestedPath is /listId/elementId
-		let mailid = "\(mailId.0),\(mailId.1)"
-		let requestedPath = "?mail=\(mailid.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"
-
-		Task(priority: .userInitiated) {
-			do { try await self.commonNativeFacade.openMailBox(userId, address, requestedPath) } catch {
-				TUTSLog("Failed to open mail: \(requestedPath) from notification: \(error)")
-			}
+		do { if interopAction.name == InteropActions.openSettings.rawValue { try await self.commonNativeFacade.openSettings(interopAction.value!) } } catch {
+			printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
 		}
 	}
 
@@ -328,6 +269,15 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		let window = UIApplication.shared.connectedScenes.first
 		return window as! UIWindowScene
 	}
+}
+
+// Remove when webView config migration is removed
+private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
+	var action: (() -> Void)?
+
+	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { if let action = self.action { action() } }
+
+	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) { TUTSLog("FAILED NAVIGATION >{") }
 }
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {
