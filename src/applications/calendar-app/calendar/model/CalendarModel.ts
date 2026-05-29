@@ -8,9 +8,11 @@ import {
 	downcast,
 	filterInt,
 	findAndRemove,
+	getFirstOrThrow,
 	getFromMap,
 	isEmpty,
 	isNotEmpty,
+	isNotNull,
 	LazyLoaded,
 	splitInChunks,
 	symmetricDifference,
@@ -53,7 +55,7 @@ import {
 	CalendarEventAlteredInstance,
 	CalendarEventInstance,
 	CalendarEventProgenitor,
-	CalendarEventUidIndexEntry,
+	ResolvedUidIndexEntry,
 	CalendarFacade,
 	CreateCalendarEventsResult,
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -146,7 +148,7 @@ const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
 const EXTERNAL_CALENDAR_RETRY_DELAY_MS = 1000
 
 export type CalendarInfoBase = {
-	id: string
+	id: Id
 	name: string
 	color: string
 	type: CalendarType
@@ -883,8 +885,10 @@ export class CalendarModel {
 	 *
 	 * note about recurrenceId in event series https://stackoverflow.com/questions/11456406/recurrence-id-in-icalendar-rfc-5545
 	 */
-	async resolveCalendarEventProgenitor({ uid }: Pick<CalendarEvent, "uid">): Promise<CalendarEvent | null> {
-		return (await this.getEventsByUid(assertNotNull(uid, "could not resolve progenitor: no uid")))?.progenitor ?? null
+	async resolveCalendarEventProgenitor({ uid, _ownerGroup }: Pick<CalendarEvent, "uid" | "_ownerGroup">): Promise<CalendarEvent | null> {
+		const progenitorUid = assertNotNull(uid, "could not resolve progenitor: no uid")
+		const progenitorOwnerGroup = assertNotNull(_ownerGroup, "could not resolve progenitor: no _ownerGroup")
+		return (await this.getEventsByUid(progenitorUid, progenitorOwnerGroup))?.progenitor ?? null
 	}
 
 	/**
@@ -943,7 +947,7 @@ export class CalendarModel {
 		try {
 			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
 			if (parsedCalendarData != null) {
-				await this.processParsedCalendarDataFromIcs(update.sender, parsedCalendarData)
+				await this.processParsedCalendarDataFromCalendarEventUpdate(update.sender, parsedCalendarData)
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError) {
@@ -992,10 +996,10 @@ export class CalendarModel {
 	}
 
 	/** whether the operation could be performed or not */
-	async deleteEventsByUid(uid: string): Promise<void> {
-		const entry = await this.calendarFacade.getEventsByUid(uid, CachingMode.Cached, false)
+	async deleteEventsByUid(uid: string, calendarGroupId: Id): Promise<void> {
+		const entry = await this.calendarFacade.getEventsByUid(uid, calendarGroupId)
 		if (entry == null) {
-			console.log("could not find an uid index entry to delete event")
+			console.warn("Could not find an uid index entry to delete event")
 			return
 		}
 		// not doing this in parallel because we would get locked errors
@@ -1012,7 +1016,7 @@ export class CalendarModel {
 	 *
 	 * @VisibleForTesting
 	 */
-	async processParsedCalendarDataFromIcs(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
+	async processParsedCalendarDataFromCalendarEventUpdate(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
 		if (parsedCalendarData.contents.length === 0) {
 			console.log(TAG, `CalendarEventUpdate with no events, ignoring`)
 			return
@@ -1030,12 +1034,9 @@ export class CalendarModel {
 
 		// Load the events bypassing the cache because we might have already processed some updates and they might have changed the events we are about to load.
 		// We want to operate on the latest events only, otherwise we might lose some data.
-		const latestPersistedEventsIndexEntry = await this.calendarFacade.getEventsByUid(
-			parsedCalendarData.contents[0].icsCalendarEvent.uid,
-			CachingMode.Bypass,
-			true,
+		const latestPersistedEventsIndexEntry: ResolvedUidIndexEntry | null = await this.getFirstUidIndexEntryMatch(
+			getFirstOrThrow(parsedCalendarData.contents).icsCalendarEvent.uid,
 		)
-
 		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
 		const resolvedPersistedCalendarEvent = !icsEventRecurrenceIdTimestamp
 			? latestPersistedEventsIndexEntry?.progenitor
@@ -1067,10 +1068,24 @@ export class CalendarModel {
 		}
 	}
 
+	public async getFirstUidIndexEntryMatch(uid: string) {
+		const calendarInfos = await this.getCalendarInfos()
+		let match = null
+		for (const calendarGroupId of calendarInfos.keys()) {
+			match = await this.calendarFacade.getEventsByUid(uid, calendarGroupId, CachingMode.Bypass)
+		}
+		return match
+	}
+
+	public async resolveFirstPrivateOwnedCalendar() {
+		const calendarInfos = await this.getCalendarInfos()
+		return assertNotNull(findFirstPrivateCalendar(calendarInfos))
+	}
+
 	/**
 	 * Handles new Calendar Invitations. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
-	async handleNewCalendarEventInvitationFromIcs(sender: string, calendarData: ParsedCalendarData, uidIndexEntry: CalendarEventUidIndexEntry | null) {
+	async handleNewCalendarEventInvitationFromIcs(sender: string, calendarData: ParsedCalendarData, uidIndexEntry: ResolvedUidIndexEntry | null) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
 			console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid: `, calendarData.method)
 			return // We don't handle anything different from an invitation
@@ -1125,7 +1140,7 @@ export class CalendarModel {
 		method: string,
 		icsCalendarEvent: IcsCalendarEvent,
 		resolvedPersistedCalendarEvent: CalendarEventInstance,
-		uidIndexEntry: CalendarEventUidIndexEntry,
+		uidIndexEntry: ResolvedUidIndexEntry,
 	): Promise<void> {
 		const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 		const sentByOrganizer: boolean = resolvedPersistedCalendarEvent.organizer != null && resolvedPersistedCalendarEvent.organizer.address === sender
@@ -1140,7 +1155,7 @@ export class CalendarModel {
 		}
 	}
 
-	private async processCalendarCancel(target: CalendarEventUidIndexEntry, targetDbEvent: CalendarEventInstance) {
+	private async processCalendarCancel(target: ResolvedUidIndexEntry, targetDbEvent: CalendarEventInstance) {
 		const progenitor = target.progenitor
 		const shouldRemoveAlteredIntanceFromProgenitorExcludedDates = progenitor && progenitor.repeatRule?.excludedDates
 		if (shouldRemoveAlteredIntanceFromProgenitorExcludedDates) {
@@ -1161,7 +1176,7 @@ export class CalendarModel {
 	 * @param dbEvent the version of updateEvent stored on the server. must be identical to dbTarget.progenitor or one of dbTarget.alteredInstances
 	 * @param updateEvent the event that contains the new version of dbEvent. */
 	public async processUpdateToCalendarEventFromIcs(
-		dbTarget: CalendarEventUidIndexEntry,
+		dbTarget: ResolvedUidIndexEntry,
 		dbEvent: CalendarEventInstance,
 		updateEvent: CalendarEvent,
 	): Promise<void> {
@@ -1208,13 +1223,12 @@ export class CalendarModel {
 	 * @param alarms alarms to set up for this user/event
 	 * @param sender email address that the event request was received from
 	 */
-	private async processNewAlteredInstanceOrNewEvent(dbTarget: CalendarEventUidIndexEntry | null, updateEvent: CalendarEvent, sender: string): Promise<void> {
+	private async processNewAlteredInstanceOrNewEvent(dbTarget: ResolvedUidIndexEntry | null, updateEvent: CalendarEvent, sender: string): Promise<void> {
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 
 		let ownerGroup = dbTarget?.ownerGroup
 		if (ownerGroup == null) {
-			const calendarInfos = await this.getCalendarInfos()
-			ownerGroup = findFirstPrivateCalendar(calendarInfos)?.groupRoot._id
+			ownerGroup = (await this.resolveFirstPrivateOwnedCalendar()).id
 			assertNotNull(ownerGroup, "Missing private calendar")
 		}
 
@@ -1279,8 +1293,8 @@ export class CalendarModel {
 	 * or the altered occurrence. */
 	private async deletePersistedEvents(dbEvent: CalendarEventInstance): Promise<void> {
 		// not having UID is technically an error, but we'll do our best (the event came from the server after all)
-		if (dbEvent.recurrenceId == null && dbEvent.uid != null) {
-			return await this.deleteEventsByUid(dbEvent.uid)
+		if (dbEvent.recurrenceId == null && isNotNull(dbEvent.uid) && isNotNull(dbEvent._ownerGroup)) {
+			return await this.deleteEventsByUid(dbEvent.uid, dbEvent._ownerGroup)
 		} else {
 			// either this has a recurrenceId and we only delete that instance
 			// or we don't have a uid to get all instances.
@@ -1385,8 +1399,8 @@ export class CalendarModel {
 		this.deviceConfig.removeLastSync(calendar.group._id)
 	}
 
-	async getEventsByUid(uid: string, fetchOnlyPrivateCalendars: boolean = false): Promise<CalendarEventUidIndexEntry | null> {
-		return this.calendarFacade.getEventsByUid(uid, CachingMode.Cached, fetchOnlyPrivateCalendars)
+	async getEventsByUid(uid: string, calendarGroupId: Id): Promise<ResolvedUidIndexEntry | null> {
+		return this.calendarFacade.getEventsByUid(uid, calendarGroupId, CachingMode.Cached)
 	}
 
 	// Visible for testing

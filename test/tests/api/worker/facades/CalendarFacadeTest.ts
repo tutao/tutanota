@@ -1,15 +1,17 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import {
 	AlarmInfoTemplate,
 	CachingMode,
 	CalendarEventAlteredInstance,
+	CalendarEventProgenitor,
 	CalendarFacade,
 	EventWithUserAlarmInfos,
+	ResolvedUidIndexEntry,
 	sortByRecurrenceId,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { downcast, first } from "../../../../../src/platform-kit/utils"
+import { assertNotNull, downcast, first, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { clone, elementIdPart, getElementId, getLetId, getListId } from "../../../../../src/platform-kit/meta"
 import { SetupMultipleError } from "../../../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/platform-kit/base/facades/lazy/GroupManagementFacade.js"
@@ -19,7 +21,18 @@ import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFac
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 
-import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettingsTypeRef, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import {
+	CalendarEvent,
+	CalendarEventIndexRefTypeRef,
+	CalendarEventTypeRef,
+	CalendarEventUidIndex,
+	CalendarEventUidIndexTypeRef,
+	CalendarGroupRoot,
+	CalendarGroupRootTypeRef,
+	CalendarRepeatRuleTypeRef,
+	GroupSettingsTypeRef,
+	UserSettingsGroupRootTypeRef,
+} from "@tutao/entities/tutanota"
 import {
 	AlarmInfo,
 	AlarmInfoTypeRef,
@@ -38,6 +51,9 @@ import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/co
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { ExposedOperationProgressTracker } from "../../../../../src/applications/common/api/main/OperationProgressTracker"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { sha256Hash } from "@tutao/crypto/sha256"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/platform-kit/rest-client/error"
+import { RepeatPeriod } from "../../../../../src/platform-kit/app-env"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -575,16 +591,21 @@ o.spec("CalendarFacadeTest", function () {
 
 	o.spec("getEventsByUid", function () {
 		let noncachingEntityClient: EntityClient
-		const privateCalendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-			_id: PRIVATE_CALENDAR_ID,
-		})
-		const subscriptionGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-			_id: SUBSCRIPTION_CALENDAR_ID,
-		})
+		let privateCalendarGroupRoot: CalendarGroupRoot
+		let subscriptionGroupRoot: CalendarGroupRoot
 
 		o.beforeEach(() => {
 			noncachingEntityClient = object()
 			calendarFacade = new CalendarFacade(userFacade, object(), object(), noncachingEntityClient, object(), object(), object(), alarmFacadeMock)
+
+			privateCalendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+				_id: PRIVATE_CALENDAR_ID,
+				index: createTestEntity(CalendarEventIndexRefTypeRef),
+			})
+
+			subscriptionGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+				_id: SUBSCRIPTION_CALENDAR_ID,
+			})
 
 			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, PRIVATE_CALENDAR_ID)).thenResolve(privateCalendarGroupRoot)
 			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, SUBSCRIPTION_CALENDAR_ID)).thenResolve(subscriptionGroupRoot)
@@ -600,31 +621,117 @@ o.spec("CalendarFacadeTest", function () {
 			)
 		})
 
-		o.test("fetch all calendars", async function () {
-			// Arrange
-			const groupsCaptor = matchers.captor()
+		o.spec("Successful lookups", function () {
+			let testUidIndex: CalendarEventUidIndex
+			let privateCalendarEventSeriesProgenitor: CalendarEventProgenitor
+			let privateAlteredInstance: CalendarEventAlteredInstance
 
-			//Act
-			await calendarFacade.getEventsByUid("dummyUid", CachingMode.Bypass, false)
+			o.beforeEach(function () {
+				privateCalendarEventSeriesProgenitor = makeCalendarEvent(privateCalendarGroupRoot.longEvents) as CalendarEventProgenitor
+				privateCalendarEventSeriesProgenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, { frequency: RepeatPeriod.DAILY, interval: "1" })
 
-			// Verify
-			verify(noncachingEntityClient.load(CalendarGroupRootTypeRef, groupsCaptor.capture()), { times: 2 })
-			const groupIds: Id[] = groupsCaptor.values!
-			o.check(groupIds[0]).equals(PRIVATE_CALENDAR_ID)
-			o.check(groupIds[1]).equals(SUBSCRIPTION_CALENDAR_ID)
+				privateAlteredInstance = makeCalendarEvent(privateCalendarGroupRoot.longEvents) as CalendarEventAlteredInstance
+				privateAlteredInstance.recurrenceId = privateAlteredInstance.startTime
+				privateAlteredInstance.uid = privateCalendarEventSeriesProgenitor.uid
+
+				testUidIndex = createTestEntity(CalendarEventUidIndexTypeRef, {
+					_ownerGroup: privateCalendarGroupRoot._id,
+					progenitor: privateCalendarEventSeriesProgenitor._id,
+					alteredInstances: [privateAlteredInstance._id],
+				})
+
+				when(
+					noncachingEntityClient.load(CalendarEventUidIndexTypeRef, [
+						privateCalendarGroupRoot.index!.list,
+						uint8arrayToBase64UrlCustomId(sha256Hash(stringToUtf8Uint8Array(privateCalendarEventSeriesProgenitor.uid!))),
+					]),
+				).thenResolve(testUidIndex)
+
+				when(noncachingEntityClient.load(CalendarEventTypeRef, privateCalendarEventSeriesProgenitor._id)).thenResolve(
+					privateCalendarEventSeriesProgenitor,
+				)
+
+				when(
+					noncachingEntityClient.loadMultiple(CalendarEventTypeRef, privateCalendarGroupRoot.longEvents, [elementIdPart(privateAlteredInstance._id)]),
+				).thenResolve([privateAlteredInstance])
+			})
+
+			o.test("should return only the progenitor when event series doesnt have altered instances", async function () {
+				const privateEventSeriesUid = assertNotNull(privateCalendarEventSeriesProgenitor.uid)
+				testUidIndex.alteredInstances = []
+
+				const result = await calendarFacade.getEventsByUid(privateEventSeriesUid, PRIVATE_CALENDAR_ID, CachingMode.Bypass)
+
+				o.check(result?.progenitor).deepEquals(privateCalendarEventSeriesProgenitor)
+				o.check(result?.alteredInstances.length).equals(0)
+			})
+
+			o.test("should return only altered instances when event series doesnt have a progenitor", async function () {
+				const privateEventSeriesUid = assertNotNull(privateCalendarEventSeriesProgenitor.uid)
+				testUidIndex.progenitor = null
+
+				const result = await calendarFacade.getEventsByUid(privateEventSeriesUid, PRIVATE_CALENDAR_ID, CachingMode.Bypass)
+
+				o.check(first(result?.alteredInstances!)).deepEquals(privateAlteredInstance)
+				o.check(result?.progenitor).equals(null)
+			})
+
+			o.test("should fetch and return all events with the given uid from the provided calendar", async function () {
+				// Arrange
+				const expectedUidIndexEntry: ResolvedUidIndexEntry = {
+					ownerGroup: privateCalendarGroupRoot._id,
+					progenitor: privateCalendarEventSeriesProgenitor as CalendarEventProgenitor,
+					alteredInstances: [privateAlteredInstance],
+				}
+
+				// Act
+				const fetchedUidIndexEntry = await calendarFacade.getEventsByUid(
+					privateCalendarEventSeriesProgenitor.uid!,
+					PRIVATE_CALENDAR_ID,
+					CachingMode.Bypass,
+				)
+
+				// Verify
+				const groupsCaptor = matchers.captor()
+				verify(noncachingEntityClient.load(CalendarGroupRootTypeRef, groupsCaptor.capture()), { times: 1 })
+
+				const groupId: Id = groupsCaptor.value
+				o.check(groupId).equals(PRIVATE_CALENDAR_ID)
+
+				o.check(fetchedUidIndexEntry).deepEquals(expectedUidIndexEntry)
+			})
 		})
 
-		o.test("fetch only private calendars", async function () {
-			// Arrange
-			const groupsCaptor = matchers.captor()
+		o.spec("Expected misses", function () {
+			o.test("should return null when given calendar group does not have a uid index entry", async function () {
+				privateCalendarGroupRoot.index = null
 
-			//Act
-			await calendarFacade.getEventsByUid("dummyUid", CachingMode.Bypass, true)
+				const result = await calendarFacade.getEventsByUid("dummyUid", PRIVATE_CALENDAR_ID, CachingMode.Bypass)
 
-			// Verify
-			verify(noncachingEntityClient.load(CalendarGroupRootTypeRef, groupsCaptor.capture()), { times: 1 })
-			const groupIds: Id = groupsCaptor.value
-			o.check(groupIds).equals(PRIVATE_CALENDAR_ID)
+				o.check(result).equals(null)
+			})
+
+			o.test("returns null if uidIndexEntry is not found for the given uid", async () => {
+				when(noncachingEntityClient.load(CalendarEventUidIndexTypeRef, [matchers.anything(), matchers.anything()])).thenReject(
+					new NotFoundError("Not found"),
+				)
+				const nullReturnValue = await calendarFacade.getEventsByUid("nonExistentUid", PRIVATE_CALENDAR_ID, CachingMode.Bypass)
+				o.check(nullReturnValue).equals(null)
+			})
+
+			o.test("returns null if entity client call throws a NotAuthorizedError (e.g. if invoked while user has invalid credentials)", async () => {
+				when(noncachingEntityClient.load(CalendarEventUidIndexTypeRef, [matchers.anything(), matchers.anything()])).thenReject(
+					new NotAuthorizedError("Not authorized"),
+				)
+				const nullReturnValue = await calendarFacade.getEventsByUid("nonexistentUid", PRIVATE_CALENDAR_ID, CachingMode.Bypass)
+				o.check(nullReturnValue).equals(null)
+			})
+		})
+
+		o.spec("Error handling for invalid usage", function () {
+			o.test("error is thrown if logged in user does not have access to given calendar group membership", async () => {
+				await assertThrows(Error, async () => calendarFacade.getEventsByUid("dummyUid", "unknownCalendarGroupId"))
+			})
 		})
 	})
 })
