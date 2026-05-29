@@ -11,11 +11,11 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "../meta"
-import { assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
+import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "./Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { ProgressMonitorId, ProgressMonitorInterface } from "./ProgressMonitorInterface.js"
+import { ProgressMonitorInterface } from "./ProgressMonitorInterface.js"
 import { WebsocketConnectivityListener } from "./WebsocketConnectivityListener.js"
 import { LastProcessedEventBatchProvider } from "./LastProcessedEventBatchProvider.js"
 import { filterIndexMemberships } from "./GroupUtils.js"
@@ -78,13 +78,7 @@ const enum MessageType {
 export interface EventBusListener {
 	onCounterChanged(counter: WebsocketCounterData): unknown
 
-	onEntityEventsReceived(
-		events: readonly EntityUpdateData[],
-		batchId: Id,
-		groupId: Id,
-		progressMonitorId: Nullable<ProgressMonitorId>,
-		isInitialSyncDone: boolean,
-	): Promise<void>
+	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -343,13 +337,7 @@ export class EventBusClient {
 				if (!this.isInitialSyncDone) {
 					this.lastMissedBatchId = batchId
 				}
-				// if the updates were not added to the queue, since the array is empty because it was optimized away,
-				// we need to complete the work for the batch here, since the processEventBatch function
-				// (and therefore the EventController) will not be called for this particular batch.
-				const wasAdded = this.eventQueue.add(batchId, groupId, updates, this.isInitialSyncDone)
-				if (!wasAdded && !(await this.progressMonitor?.isDone())) {
-					await this.progressMonitor?.workDone(1)
-				}
+				this.eventQueue.add(batchId, groupId, updates, this.isInitialSyncDone)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -680,17 +668,16 @@ export class EventBusClient {
 	private async processEventBatch(batch: QueuedBatch): Promise<void> {
 		try {
 			if (this.isTerminated()) return
+
 			const filteredEvents = await this.cache.entityEventsReceived(batch.events, batch.batchId, batch.groupId)
-			if (!this.isTerminated()) {
-				const progressMonitorId = (await this.progressMonitor?.progressMonitorId) ?? null
-				await this.listener.onEntityEventsReceived(
-					filteredEvents,
-					batch.batchId,
-					batch.groupId,
-					progressMonitorId,
-					assertNotNull(batch.isInitialSyncDone),
-				)
+			if (!this.isTerminated() && isNotEmpty(filteredEvents)) {
+				await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId, assertNotNull(batch.isInitialSyncDone))
 			}
+
+			if (!(await this.progressMonitor?.isDone())) {
+				await this.progressMonitor?.workDone(1)
+			}
+
 			// call syncDone listener right after the last missed batch is processed
 			if (batch.batchId === this.lastMissedBatchId) {
 				this.listener.onSyncDone()
@@ -709,11 +696,11 @@ export class EventBusClient {
 				})
 				this.serviceUnavailableRetry = retryPromise
 				return retryPromise
-			} else {
-				if (!isExpectedErrorForSynchronization(e)) {
-					console.log("EVENT", "error", e)
-					throw e
-				}
+			}
+
+			if (!isExpectedErrorForSynchronization(e)) {
+				console.log("EVENT", "error", e)
+				throw e
 			}
 		}
 	}
@@ -734,5 +721,9 @@ export class EventBusClient {
 				.concat(user.userGroup)
 				.map((membership) => membership.group)
 		}
+	}
+
+	async waitForEmptyQueue(): Promise<void> {
+		await this.eventQueue.waitForEmptyQueue()
 	}
 }

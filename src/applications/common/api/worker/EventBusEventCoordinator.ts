@@ -43,16 +43,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly syncTracker: SyncTracker,
 	) {}
 
-	async onEntityEventsReceived(
-		events: readonly EntityUpdateData[],
-		batchId: Id,
-		groupId: Id,
-		progressMonitorId: Nullable<ProgressMonitorId>,
-		isInitialSyncDone: boolean,
-	): Promise<void> {
+	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade?.())?.entityEventsReceived(events)
-		await this.eventController.onEntityUpdateReceived(events, groupId, progressMonitorId, isInitialSyncDone)
+		await this.eventController.onEntityUpdateReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {

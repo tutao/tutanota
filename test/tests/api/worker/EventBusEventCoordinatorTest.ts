@@ -200,11 +200,11 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", null, false)
+		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
 
 		verify(userFacade.updateUser(user))
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey())
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", null, false))
+		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
 		verify(mailFacade.entityEventsReceived(updates))
 	})
 
@@ -219,11 +219,11 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", null, false)
+		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
 
 		verify(userFacade.updateUser(user))
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", null, false))
+		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
 		verify(mailFacade.entityEventsReceived(updates))
 	})
 
@@ -242,12 +242,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", null, false)
+		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
 
 		verify(keyRotationFacadeMock.updateGroupMembershipsInOneList([[instanceListId, instanceId]]))
 		verify(userFacade.updateUser(user), { times: 0 })
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", null, false))
+		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
 		verify(mailFacade.entityEventsReceived(updates))
 	})
 })

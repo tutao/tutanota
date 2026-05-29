@@ -850,7 +850,7 @@ class MailLocator implements CommonLocator {
 		// Should be called elsewhere later e.g. in CommonLocator
 		this.logins.init()
 		this.progressTracker = new ProgressTracker()
-		this.eventController = new EventController(mailLocator.logins, this.progressTracker)
+		this.eventController = new EventController(mailLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)

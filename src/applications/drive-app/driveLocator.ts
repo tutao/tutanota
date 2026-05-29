@@ -568,7 +568,7 @@ class DriveLocator implements CommonLocator {
 		// Should be called elsewhere later e.g. in CommonLocator
 		this.logins.init()
 		this.progressTracker = new ProgressTracker()
-		this.eventController = new EventController(driveLocator.logins, this.progressTracker)
+		this.eventController = new EventController(driveLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.search = new DriveSearchModelStub()
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)

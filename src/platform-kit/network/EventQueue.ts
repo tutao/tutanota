@@ -1,7 +1,6 @@
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { purgeSyncMetrics, syncMetrics } from "@tutao/utils"
 import { EntityUpdateData, getLogStringForEntityEvent } from "../instance-pipeline/utils/EntityUpdateUtils"
-import { ProgressMonitorInterface } from "./ProgressMonitorInterface"
 
 export type QueuedBatch = {
 	events: readonly EntityUpdateData[]
@@ -19,7 +18,6 @@ export class EventQueue {
 	public readonly eventQueue: Array<WritableQueuedBatch>
 	private processingBatch: QueuedBatch | null
 	private paused: boolean
-	private progressMonitor: ProgressMonitorInterface | null
 	private emptyQueueEventTarget: EventTarget
 
 	/**
@@ -33,7 +31,6 @@ export class EventQueue {
 		this.eventQueue = []
 		this.processingBatch = null
 		this.paused = false
-		this.progressMonitor = null
 		this.emptyQueueEventTarget = new EventTarget()
 	}
 
@@ -43,15 +40,7 @@ export class EventQueue {
 		}
 	}
 
-	setProgressMonitor(progressMonitor: ProgressMonitorInterface) {
-		this.progressMonitor?.completed() // make sure any old monitor does not have pending work
-		this.progressMonitor = progressMonitor
-	}
-
-	/**
-	 * @return whether the batch was added (not optimized away)
-	 */
-	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean): boolean {
+	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean): void {
 		const newBatch: WritableQueuedBatch = {
 			events: [],
 			groupId,
@@ -60,14 +49,10 @@ export class EventQueue {
 		}
 
 		newBatch.events.push(...newEvents)
-
-		if (newBatch.events.length !== 0) {
-			this.eventQueue.push(newBatch)
-		}
+		this.eventQueue.push(newBatch)
 
 		// ensures that events are processed when not **paused**
 		this.start()
-		return newBatch.events.length > 0
 	}
 
 	start() {
@@ -95,7 +80,6 @@ export class EventQueue {
 			this.queueAction(next)
 				.then(() => {
 					this.eventQueue.shift()
-					this.progressMonitor?.workDone(1)
 					this.processingBatch = null
 
 					// do this *before* processNext() is called
@@ -158,9 +142,5 @@ export class EventQueue {
 	/** @private visibleForTesting */
 	get __processingBatch(): QueuedBatch | null {
 		return this.processingBatch
-	}
-
-	getProgressMonitor() {
-		return this.progressMonitor
 	}
 }

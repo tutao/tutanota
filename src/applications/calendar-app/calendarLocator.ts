@@ -637,7 +637,7 @@ class CalendarLocator implements CommonLocator {
 		// Should be called elsewhere later e.g. in CommonLocator
 		this.logins.init()
 		this.progressTracker = new ProgressTracker()
-		this.eventController = new EventController(calendarLocator.logins, this.progressTracker)
+		this.eventController = new EventController(calendarLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
