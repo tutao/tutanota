@@ -9,6 +9,9 @@
 	},
 	"references": [
 		{
+			"path": "../platform-kit/tsconfig.base.json"
+		},
+		{
 			"path": "../platform-kit/tsconfig.meta.json"
 		},
 		{

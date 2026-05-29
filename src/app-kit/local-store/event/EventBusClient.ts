@@ -10,18 +10,17 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "../meta"
+import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
-import { CloseEventBusOption, ConnectMode, WsConnectionState } from "./Constants.js"
+import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { ProgressMonitorId, ProgressMonitorInterface } from "./ProgressMonitorInterface.js"
-import { WebsocketConnectivityListener } from "./WebsocketConnectivityListener.js"
-import { LastProcessedEventBatchProvider } from "./LastProcessedEventBatchProvider.js"
-import { filterIndexMemberships } from "./GroupUtils.js"
-import { EntityRestCache } from "./EntityRestCacheInterface.js"
-import { ISleepDetector } from "./SleepDetector.js"
-import { CryptoNetworkHelper } from "./CryptoNetworkHelper.js"
+import { ProgressMonitorId, ProgressMonitorInterface } from "../../../platform-kit/network/ProgressMonitorInterface.js"
+import { WebsocketConnectivityListener } from "../../../platform-kit/network/WebsocketConnectivityListener.js"
+import { LastProcessedEventBatchProvider } from "../../../platform-kit/network/LastProcessedEventBatchProvider.js"
+import { filterIndexMemberships } from "../../../platform-kit/network/GroupUtils.js"
+import { EntityRestCache } from "../../../platform-kit/network/EntityRestCacheInterface.js"
+import { ISleepDetector } from "../../../platform-kit/network/SleepDetector.js"
 import {
 	createWebsocketLeaderStatus,
 	EntityUpdate,
@@ -33,11 +32,12 @@ import {
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatusTypeRef,
 } from "@tutao/entities/sys"
-import { GroupType } from "../../entities/sys/Utils"
+import { GroupType } from "../../../entities/sys/Utils"
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 
 assertWorkerOrNode()
 
@@ -152,7 +152,7 @@ export class EventBusClient {
 		private readonly sleepDetector: ISleepDetector,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sessionKeyResolver: SessionKeyResolver,
-		private readonly cryptoNetHelper: CryptoNetworkHelper,
+		private readonly entityMigrator: EntityMigrator,
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 		private readonly serverDateProvider: DateProvider,
 		private readonly createProgressMonitor: (totalWork: number) => ProgressMonitorInterface,
@@ -424,7 +424,7 @@ export class EventBusClient {
 				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
 				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
-				const migratedEntity = await this.cryptoNetHelper.applyMigrations(typeRef, entityAdapter)
+				const migratedEntity = await this.entityMigrator.applyMigrations(typeRef, entityAdapter)
 				const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
 				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 					serverTypeModel,

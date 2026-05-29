@@ -4,7 +4,8 @@ import { LateInitializedCacheStorageImpl } from "../../../../../src/app-kit/loca
 import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/applications/mail-app/workerUtils/worker/WorkerImpl.js"
 import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage"
-import { OfflineStorageArgs } from "../../../../../src/app-kit/local-store/Types"
+
+import { OfflineStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"

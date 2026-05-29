@@ -20,17 +20,18 @@ import { ServiceExecutor } from "../../../../../src/platform-kit/network/Service
 
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
+import { LocalIdentityKeyTrustDatabase } from "../../../../../src/app-kit/local-store/LocalIdentityKeyTrustDatabase"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPair, IdentityKeyService, KeyMacTypeRef } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
+import { TrustDBEntry } from "../../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
 	let entityClient: EntityClient
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let keyLoaderFacade: KeyLoaderFacade
-	let identityKeyTrustDatabase: IdentityKeyTrustDatabase
+	let identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
 
 	let publicIdentityKeyProvider: PublicIdentityKeyProvider
 

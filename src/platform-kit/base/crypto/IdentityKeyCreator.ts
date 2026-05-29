@@ -9,10 +9,10 @@ import { AsymmetricKeyPair, CryptoWrapper, KeyPairType, VersionedKey } from "@tu
 import { Ed25519Facade } from "./Ed25519Facade"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
-import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface"
 import { KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
 import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
+import { CacheManager } from "./persistence/CacheManager"
 
 assertWorkerOrNode()
 
@@ -23,7 +23,7 @@ export class IdentityKeyCreator {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
-		private readonly cacheManagementFacade: CacheManagementInterface,
+		private readonly cacheManagementFacade: CacheManager,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,

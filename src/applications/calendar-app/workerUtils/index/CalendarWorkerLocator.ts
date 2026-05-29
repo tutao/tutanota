@@ -6,7 +6,7 @@ import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFac
 import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js"
-import { EventBusClient } from "../../../../platform-kit/network/EventBusClient.js"
+import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import {
 	assertWorkerOrNode,
@@ -30,7 +30,6 @@ import { DeviceEncryptionFacade } from "../../../../platform-kit/base/crypto/Dev
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
-import type { RsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -42,8 +41,8 @@ import type { BookingFacade } from "../../../common/api/worker/facades/lazy/Book
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { InstanceSessionKeysCache } from "../../../../app-kit/local-store/InstanceSessionKeysCache.js"
-import { KeyCache } from "../../../../app-kit/local-store/KeyCache.js"
+import { LocalInstanceSessionKeysCache } from "../../../../app-kit/local-store/LocalInstanceSessionKeysCache.js"
+import { KeyCache } from "../../../../platform-kit/base/crypto/persistence/KeyCache.js"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
 import {
 	ExportFacadeSendDispatcher,
@@ -94,8 +93,8 @@ import { PublicKeySignatureFacade } from "../../../../platform-kit/base/crypto/P
 import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
-import { PublicEncryptionKeyCache } from "../../../../app-kit/local-store/PublicEncryptionKeyCache"
+import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
+import { PublicEncryptionKeyCache } from "../../../../platform-kit/base/crypto/persistence/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	NoOpLastProcessedEventBatchStorageFacade,
@@ -104,7 +103,7 @@ import {
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache, EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/crypto/WasmArgon2idFacade"
-import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
+import { EntityMigrator, EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { KeyAuthenticationFacade } from "../../../../platform-kit/network/KeyAuthenticationFacade"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { ServiceExecutor } from "../../../../platform-kit/network/ServiceExecutor"
@@ -114,6 +113,10 @@ import { Challenge, UserTypeRef } from "@tutao/entities/sys"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { CloseEventBusOption, ConnectMode } from "../../../../platform-kit/network/Constants"
+import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator"
+import { RsaImplementation } from "../../../../platform-kit/crypto/encryption/RsaImplementation"
+import { DefaultLoginListener } from "../../../common/workerUtils/DefaultLoginListener"
 
 assertWorkerOrNode()
 
@@ -122,6 +125,7 @@ export type CalendarWorkerLocatorType = {
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
+	entityMigrator: EntityMigrator
 	instancePipeline: InstancePipeline
 	patchMerger: PatchMerger
 	applicationTypesFacade: ApplicationTypesFacade
@@ -140,7 +144,7 @@ export type CalendarWorkerLocatorType = {
 	keyAuthenticationFacade: KeyAuthenticationFacade
 	publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	publicIdentityKeyProvider: PublicIdentityKeyProvider
-	identityKeyTrustDatabase: IdentityKeyTrustDatabase
+	identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	publicKeySignatureFacade: PublicKeySignatureFacade
@@ -243,6 +247,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.blobAccessToken,
 		typeModelResolver,
 		lazyCrypto,
+		() => locator.entityMigrator,
 	)
 	locator.native = worker
 
@@ -346,7 +351,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
 
-	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
+	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
 	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		locator.serviceExecutor,
 		locator.cachingEntityClient,
@@ -393,7 +398,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.keyLoader,
 		asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
-		new InstanceSessionKeysCache(),
+		new LocalInstanceSessionKeysCache(),
 		locator.cryptoWrapper,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
@@ -468,22 +473,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		await worker.sendError(error)
 	})
 
-	const loginListener: LoginListener = {
-		async onPartialLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
-			// no-op
-		},
-		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
-			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
-		},
-
-		onLoginFailure(reason: LoginFailReason): Promise<void> {
-			return mainInterface.loginListener.onLoginFailure(reason)
-		},
-
-		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
-			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
-		},
-	}
+	const loginListener = new DefaultLoginListener(() => locator.eventBusClient, mainInterface.loginListener, locator.user)
 
 	let argon2idFacade: Argon2idFacade
 	if (!isBrowser()) {
@@ -520,6 +510,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		typeModelResolver,
 		locator.rolloutFacade,
 		locator.applicationTypesFacade,
+		locator.entityMigrator,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {
@@ -664,6 +655,17 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		},
 	}
 
+	locator.entityMigrator = new TutanotaEntityMigrator(
+		locator.cryptoWrapper,
+		locator.user,
+		locator.keyLoader,
+		locator.cachingEntityClient,
+		locator.serviceExecutor,
+		typeModelResolver,
+		locator.instancePipeline,
+		locator.restClient,
+		locator.crypto,
+	)
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
@@ -674,12 +676,11 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		new SleepDetector(scheduler, dateProvider),
 		typeModelResolver,
 		locator.crypto,
-		locator.crypto,
+		locator.entityMigrator,
 		locator.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
-	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")

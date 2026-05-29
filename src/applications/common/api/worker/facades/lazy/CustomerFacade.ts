@@ -5,7 +5,6 @@ import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
 import { LockedError } from "@tutao/rest-client/error"
-import type { RsaImplementation } from "../../../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { BookingFacade } from "./BookingFacade.js"
@@ -64,6 +63,7 @@ import {
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import { getByAbbreviation } from "../../../../gui/CountryList"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
+import { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
 
 assertWorkerOrNode()
 

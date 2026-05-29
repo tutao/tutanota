@@ -9,43 +9,10 @@
 	},
 	"references": [
 		{
-			"path": "tsconfig.utils.json"
-		},
-		{
-			"path": "tsconfig.crypto.json"
-		},
-		{
-			"path": "tsconfig.rest-client.json"
-		},
-		{
 			"path": "tsconfig.network.json"
 		},
 		{
-			"path": "tsconfig.meta.json"
-		},
-		{
-			"path": "tsconfig.instance-pipeline.json"
-		},
-		{
-			"path": "../app-kit/tsconfig.local-store.json"
-		},
-		{
-			"path": "../entities/tsconfig.entities.sys.json"
-		},
-		{
 			"path": "../entities/tsconfig.entities.tutanota.json"
-		},
-		{
-			"path": "../entities/tsconfig.entities.accounting.json"
-		},
-		{
-			"path": "../entities/tsconfig.entities.usage.json"
-		},
-		{
-			"path": "../entities/tsconfig.entities.drive.json"
-		},
-		{
-			"path": "../entities/tsconfig.entities.storage.json"
 		}
 	]
 }

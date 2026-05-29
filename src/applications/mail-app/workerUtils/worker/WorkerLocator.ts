@@ -1,4 +1,4 @@
-import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade.js"
+import { LoginFacade } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import type { WorkerImpl } from "./WorkerImpl.js"
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
@@ -7,7 +7,7 @@ import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFac
 import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js"
-import { EventBusClient } from "../../../../platform-kit/network/EventBusClient.js"
+import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import {
 	assertWorkerOrNode,
@@ -18,12 +18,10 @@ import {
 	isBrowser,
 	isIOSApp,
 	isOfflineStorageAvailable,
-	isTest,
 	ProgrammingError,
-	SessionType,
 } from "../../../../platform-kit/app-env"
 import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { Challenge, UserTypeRef } from "@tutao/entities/sys"
+import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade.js"
 import { RestClient, restSuspension as susHandler } from "../../../../platform-kit/rest-client"
@@ -51,11 +49,11 @@ import { IServiceExecutor } from "../../../../platform-kit/network/ServiceReques
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
-import { InstanceSessionKeysCache } from "../../../../app-kit/local-store/InstanceSessionKeysCache.js"
-import { KeyCache } from "../../../../app-kit/local-store/KeyCache.js"
+import { LocalInstanceSessionKeysCache } from "../../../../app-kit/local-store/LocalInstanceSessionKeysCache.js"
+import { KeyCache } from "../../../../platform-kit/base/crypto/persistence/KeyCache.js"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
 import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../../../../platform-kit/crypto"
-import { assertNotNull, DateProvider, delay, lazy, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
+import { assertNotNull, DateProvider, lazy, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
@@ -103,11 +101,11 @@ import { PublicKeySignatureFacade } from "../../../../platform-kit/base/crypto/P
 import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
-import { type IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
+import { KeyVerificationTableDefinitions, type LocalIdentityKeyTrustDatabase } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
-import { PublicEncryptionKeyCache } from "../../../../app-kit/local-store/PublicEncryptionKeyCache"
+import { PublicEncryptionKeyCache } from "../../../../platform-kit/base/crypto/persistence/PublicEncryptionKeyCache"
 import type { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	IndexedDbLastProcessedEventBatchStorageFacade,
@@ -117,19 +115,20 @@ import {
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
-import { createRsaImplementation, RsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
+import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/crypto/WasmArgon2idFacade"
 import { KeyAuthenticationFacade } from "../../../../platform-kit/network/KeyAuthenticationFacade"
-import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
+import { EntityMigrator, EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { ServiceExecutor } from "../../../../platform-kit/network/ServiceExecutor"
-import { Credentials } from "../../../../platform-kit/network/types"
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
+import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator"
+import { RsaImplementation } from "../../../../platform-kit/crypto/encryption/RsaImplementation"
+import { MailLoginListener } from "./MailLoginListener"
 
 assertWorkerOrNode()
 
@@ -141,6 +140,7 @@ export type WorkerLocatorType = {
 	keyAuthenticationFacade: KeyAuthenticationFacade
 	asymmetricCrypto: AsymmetricCryptoFacade
 	crypto: CryptoFacade
+	entityMigrator: EntityMigrator
 	instancePipeline: InstancePipeline
 	patchMerger: PatchMerger
 	applicationTypesFacade: ApplicationTypesFacade
@@ -158,7 +158,7 @@ export type WorkerLocatorType = {
 	adminKeyLoader: AdminKeyLoaderFacade
 	publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	publicIdentityKeyProvider: PublicIdentityKeyProvider
-	identityKeyTrustDatabase: IdentityKeyTrustDatabase
+	identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	publicKeySignatureFacade: PublicKeySignatureFacade
@@ -225,7 +225,7 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData, apps: Array<NamedClientModel>) {
-	const { IdentityKeyTrustDatabase } = await import("../../../../app-kit/local-store/IdentityKeyTrustDatabase")
+	const { LocalIdentityKeyTrustDatabase } = await import("../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase")
 
 	locator._worker = worker
 	locator._browserData = browserData
@@ -283,6 +283,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.blobAccessToken,
 		typeModelResolver,
 		lazyCrypto,
+		() => locator.entityMigrator,
 	)
 	locator.native = worker
 
@@ -532,7 +533,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	locator.keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
 
-	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
+	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
 	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		locator.serviceExecutor,
 		locator.cachingEntityClient,
@@ -579,7 +580,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.keyLoader,
 		locator.asymmetricCrypto,
 		locator.publicEncryptionKeyProvider,
-		new InstanceSessionKeysCache(),
+		new LocalInstanceSessionKeysCache(),
 		locator.cryptoWrapper,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
@@ -654,31 +655,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		await worker.sendError(error)
 	})
 
-	const loginListener: LoginListener = {
-		async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
-			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
-				const indexer = await locator.indexer()
-				await indexer.partialLoginInit()
-			}
-		},
-		async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
-			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
-				// index new items in background
-				console.log("initIndexer and SpamClassifier after log in")
-				await fullLoginIndexerInit(worker)
-			}
-
-			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
-		},
-
-		onLoginFailure(reason: LoginFailReason): Promise<void> {
-			return mainInterface.loginListener.onLoginFailure(reason)
-		},
-
-		onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
-			return mainInterface.loginListener.onSecondFactorChallenge(sessionId, challenges, mailAddress)
-		},
-	}
+	const loginListener = new MailLoginListener(() => locator.eventBusClient, mainInterface.loginListener, locator.user, worker)
 
 	let argon2idFacade: Argon2idFacade
 	if (!isBrowser()) {
@@ -715,6 +692,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		typeModelResolver,
 		locator.rolloutFacade,
 		locator.applicationTypesFacade,
+		locator.entityMigrator,
 	)
 
 	locator.search = lazyMemoized(async () => {
@@ -909,6 +887,17 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.identityKeyCreator,
 		mainInterface.syncTracker,
 	)
+	locator.entityMigrator = new TutanotaEntityMigrator(
+		locator.cryptoWrapper,
+		locator.user,
+		locator.keyLoader,
+		locator.cachingEntityClient,
+		locator.serviceExecutor,
+		typeModelResolver,
+		locator.instancePipeline,
+		locator.restClient,
+		locator.crypto,
+	)
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
@@ -919,12 +908,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		new SleepDetector(scheduler, dateProvider),
 		typeModelResolver,
 		locator.crypto,
-		locator.crypto,
+		locator.entityMigrator,
 		locator.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
-	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")
@@ -952,35 +940,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.cryptoWrapper,
 		)
 	})
-}
-
-const RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
-
-async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
-	const indexer = await locator.indexer()
-	try {
-		await indexer.fullLoginInit({
-			user: assertNotNull(locator.user.getUser()),
-		})
-	} catch (e) {
-		if (e instanceof ServiceUnavailableError) {
-			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
-			console.log("_initIndexer after ServiceUnavailableError")
-			return fullLoginIndexerInit(worker)
-		} else if (e instanceof ConnectionError) {
-			console.log("Retry init indexer in 30 seconds after ConnectionError")
-			await delay(RETRY_TIMEOUT_AFTER_INIT_INDEXER_ERROR_MS)
-			console.log("_initIndexer after ConnectionError")
-			return fullLoginIndexerInit(worker)
-		} else {
-			console.log("send indexer error to main thread", e)
-			// not awaiting
-			// noinspection ES6MissingAwait
-			worker.sendError(e)
-			return
-		}
-	}
 }
 
 export async function resetLocator(): Promise<void> {

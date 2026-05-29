@@ -23,7 +23,7 @@ import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { Const, RolloutType } from "../../../src/platform-kit/app-env"
 import { SessionType } from "../../../src/platform-kit/app-env/SessionType"
-import { EventBusClient } from "../../../src/platform-kit/network/EventBusClient.js"
+import { EventBusClient } from "../../../src/app-kit/local-store/event/EventBusClient.js"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../src/platform-kit/base/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../src/platform-kit/base/crypto/DatabaseKeyFactory.js"
@@ -33,7 +33,6 @@ import { InstancePipeline, TypeModelResolver } from "../../../src/platform-kit/i
 import { CacheManagementFacade } from "../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { RolloutFacade } from "../../../src/platform-kit/base/facades/RolloutFacade"
 import { ConnectMode } from "../../../src/platform-kit/network/Constants"
-import { CacheStorageLateInitializer } from "../../../src/app-kit/local-store/Types"
 import { Argon2idFacade } from "../../../src/platform-kit/base/crypto/WasmArgon2idFacade"
 import { Credentials, CredentialType } from "../../../src/platform-kit/network/types"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
@@ -54,6 +53,8 @@ import {
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/crypto/Constants.js"
 import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
+import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
+import { DefaultLoginListener } from "../../../src/applications/common/workerUtils/DefaultLoginListener"
 
 const { anything, argThat } = matchers
 
@@ -141,8 +142,6 @@ o.spec("LoginFacadeTest", function () {
 		entityClientMock = instance(EntityClient)
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
-		loginListener = object()
-		when(loginListener.onPartialLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 		typeModelResolver = clientInitializedTypeModelResolver()
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoFacadeMock = object()
@@ -167,6 +166,7 @@ o.spec("LoginFacadeTest", function () {
 			isNewOfflineDb: false,
 		})
 		userFacade = object()
+		loginListener = new DefaultLoginListener(() => eventBusClientMock, object(), userFacade)
 		entropyFacade = object()
 		blobAccessTokenFacade = object()
 		databaseKeyFactoryMock = object()
@@ -195,11 +195,11 @@ o.spec("LoginFacadeTest", function () {
 			typeModelResolver,
 			rolloutFacade,
 			object(),
+			object(),
 		)
 
 		eventBusClientMock = instance(EventBusClient)
 
-		facade.init(eventBusClientMock)
 		when(rolloutFacade.getScheduledRolloutTypes()).thenResolve([])
 	})
 
@@ -483,7 +483,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(eventBusClientMock.connect(matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When using local-store as a free user and with stable connection, async login", async function () {
@@ -583,8 +583,8 @@ o.spec("LoginFacadeTest", function () {
 					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
 				})
 
-				const deferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
+				const deferred: DeferredObject<void> = defer()
+				when(eventBusClientMock.connect(matchers.anything())).thenDo(() => deferred.resolve())
 
 				const result = await facade.resumeSession(
 					credentials,
@@ -681,7 +681,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(eventBusClientMock.connect(matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {
@@ -691,7 +691,7 @@ o.spec("LoginFacadeTest", function () {
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 
-				await facade.resumeSession(
+				const result = await facade.resumeSession(
 					credentials,
 					{
 						salt: user.salt!,
@@ -701,16 +701,13 @@ o.spec("LoginFacadeTest", function () {
 					timeRangeDate,
 				)
 
-				await fullLoginDeferred.promise
+				await result.asyncResumeCompleted
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
 			})
 
 			o("when retrying failed login, userFacade is initialized", async function () {
-				const deferred = defer()
-				when(loginListener.onLoginFailure(matchers.anything())).thenDo(() => deferred.resolve(null))
-
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				const connectionError = new restError.ConnectionError("test")
@@ -721,7 +718,7 @@ o.spec("LoginFacadeTest", function () {
 					// the type definitions for testdouble are lacking, but we can do this
 					.thenReturn(Promise.reject(connectionError), Promise.resolve(JSON.stringify(await createSession(userId, accessKey, instancePipeline))))
 
-				await facade.resumeSession(
+				const result = await facade.resumeSession(
 					credentials,
 					{
 						salt: user.salt!,
@@ -736,7 +733,7 @@ o.spec("LoginFacadeTest", function () {
 				verify(userFacade.unlockUserGroupKey(matchers.anything()), { times: 0 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial), { times: 0 })
 
-				await deferred.promise
+				await result.asyncResumeCompleted
 
 				await facade.retryAsyncLogin()
 
@@ -796,7 +793,7 @@ o.spec("LoginFacadeTest", function () {
 				when(userFacade.isPartiallyLoggedIn()).thenDo(() => calls.includes("setUser"))
 
 				fullLoginDeferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
+				when(eventBusClientMock.connect(matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {

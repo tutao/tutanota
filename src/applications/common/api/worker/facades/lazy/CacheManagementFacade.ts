@@ -3,8 +3,8 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
-import { CacheManagementInterface } from "../../../../../../app-kit/local-store/CacheManagementInterface"
 import { Group, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { CacheManager } from "../../../../../../platform-kit/base/crypto/persistence/CacheManager"
 
 assertWorkerOrNode()
 
@@ -12,7 +12,7 @@ assertWorkerOrNode()
  * This facade is responsible for handling cases where we need to manually update an entity in the rest cache.
  * It is also suitable to manually ensure consistency between the rest cache and the key cache.
  */
-export class CacheManagementFacade implements CacheManagementInterface {
+export class CacheManagementFacade implements CacheManager {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly cachingEntityClient: EntityClient,

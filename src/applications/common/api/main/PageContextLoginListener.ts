@@ -105,6 +105,8 @@ export class PageContextLoginListener implements LoginListener {
 		return this.secondFactorHandler.showSecondFactorAuthenticationDialog(sessionId, challenges, mailAddress)
 	}
 
+	onResetSession() {}
+
 	/**
 	 * true if the last full login attempt failed
 	 * may revert to false when retrying.

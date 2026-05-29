@@ -3,6 +3,7 @@ import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/dispatc
 import type { RsaPrivateKey, RsaPublicKey } from "../../../platform-kit/crypto"
 import { random, rsaDecrypt, rsaEncrypt } from "../../../platform-kit/crypto"
 import { isApp } from "../../../platform-kit/app-env"
+import { RsaImplementation } from "../../../platform-kit/crypto/encryption/RsaImplementation"
 
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
 	if (isApp()) {
@@ -11,12 +12,6 @@ export async function createRsaImplementation(native: NativeInterface): Promise<
 	} else {
 		return new RsaWeb()
 	}
-}
-
-export interface RsaImplementation {
-	encrypt(publicKey: RsaPublicKey, bytes: Uint8Array): Promise<Uint8Array>
-
-	decrypt(privateKey: RsaPrivateKey, bytes: Uint8Array): Promise<Uint8Array>
 }
 
 export class RsaWeb implements RsaImplementation {

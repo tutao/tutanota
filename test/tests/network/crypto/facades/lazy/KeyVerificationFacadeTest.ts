@@ -16,12 +16,13 @@ import { createTestEntity } from "../../../../TestUtils"
 import { KeyVerificationMismatchError } from "../../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { PublicKeySignatureFacade } from "../../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
 import { PublicIdentityKeyProvider } from "../../../../../../src/platform-kit/base/crypto/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
+import { LocalIdentityKeyTrustDatabase } from "../../../../../../src/app-kit/local-store/LocalIdentityKeyTrustDatabase"
 
 import { SigningPublicKey } from "../../../../../../src/platform-kit/crypto/encryption/Ed25519"
-import { MaybeSignedPublicKey } from "../../../../../../src/app-kit/local-store/PublicEncryptionKeyCache"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
+import { MaybeSignedPublicKey } from "../../../../../../src/platform-kit/base/crypto/MaybeSignedPublicKey"
+import { TrustDBEntry } from "../../../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
 
 const { anything } = matchers
 
@@ -35,7 +36,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
 	let publicKeySignatureFacade: PublicKeySignatureFacade
 	let publicIdentityKeyProvider: PublicIdentityKeyProvider
-	let identityKeyTrustDatabase: IdentityKeyTrustDatabase
+	let identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
 	let publicKeyIdentifier: PublicKeyIdentifier
 	let maybeSignedPublicKey: MaybeSignedPublicKey
 

@@ -6,8 +6,8 @@ import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
-import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
+import { CacheManager } from "./persistence/CacheManager"
 
 assertWorkerOrNode()
 
@@ -16,7 +16,7 @@ export class AdminKeyLoaderFacade {
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
-		private readonly cacheManagementFacade: lazyAsync<CacheManagementInterface>,
+		private readonly cacheManagementFacade: lazyAsync<CacheManager>,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,

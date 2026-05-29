@@ -9,9 +9,6 @@
 	},
 	"references": [
 		{
-			"path": "tsconfig.meta.json"
-		},
-		{
 			"path": "tsconfig.crypto.json"
 		},
 		{

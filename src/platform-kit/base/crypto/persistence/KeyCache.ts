@@ -1,5 +1,5 @@
-import { getFromMap, neverNull } from "../../platform-kit/utils"
-import { Aes256Key, cryptoUtils, VersionedKey } from "../../platform-kit/crypto"
+import { getFromMap, neverNull } from "@tutao/utils"
+import { Aes256Key, cryptoUtils, VersionedKey } from "@tutao/crypto"
 import { User } from "@tutao/entities/sys"
 
 /**

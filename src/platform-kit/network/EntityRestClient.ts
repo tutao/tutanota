@@ -115,6 +115,16 @@ export interface EntityRestClientLoadOptions {
 	suspensionBehavior?: SuspensionBehavior
 }
 
+export interface EntityMigrator {
+	/**
+	 * Takes a freshly JSON-parsed, unmapped object and apply migrations as necessary
+	 * @param typeRef
+	 * @param data
+	 * @return the unmapped and still encrypted instance
+	 */
+	applyMigrations(typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter>
+}
+
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *
@@ -137,6 +147,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
+		private readonly entityMigrator: lazy<EntityMigrator>,
 	) {}
 
 	async loadParsedInstance<T extends SomeEntity>(
@@ -165,7 +176,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
-		const migratedEntity = await this._crypto.applyMigrations(typeRef, entityAdapter)
+		const migratedEntity = await this.entityMigrator().applyMigrations(typeRef, entityAdapter)
 		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,

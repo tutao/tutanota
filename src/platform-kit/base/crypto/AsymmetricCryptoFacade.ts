@@ -26,7 +26,6 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/crypto"
-import type { RsaImplementation } from "../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { PQFacade } from "./PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"
@@ -39,6 +38,7 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
 import { TypeId } from "../../meta/EntityTypes"
+import { RsaImplementation } from "../../crypto/encryption/RsaImplementation"
 
 assertWorkerOrNode()
 
