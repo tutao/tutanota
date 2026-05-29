@@ -341,6 +341,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	} else if (
 		isIn("src/applications/common/api/common") ||
 		isIn("src/desktop/config/ConfigKeys") ||
+		isIn("src/applications/common/desktop/") ||
 		moduleId.includes("cborg") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
