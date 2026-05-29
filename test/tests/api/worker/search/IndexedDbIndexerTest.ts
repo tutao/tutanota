@@ -5,7 +5,7 @@ import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../sr
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import o, { mock } from "@tutao/otest"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { EventQueue, QueuedBatch } from "../../../../../src/platform-kit/network/EventQueue.js"
+import { EventQueue, QueuedBatch } from "../../../../../src/app-kit/local-store/event/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/applications/common/api/common/error/MembershipRemovedError.js"
 import { defer, downcast, freshVersioned, promiseMap } from "../../../../../src/platform-kit/utils"
 import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, InitializationVector, VersionedKey } from "../../../../../src/platform-kit/crypto"

@@ -1,8 +1,7 @@
 import { Group, User } from "@tutao/entities/sys"
-import { SomeEntity } from "../../platform-kit/meta/EntityTypes"
-import { TypeRef } from "../../platform-kit/meta"
+import { SomeEntity, TypeRef } from "@tutao/meta"
 
-export interface CacheManagementInterface {
+export interface CacheManager {
 	/**
 	 * Refreshes group and user (because of the memberships) in the rest cache and updates the key cache if possible.
 	 * @param groupId

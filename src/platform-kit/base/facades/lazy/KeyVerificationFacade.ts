@@ -1,4 +1,3 @@
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
 import { assertWorkerOrNode, EncryptionKeyVerificationState, IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
 import { concat, uint8ArrayToHex, Versioned } from "@tutao/utils"
@@ -13,7 +12,9 @@ import {
 } from "@tutao/crypto"
 import { PublicKeySignatureFacade } from "../../base-crypto/PublicKeySignatureFacade"
 import { PublicIdentityKeyProvider } from "../../base-crypto/PublicIdentityKeyProvider"
-import { MaybeSignedPublicKey } from "../../../../app-kit/local-store/PublicEncryptionKeyCache"
+
+import { MaybeSignedPublicKey } from "../../crypto/MaybeSignedPublicKey"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../crypto/persistence/IdentityKeyTrustDatabase"
 
 assertWorkerOrNode()
 

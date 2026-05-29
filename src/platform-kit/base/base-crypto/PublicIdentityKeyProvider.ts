@@ -1,4 +1,3 @@
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../app-kit/local-store/IdentityKeyTrustDatabase"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { bytesToEd25519PublicKey, cryptoUtils, PublicKeyIdentifier, PublicKeyIdentifierType, SigningKeyPairType, SigningPublicKey } from "@tutao/crypto"
@@ -9,6 +8,7 @@ import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthentic
 import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "./persistence/IdentityKeyTrustDatabase"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString

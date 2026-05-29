@@ -3,7 +3,7 @@ import TutaNotificationHandler from "../../../../src/applications/common/desktop
 import { WindowManager } from "../../../../src/applications/common/desktop/DesktopWindowManager.js"
 import { CredentialEncryptionMode } from "../../../../src/platform-kit/app-env"
 import { ExtendedNotificationMode } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/ExtendedNotificationMode.js"
-import { NativeCredentialsFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/NativeCredentialsFacade.js"
+import { NativeCredentialsFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { UnencryptedCredentials } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
 import { DesktopNotifier } from "../../../../src/applications/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler.js"

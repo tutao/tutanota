@@ -9,7 +9,6 @@ import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, AesKey, CryptoWrapper, PQKeyPairs, VersionedKey } from "@tutao/crypto"
 import { IdentityKeyCreator } from "../../base-crypto/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../base-crypto/AdminKeyLoaderFacade"
-import { CacheManagementInterface } from "../../../../app-kit/local-store/CacheManagementInterface"
 import { CounterType } from "../../../../entities/monitor/Utils"
 import {
 	createMembershipAddData,
@@ -37,6 +36,7 @@ import {
 	TemplateGroupService,
 	UserAreaGroupData,
 } from "@tutao/entities/tutanota"
+import { CacheManager } from "../../crypto/persistence/CacheManager"
 
 assertWorkerOrNode()
 
@@ -49,7 +49,7 @@ export class GroupManagementFacade {
 		private readonly pqFacade: PQFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
-		private readonly cacheManagementFacade: CacheManagementInterface,
+		private readonly cacheManagementFacade: CacheManager,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly identityKeyCreator: IdentityKeyCreator,
 	) {}

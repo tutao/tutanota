@@ -1,4 +1,4 @@
-import { EventBusListener } from "../../../../platform-kit/network/EventBusClient.js"
+import { EventBusListener } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"

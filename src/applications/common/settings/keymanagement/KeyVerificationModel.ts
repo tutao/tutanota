@@ -16,8 +16,8 @@ import {
 	ProgrammingError,
 } from "../../../../platform-kit/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
-import { TrustDBEntry } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
 import { PublicKeyIdentifierType } from "../../../../platform-kit/crypto/CryptoTypes"
+import { TrustDBEntry } from "../../../../platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
 
 export type PublicIdentity = {
 	fingerprint: Hex

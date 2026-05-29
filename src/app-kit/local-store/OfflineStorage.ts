@@ -51,10 +51,11 @@ import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper, TypeModelResolver } from "../../platform-kit/instance-pipeline"
 import { isAdminClient, isBrowser, isDesktop, isTest } from "../../platform-kit/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
-import { FormattedQuery, OfflineStorageInitArgs, TaggedSqlValue } from "./Types"
+import { FormattedQuery, TaggedSqlValue } from "./Types"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
 import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { OfflineStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

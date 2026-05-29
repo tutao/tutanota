@@ -4,8 +4,8 @@ import { PublicIdentityKeyProvider } from "../../../src/platform-kit/base/base-c
 import { ResolvableRecipient } from "../../../src/applications/common/api/main/RecipientsModel"
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { TrustDBEntry } from "../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
 import { IdentityKeySourceOfTrust, ProgrammingError } from "../../../src/platform-kit/app-env"
+import { TrustDBEntry } from "../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
 
 const RECIPIENT_ADDRESS = "recipient@tuta.com"
 const RECIPIENT2_ADDRESS = "recipient2@tuta.com"

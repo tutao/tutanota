@@ -22,7 +22,8 @@ import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { ModelMapper, ServerTypeModelResolver } from "../../platform-kit/instance-pipeline"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
-import { EphemeralStorageInitArgs } from "./Types"
+
+import { EphemeralStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /** Cache for a single list. */
 type ListCache = {

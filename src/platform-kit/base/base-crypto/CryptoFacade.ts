@@ -13,10 +13,12 @@ import {
 	Versioned,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
-import { assertEnumValue, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
+import { assertEnumValue, AttributeModel, ClientTypeModel, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
 import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
+	Aes256Key,
+	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
 	cryptoUtils,
@@ -37,25 +39,32 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
-import { EntityAdapter, InstancePipeline, OwnerKeyProvider, SessionKeyResolver } from "@tutao/instance-pipeline"
+import {
+	EntityAdapter,
+	InstancePipeline,
+	OwnerKeyProvider,
+	PatchOperationType,
+	SessionKeyResolver,
+	SymmetricGroupKeyLoader,
+	typeModelToRestPath,
+} from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError"
-import { isOfflineError, NotFoundError, TooManyRequestsError } from "@tutao/rest-client/error"
-import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface.js"
-import { InstanceSessionKeysCache } from "../../../app-kit/local-store/InstanceSessionKeysCache.js"
-import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
+import { isOfflineError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import {
 	BucketPermission,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
+	createPatch,
+	createPatchList,
 	createUpdatePermissionKeyData,
 	createUpdateSessionKeysPostIn,
 	GroupTypeRef,
 	InstanceSessionKey,
+	PatchListTypeRef,
 	Permission,
 	PermissionTypeRef,
 	UpdatePermissionKeyService,
@@ -75,6 +84,10 @@ import {
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
 } from "@tutao/entities/tutanota"
+import { HttpMethod } from "@tutao/rest-client/types"
+import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
+import { CacheManager } from "./persistence/CacheManager"
+import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
 
 assertWorkerOrNode()
 
@@ -83,25 +96,22 @@ type ResolvedSessionKeys = {
 	instanceSessionKeys: Array<InstanceSessionKey>
 }
 
-export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResolver {
+export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	constructor(
 		private readonly userFacade: UserFacade,
-		entityClient: EntityClient,
-		restClient: RestClientInterface,
-		serviceExecutor: IServiceExecutor,
-		instancePipeline: InstancePipeline,
-		private readonly cache: () => Promise<CacheManagementInterface> | null,
-		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly entityClient: EntityClient,
+		private readonly restClient: RestClientInterface,
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly instancePipeline: InstancePipeline,
+		private readonly cache: () => Promise<CacheManager> | null,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly instanceSessionKeysCache: InstanceSessionKeysCache,
-		cryptoWrapper: CryptoWrapper,
+		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
-		typeModelResolver: TypeModelResolver,
+		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sendError: (error: Error) => Promise<void>,
-	) {
-		super(cryptoWrapper, userFacade, keyLoaderFacade, entityClient, serviceExecutor, typeModelResolver, instancePipeline, restClient)
-	}
+	) {}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
 	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array, ownerKey: AesKey): AesKey {
@@ -754,7 +764,89 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 		return await this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
 	}
 
-	/*************************** Migrations **********************************/
+	/**
+	 * Creates a new _ownerEncSessionKey and assigns it to the provided entity
+	 * the entity must already have an _ownerGroup
+	 * @returns the generated key
+	 */
+	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<AesKey | null> {
+		if (!instance._ownerGroup) {
+			throw new Error(`no owner group set  ${JSON.stringify(instance)}`)
+		}
+
+		if (clientTypeModel.encrypted) {
+			if (instance._ownerEncSessionKey) {
+				throw new Error(`ownerEncSessionKey already set ${JSON.stringify(instance)}`)
+			}
+			const sessionKey = aes256RandomKey()
+			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.symGroupKeyLoader.getCurrentSymGroupKey(instance._ownerGroup))
+			const encryptedSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
+
+			this.setOwnerEncSessionKey(instance, encryptedSessionKey)
+			return sessionKey
+		}
+		return null
+	}
+
+	public setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup?: Id): void {
+		instance._ownerEncSessionKey = ownerEncSessionKey.key
+		instance._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		if (ownerGroup) {
+			instance._ownerGroup = ownerGroup
+		}
+	}
+
+	async decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
+		const gk = await this.symGroupKeyLoader.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion)
+		return decryptKey(gk, ownerEncSessionKey.key)
+	}
+
+	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
+		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
+		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
+
+		const id = instance._id
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+		const path = typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
+		const headers = this.userFacade.createAuthHeaders()
+		headers.v = String(instance.typeModel.version)
+
+		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
+		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
+		if (env.networkDebugging) {
+			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
+			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
+		}
+
+		const patchList = createPatchList({
+			patches: [
+				createPatch({
+					patchOperation: PatchOperationType.REPLACE,
+					value: uint8ArrayToBase64(newOwnerEncSessionKey.key),
+					attributePath: ownerEncSessionKeyAttributeIdStr,
+				}),
+				createPatch({
+					patchOperation: PatchOperationType.REPLACE,
+					value: newOwnerEncSessionKey.encryptingKeyVersion.toString(),
+					attributePath: ownerKeyVersionAttributeIdStr,
+				}),
+			],
+		})
+
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+
+		await this.restClient
+			.request(path, HttpMethod.PATCH, {
+				headers,
+				body: JSON.stringify(patchPayload),
+				queryParams: { updateOwnerEncSessionKey: "true" },
+			})
+			.catch(
+				ofClass(PayloadTooLargeError, (e) => {
+					console.log("Could not update owner enc session key - PayloadTooLargeError", e)
+				}),
+			)
+	}
 }
 
 if (!("toJSON" in Error.prototype)) {

@@ -49,6 +49,24 @@
 		},
 		{
 			"path": "../ui/tsconfig.ui.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.drive.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.accounting.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.storage.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.usage.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.tutanota.json"
+		},
+		{
+			"path": "../entities/tsconfig.entities.sys.json"
 		}
 	]
 }

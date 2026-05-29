@@ -5,7 +5,9 @@ import { sql } from "./Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import type { OfflineStorageTable } from "./OfflineStorage"
 import { SigningPublicKey } from "../../platform-kit/crypto/encryption/Ed25519"
-import { SessionTypeProvider, TaggedSqlValue } from "./Types.js"
+import { TaggedSqlValue } from "./Types.js"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { SessionTypeProvider } from "../../platform-kit/base/facades/SessionTypeProvider"
 
 /**
  * Defines tables created for this interface
@@ -18,11 +20,6 @@ export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable
 	},
 })
 
-export type TrustDBEntry = {
-	publicIdentityKey: Versioned<SigningPublicKey>
-	sourceOfTrust: IdentityKeySourceOfTrust
-}
-
 /**
  * This class handles the interactions with the underlying SQL database to store and retrieve identity keys.
  *
@@ -30,7 +27,7 @@ export type TrustDBEntry = {
  * mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust (TOFU/MANUALLY_VERIFIED)
  *
  */
-export class IdentityKeyTrustDatabase {
+export class LocalIdentityKeyTrustDatabase implements IdentityKeyTrustDatabase {
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly lazyLoginFacade: lazy<SessionTypeProvider>,

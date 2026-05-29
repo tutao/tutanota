@@ -1,6 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
-import { RsaImplementation } from "../../../../src/app-kit/native-bridge/worker/RsaImplementation.js"
 import { PQFacade } from "../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
@@ -39,6 +38,7 @@ import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-
 import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { RsaImplementation } from "../../../../src/platform-kit/crypto/encryption/RsaImplementation"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation

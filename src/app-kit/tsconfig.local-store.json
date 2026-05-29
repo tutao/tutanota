@@ -9,19 +9,7 @@
 	},
 	"references": [
 		{
-			"path": "../platform-kit/tsconfig.utils.json"
-		},
-		{
-			"path": "../platform-kit/tsconfig.app-env.json"
-		},
-		{
-			"path": "../platform-kit/tsconfig.crypto.json"
-		},
-		{
-			"path": "../platform-kit/tsconfig.meta.json"
-		},
-		{
-			"path": "../platform-kit/tsconfig.instance-pipeline.json"
+			"path": "../platform-kit/tsconfig.base.json"
 		},
 		{
 			"path": "../entities/tsconfig.entities.tutanota.json"

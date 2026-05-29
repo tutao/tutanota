@@ -3,12 +3,13 @@ import { object } from "testdouble"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
 
 import { createTestEntity } from "../../../TestUtils"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../../../src/app-kit/local-store/PublicEncryptionKeyCache"
+import { PublicEncryptionKeyCache } from "../../../../../src/platform-kit/base/crypto/persistence/PublicEncryptionKeyCache"
 
 import { PublicKeyIdentifier, PublicKeyIdentifierType } from "../../../../../src/platform-kit/crypto"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
+import { MaybeSignedPublicKey } from "../../../../../src/platform-kit/base/crypto/MaybeSignedPublicKey"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

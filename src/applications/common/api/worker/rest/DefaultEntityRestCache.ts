@@ -26,7 +26,7 @@ import {
 } from "@tutao/meta"
 import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
-import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../platform-kit/network/EventBusClient.js"
+import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/network/LastProcessedEventBatchProvider.js"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"

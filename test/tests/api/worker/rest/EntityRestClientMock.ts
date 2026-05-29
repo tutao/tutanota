@@ -24,6 +24,7 @@ import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { downcast } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { object } from "testdouble"
 import { SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 
 const authDataProvider: LoggedInUserProvider = downcast({
@@ -58,6 +59,7 @@ export class EntityRestClientMock extends EntityRestClient {
 			downcast({}),
 			typeModelResolver,
 			() => downcast({}),
+			object(),
 		)
 		this._lastIdTimestamp = Date.now()
 		this._typeModelResolver = typeModelResolver

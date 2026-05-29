@@ -15,14 +15,14 @@ import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToB
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { getElementId, isSameId } from "../../meta"
-import { KeyCache } from "../../../app-kit/local-store/KeyCache.js"
+import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
+import { CacheManager } from "./persistence/CacheManager"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
@@ -41,7 +41,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		private readonly keyCache: KeyCache,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
-		private readonly cacheManagementFacade: lazyAsync<CacheManagementInterface>,
+		private readonly cacheManagementFacade: lazyAsync<CacheManager>,
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 

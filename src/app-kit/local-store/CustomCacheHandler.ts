@@ -1,6 +1,6 @@
 import { getTypeString, SomeEntity, TypeRef } from "../../platform-kit/meta"
 import { freezeMap } from "../../platform-kit/utils"
-import { ExposedCacheStorage } from "./CacheStorage.js"
+import { ExposedCacheStorage } from "./CacheStorage"
 import { CalendarEvent, Mail } from "@tutao/entities/tutanota"
 import { EntityUpdateData } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { User } from "@tutao/entities/sys"
