@@ -27,7 +27,7 @@ import { UndoModel } from "../../UndoModel"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
-import { ImportMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ImportFileMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -716,7 +716,7 @@ export class MailViewModel {
 		}
 
 		for (const update of updates) {
-			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
 				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 			} else if (update.operation === OperationType.UPDATE) {
 				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
@@ -726,7 +726,7 @@ export class MailViewModel {
 					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {
 						this.setListId(folderForMail)
 					}
-				} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+				} else if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
 					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
 				}
 			}
@@ -743,7 +743,7 @@ export class MailViewModel {
 		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
 		// and ensures that all imported mails are searchable immediately.
-		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId!, update.instanceId])
+		const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId!, update.instanceId])
 		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
 		if (targetFolder) {
 			const targetFolderEntriesListId = targetFolder.entries
