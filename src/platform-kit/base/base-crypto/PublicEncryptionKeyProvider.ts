@@ -16,9 +16,10 @@ import { KeyVersion, lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import { InvalidDataError } from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../facades/lazy/KeyVerificationFacade"
-import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../app-kit/local-store/PublicEncryptionKeyCache"
 import { CryptoTypes } from "./Constants"
 import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeyService, SystemKeysReturn } from "@tutao/entities/sys"
+import { MaybeSignedPublicKey } from "./MaybeSignedPublicKey"
+import { PublicEncryptionKeyCache } from "./persistence/PublicEncryptionKeyCache"
 
 /**
  * Load public encryption keys.

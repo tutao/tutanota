@@ -1,11 +1,12 @@
 import { assertNotNull, Nullable } from "../../platform-kit/utils"
 import { Entity } from "../../platform-kit/meta/EntityTypes"
 import { InstanceSessionKey } from "@tutao/entities/sys"
+import { InstanceSessionKeysCache } from "../../platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
 
 /**
  * This caches instanceSessionKeys (payload to UpdateInstanceSessionKeyService) for instances with bucketKeys
  */
-export class InstanceSessionKeysCache {
+export class LocalInstanceSessionKeysCache implements InstanceSessionKeysCache {
 	// string representation of the Id | IdTuple of the instance with the bucket key -> InstanceSessionKeys for the main and the child instances
 	private readonly cache: Map<string, Array<InstanceSessionKey>> = new Map<string, Array<InstanceSessionKey>>()
 	constructor() {}

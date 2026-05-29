@@ -3,7 +3,7 @@ import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
-import { doBlobRequestWithRetry, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
+import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
@@ -24,15 +24,21 @@ import {
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
+import {
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	PatchOperationType,
+	TypeModelResolver,
+	typeModelToRestPath,
+} from "../../../src/platform-kit/instance-pipeline"
 import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../src/platform-kit/base/base-crypto/KeyRotationFacade"
-import { InstanceSessionKeysCache } from "../../../src/app-kit/local-store/InstanceSessionKeysCache"
-import { CacheManagementInterface } from "../../../src/app-kit/local-store/CacheManagementInterface"
+import { LocalInstanceSessionKeysCache } from "../../../src/app-kit/local-store/LocalInstanceSessionKeysCache"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import {
 	BodyTypeRef,
@@ -60,6 +66,8 @@ import {
 	UpdateKdfNonceService,
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+import { CacheManager } from "../../../src/platform-kit/base/crypto/persistence/CacheManager"
+import { TutanotaEntityMigrator } from "../../../src/applications/common/misc/TutanotaEntityMigrator"
 import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
@@ -95,6 +103,12 @@ function groupMembers(count) {
 		})
 
 	return createArrayOf(count, groupMemberFactory)
+}
+
+class EntityMigratorStub implements EntityMigrator {
+	async applyMigrations(typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter> {
+		return data
+	}
 }
 
 type TestLoggedInUserProvider = LoggedInUserProvider & { encryptionScheme: SymmetricEncryptionScheme }
@@ -144,11 +158,11 @@ o.spec("EntityRestClient", function () {
 			instance(RestClient),
 			serviceExecutor,
 			instancePipeline,
-			async () => object<CacheManagementInterface>(),
+			async () => object<CacheManager>(),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
-			new InstanceSessionKeysCache(),
+			new LocalInstanceSessionKeysCache(),
 			cryptoWrapper,
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
@@ -181,6 +195,7 @@ o.spec("EntityRestClient", function () {
 			blobAccessTokenFacade,
 			typeModelResolver,
 			() => cryptoFacadePartialStub,
+			() => new EntityMigratorStub(),
 		)
 	})
 

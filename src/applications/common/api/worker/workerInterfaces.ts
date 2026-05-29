@@ -1,4 +1,4 @@
-import { EventBusClient } from "../../../../platform-kit/network/EventBusClient.js"
+import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { LoginFacade, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { ExposedEventController } from "../main/EventController.js"

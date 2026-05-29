@@ -1,17 +1,17 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
-import { InstanceSessionKeysCache } from "../../../../../src/app-kit/local-store/InstanceSessionKeysCache"
+import { LocalInstanceSessionKeysCache } from "../../../../../src/app-kit/local-store/LocalInstanceSessionKeysCache"
 
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
 
 o.spec("InstanceSessionKeysCacheTest", function () {
-	let instanceSessionKeysCache: InstanceSessionKeysCache
+	let instanceSessionKeysCache: LocalInstanceSessionKeysCache
 	let testMail: Mail
 
 	o.beforeEach(function () {
-		instanceSessionKeysCache = new InstanceSessionKeysCache()
+		instanceSessionKeysCache = new LocalInstanceSessionKeysCache()
 		testMail = createTestEntity(MailTypeRef, { _id: ["mailBagMailListId", "mailElementId"] })
 	})
 

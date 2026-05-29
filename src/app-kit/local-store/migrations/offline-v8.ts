@@ -9,7 +9,7 @@ export class offline8 extends OfflineMigration {
 	}
 
 	async migrate(storage: OfflineStorage) {
-		const { KeyVerificationTableDefinitions } = await import("../IdentityKeyTrustDatabase.js")
+		const { KeyVerificationTableDefinitions } = await import("../LocalIdentityKeyTrustDatabase.js")
 
 		console.log("migrating from trusted_identities to identity_store")
 		await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS trusted_identities`, [])

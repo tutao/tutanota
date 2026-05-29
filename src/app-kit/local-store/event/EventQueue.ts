@@ -1,6 +1,6 @@
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { purgeSyncMetrics, syncMetrics } from "@tutao/utils"
-import { EntityUpdateData, getLogStringForEntityEvent } from "../instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, getLogStringForEntityEvent } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export type QueuedBatch = {
 	events: readonly EntityUpdateData[]

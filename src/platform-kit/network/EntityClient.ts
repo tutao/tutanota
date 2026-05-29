@@ -14,13 +14,12 @@ import {
 	ValueType,
 } from "../meta"
 import { downcast, groupByAndMap, last, promiseMap } from "@tutao/utils"
-import * as restError from "@tutao/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
-import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 export class EntityClient {
 	_target: EntityRestInterface

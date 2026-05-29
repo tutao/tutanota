@@ -5,7 +5,12 @@ import { Nullable } from "../../platform-kit/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage.js"
-import { CacheStorageInitReturn, CacheStorageLateInitializer, EphemeralStorageArgs, OfflineStorageArgs } from "./Types.js"
+import {
+	CacheStorageInitReturn,
+	CacheStorageLateInitializer,
+	EphemeralStorageArgs,
+	OfflineStorageArgs,
+} from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that

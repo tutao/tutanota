@@ -1,5 +1,5 @@
 import o, { spy } from "@tutao/otest"
-import { EventQueue, QueuedBatch } from "../../../../../src/platform-kit/network/EventQueue.js"
+import { EventQueue, QueuedBatch } from "../../../../../src/app-kit/local-store/event/EventQueue.js"
 import { defer, delay } from "../../../../../src/platform-kit/utils"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 

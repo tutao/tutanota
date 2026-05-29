@@ -58,7 +58,6 @@ import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto
 import { EntityAdapter, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import { CacheManagementInterface } from "../../../../src/app-kit/local-store/CacheManagementInterface"
 import {
 	createMail,
 	createMailAddress,
@@ -98,12 +97,13 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { InstanceSessionKeysCache } from "../../../../src/app-kit/local-store/InstanceSessionKeysCache.js"
+import { LocalInstanceSessionKeysCache } from "../../../../src/app-kit/local-store/LocalInstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { aesDecrypt, aesEncrypt } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { CacheManager } from "../../../../src/platform-kit/base/crypto/persistence/CacheManager"
 
 const { anything, argThat } = matchers
 
@@ -140,7 +140,7 @@ o.spec("CryptoFacadeTest", function () {
 	let keyRotationFacade: KeyRotationFacade
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
-	let instanceSessionKeysCache: InstanceSessionKeysCache
+	let instanceSessionKeysCache: LocalInstanceSessionKeysCache
 
 	async function prepareBucketKeyInstance(
 		bucketEncMailSessionKey: Uint8Array,
@@ -226,7 +226,7 @@ o.spec("CryptoFacadeTest", function () {
 			restClient,
 			serviceExecutor,
 			instancePipeline,
-			async () => cache as unknown as CacheManagementInterface,
+			async () => cache as unknown as CacheManager,
 			keyLoaderFacade,
 			asymmetricCryptoFacade,
 			publicEncryptionKeyProvider,

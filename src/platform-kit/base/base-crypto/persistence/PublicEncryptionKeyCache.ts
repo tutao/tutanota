@@ -1,9 +1,7 @@
-import { KeyVersion, Versioned } from "../../platform-kit/utils"
-import { PublicKey, PublicKeyIdentifier, PublicKeyIdentifierType } from "../../platform-kit/crypto"
-import { PublicKeySignature } from "@tutao/entities/sys"
-import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../entities/sys/Utils"
-
-export type MaybeSignedPublicKey = { publicKey: Versioned<PublicKey>; signature: PublicKeySignature | null }
+import { KeyVersion } from "@tutao/utils"
+import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
+import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../entities/sys/Utils"
+import { MaybeSignedPublicKey } from "../MaybeSignedPublicKey"
 
 /**
  * This caches public encryption keys that did not fail key verification / TOFU.
@@ -40,7 +38,7 @@ export class PublicEncryptionKeyCache {
 		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version))
 	}
 
-	private makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {
+	makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {
 		// we use JSON.stringify to get a canonical form and so that we do not have to worry about collisions of these different length parts of the key string
 		return JSON.stringify({ version, object: publicKeyIdentifier })
 	}

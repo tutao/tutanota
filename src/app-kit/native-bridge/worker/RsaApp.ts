@@ -1,6 +1,6 @@
 import type { Randomizer, RsaPrivateKey, RsaPublicKey } from "../../../platform-kit/crypto"
-import type { RsaImplementation } from "./RsaImplementation.js"
 import { NativeCryptoFacade } from "../common/generatedipc/types/NativeCryptoFacade.js"
+import { RsaImplementation } from "../../../platform-kit/crypto/encryption/RsaImplementation"
 
 export class RsaApp implements RsaImplementation {
 	constructor(

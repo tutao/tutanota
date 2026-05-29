@@ -51,9 +51,7 @@ import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
 import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
-import { CacheStorageLateInitializer, SessionTypeProvider } from "../../../app-kit/local-store/Types.js"
 import { Argon2idFacade } from "../base-crypto/WasmArgon2idFacade"
-import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface"
 import {
 	Challenge,
 	createChangeKdfPostIn,
@@ -77,9 +75,7 @@ import {
 	UserTypeRef,
 	WebsocketLeaderStatus,
 } from "../../../entities/sys/TypeRefs"
-import { EventBusClient } from "../../network/EventBusClient"
-import { CacheMode, EntityRestClient } from "../../network/EntityRestClient"
-import { CloseEventBusOption, ConnectMode } from "../../network/Constants"
+import { CacheMode, EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
 import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
 import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
@@ -105,6 +101,10 @@ import {
 	NotFoundError,
 	SessionExpiredError,
 } from "@tutao/rest-client/error"
+import { SessionTypeProvider } from "./SessionTypeProvider"
+import { CacheStorageLateInitializer } from "./CacheStorageLateInitializer"
+import { CacheManager } from "../crypto/persistence/CacheManager"
+import { ConnectMode } from "../../network/Constants"
 
 assertWorkerOrNode()
 
@@ -194,12 +194,13 @@ export interface LoginListener {
 	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
 	 */
 	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
+
+	onResetSession(): void
 }
 
 export class LoginFacade implements SessionTypeProvider {
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
 	asyncLoginState: AsyncLoginState = { state: "idle" }
-	private eventBusClient!: EventBusClient
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -232,18 +233,15 @@ export class LoginFacade implements SessionTypeProvider {
 		private readonly argon2idFacade: Argon2idFacade,
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly sendError: (error: Error) => Promise<void>,
-		private readonly cacheManagementFacade: lazyAsync<CacheManagementInterface>,
+		private readonly cacheManagementFacade: lazyAsync<CacheManager>,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly rolloutFacade: RolloutFacade,
 		private readonly applicationTypesFacade: ApplicationTypesFacade,
+		private readonly entityMigrator: EntityMigrator,
 	) {}
 
-	init(eventBusClient: EventBusClient) {
-		this.eventBusClient = eventBusClient
-	}
-
 	async resetSession(): Promise<void> {
-		this.eventBusClient.close(CloseEventBusOption.Terminate)
+		this.loginListener.onResetSession()
 		await this.deInitCache()
 		this.userFacade.reset()
 	}
@@ -750,6 +748,7 @@ export class LoginFacade implements SessionTypeProvider {
 			this.blobAccessTokenFacade,
 			this.typeModelResolver,
 			lazyCrypto,
+			() => this.entityMigrator,
 		)
 		const entityClient = new EntityClient(eventRestClient, this.typeModelResolver)
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
@@ -955,16 +954,6 @@ export class LoginFacade implements SessionTypeProvider {
 	private async triggerFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.lastLoginSessionType = sessionType
 		await this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
-
-		// If we have been fully logged in at least once already (probably expired ephemeral session)
-		// then we just reconnect and re-download missing events.
-		// For new connections we have special handling.
-		const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
-		if (wasFullyLoggedIn) {
-			await this.eventBusClient.connect(ConnectMode.Reconnect)
-		} else {
-			await this.eventBusClient.connect(ConnectMode.Initial)
-		}
 	}
 
 	private getSessionId(credentials: Credentials): IdTuple {

@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { TaggedSqlValue } from "../../../../src/app-kit/local-store/Types"
 import { matchers, object, verify, when } from "testdouble"
 import { TrustedIdentity } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
+import { LocalIdentityKeyTrustDatabase } from "../../../../src/app-kit/local-store/LocalIdentityKeyTrustDatabase"
 import { hexToUint8Array } from "../../../../src/platform-kit/utils"
 import testData from "../../api/worker/crypto/CompatibilityTestData.json"
 import { bytesToEd25519PublicKey, SigningKeyPairType } from "../../../../src/platform-kit/crypto"
@@ -12,12 +12,13 @@ import { LoginFacade } from "../../../../src/platform-kit/base/facades/LoginFaca
 import { SessionType } from "../../../../src/platform-kit/app-env/SessionType"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
+import { TrustDBEntry } from "../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {
 	let sqlCipherFacade: SqlCipherFacade
 	let loginFacade: LoginFacade
-	let identityKeyTrustDatabase: IdentityKeyTrustDatabase
+	let identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
 
 	const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
 	const PUBLIC_KEY = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
@@ -57,7 +58,7 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 	o.beforeEach(function () {
 		sqlCipherFacade = object()
 		loginFacade = object()
-		identityKeyTrustDatabase = new IdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade)
+		identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade)
 		backupEnv = globalThis.env
 	})
 	o.afterEach(function () {

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { EventBusClient, EventBusListener } from "../../../../src/platform-kit/network/EventBusClient.js"
+import { EventBusClient, EventBusListener } from "../../../../src/app-kit/local-store/event/EventBusClient.js"
 import { OperationType, timestampToGeneratedId } from "../../../../src/platform-kit/meta"
 import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OutOfSyncError, ProgrammingError } from "../../../../src/platform-kit/app-env"
@@ -71,7 +71,7 @@ o.spec("EventBusClient", function () {
 			sleepDetector,
 			typeModelResolver,
 			cryptoFacadeMock,
-			cryptoFacadeMock,
+			object(),
 			() => Promise.resolve(lastProcessedEventBatchStorageFacade),
 			serverDateProvider,
 			createProgressMonitor,
