@@ -27,8 +27,8 @@ import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexer
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import {
 	File,
-	ImportedMailTypeRef,
-	ImportMailStateTypeRef,
+	ImportedFileMailTypeRef,
+	ImportFileMailStateTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -569,12 +569,12 @@ export class MailIndexer {
 	}
 
 	private async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
-		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, importStateId)
+		const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, importStateId)
 		const status = parseInt(importMailState.status) as ImportStatus
 		if (status !== ImportStatus.Finished && status !== ImportStatus.Canceled) {
 			return []
 		}
-		const importedMailEntries = await this.entityClient.loadAll(ImportedMailTypeRef, importMailState.importedMails)
+		const importedMailEntries = await this.entityClient.loadAll(ImportedFileMailTypeRef, importMailState.importedMails)
 
 		if (isEmpty(importedMailEntries)) {
 			return []
@@ -603,7 +603,7 @@ export class MailIndexer {
 		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
+			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId])
 			}
 		}

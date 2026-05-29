@@ -8,7 +8,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
 import { getApiBaseUrl, ProgrammingError } from "../../../../platform-kit/app-env"
-import { ImportMailState, ImportMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
+import { ImportFileMailState, ImportFileMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
 import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { EventController } from "../../../common/api/main/EventController"
 import { ImportErrorCategories, MailImportError } from "../../../common/api/common/error/MailImportError.js"
@@ -36,7 +36,7 @@ type ActiveImport = {
 }
 
 export class MailImporter {
-	private mailboxToFinalisedImportStates: Map<Id, Map<Id, ImportMailState>> = new Map()
+	private mailboxToFinalisedImportStates: Map<Id, Map<Id, ImportFileMailState>> = new Map()
 	public mailboxToFolders: Map<Id, FolderSystem> = new Map()
 
 	private activeImport: ActiveImport | null = null
@@ -82,7 +82,7 @@ export class MailImporter {
 				await this.checkForResumableImport(mailbox)
 			}
 
-			const importMailStatesCollection = await this.entityClient.loadAll(ImportMailStateTypeRef, mailbox.mailImportStates)
+			const importMailStatesCollection = await this.entityClient.loadAll(ImportFileMailStateTypeRef, mailbox.importFileMailStates)
 			for (const importMailState of importMailStatesCollection) {
 				if (this.isFinalisedImport(importMailState)) {
 					this.updateFinalisedImport(mailbox._id, elementIdPart(importMailState._id), importMailState)
@@ -124,7 +124,7 @@ export class MailImporter {
 		if (activeImportId) {
 			// we can't use the result of loadAll (see below) as that might only read from offline cache and
 			// not include a new ImportMailState that was created without sending an entity event
-			const importMailState = await this.entityClient.load(ImportMailStateTypeRef, activeImportId)
+			const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, activeImportId)
 			const remoteStatus = parseInt(importMailState.status) as ImportStatus
 
 			switch (remoteStatus) {
@@ -158,14 +158,14 @@ export class MailImporter {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
-				const updatedState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
+			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
+				const updatedState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId, update.instanceId])
 				await this.newImportStateFromServer(updatedState)
 			}
 		}
 	}
 
-	async newImportStateFromServer(serverState: ImportMailState) {
+	async newImportStateFromServer(serverState: ImportFileMailState) {
 		const remoteStatus = parseInt(serverState.status) as ImportStatus
 
 		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
@@ -202,7 +202,7 @@ export class MailImporter {
 		})
 	}
 
-	private isFinalisedImport(importMailState: ImportMailState) {
+	private isFinalisedImport(importMailState: ImportFileMailState) {
 		return parseInt(importMailState.status) === ImportStatus.Finished || parseInt(importMailState.status) === ImportStatus.Canceled
 	}
 
@@ -441,7 +441,7 @@ export class MailImporter {
 		return Math.ceil(progressMonitor.percentage())
 	}
 
-	getFinalisedImports(mailboxId: Id): Array<ImportMailState> {
+	getFinalisedImports(mailboxId: Id): Array<ImportFileMailState> {
 		const finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
 		if (finalisedImportStates) {
 			return Array.from(finalisedImportStates.values())
@@ -449,7 +449,7 @@ export class MailImporter {
 		return []
 	}
 
-	updateFinalisedImport(mailboxId: Id, importMailStateElementId: Id, importMailState: ImportMailState) {
+	updateFinalisedImport(mailboxId: Id, importMailStateElementId: Id, importMailState: ImportFileMailState) {
 		let finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
 		if (!finalisedImportStates) {
 			this.mailboxToFinalisedImportStates.set(mailboxId, new Map())
