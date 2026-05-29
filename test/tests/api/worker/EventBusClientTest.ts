@@ -35,7 +35,7 @@ export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"
 	patches: null,
 	blobInstance: null,
 }
-o.spec("EventBusClientTest", function () {
+o.spec("EventBusClient", function () {
 	let ebc: EventBusClient
 	let cacheMock: DefaultEntityRestCache
 	let userMock: UserFacade
@@ -132,7 +132,7 @@ o.spec("EventBusClientTest", function () {
 			]
 		})
 
-		o("initial connect: when the cache is clean it initializes cache with GENERATED_MIN_ID", async function () {
+		o.test("initial connect: when the cache is clean it initializes cache with GENERATED_MIN_ID", async function () {
 			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
 
@@ -147,7 +147,7 @@ o.spec("EventBusClientTest", function () {
 			)
 		})
 
-		o("reconnect: when the cache is out of sync with the server, the cache is purged", async function () {
+		o.test("reconnect: when the cache is out of sync with the server, the cache is purged", async function () {
 			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
 			// Make initial connection to simulate reconnect (populate lastEntityEventIds
 			await ebc.connect(ConnectMode.Initial)
@@ -164,7 +164,7 @@ o.spec("EventBusClientTest", function () {
 			verify(listenerMock.onError(matchers.isA(OutOfSyncError)))
 		})
 
-		o("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
+		o.test("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
 			when(lastProcessedEventBatchStorageFacade.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
 			when(cacheMock.isOutOfSync()).thenResolve(true)
 
@@ -176,7 +176,7 @@ o.spec("EventBusClientTest", function () {
 		})
 	})
 
-	o("parallel received event batches are passed sequentially to the entity rest cache", async function () {
+	o.test("parallel received event batches are passed sequentially to the entity rest cache", async function () {
 		o.timeout(20000)
 		await ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
@@ -219,7 +219,7 @@ o.spec("EventBusClientTest", function () {
 		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
 	})
 
-	o("on counter update it send message to the main thread", async function () {
+	o.test("on counter update it send message to the main thread", async function () {
 		const counterUpdate = createCounterData({ mailGroupId: "group1", counterValue: 4, counterId: "list1" })
 
 		await ebc.connect(ConnectMode.Initial)
@@ -233,10 +233,10 @@ o.spec("EventBusClientTest", function () {
 		const updateCaptor = matchers.captor()
 		verify(listenerMock.onCounterChanged(updateCaptor.capture()))
 
-		o(updateCaptor.values!.map(removeOriginals)).deepEquals([counterUpdate])
+		o.check(updateCaptor.values!.map(removeOriginals)).deepEquals([counterUpdate])
 	})
 
-	o("verify new hash is set when entity updates are processed", async function () {
+	o.test("verify new hash is set when entity updates are processed", async function () {
 		await ebc.connect(ConnectMode.Initial)
 		await socket.onmessage?.({
 			data: await createEntityMessage(
@@ -252,11 +252,11 @@ o.spec("EventBusClientTest", function () {
 
 		await ebc.messageQueue
 
-		o(typeModelResolver.getServerApplicationTypesModelHash()).equals("newHash")
+		o.check(typeModelResolver.getServerApplicationTypesModelHash()).equals("newHash")
 	})
 
 	o.spec("sleep detection", function () {
-		o("on connect it starts", async function () {
+		o.test("on connect it starts", async function () {
 			verify(sleepDetector.start(matchers.anything()), { times: 0 })
 
 			await ebc.connect(ConnectMode.Initial)
@@ -265,7 +265,7 @@ o.spec("EventBusClientTest", function () {
 			verify(sleepDetector.start(matchers.anything()), { times: 1 })
 		})
 
-		o("on disconnect it stops", async function () {
+		o.test("on disconnect it stops", async function () {
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
 
@@ -273,7 +273,7 @@ o.spec("EventBusClientTest", function () {
 			verify(sleepDetector.stop())
 		})
 
-		o("on sleep it reconnects", async function () {
+		o.test("on sleep it reconnects", async function () {
 			let passedCb: Thunk
 			when(sleepDetector.start(matchers.anything())).thenDo((cb: Thunk) => (passedCb = cb))
 			const firstSocket = socket
