@@ -186,25 +186,27 @@ export async function makeCalendarEventModel(
 ): Promise<CalendarEventModel | null> {
 	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
+
+	const calendarInfos = await calendarModel.getCalendarInfos()
+	const selectedCalendar = getPreselectedCalendar(calendarInfos, initialValues)
+
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
-		const index = await calendarModel.getEventsByUid(initialValues.uid)
-		if (index != null && index.progenitor != null) {
-			initialValues = index.progenitor
+
+		const indexEntry = await calendarModel.getEventsByUid(initialValues.uid, selectedCalendar.id)
+		if (indexEntry?.progenitor) {
+			initialValues = indexEntry.progenitor
 		}
 	}
 
-	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, logins.getUserController().user),
-		calendarModel.getCalendarInfos(),
-	])
-	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
+	const alarms = await resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, logins.getUserController().user)
+
 	const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) =>
 		getPasswordStrengthForUser(password, recipientInfo, mailboxDetail, logins)
 
 	const eventType = getEventType(
 		initialValues,
-		calendars,
+		calendarInfos,
 		ownMailAddresses.map(({ address }) => address),
 		logins.getUserController(),
 	)
@@ -215,7 +217,7 @@ export async function makeCalendarEventModel(
 			initializationEvent,
 			eventType,
 			operation,
-			calendars,
+			calendarInfos,
 			selectedCalendar,
 			logins.getUserController(),
 			operation === CalendarOperation.Create,
@@ -233,31 +235,34 @@ export async function makeCalendarEventModel(
 		comment: new SimpleTextViewModel("", uiUpdateCallback),
 	})
 
-	const recurrenceIds = async (uid?: string) =>
-		uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
+	const fetchRecurrenceIds = async (uid: string, groupId: Id) => {
+		const indexEntry = await calendarModel.getEventsByUid(uid, groupId)
+		return indexEntry?.alteredInstances.map((i) => i.recurrenceId) ?? []
+	}
+
 	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
 	const applyStrategies = new CalendarEventApplyStrategies(
 		calendarModel,
 		logins,
 		notificationModel,
 		makeEditModels,
-		recurrenceIds,
+		fetchRecurrenceIds,
 		showProgress,
 		zone,
 		calendarInviteHandler,
 	)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
+	const resolveProgenitor = () => calendarModel.resolveCalendarEventProgenitor({ uid: initialOrDefaultValues.uid, _ownerGroup: selectedCalendar.id })
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
-	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
 	const strategy = await selectStrategy(
 		makeEditModels,
 		applyStrategies,
 		operation,
-		progenitor,
+		resolveProgenitor,
 		createCalendarEvent(initialOrDefaultValues),
 		cleanInitialValues,
 	)
-	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
+	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendarInfos)
 }
 
 async function selectStrategy(

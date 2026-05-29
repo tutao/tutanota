@@ -861,7 +861,10 @@ class DriveLocator implements CommonLocator {
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
 		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController)
 		const hasBusinessFeature = isCustomizationEnabledForCustomer(customer, FeatureType.BusinessFeatureEnabled) || (await userController.isNewPaidPlan())
-		const lazyIndexEntry = async () => (selectedEvent.uid != null ? this.calendarFacade.getEventsByUid(selectedEvent.uid) : null)
+		const lazyIndexEntry = async () =>
+			selectedEvent.uid != null && selectedEvent._ownerGroup != null
+				? this.calendarFacade.getEventsByUid(selectedEvent.uid, selectedEvent._ownerGroup)
+				: null
 		const popupModel = new CalendarEventPreviewViewModel(
 			selectedEvent,
 			await this.calendarModel(),

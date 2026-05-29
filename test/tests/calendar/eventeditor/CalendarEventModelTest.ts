@@ -11,7 +11,7 @@ import { CalendarNotificationSender } from "../../../../src/applications/calenda
 import { CalendarModel } from "../../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
-import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerId, ownerMailAddress } from "../CalendarTestUtils.js"
+import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, userId, ownerMailAddress } from "../CalendarTestUtils.js"
 import { identity, noOp } from "../../../../src/platform-kit/utils"
 import { RecipientsModel, ResolvableRecipient } from "../../../../src/applications/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
@@ -131,7 +131,7 @@ o.spec("CalendarEventModel", function () {
 				mailbox: createTestEntity(MailBoxTypeRef),
 				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 				mailGroup: createTestEntity(GroupTypeRef, {
-					user: ownerId,
+					user: userId,
 				}),
 				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 			}

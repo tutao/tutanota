@@ -4,9 +4,9 @@ import { createTestEntity } from "../TestUtils.js"
 
 import { findAttendeeInAddresses } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { instance, matchers, verify, when } from "testdouble"
-import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
+import { CalendarInfo, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
-import { calendars, makeUserController } from "./CalendarTestUtils.js"
+import { makeCalendarInfo, makeUserController, ownCalendarId } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/applications/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
@@ -31,6 +31,7 @@ import {
 import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
 import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
 import { AccountType } from "../../../src/entities/sys/Utils"
+import { CalendarType } from "../../../src/applications/common/calendar/date/CalendarUtils"
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
@@ -47,6 +48,8 @@ o.spec("CalendarInviteHandlerTest", function () {
 	let ownAttendee: CalendarEventAttendee
 	let mail: Mail
 	let event: CalendarEvent
+
+	const calendarGroupId = "ownCalendarId"
 
 	o.beforeEach(function () {
 		event = createTestEntity(CalendarEventTypeRef, {
@@ -107,6 +110,9 @@ o.spec("CalendarInviteHandlerTest", function () {
 		calendarInviteHandler = new CalendarInviteHandler(maiboxModel, calendarModel, logins, calendarNotificationSender, async () => {
 			return sendMailModel
 		})
+
+		const calendarInfo: CalendarInfo = makeCalendarInfo(calendarGroupId, true, CalendarType.Private)
+		when(calendarModel.getCalendarInfos()).thenResolve(new Map([[calendarGroupId, calendarInfo]]))
 	})
 
 	o.spec("ReplyToEventInvitation", function () {
@@ -123,7 +129,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 					name: "whatever",
 					contact: null,
 				})
-				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 				when(calendarModel.getEventsByUid(matchers.anything(), matchers.anything())).thenResolve(null)
 			})
 
@@ -159,6 +164,10 @@ o.spec("CalendarInviteHandlerTest", function () {
 		})
 
 		o.spec("Known sender  - User can reply only from EventBanner or eventPreview", function () {
+			o.beforeEach(function () {
+				event._ownerGroup = calendarGroupId
+			})
+
 			o.test("respond yes to event from eventBanner", async function () {
 				mail = createTestEntity(MailTypeRef)
 				mail.sender = createMailAddress({
@@ -166,7 +175,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 					name: "whatever",
 					contact: null,
 				})
-				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.ACCEPTED, mail, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
@@ -187,7 +195,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 					name: "whatever",
 					contact: null,
 				})
-				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
@@ -196,8 +203,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 			})
 
 			o.test("respond no to event from eventPreview should update persisted events", async function () {
-				when(calendarModel.getCalendarInfos()).thenResolve(calendars)
-
 				// previousMail is null because eventPreview is part of calendar app and will not receive a Mail object
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, null, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
@@ -236,7 +241,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 					name: "whatever",
 					contact: null,
 				})
-				when(calendarModel.getCalendarInfos()).thenResolve(new Map())
 				o.check(await calendarInviteHandler.replyToEventInvitation(event, ownAttendee!, CalendarAttendeeStatus.DECLINED, mail, mailboxDetails)).equals(
 					ReplyResult.ReplySent,
 				)
@@ -259,6 +263,7 @@ o.spec("CalendarInviteHandlerTest", function () {
 
 			const calendarEventCaptor = matchers.captor()
 			verify(calendarNotificationSender.sendResponse(calendarEventCaptor.capture(), matchers.anything(), matchers.anything()), { times: 1 })
+
 			const capturedCalendarEvent: CalendarEvent = calendarEventCaptor.value
 			o(capturedCalendarEvent.invitedConfidentially).equals(mail.confidential)
 			verify(sendMailModel.setConfidential(true), { times: 2 })
