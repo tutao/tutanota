@@ -7,7 +7,7 @@ import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString 
 import { UpgradePromptType } from "../../../platform-kit/app-env"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
+import { FileMailImportController, UiImportStatus } from "../mail/import/FileMailImportController.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { DropDownSelector, type DropDownSelectorAttrs, SelectorItemList } from "../../../ui/base/DropDownSelector.js"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
@@ -20,7 +20,7 @@ import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { MailSet } from "@tutao/entities/tutanota"
-import { ImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
+import { FileImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../entities/sys/Utils"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -32,14 +32,13 @@ import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
  */
 export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer {
 	private mailboxIdToImportHistoryExpanded: Map<Id, boolean> = new Map<Id, boolean>()
-	private importStatePoolHandle: TimeoutID
 
-	constructor(private readonly mailImporter: lazy<MailImporter>) {}
+	constructor(private readonly fileMailImportController: lazy<FileMailImportController>) {}
 
 	async oninit(): Promise<void> {
-		await this.mailImporter().initImportMailStates()
+		await this.fileMailImportController().initImportMailStates()
 
-		const mailboxDetails = this.mailImporter().mailboxDetails
+		const mailboxDetails = this.fileMailImportController().mailboxDetails
 		if (mailboxDetails) {
 			const isSingleMailbox = mailboxDetails.length === 1
 			for (const detail of mailboxDetails) {
@@ -48,17 +47,13 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 	}
 
-	onbeforeremove(): void {
-		clearInterval(this.importStatePoolHandle)
-	}
-
 	view(): Children {
 		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m(".h4.mt-32", lang.get("mailImportSettings_label")),
 			this.renderMailboxSelectionControls(),
 			this.renderTargetFolderControls(),
-			!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
-			this.mailImporter().shouldRenderImportStatus() ? this.renderImportStatus() : null,
+			!this.fileMailImportController().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
+			this.fileMailImportController().shouldRenderImportStatus() ? this.renderImportStatus() : null,
 			this.renderImportHistories(),
 		])
 	}
@@ -75,23 +70,23 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const fileUris = client.isMacOS
 			? await mailLocator.fileApp.openMacImportFileChooser()
 			: await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
-		await this.mailImporter().onStartBtnClick(fileUris.map((fp) => fp.location))
+		await this.fileMailImportController().onStartBtnClick(fileUris.map((fp) => fp.location))
 	}
 
 	private renderMailboxSelectionControls() {
-		const mailboxesDetails = this.mailImporter().mailboxDetails
+		const mailboxesDetails = this.fileMailImportController().mailboxDetails
 		if (mailboxesDetails && mailboxesDetails.length > 1) {
 			return m(DropDownSelector, {
 				label: "mailboxToImport_label",
 				items: mailboxesDetails.map((mailboxDetail) => {
 					return { name: getMailboxName(mailLocator.logins, mailboxDetail), value: mailboxDetail }
 				}),
-				selectedValue: this.mailImporter().selectedMailBoxDetail,
+				selectedValue: this.fileMailImportController().selectedMailBoxDetail,
 				selectionChangedHandler: (selectedMailboxDetail) => {
-					this.mailImporter().onNewMailboxSelected(selectedMailboxDetail)
+					this.fileMailImportController().onNewMailboxSelected(selectedMailboxDetail)
 				},
 				dropdownWidth: 300,
-				disabled: this.mailImporter().shouldRenderImportStatus(),
+				disabled: this.fileMailImportController().shouldRenderImportStatus(),
 				helpLabel: () => null,
 			} satisfies DropDownSelectorAttrs<MailboxDetail>)
 		}
@@ -99,20 +94,20 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	}
 
 	private renderTargetFolderControls() {
-		let selectedMailboxDetail = this.mailImporter().selectedMailBoxDetail
+		let selectedMailboxDetail = this.fileMailImportController().selectedMailBoxDetail
 		if (!selectedMailboxDetail) {
 			return null
 		}
 
 		const mailboxId = selectedMailboxDetail?.mailbox._id
-		let folders = this.mailImporter().mailboxToFolders.get(mailboxId)
+		let folders = this.fileMailImportController().mailboxToFolders.get(mailboxId)
 		if (!folders) {
 			return null
 		}
 
 		const loadingMsg = lang.get("loading_msg")
 		const emptyLabel = m("br")
-		const selectedTargetFolder = this.mailImporter().selectedTargetFolder
+		const selectedTargetFolder = this.fileMailImportController().selectedTargetFolder
 		const selectedTargetFolderPath = selectedTargetFolder ? getPathToFolderString(folders, selectedTargetFolder) : ""
 		const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath === getFolderName(selectedTargetFolder) : true
 		let helpLabel = selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
@@ -140,10 +135,10 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		return m(DropDownSelector, {
 			label: "mailImportTargetFolder_label",
 			items: targetFolders,
-			disabled: this.mailImporter().shouldRenderImportStatus(),
+			disabled: this.fileMailImportController().shouldRenderImportStatus(),
 			selectedValue: selectedTargetFolder,
 			selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
-			selectionChangedHandler: (newFolder: MailSet | null) => (this.mailImporter().selectedTargetFolder = newFolder),
+			selectionChangedHandler: (newFolder: MailSet | null) => (this.fileMailImportController().selectedTargetFolder = newFolder),
 			helpLabel: () => helpLabel,
 		})
 	}
@@ -170,44 +165,44 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const processedMailsCountLabel = m(
 			".flex-start.p.small",
 			lang.get("mailImportStateProcessedMailsTotalMails_label", {
-				"{processedMails}": this.mailImporter().getProcessedMailsCount(),
-				"{totalMails}": this.mailImporter().getTotalMailsCount(),
+				"{processedMails}": this.fileMailImportController().getProcessedMailsCount(),
+				"{totalMails}": this.fileMailImportController().getTotalMailsCount(),
 			}),
 		)
 		const resumeMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "resumeMailImport_action",
 			icon: Icons.PlayOutline,
-			click: () => this.mailImporter().onResumeBtnClick(),
+			click: () => this.fileMailImportController().onResumeBtnClick(),
 			size: ButtonSize.Normal,
-			hidden: this.mailImporter().shouldDisableResumeButton(),
+			hidden: this.fileMailImportController().shouldDisableResumeButton(),
 		}
 		const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "pauseMailImport_action",
 			icon: Icons.PauseOutline,
 			click: () => {
-				this.mailImporter().onPauseBtnClick()
+				this.fileMailImportController().onPauseBtnClick()
 			},
 			size: ButtonSize.Normal,
-			hidden: this.mailImporter().shouldDisablePauseButton(),
+			hidden: this.fileMailImportController().shouldDisablePauseButton(),
 		}
 		const cancelMailImportIconButtonAttrs: IconButtonAttrs = {
 			title: "cancelMailImport_action",
 			icon: Icons.X,
 			click: () => {
-				this.mailImporter().onCancelBtnClick()
+				this.fileMailImportController().onCancelBtnClick()
 			},
 			size: ButtonSize.Normal,
-			hidden: this.mailImporter().shouldDisableCancelButton(),
+			hidden: this.fileMailImportController().shouldDisableCancelButton(),
 		}
 
 		let buttonControls = []
-		if (this.mailImporter().shouldRenderPauseButton()) {
+		if (this.fileMailImportController().shouldRenderPauseButton()) {
 			buttonControls.push(m(IconButton, pauseMailImportIconButtonAttrs))
 		}
-		if (this.mailImporter().shouldRenderResumeButton()) {
+		if (this.fileMailImportController().shouldRenderResumeButton()) {
 			buttonControls.push(m(IconButton, resumeMailImportIconButtonAttrs))
 		}
-		if (this.mailImporter().shouldRenderCancelButton()) {
+		if (this.fileMailImportController().shouldRenderCancelButton()) {
 			buttonControls.push(m(IconButton, cancelMailImportIconButtonAttrs))
 		}
 
@@ -215,8 +210,8 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			[
 				m(
 					".flex-space-between.p.small.mt-12",
-					getReadableUiImportStatus(assertNotNull(this.mailImporter().getUiStatus())),
-					this.mailImporter().shouldRenderProcessedMails() ? processedMailsCountLabel : null,
+					getReadableUiImportStatus(assertNotNull(this.fileMailImportController().getUiStatus())),
+					this.fileMailImportController().shouldRenderProcessedMails() ? processedMailsCountLabel : null,
 				),
 			],
 			[m(".flex-space-between.border-radius-12.mt-8.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
@@ -228,14 +223,14 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		return m(
 			".rel.border-radius-12.full-width",
 			m(ProgressBar, {
-				progress: this.mailImporter().getProgress() / 100,
+				progress: this.fileMailImportController().getProgress() / 100,
 				type: ProgressBarType.Large,
 			}),
 		)
 	}
 
 	private renderImportHistories() {
-		const mailboxDetails = this.mailImporter().mailboxDetails
+		const mailboxDetails = this.fileMailImportController().mailboxDetails
 		if (mailboxDetails) {
 			return m(
 				".mt-32.mb-16",
@@ -279,9 +274,9 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	 * @returns array of the parsed table lines.
 	 */
 	private makeMailImportHistoryTableLines(mailboxId: Id): Array<TableLineAttrs> {
-		let folders = this.mailImporter().mailboxToFolders?.get(mailboxId)?.getIndentedList()
+		let folders = this.fileMailImportController().mailboxToFolders?.get(mailboxId)?.getIndentedList()
 		if (folders) {
-			return this.mailImporter()
+			return this.fileMailImportController()
 				.getFinalisedImports(mailboxId)
 				.sort((a, b) => sortCompareByReverseId(a, b, EntityIdEncoding.Base64Ext))
 				.map((im) => {
@@ -292,7 +287,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 						cells: () => [
 							{
 								main: lang.get("mailImportHistoryTableRowTitle_label", {
-									"{status}": getReadableImportStatus(parseInt(im.status) as ImportStatus),
+									"{status}": getReadableImportStatus(parseInt(im.status) as FileImportStatus),
 									"{folder}": displayTargetFolder
 										? getFolderName(displayTargetFolder.folder)
 										: lang.get("mailImportHistoryTableRowFolderDeleted_label"),
@@ -337,19 +332,19 @@ export function getUiImportStatusTranslationKey(uiStatus: UiImportStatus): Trans
 	}
 }
 
-export function getReadableImportStatus(importStatus: ImportStatus): string {
+export function getReadableImportStatus(importStatus: FileImportStatus): string {
 	return lang.get(getImportStatusTranslationKey(importStatus))
 }
 
-export function getImportStatusTranslationKey(importStatus: ImportStatus): TranslationKey {
+export function getImportStatusTranslationKey(importStatus: FileImportStatus): TranslationKey {
 	switch (importStatus) {
-		case ImportStatus.Running:
+		case FileImportStatus.Running:
 			return "mailImportStatusRunning_label"
-		case ImportStatus.Paused:
+		case FileImportStatus.Paused:
 			return "mailImportStatusPaused_label"
-		case ImportStatus.Canceled:
+		case FileImportStatus.Canceled:
 			return "mailImportStatusCanceled_label"
-		case ImportStatus.Finished:
+		case FileImportStatus.Finished:
 			return "mailImportStatusFinished_label"
 	}
 }

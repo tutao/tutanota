@@ -1,0 +1,69 @@
+X-GM-THRID: 1808104204819378639
+X-Gmail-Labels: Posteingang
+Delivered-To: bedfortest@gmail.com
+Received: by 2002:a59:cccc:0:b0:482:c705:4089 with SMTP id q12csp1583984vqv;
+        Thu, 22 Aug 2024 09:02:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=2; AJvYcCXeDj1JO1b8XDAeEoifr+VRHzyPnxm9m6DzREb0NWpxgUT4T02I3kVjs5oYQqJ/phyB2yF0hieXUB6y@gmail.com
+X-Google-Smtp-Source: AGHT+IGrBTWx30uDGu5vZ33ejzuTY39BieF5eJFEXo/fz5RwzwqUc0x360t9kcP+h+/IboZBIaVG
+X-Received: by 2002:a05:6122:3685:b0:4ef:280f:96ea with SMTP id 71dfb90a1353d-4fd099036f4mr3346080e0c.4.1724342541664;
+        Thu, 22 Aug 2024 09:02:21 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1724342541; cv=none;
+        d=google.com; s=arc-20160816;
+        b=UXydEMOb7fmG00VsSEv2D+4ADA+zDfwRW2uGE3LmonktYeo7fSJ+GujemmQXo4dAsF
+         oLrJrmmM16kMX2DmlUi9iLe+o7JOMRL5hGBqeg1RmTsVAqZb2SK0FjErBDYcdhmzGSxe
+         6O378i59k6UKbQ5TMQccX5mwpTUGNEy8ILOtbTxHoEzF3aiBEezGTrPKJ33nYivKlXdB
+         m5kuZtqjXMAlAgoxlQnECRM8ej3Rmj8jVnr9wah9lzGnksbcmcsGXENiveSlb8+i1gcY
+         IcKMjfa18wToMm3XNS5ztr6EjpbyYBtiatUzbZ9Nt/8zFruukBKXk8tFVHyl2LxwQYSW
+         2z8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=sender:errors-to:list-subscribe:list-help:list-post:list-archive
+         :list-unsubscribe:list-id:precedence:message-id:date:reply-to:to
+         :subject:from:mime-version;
+        bh=nCxseUxocAW6TFPj741WLW3T3E9oeVGaV1BpvIP69Hw=;
+        fh=x15q1sPptUrjyB6Axff4XAHYFD2YGZQxbQ8JwkDUtDw=;
+        b=MSjj3zCnHvvDjCL6Cftfn44l71zxeQ2rVdbdOTzoS+AGMPi0Wo/nYM0+1oWO8MzZqh
+         61J2zBg/jvznOv/NOOD9aaHNew1YjWC+W+gjuVJBHiKrjcdIwAjgYG7eHvJGdmK/7EMK
+         W8dR5QiB8+s0XaVfNNaBpY3wNReOHNUVhDlcrIpBCU89nqSww46FHydBhrL3MqueKoCl
+         O815E1QkaH5KDQA1j6dpNH7GwL0uhHBpOMHHp5HVMr9BhvcavB0whAKYNTLYSPri1LwC
+         yoFEdAmC+Ta78mKV4MsmizAMI0rCCTy1R9AuQCS8vv585lMV12P/AfxB5x8naQZlHsIM
+         8Z7Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of guile-user-bounces+bedfortest=gmail.com@gnu.org designates 209.51.188.17 as permitted sender) smtp.mailfrom="guile-user-bounces+bedfortest=gmail.com@gnu.org";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gnu.org
+Return-Path: <guile-user-bounces+bedfortest=gmail.com@gnu.org>
+Received: from lists.gnu.org (lists.gnu.org. [209.51.188.17])
+        by mx.google.com with ESMTPS id 71dfb90a1353d-4fd0832d38fsi364635e0c.157.2024.08.22.09.02.21
+        for <bedfortest@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 22 Aug 2024 09:02:21 -0700 (PDT)
+Received-SPF: pass (google.com: domain of guile-user-bounces+bedfortest=gmail.com@gnu.org designates 209.51.188.17 as permitted sender) client-ip=209.51.188.17;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of guile-user-bounces+bedfortest=gmail.com@gnu.org designates 209.51.188.17 as permitted sender) smtp.mailfrom="guile-user-bounces+bedfortest=gmail.com@gnu.org";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=gnu.org
+Received: from localhost ([::1] helo=lists1p.gnu.org)
+	by lists.gnu.org with esmtp (Exim 4.90_1)
+	(envelope-from <guile-user-bounces@gnu.org>)
+	id 1shAEU-00025h-HG; Thu, 22 Aug 2024 12:00:18 -0400
+Content-Type: multipart/mixed; boundary="===============5540717132988592605=="
+MIME-Version: 1.0
+From: guile-user-request@gnu.org
+Subject: =?utf-8?q?guile-user_Digest=2C_Vol_261=2C_Issue_10?=
+To: guile-user@gnu.org
+Reply-To: guile-user@gnu.org
+Date: Thu, 22 Aug 2024 12:00:14 -0400
+Message-ID: <mailman.64.1724342414.4524.guile-user@gnu.org>
+X-BeenThere: guile-user@gnu.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: General Guile related discussions <guile-user.gnu.org>
+List-Unsubscribe: <https://lists.gnu.org/mailman/options/guile-user>,
+ <mailto:guile-user-request@gnu.org?subject=unsubscribe>
+List-Archive: <https://lists.gnu.org/archive/html/guile-user>
+List-Post: <mailto:guile-user@gnu.org>
+List-Help: <mailto:guile-user-request@gnu.org?subject=help>
+List-Subscribe: <https://lists.gnu.org/mailman/listinfo/guile-user>,
+ <mailto:guile-user-request@gnu.org?subject=subscribe>
+Errors-To: guile-user-bounces+bedfortest=gmail.com@gnu.org
+Sender: guile-user-bounces+bedfortest=gmail.com@gnu.org
+

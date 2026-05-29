@@ -1,0 +1,7 @@
+{
+	"name": "ImapSyncContext",
+	"type": "typeref",
+	"location": {
+		"typescript": "@tutao/entities/tutanota"
+	}
+}

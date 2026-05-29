@@ -48,7 +48,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 					label: attrs.mainActionText,
 					text: lang.getTranslationText(attrs.mainActionText),
 					onclick: attrs.mainActionClick,
-					class: "full-width border-radius-4 center b flash accent-bg button-content",
+					class: "full-width border-radius-8 center b flash accent-bg button-content",
 					style: {
 						height: px(component_size.button_height + size.spacing_4 * 1.5),
 					},
@@ -59,7 +59,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 							label: attrs.subActionText,
 							text: lang.getTranslationText(attrs.subActionText),
 							onclick: attrs.subActionClick,
-							class: "full-width border-radius-4 center b flash",
+							class: "full-width border-radius-8 center b flash",
 							style: {
 								border: `2px solid ${theme.primary}`,
 								height: px(component_size.button_height + size.spacing_4 * 1.5),

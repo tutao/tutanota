@@ -229,7 +229,7 @@ export class MailFacade {
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
-	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
+	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 
 		const sk = aes256RandomKey()
@@ -241,7 +241,8 @@ export class MailFacade {
 			ownerGroup: ownerGroupId,
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.post(MailFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		return postReturn.newFolder
 	}
 
 	/**
@@ -1217,7 +1218,7 @@ export class MailFacade {
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
-		await this.serviceExecutor.post(
+		const manageLabelPostOut = await this.serviceExecutor.post(
 			ManageLabelService,
 			createManageLabelServicePostIn({
 				ownerGroup: mailGroupId,
@@ -1233,6 +1234,7 @@ export class MailFacade {
 				sessionKey: sk,
 			},
 		)
+		return manageLabelPostOut.label
 	}
 
 	/*
@@ -1464,7 +1466,7 @@ function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient 
 	})
 }
 
-function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
+export function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
 	return createEncryptedMailAddress({
 		name: recipient.name ?? "",
 		address: recipient.address,

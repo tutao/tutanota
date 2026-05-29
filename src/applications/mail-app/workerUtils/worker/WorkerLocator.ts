@@ -24,6 +24,7 @@ import type { NativeInterface } from "../../../../app-kit/native-bridge/common/N
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
+	ImapSyncSystemFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
 	NativeCryptoFacadeSendDispatcher,
 	NativePushFacadeSendDispatcher,
@@ -86,6 +87,8 @@ import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { ImapImporter } from "../imapimport/ImapImporter"
+import { OAuthErrorHandler } from "../imapimport/OAuthErrorHandler"
 
 assertWorkerOrNode()
 
@@ -136,6 +139,9 @@ export type WorkerLocatorType = {
 	_worker: WorkerImpl
 	_browserData: BrowserData
 	_apps: Array<NamedClientModel>
+
+	// IMAP mail import
+	imapImporter: lazyAsync<ImapImporter>
 }
 
 export const locator: WorkerLocatorType = {} as any
@@ -601,8 +607,36 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	}
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
+	locator.imapImporter = lazyMemoized(async () => {
+		const { ImportMailFacade } = await import("../../../common/api/worker/facades/lazy/ImportMailFacade.js")
+		const { ImapFacade } = await import("../../../common/api/worker/facades/lazy/ImapFacade.js")
+		const mailFacade = await locator.mail()
+		const blobFacade = await locator.blob()
+		const importMailFacade = new ImportMailFacade(
+			mailFacade,
+			locator.base.serviceExecutor,
+			locator.base.cachingEntityClient,
+			blobFacade,
+			locator.base.crypto,
+			locator.base.keyLoader,
+			locator.base.instancePipeline,
+			locator.base.cryptoWrapper,
+		)
+		const imapFacade = new ImapFacade(
+			mailFacade,
+			locator.base.serviceExecutor,
+			locator.base.cachingEntityClient,
+			locator.base.keyLoader,
+			locator.base.cryptoWrapper,
+		)
+
+		const oauthErrorHandler = new OAuthErrorHandler(locator.base.cachingEntityClient, locator.base.serviceExecutor)
+		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade, oauthErrorHandler)
+	})
+
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		locator.mail,
+		locator.imapImporter,
 		locator.base.user,
 		locator.base.cachingEntityClient,
 		mainInterface.eventController,

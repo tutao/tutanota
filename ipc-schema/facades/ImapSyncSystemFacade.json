@@ -1,0 +1,39 @@
+{
+	"name": "ImapSyncSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client starting and stopping an IMAP sync.",
+	"methods": {
+		"startSync": {
+			"doc": "Start the IMAP sync for a specific account.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapSyncContext": "ImapSyncContext"
+				}
+			],
+			"ret": "void"
+		},
+		"getImapMailboxesFromServer": {
+			"doc": "Fetches the folders from the IMAP server, to be used for the folder mapping step",
+			"arg": [
+				{
+					"imapAccount": "ImapCredentials"
+				}
+			],
+			"ret": "ImapGetMailboxResult"
+		},
+		"stopSync": {
+			"doc": "Stop a specific running IMAP sync.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

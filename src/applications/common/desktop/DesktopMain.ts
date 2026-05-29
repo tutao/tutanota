@@ -88,6 +88,10 @@ import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../api/common/ClientModelInfoInitializer"
 import { loadWasmFromFileOrNetwork } from "../../../platform-kit/utils/WebAssembly"
+import { DesktopOauthWindowFacade } from "./DesktopOauthWindowFacade"
+import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListener"
+import { createImapSync } from "./imapimport/imapsync/ImapSync"
+import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
 
 mp()
 
@@ -368,17 +372,41 @@ async function createComponents(): Promise<Components> {
 				await window.commonNativeFacade.uploadProgress(fileId, bytes)
 			},
 		}
+		const imapSyncFactory: ImapSyncFactory = (accountSyncId: IdTuple) => {
+			const wrappedListener: ImapSyncEventListener = {
+				onMultipleMails: async (mails, type) => await window.imapSyncFacade.onMultipleMails(accountSyncId, mails, type),
+				onMailbox: async (mb, type) => await window.imapSyncFacade.onMailbox(accountSyncId, mb, type),
+				onMailboxStatus: async (stat) => await window.imapSyncFacade.onMailboxStatus(accountSyncId, stat),
+				onPostpone: async (until) => await window.imapSyncFacade.onPostpone(accountSyncId, until),
+				onFinish: async () => await window.imapSyncFacade.onFinish(accountSyncId),
+				onError: async (err) => await window.imapSyncFacade.onError(accountSyncId, err),
+			}
+			return createImapSync(wrappedListener)
+		}
+		const imapInitFolderSyncFactory: ImapInitFolderSyncFactory = () => {
+			const noopListener = {
+				onMultipleMails: async () => {},
+				onMailbox: async () => {},
+				onMailboxStatus: async () => {},
+				onPostpone: async () => {},
+				onFinish: async () => {},
+				onError: async () => {},
+			}
+			return createImapSync(noopListener)
+		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(electron.app.userAgentFallback),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process, progressTracker),
+			new DesktopImapSyncSystemFacade(imapSyncFactory, imapInitFolderSyncFactory),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
 			desktopImportFacade,
 			pushFacade,
+			new DesktopOauthWindowFacade(electron, path, shortcutManager),
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
 			sqlCipherFacade,
