@@ -11,6 +11,7 @@ import {
 	NumericLiteral,
 	ReturnStatement,
 	SourceFile,
+	StringLiteral,
 	ts,
 	TypeAliasDeclaration,
 	VariableDeclaration,
@@ -37,6 +38,7 @@ export abstract class CommonTarget {
 	protected abstract generateVariableDeclaration(variableStatement: VariableDeclaration): string
 	protected abstract generateFunctionDecleration(functionDecleration: FunctionDeclaration): string
 	protected abstract generateNumericLiteral(numericLiteral: NumericLiteral): string
+	protected abstract generateStringLiteral(stringLiteral: StringLiteral): string
 
 	public generate() {
 		console.log("Generating kotlin for file: " + this.sourceFile.getFilePath())
@@ -70,6 +72,8 @@ export abstract class CommonTarget {
 			return typedNode.getDeclarations().map((declaration) => this.generateVariableDeclaration(declaration))
 		} else if (typedNode instanceof NumericLiteral) {
 			return this.generateNumericLiteral(typedNode)
+		} else if (typedNode instanceof StringLiteral) {
+			return this.generateStringLiteral(typedNode)
 		} else if (typedNode instanceof Identifier) {
 			return this.mapFromTsIdentifier(typedNode.getSymbol().getName())
 		} else if (typedNode instanceof ReturnStatement) {

@@ -1,4 +1,4 @@
-/* Generated file. timestamp: 29::1780064615650*/
+/* Generated file. timestamp: 29::1780065495436*/
 import org.tutao.Env.assertMainOrNodeBoot
 
 import org.tutao.ClientDetector.ClientPlatform
@@ -7,7 +7,7 @@ import org.tutao.ClientDetector.ClientPlatform
 assertMainOrNodeBoot()
 */
 
-enum class ErrorReportClientType {
+public enum class ErrorReportClientType {
 	Browser,
 	Android,
 	Ios,
@@ -16,7 +16,7 @@ enum class ErrorReportClientType {
 	Windows
 }
 
-enum class BrowserType {
+public enum class BrowserType {
 	CHROME,
 	FIREFOX,
 	EDGE,
@@ -26,7 +26,7 @@ enum class BrowserType {
 	OTHER
 }
 
-enum class DeviceType {
+public enum class DeviceType {
 	IPHONE,
 	IPAD,
 	ANDROID,
@@ -34,8 +34,8 @@ enum class DeviceType {
 	OTHER_MOBILE
 }
 
-data class BrowserData(needsMicrotaskHack: bool, needsExplicitIDBIds: bool, indexedDbSupported: bool, clientPlatform: ClientPlatform)
+public data class BrowserData(needsMicrotaskHack: bool, needsExplicitIDBIds: bool, indexedDbSupported: bool, clientPlatform: ClientPlatform)
 
-const val companyTeamLabel: String = NOT_SUPPORTED
+const val companyTeamLabel: String = "Tuta Team"
 
 /** File End **/

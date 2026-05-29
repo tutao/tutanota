@@ -1,25 +1,25 @@
-/* Generated file. timestamp: 29::1780064615206*/
+/* Generated file. timestamp: 29::1780065495007*/
 const val SECOND_IN_MILLIS: number = 1000
 
-fun secondsToMillis(seconds: number): number { 
+public fun secondsToMillis(seconds: number): number { 
 return seconds * SECOND_IN_MILLIS
  }
 
-const val MINUTE_IN_MILLIS: number = secondsToMillis()
+const val MINUTE_IN_MILLIS: number = secondsToMillis(60)
 
-fun minutesToMillis(minutes: number): number { 
+public fun minutesToMillis(minutes: number): number { 
 return minutes * MINUTE_IN_MILLIS
  }
 
-const val HOUR_IN_MILLIS: number = minutesToMillis()
+const val HOUR_IN_MILLIS: number = minutesToMillis(60)
 
-fun hoursToMillis(hours: number): number { 
+public fun hoursToMillis(hours: number): number { 
 return hours * HOUR_IN_MILLIS
  }
 
-const val DAY_IN_MILLIS: number = hoursToMillis()
+const val DAY_IN_MILLIS: number = hoursToMillis(24)
 
-fun daysToMillis(days: number): number { 
+public fun daysToMillis(days: number): number { 
 return days * DAY_IN_MILLIS
  }
 

@@ -1,5 +1,5 @@
-/* Generated file. timestamp: 29::1780064615204*/
-enum class AppType {
+/* Generated file. timestamp: 29::1780065495005*/
+public enum class AppType {
 	Integrated,
 	Mail,
 	Calendar,

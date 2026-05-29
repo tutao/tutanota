@@ -1,11 +1,13 @@
 import {
 	CallExpression,
 	EnumDeclaration,
+	ExportGetableNode,
 	FunctionDeclaration,
 	ImportDeclaration,
 	NumericLiteral,
 	PropertySignature,
 	SourceFile,
+	StringLiteral,
 	ts,
 	Type,
 	TypeAliasDeclaration,
@@ -23,26 +25,24 @@ export class KotlinTarget extends CommonTarget {
 	}
 
 	generateEnumDecleration(enumDefination: EnumDeclaration): string {
+		const visibility = this.mapVisibilitySpecifier(enumDefination)
 		const members = enumDefination
 			.getMembers()
 			.map((member) => "\t" + member.getName())
 			.join(",\n")
 		const enumName = this.mapFromTsIdentifier(enumDefination.getName())
-		return `enum class ${enumName} {\n${members}\n}`
+
+		return `${visibility} enum class ${enumName} {\n${members}\n}`
 	}
 
 	generateTypeAliasDecleration(typeAliasDeclaration: TypeAliasDeclaration): string {
+		const visibility = this.mapVisibilitySpecifier(typeAliasDeclaration)
 		const aliasName = this.mapFromTsIdentifier(typeAliasDeclaration.getName())
 		const typeNode = typeAliasDeclaration.getTypeNodeOrThrow()
 		const properties = typeNode.getDescendantsOfKind(SyntaxKind.PropertySignature).map((p) => this.getTypedProperty(p))
 		const propertiesString = properties.map(({ identifier, typeName }) => identifier + ": " + typeName).join(", ")
 
-		return `data class ${aliasName}(${propertiesString})`
-	}
-
-	generateCallExpression(callExpression: CallExpression): string {
-		const functionName = this.mapFromTsIdentifier(callExpression.getExpression().getSymbol().getName())
-		return `${functionName}()`
+		return `${visibility} data class ${aliasName}(${propertiesString})`
 	}
 
 	generateImportDecleration(importDeclaration: ImportDeclaration): string {
@@ -114,6 +114,7 @@ export class KotlinTarget extends CommonTarget {
 	}
 
 	generateFunctionDecleration(functionDecleration: FunctionDeclaration): string {
+		const visibility = this.mapVisibilitySpecifier(functionDecleration) ?? "private"
 		const functionName = this.mapFromTsIdentifier(functionDecleration.getName())
 		const returnType = this.mapFromTsType(functionDecleration.getReturnType())
 		const functionParameters = functionDecleration
@@ -126,11 +127,27 @@ export class KotlinTarget extends CommonTarget {
 			.join(",")
 		const functionBody = this.joinOutputs(this.redirectNode(functionDecleration.getBody()))
 
-		return `fun ${functionName}(${functionParameters}): ${returnType} { ${functionBody} }`
+		return `${visibility} fun ${functionName}(${functionParameters}): ${returnType} { ${functionBody} }`
+	}
+
+	generateCallExpression(callExpression: CallExpression): string {
+		const functionName = this.mapFromTsIdentifier(callExpression.getExpression().getSymbol().getName())
+		const callArguments = callExpression
+			.getArguments()
+			.map((argument) => this.joinOutputs(this.redirectNode(argument)))
+			.join(",")
+
+		return `${functionName}(${callArguments})`
 	}
 
 	generateNumericLiteral(numericLiteral: NumericLiteral): string {
+		// todo: need to check int size and for things like `e`
 		return numericLiteral.getLiteralValue().toString()
+	}
+
+	protected generateStringLiteral(stringLiteral: StringLiteral): string {
+		// todo: need to escape quotes?
+		return `"${stringLiteral.getLiteralValue()}"`
 	}
 
 	private getTypedProperty(propertySignature: PropertySignature) {
@@ -147,6 +164,14 @@ export class KotlinTarget extends CommonTarget {
 			Number: "number",
 		}
 		return typesMap[typeName] ?? typeName
+	}
+
+	private mapVisibilitySpecifier(node: ExportGetableNode): string | null {
+		if (node.isExported()) {
+			return "public"
+		}
+
+		return null
 	}
 
 	protected mapFromTsIdentifier(identifier: string): string {
