@@ -280,6 +280,29 @@ export function mailMethodToCalendarMethod(mailMethod: MailMethod): CalendarMeth
 	}
 }
 
+export function calendarMethodToMailMethod(calendarMethod: CalendarMethod): MailMethod {
+	switch (calendarMethod) {
+		case CalendarMethod.PUBLISH:
+			return MailMethod.ICAL_PUBLISH
+		case CalendarMethod.REQUEST:
+			return MailMethod.ICAL_REQUEST
+		case CalendarMethod.REPLY:
+			return MailMethod.ICAL_REPLY
+		case CalendarMethod.ADD:
+			return MailMethod.ICAL_ADD
+		case CalendarMethod.CANCEL:
+			return MailMethod.ICAL_CANCEL
+		case CalendarMethod.REFRESH:
+			return MailMethod.ICAL_REFRESH
+		case CalendarMethod.COUNTER:
+			return MailMethod.ICAL_COUNTER
+		case CalendarMethod.DECLINECOUNTER:
+			return MailMethod.ICAL_DECLINECOUNTER
+		default:
+			return MailMethod.NONE
+	}
+}
+
 export const enum ExternalImageRule {
 	None = "0",
 	Allow = "1",
@@ -291,12 +314,31 @@ export const enum NewsletterBannerRule {
 	Block = "1",
 }
 
-export const enum ImportStatus {
+export const enum FileImportStatus {
 	Running = 0,
 	Paused = 1,
 	Canceled = 2,
 	Finished = 3,
 }
+
+export const enum ImapFolderSyncStatus {
+	RUNNING = "0",
+	PAUSED = "1",
+	FINISHED = "2",
+	NO_SYNC = "3",
+	CANCELED = "4"
+}
+
+export enum ImapAccountSyncStatus {
+	RUNNING = "0",
+	PAUSED = "1",
+	POSTPONED = "2",
+	FINISHED = "3",
+	ERROR = "4",
+	AUTH_ERROR = "5",
+	CANCELED = "6"
+}
+
 
 export enum SpamDecision {
 	NONE = "0",
@@ -434,3 +476,11 @@ export interface WebFolder {
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
+
+export enum ImapSyncEventType {
+	CREATE,
+	UPDATE,
+	DELETE,
+}
+
+export const IMAP_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds

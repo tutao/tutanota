@@ -5,8 +5,13 @@ import { isOfflineError, LockedError, PreconditionFailedError } from "../../../.
 import { MailViewModel } from "./MailViewModel"
 import { LegacyColorPickerView } from "../../../../ui/base/colorPicker/LegacyColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
-import { UpgradePromptType } from "../../../../platform-kit/app-env"
 import { MailBox, MailSet } from "@tutao/entities/tutanota"
+import { UpgradePromptType } from "@tutao/app-env"
+import { TextField } from "../../../../ui/base/TextField"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView"
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 
@@ -57,6 +62,37 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 					onselect: (newColor: string) => {
 						color = newColor
 					},
+				}),
+			]),
+	})
+}
+
+export async function showImapEditLabelDialog(
+	attributes: { name: string; color: string },
+	oninput: (name: string) => unknown,
+	onselect: (color: string) => unknown,
+) {
+	Dialog.showActionDialog({
+		title: "addLabel_action",
+		allowCancel: false,
+		okAction: (dialog: Dialog) => {
+			dialog.close()
+		},
+		child: () =>
+			m(".flex.col.gap-16", [
+				m(TextField, {
+					label: "labelInput_label",
+					value: attributes.name,
+					oninput,
+					leadingIcon: {
+						icon: Icons.LabelFilled,
+						color: theme.on_surface_variant,
+					},
+					helpLabel: () => lang.getTranslationText("migrationLabelInput_helpLabel"),
+				}),
+				m(ColorPickerView, {
+					value: attributes.color,
+					onselect,
 				}),
 			]),
 	})

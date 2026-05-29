@@ -109,6 +109,7 @@ export const allowedImports = {
 		"settings",
 		"native-main",
 		"ui-extra",
+		"openid-client",
 	],
 	"calendar-settings": [
 		"polyfill-helpers",
@@ -180,6 +181,7 @@ export const allowedImports = {
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
 	qr: ["polyfill-helpers"],
+	"openid-client": [],
 	pdf: ["common-min", "qr"],
 	"material-color-utilities": [],
 	drive: ["common-min", "common", "boot", "gui-base", "main"],
@@ -322,7 +324,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/mail-app/workerUtils/worker") ||
 		isIn("src/applications/calendar-app/worker") ||
 		isIn("src/applications/mail-app/workerUtils/offline") ||
-		isIn("src/applications/drive-app/workerUtils")
+		isIn("src/applications/drive-app/workerUtils") ||
+		isIn("src/applications/mail-app/workerUtils/imapimport")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
@@ -401,6 +404,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
+	} else if (isIn("libs/openid-client")) {
+		return "openid-client"
 	} else if (isIn("node_modules/@material/material-color-utilities")) {
 		return "material-color-utilities"
 	} else if (isIn("libs/jsQR") || isIn("libs/qrcode")) {

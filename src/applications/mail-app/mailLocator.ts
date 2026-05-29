@@ -56,6 +56,7 @@ import {
 	MobilePaymentsFacade,
 	MobileSystemFacade,
 	NativeCredentialsFacade,
+	OauthFacade,
 	SearchTextInAppFacade,
 	SettingsFacade,
 	SqlCipherFacade,
@@ -127,7 +128,7 @@ import type { ContactImporter } from "./contacts/ContactImporter.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { KeyVerificationFacade } from "../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { MailImporter } from "./mail/import/MailImporter.js"
+import { FileMailImportController } from "./mail/import/FileMailImportController.js"
 import type { MailExportController } from "./native/main/MailExportController.js"
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
@@ -168,8 +169,10 @@ import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties 
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
 import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
+import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 
 assertMainOrNode()
 
@@ -242,11 +245,14 @@ class MailLocator implements CommonLocator {
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
+	imapImporter!: ImapImporter
 
 	private nativeInterfaces: NativeInterfaces | null = null
-	private mailImporter: MailImporter | null = null
+	private fileMailImportController: FileMailImportController | null = null
+	private imapMailImportController: ImapMailImportController | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+	private oauthFacade: OauthFacade | null = null
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -746,12 +752,20 @@ class MailLocator implements CommonLocator {
 		return this.nativeInterfaces[name]
 	}
 
-	public getMailImporter(): MailImporter {
-		if (this.mailImporter == null) {
+	public getMailImporter(): FileMailImportController {
+		if (this.fileMailImportController == null) {
 			throw new ProgrammingError(`Tried to use mail importer in web or mobile`)
 		}
 
-		return this.mailImporter
+		return this.fileMailImportController
+	}
+
+	public getImapImportController(): ImapMailImportController {
+		if (this.imapMailImportController == null) {
+			throw new ProgrammingError(`Tried to use imapImportController in web or mobile`)
+		}
+
+		return this.imapMailImportController
 	}
 
 	private readonly _workerDeferred: DeferredObject<WorkerClient>
@@ -819,6 +833,7 @@ class MailLocator implements CommonLocator {
 			autosaveFacade,
 			spamClassifier,
 			driveFacade,
+			imapImporter,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -882,6 +897,7 @@ class MailLocator implements CommonLocator {
 			mailLocator.search.indexState(state)
 		})
 		this.autosaveFacade = autosaveFacade
+		this.imapImporter = imapImporter
 
 		this.usageTestModel = new UsageTestModel(
 			{
@@ -937,6 +953,7 @@ class MailLocator implements CommonLocator {
 					async () => this.native,
 					() => this.desktopSettingsFacade,
 				),
+				this.imapImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
@@ -968,7 +985,7 @@ class MailLocator implements CommonLocator {
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
-					this.mailImporter = new MailImporter(
+					this.fileMailImportController = new FileMailImportController(
 						this.domainConfigProvider(),
 						this.logins,
 						this.mailboxModel,
@@ -979,6 +996,17 @@ class MailLocator implements CommonLocator {
 						openSettingsHandler,
 					)
 					this.exportFacade = desktopInterfaces.exportFacade
+					this.oauthFacade = desktopInterfaces.desktopOauthWindowFacade
+
+					const { ImapMailImportController } = await import("./settings/imapimport/ImapMailImportController.js")
+					this.imapMailImportController = new ImapMailImportController(
+						this.imapImporter,
+						this.mailModel,
+						this.mailboxModel,
+						this.entityClient,
+						this.oauthFacade,
+						this.eventController,
+					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")

@@ -14,7 +14,7 @@ import { Autocapitalize, Autocomplete, LegacyTextFieldType } from "./LegacyTextF
 
 export type TextFieldAttrs = {
 	id?: string
-	label: MaybeTranslation
+	label?: MaybeTranslation
 	value: string
 	autocompleteAs?: Autocomplete
 	autocapitalize?: Autocapitalize
@@ -89,7 +89,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const borderRadius = `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`
 
 		return m(
-			".full-width",
+			".full-width.text-ellipsis",
 			m(
 				`.login-textfield.rel.overflow-hidden`,
 				{
@@ -97,7 +97,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
 					onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 					"aria-haspopup": a.hasPopup,
-					"data-testid": `tf:${lang.getTestId(a.label)}`,
+					"data-testid": `tf:${a.label ? lang.getTestId(a.label) : a.value}`,
 					class: a.class != null ? a.class : "mt-16" + " " + getOperatingClasses(a.disabled),
 					style: maxWidth
 						? {
@@ -108,31 +108,33 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						: { ...a.style, borderRadius },
 				},
 				[
+					a.label
+						? m(
+								"label.abs.text-ellipsis.noselect.z1.pr-4",
+								{
+									"aria-hidden": "true",
+									class: this.active ? "" : "" + " " + getOperatingClasses(a.disabled),
+									oncreate: (vnode) => {
+										this._domLabel = vnode.dom as HTMLElement
+									},
+									style: {
+										fontSize: `${labelBase ? font_size.base : font_size.small}px`,
+										transform: `translateY(${labelBase ? baseLabelPosition : 0})`,
+										"transition-timing-function": "ease-out",
+										"transition-duration": `${labelTransitionSpeed}ms`,
+										"transition-property": "transform, font-size, top, color",
+										top: labelBase ? "50%" : px(size.spacing_8),
+										left: a.leadingIcon ? px(size.icon_20 + size.spacing_16) : 0,
+										"padding-left": px(size.spacing_16),
+										"padding-right": px(size.spacing_16),
+										color: !this.active && !a.isReadOnly ? "inherit" : theme.primary,
+									},
+								},
+								lang.getTranslationText(a.label),
+							)
+						: null,
 					m(
-						"label.abs.text-ellipsis.noselect.z1.pr-4",
-						{
-							"aria-hidden": "true",
-							class: this.active ? "" : "" + " " + getOperatingClasses(a.disabled),
-							oncreate: (vnode) => {
-								this._domLabel = vnode.dom as HTMLElement
-							},
-							style: {
-								fontSize: `${labelBase ? font_size.base : font_size.small}px`,
-								transform: `translateY(${labelBase ? baseLabelPosition : 0})`,
-								"transition-timing-function": "ease-out",
-								"transition-duration": `${labelTransitionSpeed}ms`,
-								"transition-property": "transform, font-size, top, color",
-								top: labelBase ? "50%" : px(size.spacing_8),
-								left: a.leadingIcon ? px(size.icon_20 + size.spacing_16) : 0,
-								"padding-left": px(size.spacing_16),
-								"padding-right": px(size.spacing_16),
-								color: !this.active && !a.isReadOnly ? "inherit" : theme.primary,
-							},
-						},
-						lang.getTranslationText(a.label),
-					),
-					m(
-						".flex.items-end",
+						`.flex${a.label ? ".items-end" : ".items-center"}`,
 						{
 							// .flex-wrap
 							style: {
@@ -159,7 +161,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								".inputWrapper.flex-space-between.items-end",
 								{
 									style: {
-										minHeight: px(minInputHeight - 2), // minus padding
+										minHeight: px(a.label ? minInputHeight - 2 : 0), // minus padding
 
 										"padding-left": px(size.spacing_16),
 										"padding-right": px(size.spacing_16),
@@ -173,7 +175,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 												".flex-end.items-center",
 												{
 													style: {
-														minHeight: px(minInputHeight - 2),
+														minHeight: px(a.label ? minInputHeight - 2 : 0),
 														position: "relative",
 														top: px(borderWidth / 2),
 													},
@@ -206,12 +208,12 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				".text-break.selectable.text-ellipsis.block",
 				{
 					style: {
-						marginTop: px(inputMarginTop()),
+						marginTop: px(a.label ? inputMarginTop() : size.spacing_12),
 						lineHeight: px(font_size.line_height_input),
 						position: "relative",
 						bottom: px(size.spacing_4),
 					},
-					"data-testid": `tfi:${lang.getTestId(a.label)}`,
+					"data-testid": `tfi:${a.label ? lang.getTestId(a.label) : a.value}`,
 				},
 				a.value,
 			)
@@ -259,7 +261,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						type: a.type,
 						min: a.min,
 						max: a.max,
-						"aria-label": lang.getTranslationText(a.label),
+						"aria-label": a.label ? lang.getTranslationText(a.label) : "",
 						disabled: a.disabled,
 						class: getOperatingClasses(a.disabled) + " text",
 						oncreate: (vnode) => {
@@ -318,7 +320,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							position: "relative",
 							bottom: px(size.spacing_4),
 						},
-						"data-testid": `tfi:${lang.getTestId(a.label)}`,
+						"data-testid": `tfi:${a.label ? lang.getTestId(a.label) : null}`,
 					}),
 				]),
 			)
@@ -331,7 +333,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				".text-prewrap.text-break.selectable",
 				{
 					style: {
-						marginTop: px(inputMarginTop()),
+						marginTop: px(a.label ? inputMarginTop() : size.spacing_12),
 						lineHeight: px(font_size.line_height_input),
 					},
 				},
@@ -343,7 +345,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			//
 			// the text area has its own focus indicator anyway.
 			return m("textarea.input-area.text-pre.state-bg-2", {
-				"aria-label": lang.getTranslationText(a.label),
+				"aria-label": a.label ? lang.getTranslationText(a.label) : "",
 				disabled: a.disabled,
 				autocapitalize: a.autocapitalize,
 				class: getOperatingClasses(a.disabled) + " text",

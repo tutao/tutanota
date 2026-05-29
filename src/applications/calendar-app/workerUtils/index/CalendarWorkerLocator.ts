@@ -358,6 +358,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		locator.mail,
+		null,
 		locator.base.user,
 		locator.base.cachingEntityClient,
 		mainInterface.eventController,

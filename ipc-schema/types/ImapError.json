@@ -1,0 +1,7 @@
+{
+	"name": "ImapError",
+	"type": "typeref",
+	"location": {
+		"typescript": "@tutao/entities/tutanota"
+	}
+}

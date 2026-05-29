@@ -21,7 +21,7 @@ export type SelectorItem<T> = {
 export type SelectorItemList<T> = ReadonlyArray<SelectorItem<T>>
 
 export interface DropDownSelectorNewAttrs<T> {
-	label: MaybeTranslation
+	label?: MaybeTranslation
 	items: SelectorItemList<T>
 	selectedValue: T | null
 	/** Override what is displayed for the selected value in the text field (but not in the dropdown) */
@@ -45,7 +45,6 @@ export class DropDownSelectorNew<T> implements ClassComponent<DropDownSelectorNe
 	view(vnode: Vnode<DropDownSelectorNewAttrs<T>>): Children {
 		const a = vnode.attrs
 		const text = this.valueToText(a, a.selectedValue) || ""
-		const labelText = lang.getTranslationText(a.label)
 
 		return m(TextField, {
 			label: a.label,
@@ -102,7 +101,9 @@ export class DropDownSelectorNew<T> implements ClassComponent<DropDownSelectorNe
 		if (selectedItem) {
 			return selectedItem.name
 		} else {
-			console.log(`Dropdown ${lang.getTranslationText(a.label)} couldn't find element for value: ${String(JSON.stringify(value))}`)
+			console.log(
+				`Dropdown ${a.label ? lang.getTranslationText(a.label) : "a.label is null"} couldn't find element for value: ${String(JSON.stringify(value))}`,
+			)
 			return null
 		}
 	}
