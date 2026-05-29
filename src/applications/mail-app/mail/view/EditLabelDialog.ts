@@ -3,7 +3,7 @@ import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/Legac
 import m from "mithril"
 import { isOfflineError, LockedError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { MailViewModel } from "./MailViewModel"
-import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView"
+import { LegacyColorPickerView } from "../../../../ui/base/colorPicker/LegacyColorPickerView"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { UpgradePromptType } from "../../../../platform-kit/app-env"
 import { MailBox, MailSet } from "@tutao/entities/tutanota"
@@ -52,7 +52,7 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 						name = newName
 					},
 				} satisfies LegacyTextFieldAttrs),
-				m(ColorPickerView, {
+				m(LegacyColorPickerView, {
 					value: color,
 					onselect: (newColor: string) => {
 						color = newColor
