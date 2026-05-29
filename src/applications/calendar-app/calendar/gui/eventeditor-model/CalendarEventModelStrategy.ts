@@ -103,21 +103,22 @@ export class CalendarEventApplyStrategies {
 				for (const occurrence of index.alteredInstances) {
 					if (invalidateAlteredInstances) {
 						editModelsForProgenitor.whoModel.shouldSendUpdates = true
-						// const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModelsForProgenitor, CalendarOperation.EditThis)
 
 						const recipients: RecipientList = occurrence.attendees.map((attendee) => {
 							return { address: attendee.address.address, name: attendee.address.name }
 						})
 
-						const cancelModel = await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients)
+						if (isNotEmpty(recipients)) {
+							const cancelModel = await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients)
 
-						await this.notificationModel.send(
-							occurrence,
-							[],
-							{ cancelModel, updateModel: null, inviteModel: null, responseModel: null },
-							undefined,
-							editModelsForProgenitor.comment.content,
-						)
+							await this.notificationModel.send(
+								occurrence,
+								[],
+								{ cancelModel, updateModel: null, inviteModel: null, responseModel: null },
+								undefined,
+								editModelsForProgenitor.comment.content,
+							)
+						}
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
 						/**
@@ -185,11 +186,13 @@ export class CalendarEventApplyStrategies {
 							return { address: attendee.address.address, name: attendee.address.name }
 						})
 
-						sendModels.inviteModel = sendModels.inviteModel?.allRecipients().length ? sendModels.inviteModel : null
-						sendModels.cancelModel = sendModels.cancelModel?.allRecipients().length ? sendModels.cancelModel : null
-						sendModels.updateModel = recipients.length ? await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients) : null
+						if (isNotEmpty(recipients)) {
+							sendModels.inviteModel = sendModels.inviteModel?.allRecipients().length ? sendModels.inviteModel : null
+							sendModels.cancelModel = sendModels.cancelModel?.allRecipients().length ? sendModels.cancelModel : null
+							sendModels.updateModel = recipients.length ? await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients) : null
 
-						await this.notificationModel.send(upToDateAlteredInstance, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
+							await this.notificationModel.send(upToDateAlteredInstance, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
+						}
 						await this.calendarModel.updateEvent(upToDateAlteredInstance, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
