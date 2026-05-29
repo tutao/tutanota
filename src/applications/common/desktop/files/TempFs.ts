@@ -203,7 +203,7 @@ export class TempFs {
 		const parsedUri = new URL(uri)
 		const start = filterInt(assertNotNull(parsedUri.searchParams.get("start"), "chunk uri has no start"))
 		const length = filterInt(assertNotNull(parsedUri.searchParams.get("length"), "chunk uri has no length"))
-		return { filePath: parsedUri.pathname, start, length }
+		return { filePath: decodeURIComponent(parsedUri.pathname), start, length }
 	}
 
 	async getFileSize(uri: string): Promise<number> {
