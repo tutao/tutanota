@@ -1,9 +1,25 @@
 import CryptoKit
 import StoreKit
 
+public typealias PlanTypeFormatter = @Sendable (_ plan: String, _ interval: UInt) -> String
+
 public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	private let ALL_PURCHASEABLE_PLANS = ["revolutionary", "legend"]
-	private let MOBILE_PAYMENT_DOMAIN = "de.tutao.calendar.MobilePayment"
+	private let mobilePaymentDomain: String
+	private let productIdToPlanName: @Sendable (String) -> String
+	private let formatPlanType: PlanTypeFormatter
+	private let windowScene: @Sendable @MainActor () -> UIWindowScene
+	public init(
+		mobilePaymentDomain: String,
+		productIdToPlanName: @Sendable @escaping (String) -> String,
+		formatPlanType: @escaping PlanTypeFormatter,
+		windowScene: @Sendable @escaping @MainActor () -> UIWindowScene
+	) {
+		self.mobilePaymentDomain = mobilePaymentDomain
+		self.productIdToPlanName = productIdToPlanName
+		self.formatPlanType = formatPlanType
+		self.windowScene = windowScene
+	}
 
 	public func queryAppStoreSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
 		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
@@ -37,16 +53,14 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			var displayOfferYearlyPerYear: String?
 			var isEligibleForIntroOffer: Bool?
 		}
-		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
-			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
-		}
+		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in [self.formatPlanType(plan, 1), self.formatPlanType(plan, 12)] }
 		let products: [Product] = try await Product.products(for: plans)
 		var result = [String: TempMobilePlanPrice]()
 
 		for product in products {
-			let productName = String(product.id.split(separator: ".")[2])
+			let planName = self.productIdToPlanName(product.id)
 			var plan =
-				result[productName]
+				result[planName]
 				?? TempMobilePlanPrice(
 					rawMonthlyPerMonth: nil,
 					rawYearlyPerYear: nil,
@@ -75,7 +89,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				plan.displayMonthlyPerMonth = product.displayPrice
 			default: fatalError("unexpected subscription period unit \(unit)")
 			}
-			result[productName] = plan
+			result[planName] = plan
 		}
 		return result.map { name, prices in
 			MobilePlanPrice(
@@ -90,25 +104,22 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			)
 		}
 	}
-	public func showSubscriptionConfigView() async throws {
-		let window = await UIApplication.shared.connectedScenes.first
-		try await AppStore.showManageSubscriptions(in: window as! UIWindowScene)
-	}
+	@MainActor public func showSubscriptionConfigView() async throws { try await AppStore.showManageSubscriptions(in: self.windowScene()) }
 	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper) async throws -> MobilePaymentResult {
 		let uuid = customerIdToUUID(customerIdBytes.data)
-		let planType = formatPlanType(plan, withInterval: interval)
+		let planType = formatPlanType(plan, UInt(interval))
 
 		let product: Product?
 		do {
 			guard let fetchedProduct = (try await Product.products(for: [planType])).first else {
-				throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Failed to retrieve plan \(planType). (no matching plan)")
+				throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "Failed to retrieve plan \(planType). (no matching plan)")
 			}
 			product = fetchedProduct
 		} catch let error as StoreKitError {
-			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "Failed to retrieve plan \(planType). \(error.localizedDescription)")
+			throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "Failed to retrieve plan \(planType). \(error.localizedDescription)")
 		}
 
-		if product == nil { throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No such plan \(planType)") }
+		if product == nil { throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "No such plan \(planType)") }
 
 		TUTSLog("Attempting to purchase \(product!.displayName) for \(product!.displayPrice)")
 		let result = try await product!.purchase(options: [Product.PurchaseOption.appAccountToken(uuid)])
@@ -120,7 +131,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 
 			if transaction.appAccountToken != uuid {
 				throw TUTErrorFactory.createError(
-					withDomain: MOBILE_PAYMENT_DOMAIN,
+					withDomain: mobilePaymentDomain,
 					message:
 						"Apparently succeeded buying, but actually got a mismatched customer UUID (got \(transaction.appAccountToken?.uuidString ?? "<null>"), expected \(uuid)); expires \(transaction.expirationDate!)"
 				)
@@ -138,30 +149,16 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	}
 
 	public func isAppStoreRenewalEnabled() async throws -> Bool {
-		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
-			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
-		}
+		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in [self.formatPlanType(plan, 1), self.formatPlanType(plan, 12)] }
 		guard let anyProduct = try await Product.products(for: plans).first else {
-			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No products found")
+			throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "No products found")
 		}
 		guard let status = try await anyProduct.subscription?.status.first else { return false }
 		if case let .verified(renewalInfo) = status.renewalInfo {
 			return renewalInfo.willAutoRenew
 		} else {
-			throw TUTErrorFactory.createError(withDomain: MOBILE_PAYMENT_DOMAIN, message: "No products found")
+			throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "No products found")
 		}
-	}
-
-	func formatPlanType(_ plan: String, withInterval interval: Int) -> String {
-		let intervalString =
-			switch interval {
-			case 1: "monthly"
-			case 12: "yearly"
-			default: fatalError("invalid plan (\(plan)) interval (\(interval))")
-			}
-		let bundleID: String = Bundle.main.bundleIdentifier ?? "de.tutao.calendar"
-		let stagingLevelString = (bundleID == "de.tutao.calendar.test") ? "testplans" : "plans"
-		return "\(stagingLevelString).calendar.\(plan).\(intervalString)"
 	}
 
 	static func checkVerified<T>(_ result: VerificationResult<T>) -> T {

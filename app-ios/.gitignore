@@ -2,6 +2,7 @@
 *.generated.swift
 tutanota.xcodeproj
 calendar.xcodeproj
+drive.xcodeproj
 
 Sqlcipher/generated/*
 

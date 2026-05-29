@@ -1,13 +1,11 @@
 import Combine
 import Foundation
 import MobileCoreServices
-import TutanotaSharedFramework
-import UniformTypeIdentifiers
 import os
 
-typealias ProgressUpdater = @Sendable (String, Int) -> Void
+public typealias ProgressUpdater = @Sendable (String, Int) -> Void
 
-final class IosFileFacade: FileFacade {
+public final class IosFileFacade: FileFacade {
 	private let chooser: TUTFileChooser
 	private let viewer: FileViewer
 	private let schemeHandler: ApiSchemeHandler
@@ -17,7 +15,7 @@ final class IosFileFacade: FileFacade {
 	/// Map from fileId to the corresponding task
 	private let activeTransfersLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
 
-	init(
+	public init(
 		chooser: TUTFileChooser,
 		viewer: FileViewer,
 		schemeHandler: ApiSchemeHandler,
@@ -33,8 +31,8 @@ final class IosFileFacade: FileFacade {
 		self.uploadProgress = uploadProgress
 	}
 
-	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
-	func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
+	public func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
+	public func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
 
 	private func writeFile(_ file: String, _ content: DataWrapper) async throws {
 		let fileURL = URL(fileURLWithPath: file)
@@ -46,9 +44,9 @@ final class IosFileFacade: FileFacade {
 		return data.wrap()
 	}
 
-	func open(_ location: String, _ mimeType: String) async throws { await self.viewer.openFile(path: location) }
+	public func open(_ location: String, _ mimeType: String) async throws { await self.viewer.openFile(path: location) }
 
-	func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?, _ isFileOnly: Bool? = false) async throws -> [String] {
+	public func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?, _ isFileOnly: Bool? = false) async throws -> [String] {
 		let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
 		let files = try await self.chooser.open(withAnchorRect: anchor, isFileOnly: isFileOnly!)
 		var returnfiles = [String]()
@@ -67,13 +65,14 @@ final class IosFileFacade: FileFacade {
 		return returnfiles
 	}
 
-	func deleteFile(_ file: String) async throws {
+	public func deleteFile(_ file: String) async throws {
 		do { try FileManager.default.removeItem(atPath: file) } catch {
 			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
 			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
 		}
 	}
-	func getName(_ file: String) async throws -> String {
+
+	public func getName(_ file: String) async throws -> String {
 		let fileName = (file as NSString).lastPathComponent
 		if FileUtils.fileExists(atPath: file) {
 			return fileName
@@ -82,9 +81,9 @@ final class IosFileFacade: FileFacade {
 		}
 	}
 
-	func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: file) }
+	public func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: file) }
 
-	func getSize(_ file: String) async throws -> Int {
+	public func getSize(_ file: String) async throws -> Int {
 		let attrs = try FileManager.default.attributesOfItem(atPath: file)
 		let size = attrs[.size] as! UInt64
 		// Technically we shouldn't do this but we are always running on 64bit devices and
@@ -93,9 +92,11 @@ final class IosFileFacade: FileFacade {
 		return Int(size)
 	}
 
-	func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String { fatalError("not implemented on this platform") }
+	public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
+		fatalError("not implemented on this platform")
+	}
 
-	func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String], _ fileId: String) async throws
+	public func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String], _ fileId: String) async throws
 		-> UploadTaskResponse
 	{
 		var request = URLRequest(url: URL(string: remoteUrl)!)
@@ -143,12 +144,12 @@ final class IosFileFacade: FileFacade {
 			throw CancelledError(message: "Upload task was canceled", underlyingError: error)
 		}
 	}
-	func abortUpload(_ fileId: String) async throws {
+	public func abortUpload(_ fileId: String) async throws {
 		TUTSLog("Abort upload for \(fileId)")
 		activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
 
-	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
+	public func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String], _ fileId: String) async throws -> DownloadTaskResponse {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
@@ -189,7 +190,7 @@ final class IosFileFacade: FileFacade {
 		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
-	func abortDownload(_ fileId: String) async {
+	public func abortDownload(_ fileId: String) async {
 		TUTSLog("Abort download for \(fileId)")
 		self.activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
@@ -201,7 +202,7 @@ final class IosFileFacade: FileFacade {
 		return filePath
 	}
 
-	func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil().hashFile(fileUri: fileUri) }
+	public func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil().hashFile(fileUri: fileUri) }
 
 	func zipDirectory(fileUrl: URL) throws -> String {
 		var returnPath: String = ""
@@ -223,43 +224,45 @@ final class IosFileFacade: FileFacade {
 		return returnPath
 	}
 
-	func clearFileData() async throws {
+	public func clearFileData() async throws {
 		_ = await (
 			try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder()), try self.clearDirectory(folderPath: FileUtils.getDecryptedFolder()),
 			try self.clearDirectory(folderPath: NSTemporaryDirectory())
 		)
 	}
 
-	func joinFiles(_ filename: String, _ files: [String]) async throws -> String { try await BlobUtil().joinFiles(fileName: filename, filePathsToJoin: files) }
+	public func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
+		try await BlobUtil().joinFiles(fileName: filename, filePathsToJoin: files)
+	}
 
-	func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
+	public func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
 		try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
 	}
 
-	func writeTempDataFile(_ file: DataFile) async throws -> String {
+	public func writeTempDataFile(_ file: DataFile) async throws -> String {
 		let decryptedFolder = try FileUtils.getDecryptedFolder()
 		let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
 		try await self.writeFile(filePath, file.data)
 		return filePath
 	}
 
-	func readDataFile(_ filePath: String) async throws -> DataFile? {
+	public func readDataFile(_ filePath: String) async throws -> DataFile? {
 		let data = try readFile(filePath)
 		return DataFile(name: try await getName(filePath), mimeType: try await getMimeType(filePath), size: try await getSize(filePath), data: data)
 	}
-	func writeToAppDir(_ content: TutanotaSharedFramework.DataWrapper, _ name: String) async throws {
+	public func writeToAppDir(_ content: TutanotaSharedFramework.DataWrapper, _ name: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
 		let filePath = supportDir.appendingPathComponent(name)
 		try await self.writeFile(filePath.path, content)
 	}
 
-	func readFromAppDir(_ name: String) throws -> TutanotaSharedFramework.DataWrapper {
+	public func readFromAppDir(_ name: String) throws -> TutanotaSharedFramework.DataWrapper {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
 		let filePath = supportDir.appendingPathComponent(name)
 		return try self.readFile(filePath.path)
 	}
 
-	func deleteFromAppDir(_ path: String) async throws {
+	public func deleteFromAppDir(_ path: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
 		let filePath = supportDir.appendingPathComponent(path)
 		try await self.deleteFile(filePath.path)
