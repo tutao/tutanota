@@ -15,7 +15,7 @@ import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.j
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { CalendarEventUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
+import { ResolvedUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
 import { CalendarEvent, CalendarEventAttendee, File, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, Recipient, RecipientList } from "../../../../entities/tutanota/Utils"
 import { clone, getAsEnumValue } from "../../../../platform-kit/meta"
@@ -64,7 +64,9 @@ export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarE
 	if (uid == null) {
 		return fromIcsCalendarEvent
 	}
-	const existingEvents = await locator.calendarFacade.getEventsByUid(uid)
+
+	const calendarModel = await locator.calendarModel()
+	const existingEvents = await calendarModel.getFirstUidIndexEntryMatch(uid)
 
 	// If the file we are opening is newer than the one which we have on the server, update server version.
 	// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
@@ -77,7 +79,6 @@ export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarE
 	if (existingEvent == null) return fromIcsCalendarEvent
 
 	if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
-		const calendarModel = await locator.calendarModel()
 		return await calendarModel.updateEventWithExternal(existingEvent, fromIcsCalendarEvent)
 	} else {
 		return existingEvent
@@ -154,6 +155,7 @@ export class CalendarInviteHandler {
 				throw e
 			}
 		}
+
 		const calendars = await this.calendarModel.getCalendarInfos()
 		const type = getEventType(event, calendars, [attendee.address.address], this.logins.getUserController())
 
@@ -230,7 +232,9 @@ export class CalendarInviteHandler {
 		usersDecision: CalendarAttendeeStatus,
 		sender: string,
 	): Promise<ReplyResult.ReplySent> {
-		const dbEvents = await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid, true)
+		const dbEvents = eventUserIsReplyingTo._ownerGroup
+			? await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid, eventUserIsReplyingTo._ownerGroup)
+			: null
 
 		if (this.shouldTreatAsNewInvitation(dbEvents, originalEventOccurrence)) {
 			if (usersDecision === CalendarAttendeeStatus.DECLINED) {
@@ -246,7 +250,7 @@ export class CalendarInviteHandler {
 	}
 	private async handleInvitationForExistingEntries(
 		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
-		dbEvents: CalendarEventUidIndexEntry | null,
+		dbEvents: ResolvedUidIndexEntry | null,
 		originalEventOccurrence: Date | null,
 		sender: string,
 	) {
@@ -270,7 +274,7 @@ export class CalendarInviteHandler {
 		}
 	}
 
-	private async createEventFromIcsFile(sender: string, eventUserIsReplyingTo: IcsCalendarEvent, dbEvents: CalendarEventUidIndexEntry | null) {
+	private async createEventFromIcsFile(sender: string, eventUserIsReplyingTo: IcsCalendarEvent, dbEvents: ResolvedUidIndexEntry | null) {
 		await this.calendarModel.handleNewCalendarEventInvitationFromIcs(
 			sender,
 			{
@@ -281,7 +285,7 @@ export class CalendarInviteHandler {
 		)
 	}
 
-	private shouldTreatAsNewInvitation(dbEvents: CalendarEventUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
+	private shouldTreatAsNewInvitation(dbEvents: ResolvedUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
 		if (!dbEvents) return true
 
 		const occurrenceTimeStamp = originalEventOccurrence?.getTime()
