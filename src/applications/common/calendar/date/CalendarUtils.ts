@@ -41,7 +41,7 @@ import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEv
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { CalendarEventUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
+import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
@@ -1360,7 +1360,7 @@ function* eventOccurencesGenerator(
  *
  * @param event the calendar event to check. to get correct results, this must be the progenitor.
  */
-export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, alteredInstances }: CalendarEventUidIndexEntry): boolean {
+export function calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, alteredInstances }: ResolvedUidIndexEntry): boolean {
 	if (progenitor == null) {
 		// this may happen if we accept multiple invites to altered instances without ever getting the progenitor.
 		return alteredInstances.length > 1

@@ -14,7 +14,7 @@ import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { EndType, ProgrammingError } from "../../../../../platform-kit/app-env"
 import m from "mithril"
 import { deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "../../../../../platform-kit/utils"
-import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { ResolvedUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../../ui/utils/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -79,7 +79,7 @@ export class CalendarEventPreviewViewModel {
 		readonly eventType: EventType,
 		private readonly hasBusinessFeature: boolean,
 		ownAttendee: CalendarEventAttendee | null,
-		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
+		private readonly lazyIndexEntry: () => Promise<ResolvedUidIndexEntry | null>,
 		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
 		private readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>,
 		private readonly highlightedStrings?: readonly SearchToken[],
