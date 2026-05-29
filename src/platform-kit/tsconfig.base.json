@@ -9,16 +9,10 @@
 	},
 	"references": [
 		{
-			"path": "../app-kit/tsconfig.mimimi.json"
-		},
-		{
 			"path": "tsconfig.utils.json"
 		},
 		{
 			"path": "tsconfig.crypto.json"
-		},
-		{
-			"path": "../usagetests/tsconfig.usagetests.json"
 		},
 		{
 			"path": "tsconfig.rest-client.json"
@@ -32,12 +26,7 @@
 		{
 			"path": "tsconfig.instance-pipeline.json"
 		},
-		{
-			"path": "../app-kit/tsconfig.native-bridge.json"
-		},
-		{
-			"path": "../app-kit/tsconfig.local-store.json"
-		},
+
 		{
 			"path": "../entities/tsconfig.entities.sys.json"
 		},

@@ -1575,7 +1575,7 @@ export default {
 		"pricing.signIn_label": "以用戶身分登入",
 		"pricing.signIn_tooltip": "如果管理員知道用戶的密碼，他們可以以用戶的身分登入。管理員可以隨時重設密碼。",
 		"pricing.slashPerMonth_label": "／月",
-		"pricing.subscriptionPeriodInfoBusiness_msg": "月繳計劃的訂購期為一個月，年繳計劃則為一年。訂購期結束後，計劃將自動續訂。",
+		"pricing.subscriptionPeriodInfoBusiness_msg": "月繳計劃的訂購期為一個月，年繳計劃則為一年。訂購期結束後，計劃將自動續訂。所有顯示的價格均為淨價。",
 		"pricing.subscriptionPeriodInfoPrivate_msg": "月繳計劃的訂購期為一個月，年繳計劃則為一年。第一期過後，計劃將轉為非定期合約，可隨時取消。",
 		"pricing.table_unlimitedDomain": "無限量",
 		"pricing.taglineForBusinesses": "企業",

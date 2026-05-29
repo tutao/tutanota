@@ -1829,7 +1829,7 @@ export default {
 		"sendUpdates_label": "Lähetä päivitykset kutsutuille",
 		"sendUpdates_msg": "Lähetetäänkö kutsutuille päivitysilmoitus?",
 		"sent_action": "Lähetetyt",
-		"serverNotReachable_msg": "Yhteyttä palvelimeen ei pystytty muodostamaan, näyttää että olet local-store-tilassa. Yritä uudelleen myöhemmin.",
+		"serverNotReachable_msg": "Yhteyttä palvelimeen ei pystytty muodostamaan, näyttää että olet offline-tilassa. Yritä uudelleen myöhemmin.",
 		"serviceUnavailable_msg": "Palvelimella tapahtui tilapäinen virhe. Yritä myöhemmin uudelleen.",
 		"sessionsInfo_msg": "Tieto selaimesta ja IP-osoitteesta tallennetaan salattuna.",
 		"sessionsWillBeDeleted_msg": "Nämä tuhotaan 2 viikon kuluttua yhteyden sulkemisesta.",

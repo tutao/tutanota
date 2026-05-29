@@ -600,7 +600,7 @@ export default {
 		"dynamicLoginRestockingTutaFridge_msg": "Reabasteciendo la nevera de Tuta ...",
 		"dynamicLoginSortingContacts_msg": "Clasificando contactos ...",
 		"dynamicLoginSwitchingOnPrivacy_msg": "Encendiendo la privacidad ...",
-		"dynamicLoginUpdatingOfflineDatabase_msg": "Actualización de la base de datos local-store …",
+		"dynamicLoginUpdatingOfflineDatabase_msg": "Actualización de la base de datos offline …",
 		"Edit contact form": "Editar formulario de contacto",
 		"edit_action": "Editar",
 		"editContact_label": "Editar contacto",
