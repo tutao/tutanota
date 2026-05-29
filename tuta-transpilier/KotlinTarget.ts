@@ -3,8 +3,8 @@ import {
 	EnumDeclaration,
 	FunctionDeclaration,
 	ImportDeclaration,
+	NumericLiteral,
 	PropertySignature,
-	ReturnStatement,
 	SourceFile,
 	ts,
 	Type,
@@ -61,11 +61,18 @@ export class KotlinTarget extends CommonTarget {
 		if (isExternalImport) {
 			mappedPackage = namedImportsMap[moduleSpecifier] ?? null
 		} else if (isRelativeImport) {
-			const components = moduleSpecifier.replace(".", "").replace("/", ".")
-			mappedPackage = this.getCurrentPackageName() + components
+			const components = moduleSpecifier
+				.replace("../", "") // replace directory
+				.replace("./", "") // replace directory
+				.split("/")
+				.map((pathComponent) => this.mapFromTsIdentifier(pathComponent))
+				.filter((pc) => pc !== "")
+				.join(".")
+			mappedPackage = this.getCurrentPackageName() + "." + components
 		} else if (isAbsoluteImport) {
 			throw new Error("Not allowed!")
 		}
+
 		const mappedNamedImports = importDeclaration
 			.getImportClause()
 			.getNamedImports()
@@ -84,8 +91,9 @@ export class KotlinTarget extends CommonTarget {
 	generateVariableDeclaration(variableStatement: VariableDeclaration): string {
 		const declType = variableStatement.getVariableStatement().getDeclarationKind()
 		const identifierName = this.mapFromTsIdentifier(variableStatement.getSymbol().getName())
+		const dataType = this.mapFromTsType(variableStatement.getType().getApparentType())
 
-		let [lhs, rhs] = ["", ""]
+		let lhs: string
 		if (declType === VariableDeclarationKind.Const) {
 			lhs = `const val ${identifierName}`
 		} else if (declType === VariableDeclarationKind.Let) {
@@ -94,7 +102,15 @@ export class KotlinTarget extends CommonTarget {
 			throw new Error("awaitUsing or Using is not supported!!")
 		}
 
-		return `${lhs} = ${rhs}`
+		let rhs = ""
+		const initializer = variableStatement.getInitializer()
+		if (initializer === null) {
+			return `${lhs}: ${dataType}`
+		} else {
+			rhs = this.joinOutputs(this.redirectNode(initializer))
+		}
+
+		return `${lhs}: ${dataType} = ${rhs}`
 	}
 
 	generateFunctionDecleration(functionDecleration: FunctionDeclaration): string {
@@ -113,7 +129,9 @@ export class KotlinTarget extends CommonTarget {
 		return `fun ${functionName}(${functionParameters}): ${returnType} { ${functionBody} }`
 	}
 
-	generateReturnStatement(returnStatement: ReturnStatement): string {}
+	generateNumericLiteral(numericLiteral: NumericLiteral): string {
+		return numericLiteral.getLiteralValue().toString()
+	}
 
 	private getTypedProperty(propertySignature: PropertySignature) {
 		const identifier = propertySignature.getName()

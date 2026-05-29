@@ -1,5 +1,5 @@
-/* Generated file. timestamp: 29::1780060506844*/
-import org.tutao..Env.assertMainOrNodeBoot
+/* Generated file. timestamp: 29::1780064615650*/
+import org.tutao.Env.assertMainOrNodeBoot
 
 import org.tutao.ClientDetector.ClientPlatform
 
@@ -36,6 +36,6 @@ enum class DeviceType {
 
 data class BrowserData(needsMicrotaskHack: bool, needsExplicitIDBIds: bool, indexedDbSupported: bool, clientPlatform: ClientPlatform)
 
-const val companyTeamLabel = 
+const val companyTeamLabel: String = NOT_SUPPORTED
 
-NOT SUPPORTED
+/** File End **/
