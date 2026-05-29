@@ -2,54 +2,25 @@ import StoreKit
 import TutanotaSharedFramework
 import UIKit
 
+// FIXME
 public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 
 @main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
 
-	private var remoteNotificationsContinuation: CheckedContinuation<String, any Error>?
-	private var alarmManager: AlarmManager!
-	private var notificationsHandler: NotificationsHandler!
 	private var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
-
-	private var notificationStorage: UserPrefsNotificationStorage!
-
-	@MainActor func registerForPushNotifications() async throws -> String {
-		#if targetEnvironment(simulator)
-			return ""
-		#else
-			try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
-			return try await withCheckedThrowingContinuation { continuation in
-				self.remoteNotificationsContinuation = continuation
-				UIApplication.shared.registerForRemoteNotifications()
-			}
-		#endif
-	}
 
 	fileprivate func start() {
 		spawnTransactionFinisher()
 
 		let userPreferencesProvider = UserPreferencesProviderImpl()
-		self.notificationStorage = UserPrefsNotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainManagerKeychainEncryption(keychainManager: keychainManager)
 		let dateProvider = SystemDateProvider()
 
 		let alarmModel = AlarmModel(dateProvider: dateProvider)
-		self.alarmManager = AlarmManager(
-			alarmPersistor: AlarmPreferencePersistor(notificationsStorage: notificationStorage, keychainManager: keychainManager),
-			alarmCryptor: KeychainAlarmCryptor(keychainManager: keychainManager),
-			alarmScheduler: SystemAlarmScheduler(),
-			alarmCalculator: alarmModel
-		)
 		let httpClient = URLSessionHttpClient(session: self.urlSession)
-		self.notificationsHandler = NotificationsHandler(
-			alarmManager: self.alarmManager,
-			notificationStorage: notificationStorage,
-			httpClient: httpClient,
-			dateProvider: dateProvider
-		)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
 
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
@@ -63,9 +34,6 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(),
 			themeManager: ThemeManager(userPreferencesProvider: userPreferencesProvider),
 			keychainManager: keychainManager,
-			notificationStorage: notificationStorage,
-			alarmManager: alarmManager,
-			notificaionsHandler: notificationsHandler,
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
 			contactsSynchronization: IosMobileContactsFacade(),
@@ -91,17 +59,6 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 
 	func applicationDidBecomeActive(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
 
-	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-		let stringToken = deviceTokenAsString(deviceToken: deviceToken)
-		self.remoteNotificationsContinuation?.resume(with: .success(stringToken!))
-		self.remoteNotificationsContinuation = nil
-	}
-
-	func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
-		self.remoteNotificationsContinuation?.resume(with: .failure(error))
-		self.remoteNotificationsContinuation = nil
-	}
-
 	/// handles tutanota deep links:
 	/// tutanota:// -> ?
 	/// tutacalshare:// -> share requests from the sharing extension
@@ -124,28 +81,6 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		return true
 	}
 
-	func application(
-		_ application: UIApplication,
-		didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-		fetchCompletionHandler completionHandler: @escaping @Sendable (UIBackgroundFetchResult) -> Void
-	) {
-		let apsDict = userInfo["aps"] as! [String: Any]
-		TUTSLog("Received notification \(userInfo)")
-
-		let contentAvailable = apsDict["content-available"]
-		if contentAvailable as? Int == 1 {
-			Task {
-				await self.notificationsHandler.fetchMissedNotifications { result in
-					TUTSLog("Fetched missed notification after notification \(String(describing: result))")
-					switch result {
-					case .success: completionHandler(.newData)
-					case .failure: completionHandler(.failed)
-					}
-				}
-			}
-		}
-	}
-
 	func applicationDidEnterBackground(_ application: UIApplication) {
 		self.viewController.onApplicationDidEnterBackground()
 
@@ -160,9 +95,10 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 	private func spawnTransactionFinisher() {
 		Task.detached {
 			for await result in Transaction.updates {
-				let transaction = IosMobilePaymentsFacade.checkVerified(result)
-				await transaction.finish()
-				TUTSLog("finished transaction \(transaction.id)")
+				//				FIXME
+				//				let transaction = IosMobilePaymentsFacade.checkVerified(result)
+				//				await transaction.finish()
+				//				TUTSLog("finished transaction \(transaction.id)")
 			}
 			TUTSLog("unclogged all transactions 🪠")
 		}
