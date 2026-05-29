@@ -1,7 +1,9 @@
 import {
+	Block,
 	CallExpression,
 	EnumDeclaration,
 	ExpressionStatement,
+	FunctionDeclaration,
 	ImportDeclaration,
 	Node,
 	SourceFile,
@@ -27,6 +29,8 @@ export abstract class CommonTarget {
 	protected abstract generateCallExpression(callExpression: CallExpression): string
 	protected abstract generateImportDecleration(importDecleration: ImportDeclaration): string
 	protected abstract generateVariableDeclaration(variableStatement: VariableDeclaration): string
+	protected abstract generateFunctionDecleration(functionDecleration: FunctionDeclaration): string
+	protected abstract generateScopedBlock(blockContent: Block): string
 
 	public generate() {
 		console.log("Generating kotlin for file: " + this.sourceFile.getFilePath())
@@ -35,7 +39,7 @@ export abstract class CommonTarget {
 		this.outputContent += collectedOutputs.join("\n\n")
 	}
 
-	private redirectNode(node: Node<ts.Node>): string | Array<string> {
+	protected redirectNode(node: Node<ts.Node>): string | Array<string> {
 		const _kindName = node.getKindName()
 		const typedNode = node.asKindOrThrow(node.getKind())
 
@@ -47,6 +51,10 @@ export abstract class CommonTarget {
 			return this.generateEnumDecleration(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {
 			return this.generateTypeAliasDecleration(typedNode)
+		} else if (typedNode instanceof Block) {
+			return this.generateScopedBlock(typedNode)
+		} else if (typedNode instanceof FunctionDeclaration) {
+			return this.generateFunctionDecleration(typedNode)
 		} else if (typedNode instanceof CallExpression) {
 			const parentExpressionStatement = node.getParent()
 			const callOut = this.generateCallExpression(typedNode)

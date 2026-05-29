@@ -1,6 +1,8 @@
 import {
+	Block,
 	CallExpression,
 	EnumDeclaration,
+	FunctionDeclaration,
 	ImportDeclaration,
 	PropertySignature,
 	SourceFile,
@@ -45,7 +47,7 @@ export class KotlinTarget extends CommonTarget {
 
 	generateImportDecleration(importDeclaration: ImportDeclaration): string {
 		const namedImportsMap = {
-			"@tutao/utils": "de.tutao.util",
+			"@tutao/utils": "de.tutao.utils",
 			"@tutao/app-env": "de.tutao.app-env",
 			"node:fs": "org.kotlin.filesystem",
 		}
@@ -80,17 +82,39 @@ export class KotlinTarget extends CommonTarget {
 	}
 
 	generateVariableDeclaration(variableStatement: VariableDeclaration): string {
+		const declType = variableStatement.getVariableStatement().getDeclarationKind()
 		const identifierName = this.mapFromTsIdentifier(variableStatement.getSymbol().getName())
 
-		const declType = variableStatement.getVariableStatement().getDeclarationKind()
-		switch (declTypeq) {
-			case VariableDeclarationKind.Const:
-				return `const val ${identifierName} = `
-			case VariableDeclarationKind.Let:
-				return `val ${identifierName} = `
-			case VariableDeclarationKind.AwaitUsing || VariableDeclarationKind.Using:
-				throw new Error("awaitUsing or Using is not supported!!")
+		let [lhs, rhs] = ["", ""]
+		if (declType === VariableDeclarationKind.Const) {
+			lhs = `const val ${identifierName}`
+		} else if (declType === VariableDeclarationKind.Let) {
+			lhs = `val ${identifierName}`
+		} else if (declType === VariableDeclarationKind.Using || declType === VariableDeclarationKind.AwaitUsing) {
+			throw new Error("awaitUsing or Using is not supported!!")
 		}
+
+		return `${lhs} = ${rhs}`
+	}
+
+	generateFunctionDecleration(functionDecleration: FunctionDeclaration): string {
+		const functionName = this.mapFromTsIdentifier(functionDecleration.getName())
+		const returnType = this.mapFromTsType(functionDecleration.getReturnType())
+		const functionParameters = functionDecleration
+			.getParameters()
+			.map((parameter) => {
+				const name = this.mapFromTsIdentifier(parameter.getName())
+				const paramType = this.mapFromTsType(parameter.getType())
+				return `${name}: ${paramType}`
+			})
+			.join(",")
+		const functionBody = this.redirectNode(functionDecleration.getBody())
+
+		return `fun ${functionName}(${functionParameters}): ${returnType}`
+	}
+
+	generateScopedBlock(blockContent: Block): string {
+		return `{}`
 	}
 
 	private getTypedProperty(propertySignature: PropertySignature) {
@@ -104,6 +128,7 @@ export class KotlinTarget extends CommonTarget {
 		const typesMap = {
 			Boolean: "bool",
 			String: "String",
+			Number: "number",
 		}
 		return typesMap[typeName] ?? typeName
 	}

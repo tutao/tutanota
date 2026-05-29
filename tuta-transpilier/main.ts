@@ -9,8 +9,8 @@ program
 			tsConfigFilePath: `src/platform-kit/tsconfig.app-env.json`,
 			skipAddingFilesFromTsConfig: true,
 		})
-		// project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/AppType.ts")
-		// project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/boot/ClientConstants.ts")
+		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/AppType.ts")
+		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/boot/ClientConstants.ts")
 		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/TimeConstants.ts")
 		const targetTranspilation = project.getSourceFiles().map((sourceFile) => {
 			const kotlinTarget = new KotlinTarget(sourceFile)
