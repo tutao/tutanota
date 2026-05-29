@@ -245,12 +245,12 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 			}
 		} else if (hasGlobalCampaign) {
 			discountDetails[targetPlan] = {
-				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
+				ribbonTranslation: lang.getTranslation("pricing.saveAmountNow_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
 				discountType: "GlobalFirstYear",
 			}
 		} else if (firstYearDiscount > 0) {
 			discountDetails[targetPlan] = {
-				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
+				ribbonTranslation: lang.getTranslation("pricing.saveAmountNow_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
 				discountType: "IndividualFirstYear",
 			}
 		}

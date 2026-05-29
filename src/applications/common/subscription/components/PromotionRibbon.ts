@@ -5,6 +5,8 @@ import { Translation } from "../../../../ui/utils/LanguageViewModel"
 import { CAMPAIGN_NAME, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg"
 import { styles } from "../../../../ui/styles"
+import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { Icons } from "../../../../ui/base/icons/Icons"
 
 interface PromotionRibbonAttrs {
 	translation: Translation
@@ -42,7 +44,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 					}),
 				),
 			m(
-				".full-width.pt-4.pb-4.text-center.b.smaller.abs",
+				".flex-center.gap-8.full-width.pt-4.pb-4.text-center.b.smaller.abs",
 				{
 					style: {
 						backgroundColor: localTheme?.tertiary,
@@ -51,6 +53,11 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 						"border-radius": `${px(size.radius_8)} ${px(size.radius_8)} 0 0`,
 					},
 				},
+				campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN &&
+					m(Icon, {
+						icon: Icons.EuMinimal,
+						size: IconSize.PX20,
+					}),
 				translation.text,
 			),
 		])

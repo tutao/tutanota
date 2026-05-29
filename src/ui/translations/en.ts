@@ -1558,6 +1558,7 @@ export default {
 		"pricing.privateUse_label": "Personal",
 		"pricing.roles_label": "Multiple admin roles",
 		"pricing.roles_tooltip": "You can define administrators who have access to everything.",
+		"pricing.saveAmountNow_label": "Save {amount} now!",
 		"pricing.saveAmount_label": "Save {amount}",
 		"pricing.saveAmountFirstYear_label": "Save {amount} for first year",
 		"pricing.search_msg": "Unlimited search",
