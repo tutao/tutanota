@@ -17,6 +17,12 @@ import { GroupInvitationPostDataTypeRef } from "./TypeRefs.js"
 import { GroupInvitationPostReturnTypeRef } from "./TypeRefs.js"
 import { GroupInvitationPutDataTypeRef } from "./TypeRefs.js"
 import { GroupInvitationDeleteDataTypeRef } from "./TypeRefs.js"
+import { ImapFolderPostInTypeRef } from "./TypeRefs.js"
+import { ImapFolderPostOutTypeRef } from "./TypeRefs.js"
+import { ImapFolderDeleteInTypeRef } from "./TypeRefs.js"
+import { ImapPostInTypeRef } from "./TypeRefs.js"
+import { ImapPostOutTypeRef } from "./TypeRefs.js"
+import { ImapDeleteInTypeRef } from "./TypeRefs.js"
 import { ImportMailGetInTypeRef } from "./TypeRefs.js"
 import { ImportMailGetOutTypeRef } from "./TypeRefs.js"
 import { ImportMailPostInTypeRef } from "./TypeRefs.js"
@@ -32,6 +38,7 @@ import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
 import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
 import { ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { MoveMailDataTypeRef } from "./TypeRefs.js"
 import { MoveMailPostOutTypeRef } from "./TypeRefs.js"
@@ -153,6 +160,24 @@ export const GroupInvitationService = Object.freeze({
 	delete: { data: GroupInvitationDeleteDataTypeRef, return: null },
 } as const)
 
+export const ImapFolderService = Object.freeze({
+	app: "tutanota",
+	name: "ImapFolderService",
+	get: null,
+	post: { data: ImapFolderPostInTypeRef, return: ImapFolderPostOutTypeRef },
+	put: null,
+	delete: { data: ImapFolderDeleteInTypeRef, return: null },
+} as const)
+
+export const ImapService = Object.freeze({
+	app: "tutanota",
+	name: "ImapService",
+	get: null,
+	post: { data: ImapPostInTypeRef, return: ImapPostOutTypeRef },
+	put: null,
+	delete: { data: ImapDeleteInTypeRef, return: null },
+} as const)
+
 export const ImportMailService = Object.freeze({
 	app: "tutanota",
 	name: "ImportMailService",
@@ -211,7 +236,7 @@ export const ManageLabelService = Object.freeze({
 	app: "tutanota",
 	name: "ManageLabelService",
 	get: null,
-	post: { data: ManageLabelServicePostInTypeRef, return: null },
+	post: { data: ManageLabelServicePostInTypeRef, return: ManageLabelServicePostOutTypeRef },
 	put: null,
 	delete: { data: ManageLabelServiceDeleteInTypeRef, return: null },
 } as const)
