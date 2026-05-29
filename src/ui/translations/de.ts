@@ -2392,6 +2392,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"appStoreConfirmationTimeout_msg": "Apple hat dein Abonnement noch nicht bestätigt. Dein Konto sollte innerhalb der nächsten 72 Stunden aktualisiert werden. Falls dies nicht geschieht, beantrage in den Abonnementeinstellungen des App Stores eine Rückerstattung bei Apple."
 	}
 }

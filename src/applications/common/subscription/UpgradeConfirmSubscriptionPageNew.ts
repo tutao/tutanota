@@ -1,5 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../../../ui/base/Dialog"
+import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { Const, isIOSApp, SessionType } from "@tutao/app-env"
@@ -19,7 +20,6 @@ import { AccountType, AvailablePlanType, PaymentMethodType, PlanType } from "../
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/enums"
-import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DateTime } from "luxon"
@@ -236,22 +236,14 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
-		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
 		if (ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore) {
-			const success = await this.handleAppStorePayment(ctx.viewModel)
-			if (!success) {
-				return
-			}
-			const receivedNotification = await showProgressDialog(
-				"waitingForAppStoreConfirmation_msg",
-				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
-			)
-			if (receivedNotification) {
-				ctx.goNext()
-				return
-			}
+			return this.upgradeWithAppStore(ctx)
+		} else {
+			return this.upgradeWithTuta(ctx)
 		}
+	}
 
+	private upgradeWithTuta(ctx: WizardStepContext<SignupViewModel>): Promise<void> {
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
@@ -262,31 +254,57 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData, null))
-			// Order confirmation (click on Buy), send selected payment method as an enum
-			.then(() => ctx.goNext())
-			.catch(
-				ofClass(PreconditionFailedError, (e) => {
-					Dialog.message(
-						lang.makeTranslation(
-							"precondition_failed",
-							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
-								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						),
-					)
-				}),
+		return (
+			showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData, null))
+				// Order confirmation (click on Buy), send selected payment method as an enum
+				.then(() => ctx.goNext())
+				.catch(
+					ofClass(PreconditionFailedError, (e) => {
+						Dialog.message(
+							lang.makeTranslation(
+								"precondition_failed",
+								lang.get(getPreconditionFailedPaymentMsg(e.data)) +
+									(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							),
+						)
+					}),
+				)
+				.catch(
+					ofClass(BadGatewayError, () => {
+						Dialog.message(
+							lang.makeTranslation(
+								"payment_failed",
+								lang.get("paymentProviderNotAvailableError_msg") +
+									(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+							),
+						)
+					}),
+				)
+		)
+	}
+
+	private async upgradeWithAppStore(ctx: WizardStepContext<SignupViewModel>): Promise<void> {
+		const success = await this.handleAppStorePayment(ctx.viewModel)
+		if (!success) {
+			return
+		}
+
+		const receivedNotification = await showProgressDialog(
+			"waitingForAppStoreConfirmation_msg",
+			waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
+		)
+		if (!receivedNotification) {
+			await Dialog.message("appStoreConfirmationTimeout_msg", () =>
+				m(".pt-8", [
+					m(ExternalLink, {
+						href: "https://apps.apple.com/account/subscriptions",
+						text: lang.get("settings_label"),
+						isCompanySite: false,
+					}),
+				]),
 			)
-			.catch(
-				ofClass(BadGatewayError, () => {
-					Dialog.message(
-						lang.makeTranslation(
-							"payment_failed",
-							lang.get("paymentProviderNotAvailableError_msg") +
-								(ctx.viewModel.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						),
-					)
-				}),
-			)
+		}
+		ctx.goNext()
 	}
 
 	/** @return whether subscribed successfully */
@@ -320,15 +338,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 		}
 
-		return await updatePaymentData(
-			data.options.paymentInterval(),
-			data.invoiceData,
-			data.paymentData,
-			null,
-			data.newAccountData != null,
-			null,
-			data.accountingInfo!,
-		)
+		return true
 	}
 
 	private renderPriceNextYear(data: SignupViewModel) {

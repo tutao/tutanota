@@ -2394,3 +2394,4 @@ export type TranslationKeyType =
 	| "alternativePaymentMethods_label"
 	| "proxyStorePayment_msg"
 	| "openProxystore_action"
+	| "appStoreConfirmationTimeout_msg"
