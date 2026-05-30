@@ -1,11 +1,8 @@
-import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
-import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import type { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
-import type { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import {
@@ -13,37 +10,22 @@ import {
 	Const,
 	getWebsocketBaseUrl,
 	isAdminClient,
-	isAndroidApp,
 	isBrowser,
-	isIOSApp,
 	isOfflineStorageAvailable,
 	ProgrammingError,
-	SessionType,
 } from "../../../../platform-kit/app-env"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import type { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade.js"
-import { RestClient, restSuspension } from "../../../../platform-kit/rest-client"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { DeviceEncryptionFacade } from "../../../../platform-kit/base/crypto/DeviceEncryptionFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
-import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
-import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
-import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
+import { NoZoneDateProvider } from "../../../../platform-kit/utils/NoZoneDateProvider.js"
 import { LateInitializedCacheStorageImpl } from "../../../../app-kit/local-store/CacheStorageProxy.js"
-import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
-import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { LocalInstanceSessionKeysCache } from "../../../../app-kit/local-store/LocalInstanceSessionKeysCache.js"
-import { KeyCache } from "../../../../platform-kit/base/crypto/persistence/KeyCache.js"
-import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
+import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase.js"
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
@@ -53,149 +35,83 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../../../../platform-kit/crypto"
 import { DateProvider, lazyAsync, lazyMemoized, noOp } from "../../../../platform-kit/utils"
-import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
-import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { NativeArgon2idFacade } from "../../../../platform-kit/base/crypto/NativeArgon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../../platform-kit/base/crypto/KyberFacade.js"
-import { PQFacade } from "../../../../platform-kit/base/crypto/PQFacade.js"
-import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
+import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
+import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
-import { KeyLoaderFacade } from "../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
-import { KeyRotationFacade } from "../../../../platform-kit/base/crypto/KeyRotationFacade.js"
-import { RecoverCodeFacade } from "../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "../worker/CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
-import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/crypto/AsymmetricCryptoFacade.js"
-import {
-	ApplicationTypesFacade,
-	InstancePipeline,
-	NamedClientModel,
-	PatchMerger,
-	ServerModelInfo,
-	TypeModelResolver,
-	UpdateAppTypesHashMiddleware,
-} from "../../../../platform-kit/instance-pipeline"
-import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import PublicEncryptionKeyProvider from "../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../../platform-kit/base/crypto/Ed25519Facade"
-import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
-import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
-import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
-import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
-import { RolloutFacade } from "../../../../platform-kit/base/facades/RolloutFacade"
-import { PublicKeySignatureFacade } from "../../../../platform-kit/base/crypto/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
-import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
-import { PublicEncryptionKeyCache } from "../../../../platform-kit/base/crypto/persistence/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import {
 	NoOpLastProcessedEventBatchStorageFacade,
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
-import { EntityRestCache, EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
-import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/crypto/WasmArgon2idFacade"
-import { EntityMigrator, EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
-import { KeyAuthenticationFacade } from "../../../../platform-kit/network/KeyAuthenticationFacade"
+import { EntityRestCache } from "../../../../platform-kit/network/EntityRestCacheInterface"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
-import { ServiceExecutor } from "../../../../platform-kit/network/ServiceExecutor"
-import { Credentials } from "../../../../platform-kit/network/types"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { Challenge, UserTypeRef } from "@tutao/entities/sys"
-import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { UserTypeRef } from "@tutao/entities/sys"
+import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { CloseEventBusOption, ConnectMode } from "../../../../platform-kit/network/Constants"
-import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator"
-import { RsaImplementation } from "../../../../platform-kit/crypto/encryption/RsaImplementation"
+import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
+import { random } from "../../../../platform-kit/crypto"
+import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
+import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
+import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
+import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
 import { DefaultLoginListener } from "../../../common/workerUtils/DefaultLoginListener"
+import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
+import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
+import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
+import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
 
 assertWorkerOrNode()
 
 export type CalendarWorkerLocatorType = {
-	// network & encryption
-	restClient: RestClient
-	serviceExecutor: IServiceExecutor
-	crypto: CryptoFacade
-	entityMigrator: EntityMigrator
-	instancePipeline: InstancePipeline
-	patchMerger: PatchMerger
-	applicationTypesFacade: ApplicationTypesFacade
+	base: BaseLocator
+
+	// App-kit infrastructure
 	cacheStorage: CacheStorage
-	cache: EntityRestInterface
-	cachingEntityClient: EntityClient
 	eventBusClient: EventBusClient
-	rsa: RsaImplementation
-	kyberFacade: KyberFacade
-	pqFacade: PQFacade
-	entropyFacade: EntropyFacade
-	blobAccessToken: BlobAccessTokenFacade
-	keyCache: KeyCache
-	keyLoader: KeyLoaderFacade
-	adminKeyLoader: AdminKeyLoaderFacade
-	keyAuthenticationFacade: KeyAuthenticationFacade
-	publicEncryptionKeyProvider: PublicEncryptionKeyProvider
-	publicIdentityKeyProvider: PublicIdentityKeyProvider
 	identityKeyTrustDatabase: LocalIdentityKeyTrustDatabase
-	keyRotation: KeyRotationFacade
-	ed25519Facade: Ed25519Facade
-	publicKeySignatureFacade: PublicKeySignatureFacade
-	cryptoWrapper: CryptoWrapper
-	rolloutFacade: RolloutFacade
+	native: NativeInterface
+	workerFacade: WorkerFacade
+	sqlCipherFacade: SqlCipherFacade
 
-	// login
-	user: UserFacade
-	login: LoginFacade
-
-	// domains
+	// Domain facades
 	blob: lazyAsync<BlobFacade>
 	mail: lazyAsync<MailFacade>
 	calendar: lazyAsync<CalendarFacade>
-	counters: lazyAsync<CounterFacade>
-	Const: Record<string, any>
 	alarmFacade: lazyAsync<AlarmFacade>
+	Const: Record<string, any>
 
-	// management facades
-	groupManagement: lazyAsync<GroupManagementFacade>
-	identityKeyCreator: lazyAsync<IdentityKeyCreator>
+	// Management facades
 	userManagement: lazyAsync<UserManagementFacade>
-	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
 	mailAddress: lazyAsync<MailAddressFacade>
 	booking: lazyAsync<BookingFacade>
-	share: lazyAsync<ShareFacade>
 	cacheManagement: lazyAsync<CacheManagementFacade>
-	keyVerification: lazyAsync<KeyVerificationFacade>
 
-	// misc & native
+	// Misc facades
 	configFacade: lazyAsync<ConfigurationDatabase>
-	deviceEncryptionFacade: DeviceEncryptionFacade
-	native: NativeInterface
-	workerFacade: WorkerFacade
-	sqlCipherFacade: SqlCipherFacade
 	pdfWriter: lazyAsync<PdfWriter>
 
-	// used to cache between resets
+	// Meta
 	_worker: CalendarWorkerImpl
 	_browserData: BrowserData
 	_apps: Array<NamedClientModel>
 
-	//contact
+	// Contact & Drive
 	contactFacade: lazyAsync<ContactFacade>
-
-	// drive
 	driveFacade: lazyAsync<DriveFacade>
-
-	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 }
 export const locator: CalendarWorkerLocatorType = {} as any
 
@@ -203,80 +119,39 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator._worker = worker
 	locator._browserData = browserData
 	locator._apps = apps
-	locator.keyCache = new KeyCache()
-	const cryptoWrapper = new CryptoWrapper()
-	locator.user = new UserFacade(locator.keyCache, cryptoWrapper)
 	locator.workerFacade = new WorkerFacade()
-	const dateProvider = new NoZoneDateProvider()
-
-	const mainInterface = worker.getMainInterface()
-
-	const suspensionHandler = new restSuspension.SuspensionHandler(self, () => {
-		mainInterface.infoMessageHandler.onInfoMessage({
-			translationKey: "clientSuspensionWait_label",
-			args: {},
-		})
-	})
-
-	const clientModelInfo = initClientModels(apps)
-	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash) =>
-		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
-	)
-	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
-	locator.instancePipeline = new InstancePipeline(
-		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
-		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
-		() => locator.keyLoader,
-		SYMMETRIC_CIPHER_FACADE,
-	)
-	locator.rsa = await createRsaImplementation(worker)
-
-	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
-		new UpdateAppTypesHashMiddleware(serverModelInfo),
-	)
-	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
-	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
-	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider, typeModelResolver)
-	const lazyCrypto = () => locator.crypto
-	const entityRestClient = new EntityRestClient(
-		locator.user,
-		locator.restClient,
-		lazyCrypto,
-		locator.instancePipeline,
-		locator.blobAccessToken,
-		typeModelResolver,
-		lazyCrypto,
-		() => locator.entityMigrator,
-	)
 	locator.native = worker
 
-	locator.booking = lazyMemoized(async () => {
-		const { BookingFacade } = await import("../../../common/api/worker/facades/lazy/BookingFacade.js")
-		return new BookingFacade(locator.serviceExecutor)
-	})
-
+	const mainInterface = worker.getMainInterface()
+	const dateProvider = new NoZoneDateProvider()
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
-	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 
-	let offlineStorageProvider
+	locator.pdfWriter = async () => {
+		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
+		return new PdfWriter(new TextEncoder(), undefined)
+	}
+
 	if (!isBrowser() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
+	}
+
+	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
+	let offlineStorageProvider: () => Promise<OfflineStorage | null>
+	if (!isBrowser() && !isAdminClient()) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: CalendarEventTypeRef,
-				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
+				handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
 			})
-
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
-				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.applicationTypesFacade)),
+				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
 				new CalendarOfflineCleaner(),
-				locator.instancePipeline.modelMapper,
-				typeModelResolver,
+				locator.base.instancePipeline.modelMapper,
+				locator.base.typeModelResolver,
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)
@@ -284,17 +159,13 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	} else {
 		offlineStorageProvider = async () => null
 	}
-	locator.pdfWriter = async () => {
-		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
-		return new PdfWriter(new TextEncoder(), undefined)
-	}
 
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
 			ref: UserTypeRef,
 			handler: new CustomUserCacheHandler(locator.cacheStorage),
 		})
-		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
+		return new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, customCacheHandler)
 	}
 
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
@@ -304,12 +175,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		ephemeralStorageProvider,
 		offlineStorageProvider,
 	)
-
 	locator.cacheStorage = maybeUninitializedStorage
 
-	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto, SYMMETRIC_CIPHER_FACADE)
-
-	locator.lastProcessedEventBatchStorageFacade = lazyMemoized(async () => {
+	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
@@ -317,296 +185,154 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		}
 	})
 
-	locator.cache = new DefaultEntityRestCache(
-		entityRestClient,
-		maybeUninitializedStorage,
-		typeModelResolver,
-		locator.patchMerger,
-		locator.lastProcessedEventBatchStorageFacade,
-	)
-
-	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
-	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
+	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.base.login)
 
 	locator.cacheManagement = lazyMemoized(async () => {
 		const { CacheManagementFacade } = await import("../../../common/api/worker/facades/lazy/CacheManagementFacade.js")
-		return new CacheManagementFacade(locator.user, locator.cachingEntityClient, locator.cache as DefaultEntityRestCache)
+		return new CacheManagementFacade(locator.base.user, locator.base.cachingEntityClient, locator.base.cache as DefaultEntityRestCache)
 	})
 
-	const nativeCryptoFacadeSendDispatcher = new NativeCryptoFacadeSendDispatcher(worker)
-	if (isIOSApp() || isAndroidApp()) {
-		locator.kyberFacade = new NativeKyberFacade(nativeCryptoFacadeSendDispatcher)
-		locator.ed25519Facade = new NativeEd25519Facade(nativeCryptoFacadeSendDispatcher)
-	} else {
-		locator.kyberFacade = new WASMKyberFacade()
-		locator.ed25519Facade = new WASMEd25519Facade()
-	}
-
-	locator.pqFacade = new PQFacade(locator.kyberFacade)
-
-	locator.cryptoWrapper = new CryptoWrapper()
-
-	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
-
-	locator.keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
-
-	locator.identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
-	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
-		locator.serviceExecutor,
-		locator.cachingEntityClient,
-		locator.keyAuthenticationFacade,
-		locator.keyLoader,
-		locator.identityKeyTrustDatabase,
-	)
-	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../../platform-kit/base/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
-	})
-
-	const publicEncryptionKeyCache = new PublicEncryptionKeyCache() // should not expose this
-	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification, publicEncryptionKeyCache)
-
-	const adminKeyLoaderProvider = () => locator.adminKeyLoader
-
-	const asymmetricCrypto = new AsymmetricCryptoFacade(
-		locator.rsa,
-		locator.pqFacade,
-		locator.keyLoader,
-		cryptoWrapper,
-		locator.serviceExecutor,
-		locator.publicEncryptionKeyProvider,
-		adminKeyLoaderProvider,
-	)
-	locator.adminKeyLoader = new AdminKeyLoaderFacade(
-		locator.user,
-		locator.cachingEntityClient,
-		locator.keyLoader,
-		locator.cacheManagement,
-		asymmetricCrypto,
-		locator.cryptoWrapper,
-		locator.keyAuthenticationFacade,
-	)
-
-	locator.crypto = new CryptoFacade(
-		locator.user,
-		locator.cachingEntityClient,
-		locator.restClient,
-		locator.serviceExecutor,
-		locator.instancePipeline,
-		locator.cacheManagement,
-		locator.keyLoader,
-		asymmetricCrypto,
-		locator.publicEncryptionKeyProvider,
-		new LocalInstanceSessionKeysCache(),
-		locator.cryptoWrapper,
-		lazyMemoized(() => locator.keyRotation),
-		typeModelResolver,
-		async (error: Error) => {
-			await worker.sendError(error)
-		},
-	)
-
-	locator.recoverCode = lazyMemoized(async () => {
-		const { RecoverCodeFacade } = await import("../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js")
-		return new RecoverCodeFacade(locator.user, locator.cachingEntityClient, locator.login, locator.keyLoader)
-	})
-	locator.share = lazyMemoized(async () => {
-		const { ShareFacade } = await import("../../../../platform-kit/base/facades/lazy/ShareFacade.js")
-		return new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader)
-	})
-	locator.counters = lazyMemoized(async () => {
-		const { CounterFacade } = await import("../../../../platform-kit/network/CounterFacade.js")
-		return new CounterFacade(locator.serviceExecutor)
-	})
-
-	locator.identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("../../../../platform-kit/base/crypto/IdentityKeyCreator.js")
-		return new IdentityKeyCreator(
-			locator.user,
-			locator.cachingEntityClient,
-			locator.serviceExecutor,
-			locator.keyLoader,
-			locator.adminKeyLoader,
-			await locator.cacheManagement(),
-			asymmetricCrypto,
-			locator.cryptoWrapper,
-			locator.keyAuthenticationFacade,
-			locator.ed25519Facade,
-			locator.publicKeySignatureFacade,
-		)
-	})
-
-	locator.groupManagement = lazyMemoized(async () => {
-		const { GroupManagementFacade } = await import("../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js")
-		return new GroupManagementFacade(
-			locator.user,
-			await locator.counters(),
-			locator.cachingEntityClient,
-			locator.serviceExecutor,
-			locator.pqFacade,
-			locator.keyLoader,
-			locator.adminKeyLoader,
-			await locator.cacheManagement(),
-			cryptoWrapper,
-			await locator.identityKeyCreator(),
-		)
-	})
-	locator.keyRotation = new KeyRotationFacade(
-		locator.cachingEntityClient,
-		locator.keyLoader,
-		locator.pqFacade,
-		locator.serviceExecutor,
-		cryptoWrapper,
-		locator.recoverCode,
-		locator.user,
-		locator.crypto,
-		locator.share,
-		locator.groupManagement,
-		asymmetricCrypto,
-		locator.keyAuthenticationFacade,
-		locator.publicEncryptionKeyProvider,
-		locator.publicKeySignatureFacade,
-		locator.adminKeyLoader,
-	)
-	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor, async (error: Error) => {
-		await worker.sendError(error)
-	})
-
-	const loginListener = new DefaultLoginListener(() => locator.eventBusClient, mainInterface.loginListener, locator.user)
-
-	let argon2idFacade: Argon2idFacade
-	if (!isBrowser()) {
-		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacadeSendDispatcher)
-	} else {
-		argon2idFacade = new WASMArgon2idFacade()
-	}
-
-	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("../../../../platform-kit/base/crypto/DatabaseKeyFactory.js")
-
-	locator.login = new LoginFacade(
-		locator.restClient,
-		/**
-		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
-		 */
-		new EntityClient(locator.cache, typeModelResolver),
-		loginListener,
-		locator.instancePipeline,
-		locator.crypto,
-		locator.keyRotation,
+	locator.base = await createBaseLocator({
+		worker,
+		apps,
+		browserData,
+		loginListenerProvider: (user) => new DefaultLoginListener(() => locator.eventBusClient, mainInterface.loginListener, user),
 		maybeUninitializedStorage,
-		locator.serviceExecutor,
-		locator.user,
-		locator.blobAccessToken,
-		locator.entropyFacade,
-		new DatabaseKeyFactory(locator.deviceEncryptionFacade),
-		argon2idFacade,
-		nonCachingEntityClient,
-		async (error: Error) => {
-			await worker.sendError(error)
-		},
-		locator.cacheManagement,
-		typeModelResolver,
-		locator.rolloutFacade,
-		locator.applicationTypesFacade,
-		locator.entityMigrator,
-	)
+		lastProcessedEventBatchStorageFacade,
+		cacheManagement: locator.cacheManagement,
+		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
+		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
+		rsa: await createRsaImplementation(worker),
+		fileFacade: new FileFacadeSendDispatcher(worker),
+		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
+		entityMigratorFactory: ({
+			cryptoWrapper,
+			user,
+			keyLoader,
+			cachingEntityClient,
+			serviceExecutor,
+			typeModelResolver,
+			instancePipeline,
+			restClient,
+			crypto,
+		}) =>
+			new TutanotaEntityMigrator(
+				cryptoWrapper,
+				user,
+				keyLoader,
+				cachingEntityClient,
+				serviceExecutor,
+				typeModelResolver,
+				instancePipeline,
+				restClient,
+				crypto,
+			),
+		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
+			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
+	})
+
+	// App-specific setup — all platform-kit deps accessed via locator.base.*
+
+	locator.booking = lazyMemoized(async () => {
+		const { BookingFacade } = await import("../../../common/api/worker/facades/lazy/BookingFacade.js")
+		return new BookingFacade(locator.base.serviceExecutor)
+	})
 
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")
 		return new UserManagementFacade(
-			locator.user,
-			await locator.groupManagement(),
-			await locator.counters(),
-			locator.serviceExecutor,
+			locator.base.user,
+			await locator.base.groupManagement(),
+			await locator.base.counters(),
+			locator.base.serviceExecutor,
 			mainInterface.operationProgressTracker,
-			locator.login,
-			locator.pqFacade,
-			locator.keyLoader,
-			await locator.recoverCode(),
-			locator.adminKeyLoader,
-			await locator.identityKeyCreator(),
+			locator.base.login,
+			locator.base.pqFacade,
+			locator.base.keyLoader,
+			await locator.base.recoverCode(),
+			locator.base.adminKeyLoader,
+			await locator.base.identityKeyCreator(),
 		)
 	})
+
 	locator.customer = lazyMemoized(async () => {
 		const { CustomerFacade } = await import("../../../common/api/worker/facades/lazy/CustomerFacade.js")
 		return new CustomerFacade(
-			locator.user,
-			await locator.groupManagement(),
+			locator.base.user,
+			await locator.base.groupManagement(),
 			await locator.userManagement(),
-			await locator.counters(),
-			locator.rsa,
-			locator.cachingEntityClient,
-			locator.serviceExecutor,
+			await locator.base.counters(),
+			locator.base.rsa,
+			locator.base.cachingEntityClient,
+			locator.base.serviceExecutor,
 			await locator.booking(),
-			locator.crypto,
+			locator.base.crypto,
 			mainInterface.operationProgressTracker,
 			locator.pdfWriter,
-			locator.pqFacade,
-			locator.keyLoader,
-			await locator.recoverCode(),
-			asymmetricCrypto,
-			locator.publicEncryptionKeyProvider,
-			locator.cryptoWrapper,
+			locator.base.pqFacade,
+			locator.base.keyLoader,
+			await locator.base.recoverCode(),
+			locator.base.asymmetricCrypto,
+			locator.base.publicEncryptionKeyProvider,
+			locator.base.cryptoWrapper,
 		)
 	})
-	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher, random)
+
+	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(
-			locator.restClient,
-			suspensionHandler,
+			locator.base.restClient,
+			locator.base.suspensionHandler,
 			fileApp,
 			aesApp,
-			locator.instancePipeline,
-			locator.crypto,
-			locator.blobAccessToken,
+			locator.base.instancePipeline,
+			locator.base.crypto,
+			locator.base.blobAccessToken,
 			mainInterface.uploadProgressListener,
 		)
 	})
+
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
 		return new MailFacade(
-			locator.user,
-			locator.cachingEntityClient,
-			locator.crypto,
-			locator.cryptoWrapper,
-			locator.serviceExecutor,
+			locator.base.user,
+			locator.base.cachingEntityClient,
+			locator.base.crypto,
+			locator.base.cryptoWrapper,
+			locator.base.serviceExecutor,
 			await locator.blob(),
 			fileApp,
-			locator.login,
-			locator.keyLoader,
-			locator.publicEncryptionKeyProvider,
+			locator.base.login,
+			locator.base.keyLoader,
+			locator.base.publicEncryptionKeyProvider,
 		)
 	})
 
 	locator.alarmFacade = lazyMemoized(async () => {
 		const { AlarmFacade } = await import("../../../common/api/worker/facades/lazy/AlarmFacade.js")
 		const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
-
 		return new AlarmFacade(
-			locator.user,
-			locator.serviceExecutor,
-			locator.cryptoWrapper,
-			locator.crypto,
+			locator.base.user,
+			locator.base.serviceExecutor,
+			locator.base.cryptoWrapper,
+			locator.base.crypto,
 			nativePushFacade,
-			locator.instancePipeline,
+			locator.base.instancePipeline,
 			mainInterface.infoMessageHandler,
 		)
 	})
 
 	locator.calendar = lazyMemoized(async () => {
 		const { CalendarFacade } = await import("../../../common/api/worker/facades/lazy/CalendarFacade.js")
-
 		return new CalendarFacade(
-			locator.user,
-			await locator.groupManagement(),
-			locator.cache as DefaultEntityRestCache,
-			nonCachingEntityClient, // without cache
+			locator.base.user,
+			await locator.base.groupManagement(),
+			locator.base.cache as DefaultEntityRestCache,
+			locator.base.nonCachingEntityClient,
 			mainInterface.operationProgressTracker,
-			locator.serviceExecutor,
-			locator.cachingEntityClient,
+			locator.base.serviceExecutor,
+			locator.base.cachingEntityClient,
 			await locator.alarmFacade(),
 		)
 	})
@@ -614,86 +340,80 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.mailAddress = lazyMemoized(async () => {
 		const { MailAddressFacade } = await import("../../../common/api/worker/facades/lazy/MailAddressFacade.js")
 		return new MailAddressFacade(
-			locator.user,
-			locator.adminKeyLoader,
-			locator.serviceExecutor,
-			nonCachingEntityClient, // without cache,
+			locator.base.user,
+			locator.base.adminKeyLoader,
+			locator.base.serviceExecutor,
+			locator.base.nonCachingEntityClient,
 			dateProvider,
 		)
 	})
+
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.keyLoader, locator.user)
+		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		locator.mail,
-		locator.user,
-		locator.cachingEntityClient,
+		locator.base.user,
+		locator.base.cachingEntityClient,
 		mainInterface.eventController,
 		locator.configFacade,
-		locator.keyRotation,
+		locator.base.keyRotation,
 		locator.cacheManagement,
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
 		noOp,
-		locator.rolloutFacade,
-		locator.groupManagement,
-		locator.identityKeyCreator,
+		locator.base.rolloutFacade,
+		locator.base.groupManagement,
+		locator.base.identityKeyCreator,
 		mainInterface.syncTracker,
 	)
 
+	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 	const serverDateProvider: DateProvider = {
 		now(): number {
-			return locator.restClient.getServerTimestampMs()
+			return locator.base.restClient.getServerTimestampMs()
 		},
 		timeZone(): string {
 			throw new ProgrammingError("Not supported")
 		},
 	}
 
-	locator.entityMigrator = new TutanotaEntityMigrator(
-		locator.cryptoWrapper,
-		locator.user,
-		locator.keyLoader,
-		locator.cachingEntityClient,
-		locator.serviceExecutor,
-		typeModelResolver,
-		locator.instancePipeline,
-		locator.restClient,
-		locator.crypto,
-	)
 	locator.eventBusClient = new EventBusClient(
 		mainInterface.wsConnectivityListener,
 		eventBusCoordinator,
-		locator.cache as EntityRestCache,
-		locator.user,
-		locator.instancePipeline,
+		locator.base.cache as EntityRestCache,
+		locator.base.user,
+		locator.base.instancePipeline,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
-		typeModelResolver,
-		locator.crypto,
-		locator.entityMigrator,
-		locator.lastProcessedEventBatchStorageFacade,
+		locator.base.typeModelResolver,
+		locator.base.crypto,
+		locator.base.entityMigrator,
+		locator.base.lastProcessedEventBatchStorageFacade,
 		serverDateProvider,
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
+
 	locator.Const = Const
+
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")
-		return new GiftCardFacade(locator.user, await locator.customer(), locator.serviceExecutor, locator.crypto, locator.keyLoader)
+		return new GiftCardFacade(locator.base.user, await locator.customer(), locator.base.serviceExecutor, locator.base.crypto, locator.base.keyLoader)
 	})
+
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
-		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
+		return new ContactFacade(new EntityClient(locator.base.cache, locator.base.typeModelResolver))
 	})
 }
 
 export async function resetLocator(): Promise<void> {
-	await locator.login.resetSession()
+	await locator.base.login.resetSession()
 	await initLocator(locator._worker, locator._browserData, locator._apps)
 }
 

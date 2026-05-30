@@ -37,7 +37,7 @@ import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoader
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../src/platform-kit/base/crypto/KeyRotationFacade"
-import { LocalInstanceSessionKeysCache } from "../../../src/app-kit/local-store/LocalInstanceSessionKeysCache"
+import { LocalInstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import {
 	BodyTypeRef,

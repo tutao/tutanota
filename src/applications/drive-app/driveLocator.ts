@@ -41,7 +41,7 @@ import { OperationProgressTracker } from "../common/api/main/OperationProgressTr
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "../../platform-kit/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
-import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
+import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"

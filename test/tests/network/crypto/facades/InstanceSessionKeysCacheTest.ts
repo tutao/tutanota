@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { createTestEntity } from "../../../TestUtils"
-import { LocalInstanceSessionKeysCache } from "../../../../../src/app-kit/local-store/LocalInstanceSessionKeysCache"
+import { LocalInstanceSessionKeysCache } from "../../../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache"
 
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 

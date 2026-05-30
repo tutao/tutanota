@@ -1,3 +1,4 @@
+export * from "./ClientModelInfoInitializer.js"
 export * from "./InstancePipeline.js"
 export * from "./ModelMapper.js"
 export * from "./CryptoMapper.js"

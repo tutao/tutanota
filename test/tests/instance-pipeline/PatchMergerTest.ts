@@ -32,7 +32,7 @@ import { EphemeralCacheStorage } from "../../../src/app-kit/local-store/Ephemera
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "../../../src/platform-kit/app-env"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
-import { LocalInstanceSessionKeysCache } from "../../../src/app-kit/local-store/LocalInstanceSessionKeysCache"
+import { LocalInstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache"
 import { CacheStorage } from "../../../src/app-kit/local-store/CacheStorage"
 import {
 	CalendarEvent,

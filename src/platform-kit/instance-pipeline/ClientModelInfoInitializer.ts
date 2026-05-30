@@ -1,4 +1,4 @@
-import { ClientModelInfo, NamedClientModel } from "../../../../platform-kit/instance-pipeline/EntityFunctions"
+import { ClientModelInfo, NamedClientModel } from "./EntityFunctions"
 
 const clientModelInfo: ClientModelInfo = new ClientModelInfo()
 

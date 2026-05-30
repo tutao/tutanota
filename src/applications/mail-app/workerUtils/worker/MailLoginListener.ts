@@ -44,7 +44,7 @@ async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	const indexer = await locator.indexer()
 	try {
 		await indexer.fullLoginInit({
-			user: assertNotNull(locator.user.getUser()),
+			user: assertNotNull(locator.base.user.getUser()),
 		})
 	} catch (e) {
 		if (e instanceof ServiceUnavailableError) {
