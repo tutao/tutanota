@@ -65,7 +65,7 @@ export class DriveWorkerImpl implements NativeInterface {
 	get exposedInterface(): DelayedImpls<CommonWorkerInterface> {
 		return {
 			async loginFacade() {
-				return locator.login
+				return locator.base.login
 			},
 
 			async customerFacade() {
@@ -77,11 +77,11 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async groupManagementFacade() {
-				return locator.groupManagement()
+				return locator.base.groupManagement()
 			},
 
 			async identityKeyCreator() {
-				return locator.identityKeyCreator()
+				return locator.base.identityKeyCreator()
 			},
 
 			async configFacade() {
@@ -101,7 +101,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async shareFacade() {
-				return locator.share()
+				return locator.base.share()
 			},
 
 			async cacheManagementFacade() {
@@ -109,7 +109,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async counterFacade() {
-				return locator.counters()
+				return locator.base.counters()
 			},
 
 			async bookingFacade() {
@@ -121,11 +121,11 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async keyVerificationFacade() {
-				return locator.keyVerification()
+				return locator.base.keyVerification()
 			},
 
 			async blobAccessTokenFacade() {
-				return locator.blobAccessToken
+				return locator.base.blobAccessToken
 			},
 
 			async blobFacade() {
@@ -137,27 +137,27 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async recoverCodeFacade() {
-				return locator.recoverCode()
+				return locator.base.recoverCode()
 			},
 
 			async restInterface() {
-				return locator.cache
+				return locator.base.cache
 			},
 
 			async serviceExecutor() {
-				return locator.serviceExecutor
+				return locator.base.serviceExecutor
 			},
 
 			async cryptoFacade() {
-				return locator.crypto
+				return locator.base.crypto
 			},
 
 			async publicEncryptionKeyProvider() {
-				return locator.publicEncryptionKeyProvider
+				return locator.base.publicEncryptionKeyProvider
 			},
 
 			async publicIdentityKeyProvider() {
-				return locator.publicIdentityKeyProvider
+				return locator.base.publicIdentityKeyProvider
 			},
 
 			async cacheStorage() {
@@ -181,7 +181,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async entropyFacade() {
-				return locator.entropyFacade
+				return locator.base.entropyFacade
 			},
 
 			async workerFacade() {
@@ -193,7 +193,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async applicationTypesFacade() {
-				return locator.applicationTypesFacade
+				return locator.base.applicationTypesFacade
 			},
 
 			async driveFacade() {

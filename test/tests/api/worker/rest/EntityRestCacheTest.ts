@@ -24,7 +24,7 @@ import {
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
-import { NoZoneDateProvider } from "../../../../../src/applications/common/api/common/utils/NoZoneDateProvider.js"
+import { NoZoneDateProvider } from "../../../../../src/platform-kit/utils/NoZoneDateProvider.js"
 import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
 import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
 import { OfflineStorageMigrator } from "../../../../../src/app-kit/local-store/OfflineStorageMigrator.js"

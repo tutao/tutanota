@@ -1,7 +1,7 @@
-import { assertNotNull, Nullable } from "../../platform-kit/utils"
-import { Entity } from "../../platform-kit/meta/EntityTypes"
+import { assertNotNull, Nullable } from "../../../utils"
+import { Entity } from "../../../meta/EntityTypes"
 import { InstanceSessionKey } from "@tutao/entities/sys"
-import { InstanceSessionKeysCache } from "../../platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "./InstanceSessionKeysCache"
 
 /**
  * This caches instanceSessionKeys (payload to UpdateInstanceSessionKeyService) for instances with bucketKeys

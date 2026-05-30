@@ -1,4 +1,11 @@
-export class DomainConfigProvider {
+export interface DomainConfigProvider {
+	/** Get domain config for the current domain (staticUrl or the one the app is running on). */
+	getCurrentDomainConfig(): DomainConfig
+
+	getDomainConfigForHostname(hostname: string, protocol?: string, port?: string): DomainConfig
+}
+
+class DomainConfigProviderImpl implements DomainConfigProvider {
 	/** Get domain config for the current domain (staticUrl or the one the app is running on). */
 	getCurrentDomainConfig(): DomainConfig {
 		// It is ambiguous what to do when we run website on one domain but have static URL for another
@@ -25,3 +32,5 @@ export class DomainConfigProvider {
 		}
 	}
 }
+
+export const DomainConfigProvider: new () => DomainConfigProvider = DomainConfigProviderImpl
