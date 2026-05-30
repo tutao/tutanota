@@ -97,7 +97,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { LocalInstanceSessionKeysCache } from "../../../../src/app-kit/local-store/LocalInstanceSessionKeysCache.js"
+import { LocalInstanceSessionKeysCache } from "../../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
