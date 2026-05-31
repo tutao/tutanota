@@ -21,7 +21,7 @@ import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./Enti
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
-	loadCurrentKeyPair(groupId: Id, currentGroupKey: VersionedKey | undefined): Promise<Versioned<AsymmetricKeyPair>>
+	loadCurrentKeyPair(groupId: Id, currentGroupKey?: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
 }
 
@@ -71,6 +71,7 @@ export function encryptValue(
 export class CryptoMapper {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
@@ -81,6 +82,7 @@ export class CryptoMapper {
 		}
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, groupId: Nullable<Id>): Promise<Nullable<AesKey>> {
 		if (requiredGroupKeyVersion === "none") {
 			return null
@@ -92,6 +94,7 @@ export class CryptoMapper {
 	}
 
 	public async decryptParsedInstance(
+		// eslint-disable-next-line local/noUnionExceptNullable
 		serverTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sessionKey: Nullable<AesKey>,
@@ -180,6 +183,7 @@ export class CryptoMapper {
 	 * The caller is responsible for handling the _errors property on each aggregate if it is set.
 	 */
 	public async decryptAggregateAssociation(
+		// eslint-disable-next-line local/noUnionExceptNullable
 		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		sessionKey: Nullable<AesKey>,

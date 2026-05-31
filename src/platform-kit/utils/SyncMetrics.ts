@@ -63,6 +63,7 @@ export class SyncMetrics {
 	}
 
 	getSumup(category: Category): Sumup {
+		// eslint-disable-next-line local/noUnionExceptNullable
 		let measurement: Sumup | undefined = this.metrics.get(category)
 		if (!measurement) {
 			measurement = new Sumup()

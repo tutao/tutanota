@@ -37,6 +37,7 @@ export const enum HttpMethod {
 }
 
 export interface RestClientOptions {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	body?: string | Uint8Array
 	responseType?: MediaType
 	progressListener?: ProgressListener

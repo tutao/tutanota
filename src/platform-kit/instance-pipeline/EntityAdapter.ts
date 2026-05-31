@@ -25,7 +25,9 @@ export class EntityAdapter implements Entity {
 		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	get _id(): Id | IdTuple {
+		// eslint-disable-next-line local/noUnionExceptNullable
 		return assertNotNull(AttributeModel.getAttributeorNull<Id | IdTuple>(this.encryptedParsedInstance, "_id", this.typeModel))
 	}
 

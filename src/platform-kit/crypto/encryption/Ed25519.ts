@@ -12,6 +12,7 @@ import { SigningKeyPairType } from "../CryptoTypes"
 
 export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair, Ed25519Signature }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export async function initEd25519(webAssemblySrc: BufferSource | string): Promise<void> {
 	// the initialization function internally manage wether or not the wasm module has already been
 	// initialized, no need for an internal state

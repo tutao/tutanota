@@ -16,9 +16,9 @@ export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
 export const SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES = SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES + SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES
 
 export type BitArray = number[]
-export type Aes256Key = BitArray
 export type Aes128Key = BitArray
-export type AesKey = Aes128Key | Aes256Key
+export type Aes256Key = BitArray
+export type AesKey = BitArray
 
 /**
  * Creates the auth verifier from the password key.

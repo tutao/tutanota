@@ -10,6 +10,7 @@ type StateFailure = {
 	status: "failure"
 	error: any
 }
+// eslint-disable-next-line local/noUnionExceptNullable
 type AsyncResultState<T> = StatePending<T> | StateComplete<T> | StateFailure
 
 /**

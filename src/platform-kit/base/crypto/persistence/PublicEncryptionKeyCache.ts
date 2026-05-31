@@ -1,4 +1,4 @@
-import { KeyVersion } from "@tutao/utils"
+import { KeyVersion, Nullable } from "@tutao/utils"
 import { PublicKeyIdentifier, PublicKeyIdentifierType } from "@tutao/crypto"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../entities/sys/Utils"
 import { MaybeSignedPublicKey } from "../MaybeSignedPublicKey"
@@ -34,8 +34,8 @@ export class PublicEncryptionKeyCache {
 	/**
 	 * Return a cached public encryption key or null if it is not cached.
 	 */
-	get(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): MaybeSignedPublicKey | undefined {
-		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version))
+	get(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): Nullable<MaybeSignedPublicKey> {
+		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version)) ?? null
 	}
 
 	private makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {

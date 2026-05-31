@@ -21,6 +21,7 @@ export type OfflineStorageArgs = OfflineStorageInitArgs & {
 }
 
 export interface CacheStorageLateInitializer {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn>
 
 	deInitialize(): Promise<void>

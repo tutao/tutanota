@@ -18,6 +18,7 @@ export interface Options {
 	@param element - Iterated element.
 	@param index - Index of the element in the source array.
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export type Mapper<Element, NewElement> = (element: Element, index: number) => Promise<NewElement> | NewElement
 
 /**

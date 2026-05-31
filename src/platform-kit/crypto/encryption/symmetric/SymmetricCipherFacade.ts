@@ -11,10 +11,12 @@ import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../CryptoTypes"
 const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
 const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function createCache<K, S extends string | number | boolean, V>(serialize: (key: K) => S) {
 	const map = new Map<S, V>()
 
 	return {
+		// eslint-disable-next-line local/noUnionExceptNullable
 		get(key: K): V | undefined {
 			return map.get(serialize(key))
 		},
@@ -34,6 +36,7 @@ type InstanceAesSubKeyCacheKey = {
 
 interface InstanceAesSubKeyCache {
 	set: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey, cachedKey: SymmetricSubKeys) => void
+	// eslint-disable-next-line local/noUnionExceptNullable
 	get: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => SymmetricSubKeys | undefined
 	has: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => boolean
 }
@@ -45,10 +48,12 @@ type InstanceAeadSubKeyCacheKey = {
 
 interface InstanceAeadSubKeyCache {
 	set: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey, cachedKey: AeadSubKeys) => void
+	// eslint-disable-next-line local/noUnionExceptNullable
 	get: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => AeadSubKeys | undefined
 	has: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => boolean
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function serializeInstanceSubKeyCacheKey(key: InstanceAesSubKeyCacheKey | InstanceAeadSubKeyCacheKey): string {
 	return `${key.cipherVersion},[${key.aesKey.join(",")}]`
 }
@@ -57,6 +62,7 @@ function serializeInstanceSubKeyCacheKey(key: InstanceAesSubKeyCacheKey | Instan
  * Decrypts one attribute of one given instance.
  */
 export interface ValueDecryptor {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	readonly requiredGroupKeyVersion: "none" | KeyVersion
 	getValue(key?: Nullable<AesKey>): Uint8Array
 }
@@ -155,6 +161,7 @@ export class InstanceDecryptor {
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	getValueDecryptor(ciphertext: Uint8Array, fieldPath: string): ValueDecryptor | MissingSessionKey {
 		const cipherVersion = getSymmetricCipherVersion(ciphertext)
 		switch (cipherVersion) {

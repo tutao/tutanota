@@ -1,4 +1,4 @@
-import { downcast, identity, neverNull } from "./Utils.js"
+import { downcast, identity, neverNull, Nullable } from "./Utils.js"
 import { getFromMap } from "./MapUtils.js"
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
@@ -39,6 +39,7 @@ export function* lazyNumberRange(min: number, max: number): Generator<number> {
  *
  * It is valid to compare Uint8Array to Array<T>, don't restrict it to be one type
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function arrayEquals<T, A extends Uint8Array | Array<T>>(a1: A, a2: A): boolean {
 	if (a1 === a2) {
 		return true
@@ -176,6 +177,7 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 /**
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null | undefined): Array<R> {
 	const resultList: R[] = []
 
@@ -190,6 +192,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array<T> {
 	return downcast(array.filter((item) => item != null))
 }
@@ -199,7 +202,7 @@ export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last<T>(theArray: ReadonlyArray<T>): T | null | undefined {
+export function last<T>(theArray: ReadonlyArray<T>): Nullable<T> {
 	return theArray[theArray.length - 1]
 }
 
@@ -234,7 +237,7 @@ export function first<T>(array: ReadonlyArray<T>): T | null {
 	return array[0] || null
 }
 
-export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null | undefined {
+export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): Nullable<T> {
 	const index = findLastIndex(array, predicate)
 
 	if (index !== -1) {
@@ -349,12 +352,14 @@ export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array): A
 	return downcast(_chunk(chunkSize, array))
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function _chunk<T>(chunkSize: number, array: ReadonlyArray<T> | Uint8Array): Array<Array<T> | Uint8Array> {
 	if (chunkSize < 1) {
 		return []
 	}
 
 	let chunkNum = 0
+	// eslint-disable-next-line local/noUnionExceptNullable
 	const chunks: Array<Array<T> | Uint8Array> = []
 	let end
 
@@ -587,6 +592,7 @@ export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
 /**
  * Destroy contents of the byte arrays passed. Useful for purging unwanted memory.
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function zeroOut(...arrays: (Uint8Array | Int8Array)[]) {
 	for (const a of arrays) {
 		a.fill(0)

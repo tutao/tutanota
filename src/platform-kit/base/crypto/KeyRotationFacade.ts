@@ -14,6 +14,7 @@ import {
 	CryptoWrapper,
 	EncryptedPqKeyPairs,
 	getAndVerifyAesKeyLength,
+	HkdfKeyDerivationDomains,
 	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
@@ -477,7 +478,7 @@ export class KeyRotationFacade {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKeyVersion}`,
 			key: pwKey,
-			context: "adminGroupDistributionKeyPairEncryptionKey",
+			context: HkdfKeyDerivationDomains.AdminGroupDistributionKeyPairEncryptionKey,
 		})
 	}
 

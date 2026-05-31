@@ -1,4 +1,4 @@
-import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
+import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDerivationDomains, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { isSameId } from "../../meta"
@@ -89,7 +89,7 @@ export class UserFacade extends LoggedInUserProvider {
 		return this.cryptoWrapper.deriveKeyWithHkdf({
 			salt: userGroupId,
 			key: userPasswordKey,
-			context: "userGroupKeyDistributionKey",
+			context: HkdfKeyDerivationDomains.UserGroupKeyDistributionKey,
 		})
 	}
 
@@ -104,7 +104,7 @@ export class UserFacade extends LoggedInUserProvider {
 			salt: `userGroup: ${userGroupId}, newUserGroupKeyVersion: ${newUserGroupKeyVersion}`,
 			key: userPasswordKey,
 			// Formerly,this was not bound to the user group key version.
-			context: "versionedUserGroupKeyDistributionKey",
+			context: HkdfKeyDerivationDomains.VersionedUserGroupKeyDistributionKey,
 		})
 	}
 

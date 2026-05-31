@@ -18,6 +18,7 @@ export class InstancePipeline {
 
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
@@ -39,6 +40,7 @@ export class InstancePipeline {
 	async mapAndEncrypt<T extends Entity>(
 		typeRef: TypeRef<T>,
 		instance: T,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		sk: Promise<Nullable<AesKey>> | Nullable<AesKey>,
 	): Promise<ClientModelUntypedInstance> {
 		const typeModel = await this.clientTypeReferenceResolver(typeRef)

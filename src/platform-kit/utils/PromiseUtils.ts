@@ -1,6 +1,7 @@
 import type { Options as PromiseMapOptions } from "./PromiseMap.js"
 import { pMap as promiseMap } from "./PromiseMap.js"
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export type $Promisable<T> = Promise<T> | T
 type PromiseMapCallback<T, U> = (el: T, index: number) => $Promisable<U>
 
@@ -45,6 +46,7 @@ export function promiseMapCompat(useMapInCallContext: boolean): PromiseMapFn {
 	return useMapInCallContext ? mapInCallContext : mapNoFallback
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function flatWrapper<T>(value: PromisableWrapper<T> | T): $Promisable<T> {
 	return value instanceof PromisableWrapper ? value.value : value
 }
@@ -57,15 +59,19 @@ export class PromisableWrapper<T> {
 
 	value: $Promisable<T>
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	constructor(value: $Promisable<PromisableWrapper<T> | T>) {
 		this.value = value instanceof Promise ? value.then(flatWrapper) : flatWrapper(value)
 	}
 
 	thenOrApply<R>(
+		// eslint-disable-next-line local/noUnionExceptNullable
 		onFulfill: (arg0: T) => $Promisable<PromisableWrapper<R> | R>,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		onReject?: (arg0: any) => $Promisable<R | PromisableWrapper<R>>,
 	): PromisableWrapper<R> {
 		if (this.value instanceof Promise) {
+			// eslint-disable-next-line local/noUnionExceptNullable
 			const v: Promise<PromisableWrapper<R> | R> = this.value.then(onFulfill, onReject)
 			return new PromisableWrapper(v)
 		} else {

@@ -30,6 +30,7 @@ import {
 export class TypeMapper {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
@@ -37,6 +38,7 @@ export class TypeMapper {
 		}
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	async applyJsTypes(serverTypeModel: ServerTypeModel | ClientTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
 		let parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
@@ -67,6 +69,7 @@ export class TypeMapper {
 				}
 				parsedInstance[attrId] = encryptedParsedAssociationValues
 			} else {
+				// eslint-disable-next-line local/noUnionExceptNullable
 				parsedInstance[attrId] = associationValues as Array<Id> | Array<IdTuple>
 			}
 		}
@@ -124,6 +127,7 @@ export class TypeMapper {
 				}
 				untypedInstance[attrIdUntypedInstance] = untypedAssociationValues
 			} else {
+				// eslint-disable-next-line local/noUnionExceptNullable
 				untypedInstance[attrIdUntypedInstance] = values as Array<Id> | Array<IdTuple>
 			}
 		}

@@ -44,8 +44,10 @@ export interface SessionKeyResolver {
 	 */
 	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
 	/**
@@ -143,6 +145,7 @@ export class PatchMerger {
 			const pathResultTypeModel = pathResult.typeModel
 			// We need to map and decrypt for REPLACE and ADDITEM as the payloads are encrypted, REMOVEITEM only has either aggregate ids, generated ids, or id tuples
 			if (patch.patchOperation !== PatchOperationType.REMOVE_ITEM) {
+				// eslint-disable-next-line local/noUnionExceptNullable
 				const encryptedParsedValue: Nullable<EncryptedParsedValue | EncryptedParsedAssociation> = await this.parseValueOnPatch(pathResult, patch.value)
 
 				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
@@ -165,7 +168,9 @@ export class PatchMerger {
 	private async applyPatchOperation(
 		patchOperation: Values<PatchOperationType>,
 		pathResult: PathResult,
+		/* eslint-disable local/noUnionExceptNullable */
 		value: Nullable<ParsedValue | ParsedAssociation> | Array<Id | IdTuple>,
+		/* eslint-enable local/noUnionExceptNullable */
 	) {
 		const { attributeId, instanceToChange, typeModel } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
@@ -218,7 +223,9 @@ export class PatchMerger {
 					)
 				}
 				if (!isAggregationAssociation) {
+					// eslint-disable-next-line local/noUnionExceptNullable
 					const associationArray = instanceToChange[attributeId] as Array<Id | IdTuple>
+					// eslint-disable-next-line local/noUnionExceptNullable
 					const idsToRemove = value as Array<Id | IdTuple>
 					const remainingAssociations = associationArray.filter(
 						(element) =>
@@ -258,6 +265,7 @@ export class PatchMerger {
 	private async parseValueOnPatch(
 		pathResult: PathResult,
 		value: string | null,
+		// eslint-disable-next-line local/noUnionExceptNullable
 	): Promise<Nullable<EncryptedParsedValue> | Nullable<EncryptedParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
@@ -293,11 +301,13 @@ export class PatchMerger {
 
 	private async decryptValueOnPatch(
 		pathResult: PathResult,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		value: Nullable<EncryptedParsedValue | EncryptedParsedAssociation>,
 		sk: AesKey,
 		kdfNonce: Nullable<Uint8Array>,
 		ownerGroup: Nullable<Id>,
 		instanceDecryptor: InstanceDecryptor,
+		// eslint-disable-next-line local/noUnionExceptNullable
 	): Promise<Nullable<ParsedValue> | Nullable<ParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined

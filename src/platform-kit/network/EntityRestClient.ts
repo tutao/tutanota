@@ -90,6 +90,7 @@ export const enum CacheMode {
  * Get the behavior of the cache mode for the options
  * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
 	readsFromCache: boolean
 	writesToCache: boolean
@@ -304,6 +305,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async loadMultipleBlobElements(
 		archiveId: Id | null,
 		queryParams: { ids: string },
+		// eslint-disable-next-line local/noUnionExceptNullable
 		headers: Dict | undefined,
 		path: string,
 		typeRef: TypeRef<any>,
@@ -557,6 +559,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions | undefined): Promise<void> {
 		if (instances.length === 0) {
 			return
@@ -580,6 +583,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
+	/* eslint-disable local/noUnionExceptNullable */
 	async _validateAndPrepareRestRequest(
 		typeRef: TypeRef<any>,
 		listId: Id | null,
@@ -593,6 +597,7 @@ export class EntityRestClient implements EntityRestInterface {
 		headers: Dict | undefined
 		clientTypeModel: ClientTypeModel
 	}> {
+		/* eslint-enable local/noUnionExceptNullable */
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		_verifyType(clientTypeModel)

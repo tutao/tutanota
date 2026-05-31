@@ -1,6 +1,6 @@
 // @ts-ignore[untyped-import]
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
-import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, Nullable, uint8ArrayToHex } from "@tutao/utils"
 import type { RawRsaPublicKey, RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "../hashes/Sha256.js"
@@ -266,7 +266,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 /**
  * clears an array to contain only zeros (0)
  */
-function _clear(array: Uint8Array | null | undefined) {
+function _clear(array: Nullable<Uint8Array>) {
 	if (!array) {
 		return
 	}

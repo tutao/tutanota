@@ -3,6 +3,7 @@ import { isAdminClient, isApp, isDesktop } from "./Env"
 
 export type Country = any
 
+// eslint-disable-next-line local/noUnionExceptNullable
 type ObjectPropertyKey = string | number | symbol
 export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
 	Object.keys(objectMap).reduce(

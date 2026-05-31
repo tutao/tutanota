@@ -1,4 +1,5 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
+import type { Nullable } from "./Utils.js"
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
@@ -160,7 +161,7 @@ export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 
 const REPLACEMENT_CHAR = "\uFFFD"
 
-export function _replaceLoneSurrogates(s: string | null | undefined): string {
+export function _replaceLoneSurrogates(s: Nullable<string>): string {
 	if (s == null) {
 		return ""
 	}

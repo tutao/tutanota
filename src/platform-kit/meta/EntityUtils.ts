@@ -59,6 +59,7 @@ export const DELETE_MULTIPLE_LIMIT = 100
 /**
  * an entity that only contains the actual user data and can not be used to refer to any existing entity.
  */
+/* eslint-disable local/noUnionExceptNullable */
 export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	T,
 	| "_id"
@@ -77,12 +78,15 @@ export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	| "_type"
 	| "_original"
 >
+/* eslint-enable local/noUnionExceptNullable */
 
 type OptionalEntity<T extends Entity> = T & {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	_id?: Id | IdTuple
 	_ownerGroup?: Id
 }
 
+/* eslint-disable local/noUnionExceptNullable */
 export type StrippedEntity<T extends Entity> =
 	| Omit<
 			T,
@@ -103,6 +107,7 @@ export type StrippedEntity<T extends Entity> =
 			| "_original"
 	  >
 	| OptionalEntity<T>
+/* eslint-enable local/noUnionExceptNullable */
 
 export const enum EntityIdEncoding {
 	Base64Ext,
@@ -145,6 +150,7 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function get_IdValue(typeModel?: TypeModel): ModelValue | undefined {
 	if (typeModel) {
 		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id")
@@ -158,6 +164,7 @@ export function base64UrlIdToUint8array(id: Id): Uint8Array {
 	return base64ToUint8Array(base64UrlToBase64(id))
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encoding: EntityIdEncoding): number {
 	let firstId = id1 instanceof Array ? id1[1] : id1
 	let secondId = id2 instanceof Array ? id2[1] : id2
@@ -169,6 +176,7 @@ export function compareNewestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encodin
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encoding: EntityIdEncoding): number {
 	let firstId = id1 instanceof Array ? id1[1] : id1
 	let secondId = id2 instanceof Array ? id2[1] : id2
@@ -195,6 +203,7 @@ export function sortCompareById<T extends ListElement>(entity1: T, entity2: T, e
  * @param id2
  * @returns True if the ids are the same, false otherwise
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function isSameId(id1: (Id | IdTuple) | null, id2: (Id | IdTuple) | null): boolean {
 	if (id1 === null || id2 === null) {
 		return false
@@ -209,6 +218,7 @@ export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
 	return isSameId(entity1._id, entity2._id)
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function containsId(ids: ReadonlyArray<Id | IdTuple>, id: Id | IdTuple): boolean {
 	return ids.some((idInArray) => isSameId(idInArray, id))
 }
@@ -381,6 +391,7 @@ export function generatedIdToTimestamp(base64Ext: Id): number {
 const base64extEncodedIdLength = GENERATED_MAX_ID.length
 const base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function isValidGeneratedId(id: Id | IdTuple): boolean {
 	const test = (id: string) => id.length === base64extEncodedIdLength && Array.from(id).every((char) => base64extAlphabet.includes(char))
 
@@ -568,6 +579,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
 	const downCastedInstance = downcast(instance)
 	if (!instance) {

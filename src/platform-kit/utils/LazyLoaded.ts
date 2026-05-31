@@ -5,8 +5,8 @@ import type { lazyAsync } from "./Utils.js"
  * If the object was loaded once it is not loaded again.
  */
 export class LazyLoaded<T> {
-	private state:
-		| { state: "not_loaded" }
+	private state: // eslint-disable-next-line local/noUnionExceptNullable
+	| { state: "not_loaded" }
 		| { state: "loading"; promise: Promise<T> }
 		| {
 				state: "loaded"

@@ -3,6 +3,28 @@ import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
 import {defineConfig, globalIgnores} from "eslint/config"
 
+/** Only T | null is allowed as a union type (maps cleanly to Nullable<T> in Kotlin/Swift transpilation). */
+const noUnionExceptNullable = {
+	meta: {
+		type: "problem",
+		docs: {description: "Disallow union types except T | null (Nullable<T>)"},
+		messages: {
+			noUnion: "Union types are not allowed except 'T | null'. Use a discriminated interface with an enum discriminant instead.",
+		},
+		schema: [],
+	},
+	create(context) {
+		return {
+			TSUnionType(node) {
+				const isNullable = node.types.length === 2 && node.types.some((t) => t.type === "TSNullKeyword")
+				if (!isNullable) {
+					context.report({node, messageId: "noUnion"})
+				}
+			},
+		}
+	},
+}
+
 export default defineConfig([
 	{
 		rules: {
@@ -90,6 +112,11 @@ export default defineConfig([
 			ecmaVersion: 2022,
 			sourceType: "module",
 		},
+	},
+	{
+		files: ["src/platform-kit/**/*.ts"],
+		plugins: {"local": {rules: {noUnionExceptNullable}}},
+		rules: {"local/noUnionExceptNullable": "error"},
 	},
 	[
 		globalIgnores([

@@ -23,6 +23,7 @@ export class Randomizer {
 		entropyCache: Array<{
 			source: EntropySource
 			entropy: number
+			// eslint-disable-next-line local/noUnionExceptNullable
 			data: number | Array<number>
 		}>,
 	): Promise<void> {
@@ -34,7 +35,7 @@ export class Randomizer {
 
 	addStaticEntropy(bytes: Uint8Array) {
 		for (const byte of bytes) {
-			this.random.addEntropy(byte, 8, "static")
+			this.random.addEntropy(byte, 8, EntropySource.Static)
 		}
 	}
 

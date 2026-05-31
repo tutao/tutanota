@@ -59,7 +59,9 @@ export function areValuesDifferent(
 }
 
 export async function computePatchPayload(
+	// eslint-disable-next-line local/noUnionExceptNullable
 	originalInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	// eslint-disable-next-line local/noUnionExceptNullable
 	currentInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
 	currentUntypedInstance: ClientModelUntypedInstance,
 	typeModel: TypeModel,
@@ -72,7 +74,9 @@ export async function computePatchPayload(
 
 // visible for testing
 export async function computePatches(
+	// eslint-disable-next-line local/noUnionExceptNullable
 	originalInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	// eslint-disable-next-line local/noUnionExceptNullable
 	modifiedInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
 	modifiedUntypedInstance: ClientModelUntypedInstance,
 	typeModel: TypeModel,
@@ -131,6 +135,7 @@ export async function computePatches(
 				(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
 			)
 			if (!isDistinctAggregateIds(modifiedAggregateIds)) {
+				// eslint-disable-next-line local/noUnionExceptNullable
 				const modifiedInstanceId: IdTuple | Id = AttributeModel.getAttribute(modifiedInstance, "_id", typeModel)
 				throw new ProgrammingError(
 					`Duplicate aggregate ids of aggregate ${appName}/${typeId} in modified instance ${typeModel.app}/${typeModel.id} :  ${modifiedInstanceId}`,
@@ -256,7 +261,9 @@ export async function computePatches(
 			}
 		} else {
 			// non aggregation associations
+			// eslint-disable-next-line local/noUnionExceptNullable
 			const originalAssociationValue = (originalInstance[attributeId] ?? []) as Array<Id | IdTuple>
+			// eslint-disable-next-line local/noUnionExceptNullable
 			const modifiedAssociationValue = (modifiedInstance[attributeId] ?? []) as Array<Id | IdTuple>
 			const addedItems = modifiedAssociationValue.filter((element) => !originalAssociationValue.some((item) => isSameId(item, element)))
 			const removedItems = originalAssociationValue.filter((element) => !modifiedAssociationValue.some((item) => isSameId(item, element)))

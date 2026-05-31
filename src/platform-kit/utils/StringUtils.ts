@@ -1,4 +1,4 @@
-import type { lazy } from "./Utils.js"
+import type { lazy, Nullable } from "./Utils.js"
 
 /**
  * Returns a string which contains the given number padded with 0s.
@@ -43,6 +43,7 @@ export function endsWith(string: string, substring: string): boolean {
 	return string.endsWith(substring)
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function lazyStringValue(valueOrLazy: string | lazy<string>): string {
 	return typeof valueOrLazy === "function" ? valueOrLazy() : valueOrLazy
 }
@@ -93,7 +94,7 @@ export function localeCompare(a: string, b: string): number {
 	return a.localeCompare(b)
 }
 
-export function byteLength(str: string | null | undefined): number {
+export function byteLength(str: Nullable<string>): number {
 	if (str == null) return 0
 	// returns the byte length of an utf8 string
 	let s = str.length

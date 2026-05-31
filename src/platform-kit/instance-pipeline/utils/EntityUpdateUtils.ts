@@ -18,6 +18,7 @@ import { EntityUpdate, Patch } from "@tutao/entities/sys"
  */
 export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 	typeRef: TypeRef<T>
+	// eslint-disable-next-line local/noUnionExceptNullable
 	instanceListId: T extends ListElementEntity | BlobElementEntity ? NonEmptyString : null
 	instanceId: string
 	operation: OperationType

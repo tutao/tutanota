@@ -307,6 +307,7 @@ export class RestClient implements RestClientInterface {
 	 * Ignores the method because GET requests etc. should not exceed the limits neither.
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
+	// eslint-disable-next-line local/noUnionExceptNullable
 	private checkRequestSizeLimit(path: string, method: HttpMethod, body: string | Uint8Array | null) {
 		if (isAdminClient()) {
 			return

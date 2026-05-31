@@ -8,13 +8,13 @@ export enum KeyPairType {
 	TUTA_CRYPT,
 }
 
-export type AsymmetricKeyPair = RsaKeyPair | RsaX25519KeyPair | PQKeyPairs
+export type AsymmetricKeyPair = AbstractKeyPair
 
 export type AbstractKeyPair = {
 	keyPairType: KeyPairType
 }
 
-export type PublicKey = RsaPublicKey | RsaX25519PublicKey | PQPublicKeys
+export type PublicKey = AbstractPublicKey
 
 export type AbstractPublicKey = {
 	keyPairType: KeyPairType

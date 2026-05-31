@@ -5,6 +5,7 @@
  */
 
 import { DAY_IN_MILLIS, daysToMillis } from "@tutao/app-env"
+import type { Nullable } from "./Utils.js"
 
 /**
  * The minimum length of a calendar year.
@@ -94,6 +95,7 @@ export function incrementMonth(d: Date, byValue: number): Date {
 	return date
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function isSameDayOfDate(date1: Date | null | undefined, date2: Date | null | undefined): boolean {
 	return (
 		(!date1 && !date2) ||

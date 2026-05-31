@@ -63,6 +63,7 @@ export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath:
 export function callWebAssemblyFunctionWithArguments<T>(
 	func: (...args: number[]) => T,
 	exports: WASMExports,
+	// eslint-disable-next-line local/noUnionExceptNullable
 	...args: (string | number | Uint8Array | Int8Array | MutableUint8Array | SecureFreeUint8Array | boolean | null)[]
 ): T {
 	const argsToPass: number[] = []
@@ -163,6 +164,7 @@ export function allocateBuffer(length: number, exports: WASMExports): Uint8Array
  * The contents of the array will be updated when the function finishes.
  */
 export class MutableUint8Array {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	constructor(readonly uint8ArrayInputOutput: Uint8Array | SecureFreeUint8Array) {}
 }
 
@@ -246,6 +248,7 @@ function allocateStringCopy(str: string, exports: WASMExports, toFree: Ptr[]): U
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[]): Uint8Array {
 	const allocationAmount = arr.length
 	let buf = allocateBuffer(allocationAmount, exports)
@@ -259,6 +262,7 @@ function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, to
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
 	const arrayInWASM = allocateArrayCopy(arr, exports, toFree)
 	try {

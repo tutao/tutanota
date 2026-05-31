@@ -11,7 +11,7 @@ import {
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
+import { base64UrlCustomIdToString, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { getElementId, isSameId } from "../../meta"
@@ -112,7 +112,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, forTypeId)
 	}
 
-	async loadCurrentKeyPair(groupId: Id, currentGroupKey: VersionedKey | undefined = undefined): Promise<Versioned<AsymmetricKeyPair>> {
+	async loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey> = null): Promise<Versioned<AsymmetricKeyPair>> {
 		let group = await this.entityClient.load(GroupTypeRef, groupId)
 		if (currentGroupKey == null) {
 			currentGroupKey = await this.getCurrentSymGroupKey(groupId)
@@ -194,7 +194,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * Loads all former key pairs for a group
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
-	async loadAllFormerKeyPairs(group: Group, currentGroupKey: VersionedKey | undefined = undefined): Promise<Versioned<AsymmetricKeyPair>[]> {
+	async loadAllFormerKeyPairs(group: Group, currentGroupKey: Nullable<VersionedKey> = null): Promise<Versioned<AsymmetricKeyPair>[]> {
 		const currentKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(group._id))
 		// this request makes sure everything is cached
 		// decryption and parsing will be inefficient if there are many former keys

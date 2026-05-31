@@ -149,6 +149,7 @@ export type UntypedValue = Nullable<string>
  * the server sends the values of associations as arrays, the cardinality is checked just
  * before the actual instance is assembled for use by the business logic.
  */
+/* eslint-disable local/noUnionExceptNullable */
 export type UntypedAssociation =
 	/** reference(s) to an ElementEntity instance or a list of ListElementEntity instances */
 	| Array<Id>
@@ -185,6 +186,7 @@ export type EncryptedParsedAssociation =
 
 // this contains JS values except in encrypted fields, those are kept as a base64 string.
 export type EncryptedParsedInstance = Record<AttributeId, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation>
+/* eslint-enable local/noUnionExceptNullable */
 
 /** only defined here for documentation purposes */
 export type ParsedValue = EncryptedParsedValue
@@ -192,6 +194,7 @@ export type ParsedValue = EncryptedParsedValue
 export type ParsedAssociation = EncryptedParsedAssociation
 
 /** a parsed instance after/before going through decryption/encryption */
+// eslint-disable-next-line local/noUnionExceptNullable
 export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedAssociation> & {
 	/** crypto errors that happened during deserialization/serialization */
 	_errors?: Record<AttributeId, string>
@@ -266,6 +269,7 @@ export interface ITypeInfo {
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
+	// eslint-disable-next-line local/noUnionExceptNullable
 	_id?: Id | IdTuple
 	_original?: this
 	bucketKey?: null | IBucketKey
@@ -294,6 +298,7 @@ export type ListElementEntity = Entity & ListElement
  */
 export type BlobElementEntity = Entity & BlobElement
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
 export const enum OperationType {
 	CREATE = "0",

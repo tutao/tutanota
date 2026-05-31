@@ -12,8 +12,8 @@ export const SymmetricCipherVersion = {
 } as const
 
 export type SymmetricCipherVersion = (typeof SymmetricCipherVersion)[keyof typeof SymmetricCipherVersion]
-export type SymmetricAesCipherVersion = typeof SymmetricCipherVersion.UnusedReservedUnauthenticated | typeof SymmetricCipherVersion.AesCbcThenHmac
-export type SymmetricAeadCipherVersion = typeof SymmetricCipherVersion.AeadWithGroupKey | typeof SymmetricCipherVersion.AeadWithSessionKey
+export type SymmetricAesCipherVersion = SymmetricCipherVersion
+export type SymmetricAeadCipherVersion = SymmetricCipherVersion
 
 /**
  * Get the SymmetricCipherVersion from either the version byte or the full ciphertext

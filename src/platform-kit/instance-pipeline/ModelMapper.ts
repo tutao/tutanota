@@ -71,6 +71,7 @@ export function assertAndSupplyCorrectAssociationClientCardinality(
 		cardinality !== Cardinality.Any &&
 		idTupleAssociations.includes(type) &&
 		parsedValue.length === 1 &&
+		// eslint-disable-next-line local/noUnionExceptNullable
 		downcast<Array<Id | IdTuple>>(parsedValue)[0].length === 2
 	) {
 		return parsedValue[0]
@@ -137,6 +138,7 @@ export class ModelMapper {
 		/** resolves meta against the type models used by the clients business logic. */
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		/** resolves meta against the current type models as used on the server the client connects to */
+		// eslint-disable-next-line local/noUnionExceptNullable
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 	) {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
@@ -290,6 +292,7 @@ export class ModelMapper {
  *       the second.
  * @returns {string|string|Uint8Array|*}
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullable<ParsedValue>): Nullable<string | Uint8Array> {
 	if (value == null) {
 		return null
@@ -317,6 +320,7 @@ export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullabl
  * note: this function does not enforce this; the user has to check that the first invocation is compatible with
  *       the second.
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function convertDbToJsType(type: Values<typeof ValueType>, decryptedValue: Nullable<string | Uint8Array>): Nullable<ParsedValue> {
 	if (decryptedValue == null) {
 		return null

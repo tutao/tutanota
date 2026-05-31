@@ -1,16 +1,25 @@
-export type HkdfKeyDerivationDomains =
-	| "userGroupKeyDistributionKey"
-	| "newAdminPubKeyAuthKeyForUserGroupKeyRotation"
-	| "adminGroupDistributionKeyPairEncryptionKey"
-	| "adminGroupDistKeyPairAuthKeyForMultiAdminRotation"
-	| "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser"
-	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
-	| "versionedUserGroupKeyDistributionKey"
-	| "publicIdentityKey"
+export enum HkdfKeyDerivationDomains {
+	UserGroupKeyDistributionKey = "userGroupKeyDistributionKey",
+	NewAdminPubKeyAuthKeyForUserGroupKeyRotation = "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
+	AdminGroupDistributionKeyPairEncryptionKey = "adminGroupDistributionKeyPairEncryptionKey",
+	AdminGroupDistKeyPairAuthKeyForMultiAdminRotation = "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
+	NewAdminSymKeyAuthKeyForMultiAdminRotationAsUser = "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
+	NewUserGroupKeyAuthKeyForRotationAsNonAdminUser = "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
+	VersionedUserGroupKeyDistributionKey = "versionedUserGroupKeyDistributionKey",
+	PublicIdentityKey = "publicIdentityKey",
+}
 export type MacTag = Uint8Array & { __brand: "macTag" }
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
-export type EntropySource = "mouse" | "touch" | "key" | "random" | "static" | "time" | "accel"
+export enum EntropySource {
+	Mouse = "mouse",
+	Touch = "touch",
+	Key = "key",
+	Random = "random",
+	Static = "static",
+	Time = "time",
+	Accel = "accel",
+}
 
 export enum KeyLength {
 	b128 = "128",

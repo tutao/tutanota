@@ -4,13 +4,13 @@ import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa
 import type { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "./RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "./Liboqs/KyberKeyPair.js"
 import { X25519PrivateKey } from "./X25519.js"
-import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
+import { AbstractKeyPair, AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
 import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils.js"
 import { AesKeyLength, getKeyLengthInBytes } from "./symmetric/AesKeyLength.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 
-export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
+export type EncryptedKeyPairs = AbstractEncryptedKeyPair
 
 export type AbstractEncryptedKeyPair = {
 	pubEccKey: null | Uint8Array
@@ -115,19 +115,14 @@ export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs
 	}
 }
 
-function decryptRsaOrRsaX25519KeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): RsaKeyPair | RsaX25519KeyPair {
+function decryptRsaOrRsaX25519KeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): RsaKeyPair {
 	const publicKey = hexToRsaPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubRsaKey)))
 	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, keyPair.symEncPrivRsaKey!)))
 	if (keyPair.symEncPrivEccKey) {
 		const publicEccKey = assertNotNull(keyPair.pubEccKey)
 		const privateEccKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))
-		return {
-			keyPairType: KeyPairType.RSA_AND_X25519,
-			publicKey,
-			privateKey,
-			publicEccKey,
-			privateEccKey,
-		}
+		const pair: RsaX25519KeyPair = { keyPairType: KeyPairType.RSA_AND_X25519, publicKey, privateKey, publicEccKey, privateEccKey }
+		return pair
 	} else {
 		return { keyPairType: KeyPairType.RSA, publicKey, privateKey }
 	}

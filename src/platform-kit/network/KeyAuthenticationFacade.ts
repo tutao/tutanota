@@ -1,6 +1,16 @@
 import { concat, KeyVersion } from "@tutao/utils"
 import { assertWorkerOrNode } from "@tutao/app-env"
-import { Aes256Key, AesKey, CryptoWrapper, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/crypto"
+import {
+	Aes256Key,
+	AesKey,
+	CryptoWrapper,
+	Ed25519PublicKey,
+	ed25519PublicKeyToBytes,
+	HkdfKeyDerivationDomains,
+	keyToUint8Array,
+	MacTag,
+	PQPublicKeys,
+} from "@tutao/crypto"
 import { KeyMac } from "@tutao/entities/sys"
 
 assertWorkerOrNode()
@@ -13,7 +23,7 @@ type AuthenticationBindingData = {
 type BaseKeyAuthenticationParams = {
 	tagType: keyof typeof systemMap
 	sourceOfTrust: { [name: string]: AesKey }
-	// this can be a user group key, an admin group key, an admin group public key or a distribution public key
+	// eslint-disable-next-line local/noUnionExceptNullable
 	untrustedKey: { [name: string]: AesKey | PQPublicKeys | Ed25519PublicKey }
 	bindingData: AuthenticationBindingData
 }
@@ -59,7 +69,7 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}, newUserGroupKeyVersion: ${newUserGroupKeyVersion}`,
 			key: sourceOfTrust.currentUserGroupKey,
-			context: "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
+			context: HkdfKeyDerivationDomains.NewUserGroupKeyAuthKeyForRotationAsNonAdminUser,
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { newUserGroupKey } }) {
@@ -87,7 +97,7 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentReceivingUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
 			key: sourceOfTrust.receivingUserGroupKey,
-			context: "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
+			context: HkdfKeyDerivationDomains.NewAdminPubKeyAuthKeyForUserGroupKeyRotation,
 		})
 	},
 	generateAuthenticationData({
@@ -119,7 +129,7 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentUserGroupKeyVersion}, currentAdminGroupKeyVersion: ${currentAdminGroupKeyVersion}`,
 			key: sourceOfTrust.currentAdminGroupKey,
-			context: "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
+			context: HkdfKeyDerivationDomains.AdminGroupDistKeyPairAuthKeyForMultiAdminRotation,
 		})
 	},
 	generateAuthenticationData({
@@ -151,7 +161,7 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `adminGroup: ${adminGroupId}, userGroup: ${userGroupId}, currentUserGroupKeyVersion: ${currentReceivingUserGroupKeyVersion}, newAdminGroupKeyVersion: ${newAdminGroupKeyVersion}`,
 			key: sourceOfTrust.currentReceivingUserGroupKey,
-			context: "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
+			context: HkdfKeyDerivationDomains.NewAdminSymKeyAuthKeyForMultiAdminRotationAsUser,
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { newAdminGroupKey } }) {
@@ -175,7 +185,7 @@ const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKey
 		return cryptoWrapper.deriveKeyWithHkdf({
 			salt: `groupId: ${groupId}, groupKeyVersion: ${groupKeyVersion}, publicIdentityKeyVersion: ${publicIdentityKeyVersion}`,
 			key: sourceOfTrust.symmetricGroupKey,
-			context: "publicIdentityKey",
+			context: HkdfKeyDerivationDomains.PublicIdentityKey,
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { identityPubKey } }) {
@@ -184,6 +194,7 @@ const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKey
 }
 
 export type KeyAuthenticationParams =
+	// eslint-disable-next-line local/noUnionExceptNullable
 	| UserGroupKeyAuthenticationParams
 	| NewAdminPubKeyAuthenticationParams
 	| PubDistKeyAuthenticationParams
@@ -209,7 +220,9 @@ export class KeyAuthenticationFacade {
 	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
 	 */
 	public computeTag(keyAuthenticationParams: KeyAuthenticationParams): MacTag {
-		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[
+			keyAuthenticationParams.tagType
+		] as KeyAuthenticationSystem<KeyAuthenticationParams>
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
 		return this.cryptoWrapper.hmacSha256(authKey, authData)
@@ -221,7 +234,9 @@ export class KeyAuthenticationFacade {
 	 * @param tag The MAC tag to be verified. Must be a branded MacTag, which you can get with brandKeyMac() in most cases
 	 */
 	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
-		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[
+			keyAuthenticationParams.tagType
+		] as KeyAuthenticationSystem<KeyAuthenticationParams>
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
 		this.cryptoWrapper.verifyHmacSha256(authKey, authData, tag)

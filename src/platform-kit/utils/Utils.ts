@@ -48,6 +48,7 @@ export function freshVersioned<T>(object: T): Versioned<T> {
 export type Require<K extends keyof T, T> = T & { [P in K]-?: NonNullable<T[P]> }
 
 export type DeferredObject<T> = {
+	// eslint-disable-next-line local/noUnionExceptNullable
 	resolve: (arg0: T | PromiseLike<T>) => void
 	reject: (arg0: Error) => void
 	promise: Promise<T>
@@ -76,10 +77,7 @@ export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectW
 	return deferred
 }
 
-export async function asyncFind<T>(
-	array: ReadonlyArray<T>,
-	finder: (item: T, index: number, arrayLength: number) => Promise<boolean>,
-): Promise<T | null | undefined> {
+export async function asyncFind<T>(array: ReadonlyArray<T>, finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<Nullable<T>> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 
@@ -94,7 +92,7 @@ export async function asyncFind<T>(
 export async function asyncFindAndMap<T, R>(
 	array: ReadonlyArray<T>,
 	finder: (item: T, index: number, arrayLength: number) => Promise<R | null>,
-): Promise<R | null | undefined> {
+): Promise<Nullable<R>> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 		const mapped = await finder(item, i, array.length)
@@ -132,6 +130,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param value the value to check
  * @param message optional error message
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function assertNotNull<T>(value: T | null | undefined, message: string = "null"): T {
 	if (value == null) {
 		throw new Error("AssertNotNull failed : " + message)
@@ -145,6 +144,7 @@ export function assertNotNull<T>(value: T | null | undefined, message: string = 
  * @param value the value to check
  * @param message optional error message
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function assertNull<T>(value: T | null | undefined, message: string = "not null") {
 	if (value != null) {
 		throw new Error("AssertNull failed : " + message)
@@ -157,12 +157,14 @@ export function assertNull<T>(value: T | null | undefined, message: string = "no
  * @param value the value to check
  * @param message optional error message
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function assertNonNull<T>(value: T | null | undefined, message: string = "null"): asserts value is T {
 	if (value == null) {
 		throw new Error("AssertNonNull failed: " + message)
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function isNotNull<T>(t: T | null | undefined): t is T {
 	return t != null
 }
@@ -231,7 +233,7 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
  * but ones in the middle (which happen too often) are discarded.
  */
 export function debounceStart<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let timeoutId: Nullable<ReturnType<typeof setTimeout>>
 	let lastInvoked = 0
 	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
@@ -260,7 +262,7 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
  * is being called repeatedly.
  */
 export function throttle<F extends (...args: any) => void>(periodMs: number, toThrottle: F): F {
-	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let timeoutId: Nullable<ReturnType<typeof setTimeout>>
 	let lastArgs: any[]
 
 	return ((...args: any) => {
@@ -374,6 +376,7 @@ export function errorsToString(errors: Array<ErrorInfo>): string {
 /**
  * Like {@link Object.entries} but preserves the type of the key and value
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function objectEntries<A extends string | symbol, B>(object: Record<A, B>): Array<[A, B]> {
 	return downcast(Object.entries(object))
 }
@@ -524,6 +527,7 @@ export function typedValues<K extends string, V>(obj: Record<K, V>): Array<V> {
 	return downcast(Object.values(obj))
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export type MaybeLazy<T> = T | lazy<T>
 
 export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {
@@ -569,6 +573,7 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) => U | null | undefined): U | null {
 	if (val != null) {
 		const result = action(val)
@@ -584,6 +589,7 @@ export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) =
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
 export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
 	const newObj = {} as Record<K, R>
 
@@ -651,6 +657,7 @@ export type Nullable<T> = T | null
 /**
  * Factory method to allow tracing unresolved promises.
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void, tag?: string) {
 	const promise = new Promise(executor)
 

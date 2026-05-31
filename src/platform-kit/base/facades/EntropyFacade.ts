@@ -9,6 +9,7 @@ import { createEntropyData, EntropyService, TutanotaProperties } from "@tutao/en
 export interface EntropyDataChunk {
 	source: EntropySource
 	entropy: number
+	// eslint-disable-next-line local/noUnionExceptNullable
 	data: number | Array<number>
 }
 

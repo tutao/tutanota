@@ -118,6 +118,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
@@ -354,6 +355,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		const id = downcast<SomeEntity>(instance)._id
 		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
 
+		// eslint-disable-next-line local/noUnionExceptNullable
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
@@ -413,7 +415,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 						keyGroup,
 						"trying to authenticate an asymmetrically encrypted message, but we can't determine the recipient's group ID",
 					)
-					const currentKeyPair = await this.symGroupKeyLoader.loadCurrentKeyPair(recipientGroup, undefined)
+					const currentKeyPair = await this.symGroupKeyLoader.loadCurrentKeyPair(recipientGroup, null)
 					encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
 					if (isPqKeyPairs(currentKeyPair.object)) {
 						const keyRotationFacade = this.keyRotationFacade()
@@ -594,7 +596,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	async resolveServiceSessionKey(instance: EntityAdapter): Promise<Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
 			// we assume the server uses the current key pair of the recipient
-			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), undefined)
+			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), null)
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
 			return (
 				await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
@@ -613,6 +615,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 		keyVerificationMismatchRecipients: Array<string>,
+		// eslint-disable-next-line local/noUnionExceptNullable
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
 		try {
 			const publicKey = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({

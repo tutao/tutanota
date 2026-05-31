@@ -9,6 +9,7 @@ import {
 	PostService,
 	PutService,
 	ReturnTypeFromRef,
+	ServiceDefinition,
 	TypeRef,
 } from "../meta"
 import { RestClient } from "@tutao/rest-client"
@@ -23,7 +24,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 
 assertWorkerOrNode()
 
-type AnyService = GetService | PostService | PutService | DeleteService
+type AnyService = ServiceDefinition
 
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(
@@ -70,6 +71,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		service: AnyService,
 		method: HttpMethod,
 		requestEntity: Entity | null,
+		// eslint-disable-next-line local/noUnionExceptNullable
 		params: ExtraServiceParams | undefined,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
@@ -92,6 +94,7 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
+		// eslint-disable-next-line local/noUnionExceptNullable
 		const data: string | undefined = await this.restClient.request(path, method, {
 			queryParams: params?.queryParams,
 			headers,
@@ -156,6 +159,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))

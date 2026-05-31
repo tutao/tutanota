@@ -25,6 +25,7 @@ export function getIdOfInstance(
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	if (listId != null) {
 		return [listId, elementId]
@@ -33,6 +34,7 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
+// eslint-disable-next-line local/noUnionExceptNullable
 export function expandId(id: Id | IdTuple): { listId: Id | null; elementId: Id } {
 	if (typeof id === "string") {
 		return {

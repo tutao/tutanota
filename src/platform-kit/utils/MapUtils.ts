@@ -41,6 +41,7 @@ export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V 
  * In the case that the key-value pair was present but its value was undefined, you can read wasPresent to
  * check that it was present (and therefore deleted).
  */
+// eslint-disable-next-line local/noUnionExceptNullable
 export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | undefined; wasPresent: boolean } {
 	// Will return undefined if not present OR the value is actually === undefined
 	const item = map.get(key)

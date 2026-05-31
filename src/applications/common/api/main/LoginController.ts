@@ -5,7 +5,7 @@ import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils.js"
 import * as restError from "@tutao/rest-client/error"
 import type { LoginFacade, NewSessionData } from "../../../../platform-kit/base/facades/LoginFacade"
-import { ResumeSessionErrorReason } from "../../../../platform-kit/base/facades/LoginFacade"
+import { ResumeSessionErrorReason, ResumeSessionResultType } from "../../../../platform-kit/base/facades/LoginFacade"
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
@@ -159,10 +159,10 @@ export class LoginController {
 			unencryptedCredentials.databaseKey ?? null,
 			offlineTimeRangeDate ?? null,
 		)
-		if (resumeResult.type === "error") {
-			return resumeResult
+		if (resumeResult.type === ResumeSessionResultType.Error) {
+			return { type: "error", reason: resumeResult.reason! }
 		} else {
-			const { user, userGroupInfo, sessionId } = resumeResult.data
+			const { user, userGroupInfo, sessionId } = assertNotNull(resumeResult.data)
 			try {
 				await this.onPartialLoginSuccess(
 					{

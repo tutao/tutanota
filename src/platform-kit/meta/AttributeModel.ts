@@ -27,6 +27,7 @@ export class AttributeModel {
 		drive: new Map(),
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	static removeNetworkDebuggingInfoIfNeeded<T extends ClientModelUntypedInstance | ServerModelUntypedInstance>(untypedInstance: T): T {
 		if (env.networkDebugging) {
 			return deepMapKeys(untypedInstance, (key: string) => key.split(":")[0])
@@ -34,6 +35,7 @@ export class AttributeModel {
 		return untypedInstance
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	static getAttribute<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): T {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
@@ -44,6 +46,7 @@ export class AttributeModel {
 		}
 	}
 
+	// eslint-disable-next-line local/noUnionExceptNullable
 	static getAttributeorNull<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
