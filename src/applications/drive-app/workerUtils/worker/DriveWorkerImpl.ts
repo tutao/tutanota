@@ -117,7 +117,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			},
 
 			async mailAddressFacade() {
-				throw new Error("not implemented")
+				return locator.mailAddress()
 			},
 
 			async keyVerificationFacade() {
