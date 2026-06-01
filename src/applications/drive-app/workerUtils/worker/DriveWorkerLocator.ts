@@ -108,6 +108,7 @@ import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade"
 
 assertWorkerOrNode()
 
@@ -157,6 +158,7 @@ export type DriveWorkerLocatorType = {
 	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
 	giftCards: lazyAsync<GiftCardFacade>
+	mailAddress: lazyAsync<MailAddressFacade>
 	booking: lazyAsync<BookingFacade>
 	share: lazyAsync<ShareFacade>
 	cacheManagement: lazyAsync<CacheManagementFacade>
@@ -558,6 +560,17 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.crypto,
 			locator.blobAccessToken,
 			mainInterface.uploadProgressListener,
+		)
+	})
+
+	locator.mailAddress = lazyMemoized(async () => {
+		const { MailAddressFacade } = await import("../../../common/api/worker/facades/lazy/MailAddressFacade.js")
+		return new MailAddressFacade(
+			locator.user,
+			locator.adminKeyLoader,
+			locator.serviceExecutor,
+			nonCachingEntityClient, // without cache
+			dateProvider,
 		)
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
