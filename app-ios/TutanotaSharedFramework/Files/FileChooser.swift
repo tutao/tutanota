@@ -2,6 +2,15 @@ import Photos
 public import PhotosUI
 import UIKit
 
+final class DestinationPickerDelegate: NSObject, UIDocumentPickerDelegate {
+	let completionHandler: ([URL]) -> Void
+	init(completionHandler: @escaping ([URL]) -> Void) { self.completionHandler = completionHandler }
+	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) { self.completionHandler(urls) }
+
+	// from UIDocumentPickerDelegate protocol
+	public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) { self.completionHandler([]) }
+}
+
 /// Utility class which shows pickers for files.
 public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate {
 	private let sourceController: UIViewController
@@ -9,7 +18,7 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 	private let supportedUTIs: [String]
 	private var resultHandler: ((sending Result<[String], any Error>) -> Void)?
 	private let openSettings: () -> Void
-
+	private var destinationPickerDelegate: DestinationPickerDelegate?
 	public init(viewController: UIViewController, openSettings: @escaping () -> Void) {
 		supportedUTIs = ["public.content", "public.archive", "public.data"]
 		sourceController = viewController
@@ -18,7 +27,20 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		super.init()
 		imagePickerController.delegate = self
 	}
-
+	public func pickDestinationDirectory(fileUri: URL) async {
+		let picker = UIDocumentPickerViewController(forExporting: [fileUri], asCopy: true)
+		return await withCheckedContinuation { continuation in
+			let delegate = DestinationPickerDelegate { [weak self] _ in
+				// we don't need it anymore at this point
+				if let self { self.destinationPickerDelegate = nil }
+				continuation.resume()
+			}
+			// keep it from deallocating after this method returns
+			self.destinationPickerDelegate = delegate
+			picker.delegate = delegate
+			self.sourceController.present(picker, animated: true, completion: nil)
+		}
+	}
 	/// Present a file picker.
 	///
 	/// - Parameter isFileOnly: if the picker should only allow files and not images/other media
@@ -28,7 +50,6 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 			sourceController.dismiss(animated: true, completion: nil)
 			previousHandler(.success([]))
 		}
-
 		if isFileOnly {
 			// If we only want to browse files, open the file picker directly
 			self.showFilePicker()
@@ -54,7 +75,6 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		case camera
 		case files
 	}
-
 	/// Present a menu with options: camera, photos or picking file
 	@MainActor private func showPickerOptions(near anchorRect: CGRect, of sourceController: UIViewController) async -> FilePickerOptions? {
 		let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -90,7 +110,6 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		sourceController.present(controller, animated: true)
 		return await popoverDelegate.waitForResult()
 	}
-
 	private func showPhpicker(anchor: CGRect) {
 		var configuration = PHPickerConfiguration(photoLibrary: PHPhotoLibrary.shared())
 		configuration.selectionLimit = 0
@@ -99,7 +118,6 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		picker.delegate = self
 		sourceController.present(picker, animated: true, completion: nil)
 	}
-
 	private func openCamera() {
 		self.imagePickerController.sourceType = .camera
 		self.imagePickerController.mediaTypes = UIImagePickerController.availableMediaTypes(for: .camera) ?? []
@@ -108,6 +126,7 @@ public class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINaviga
 		self.imagePickerController.showsCameraControls = true
 		self.sourceController.present(self.imagePickerController, animated: true, completion: nil)
 	}
+
 	public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
 		copyFilesToLocalFolderAndSendResults(srcUrls: urls)
 	}

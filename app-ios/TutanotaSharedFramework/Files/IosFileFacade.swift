@@ -109,8 +109,13 @@ public final class IosFileFacade: FileFacade {
 
 	public func getSize(_ file: String) async throws -> Int { try getFileSize(file) }
 
-	public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
-		fatalError("not implemented on this platform")
+	@MainActor public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
+		let url = URL(fileURLWithPath: localFileUri)
+		await chooser.pickDestinationDirectory(fileUri: url)
+		// The file is not directly accessible after having been moved by the destination directory picker.
+		// Apple docs say that we can create a security-scoped URL to a bookmark of the destination,
+		// but it's currently not worth the effort as this value is not used anyway.
+		return "moved by iOS"
 	}
 
 	public func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String], _ fileId: String) async throws
