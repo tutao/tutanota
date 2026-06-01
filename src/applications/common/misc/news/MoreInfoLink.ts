@@ -7,6 +7,7 @@ import { theme } from "../../../../ui/theme"
 
 export type MoreInfoLinkAttrs = {
 	link: InfoLink
+	label?: TranslationKey
 	isSmall?: boolean
 	class?: string
 }
@@ -35,12 +36,13 @@ export class MoreInfoLink implements Component<MoreInfoLinkAttrs> {
 				specialType = undefined
 				break
 		}
+		const infoLabel = vnode.attrs.label != null ? vnode.attrs.label : "moreInfo_msg"
 		return m(
 			"p",
 			{
 				class: `${vnode.attrs.class} ${vnode.attrs.isSmall ? "small" : ""}`,
 			},
-			lang.get("moreInfo_msg") + " ",
+			lang.get(infoLabel) + " ",
 			m(
 				"span.text-break",
 				{

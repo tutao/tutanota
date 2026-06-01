@@ -911,7 +911,7 @@ export default {
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invalidVatIdValidationFailed_msg": "Fehler bei der Prüfung der Umsatzsteuer-Identifikationsnummer. Bitte versuchen Sie es später erneut.",
 		"invitation_label": "Einladung",
-		"invitationMailBody_msg": "Hi!<br><br>Ich bin zu Tuta Mail gewechselt, dem sichersten E-Mail-Dienst der Welt, der einfach zu bedienen ist und Ihre Privatsphäre respektiert. Tuta ist werbefrei und wird mit 100% erneuerbarem Strom betrieben.<br><br>Jetzt möchte ich Sie ebenfalls von Tuta überzeugen! Wenn Sie sich über meinen persönlichen Einladungslink anmelden, erhalten Sie bei jährlicher Buchung einen zusätzlichen Gratismonat für alle bezahlten Abonnements:<br>{registrationLink}<br><br><br>Liebe Grüße,<br>{username}<br><br>PS: Sie können auch Free wählen und später upgraden. Gemeinsam können wir unsere Kommunikation schützen!",
+		"invitationMailBody_msg": "Hi,<br><br>Ich bin vor Kurzem zu Tuta Mail gewechselt, um sicherzustellen, dass meine Kommunikation nicht mehr von Big Tech gescannt wird. Es ist von Grund auf privat und sicher, Open Source, werbefrei und einfach zu bedienen.<br><br>Wenn Sie es sich ansehen möchten, hier mein persönlicher Einladungslink:<br>{registrationLink}<br><br>Sie erhalten einen zusätzlichen Gratismonat für jedes Jahresabo, wenn Sie sich über den Link anmelden.<br><br>Es gibt auch einen Free Tarif, den Sie ausprobieren können, ohne sich an etwas zu binden.<br><br>Liebe Grüße,<br>{username}",
 		"invitationNote_msg": "Sicher gesendet mit <strong>Tuta Calendar:</strong>\n<br>\n{1}",
 		"invite_alt": "Einladen",
 		"invited_label": "Eingeladen",
@@ -2276,6 +2276,15 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"pricing.bonusMonthAndGlobalFirstYear_label": "+{months} Monat(e) & {amount} Rabatt",
-		"pricing.firstYearDiscountOnly_msg": "Der Rabatt gilt nur für das erste Jahr."
+		"pricing.firstYearDiscountOnly_msg": "Der Rabatt gilt nur für das erste Jahr.",
+		"referAFriendTitle_label": "Teilen Sie Sicherheit und Privatsphäre mit Ihren Freunden",
+		"referAFriendSubTitle_label": "Helfen Sie Ihren Freunden dabei, sich mit Tutas privater und sicherer Email von Big Tech zu lösen.",
+		"referAFriendFriendBenefit_title": "Ihre Freunde bekommen:",
+		"referAFriendFriendBenefit_label": "Einen Extra-Monat für ein jährliches Abonnement",
+		"referAFriendOwnBenefit_title": "Sie bekommen:",
+		"referAFriendOwnBenefit_label": "Tuta-Gutschrift in Höhe von 25% ihrer ersten Zahlung und gutes Karma für das Verbreiten der Botschaft",
+		"referAFriendBothBenefit_title": "Zusammen",
+		"referAFriendBothBenefit_label": "machen Sie die Welt ein kleines Bisschen sicherer und privater",
+		"referAFriendMoreInfo_label": "Mehr über unser Empfehlungsprogramm:"
 	}
 }

@@ -911,7 +911,7 @@ export default {
 		"invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
 		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
 		"invitation_label": "Invitation",
-		"invitationMailBody_msg": "Hi!<br><br>I have switched to Tuta, the world's most secure email service, easy to use, open-source and private by design. It's ad-free and powered by 100% renewable electricity.<br><br>Now, I would like to invite you to Tuta as well! If you sign up with my personal invite link, you will get an additional free month on any yearly subscription:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: You can also get a Free membership and upgrade later.",
+		"invitationMailBody_msg": "Hi,<br><br>I recently switched to Tuta Mail to ensure my communications are no longer scanned by Big Tech. It’s private and secure by design, open-source, ad-free, and easy to use.<br><br>If you want to check it out, here’s my personal invite link:<br>{registrationLink}<br><br>You’ll get an extra free month on any yearly plan if you sign up through the link.<br><br>There’s also a free plan, so you can try it without committing to anything.<br><br>Best regards,<br>{username}",
 		"invitationNote_msg": "Secured with <strong>Tuta Calendar:</strong>\n<br>\n{1}",
 		"invite_alt": "Invite",
 		"invited_label": "Invited",
@@ -2283,6 +2283,15 @@ export default {
 		"pricing.bonusMonthWithCampaign_label": "Bonus: {months} month(s) free!",
 		"planselector_page_sovereignty2026_title": "Choose Digital Sovereignty",
 		"planselector_page_sovereignty2026_subtitle": "Switch to Tuta Mail with 50% discount! Get this one-time offer now and break free from US monopolists.",
-		"contactSales_action": "Contact Sales"
+		"contactSales_action": "Contact Sales",
+		 "referAFriendTitle_label": "Share privacy and security with Friends",
+		"referAFriendSubTitle_label": "Help your friends move away from Big Tech with private and secure email from Tuta.",
+		 "referAFriendFriendBenefit_title": "Your friends get:",
+		 "referAFriendFriendBenefit_label": "One extra free month on any yearly plan",
+		 "referAFriendOwnBenefit_title": "You get:",
+		 "referAFriendOwnBenefit_label": "25% of their first payment in Tuta credit and good karma for spreading the word",
+		 "referAFriendBothBenefit_title": "Together,",
+		"referAFriendBothBenefit_label": "you're making the world a bit more secure and private",
+		"referAFriendMoreInfo_label": "More about the referral program:"
 	}
 }

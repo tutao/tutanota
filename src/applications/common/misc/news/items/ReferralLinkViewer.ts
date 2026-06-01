@@ -23,9 +23,26 @@ export type ReferralLinkAttrs = {
 export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 	view(vnode: Vnode<ReferralLinkAttrs>): Children {
 		return m(".scroll", [
-			m(".h4", lang.get("referralSettings_label")),
-			m("", lang.get("referralLinkLong_msg")),
+			this.renderTitle(),
+			this.renderSubTitle(),
+			this.renderBodyText(),
 			m(LegacyTextField, this.getReferralLinkTextFieldAttrs(vnode.attrs.referralLink)),
+		])
+	}
+
+	private renderTitle() {
+		return m("h4.mb-16", {}, lang.get("referAFriendTitle_label"))
+	}
+
+	private renderSubTitle() {
+		return m("div", lang.get("referAFriendSubTitle_label"))
+	}
+
+	private renderBodyText() {
+		return m("ul", [
+			m("li", m("span.b.mr-4", lang.get("referAFriendFriendBenefit_title")), m("span", lang.get("referAFriendFriendBenefit_label"))),
+			m("li", m("span.b.mr-4", lang.get("referAFriendOwnBenefit_title")), m("span", lang.get("referAFriendOwnBenefit_label"))),
+			m("li", m("span.b.mr-4", lang.get("referAFriendBothBenefit_title")), m("span", lang.get("referAFriendBothBenefit_label"))),
 		])
 	}
 
@@ -35,7 +52,8 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 			label: "referralLink_label",
 			value: referralLink,
 			injectionsRight: () => this.renderButtons(referralLink),
-			helpLabel: () => ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [m(MoreInfoLink, { link: link })]),
+			helpLabel: () =>
+				ifAllowedTutaLinks(locator.logins, InfoLink.ReferralLink, (link) => [m(MoreInfoLink, { label: "referAFriendMoreInfo_label", link: link })]),
 		}
 	}
 
