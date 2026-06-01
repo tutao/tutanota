@@ -1,4 +1,4 @@
-import { ConstructOut, TConstruct, TsNode } from "./TConstruct"
+import { ConstructOut, TConstruct } from "./TConstruct"
 
 export class TEmpty extends TConstruct {
 	constructor() {

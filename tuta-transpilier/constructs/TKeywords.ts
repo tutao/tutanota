@@ -1,10 +1,11 @@
 import { ConstructOut, TConstruct, TsNode } from "./TConstruct"
 import { ts } from "ts-morph"
+import { Assert } from "../Constants"
 import SyntaxKind = ts.SyntaxKind
 
 export class TReturnKeyword extends TConstruct {
 	constructor(returnKeyWord: TsNode) {
-		console.assert(returnKeyWord.getKind() === SyntaxKind.ReturnStatement, "expected only return keyword")
+		Assert.isTrue(returnKeyWord.getKind() === SyntaxKind.ReturnKeyword, "expected only return keyword")
 		super()
 	}
 

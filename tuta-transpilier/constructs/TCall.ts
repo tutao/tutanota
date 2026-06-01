@@ -1,6 +1,7 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { CallExpression } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
+import { LangTarget } from "../LangTarget"
 
 export class TCall extends TConstruct {
 	private readonly functionName: TIdentitider
@@ -9,10 +10,7 @@ export class TCall extends TConstruct {
 	constructor(callExpression: CallExpression) {
 		super()
 		this.functionName = new TIdentitider(callExpression.getExpression().getSymbol().getName())
-		this.callArguments = callExpression.getArguments().map((a) => {
-			// TODO:
-			return new TIdentitider("something")
-		})
+		this.callArguments = callExpression.getArguments().map((arg) => LangTarget.redirectNode(arg))
 	}
 
 	generateKotlin(): ConstructOut {

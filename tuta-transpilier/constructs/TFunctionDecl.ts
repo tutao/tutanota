@@ -1,5 +1,5 @@
 import { FunctionDeclaration } from "ts-morph"
-import { ConstructOut, TConstruct } from "./TConstruct"
+import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 import { LangTarget } from "../LangTarget"
@@ -25,15 +25,22 @@ export class TFunctionDecl extends TConstruct {
 		this.functionBody = functionDecleration
 			.getBody()
 			.forEachChildAsArray()
-			.flatMap((stmt) => LangTarget.redirectNode(stmt))
+			.map((stmt) => LangTarget.redirectNode(stmt))
 	}
 
 	generateKotlin(): ConstructOut {
-		const parameters = this.parameters.map(({ identName, typeName }) => `${identName}: ${typeName}`).join(" ,")
-		const functionBody = this.functionBody.map((stmt) => stmt.generateKotlin()).join(";\n")
+		const visibility = this.visibility.generateKotlin()
+		const parameters = this.parameters
+			.map(({ identName, typeName }) => {
+				const name = identName.generateKotlin()
+				const typ = typeName.generateKotlin()
+				return `${name}: ${typ}`
+			})
+			.join(" ,")
+		let functionBody = new TConstructMultiple(...this.functionBody).withSeperator(";\n").generateKotlin()
 		const name = this.name.generateKotlin()
 		const returnType = this.returnType.generateKotlin()
 
-		return `fun ${name}(${parameters}): ${returnType} { ${functionBody} }`
+		return `fun ${visibility} ${name}(${parameters}): ${returnType} { ${functionBody} }`
 	}
 }

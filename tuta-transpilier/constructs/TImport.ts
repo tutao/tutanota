@@ -44,7 +44,7 @@ export class TImport extends TConstruct {
 
 	generateKotlin(): ConstructOut {
 		const specifier = this.getKotlinSpecifier()
-		const namedImports = this.namedImports.map((ni) => ni.generateKotlin()).map((ni) => `import ${specifier}.${ni}"`)
+		const namedImports = this.namedImports.map((ni) => ni.generateKotlin()).map((ni) => `import ${specifier}.${ni};`)
 		const aliasedImports = this.aliasedImports
 			.map(({ symbol, alias }) => {
 				return { symbol: symbol.generateKotlin(), alias: alias.generateKotlin() }

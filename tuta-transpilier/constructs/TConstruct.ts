@@ -1,38 +1,32 @@
-import { EmptyStatement, Node as TsMorphNode } from "ts-morph"
-import { Type } from "cborg"
-import undefined = Type.undefined
-import { TEmpty } from "./TEmpty"
+import { Node as TsMorphNode } from "ts-morph"
 
 export type TsNode = TsMorphNode
 
 export type ConstructOut = string | Array<string>
-
-export class TConstructMultiple extends TConstruct {
-	private readonly constructs: Array<TConstruct>
-
-	constructor(...constructs: TConstruct[]) {
-		super()
-		this.constructs = constructs
-	}
-
-	generateKotlin(): ConstructOut {
-		return new TEmpty()
-	}
-}
 
 export abstract class TConstruct {
 	abstract generateKotlin(): ConstructOut
 	generateSwift(): ConstructOut {
 		throw new Error("Not yet implemented!")
 	}
+}
 
-	public andThen(others: TConstruct | Array<TConstruct>): Array<TConstruct> {
-		if (others instanceof Array) {
-			return [this, ...others]
-		} else if (others instanceof TConstruct) {
-			return [this, others]
-		} else {
-			throw new Error("Unknown type")
-		}
+export class TConstructMultiple extends TConstruct {
+	private readonly constructs: TConstruct[]
+	private seperator: string
+
+	constructor(...constructs: TConstruct[]) {
+		super()
+		this.constructs = constructs
+		this.seperator = " "
+	}
+
+	withSeperator(seperator: string): this {
+		this.seperator = seperator
+		return this
+	}
+
+	generateKotlin(): ConstructOut {
+		return this.constructs.map((c) => c.generateKotlin()).join(this.seperator)
 	}
 }

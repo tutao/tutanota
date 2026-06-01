@@ -1,13 +1,13 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
-import { TExpression } from "./TExpression"
+import { LangTarget } from "../LangTarget"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind
 	private name: TIdentitider
 	private dataType: TIdentitider
-	private readonly initializer: TExpression | null = null
+	private readonly initializer: TConstruct | null = null
 
 	constructor(variableDeclaration: VariableDeclaration) {
 		super()
@@ -16,7 +16,7 @@ export class TVariable extends TConstruct {
 		this.dataType = new TIdentitider(variableDeclaration.getType().getApparentType().getSymbol().getName())
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
-			this.initializer = new TExpression(initializer)
+			this.initializer = LangTarget.redirectNode(initializer)
 		}
 	}
 
@@ -33,11 +33,11 @@ export class TVariable extends TConstruct {
 			throw new Error("awaitUsing or Using is not supported!!")
 		}
 
-		if (this.initializer === null) {
-			return `lateinit ${lhs}: ${dataType}`
-		} else {
+		if (this.initializer != null) {
 			const rhs = this.initializer.generateKotlin()
-			return `${lhs}: ${dataType} = ${rhs}`
+			return `${lhs}: ${dataType} = ${rhs};`
+		} else {
+			return `lateinit ${lhs}: ${dataType};`
 		}
 	}
 }

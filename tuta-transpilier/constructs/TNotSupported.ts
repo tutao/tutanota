@@ -7,10 +7,6 @@ export class TNotSupported extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		return `NOT_SUPPORTED`
-	}
-
-	generateSwift(): ConstructOut {
-		return `NOT_SUPPORTED`
+		return `NOT_SUPPORTED(${this.node.getKindName()})`
 	}
 }

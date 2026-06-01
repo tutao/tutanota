@@ -1,31 +1,41 @@
 import {
 	BinaryExpression,
 	CallExpression,
+	ClassDeclaration,
 	EnumDeclaration,
 	ExpressionStatement,
 	FunctionDeclaration,
+	Identifier,
 	ImportDeclaration,
+	InterfaceDeclaration,
+	NumericLiteral,
 	ReturnStatement,
 	SourceFile,
+	StringLiteral,
 	ts,
 	TypeAliasDeclaration,
 	VariableStatement,
 } from "ts-morph"
-import { TUTANOTA_ROOT } from "./Constants.js"
-import { TConstruct, TsNode } from "./constructs/TConstruct"
+import { Assert, TUTANOTA_ROOT } from "./Constants.js"
+import { TConstruct, TConstructMultiple, TsNode } from "./constructs/TConstruct"
 import { TImport } from "./constructs/TImport"
 import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
 import { TEnum } from "./constructs/TEnum"
 import { TTypeAlias } from "./constructs/TTypeAlias"
 import { TCall } from "./constructs/TCall"
-import { TExpression } from "./constructs/TExpression"
 import fs from "node:fs"
 import path from "node:path"
-import { TEmpty } from "./constructs/TEmpty"
 import { TFunctionDecl } from "./constructs/TFunctionDecl"
 import { TReturnKeyword } from "./constructs/TKeywords"
 import { TBinaryExpr } from "./constructs/TBinaryExpr"
+import { TEmpty } from "./constructs/TEmpty"
+import { TIdentitider } from "./constructs/TIdentitider"
+import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
+import { TOperatorToken } from "./constructs/TOperatorToken"
+import { TEndOfExpression } from "./constructs/TEndOfExpression"
+import { TClassDecl } from "./constructs/TClassDecl"
+import { TInterfaceDecl } from "./constructs/TInterfaceDecl"
 import SyntaxKind = ts.SyntaxKind
 
 export const enum TargetLanguage {
@@ -80,7 +90,7 @@ export class LangTarget {
 		console.log(`Written file: ${fullOutPath}`)
 	}
 
-	public static redirectNode(node: TsNode): TConstruct | Array<TConstruct> {
+	public static redirectNode(node: TsNode): TConstruct {
 		const nodeKindName = node.getKindName()
 		const nodeKind = node.getKind()
 		const typedNode = node.asKindOrThrow(nodeKind)
@@ -90,7 +100,12 @@ export class LangTarget {
 		} else if (typedNode instanceof ImportDeclaration) {
 			return new TImport(typedNode)
 		} else if (typedNode instanceof VariableStatement) {
-			return typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
+			const declarations = typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
+			return new TConstructMultiple(...declarations).withSeperator(";\n")
+		} else if (typedNode instanceof ClassDeclaration) {
+			return new TClassDecl(typedNode)
+		} else if (typedNode instanceof InterfaceDeclaration) {
+			return new TInterfaceDecl(typedNode)
 		} else if (typedNode instanceof EnumDeclaration) {
 			return new TEnum(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {
@@ -102,13 +117,22 @@ export class LangTarget {
 		} else if (typedNode instanceof BinaryExpression) {
 			return new TBinaryExpr(typedNode)
 		} else if (typedNode instanceof ExpressionStatement) {
-			return new TExpression(typedNode.getExpression())
+			const expression = LangTarget.redirectNode(typedNode.getExpression())
+			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeperator("")
 		} else if (typedNode instanceof ReturnStatement) {
-			console.assert(typedNode.getChildCount() === 2, "return statement should only have one expression")
+			Assert.isTrue(typedNode.getChildCount() === 2, "return statement should only have one expression")
 			const [returnKeyword, returnExpression] = typedNode.getChildren()
 			const returnKeywordConstruct = new TReturnKeyword(returnKeyword)
 			const returnExpressionConstruct = LangTarget.redirectNode(returnExpression)
-			return returnKeywordConstruct.andThen(returnExpressionConstruct)
+			return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
+		} else if (typedNode instanceof Identifier) {
+			return new TIdentitider(typedNode.getSymbol().getName())
+		} else if (typedNode instanceof NumericLiteral) {
+			return new TNumericLiteral(typedNode)
+		} else if (typedNode instanceof StringLiteral) {
+			return new TStringLiteral(typedNode)
+		} else if (TOperatorToken.isOperatorToken(nodeKind)) {
+			return new TOperatorToken(typedNode)
 		} else {
 			return new TNotSupported(node)
 		}
