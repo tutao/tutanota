@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../platform-kit/rest-client/error"
 import { component_size } from "../../../ui/size.js"
 import { elementIdPart } from "../../../platform-kit/meta"
 import { contains, LazyLoaded, noOp } from "../../../platform-kit/utils"
@@ -28,7 +28,6 @@ import { ListElementListModel } from "../misc/ListElementListModel"
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { NotFoundError } from "../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -301,7 +300,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 		return m(
 			SelectableRowContainer,
 			{
-				class: "pt-12 pb-12 pl-12 pr-12",
+				class: "pt-12 pb-12 pl-12 pr-12 items-end",
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
 			m(".flex.col.flex-grow", [

@@ -22,7 +22,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 
 	view({ attrs, children }: Vnode<SelectableRowContainerAttrs>) {
 		return m(
-			".flex.border-radius.ml-8.mb-4.",
+			".flex.border-radius.ml-8.mb-4",
 			{
 				class: attrs.class,
 				style: {
@@ -31,6 +31,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 					// this is an obscure place to put it and ideally should not be done here or should be passed down here.
 					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_8) : "0",
 					transition: `background 200ms`,
+					minHeight: "98%",
 				},
 				tabindex: "0",
 				oncreate: ({ dom }) => {
