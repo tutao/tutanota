@@ -11,7 +11,7 @@ import { CalendarNotificationSender } from "../../../../src/applications/calenda
 import { CalendarModel } from "../../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
-import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, userId, ownerMailAddress } from "../CalendarTestUtils.js"
+import { calendars, getDateInZone, makeUserController, otherAddress, ownerAddress, ownerAlias, ownerMailAddress, userId } from "../CalendarTestUtils.js"
 import { identity, noOp } from "../../../../src/platform-kit/utils"
 import { RecipientsModel, ResolvableRecipient } from "../../../../src/applications/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
@@ -45,6 +45,7 @@ import {
 } from "@tutao/entities/sys"
 import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
 import { AccountType } from "../../../../src/entities/sys/Utils"
+import { CalendarEventProgenitor } from "../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
@@ -60,7 +61,7 @@ o.spec("CalendarEventModel", function () {
 	o.spec("integration tests", function () {
 		o("doing no edit operation on an existing event updates it as expected, no updates.", async function () {
 			// this test case is insane and only serves as a warning example to not do such things.
-			const event = createTestEntity(CalendarEventTypeRef, {
+			const event: CalendarEventProgenitor = createTestEntity(CalendarEventTypeRef, {
 				sequence: "0",
 				_id: ["eventListId", "eventElementId"],
 				_ownerGroup: "ownCalendar",
@@ -93,7 +94,7 @@ o.spec("CalendarEventModel", function () {
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
 				],
-			})
+			}) as CalendarEventProgenitor
 			const recipientsModel: RecipientsModel = object()
 			const logins: LoginController = object()
 			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
