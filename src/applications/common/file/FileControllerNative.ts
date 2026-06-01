@@ -126,7 +126,7 @@ export class FileControllerNative extends FileController {
 	private async processDownloadedFilesIOS(downloadedFiles: FileReference[]): Promise<void> {
 		await promiseMap(downloadedFiles, async (file) => {
 			try {
-				await this.fileApp.open(file)
+				await this.fileApp.putFileIntoDownloadsFolder(file.location, file.name)
 			} finally {
 				await this.fileApp.deleteFile(file.location).catch((e: any) => console.log("failed to delete file", file.location, e))
 			}
