@@ -66,6 +66,7 @@ public final class IosFileFacade: FileFacade {
 	}
 
 	public func deleteFile(_ file: String) async throws {
+		TUTSLog("DELETE FILE: \(file)")
 		do { try FileManager.default.removeItem(atPath: file) } catch {
 			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
 			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
@@ -92,8 +93,11 @@ public final class IosFileFacade: FileFacade {
 		return Int(size)
 	}
 
-	public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
-		fatalError("not implemented on this platform")
+	@MainActor public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
+		let formerUrl = URL(string: localFileUri)!
+		let url = URL(fileURLWithPath: localFileUri)
+		await chooser.pickDestinationDirectory(fileUri: url)
+		return "asdf"
 	}
 
 	public func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String], _ fileId: String) async throws
