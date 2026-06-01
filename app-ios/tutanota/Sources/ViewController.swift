@@ -9,7 +9,7 @@ public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 public let OPEN_SETTINGS = "settings"
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, MainPageLoader {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, MainPageLoader, ThemeApplier {
 	private let themeManager: ThemeManager
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
@@ -80,7 +80,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),
 			mobileContactsFacade: IosMobileContactsFacade(userDefaults: userPreferencesProvider),
-			mobilePaymentsFacade: IosMobilePaymentsFacade(),
+			mobilePaymentsFacade: IosMobilePaymentsFacade(
+				mobilePaymentDomain: "de.tutao.tutanota.MobilePayment",
+				productIdToPlanName: productIdToPlanName,
+				formatPlanType: formatPlanType,
+				windowScene: self.windowScene
+			),
 			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
@@ -92,8 +97,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
 			),
 			sqlCipherFacade: sqlCipherFacade,
-			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
-			webAuthnFacade: IosWebauthnFacade(viewController: self)
+			themeFacade: IosThemeFacade(themeManager: themeManager, themeApplier: self),
+			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutanota")
 		)
 		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
@@ -319,8 +324,31 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
+	@MainActor func windowScene() -> UIWindowScene {
+		let window = UIApplication.shared.connectedScenes.first
+		return window as! UIWindowScene
+	}
 }
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {
 	func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor { view.window! }
+}
+
+// FIXME: Move to separate file
+func formatPlanType(_ plan: String, _ interval: UInt) -> String {
+	let intervalString =
+		switch interval {
+		case 1: "monthly"
+		case 12: "yearly"
+		default: fatalError("invalid plan (\(plan)) interval (\(interval))")
+		}
+	let bundleID = Bundle.main.bundleIdentifier!
+	let stagingLevelString = (bundleID == "de.tutao.tutanota.test") ? "testplans" : "plans"
+	return "\(stagingLevelString).\(plan).\(intervalString)"
+}
+
+func productIdToPlanName(_ productId: String) -> String {
+	// plans.legend.monthly -> legend
+	// plans.revolutionary.yearly -> revolutionary
+	String(productId.split(separator: ".")[1])
 }

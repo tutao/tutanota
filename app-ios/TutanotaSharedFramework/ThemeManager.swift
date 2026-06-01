@@ -1,18 +1,18 @@
 import Foundation
 
 typealias ThemeId = String
-typealias ThemePreference = String
-typealias Theme = [String: String]
+public typealias ThemePreference = String
+public typealias Theme = [String: String]
 
 private let SELECTED_THEME = "theme"
 private let THEMES = "themes"
 private let LIGHT_FALLBACK_THEME = ["themeId": "light-fallback", "surface": "#ffffff"]
 private let DARK_FALLBACK_THEME = ["themeId": "dark-fallback", "surface": "#dddddd"]
 
-final class ThemeManager: Sendable {
-	private let userPreferencesProvider: any UserPreferencesProvider & Sendable
+public final class ThemeManager: Sendable {
+	private let userPreferencesProvider: any UserPreferencesProvider
 
-	init(userProferencesProvider: any UserPreferencesProvider) { self.userPreferencesProvider = userProferencesProvider }
+	public init(userPreferencesProvider: any UserPreferencesProvider) { self.userPreferencesProvider = userPreferencesProvider }
 
 	public var themePreference: ThemePreference? {
 		get { userPreferencesProvider.getObject(forKey: SELECTED_THEME) as! ThemePreference? }

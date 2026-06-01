@@ -5,18 +5,13 @@ import UIKit
 import UserNotifications
 import WebKit
 
-public enum InteropActions: String {
-	case openSettings = "settings"
-	case widget = "widget"
-}
+public enum InteropActions: String { case openSettings = "settings" }
 
 /// Main screen of the app.
 class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate, MainPageLoader, ThemeApplier {
 	private let themeManager: ThemeManager
-	private let alarmManager: AlarmManager
-	private let notificationsHandler: NotificationsHandler
 	private var bridge: RemoteBridge!
-	private var webView: WKWebView!
+	private(set) var webView: WKWebView!
 	private var sqlCipherFacade: IosSqlCipherFacade
 	private var commonNativeFacade: (any CommonNativeFacade)!
 
@@ -27,9 +22,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
 		themeManager: ThemeManager,
 		keychainManager: KeychainManager,
-		notificationStorage: UserPrefsNotificationStorage,
-		alarmManager: AlarmManager,
-		notificaionsHandler: NotificationsHandler,
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
@@ -38,8 +30,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	) {
 
 		self.themeManager = themeManager
-		self.alarmManager = alarmManager
-		self.notificationsHandler = notificaionsHandler
 		self.bridge = nil
 		self.sqlCipherFacade = IosSqlCipherFacade()
 
@@ -79,24 +69,18 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			),
 			mobileContactsFacade: IosMobileContactsFacade(),
 			mobilePaymentsFacade: IosMobilePaymentsFacade(
-				mobilePaymentDomain: "de.tutao.calendar.MobilePayment",
-				productIdToPlanName: productIdToPlanName,
-				formatPlanType: formatPlanType,
+				mobilePaymentDomain: "de.tutao.drive.MobilePayment",
+				productIdToPlanName: { _ in fatalError("FIXME") },
+				formatPlanType: { _, _ in fatalError("FIXME") },
 				windowScene: self.windowScene
 			),
 			mobileSystemFacade: IosMobileSystemFacade(viewController: self, userPreferencesProvider: userPreferencesProvider, appLockHandler: AppLockHandler()),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
-			nativePushFacade: IosNativePushFacade(
-				appDelegate: appDelegate,
-				alarmManager: alarmManager,
-				notificationStorage: notificationStorage,
-				keychainManager: keychainManager,
-				invalidateAlarms: { [weak self] in try await self?.commonNativeFacade.invalidateAlarms() }
-			),
+			nativePushFacade: IosNativePushFacade(),
 			sqlCipherFacade: self.sqlCipherFacade,
 			themeFacade: IosThemeFacade(themeManager: themeManager, themeApplier: self),
-			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutacalendar")
+			webAuthnFacade: IosWebauthnFacade(presentationContextProvider: self, callbackURLScheme: "tutadrive")
 		)
 		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
@@ -196,7 +180,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		let theme = self.themeManager.currentThemeWithFallback
 		self.applyTheme(theme)
 
-		Task.detached { await self.notificationsHandler.initialize() }
 		Task { @MainActor in self._loadMainPage(params: [:]) }
 	}
 
@@ -257,6 +240,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return
 		}
 
+		// FIXME
 		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
 			printLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
@@ -275,36 +259,9 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return
 		}
 
-		do {
-			if interopAction.name == InteropActions.openSettings.rawValue {
-				try await self.commonNativeFacade.openSettings(interopAction.value!)
-			} else if interopAction.name == InteropActions.widget.rawValue {
-				try await handleWidgetActions(url, interopAction)
-			}
-		} catch { printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)") }
-	}
-
-	func handleWidgetActions(_ url: URL, _ interopAction: URLQueryItem) async throws {
-		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw GenericTutanotaError(message: "Invalid Widget Action URL") }
-		guard let queryItems = components.queryItems else { throw GenericTutanotaError(message: "Invalid Widget Action URL") }
-
-		guard let userId = queryItems.first(where: { $0.name == "userId" })?.value else {
-			throw GenericTutanotaError(message: "Missing userId for Widget Action URL")
+		do { if interopAction.name == InteropActions.openSettings.rawValue { try await self.commonNativeFacade.openSettings(interopAction.value!) } } catch {
+			printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
 		}
-		guard let date = queryItems.first(where: { $0.name == "date" })?.value else {
-			throw GenericTutanotaError(message: "Missing date for Widget Action URL")
-		}
-		let eventId = queryItems.first(where: { $0.name == "eventId" })?.value
-
-		if interopAction.value == WidgetActions.sendLogs.rawValue { return try await sendLogsFromWidget() }
-
-		let action = interopAction.value == WidgetActions.eventEditor.rawValue ? CalendarOpenAction.event_editor : CalendarOpenAction.agenda
-		try await self.commonNativeFacade.openCalendar(userId, action, date, eventId)
-	}
-
-	func sendLogsFromWidget() async throws {
-		let logs = readSharingInfo(infoLocation: WIDGET_LOGS_LOCATION)
-		try await self.commonNativeFacade.sendLogs(logs?.text ?? "")
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
@@ -325,23 +282,4 @@ private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {
 	func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor { view.window! }
-}
-
-// FIXME: Move to separate file
-func formatPlanType(_ plan: String, _ interval: UInt) -> String {
-	let intervalString =
-		switch interval {
-		case 1: "monthly"
-		case 12: "yearly"
-		default: fatalError("invalid plan (\(plan)) interval (\(interval))")
-		}
-	let bundleID = Bundle.main.bundleIdentifier!
-	let stagingLevelString = (bundleID == "de.tutao.calendar.test") ? "testplans" : "plans"
-	return "\(stagingLevelString).calendar.\(plan).\(intervalString)"
-}
-
-func productIdToPlanName(_ productId: String) -> String {
-	// plans.calendar.legend.yearly -> legend
-	// plans.calendar.revolutionary.monthly -> revolutionary
-	String(productId.split(separator: ".")[2])
 }
