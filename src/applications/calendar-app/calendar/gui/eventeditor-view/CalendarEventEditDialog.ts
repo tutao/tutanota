@@ -254,7 +254,7 @@ export class EventEditorDialog {
 						throw e
 					}
 
-					reject()
+					reject(e)
 				}
 			}
 

@@ -24,9 +24,10 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
 import { HttpMethod, RestClientInterface } from "@tutao/rest-client/types"
+import { NULL_REST_CLIENT_OPTIONS } from "../../../platform-kit/rest-client/types.js"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
+import { IServiceExecutor, NULL_EXTRA_SERVICE_PARAMS } from "../../../platform-kit/network/ServiceRequest"
 import { CryptoNetworkHelper } from "../../../platform-kit/network/CryptoNetworkHelper"
 
 export class TutanotaEntityMigrator implements EntityMigrator {
@@ -62,14 +63,14 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 	private async applyCustomerGroupOwnershipToGroupInfo(data: EntityAdapter): Promise<EntityAdapter> {
 		const customerGroupMembership = assertNotNull(
-			this.loggedInUserProvider.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
+			this.loggedInUserProvider.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer) ?? null,
 		)
 		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, data._id[0])
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
 
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
 		const customerGroupKeyVersion = cryptoUtils.parseKeyVersion(customerGroupPermission.symKeyVersion ?? "0")
-		const customerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
+		const customerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion, null)
 		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, assertNotNull(data._listEncSessionKey))
@@ -101,13 +102,13 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
-		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
+		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData, null)
 		return instance
 	}
 
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
 		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
-		this.crypto.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
+		this.crypto.setOwnerEncSessionKey(instance, newOwnerEncSessionKey, null)
 
 		const id = instance._id
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
@@ -141,6 +142,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {
+				...NULL_REST_CLIENT_OPTIONS,
 				headers,
 				body: JSON.stringify(patchPayload),
 				queryParams: { updateOwnerEncSessionKey: "true" },

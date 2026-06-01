@@ -75,7 +75,7 @@ export async function loadUserExportData(
 		)
 
 		const mapped = groups.map((group) => {
-			const info = assertNotNull(groupsAdministeredByUser.find((groupInfo) => groupInfo.group === group._id))
+			const info = assertNotNull(groupsAdministeredByUser.find((groupInfo) => groupInfo.group === group._id) ?? null)
 			const userStorageCounterValue = usedCustomerStorageCounterValues.find((counterValue) => counterValue.counterId === group.storageCounter)
 			const usedStorage = Number(userStorageCounterValue?.value ?? "0")
 			return {

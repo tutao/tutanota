@@ -35,10 +35,10 @@ function _mapInCallContext<T, U>(values: T[], callback: PromiseMapCallback<T, U>
 }
 
 export { pMap as promiseMap } from "./PromiseMap.js"
-export type PromiseMapFn = <T, U>(values: T[], callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) => PromisableWrapper<U[]>
+export type PromiseMapFn = <T, U>(values: T[], callback: PromiseMapCallback<T, U>, options: PromiseMapOptions | null) => PromisableWrapper<U[]>
 
-function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) {
-	return PromisableWrapper.from(promiseMap(values, callback, options))
+function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, options: PromiseMapOptions | null = null) {
+	return PromisableWrapper.from(promiseMap(values, callback, options ?? { concurrency: null }))
 }
 
 /** Factory function which gives you ack promiseMap implementation. {@see mapInCallContext} for what it means. */
@@ -68,7 +68,7 @@ export class PromisableWrapper<T> {
 		// eslint-disable-next-line local/noUnionExceptNullable
 		onFulfill: (arg0: T) => $Promisable<PromisableWrapper<R> | R>,
 		// eslint-disable-next-line local/noUnionExceptNullable
-		onReject?: (arg0: any) => $Promisable<R | PromisableWrapper<R>>,
+		onReject: ((arg0: any) => $Promisable<R | PromisableWrapper<R>>) | null = null,
 	): PromisableWrapper<R> {
 		if (this.value instanceof Promise) {
 			// eslint-disable-next-line local/noUnionExceptNullable

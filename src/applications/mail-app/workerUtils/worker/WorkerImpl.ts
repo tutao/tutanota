@@ -1,6 +1,7 @@
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { RestClient, restError } from "../../../../platform-kit/rest-client"
+import { NULL_REST_CLIENT_OPTIONS } from "../../../../platform-kit/rest-client/types.js"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
 import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
@@ -351,9 +352,8 @@ export class WorkerImpl implements NativeInterface {
 				// This horror is to add auth headers to the admin client
 				const args = message.args as Parameters<RestClient["request"]>
 				let [path, method, options] = args
-				options = options ?? {}
-				options.headers = { ...locator.base.user.createAuthHeaders(), ...options.headers }
-				return locator.base.restClient.request(path, method, options)
+				const resolvedOptions = { ...NULL_REST_CLIENT_OPTIONS, ...options, headers: { ...locator.base.user.createAuthHeaders(), ...options?.headers } }
+				return locator.base.restClient.request(path, method, resolvedOptions)
 			},
 
 			facade: exposeLocalDelayed<DelayedImpls<WorkerInterface>, WorkerRequestType>(exposedWorker),

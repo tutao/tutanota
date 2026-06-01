@@ -27,7 +27,7 @@ import { UndoModel } from "../../UndoModel"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import { ImportMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
@@ -266,7 +266,7 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { cacheMode: CacheMode.WriteOnly })
+			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
@@ -684,7 +684,7 @@ export class MailViewModel {
 
 		let movedMailIds: IdTuple[] = []
 		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
-			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
+			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId) ?? null)
 			if (isSameId(currentFolder._id, targetFolder._id)) {
 				continue
 			}

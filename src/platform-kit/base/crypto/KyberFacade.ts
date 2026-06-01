@@ -46,7 +46,7 @@ export interface KyberFacade {
  * WebAssembly implementation of Liboqs
  */
 export class WASMKyberFacade implements KyberFacade {
-	constructor(private readonly testWASM?: LibOQSExports) {}
+	constructor(private readonly testWASM: LibOQSExports | null = null) {}
 
 	// loads liboqs WASM
 	private liboqs: LazyLoaded<LibOQSExports> = new LazyLoaded(async () => {

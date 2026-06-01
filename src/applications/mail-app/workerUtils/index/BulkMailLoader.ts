@@ -26,7 +26,7 @@ import { cryptoUtils } from "../../../../platform-kit/crypto"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { OwnerEncSessionKeyProvider } from "../../../../platform-kit/instance-pipeline"
-import { CacheMode, EntityRestClientLoadOptions } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, EntityRestClientLoadOptions, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	File,
 	FileTypeRef,
@@ -61,14 +61,14 @@ export class BulkMailLoader {
 		private readonly mail: MailFacade,
 	) {}
 
-	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
+	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS): Promise<Mail[]> {
 		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
 			...options,
 			cacheMode: CacheMode.ReadOnly,
 		})
 	}
 
-	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS): Promise<MailWithMailDetails[]> {
 		const result: Array<MailWithMailDetails> = []
 		// mailDetails stored as blob
 		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
@@ -79,16 +79,16 @@ export class BulkMailLoader {
 		)
 		for (let [listId, ids] of listIdToMailDetailsBlobIds) {
 			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails)) === instanceElementId))
+				const mail = assertNotNull(mailDetailsBlobMails.find((m) => elementIdPart(assertNotNull(m.mailDetails ?? null)) === instanceElementId) ?? null)
 				return {
-					key: assertNotNull(mail._ownerEncSessionKey),
+					key: assertNotNull(mail._ownerEncSessionKey ?? null),
 					encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
 			const mailDetailsBlobs = await this.loadInChunks(MailDetailsBlobTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
 			result.push(
 				...mailDetailsBlobs.map((mailDetailsBlob) => {
-					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)))
+					const mail = assertNotNull(mailDetailsBlobMails.find((m) => isSameId(m.mailDetails, mailDetailsBlob._id)) ?? null)
 					return { mail, mailDetails: mailDetailsBlob.details }
 				}),
 			)
@@ -102,16 +102,18 @@ export class BulkMailLoader {
 		)
 		for (let [listId, ids] of listIdToMailDetailsDraftIds) {
 			const ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider = async (instanceElementId: Id) => {
-				const mail = assertNotNull(mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft)) === instanceElementId))
+				const mail = assertNotNull(
+					mailDetailsDraftMails.find((m) => elementIdPart(assertNotNull(m.mailDetailsDraft ?? null)) === instanceElementId) ?? null,
+				)
 				return {
-					key: assertNotNull(mail._ownerEncSessionKey),
+					key: assertNotNull(mail._ownerEncSessionKey ?? null),
 					encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 				}
 			}
 			const mailDetailsDrafts = await this.loadInChunks(MailDetailsDraftTypeRef, listId, ids, ownerEncSessionKeyProvider, options)
 			result.push(
 				...mailDetailsDrafts.map((draftDetails) => {
-					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)))
+					const mail = assertNotNull(mailDetailsDraftMails.find((m) => isSameId(m.mailDetailsDraft, draftDetails._id)) ?? null)
 					return { mail, mailDetails: draftDetails.details }
 				}),
 			)
@@ -119,7 +121,7 @@ export class BulkMailLoader {
 		return result
 	}
 
-	async loadAttachments(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<File[]> {
+	async loadAttachments(mails: readonly Mail[], options: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS): Promise<File[]> {
 		const attachmentIds: IdTuple[] = []
 
 		for (const mail of mails) {
@@ -145,7 +147,7 @@ export class BulkMailLoader {
 		listId: Id | null,
 		ids: Id[],
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		options: EntityRestClientLoadOptions = {},
+		options: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		const entityResults = await promiseMap(

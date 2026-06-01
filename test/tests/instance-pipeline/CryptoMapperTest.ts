@@ -339,7 +339,7 @@ o.spec("CryptoMapper", () => {
 			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenReturn(valueDecryptor)
 			const groupId = "groupId"
 			const aes256Key = aes256RandomKey()
-			when(keyLoader.loadSymGroupKey(groupId, matchers.anything())).thenReturn(Promise.resolve(aes256Key))
+			when(keyLoader.loadSymGroupKey(groupId, matchers.anything(), null)).thenReturn(Promise.resolve(aes256Key))
 
 			await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, groupId, "")
 			verify(valueDecryptor.getValue(aes256Key))

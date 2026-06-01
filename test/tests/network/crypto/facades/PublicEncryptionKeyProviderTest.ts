@@ -13,6 +13,7 @@ import {
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
 	RsaPublicKey,
+	RsaX25519PublicKey,
 } from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
@@ -88,7 +89,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 					keyPairType: KeyPairType.TUTA_CRYPT,
 					x25519PublicKey: x25519PublicKey,
 					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-				},
+				} as PQPublicKeys,
 			}
 			const expectedResult: VerifiedPublicEncryptionKey = {
 				verificationState: object(),
@@ -127,7 +128,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 					keyLength: 2048,
 					modulus: decodedRsaPublicKey.modulus,
 					publicExponent: decodedRsaPublicKey.publicExponent,
-				},
+				} as RsaPublicKey,
 			}
 			const expectedResult: VerifiedPublicEncryptionKey = {
 				verificationState: object(),
@@ -173,7 +174,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				pubEccKey: x25519PublicKey,
 				signature: object(),
 			})
-			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(undefined)
+			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(null)
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
 
 			const expectedPublicKey: MaybeSignedPublicKey = {
@@ -183,7 +184,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -213,7 +214,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -243,7 +244,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -371,7 +372,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					keyPairType: KeyPairType.TUTA_CRYPT,
 					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
 					x25519PublicKey: x25519PublicKey,
-				},
+				} as PQPublicKeys,
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -399,7 +400,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					keyLength: 2048,
 					modulus: decodedRsaPublicKey.modulus,
 					publicExponent: decodedRsaPublicKey.publicExponent,
-				},
+				} as RsaPublicKey,
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -428,7 +429,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					modulus: decodedRsaPublicKey.modulus,
 					publicExponent: decodedRsaPublicKey.publicExponent,
 					publicEccKey: x25519PublicKey,
-				},
+				} as RsaX25519PublicKey,
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -493,7 +494,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				x25519PublicKey: x25519PublicKey,
 				kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-			},
+			} as PQPublicKeys,
 		}
 		o(fromDistributionKey).deepEquals(expectedPublicKey)
 	})
@@ -510,7 +511,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				x25519PublicKey: x25519PublicKey,
 				kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-			},
+			} as PQPublicKeys,
 		}
 		o(fromEncryptedPqKeyPairs).deepEquals(expectedPublicKey)
 	})

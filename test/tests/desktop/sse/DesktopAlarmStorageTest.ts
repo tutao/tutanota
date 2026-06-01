@@ -109,7 +109,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
 		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
 			AlarmNotificationTypeRef,
-			assertNotNull(expectedAlarmsCaptor.values)[0][0],
+			assertNotNull(expectedAlarmsCaptor.values ?? null)[0][0],
 			notificationSessionKey,
 		)
 		o(alarmNotification._id).equals(decryptedSavedAlarmNotification._id)
@@ -148,12 +148,12 @@ o.spec("DesktopAlarmStorageTest", function () {
 		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
 		let oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
 			AlarmNotificationTypeRef,
-			assertNotNull(newExpectedAlarmsCaptor.values)[0][0],
+			assertNotNull(newExpectedAlarmsCaptor.values ?? null)[0][0],
 			notificationSessionKey,
 		)
 		let newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
 			AlarmNotificationTypeRef,
-			assertNotNull(newExpectedAlarmsCaptor.values)[1][0],
+			assertNotNull(newExpectedAlarmsCaptor.values ?? null)[1][0],
 			newNotificationSessionKey,
 		)
 		o(alarmNotification._id).equals(oldDecryptedSavedAlarmNotification._id)

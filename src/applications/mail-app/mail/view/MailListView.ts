@@ -273,7 +273,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename
 			promiseMap(notDownloaded, async ({ mail, fileName }) => {
-				const name = assertNotNull(deduplicatedNames[fileName].shift())
+				const name = assertNotNull(deduplicatedNames[fileName].shift() ?? null)
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
 					const bundle = await downloadMailBundle(

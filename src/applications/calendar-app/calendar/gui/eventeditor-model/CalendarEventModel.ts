@@ -187,8 +187,8 @@ export async function makeCalendarEventModel(
 	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
-		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
-		const index = await calendarModel.getEventsByUid(initialValues.uid)
+		const uid = assertNotNull(initialValues.uid ?? null, "tried to edit/delete all with nonexistent uid")
+		const index = await calendarModel.getEventsByUid(uid)
 		if (index != null && index.progenitor != null) {
 			initialValues = index.progenitor
 		}
@@ -620,7 +620,7 @@ function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?
 		if (!calendar) throw new Error("Can't find a private calendar")
 		return calendar
 	} else {
-		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
+		return assertNotNull(calendars.get(ownerGroup) ?? null, "invalid ownergroup for existing event?")
 	}
 }
 

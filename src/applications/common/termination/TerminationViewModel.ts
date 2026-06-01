@@ -57,7 +57,7 @@ export class TerminationViewModel {
 				terminationDate: this.getTerminationDate(),
 				surveyData: surveyData,
 			})
-			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData)
+			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData, null)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {

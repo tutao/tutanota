@@ -52,7 +52,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			if (!success) {
 				return
 			}
-			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?._id))
+			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?._id ?? null))
 			if (receivedNotification) {
 				return this.close(data, this.dom)
 			}
@@ -68,7 +68,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData, null))
 			.then(() => {
 				const stage = data.upgradeUsageTest?.getStage(1)
 

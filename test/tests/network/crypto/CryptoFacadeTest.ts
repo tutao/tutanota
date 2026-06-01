@@ -39,8 +39,10 @@ import {
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
+	PQKeyPairs,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
+	RsaKeyPair,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
 	X25519KeyPair,
@@ -343,6 +345,7 @@ o.spec("CryptoFacadeTest", function () {
 				argThat((p: UpdatePermissionKeyData) => {
 					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
 				}),
+				null,
 			),
 		).thenResolve(undefined)
 
@@ -574,7 +577,7 @@ o.spec("CryptoFacadeTest", function () {
 					keyPairType: pqKeyPairs_v1.keyPairType,
 					x25519KeyPair: pqKeyPairs_v1.x25519KeyPair,
 					kyberKeyPair: pqKeyPairs_v1.kyberKeyPair,
-				},
+				} as PQKeyPairs,
 				protocolVersion,
 				pubEncBucketKey,
 			),
@@ -1031,7 +1034,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailInstanceSessionKey = assertNotNull(
 			updatedInstanceSessionKeys.find((instanceSessionKey) =>
 				isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
-			),
+			) ?? null,
 		)
 		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
@@ -1089,7 +1092,7 @@ o.spec("CryptoFacadeTest", function () {
 		)
 		verify(instanceSessionKeysCache.put(testData.mail, resolvedSessionKeys.instanceSessionKeys), { times: 1 })
 
-		const actualAuthStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, assertNotNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		const actualAuthStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, assertNotNull(mailInstanceSessionKey ?? null).encryptionAuthStatus!))
 		o(actualAuthStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
 	})
 
@@ -1103,7 +1106,7 @@ o.spec("CryptoFacadeTest", function () {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				kyberKeyPair: object(),
 				x25519KeyPair: object(),
-			},
+			} as PQKeyPairs,
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
@@ -1133,7 +1136,7 @@ o.spec("CryptoFacadeTest", function () {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				kyberKeyPair: object(),
 				x25519KeyPair: object(),
-			},
+			} as PQKeyPairs,
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
@@ -1720,7 +1723,7 @@ o.spec("CryptoFacadeTest", function () {
 				keyPairType: KeyPairType.RSA,
 				publicKey: RSA_TEST_KEYPAIR.publicKey,
 				privateKey: RSA_TEST_KEYPAIR.privateKey,
-			},
+			} as RsaKeyPair,
 			version: 0,
 		})
 
@@ -1826,7 +1829,7 @@ o.spec("CryptoFacadeTest", function () {
 					keyPairType: pqKeyPairs.keyPairType,
 					x25519KeyPair: pqKeyPairs.x25519KeyPair,
 					kyberKeyPair: pqKeyPairs.kyberKeyPair,
-				},
+				} as PQKeyPairs,
 				CryptoProtocolVersion.TUTA_CRYPT,
 				pubEncBucketKey,
 			),
@@ -1834,9 +1837,9 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(
 			asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
-				assertNotNull(mail.bucketKey?.keyGroup),
-				cryptoUtils.parseKeyVersion(assertNotNull(mail.bucketKey?.recipientKeyVersion)),
-				asCryptoProtoocolVersion(assertNotNull(mail.bucketKey?.protocolVersion)),
+				assertNotNull(mail.bucketKey?.keyGroup ?? null),
+				cryptoUtils.parseKeyVersion(assertNotNull(mail.bucketKey?.recipientKeyVersion ?? null)),
+				asCryptoProtoocolVersion(assertNotNull(mail.bucketKey?.protocolVersion ?? null)),
 				pubEncBucketKey,
 				anything(),
 			),

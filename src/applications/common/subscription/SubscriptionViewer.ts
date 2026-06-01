@@ -419,6 +419,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const appStoreSubscriptionData = await locator.serviceExecutor.get(
 			AppStoreSubscriptionService,
 			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
+			null,
 		)
 
 		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {

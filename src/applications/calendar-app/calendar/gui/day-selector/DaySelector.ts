@@ -238,7 +238,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 }
 
 function findWeek(currentMonth: CalendarMonth, date: Date): readonly CalendarDay[] {
-	return assertNotNull(currentMonth.weeks.find((w) => w.some((calendarDay) => date.getTime() === calendarDay.date.getTime())))
+	return assertNotNull(currentMonth.weeks.find((w) => w.some((calendarDay) => date.getTime() === calendarDay.date.getTime())) ?? null)
 }
 
 function getCalendarMonthShiftedBy(currentMonth: CalendarMonth, firstDayOfWeekFromOffset: number, plusMonths: number): CalendarMonth {

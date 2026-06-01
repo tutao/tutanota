@@ -81,8 +81,9 @@ export type Stripped<T extends Partial<SomeEntity>> = Omit<
 /* eslint-enable local/noUnionExceptNullable */
 
 type OptionalEntity<T extends Entity> = T & {
-	// eslint-disable-next-line local/noUnionExceptNullable
+	// eslint-disable-next-line local/noUnionExceptNullable, local/noUndefined
 	_id?: Id | IdTuple
+	// eslint-disable-next-line local/noUndefined
 	_ownerGroup?: Id
 }
 
@@ -150,11 +151,11 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
-// eslint-disable-next-line local/noUnionExceptNullable
-export function get_IdValue(typeModel?: TypeModel): ModelValue | undefined {
+export function get_IdValue(typeModel: TypeModel | null = null): ModelValue | null {
 	if (typeModel) {
-		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id")
+		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
+	return null
 }
 
 export function base64UrlIdToUint8array(id: Id): Uint8Array {
@@ -522,7 +523,7 @@ export const TECHNICAL_FIELDS = ["_original", "_errors"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== undefined && _idValue.type === ValueType.CustomId
+	return _idValue !== null && _idValue.type === ValueType.CustomId
 }
 
 /**
@@ -580,7 +581,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @returns {boolean} true if error was found (for the given key).
  */
 // eslint-disable-next-line local/noUnionExceptNullable
-export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
+export function hasError<K>(instance: Entity | ParsedInstance, key: K | null = null): boolean {
 	const downCastedInstance = downcast(instance)
 	if (!instance) {
 		return true

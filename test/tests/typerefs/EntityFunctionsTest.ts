@@ -42,6 +42,7 @@ o.spec("EntityFunctionsTest", function () {
 				},
 				associations: {},
 				version: 1,
+				dependsOnVersion: null,
 				versioned: false,
 			},
 		}

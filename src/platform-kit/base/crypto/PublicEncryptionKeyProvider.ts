@@ -68,7 +68,7 @@ class PublicEncryptionKeyProvider {
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData)
+		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData, null)
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {

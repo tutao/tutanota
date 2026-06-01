@@ -2,7 +2,7 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
-import { HttpMethod, MediaType, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
+import { HttpMethod, MediaType, NULL_REST_CLIENT_OPTIONS, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { once } from "../utils/memoized"
 
 assertWorkerOrNode()
@@ -46,7 +46,7 @@ export class RestClient implements RestClientInterface {
 		return this
 	}
 
-	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
+	request(path: string, method: HttpMethod, options: RestClientOptions = NULL_REST_CLIENT_OPTIONS): Promise<any | null> {
 		// @ts-ignore
 		const debug = typeof self !== "undefined" && self.debug
 		const verbose = isWorker() && debug
@@ -321,10 +321,8 @@ export class RestClient implements RestClientInterface {
 	}
 
 	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
-		if (options.headers == null) {
-			options.headers = {}
-		}
-		const { headers, body, responseType } = options
+		const headers: Dict = options.headers ?? {}
+		const { body, responseType } = options
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
@@ -360,7 +358,7 @@ export class RestClient implements RestClientInterface {
 export function addParamsToUrl(url: URL, urlParams: Dict): URL {
 	if (urlParams) {
 		for (const [key, value] of typedEntries(urlParams)) {
-			if (value !== undefined) {
+			if (value !== null) {
 				url.searchParams.set(key, value)
 			}
 		}

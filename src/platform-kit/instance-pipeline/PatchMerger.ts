@@ -44,11 +44,7 @@ export interface SessionKeyResolver {
 	 */
 	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
 
-	// eslint-disable-next-line local/noUnionExceptNullable
-	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
-
-	// eslint-disable-next-line local/noUnionExceptNullable
-	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
 	/**
 	 * Returns the session key for the provided service response:
@@ -173,8 +169,8 @@ export class PatchMerger {
 		/* eslint-enable local/noUnionExceptNullable */
 	) {
 		const { attributeId, instanceToChange, typeModel } = pathResult
-		const isValue = typeModel.values[attributeId] !== undefined
-		const isAssociation = typeModel.associations[attributeId] !== undefined
+		const isValue = attributeId in typeModel.values
+		const isAssociation = attributeId in typeModel.associations
 		const isAggregationAssociation = isAssociation && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		switch (patchOperation) {
 			case PatchOperationType.ADD_ITEM: {
@@ -268,8 +264,8 @@ export class PatchMerger {
 		// eslint-disable-next-line local/noUnionExceptNullable
 	): Promise<Nullable<EncryptedParsedValue> | Nullable<EncryptedParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
-		const isValue = typeModel.values[attributeId] !== undefined
-		const isAssociation = typeModel.associations[attributeId] !== undefined
+		const isValue = attributeId in typeModel.values
+		const isAssociation = attributeId in typeModel.associations
 		const isAggregation = isAssociation && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		const isNonAggregateAssociation = isAssociation && !isAggregation
 		if (isValue) {
@@ -310,8 +306,8 @@ export class PatchMerger {
 		// eslint-disable-next-line local/noUnionExceptNullable
 	): Promise<Nullable<ParsedValue> | Nullable<ParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
-		const isValue = typeModel.values[attributeId] !== undefined
-		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation
+		const isValue = attributeId in typeModel.values
+		const isAggregation = attributeId in typeModel.associations && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId] as ModelValue & { encrypted: true }
 			return this.instancePipeline.cryptoMapper.decryptValue(
@@ -386,7 +382,7 @@ export class PatchMerger {
 				aggregateArray.find((entity) => {
 					const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
 					return isSameId(maybeAggregateIdPathItem, entity[aggregateIdAttributeId] as Id)
-				}),
+				}) ?? null,
 			)
 			return this.traversePath(aggregatedEntity, aggregationTypeModel, path)
 		} catch (e) {

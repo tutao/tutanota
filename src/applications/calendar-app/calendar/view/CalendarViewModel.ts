@@ -446,7 +446,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const userController = this.logins.getUserController()
 		const userMailGroup = userController.getUserMailGroupMembership().group
 		const mailboxDetailsArray = this.mailboxModel.mailboxDetails()
-		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
+		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup) ?? null)
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController)
 		return eventType === EventType.OWN || eventType === EventType.SHARED_RW

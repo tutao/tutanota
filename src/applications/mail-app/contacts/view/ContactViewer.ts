@@ -112,7 +112,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.PenFilled,
-			click: () => assertNotNull(attrs.editAction, "Invalid Edit action in Contact Viewer")(contact),
+			click: () => assertNotNull(attrs.editAction ?? null, "Invalid Edit action in Contact Viewer")(contact),
 		})
 	}
 
@@ -124,7 +124,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return m(IconButton, {
 			title: "delete_action",
 			icon: Icons.TrashFilled,
-			click: () => assertNotNull(attrs.deleteAction, "Invalid Delete action in Contact Viewer")([contact]),
+			click: () => assertNotNull(attrs.deleteAction ?? null, "Invalid Delete action in Contact Viewer")([contact]),
 		})
 	}
 
@@ -136,7 +136,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 				label: "edit_action",
 				icon: Icons.PenFilled,
 				click: () => {
-					assertNotNull(attrs.editAction, "Edit action in Contact Viewer has disappeared")(contact)
+					assertNotNull(attrs.editAction ?? null, "Edit action in Contact Viewer has disappeared")(contact)
 				},
 			})
 		}
@@ -146,7 +146,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 				label: "delete_action",
 				icon: Icons.TrashFilled,
 				click: () => {
-					assertNotNull(attrs.deleteAction, "Delete action in Contact Viewer has disappeared")([contact])
+					assertNotNull(attrs.deleteAction ?? null, "Delete action in Contact Viewer has disappeared")([contact])
 				},
 			})
 		}

@@ -32,7 +32,7 @@ export interface Ed25519Facade {
  * Implementation of EdDSA based on Ed25519.
  */
 export class WASMEd25519Facade implements Ed25519Facade {
-	constructor(private readonly testWASM?: BufferSource) {}
+	constructor(private readonly testWASM: BufferSource | null = null) {}
 
 	// loads liboqs WASM
 	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {

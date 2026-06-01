@@ -190,13 +190,13 @@ export async function computePatches(
 					originalAggregatedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
 						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
-					}),
+					}) ?? null,
 				)
 				const commonItemModified = assertNotNull(
 					modifiedAggregatedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
 						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
-					}),
+					}) ?? null,
 				)
 				const commonItemModifiedUntyped = assertNotNull(
 					modifiedAggregatedUntypedEntities.find((instance) => {
@@ -207,7 +207,7 @@ export async function computePatches(
 							aggregateIdAttributeIdStr += ":" + "_id"
 						}
 						return isSameId(instance[aggregateIdAttributeIdStr] as Id, commonAggregateId)
-					}),
+					}) ?? null,
 				)
 				const fullPath = `${attributeIdStr}/${commonAggregateId}/`
 				const items = await computePatches(

@@ -569,7 +569,7 @@ o.spec("PatchMergerTest", () => {
 				MailDetailsBlobTypeRef,
 				mailDetailsBlobPatchedParsed,
 			)
-			const addedToRecipient = assertNotNull(mailDetailsBlobPatched.details.recipients.toRecipients.pop())
+			const addedToRecipient = assertNotNull(mailDetailsBlobPatched.details.recipients.toRecipients.pop() ?? null)
 			o(addedToRecipient.name).equals("new name")
 			o(addedToRecipient.address).equals("address@tutao.de")
 		})
@@ -749,7 +749,7 @@ o.spec("PatchMergerTest", () => {
 				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
-			const addedToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
+			const addedToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop() ?? null)
 			o(removeOriginals(addedToRecipient)).deepEquals(removeOriginals(toRecipientToAdd))
 		})
 
@@ -809,9 +809,9 @@ o.spec("PatchMergerTest", () => {
 				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
-			const addedSecondToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
+			const addedSecondToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop() ?? null)
 			o(removeOriginals(addedSecondToRecipient)).deepEquals(removeOriginals(secondToRecipientToAdd))
-			const addedFirstToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop())
+			const addedFirstToRecipient = assertNotNull(testMailDetailsBlobPatched.details.recipients.toRecipients.pop() ?? null)
 			o(removeOriginals(addedFirstToRecipient)).deepEquals(removeOriginals(firstToRecipientToAdd))
 		})
 

@@ -307,8 +307,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			const prices = priceAndConfigProvider.getMobilePrices()
 
 			return {
-				revoPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())).displayYearlyPerYear,
-				legendPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Legend].toLowerCase())).displayYearlyPerYear,
+				revoPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Revolutionary].toLowerCase()) ?? null).displayYearlyPerYear,
+				legendPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Legend].toLowerCase()) ?? null).displayYearlyPerYear,
 			}
 		}
 

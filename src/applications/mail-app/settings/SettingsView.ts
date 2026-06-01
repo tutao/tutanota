@@ -636,6 +636,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					createUserAreaGroupDeleteData({
 						group: templateInfo.groupInfo.group,
 					}),
+					null,
 				),
 			),
 		)

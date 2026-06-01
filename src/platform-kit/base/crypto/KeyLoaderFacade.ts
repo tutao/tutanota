@@ -51,7 +51,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @param requestedVersion the requestedVersion of the key to be loaded
 	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
 	 */
-	async loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey> {
+	async loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: VersionedKey | null = null): Promise<AesKey> {
 		if (currentGroupKey != null && currentGroupKey.version < requestedVersion) {
 			// we might not have the membership for this group. so the caller needs to handle it by refreshing the cache
 			throw new Error(

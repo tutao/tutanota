@@ -179,7 +179,7 @@ export class IndexerCore {
 						positions: [index],
 					})
 				} else {
-					assertNotNull(tokenToEntry.get(token)).positions.push(index)
+					assertNotNull(tokenToEntry.get(token) ?? null).positions.push(index)
 				}
 			}
 
@@ -447,29 +447,33 @@ export class IndexerCore {
 			}
 
 			// For each SearchIndex row we need to update...
-			const updateSearchIndex = this._promiseMapCompat(Array.from(metaDataEntriesSet), (metaEntry) => {
-				return transaction.get(SearchIndexOS, metaEntry.key).then((indexEntriesRow) => {
-					if (!indexEntriesRow) return
-					// Find all entries we need to remove by hash of the encrypted ID
-					const rangesToRemove: Array<[number, number]> = []
-					iterateBinaryBlocks(indexEntriesRow, (block, start, end) => {
-						if (encInstanceIdSet.has(arrayHashSigned(getIdFromEncSearchIndexEntry(block)))) {
-							rangesToRemove.push([start, end])
+			const updateSearchIndex = this._promiseMapCompat(
+				Array.from(metaDataEntriesSet),
+				(metaEntry) => {
+					return transaction.get(SearchIndexOS, metaEntry.key).then((indexEntriesRow) => {
+						if (!indexEntriesRow) return
+						// Find all entries we need to remove by hash of the encrypted ID
+						const rangesToRemove: Array<[number, number]> = []
+						iterateBinaryBlocks(indexEntriesRow, (block, start, end) => {
+							if (encInstanceIdSet.has(arrayHashSigned(getIdFromEncSearchIndexEntry(block)))) {
+								rangesToRemove.push([start, end])
+							}
+						})
+
+						if (rangesToRemove.length === 0) {
+							return
+						} else if (metaEntry.size === rangesToRemove.length) {
+							metaEntry.size = 0
+							return transaction.delete(SearchIndexOS, metaEntry.key)
+						} else {
+							const trimmed = removeBinaryBlockRanges(indexEntriesRow, rangesToRemove)
+							metaEntry.size -= rangesToRemove.length
+							return transaction.put(SearchIndexOS, metaEntry.key, trimmed)
 						}
 					})
-
-					if (rangesToRemove.length === 0) {
-						return
-					} else if (metaEntry.size === rangesToRemove.length) {
-						metaEntry.size = 0
-						return transaction.delete(SearchIndexOS, metaEntry.key)
-					} else {
-						const trimmed = removeBinaryBlockRanges(indexEntriesRow, rangesToRemove)
-						metaEntry.size -= rangesToRemove.length
-						return transaction.put(SearchIndexOS, metaEntry.key, trimmed)
-					}
-				})
-			})
+				},
+				null,
+			)
 
 			return updateSearchIndex.thenOrApply(() => {
 				metaDataRow.rows = metaDataRow.rows.filter((r) => r.size > 0)
@@ -915,17 +919,21 @@ export class IndexerCore {
 		}>,
 		transaction: DbTransaction,
 	): $Promisable<void> {
-		return this._promiseMapCompat(dataPerGroup, (data) => {
-			const { groupId, indexTimestamp } = data
-			return transaction.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
-				if (!groupData) {
-					throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
-				}
+		return this._promiseMapCompat(
+			dataPerGroup,
+			(data) => {
+				const { groupId, indexTimestamp } = data
+				return transaction.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
+					if (!groupData) {
+						throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
+					}
 
-				groupData.indexTimestamp = indexTimestamp
-				return transaction.put(GroupDataOS, groupId, groupData)
-			})
-		}).thenOrApply(() => {}).value
+					groupData.indexTimestamp = indexTimestamp
+					return transaction.put(GroupDataOS, groupId, groupData)
+				})
+			},
+			null,
+		).thenOrApply(() => {}).value
 	}
 
 	_updateGroupDataBatchId(groupId: Id, batchId: Id, transaction: DbTransaction): Promise<void> {

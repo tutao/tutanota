@@ -1,7 +1,7 @@
 export interface ErrorInfo {
 	readonly name: string | null
 	readonly message: string | null
-	readonly stack?: string | null
+	readonly stack: string | null
 }
 
 export type lazy<T> = () => T
@@ -130,8 +130,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param value the value to check
  * @param message optional error message
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function assertNotNull<T>(value: T | null | undefined, message: string = "null"): T {
+export function assertNotNull<T>(value: T | null, message: string = "null"): T {
 	if (value == null) {
 		throw new Error("AssertNotNull failed : " + message)
 	}
@@ -144,8 +143,7 @@ export function assertNotNull<T>(value: T | null | undefined, message: string = 
  * @param value the value to check
  * @param message optional error message
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function assertNull<T>(value: T | null | undefined, message: string = "not null") {
+export function assertNull<T>(value: T | null, message: string = "not null") {
 	if (value != null) {
 		throw new Error("AssertNull failed : " + message)
 	}
@@ -157,15 +155,13 @@ export function assertNull<T>(value: T | null | undefined, message: string = "no
  * @param value the value to check
  * @param message optional error message
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function assertNonNull<T>(value: T | null | undefined, message: string = "null"): asserts value is T {
+export function assertNonNull<T>(value: T | null, message: string = "null"): asserts value is T {
 	if (value == null) {
 		throw new Error("AssertNonNull failed: " + message)
 	}
 }
 
-// eslint-disable-next-line local/noUnionExceptNullable
-export function isNotNull<T>(t: T | null | undefined): t is T {
+export function isNotNull<T>(t: T | null): t is T {
 	return t != null
 }
 
@@ -386,7 +382,7 @@ export function objectEntries<A extends string | symbol, B>(object: Record<A, B>
  */
 export function deepEqual(a: any, b: any): boolean {
 	if (a === b) return true
-	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
+	if (xor(a === null, b === null)) return false
 
 	if (typeof a === "object" && typeof b === "object") {
 		const aIsArgs = isArguments(a),
@@ -471,7 +467,7 @@ export function getChangedProps(objA: any, objB: any): Array<string> {
 	if (objA == null || objB == null || objA === objB) return []
 	return Object.keys(objA)
 		.filter((k) => Object.keys(objB).includes(k))
-		.filter((k) => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
+		.filter((k) => objA[k] !== null || objB[k] !== null)
 		.filter((k) => !deepEqual(objA[k], objB[k]))
 }
 
@@ -573,8 +569,7 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) => U | null | undefined): U | null {
+export function mapNullable<T, U>(val: T | null, action: (arg0: T) => U | null): U | null {
 	if (val != null) {
 		const result = action(val)
 
@@ -658,7 +653,7 @@ export type Nullable<T> = T | null
  * Factory method to allow tracing unresolved promises.
  */
 // eslint-disable-next-line local/noUnionExceptNullable
-export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void, tag?: string) {
+export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason: any) => void) => void, tag: string | null = null) {
 	const promise = new Promise(executor)
 
 	// only to be enabled for local debugging purposes
@@ -667,7 +662,7 @@ export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) =>
 	return promise
 }
 
-function traceUnresolvedPromises<T>(promise: Promise<T>, tag?: string) {
+function traceUnresolvedPromises<T>(promise: Promise<T>, tag: string | null = null) {
 	let pending = true
 	promise.then(
 		() => (pending = false),

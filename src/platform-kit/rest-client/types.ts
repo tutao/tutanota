@@ -38,16 +38,28 @@ export const enum HttpMethod {
 
 export interface RestClientOptions {
 	// eslint-disable-next-line local/noUnionExceptNullable
-	body?: string | Uint8Array
-	responseType?: MediaType
-	progressListener?: ProgressListener
-	baseUrl?: string
-	headers?: Dict
-	queryParams?: Dict
-	noCORS?: boolean
+	body: string | Uint8Array | null
+	responseType: MediaType | null
+	progressListener: ProgressListener | null
+	baseUrl: string | null
+	headers: Dict | null
+	queryParams: Dict | null
+	noCORS: boolean | null
 	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: SuspensionBehavior
-	abortSignal?: AbortSignal
+	suspensionBehavior: SuspensionBehavior | null
+	abortSignal: AbortSignal | null
+}
+
+export const NULL_REST_CLIENT_OPTIONS: RestClientOptions = {
+	body: null,
+	responseType: null,
+	progressListener: null,
+	baseUrl: null,
+	headers: null,
+	queryParams: null,
+	noCORS: null,
+	suspensionBehavior: null,
+	abortSignal: null,
 }
 
 export const enum SuspensionBehavior {

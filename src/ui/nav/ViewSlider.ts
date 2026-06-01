@@ -80,7 +80,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	) {
 		// the first background column is the main column
 		this.mainColumn = assertNotNull(
-			viewColumns.find((column) => column.columnType === ColumnType.Background),
+			viewColumns.find((column) => column.columnType === ColumnType.Background) ?? null,
 			"there was no background column passed to viewSlider",
 		)
 

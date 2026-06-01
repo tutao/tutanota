@@ -53,7 +53,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			onkeydown: handleBackwardsTab,
 			isSelectedPrefix: attrs.isSelectedPrefix,
 			disabled: attrs.disabled,
-			dropHandler: attrs.dropHandler ? (dropData) => assertNotNull(attrs.dropHandler)(dropData) : undefined,
+			dropHandler: attrs.dropHandler ? (dropData) => assertNotNull(attrs.dropHandler ?? null)(dropData) : undefined,
 		}
 
 		return m(

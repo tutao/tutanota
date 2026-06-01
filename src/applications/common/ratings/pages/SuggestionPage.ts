@@ -90,6 +90,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						clientPlatform: client.getClientPlatform().valueOf().toString(),
 					}),
 				}),
+				null,
 			)
 		}
 

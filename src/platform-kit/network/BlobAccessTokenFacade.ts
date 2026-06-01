@@ -13,10 +13,10 @@ import { TypeRef } from "@tutao/meta"
 assertWorkerOrNode()
 
 export interface BlobLoadOptions {
-	extraHeaders?: Dict
-	suspensionBehavior?: SuspensionBehavior
+	extraHeaders: Dict | null
+	suspensionBehavior: SuspensionBehavior | null
 	/** override origin for the request */
-	baseUrl?: string
+	baseUrl: string | null
 }
 
 /**
@@ -56,7 +56,7 @@ export class BlobAccessTokenFacade {
 				}),
 				read: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, null)
 			return blobAccessInfo
 		}
 		const key = this.makeWriteCacheKey(ownerGroupId, archiveDataType)
@@ -112,7 +112,11 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, {
+				queryParams: null,
+				sessionKey: null,
+				...blobLoadOptions,
+			})
 			return blobAccessInfo
 		})
 
@@ -151,7 +155,13 @@ export class BlobAccessTokenFacade {
 					}),
 					write: null,
 				})
-				return (await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)).blobAccessInfo
+				return (
+					await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, {
+						queryParams: null,
+						sessionKey: null,
+						...blobLoadOptions,
+					})
+				).blobAccessInfo
 			}
 			const blobServerAccessInfo = await this.readCache.getToken(archiveId, [referencingInstance.elementId], requestNewToken)
 			archiveIdsToAccessInfo.set(archiveId, blobServerAccessInfo)
@@ -194,7 +204,7 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
+			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, null)
 			return blobAccessInfo
 		}
 		return this.readCache.getToken(archiveId, [], requestNewToken)

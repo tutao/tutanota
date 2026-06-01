@@ -9,7 +9,7 @@ import { IServiceExecutor } from "../../../../platform-kit/network/ServiceReques
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { MediaType } from "../../../../platform-kit/rest-client/types"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -116,7 +116,7 @@ export class UserController {
 	}
 
 	reloadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
-		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { cacheMode })
+		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode })
 	}
 
 	/**
@@ -144,7 +144,7 @@ export class UserController {
 
 	async getPlanConfig(): Promise<PlanConfiguration> {
 		if (this.planConfig === null) {
-			const planServiceGetOut = await this.serviceExecutor.get(PlanService, null)
+			const planServiceGetOut = await this.serviceExecutor.get(PlanService, null, null)
 			this.planConfig = planServiceGetOut.config
 		}
 		return downcast(this.planConfig)

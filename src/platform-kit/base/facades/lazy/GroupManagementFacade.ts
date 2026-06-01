@@ -2,7 +2,7 @@ import { assertWorkerOrNode } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { IServiceExecutor } from "../../../network/ServiceRequest.js"
+import { IServiceExecutor, NULL_EXTRA_SERVICE_PARAMS } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { PQFacade } from "../../crypto/PQFacade.js"
 import { KeyLoaderFacade } from "../../crypto/KeyLoaderFacade.js"
@@ -86,7 +86,7 @@ export class GroupManagementFacade {
 			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
 			groupData: mailGroupData,
 		})
-		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
+		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data, null)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			mailGroupPostOut.mailGroup,
@@ -148,7 +148,10 @@ export class GroupManagementFacade {
 		const postData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, { sessionKey: this.cryptoWrapper.aes256RandomKey() }) // we expect a session key to be defined as the entity is marked encrypted
+		const postGroupData = await this.serviceExecutor.post(CalendarService, postData, {
+			...NULL_EXTRA_SERVICE_PARAMS,
+			sessionKey: this.cryptoWrapper.aes256RandomKey(),
+		}) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
 		const user = await this.cacheManagementFacade.reloadUser()
 
@@ -162,6 +165,7 @@ export class GroupManagementFacade {
 		})
 
 		const postGroupData = await this.serviceExecutor.post(TemplateGroupService, serviceData, {
+			...NULL_EXTRA_SERVICE_PARAMS,
 			sessionKey: this.cryptoWrapper.aes256RandomKey(),
 		}) // we expect a session key to be defined as the entity is marked encrypted
 
@@ -176,6 +180,7 @@ export class GroupManagementFacade {
 			groupData,
 		})
 		const postGroupData = await this.serviceExecutor.post(ContactListGroupService, serviceData, {
+			...NULL_EXTRA_SERVICE_PARAMS,
 			sessionKey: this.cryptoWrapper.aes256RandomKey(),
 		}) // we expect a session key to be defined as the entity is marked encrypted
 		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
@@ -188,7 +193,7 @@ export class GroupManagementFacade {
 		const serviceData = createUserAreaGroupDeleteData({
 			group: groupRoot._id,
 		})
-		await this.serviceExecutor.delete(ContactListGroupService, serviceData)
+		await this.serviceExecutor.delete(ContactListGroupService, serviceData, null)
 	}
 
 	/**
@@ -244,7 +249,7 @@ export class GroupManagementFacade {
 			groupKeyVersion: String(groupKey.version),
 			symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.post(MembershipService, data)
+		await this.serviceExecutor.post(MembershipService, data, null)
 	}
 
 	async removeUserFromGroup(userId: Id, groupId: Id): Promise<void> {
@@ -252,7 +257,7 @@ export class GroupManagementFacade {
 			user: userId,
 			group: groupId,
 		})
-		await this.serviceExecutor.delete(MembershipService, data)
+		await this.serviceExecutor.delete(MembershipService, data, null)
 	}
 
 	async deactivateGroup(group: Group, restore: boolean): Promise<void> {
@@ -262,7 +267,7 @@ export class GroupManagementFacade {
 		})
 
 		if (group.type === GroupType.Mail) {
-			await this.serviceExecutor.delete(MailGroupService, data)
+			await this.serviceExecutor.delete(MailGroupService, data, null)
 		} else {
 			throw new Error("invalid group type for deactivation")
 		}

@@ -61,7 +61,7 @@ export class UserManagementFacade {
 			kdfVersion: kdfType,
 			userGroupKeyVersion: String(userGroupKey.version),
 		})
-		await this.serviceExecutor.post(ResetPasswordService, data)
+		await this.serviceExecutor.post(ResetPasswordService, data, null)
 	}
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
@@ -85,7 +85,7 @@ export class UserManagementFacade {
 			restore,
 			date: Const.CURRENT_DATE,
 		})
-		await this.serviceExecutor.delete(UserService, data)
+		await this.serviceExecutor.delete(UserService, data, null)
 	}
 
 	async createUser(
@@ -129,7 +129,7 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
+		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data, null)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,

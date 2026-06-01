@@ -20,7 +20,7 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { size } from "../../../ui/size"
-import { CacheMode } from "../../../platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../platform-kit/network/EntityRestClient"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
@@ -80,7 +80,7 @@ export async function showSupportDialog(logins: LoginController) {
 
 	const supportData = await showProgressDialog(
 		"pleaseWait_msg",
-		locator.entityClient.load(SupportDataTypeRef, "--------1---", { cacheMode: CacheMode.WriteOnly }),
+		locator.entityClient.load(SupportDataTypeRef, "--------1---", { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
 	)
 	data.categories = filterCategories(supportData)
 

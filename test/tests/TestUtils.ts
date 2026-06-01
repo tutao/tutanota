@@ -97,11 +97,11 @@ export class SchedulerMock implements Scheduler {
 	}
 
 	getThunkAt(time: number): Thunk {
-		return assertNotNull(this.scheduledAt.get(time), "No thunk scheduled at " + time).thunk
+		return assertNotNull(this.scheduledAt.get(time) ?? null, "No thunk scheduled at " + time).thunk
 	}
 
 	getThunkAfter(time: number): Thunk {
-		return assertNotNull(this.scheduledAfter.get(time), "No thunk scheduled after " + time).thunk
+		return assertNotNull(this.scheduledAfter.get(time) ?? null, "No thunk scheduled after " + time).thunk
 	}
 
 	scheduleAfter(thunk: Thunk, after: number): ScheduledTimeoutId {
@@ -125,7 +125,7 @@ export class SchedulerMock implements Scheduler {
 	}
 
 	getThunkPeriodic(period: number): Thunk {
-		return assertNotNull(this.scheduledPeriodic.get(period), "No thunk scheduled each " + period).thunk
+		return assertNotNull(this.scheduledPeriodic.get(period) ?? null, "No thunk scheduled each " + period).thunk
 	}
 
 	getAllPeriodThunks(): Array<Thunk> {

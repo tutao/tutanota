@@ -126,19 +126,13 @@ export class MailboxModel {
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(
-			mailboxDetails.find((md) => mailGroupId === md.mailGroup._id),
-			"Mailbox detail for mail group does not exist",
-		)
+		return assertNotNull(mailboxDetails.find((md) => mailGroupId === md.mailGroup._id) ?? null, "Mailbox detail for mail group does not exist")
 	}
 
 	async getUserMailboxDetails(): Promise<MailboxDetail> {
 		const userMailGroupMembership = this.logins.getUserController().getUserMailGroupMembership()
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(
-			mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group),
-			"Mailbox detail for user does not exist",
-		)
+		return assertNotNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group) ?? null, "Mailbox detail for user does not exist")
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {

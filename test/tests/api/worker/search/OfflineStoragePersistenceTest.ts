@@ -427,7 +427,7 @@ async function fakeStoreListElementEntityInOfflineDb(sqlCipherFacade: SqlCipherF
 	const { query, params } = sql`INSERT INTO list_entities
                                 VALUES (${getTypeString(entity._type)}, ${getListId(entity)},
                                         ${await getElementIdB64ExtEnsured(entity)},
-                                        ${assertNotNull(entity._ownerGroup)})`
+                                        ${assertNotNull(entity._ownerGroup ?? null)})`
 	await sqlCipherFacade.run(query, params)
 }
 

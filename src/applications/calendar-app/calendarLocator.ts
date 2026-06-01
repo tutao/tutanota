@@ -735,7 +735,7 @@ class CalendarLocator implements CommonLocator {
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
 
-				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl)).catch((e) => console.log("Failed to store remote URL: ", e))
+				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl ?? null)).catch((e) => console.log("Failed to store remote URL: ", e))
 			}
 		}
 

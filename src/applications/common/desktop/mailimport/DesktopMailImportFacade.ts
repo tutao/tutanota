@@ -203,7 +203,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		if (haveErrMessage === haveOkMessage) {
 			throw new ProgrammingError("Mail import message can either only be error or only be ok")
 		} else if (haveErrMessage) {
-			return this.processMimimiErrMessage(mailboxId, assertNotNull(message.errorMessage))
+			return this.processMimimiErrMessage(mailboxId, assertNotNull(message.errorMessage ?? null))
 		}
 
 		const okMessage = assertNotNull(message.okMessage)

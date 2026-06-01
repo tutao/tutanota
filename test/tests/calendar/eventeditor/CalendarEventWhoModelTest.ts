@@ -538,7 +538,7 @@ o.spec("CalendarEventWhoModel", function () {
 				recipients,
 				null,
 				passwordStrengthModel,
-				() => assertNotNull(sendModels.pop(), "requested more sendModels than expected"),
+				() => assertNotNull(sendModels.pop() ?? null, "requested more sendModels than expected"),
 			)
 			model.shouldSendUpdates = true
 			model.removeAttendee(otherAddress2.address)

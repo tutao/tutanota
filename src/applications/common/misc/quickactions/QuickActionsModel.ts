@@ -47,7 +47,7 @@ export class QuickActionsModel {
 		// we also have to update lastRunActions because they might be outdated by now (either completely missing or
 		//   doing something else)
 		// we are not just filtering, we are also getting up-to-date actions, this map() is important!
-		this._lastRunActions = this._lastRunActions.map((lastAction) => this.actions.get(lastAction.description)).filter(isNotNull)
+		this._lastRunActions = this._lastRunActions.map((lastAction) => this.actions.get(lastAction.description)).filter((a): a is QuickAction => a != null)
 	}
 
 	/**

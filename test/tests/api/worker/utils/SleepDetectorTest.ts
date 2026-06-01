@@ -22,7 +22,7 @@ o.spec("SleepDetector", function () {
 		detector.start(() => {
 			throw new Error("Sleep detected while it shouldn't be")
 		})
-		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL) ?? null)
 		thunk()
 	})
 
@@ -31,7 +31,7 @@ o.spec("SleepDetector", function () {
 
 		const sleepCb = func(() => {})
 		detector.start(sleepCb)
-		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL) ?? null)
 		thunk()
 
 		verify(sleepCb())
@@ -42,7 +42,7 @@ o.spec("SleepDetector", function () {
 
 		const sleepCb = func(() => {})
 		detector.start(sleepCb)
-		const { id } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { id } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL) ?? null)
 		detector.stop()
 
 		o(scheduler.cancelledPeriodic.has(id)).equals(true)("Has cancelled check task")

@@ -7,7 +7,7 @@ import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generat
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	AccountingInfo,
 	Booking,
@@ -186,6 +186,7 @@ export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 				clientType,
 				subscriptionApp,
 			}),
+			null,
 		)
 		return result.loginUrl
 	})
@@ -321,10 +322,11 @@ export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array
 // ordered.
 export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
-	const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
+	const customer = await locator.entityClient.load(CustomerTypeRef, customerId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
+	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo, {
+		...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 		cacheMode: CacheMode.WriteOnly,
 	})
-	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo, { cacheMode: CacheMode.WriteOnly })
 	if (expectedPlan === customerInfo.plan) {
 		// plan is already correct!
 		return true
@@ -338,9 +340,11 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 								// since we're waiting for an account upgrade, the customerInfo moves between the free and the paid list.
 								// we need to load the customer to find the new location.
 								const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
+									...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 									cacheMode: CacheMode.WriteOnly,
 								})
 								const newCustomerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo, {
+									...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 									cacheMode: CacheMode.WriteOnly,
 								})
 								if (expectedPlan === newCustomerInfo.plan) {

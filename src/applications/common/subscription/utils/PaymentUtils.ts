@@ -440,10 +440,10 @@ export async function signup(
 export async function createAccount(data: UpgradeSubscriptionData | SignupViewModel): Promise<NewAccountFailure | null> {
 	// this is true if we trigger an upgrade while logged in
 	if (data.customer) return null
-	data.emailInputStore = assertNotNull(data.emailInputStore)
-	data.passwordInputStore = assertNotNull(data.passwordInputStore)
-	data.powChallengeSolutionPromise = assertNotNull(data.powChallengeSolutionPromise)
-	data.registrationCode = assertNotNull(data.registrationCode)
+	data.emailInputStore = assertNotNull(data.emailInputStore ?? null)
+	data.passwordInputStore = assertNotNull(data.passwordInputStore ?? null)
+	data.powChallengeSolutionPromise = assertNotNull(data.powChallengeSolutionPromise ?? null)
+	data.registrationCode = assertNotNull(data.registrationCode ?? null)
 	const newAccountResult = await signup(
 		data.emailInputStore,
 		data.passwordInputStore,

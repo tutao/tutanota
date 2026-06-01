@@ -1,5 +1,5 @@
 import { type RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, SuspensionBehavior } from "../rest-client/types"
+import { HttpMethod, MediaType, NULL_REST_CLIENT_OPTIONS, SuspensionBehavior } from "../rest-client/types"
 import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
@@ -51,20 +51,24 @@ import {
 assertWorkerOrNode()
 
 export interface EntityRestClientSetupOptions {
-	baseUrl?: string
+	baseUrl: string | null
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
-	ownerKey?: VersionedKey
+	ownerKey: VersionedKey | null
 }
 
 export interface EntityRestClientUpdateOptions {
-	baseUrl?: string
+	baseUrl: string | null
 	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
-	ownerKeyProvider?: OwnerKeyProvider
+	ownerKeyProvider: OwnerKeyProvider | null
 }
 
 export interface EntityRestClientEraseOptions {
-	extraHeaders?: Dict
+	extraHeaders: Dict | null
 }
+
+export const NULL_ENTITY_REST_CLIENT_SETUP_OPTIONS: EntityRestClientSetupOptions = { baseUrl: null, ownerKey: null }
+export const NULL_ENTITY_REST_CLIENT_UPDATE_OPTIONS: EntityRestClientUpdateOptions = { baseUrl: null, ownerKeyProvider: null }
+export const NULL_ENTITY_REST_CLIENT_ERASE_OPTIONS: EntityRestClientEraseOptions = { extraHeaders: null }
 
 /**
  * Determines how to handle caching behavior (i.e. reading/writing).
@@ -88,10 +92,9 @@ export const enum CacheMode {
 
 /**
  * Get the behavior of the cache mode for the options
- * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
+ * @param cacheMode cache mode to check, or if null, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
+export function getCacheModeBehavior(cacheMode: CacheMode | null): {
 	readsFromCache: boolean
 	writesToCache: boolean
 } {
@@ -106,14 +109,23 @@ export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
 }
 
 export interface EntityRestClientLoadOptions {
-	queryParams?: Dict
-	extraHeaders?: Dict
+	queryParams: Dict | null
+	extraHeaders: Dict | null
 	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
-	ownerKeyProvider?: OwnerKeyProvider
+	ownerKeyProvider: OwnerKeyProvider | null
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
-	cacheMode?: CacheMode
-	baseUrl?: string
-	suspensionBehavior?: SuspensionBehavior
+	cacheMode: CacheMode | null
+	baseUrl: string | null
+	suspensionBehavior: SuspensionBehavior | null
+}
+
+export const NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS: EntityRestClientLoadOptions = {
+	queryParams: null,
+	extraHeaders: null,
+	ownerKeyProvider: null,
+	cacheMode: null,
+	baseUrl: null,
+	suspensionBehavior: null,
 }
 
 export interface EntityMigrator {
@@ -154,7 +166,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async loadParsedInstance<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		id: PropertyType<T, "_id">,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 	): Promise<ServerModelParsedInstance> {
 		const tm = syncMetrics?.beginMeasurement(Category.LoadRest)
 		const { listId, elementId } = expandId(id)
@@ -165,8 +177,10 @@ export class EntityRestClient implements EntityRestInterface {
 			opts.queryParams,
 			opts.extraHeaders,
 			opts.ownerKeyProvider,
+			null,
 		)
 		const json = await this.restClient.request(path, HttpMethod.GET, {
+			...NULL_REST_CLIENT_OPTIONS,
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
@@ -190,8 +204,8 @@ export class EntityRestClient implements EntityRestInterface {
 		return decrypted
 	}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
+	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions | null = null): Promise<T> {
+		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts ?? NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS)
 		return await this.mapInstanceToEntity(typeRef, parsedInstance)
 	}
 
@@ -217,7 +231,7 @@ export class EntityRestClient implements EntityRestInterface {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 	): Promise<ServerModelParsedInstance[]> {
 		const rangeRequestParams = {
 			start: String(start),
@@ -231,10 +245,12 @@ export class EntityRestClient implements EntityRestInterface {
 			Object.assign(rangeRequestParams, opts.queryParams),
 			opts.extraHeaders,
 			opts.ownerKeyProvider,
+			null,
 		)
 		// This should never happen if type checking is not bypassed with any
 		if (clientTypeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const json = await this.restClient.request(path, HttpMethod.GET, {
+			...NULL_REST_CLIENT_OPTIONS,
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
@@ -251,9 +267,9 @@ export class EntityRestClient implements EntityRestInterface {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions | null = null,
 	): Promise<T[]> {
-		const parsedInstances = await this.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
+		const parsedInstances = await this.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts ?? NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS)
 		return this.mapInstancesToEntity(typeRef, parsedInstances)
 	}
 
@@ -261,10 +277,18 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | null = null,
+		opts: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 	): Promise<Array<ServerModelParsedInstance>> {
-		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, opts.queryParams, opts.extraHeaders, opts.ownerKeyProvider)
+		const { path, headers } = await this._validateAndPrepareRestRequest(
+			typeRef,
+			listId,
+			null,
+			opts.queryParams,
+			opts.extraHeaders,
+			opts.ownerKeyProvider,
+			null,
+		)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
@@ -278,6 +302,7 @@ export class EntityRestClient implements EntityRestInterface {
 				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
+					...NULL_REST_CLIENT_OPTIONS,
 					queryParams,
 					headers,
 					responseType: MediaType.Json,
@@ -295,21 +320,26 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | null = null,
+		opts: EntityRestClientLoadOptions | null = null,
 	): Promise<Array<T>> {
-		const parsedInstances = await this.loadMultipleParsedInstances(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
+		const parsedInstances = await this.loadMultipleParsedInstances(
+			typeRef,
+			listId,
+			elementIds,
+			ownerEncSessionKeyProvider,
+			opts ?? NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
+		)
 		return await this.mapInstancesToEntity(typeRef, parsedInstances)
 	}
 
 	private async loadMultipleBlobElements(
 		archiveId: Id | null,
 		queryParams: { ids: string },
-		// eslint-disable-next-line local/noUnionExceptNullable
-		headers: Dict | undefined,
+		headers: Dict | null,
 		path: string,
 		typeRef: TypeRef<any>,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 	): Promise<string> {
 		if (archiveId == null) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
@@ -337,6 +367,7 @@ export class EntityRestClient implements EntityRestInterface {
 				serversToTry,
 				async (serverUrl) =>
 					this.restClient.request(path, HttpMethod.GET, {
+						...NULL_REST_CLIENT_OPTIONS,
 						queryParams: allParams,
 						headers: {}, // prevent CORS request due to non standard header usage
 						responseType: MediaType.Json,
@@ -355,7 +386,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async _handleLoadResult<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<ServerModelUntypedInstance>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | null = null,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		return await promiseMap(
@@ -375,7 +406,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async _decryptAndMap(
 		serverTypeModel: ServerTypeModel,
 		entityAdapter: EntityAdapter,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | null = null,
 	): Promise<ServerModelParsedInstance> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
@@ -407,15 +438,21 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
+	async setup<T extends SomeEntity>(
+		listId: Id | null,
+		instance: T,
+		extraHeaders: Dict | null = null,
+		options: EntityRestClientSetupOptions | null = null,
+	): Promise<Id | null> {
 		const typeRef = instance._type
 		const { clientTypeModel, path, headers, queryParams } = await this._validateAndPrepareRestRequest(
 			typeRef,
 			listId,
 			null,
-			undefined,
+			null,
 			extraHeaders,
-			options?.ownerKey,
+			null,
+			options?.ownerKey ?? null,
 		)
 
 		if (clientTypeModel.type === Type.ListElement) {
@@ -423,10 +460,11 @@ export class EntityRestClient implements EntityRestInterface {
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		const sk: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, options?.ownerKey)
+		const sk: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, options?.ownerKey ?? null)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
-			baseUrl: options?.baseUrl,
+			...NULL_REST_CLIENT_OPTIONS,
+			baseUrl: options?.baseUrl ?? null,
 			queryParams,
 			headers,
 			body: JSON.stringify(untypedInstance),
@@ -446,7 +484,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
 		const typeRef = instances[0]._type
-		const { clientTypeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
+		const { clientTypeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, null, null, null, null)
 
 		if (clientTypeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
@@ -459,7 +497,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
-					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance)
+					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, null)
 					return await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request
@@ -467,6 +505,7 @@ export class EntityRestClient implements EntityRestInterface {
 					count: String(instanceChunk.length),
 				}
 				const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
+					...NULL_REST_CLIENT_OPTIONS,
 					queryParams,
 					headers,
 					body: JSON.stringify(encryptedEntities),
@@ -505,20 +544,24 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+	async update<T extends SomeEntity>(instance: T, options: EntityRestClientUpdateOptions | null = null): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, clientTypeModel, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
 			listId,
 			elementId,
-			undefined,
-			undefined,
-			options?.ownerKeyProvider,
+			null,
+			null,
+			options?.ownerKeyProvider ?? null,
+			null,
 		)
-		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(options?.ownerKeyProvider, instance)
+		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(options?.ownerKeyProvider ?? null, instance)
 		// map and encrypt instance._original and the instance
-		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
+		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(
+			instance._type,
+			assertNotNull(instance._original ?? null),
+		)
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(clientTypeModel, parsedInstance, sessionKey)
@@ -535,7 +578,8 @@ export class EntityRestClient implements EntityRestInterface {
 		// PatchList has no encrypted fields (sk == null)
 		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
 		await this.restClient.request(path, HttpMethod.PATCH, {
-			baseUrl: options?.baseUrl,
+			...NULL_REST_CLIENT_OPTIONS,
+			baseUrl: options?.baseUrl ?? null,
 			queryParams,
 			headers,
 			body: JSON.stringify(patchPayload),
@@ -543,24 +587,25 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	async erase<T extends SomeEntity>(instance: T, options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
 			listId,
 			elementId,
-			undefined,
-			options?.extraHeaders,
-			undefined,
+			null,
+			options?.extraHeaders ?? null,
+			null,
+			null,
 		)
 		await this.restClient.request(path, HttpMethod.DELETE, {
+			...NULL_REST_CLIENT_OPTIONS,
 			queryParams,
 			headers,
 		})
 	}
 
-	// eslint-disable-next-line local/noUnionExceptNullable
-	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions | undefined): Promise<void> {
+	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}
@@ -573,36 +618,37 @@ export class EntityRestClient implements EntityRestInterface {
 			listId,
 			null,
 			{ ids: instancesIdsString },
-			options?.extraHeaders,
-			undefined,
+			options?.extraHeaders ?? null,
+			null,
+			null,
 		)
 
 		await this.restClient.request(path, HttpMethod.DELETE, {
+			...NULL_REST_CLIENT_OPTIONS,
 			queryParams,
 			headers,
 		})
 	}
 
-	/* eslint-disable local/noUnionExceptNullable */
 	async _validateAndPrepareRestRequest(
 		typeRef: TypeRef<any>,
 		listId: Id | null,
 		elementId: Id | null,
-		queryParams: Dict | undefined,
-		extraHeaders: Dict | undefined,
-		ownerKey: OwnerKeyProvider | VersionedKey | undefined,
+		queryParams: Dict | null,
+		extraHeaders: Dict | null,
+		ownerKeyProvider: OwnerKeyProvider | null,
+		ownerKey: VersionedKey | null,
 	): Promise<{
 		path: string
-		queryParams: Dict | undefined
-		headers: Dict | undefined
+		queryParams: Dict | null
+		headers: Dict
 		clientTypeModel: ClientTypeModel
 	}> {
-		/* eslint-enable local/noUnionExceptNullable */
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		_verifyType(clientTypeModel)
 
-		if (ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
+		if (ownerKeyProvider == null && ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${clientTypeModel.name}`)
 		}

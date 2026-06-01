@@ -85,7 +85,7 @@ export type ModelAssociation = {
 	 * the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
-	dependency?: AppName | null
+	dependency: AppName | null
 }
 
 export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>
@@ -112,7 +112,7 @@ export type TypeModel = {
 	/**
 	 * the version of another typeModel this type (and its corresponding application) depends on, if applicable.
 	 */
-	dependsOnVersion?: number
+	dependsOnVersion: number | null
 	/** human-readable name. */
 	name: string
 	/** the type of entity. this defines how (and if) the type is persisted. */
@@ -197,6 +197,7 @@ export type ParsedAssociation = EncryptedParsedAssociation
 // eslint-disable-next-line local/noUnionExceptNullable
 export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedAssociation> & {
 	/** crypto errors that happened during deserialization/serialization */
+	// eslint-disable-next-line local/noUndefined
 	_errors?: Record<AttributeId, string>
 }
 
@@ -246,6 +247,7 @@ export interface IInstanceSessionsKey {
 
 export interface ITypeInfo {
 	_type: TypeRef<ITypeInfo>
+	// eslint-disable-next-line local/noUndefined
 	_original?: ITypeInfo
 
 	_id: Id
@@ -269,17 +271,27 @@ export interface ITypeInfo {
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
-	// eslint-disable-next-line local/noUnionExceptNullable
+	// eslint-disable-next-line local/noUnionExceptNullable, local/noUndefined
 	_id?: Id | IdTuple
+	// eslint-disable-next-line local/noUndefined
 	_original?: this
+	// eslint-disable-next-line local/noUndefined
 	bucketKey?: null | IBucketKey
+	// eslint-disable-next-line local/noUndefined
 	_ownerGroup?: null | Id
+	// eslint-disable-next-line local/noUndefined
 	_ownerEncSessionKey?: null | Uint8Array
+	// eslint-disable-next-line local/noUndefined
 	_ownerKeyVersion?: null | NumberString
+	// eslint-disable-next-line local/noUndefined
 	_kdfNonce?: null | Uint8Array
+	// eslint-disable-next-line local/noUndefined
 	ownerEncSessionKey?: null | Uint8Array
+	// eslint-disable-next-line local/noUndefined
 	ownerEncSessionKeyVersion?: null | NumberString
+	// eslint-disable-next-line local/noUndefined
 	_permissions?: null | Id
+	// eslint-disable-next-line local/noUndefined
 	isAdapter?: boolean
 }
 

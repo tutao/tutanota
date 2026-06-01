@@ -98,7 +98,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import { NoopProgressMonitor, ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -138,7 +138,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
-import { errorsToString } from "../../../../platform-kit/utils/Utils"
+import { errorsToString, ErrorInfo } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 
 const TAG = "[CalendarModel]"
@@ -380,9 +380,9 @@ export class CalendarModel {
 			return
 		}
 		let errorMessage = "Failed events: " + result.failedEvents.length + "\n"
-		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors))
+		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors as ErrorInfo[]))
 		errorMessage = "\nFailed alarms: " + result.failedAlarms.length + "\n"
-		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors))
+		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors as ErrorInfo[]))
 		throw new Error(errorMessage)
 	}
 
@@ -438,6 +438,7 @@ export class CalendarModel {
 						user: userController.userId,
 						group: membership.group,
 					}),
+					null,
 				)
 				.catch(() => console.log("error cleaning up membership for group: ", membership.group))
 		}
@@ -913,7 +914,7 @@ export class CalendarModel {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
-			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
+			const file = await this.entityClient.load(FileTypeRef, fileId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")

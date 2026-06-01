@@ -288,13 +288,13 @@ o.spec("CalendarViewModel", function () {
 			const event2 = makeEvent("event2", origStartDate2, new Date(2021, 8, 23), "uid2")
 			//start first drag
 			simulateDrag(event1, new Date(2021, 8, 24), viewModel)
-			const temporaryEvent1 = assertNotNull(viewModel._draggedEvent?.eventCloneWrapper, "temporary 1 was null")
+			const temporaryEvent1 = assertNotNull(viewModel._draggedEvent?.eventCloneWrapper ?? null, "temporary 1 was null")
 			//start first drop
 			let diff = new Date(2021, 8, 25).getTime() - origStartDate1.getTime()
 			const endDragPromise1 = viewModel.onDragEnd(CalendarOperation.EditAll, diff)
 			//start second drag
 			simulateDrag(event2, new Date(2021, 8, 24), viewModel)
-			const temporaryEvent2 = assertNotNull(viewModel._draggedEvent?.eventCloneWrapper, "temporary 2 was null")
+			const temporaryEvent2 = assertNotNull(viewModel._draggedEvent?.eventCloneWrapper ?? null, "temporary 2 was null")
 			//now we have a temporary and a transient event
 			o(viewModel._draggedEvent?.originalEventWrapper).equals(event2)
 			o(viewModel._draggedEvent?.eventCloneWrapper).equals(temporaryEvent2)

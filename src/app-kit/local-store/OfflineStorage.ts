@@ -514,7 +514,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 
 		const type = typeModel.type
-		const table = assertNotNull(tableNameByTypeId.get(type))
+		const table = assertNotNull(tableNameByTypeId.get(type) ?? null)
 		const storables = await this.toStorables(instances, typeModel, typeString, table)
 
 		const groupedByListId = groupBy(storables, (dbRef) => dbRef.listId)
@@ -656,7 +656,7 @@ export class OfflineStorage implements CacheStorage {
 				(storableInstance) =>
 					(storableInstance.listId != null ? storableInstance.listId === row.listId : true) && storableInstance.encodedElementId === row.elementId,
 			)
-			assertNotNull(storable).rowId = assertNotNull(row.rowid)
+			assertNotNull(storable ?? null).rowId = assertNotNull(row.rowid ?? null)
 		}
 	}
 

@@ -270,7 +270,7 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 	}
 
 	const [giftCardInfo, customerInfo] = await Promise.all([
-		locator.serviceExecutor.get(GiftCardService, null),
+		locator.serviceExecutor.get(GiftCardService, null, null),
 		locator.logins.getUserController().loadCustomerInfo(),
 	])
 

@@ -265,6 +265,7 @@ export class ServerModelInfo {
 				type: this.ensureVariantOf(AssociationType, String(associationInfoRecord.type)),
 				cardinality: this.ensureVariantOf(Cardinality, String(associationInfoRecord.cardinality)),
 				refTypeId: this.asNumber(associationInfoRecord.refTypeId),
+				dependency: null,
 			}
 
 			// dependency can be null, so assign it after above `verifyNoNullValueInRecord` check. and check here instead
@@ -280,17 +281,11 @@ export class ServerModelInfo {
 
 	private ensureVariantOf<T extends string>(obj: Record<any, T>, inputStr: string): Values<typeof obj> {
 		const knownVariants = Object.values(obj)
-		return assertNotNull(
-			knownVariants.find((a) => a === inputStr),
-			`Unknown value ${inputStr}. Could be one of: ${knownVariants}`,
-		)
+		return assertNotNull(knownVariants.find((a) => a === inputStr) ?? null, `Unknown value ${inputStr}. Could be one of: ${knownVariants}`)
 	}
 
 	private ensureVariantOfList<T extends string>(knownVariants: string[], inputStr: string): string {
-		return assertNotNull(
-			knownVariants.find((a) => a === inputStr),
-			`Unknown value ${inputStr}. Could be one of: ${knownVariants}`,
-		)
+		return assertNotNull(knownVariants.find((a) => a === inputStr) ?? null, `Unknown value ${inputStr}. Could be one of: ${knownVariants}`)
 	}
 
 	private getAppNames(): string[] {

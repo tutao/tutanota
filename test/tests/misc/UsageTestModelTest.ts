@@ -10,7 +10,7 @@ import {
 
 import { matchers, object, replace, verify, when } from "testdouble"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
-import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor, NULL_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/network/ServiceRequest.js"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
@@ -123,6 +123,7 @@ o.spec("UsageTestModel", function () {
 			o("when there's no deviceId it does POST", async function () {
 				when(
 					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -146,6 +147,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -162,6 +164,7 @@ o.spec("UsageTestModel", function () {
 			o("loads from server and stores if nothing is stored", async function () {
 				when(
 					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -194,6 +197,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -246,7 +250,7 @@ o.spec("UsageTestModel", function () {
 
 				await usageTestModel.sendPing(usageTest, stage, false)
 
-				verify(serviceExecutor.post(UsageTestParticipationService, anything()), {
+				verify(serviceExecutor.post(UsageTestParticipationService, anything(), null), {
 					times: 1,
 					ignoreExtraArgs: true,
 				})
@@ -346,6 +350,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -368,6 +373,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(
@@ -390,6 +396,7 @@ o.spec("UsageTestModel", function () {
 
 				when(
 					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+						...NULL_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
 				).thenResolve(

@@ -34,11 +34,11 @@ export class EntityClient {
 	/**
 	 * Important: we can't pass functions through the bridge, so we can't pass ownerKeyProvider from the page context.
 	 */
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions | null = null): Promise<T> {
 		return this._target.load(typeRef, id, opts)
 	}
 
-	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
+	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id | null = null): Promise<T[]> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		if (!start) {
@@ -72,7 +72,7 @@ export class EntityClient {
 	}> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
+		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true, null)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, getServerIdEncodingForType(typeModel)))
 
 		if (filteredEntities.length === rangeItemLimit) {
@@ -96,7 +96,7 @@ export class EntityClient {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions | null = null,
 	): Promise<T[]> {
 		return this._target.loadRange(typeRef, listId, start, count, reverse, opts)
 	}
@@ -108,13 +108,18 @@ export class EntityClient {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Id[],
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | null = null,
+		opts: EntityRestClientLoadOptions | null = null,
 	): Promise<T[]> {
 		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
+	setup<T extends SomeEntity>(
+		listId: Id | null,
+		instance: T,
+		extraHeaders: Dict | null = null,
+		options: EntityRestClientSetupOptions | null = null,
+	): Promise<Id | null> {
 		return this._target.setup(listId, instance, extraHeaders, options)
 	}
 
@@ -122,19 +127,19 @@ export class EntityClient {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+	update<T extends SomeEntity>(instance: T, options: EntityRestClientUpdateOptions | null = null): Promise<void> {
 		return this._target.update(instance, options)
 	}
 
-	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	erase<T extends SomeEntity>(instance: T, options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		return this._target.erase(instance, options)
 	}
 
-	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		return this._target.eraseMultiple(listId, instances, options)
 	}
 
-	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions | null = null): Promise<T> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const rootId = [groupId, typeModel.rootId] as const

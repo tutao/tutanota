@@ -92,7 +92,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-			.filter(isNotNull)
+			.filter((x): x is { event: IcsCalendarEvent; replySection: Children } => x != null)
 
 		return eventsReplySection.map(({ event, replySection }) => {
 			if (agenda.get(event.uid ?? "")?.conflictCount === 1) {
@@ -111,7 +111,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
 		const hasConflict = Boolean(agenda?.conflictCount! > 0)
-		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
+		const events = [agenda?.before, agenda?.main, agenda?.after].filter((x): x is EventWrapper => x != null)
 
 		let eventFocusBound = agenda?.main.event?.startTime!
 		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate

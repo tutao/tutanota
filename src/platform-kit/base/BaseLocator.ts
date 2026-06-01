@@ -119,11 +119,11 @@ export type BaseLocatorConfig = {
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 	cacheManagement: lazyAsync<CacheManager>
 	identityKeyTrustDatabase: IdentityKeyTrustDatabase
-	argon2idFacade?: Argon2idFacade
+	argon2idFacade: Argon2idFacade | null
 	domainConfig: DomainConfig
 	rsa: RsaImplementation
 	fileFacade: SimpleFileFacade
-	nativeCryptoFacade?: NativeCryptoFacade
+	nativeCryptoFacade: NativeCryptoFacade | null
 	entityMigratorFactory: (params: {
 		cryptoWrapper: CryptoWrapper
 		user: UserFacade

@@ -455,7 +455,7 @@ export class MailImporter {
 			this.mailboxToFinalisedImportStates.set(mailboxId, new Map())
 			finalisedImportStates = this.mailboxToFinalisedImportStates.get(mailboxId)
 		}
-		assertNotNull(finalisedImportStates).set(importMailStateElementId, importMailState)
+		assertNotNull(finalisedImportStates ?? null).set(importMailStateElementId, importMailState)
 	}
 
 	private resetStatus() {

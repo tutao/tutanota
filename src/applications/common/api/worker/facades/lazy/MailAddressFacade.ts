@@ -1,5 +1,10 @@
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
-import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor, NULL_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import {
+	NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
+	NULL_ENTITY_REST_CLIENT_SETUP_OPTIONS,
+	NULL_ENTITY_REST_CLIENT_UPDATE_OPTIONS,
+} from "../../../../../../platform-kit/network/EntityRestClient.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
 import { assertNotNull, DateProvider, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
@@ -145,7 +150,7 @@ export class MailAddressFacade {
 	 */
 	getAliasCounters(userGroupId: Id): Promise<MailAddressAliasServiceReturn> {
 		const data = createMailAddressAliasGetIn({ targetGroup: userGroupId })
-		return this.serviceExecutor.get(MailAddressAliasService, data)
+		return this.serviceExecutor.get(MailAddressAliasService, data, null)
 	}
 
 	/**
@@ -159,7 +164,7 @@ export class MailAddressFacade {
 				// another check came in while we were waiting
 				return false
 			}
-			const availability = await this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
+			const availability = await this.serviceExecutor.get(DomainMailAddressAvailabilityService, data, null)
 			return availability.available
 		} else if (signupToken != null) {
 			const data = createMultipleMailAddressAvailabilityData({
@@ -169,7 +174,7 @@ export class MailAddressFacade {
 			if (!(await this.availabilityBucket.nextToken())) {
 				return false
 			}
-			const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
+			const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data, null)
 			return getFirstOrThrow(result.availabilities).available
 		} else {
 			throw new ProgrammingError("tried to get mail address availability while not fully logged in without a signup token")
@@ -187,7 +192,7 @@ export class MailAddressFacade {
 			group: targetGroupId,
 			mailAddress: alias,
 		})
-		await this.serviceExecutor.post(MailAddressAliasService, data)
+		await this.serviceExecutor.post(MailAddressAliasService, data, null)
 	}
 
 	/**
@@ -204,7 +209,7 @@ export class MailAddressFacade {
 			restore,
 			group: targetGroupId,
 		})
-		await this.serviceExecutor.delete(MailAddressAliasService, deleteData)
+		await this.serviceExecutor.delete(MailAddressAliasService, deleteData, null)
 	}
 
 	async setPrimaryMailAddress(userId: Id, address: string): Promise<void> {
@@ -212,7 +217,7 @@ export class MailAddressFacade {
 			address,
 			user: userId,
 		})
-		await this.serviceExecutor.put(ChangePrimaryAddressService, data)
+		await this.serviceExecutor.put(ChangePrimaryAddressService, data, null)
 	}
 
 	/**
@@ -270,6 +275,7 @@ export class MailAddressFacade {
 				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(mailGroupId, version, viaUser)
 				: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(mailGroupId, version)
 		const mailboxProperties = await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties, {
+			...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 			ownerKeyProvider: groupKeyProvider,
 		})
 
@@ -314,7 +320,7 @@ export class MailAddressFacade {
 		})
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		return assertNotNull(
-			await this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
+			await this.nonCachingEntityClient.setup(null, mailboxProperties, null, { ...NULL_ENTITY_REST_CLIENT_SETUP_OPTIONS, ownerKey: groupKey }).catch(
 				ofClass(PreconditionFailedError, (e) => {
 					// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
 					if (e.data && e.data.startsWith("exists:")) {
@@ -334,8 +340,11 @@ export class MailAddressFacade {
 			viaUser
 				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
 				: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
-		await this.nonCachingEntityClient.update(mailboxProperties, { ownerKeyProvider: groupKeyProvider })
-		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, { ownerKeyProvider: groupKeyProvider })
+		await this.nonCachingEntityClient.update(mailboxProperties, { ...NULL_ENTITY_REST_CLIENT_UPDATE_OPTIONS, ownerKeyProvider: groupKeyProvider })
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, {
+			...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
+			ownerKeyProvider: groupKeyProvider,
+		})
 	}
 
 	private async collectSenderNames(mailboxProperties: MailboxProperties): Promise<Map<string, string>> {

@@ -51,7 +51,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")
 		} else {
-			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data).then(() => dialog.close())
+			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data, null).then(() => dialog.close())
 		}
 	}
 

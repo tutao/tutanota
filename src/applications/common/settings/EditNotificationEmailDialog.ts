@@ -128,7 +128,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 				value: language.code,
 			}
 		})
-	const selectedLanguage = assertNotNull(sortedLanguages.find(({ value }) => value === template.language))
+	const selectedLanguage = assertNotNull(sortedLanguages.find(({ value }) => value === template.language) ?? null)
 	const selectedLanguageStream: Stream<string> = stream(selectedLanguage.value)
 	const subject = stream(template.subject)
 	// Editor resets its value on re-attach so we keep it ourselves

@@ -157,7 +157,7 @@ export class PriceAndConfigProvider {
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})
-		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
+		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data, null)
 		if (isIOSApp()) {
 			this.mobilePrices = new Map()
 
@@ -248,10 +248,7 @@ export class PriceAndConfigProvider {
 
 	getPlanPricesForPlan(subscription: PlanType): PlanPrices {
 		const planPrices = assertNotNull(this.planPrices, "called getPlanPricesForPlan before init")
-		return assertNotNull(
-			planPrices.find((prices) => PlanTypeToName[subscription] === prices.planName),
-			"plan type not found",
-		)
+		return assertNotNull(planPrices.find((prices) => PlanTypeToName[subscription] === prices.planName) ?? null, "plan type not found")
 	}
 
 	getPriceInfoMessage(): TranslationKey | null {

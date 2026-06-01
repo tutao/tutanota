@@ -34,8 +34,8 @@ export type MoveItems = (items: readonly FolderItemId[], destinationFolder: Driv
  * It also enables the user to create a new destination folder.
  */
 export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemsToMove: FolderItem[], moveItems: MoveItems) {
-	const firstItem = assertNotNull(itemsToMove.at(0))
-	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
+	const firstItem = assertNotNull(itemsToMove.at(0) ?? null)
+	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent ?? null)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
 	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder._id) // this.driveViewModel.getMoreParents()

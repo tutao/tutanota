@@ -10,7 +10,7 @@ export interface Options {
   	Must be an integer from 1 and up or `Infinity`.
   	@default 1
    */
-	readonly concurrency?: number
+	readonly concurrency: number | null
 }
 
 /**
@@ -47,9 +47,9 @@ export type Mapper<Element, NewElement> = (element: Element, index: number) => P
 export async function pMap<Element, NewElement>(
 	iterable: Iterable<Element>,
 	mapper: Mapper<Element, NewElement>,
-	options: Options = {},
+	options: Options = { concurrency: null },
 ): Promise<Array<NewElement>> {
-	const { concurrency = 1 } = options
+	const concurrency = options.concurrency ?? 1
 	return new Promise((resolve, reject) => {
 		if (typeof mapper !== "function") {
 			throw new TypeError("Mapper function is required")

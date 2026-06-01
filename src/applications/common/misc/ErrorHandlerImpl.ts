@@ -15,6 +15,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, CancelledError, InvalidModelError, isAdminClient, isBrowser, isDesktop } from "@tutao/app-env"
 import { assertNotNull, newPromise, noOp } from "@tutao/utils"
+import { ErrorInfo } from "../../../platform-kit/utils/Utils"
 import { OutOfSyncError } from "../../../platform-kit/app-env/OutOfSyncError"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
@@ -150,14 +151,14 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 			// only logged in users can report errors because we send mail for that.
 			if (logins.isUserLoggedIn()) {
-				const { ignored } = await showErrorNotification(e)
+				const { ignored } = await showErrorNotification(e as ErrorInfo)
 				unknownErrorDialogActive = false
 				if (ignored) {
 					ignoredMessages.push(e.message)
 				}
 			} else {
 				console.log("Unknown error", e)
-				showErrorDialogNotLoggedIn(e).then(() => (unknownErrorDialogActive = false))
+				showErrorDialogNotLoggedIn(e as ErrorInfo).then(() => (unknownErrorDialogActive = false))
 			}
 		}
 	}

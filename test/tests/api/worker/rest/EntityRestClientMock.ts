@@ -23,7 +23,14 @@ import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../.
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { downcast } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
+import {
+	EntityRestClient,
+	EntityRestClientEraseOptions,
+	EntityRestClientLoadOptions,
+	EntityRestClientSetupOptions,
+	EntityRestClientUpdateOptions,
+	NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
+} from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
 
 const authDataProvider: LoggedInUserProvider = downcast({
@@ -128,7 +135,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T extends SomeEntity>(_typeRef: TypeRef<T>, id: T["_id"], _opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async load<T extends SomeEntity>(_typeRef: TypeRef<T>, id: T["_id"], _opts: EntityRestClientLoadOptions | null = null): Promise<T> {
 		if (id instanceof Array && id.length === 2) {
 			// list element request
 			const listId = id[0]
@@ -148,7 +155,14 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	async loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		_loadOptions: EntityRestClientLoadOptions | null = null,
+	): Promise<T[]> {
 		let entriesForListId = this._listEntities[listId]
 		if (!entriesForListId) return []
 		let filteredIds
@@ -169,7 +183,13 @@ export class EntityRestClientMock extends EntityRestClient {
 		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
 	}
 
-	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
+	async loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null | undefined,
+		elementIds: Array<Id>,
+		_ownerEncSessionKeyProvider: any = null,
+		_loadOptions: EntityRestClientLoadOptions | null = null,
+	): Promise<Array<T>> {
 		const lid = listId
 
 		if (lid) {
@@ -204,7 +224,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async erase<T extends SomeEntity>(instance: T): Promise<void> {
+	async erase<T extends SomeEntity>(instance: T, _options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		_verifyType(typeModel)
 
@@ -214,7 +234,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, _options: EntityRestClientEraseOptions | null = null): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}
@@ -229,7 +249,12 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
+	async setup<T extends SomeEntity>(
+		listId: Id | null | undefined,
+		instance: T,
+		extraHeaders: Dict | null = null,
+		_options: EntityRestClientSetupOptions | null = null,
+	): Promise<Id> {
 		const populatedInstance = clone(instance)
 		const elementId = this.idGenerator.getNext()
 		populatedInstance._id = listId == null ? elementId : [listId, elementId]
@@ -245,11 +270,11 @@ export class EntityRestClientMock extends EntityRestClient {
 		return createdInstance as T
 	}
 
-	setupMultiple<T extends SomeEntity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
+	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>> {
 		return Promise.reject("Illegal method: setupMultiple")
 	}
 
-	async update<T extends SomeEntity>(instance: T): Promise<void> {
+	async update<T extends SomeEntity>(instance: T, _options: EntityRestClientUpdateOptions | null = null): Promise<void> {
 		this.updatedInstances.push(clone(instance))
 	}
 

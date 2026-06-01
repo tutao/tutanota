@@ -578,7 +578,7 @@ export class DriveViewModel {
 	}
 
 	async createNewFolder(folderName: string): Promise<void> {
-		await this.driveFacade.createFolder(folderName, assertNotNull(this.currentFolder?.folder)._id)
+		await this.driveFacade.createFolder(folderName, assertNotNull(this.currentFolder?.folder ?? null)._id)
 	}
 
 	navigateToFolder(folderId: IdTuple) {

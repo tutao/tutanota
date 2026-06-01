@@ -16,9 +16,8 @@ function createCache<K, S extends string | number | boolean, V>(serialize: (key:
 	const map = new Map<S, V>()
 
 	return {
-		// eslint-disable-next-line local/noUnionExceptNullable
-		get(key: K): V | undefined {
-			return map.get(serialize(key))
+		get(key: K): V | null {
+			return map.get(serialize(key)) ?? null
 		},
 		set(key: K, value: V): void {
 			map.set(serialize(key), value)
@@ -36,8 +35,7 @@ type InstanceAesSubKeyCacheKey = {
 
 interface InstanceAesSubKeyCache {
 	set: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey, cachedKey: SymmetricSubKeys) => void
-	// eslint-disable-next-line local/noUnionExceptNullable
-	get: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => SymmetricSubKeys | undefined
+	get: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => SymmetricSubKeys | null
 	has: (instanceSubKeyCacheKey: InstanceAesSubKeyCacheKey) => boolean
 }
 
@@ -48,8 +46,7 @@ type InstanceAeadSubKeyCacheKey = {
 
 interface InstanceAeadSubKeyCache {
 	set: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey, cachedKey: AeadSubKeys) => void
-	// eslint-disable-next-line local/noUnionExceptNullable
-	get: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => AeadSubKeys | undefined
+	get: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => AeadSubKeys | null
 	has: (instanceSubKeyCacheKey: InstanceAeadSubKeyCacheKey) => boolean
 }
 
@@ -64,7 +61,7 @@ function serializeInstanceSubKeyCacheKey(key: InstanceAesSubKeyCacheKey | Instan
 export interface ValueDecryptor {
 	// eslint-disable-next-line local/noUnionExceptNullable
 	readonly requiredGroupKeyVersion: "none" | KeyVersion
-	getValue(key?: Nullable<AesKey>): Uint8Array
+	getValue(key: Nullable<AesKey>): Uint8Array
 }
 
 class AesCbcDecryptor implements ValueDecryptor {
@@ -83,7 +80,7 @@ class AesCbcDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys === null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeys(this.sessionKey, this.cipherVersion)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
@@ -112,7 +109,7 @@ class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 			aesKey: key,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys === null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(key, this.kdfNonce, this.globalInstanceTypeId)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
@@ -137,7 +134,7 @@ class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys === null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.sessionKey, this.globalInstanceTypeId)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}

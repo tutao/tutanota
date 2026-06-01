@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestClientMiddleware } from "../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, NULL_REST_CLIENT_OPTIONS, RestClientMiddleware } from "../../../src/platform-kit/rest-client/types"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -69,6 +69,7 @@ o.spec("RestClientTest", function () {
 				res.send(responseText)
 			})
 			const res = await restClient.request("/get/json", HttpMethod.GET, {
+				...NULL_REST_CLIENT_OPTIONS,
 				responseType: MediaType.Json,
 				baseUrl,
 			})
@@ -85,6 +86,7 @@ o.spec("RestClientTest", function () {
 				deferred.resolve()
 			})
 			restClient.request("/get/with-body", HttpMethod.GET, {
+				...NULL_REST_CLIENT_OPTIONS,
 				body: request,
 				responseType: MediaType.Json,
 				baseUrl,
@@ -101,6 +103,7 @@ o.spec("RestClientTest", function () {
 				res.send(response)
 			})
 			const res = await restClient.request("/get/binary", HttpMethod.GET, {
+				...NULL_REST_CLIENT_OPTIONS,
 				queryParams: {},
 				responseType: MediaType.Binary,
 				baseUrl,
@@ -130,6 +133,7 @@ o.spec("RestClientTest", function () {
 					res.send(responseText)
 				})
 				const res = await restClient.request(url, method, {
+					...NULL_REST_CLIENT_OPTIONS,
 					body: requestText,
 					responseType: MediaType.Json,
 					baseUrl,
@@ -159,6 +163,7 @@ o.spec("RestClientTest", function () {
 					res.send(response)
 				})
 				const res = await restClient.request(url, method, {
+					...NULL_REST_CLIENT_OPTIONS,
 					body: new Uint8Array(request),
 					responseType: MediaType.Binary,
 					baseUrl,
@@ -184,6 +189,7 @@ o.spec("RestClientTest", function () {
 					res.send()
 				})
 				const res = await restClient.request(url, method, {
+					...NULL_REST_CLIENT_OPTIONS,
 					baseUrl,
 				})
 				o(res).equals(null)
@@ -202,7 +208,7 @@ o.spec("RestClientTest", function () {
 					res.set("Date", SERVER_TIME_IN_HEADER)
 					res.status(205).send() // every status code !== 200 is currently handled as error
 				})
-				await o(() => restClient.request(url, method, { baseUrl })).asyncThrows(restError.ResourceError)
+				await o(() => restClient.request(url, method, { ...NULL_REST_CLIENT_OPTIONS, baseUrl })).asyncThrows(restError.ResourceError)
 			}
 		}
 
@@ -239,6 +245,7 @@ o.spec("RestClientTest", function () {
 				res.send(responseText)
 			})
 			const res = await restClient.request("/get/json1", HttpMethod.GET, {
+				...NULL_REST_CLIENT_OPTIONS,
 				responseType: MediaType.Json,
 				baseUrl,
 			})
@@ -263,6 +270,7 @@ o.spec("RestClientTest", function () {
 
 			try {
 				const response = await restClient.request("/get/json3", HttpMethod.GET, {
+					...NULL_REST_CLIENT_OPTIONS,
 					responseType: MediaType.Json,
 					baseUrl,
 				})
@@ -293,6 +301,7 @@ o.spec("RestClientTest", function () {
 			})
 
 			const res = await restClient.request(applicationTypesServiceRestPath, HttpMethod.GET, {
+				...NULL_REST_CLIENT_OPTIONS,
 				responseType: MediaType.Json,
 				baseUrl,
 			})

@@ -470,7 +470,7 @@ export class ConversationListModel implements MailSetListModel {
 		}
 
 		return assertNotNull(
-			this.conversationMap.get(conversationId),
+			this.conversationMap.get(conversationId) ?? null,
 
 			// When adding a mail, mailToConversationMap is updated last, while when removing a mail, it is updated
 			// first. As such, there is no condition where mailToConversationMap has a conversation conversationMap does
@@ -650,7 +650,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	private getDisplayedMailsOfConversations(conversations: readonly LoadedConversation[]): Mail[] {
-		return conversations.map((conversation) => conversation.getMainMail()?.mail).filter(isNotNull)
+		return conversations.map((conversation) => conversation.getMainMail()?.mail).filter((m): m is Mail => m != null)
 	}
 
 	/**

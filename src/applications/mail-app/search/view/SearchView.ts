@@ -361,7 +361,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				label: this.searchViewModel.selectedMailField
 					? lang.makeTranslation(
 							"field_label",
-							lang.getTranslationText(assertNotNull(SEARCH_MAIL_FIELDS.find((f) => f.field === this.searchViewModel.selectedMailField)).textId),
+							lang.getTranslationText(
+								assertNotNull(SEARCH_MAIL_FIELDS.find((f) => f.field === this.searchViewModel.selectedMailField) ?? null).textId,
+							),
 						)
 					: lang.getTranslation("field_label"),
 				selected: this.searchViewModel.selectedMailField != null,

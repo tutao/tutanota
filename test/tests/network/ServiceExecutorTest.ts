@@ -14,6 +14,7 @@ import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/ent
 
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
+import { NULL_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/network/ServiceRequest.js"
 
 const { anything } = matchers
 
@@ -209,7 +210,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.get(getService, null, { sessionKey })
+			const response = await executor.get(getService, null, { ...NULL_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(returnData)
 			verify(
@@ -330,7 +331,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.post(getService, null, { sessionKey })
+			const response = await executor.post(getService, null, { ...NULL_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(returnData)
 			verify(
@@ -490,7 +491,7 @@ o.spec("ServiceExecutor", function () {
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, { queryParams: query })
+			const response = await executor.get(getService, data, { ...NULL_EXTRA_SERVICE_PARAMS, queryParams: query })
 
 			o(response).equals(undefined)
 			verify(
@@ -516,7 +517,7 @@ o.spec("ServiceExecutor", function () {
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, { extraHeaders: headers })
+			const response = await executor.get(getService, data, { ...NULL_EXTRA_SERVICE_PARAMS, extraHeaders: headers })
 
 			o(response).equals(undefined)
 
@@ -612,7 +613,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(JSON.stringify(untypedInstance))
 
-			const response = await executor.get(CustomerAccountService, null, { sessionKey })
+			const response = await executor.get(CustomerAccountService, null, { ...NULL_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			removeOriginals(response)
 
@@ -643,7 +644,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(undefined)
 
-			const response = await executor.get(getService, giftCardCreateData, { sessionKey })
+			const response = await executor.get(getService, giftCardCreateData, { ...NULL_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(undefined)
 			verify(

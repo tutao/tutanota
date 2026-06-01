@@ -17,7 +17,7 @@ export class WebauthnNativeBridge {
 	private readonly impl: DeferredObject<BrowserWebauthn> = defer()
 
 	constructor() {
-		const nativeApp = assertNotNull(window.nativeAppWebDialog)
+		const nativeApp = assertNotNull(window.nativeAppWebDialog ?? null)
 		const transport: DesktopNativeTransport<WebToNativeRequest, NativeToWebRequest> = new DesktopNativeTransport(nativeApp)
 		const that = this
 		const commands: Commands<NativeToWebRequest> = {

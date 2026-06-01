@@ -130,7 +130,7 @@ export class ProcessInboxHandler {
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
-			const existingData = assertNotNull(this.processedMailsByMailGroup.get(mailGroupId))
+			const existingData = assertNotNull(this.processedMailsByMailGroup.get(mailGroupId) ?? null)
 			const datumIsAlreadyAdded = existingData.some((existingDatum) => isSameId(existingDatum.mailId, finalProcessInboxDatum?.mailId ?? null))
 			if (!datumIsAlreadyAdded) {
 				this.processedMailsByMailGroup.get(mailGroupId)?.push(finalProcessInboxDatum)

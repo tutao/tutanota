@@ -52,7 +52,7 @@ class Styles {
 	}
 
 	getStyleSheetElement(id: StyleSheetId): Node {
-		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
+		return assertNotNull(this.styleSheets.get(id) ?? null).cloneNode(true)
 	}
 
 	/**

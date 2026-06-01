@@ -29,7 +29,7 @@ o.spec("Scheduler", function () {
 		scheduler.scheduleAt(cb, scheduleTime.toJSDate())
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([duration.toMillis()])
 		o(cb.callCount).equals(0)("Not called earlier")
-		assertNotNull(timeoutMock.scheduledAfter.get(duration.toMillis())).thunk()
+		assertNotNull(timeoutMock.scheduledAfter.get(duration.toMillis()) ?? null).thunk()
 		o(cb.callCount).equals(1)("Was called after timeout")
 	})
 	o("scheduleAt far", function () {
@@ -41,7 +41,7 @@ o.spec("Scheduler", function () {
 		scheduler.scheduleAt(cb, scheduleTime.toJSDate())
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([SET_TIMEOUT_LIMIT])
 		o(cb.callCount).equals(0)("Not called earlier")
-		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT))
+		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT) ?? null)
 		timeoutMock.scheduledAfter.clear()
 		now = now.plus({
 			milliseconds: SET_TIMEOUT_LIMIT,
@@ -50,7 +50,7 @@ o.spec("Scheduler", function () {
 		// The remaining time
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([2000])
 		o(cb.callCount).equals(0)("Not called after later")
-		const newTimeout = assertNotNull(timeoutMock.scheduledAfter.get(2000))
+		const newTimeout = assertNotNull(timeoutMock.scheduledAfter.get(2000) ?? null)
 		newTimeout.thunk()
 		o(cb.callCount).equals(1)("Was called after timeout")
 	})
@@ -63,7 +63,7 @@ o.spec("Scheduler", function () {
 		const scheduledId = scheduler.scheduleAt(cb, scheduleTime.toJSDate())
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([SET_TIMEOUT_LIMIT])
 		o(cb.callCount).equals(0)("Not called earlier")
-		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT))
+		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT) ?? null)
 		scheduler.unscheduleTimeout(scheduledId)
 		o(Array.from(timeoutMock.cancelled.values())).deepEquals([intermediateTimeout.id])
 	})
@@ -76,7 +76,7 @@ o.spec("Scheduler", function () {
 		const scheduledId = scheduler.scheduleAt(cb, scheduleTime.toJSDate())
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([SET_TIMEOUT_LIMIT])
 		o(cb.callCount).equals(0)("Not called earlier")
-		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT))
+		const intermediateTimeout = assertNotNull(timeoutMock.scheduledAfter.get(SET_TIMEOUT_LIMIT) ?? null)
 		timeoutMock.scheduledAfter.clear()
 		now = now.plus({
 			milliseconds: SET_TIMEOUT_LIMIT,
@@ -84,7 +84,7 @@ o.spec("Scheduler", function () {
 		intermediateTimeout.thunk()
 		// The remaining time
 		o(Array.from(timeoutMock.scheduledAfter.keys())).deepEquals([2000])
-		const newTimeout = assertNotNull(timeoutMock.scheduledAfter.get(2000))
+		const newTimeout = assertNotNull(timeoutMock.scheduledAfter.get(2000) ?? null)
 		scheduler.unscheduleTimeout(scheduledId)
 		o(cb.callCount).equals(0)("Not called after later")
 		o(Array.from(timeoutMock.cancelled)).deepEquals([newTimeout.id])

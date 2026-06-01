@@ -9,9 +9,13 @@ import { createTestEntity } from "../../../TestUtils.js"
 
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "../../../../../src/platform-kit/rest-client/types"
+import { NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/network/EntityRestClient.js"
+import { BlobLoadOptions } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { createReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
+
+const NULL_BLOB_LOAD_OPTIONS: BlobLoadOptions = { extraHeaders: null, suspensionBehavior: null, baseUrl: null }
 
 o.spec("MailExportFacade", () => {
 	const token = "my token"
@@ -42,6 +46,7 @@ o.spec("MailExportFacade", () => {
 	o.test("loadFixedNumberOfMailsWithCache", async () => {
 		when(
 			bulkMailLoader.loadFixedNumberOfMailsWithCache("mailListId", "startId", {
+				...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
 				suspensionBehavior: SuspensionBehavior.Throw,
@@ -60,6 +65,7 @@ o.spec("MailExportFacade", () => {
 		]
 		when(
 			bulkMailLoader.loadMailDetails([mail1, mail2], {
+				...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
 				suspensionBehavior: SuspensionBehavior.Throw,
@@ -75,6 +81,7 @@ o.spec("MailExportFacade", () => {
 		const expected = [createTestEntity(FileTypeRef), createTestEntity(FileTypeRef)]
 		when(
 			bulkMailLoader.loadAttachments([mail1, mail2], {
+				...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
 				baseUrl: "baseUrl",
 				extraHeaders: tokenHeaders,
 				suspensionBehavior: SuspensionBehavior.Throw,
@@ -105,6 +112,7 @@ o.spec("MailExportFacade", () => {
 				ArchiveDataType.Attachments,
 				[createReferencingInstance(mailAttachments[0]), createReferencingInstance(mailAttachments[1])],
 				{
+					...NULL_BLOB_LOAD_OPTIONS,
 					extraHeaders: tokenHeaders,
 					suspensionBehavior: SuspensionBehavior.Throw,
 				},

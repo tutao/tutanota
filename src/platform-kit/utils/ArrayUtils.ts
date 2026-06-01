@@ -177,8 +177,7 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 /**
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
  */
-// eslint-disable-next-line local/noUnionExceptNullable
-export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null | undefined): Array<R> {
+export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null): Array<R> {
 	const resultList: R[] = []
 
 	for (const item of array) {
@@ -192,8 +191,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
-// eslint-disable-next-line local/noUnionExceptNullable
-export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array<T> {
+export function filterNull<T>(array: ReadonlyArray<T | null>): Array<T> {
 	return downcast(array.filter((item) => item != null))
 }
 

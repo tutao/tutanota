@@ -31,7 +31,7 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 	let contact = createContact({
 		_ownerGroup: assertNotNull(
-			user.memberships.find((m) => m.groupType === GroupType.Contact),
+			user.memberships.find((m) => m.groupType === GroupType.Contact) ?? null,
 			"called createNewContact as user without contact group mship",
 		).group,
 		firstName: firstAndLastName.firstName,

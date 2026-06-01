@@ -60,7 +60,7 @@ const SEARCH_CATEGORIES = [
 
 /** get the TypeRef that corresponds to the selected category (as taken from the URL: <host>/search/<category>?<query> */
 export function getSearchType(category: string): TypeRef<CalendarEvent> | TypeRef<Mail> | TypeRef<Contact> {
-	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category)).typeRef
+	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category) ?? null).typeRef
 }
 
 interface SearchMailField {
@@ -115,7 +115,7 @@ export function setSearchUrl(url: string) {
 }
 
 export function searchCategoryForRestriction(restriction: SearchRestriction): SearchCategoryTypes {
-	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
+	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type)) ?? null).name
 }
 
 // Gets the resulting URL if the output of `getSearchParameters()` was routed to

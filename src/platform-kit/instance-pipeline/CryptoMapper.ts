@@ -19,9 +19,9 @@ import {
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 
 export interface SymmetricGroupKeyLoader {
-	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
+	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: VersionedKey | null): Promise<AesKey>
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
-	loadCurrentKeyPair(groupId: Id, currentGroupKey?: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
+	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
 }
 
@@ -90,7 +90,7 @@ export class CryptoMapper {
 		if (groupId === null) {
 			throw new CryptoError("Cannot load group key. Missing group Id.")
 		}
-		return this.symGroupKeyLoader().loadSymGroupKey(groupId, requiredGroupKeyVersion)
+		return this.symGroupKeyLoader().loadSymGroupKey(groupId, requiredGroupKeyVersion, null)
 	}
 
 	public async decryptParsedInstance(

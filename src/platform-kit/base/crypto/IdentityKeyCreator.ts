@@ -109,6 +109,7 @@ export class IdentityKeyCreator {
 				identityKeyPair,
 				signatures,
 			}),
+			null,
 		)
 	}
 
@@ -135,7 +136,7 @@ export class IdentityKeyCreator {
 		const user = assertNotNull(this.userFacade.getUser(), "User not available when trying to create identity keys for existing shared mailboxes")
 
 		const adminGroupMembership = assertNotNull(
-			user.memberships.find((m) => m.groupType === GroupType.Admin),
+			user.memberships.find((m) => m.groupType === GroupType.Admin) ?? null,
 			"Only admin users can create identity keys for team groups",
 		)
 

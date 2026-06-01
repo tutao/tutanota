@@ -122,7 +122,7 @@ export class NativePushServiceApp {
 
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
-		const origin = assertNotNull(env.staticUrl)
+		const origin = assertNotNull(env.staticUrl ?? null)
 		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
 		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, origin, getElementId(pushIdentifier), sk)
 	}
@@ -134,7 +134,7 @@ export class NativePushServiceApp {
 	}
 
 	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
-		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
+		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list ?? null)
 		const pushIdentifier = createPushIdentifier({
 			_area: "0",
 			_owner: this.logins.getUserController().userGroupInfo.group,

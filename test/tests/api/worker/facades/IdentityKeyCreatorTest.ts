@@ -162,6 +162,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 						return true
 					}),
+					null,
 				),
 			)
 		})
@@ -174,7 +175,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		o("no service invocation if the identity key pair exists", async function () {
 			userGroup.identityKeyPair = object()
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
-			verify(serviceExecutor.post(IdentityKeyService, anything()), { times: 0 })
+			verify(serviceExecutor.post(IdentityKeyService, anything(), null), { times: 0 })
 		})
 
 		o("success admin creates new user", async function () {
@@ -201,6 +202,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 						return true
 					}),
+					null,
 				),
 			)
 		})
@@ -230,6 +232,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 						o(signaturesFromRequest[0]).equals(publicKeySignature)
 						return true
 					}),
+					null,
 				),
 			)
 		})
@@ -273,6 +276,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 							o(data.signatures[1]).equals(formerGroupKeyPairSignature)
 							return true
 						}),
+						null,
 					),
 				)
 			})
@@ -337,7 +341,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(groupIds)
 
 				const captor = matchers.captor()
-				verify(serviceExecutor.post(IdentityKeyService, captor.capture()))
+				verify(serviceExecutor.post(IdentityKeyService, captor.capture(), null))
 				for (const { group, signature, encPrivIdentityKey } of teamGroupData) {
 					verify(asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(anything(), group._id))
 					o(captor.values?.length).equals(teamGroupData.length)
@@ -363,7 +367,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups([group1._id])
 
-				verify(serviceExecutor.post(IdentityKeyService, anything()), { times: 0 })
+				verify(serviceExecutor.post(IdentityKeyService, anything(), null), { times: 0 })
 			})
 
 			o("errors bubble up", async function () {

@@ -55,7 +55,7 @@ export class ShareFacade {
 	}
 
 	async sendGroupInvitationRequest(invitationData: GroupInvitationPostData): Promise<GroupInvitationPostReturn> {
-		return this.serviceExecutor.post(GroupInvitationService, invitationData)
+		return this.serviceExecutor.post(GroupInvitationService, invitationData, null)
 	}
 
 	async prepareGroupInvitation(
@@ -130,13 +130,13 @@ export class ShareFacade {
 			userGroupKeyVersion: userGroupEncGroupKey.encryptingKeyVersion.toString(),
 			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoKey.encryptingKeyVersion.toString(),
 		})
-		await this.serviceExecutor.put(GroupInvitationService, serviceData)
+		await this.serviceExecutor.put(GroupInvitationService, serviceData, null)
 	}
 
 	async rejectOrCancelGroupInvitation(receivedGroupInvitationId: IdTuple): Promise<void> {
 		const serviceData = createGroupInvitationDeleteData({
 			receivedInvitation: receivedGroupInvitationId,
 		})
-		await this.serviceExecutor.delete(GroupInvitationService, serviceData)
+		await this.serviceExecutor.delete(GroupInvitationService, serviceData, null)
 	}
 }

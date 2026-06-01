@@ -192,7 +192,12 @@ export class PayloadTooLargeError extends TutanotaError {
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
-export function handleRestError(errorCode: number, path?: string, errorId?: string | null, precondition?: string | null): TutanotaError {
+export function handleRestError(
+	errorCode: number,
+	path: string | null = null,
+	errorId: string | null = null,
+	precondition: string | null = null,
+): TutanotaError {
 	let message = `${errorCode}: ${errorId ? errorId + " " : ""}${precondition ? precondition + " " : ""}${path}`
 
 	switch (errorCode) {

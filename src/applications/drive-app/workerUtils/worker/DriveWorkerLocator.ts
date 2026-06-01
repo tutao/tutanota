@@ -185,6 +185,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		rsa: await createRsaImplementation(worker),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
+		argon2idFacade: null,
 		entityMigratorFactory: ({
 			cryptoWrapper,
 			user,

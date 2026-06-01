@@ -359,6 +359,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		rsa: await createRsaImplementation(worker),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
+		argon2idFacade: null,
 		entityMigratorFactory: ({
 			cryptoWrapper,
 			user,

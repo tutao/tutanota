@@ -69,7 +69,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// The same day check is because sometimes focus is lost when trying to update the date. handleInput
 		//  or handleSelectedDate should be called first, but it is not and the date trying to be selected is
 		//  lost. So checking if the date was actually passed in "from above" is a band-aid solution for now.
-		if (!this.textFieldHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
+		if (!this.textFieldHasFocus && !isSameDayOfDate(date ?? null, this.previousPassedDownDate ?? null)) {
 			this.inputText = date ? formatDate(date) : ""
 			this.previousPassedDownDate = date
 		}

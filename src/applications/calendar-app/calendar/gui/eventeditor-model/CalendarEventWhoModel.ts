@@ -556,7 +556,7 @@ export class CalendarEventWhoModel {
 			// The recipients might not be resolved at this point yet, so we shouldn't set the password on the model unless we have one for sure.
 			// SendMailModel will anyway resolve the recipients, but it won't detect the right password if it's already pre-filled by us.
 			if (this.externalPasswords.has(recipient.address)) {
-				const password = assertNotNull(this.externalPasswords.get(recipient.address))
+				const password = assertNotNull(this.externalPasswords.get(recipient.address) ?? null)
 				model.setPassword(recipient.address, password)
 			}
 		}

@@ -13,7 +13,7 @@ import {
 	TypeRef,
 } from "../meta"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "../rest-client/types"
+import { HttpMethod, MediaType, NULL_REST_CLIENT_OPTIONS } from "../rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
 import { lazy } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
@@ -38,7 +38,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	get<S extends GetService>(
 		service: S,
 		data: ParamTypeFromRef<S["get"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null = null,
 	): Promise<ReturnTypeFromRef<S["get"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.GET, data, params)
 	}
@@ -46,7 +46,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	post<S extends PostService>(
 		service: S,
 		data: ParamTypeFromRef<S["post"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null = null,
 	): Promise<ReturnTypeFromRef<S["post"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.POST, data, params)
 	}
@@ -54,7 +54,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	put<S extends PutService>(
 		service: S,
 		data: ParamTypeFromRef<S["put"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null = null,
 	): Promise<ReturnTypeFromRef<S["put"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.PUT, data, params)
 	}
@@ -62,7 +62,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	delete<S extends DeleteService>(
 		service: S,
 		data: ParamTypeFromRef<S["delete"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null = null,
 	): Promise<ReturnTypeFromRef<S["delete"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.DELETE, data, params)
 	}
@@ -71,8 +71,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		service: AnyService,
 		method: HttpMethod,
 		requestEntity: Entity | null,
-		// eslint-disable-next-line local/noUnionExceptNullable
-		params: ExtraServiceParams | undefined,
+		params: ExtraServiceParams | null,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
 		if (
@@ -92,16 +91,16 @@ export class ServiceExecutor implements IServiceExecutor {
 		const path = getServiceRestPath(service)
 		const headers = { ...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: String(modelVersion) }
 
-		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
+		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params)
 
-		// eslint-disable-next-line local/noUnionExceptNullable
-		const data: string | undefined = await this.restClient.request(path, method, {
-			queryParams: params?.queryParams,
+		const data: string | null = await this.restClient.request(path, method, {
+			...NULL_REST_CLIENT_OPTIONS,
+			queryParams: params?.queryParams ?? null,
 			headers,
 			responseType: MediaType.Json,
-			body: encryptedEntity ?? undefined,
-			suspensionBehavior: params?.suspensionBehavior,
-			baseUrl: params?.baseUrl,
+			body: encryptedEntity,
+			suspensionBehavior: params?.suspensionBehavior ?? null,
+			baseUrl: params?.baseUrl ?? null,
 		})
 
 		if (methodDefinition.return) {
@@ -159,10 +158,8 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	// eslint-disable-next-line local/noUnionExceptNullable
-	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
-		// Filter out __proto__ to avoid prototype pollution.
-		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | null): Promise<T> {
+		const instance: ServerModelUntypedInstance = JSON.parse(data) as ServerModelUntypedInstance
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)

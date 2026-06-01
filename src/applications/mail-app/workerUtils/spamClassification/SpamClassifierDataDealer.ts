@@ -236,7 +236,7 @@ export class SpamClassifierDataDealer {
 	// Visible for testing
 	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailSet[], startDate: Date): Promise<Array<Mail>> {
 		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startDate.getTime()))
-		const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH))
+		const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH) ?? null)
 		return mails.filter((mail) => {
 			const isMailTrashed = mail.sets.some((setId) => isSameId(setId, trashFolder._id))
 			return isNotNull(mail.mailDetails) && !hasError(mail) && mail.receivedDate > startDate && !isMailTrashed
@@ -251,7 +251,7 @@ export class SpamClassifierDataDealer {
 
 		// sorted from latest to oldest
 		const mailbagsToFetch = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags.reverse()]
-		for (let currentMailbag = mailbagsToFetch.shift(); isNotNull(currentMailbag); currentMailbag = mailbagsToFetch.shift()) {
+		for (let currentMailbag = mailbagsToFetch.shift(); currentMailbag != null; currentMailbag = mailbagsToFetch.shift()) {
 			const mailsOfThisMailbag = await this.fetchMailsByMailbagAfterDate(currentMailbag, mailSets, startDate)
 			if (isEmpty(mailsOfThisMailbag)) {
 				// the list is empty if none of the mails in the mailbag were recent enough,
@@ -270,8 +270,8 @@ export class SpamClassifierDataDealer {
 			async (mailWithDetail) => {
 				const { mail, mailDetails } = mailWithDetail
 				const allMailFolders = mailSets.filter((mailSet) => isFolder(mailSet)).map((mailFolder) => mailFolder._id)
-				const mailFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))))
-				const mailFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, mailFolderId)))
+				const mailFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))) ?? null)
+				const mailFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, mailFolderId)) ?? null)
 				const isSpam = getMailSetKind(mailFolder) === MailSetKind.SPAM
 				const { uploadableVectorLegacy, uploadableVector } = await mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, mailFolder)
 				const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum = {

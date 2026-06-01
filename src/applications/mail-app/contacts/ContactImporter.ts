@@ -172,7 +172,7 @@ export class ContactImporter {
 		const nativeContactSyncManager = assertNotNull(this.nativeContactSyncManager)
 
 		const selectedStructuredContacts: StructuredContact[] = selectedContacts.map((selectedContact) =>
-			assertNotNull(allImportableContacts.get(selectedContact)),
+			assertNotNull(allImportableContacts.get(selectedContact) ?? null),
 		)
 
 		await importer.importContacts(selectedContacts, assertNotNull(contactListId))

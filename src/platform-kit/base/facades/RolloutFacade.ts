@@ -23,7 +23,7 @@ export class RolloutFacade {
 		private readonly sendError: (error: Error) => Promise<void>,
 	) {
 		this.rolloutActions = new LazyLoaded(async () => {
-			const result = await this.serviceExecutor.get(RolloutService, null)
+			const result = await this.serviceExecutor.get(RolloutService, null, null)
 			const rolloutActions = new Map<RolloutType, RolloutAction>()
 			for (const rollout of result.rollouts) {
 				const rolloutType = assertNotNull(getAsEnumValue(RolloutType, rollout.rolloutType))

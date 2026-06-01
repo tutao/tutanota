@@ -30,7 +30,7 @@ export class NewsModel {
 	 * Loads the user's unacknowledged NewsItems.
 	 */
 	async loadNewsIds(): Promise<NewsId[]> {
-		const response: NewsOut = await this.serviceExecutor.get(NewsService, null)
+		const response: NewsOut = await this.serviceExecutor.get(NewsService, null, null)
 
 		this.liveNewsIds = []
 		this.liveNewsListItems = {}
@@ -59,7 +59,7 @@ export class NewsModel {
 		const data = createNewsIn({ newsItemId })
 
 		try {
-			await this.serviceExecutor.post(NewsService, data)
+			await this.serviceExecutor.post(NewsService, data, null)
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {

@@ -6,7 +6,7 @@
 import { TutanotaError } from "@tutao/app-env"
 
 export class CryptoError extends TutanotaError {
-	constructor(message: string, error?: Error) {
+	constructor(message: string, error: Error | null = null) {
 		super("CryptoError", error ? message + "> " + (error.stack ? error.stack : error.message) : message)
 	}
 }

@@ -122,6 +122,7 @@ export const testTypeModel: TypeModel = {
 		},
 	},
 	version: 0,
+	dependsOnVersion: null,
 	versioned: false,
 }
 
@@ -173,6 +174,7 @@ export const testAggregateModel: TypeModel = {
 		},
 	},
 	version: 0,
+	dependsOnVersion: null,
 	versioned: false,
 }
 
@@ -213,6 +215,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 	},
 	associations: {},
 	version: 0,
+	dependsOnVersion: null,
 	versioned: false,
 }
 

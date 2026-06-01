@@ -2,7 +2,7 @@ import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from 
 import { handleRestError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType } from "../../../../../../platform-kit/rest-client/types"
+import { HttpMethod, MediaType, NULL_REST_CLIENT_OPTIONS } from "../../../../../../platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -367,7 +367,7 @@ export class BlobFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstance: BlobReferencingInstance,
 		transferId: TransferId,
-		blobLoadOptions: BlobLoadOptions = {},
+		blobLoadOptions: BlobLoadOptions = { extraHeaders: null, suspensionBehavior: null, baseUrl: null },
 	): Promise<Uint8Array> {
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 
@@ -421,7 +421,7 @@ export class BlobFacade {
 		const resultBuffer = new Uint8Array(resultSize)
 		let offset = 0
 		for (const blob of referencingInstance.blobs) {
-			const data = blobChunks.get(blob.blobId)
+			const data = blobChunks.get(blob.blobId) ?? null
 			assertNonNull(data, `Server did not return blob for id : ${blob.blobId}`)
 			resultBuffer.set(data, offset)
 			offset += data.length
@@ -438,7 +438,7 @@ export class BlobFacade {
 	async downloadAndDecryptBlobsOfMultipleInstances(
 		archiveDataType: ArchiveDataType,
 		referencingInstances: BlobReferencingInstance[],
-		blobLoadOptions: BlobLoadOptions = {},
+		blobLoadOptions: BlobLoadOptions = { extraHeaders: null, suspensionBehavior: null, baseUrl: null },
 	): Promise<Map<Id, Uint8Array | null>> {
 		// If a mail has multiple attachments, we cannot assume they are all on the same archive.
 		// But all blobs of a single attachment should be in the same archive
@@ -539,12 +539,16 @@ export class BlobFacade {
 				controller.signal.throwIfAborted()
 
 				blobIdToDecryptedFileUri = new Map()
-				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
+				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {
+					extraHeaders: null,
+					suspensionBehavior: null,
+					baseUrl: null,
+				})
 
 				try {
 					const archiveIdToBlobs = groupBy<Blob, Id>(referencingInstance.blobs, (blob) => blob.archiveId)
 					for (const [archiveId, blobs] of archiveIdToBlobs) {
-						const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
+						const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId) ?? null)
 						for (const blob of blobs) {
 							controller.signal.throwIfAborted()
 							const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey)
@@ -571,7 +575,7 @@ export class BlobFacade {
 			await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 
 			// order decryptedChunkFileUris so that we can tell native to join them
-			const decryptedChunkFileUris = referencingInstance.blobs.map((blob: Blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId)))
+			const decryptedChunkFileUris = referencingInstance.blobs.map((blob: Blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId) ?? null))
 			const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
 			const size = await this.fileApp.getSize(decryptedFileUri)
 			return {
@@ -603,6 +607,7 @@ export class BlobFacade {
 			blobServerAccessInfo.servers,
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
+					...NULL_REST_CLIENT_OPTIONS,
 					queryParams: queryParams,
 					// noCORS tries to avoid all the things that make the request not a "Simple CORS request". Adding
 					// uploading listeners is one of this. In this case though we really do want an upload listener so
@@ -704,12 +709,12 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
-		abortSignal?: AbortSignal,
+		abortSignal: AbortSignal | null = null,
 	): Promise<Map<Id, Uint8Array>> {
 		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
 		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
 		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
-			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
+			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId) ?? null)
 			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(
 				archiveBlobs,
 				blobServerAccessInfo,
@@ -737,7 +742,7 @@ export class BlobFacade {
 		blobServerAccessInfo: BlobServerAccessInfo,
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
-		abortSignal?: AbortSignal,
+		abortSignal: AbortSignal | null = null,
 	): Promise<Map<Id, Uint8Array>> {
 		if (isEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
@@ -768,6 +773,7 @@ export class BlobFacade {
 				blobServerAccessInfo.servers,
 				async (serverUrl) => {
 					const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
+						...NULL_REST_CLIENT_OPTIONS,
 						queryParams: queryParams,
 						body,
 						responseType: MediaType.Binary,

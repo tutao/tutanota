@@ -220,7 +220,7 @@ export class MailExportController {
 
 					const mailAttachmentInfo = mail.attachments
 						.map((attachmentId) => attachmentInfo.find((attachment) => isSameId(attachment._id, attachmentId)))
-						.filter(isNotNull)
+						.filter((a): a is NonNullable<typeof a> => a != null)
 					try {
 						const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
 						const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)

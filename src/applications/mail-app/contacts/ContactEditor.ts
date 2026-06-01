@@ -369,7 +369,7 @@ export class ContactEditor {
 
 	private async saveNewContact(): Promise<void> {
 		this.contact._ownerGroup = assertNotNull(
-			locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
+			locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact) ?? null,
 			"did not find contact group membership",
 		).group
 		const contactId = assertNotNull(await this.entityClient.setup(this.listId, this.contact))

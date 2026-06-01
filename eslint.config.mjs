@@ -25,6 +25,48 @@ const noUnionExceptNullable = {
 	},
 }
 
+/** Ban undefined — use null with a null default instead for Kotlin/Swift compatibility. */
+const noUndefined = {
+	meta: {
+		type: "problem",
+		docs: {description: "Disallow undefined — use null with a null default instead"},
+		messages: {
+			noUndefinedType: "Use null instead of undefined in type annotations.",
+			noUndefinedValue: "Use null instead of the undefined identifier.",
+			noOptional: "Use '| null' with a null default instead of optional '?' syntax.",
+		},
+		schema: [],
+	},
+	create(context) {
+		return {
+			TSUndefinedKeyword(node) {
+				context.report({node, messageId: "noUndefinedType"})
+			},
+			Identifier(node) {
+				if (node.name === "undefined") {
+					context.report({node, messageId: "noUndefinedValue"})
+				}
+				// Optional function parameters: param?: Type
+				if (node.optional) {
+					context.report({node, messageId: "noOptional"})
+				}
+			},
+			// Optional interface/type properties: prop?: Type
+			TSPropertySignature(node) {
+				if (node.optional) {
+					context.report({node, messageId: "noOptional"})
+				}
+			},
+			// Optional interface methods: method?(): void
+			TSMethodSignature(node) {
+				if (node.optional) {
+					context.report({node, messageId: "noOptional"})
+				}
+			},
+		}
+	},
+}
+
 export default defineConfig([
 	{
 		rules: {
@@ -115,8 +157,8 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: {"local": {rules: {noUnionExceptNullable}}},
-		rules: {"local/noUnionExceptNullable": "error"},
+		plugins: {"local": {rules: {noUnionExceptNullable, noUndefined}}},
+		rules: {"local/noUnionExceptNullable": "error", "local/noUndefined": "error"},
 	},
 	[
 		globalIgnores([

@@ -5,8 +5,9 @@ import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoF
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { BlobAccessTokenFacade } from "../../../../../../platform-kit/network/BlobAccessTokenFacade"
+import { BlobAccessTokenFacade, BlobLoadOptions } from "../../../../../../platform-kit/network/BlobAccessTokenFacade"
 import { SuspensionBehavior } from "../../../../../../platform-kit/rest-client/types"
+import { EntityRestClientLoadOptions, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/network/EntityRestClient.js"
 import { Group } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { File, Mail } from "@tutao/entities/tutanota"
@@ -47,16 +48,16 @@ export class MailExportFacade {
 
 	async loadFixedNumberOfMailsWithCache(mailListId: Id, startId: Id, baseUrl: string): Promise<Mail[]> {
 		return this.mailExportTokenFacade.loadWithToken((token) =>
-			this.bulkMailLoader.loadFixedNumberOfMailsWithCache(mailListId, startId, { baseUrl, ...this.options(token) }),
+			this.bulkMailLoader.loadFixedNumberOfMailsWithCache(mailListId, startId, this.loadOptions(token, baseUrl)),
 		)
 	}
 
 	async loadMailDetails(mails: readonly Mail[], baseUrl: string): Promise<MailWithMailDetails[]> {
-		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadMailDetails(mails, { baseUrl, ...this.options(token) }))
+		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadMailDetails(mails, this.loadOptions(token, baseUrl)))
 	}
 
 	async loadAttachments(mails: readonly Mail[], baseUrl: string): Promise<File[]> {
-		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadAttachments(mails, { baseUrl, ...this.options(token) }))
+		return this.mailExportTokenFacade.loadWithToken((token) => this.bulkMailLoader.loadAttachments(mails, this.loadOptions(token, baseUrl)))
 	}
 
 	async loadAttachmentData(mail: Mail, attachments: readonly File[]): Promise<DataFile[]> {
@@ -64,9 +65,7 @@ export class MailExportFacade {
 
 		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {
 			const referencingInstances = attachmentsWithKeys.map(createReferencingInstance)
-			return this.blobFacade.downloadAndDecryptBlobsOfMultipleInstances(ArchiveDataType.Attachments, referencingInstances, {
-				...this.options(token),
-			})
+			return this.blobFacade.downloadAndDecryptBlobsOfMultipleInstances(ArchiveDataType.Attachments, referencingInstances, this.blobOptions(token))
 		})
 
 		const attachmentData = Array.from(downloads.entries()).map(([fileId, bytes]) => {
@@ -74,7 +73,7 @@ export class MailExportFacade {
 				if (bytes == null) {
 					return null
 				} else {
-					const attachment = assertNotNull(attachmentsWithKeys.find((attachment) => elementIdPart(attachment._id) === fileId))
+					const attachment = assertNotNull(attachmentsWithKeys.find((attachment) => elementIdPart(attachment._id) === fileId) ?? null)
 					return convertToDataFile(attachment, bytes)
 				}
 			} catch (e) {
@@ -89,15 +88,24 @@ export class MailExportFacade {
 		return attachmentData.filter(isNotNull)
 	}
 
-	private options(token: string): {
-		extraHeaders: Dict
-		suspensionBehavior: SuspensionBehavior
-	} {
+	private loadOptions(token: string, baseUrl: string): EntityRestClientLoadOptions {
+		return {
+			...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS,
+			extraHeaders: {
+				[MAIL_EXPORT_TOKEN_HEADER]: token,
+			},
+			suspensionBehavior: SuspensionBehavior.Throw,
+			baseUrl,
+		}
+	}
+
+	private blobOptions(token: string): BlobLoadOptions {
 		return {
 			extraHeaders: {
 				[MAIL_EXPORT_TOKEN_HEADER]: token,
 			},
 			suspensionBehavior: SuspensionBehavior.Throw,
+			baseUrl: null,
 		}
 	}
 }

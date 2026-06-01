@@ -10,7 +10,7 @@ import type { PlatformTray } from "./DesktopTray"
 import { assertNotNull } from "@tutao/utils"
 
 export class MacTray implements PlatformTray {
-	private readonly dock: Electron.Dock = assertNotNull(app.dock)
+	private readonly dock: Electron.Dock = assertNotNull(app.dock ?? null)
 
 	needsWindowListInMenu(): boolean {
 		//MacOs Catalina started showing the window list on its own

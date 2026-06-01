@@ -559,7 +559,7 @@ export class MailIndexer {
 		const attachments = await indexLoader.loadAttachments(mails)
 		const attachmentsById = new Map(attachments.map((a) => [getElementId(a), a]))
 		return mailsWithDetails.map(({ mail, mailDetails }) => {
-			const mailAttachments = mail.attachments.map(([_, elementId]) => attachmentsById.get(elementId)).filter(isNotNull)
+			const mailAttachments = mail.attachments.map(([_, elementId]) => attachmentsById.get(elementId)).filter((a): a is File => a != null)
 			return {
 				mail,
 				mailDetails,
@@ -583,7 +583,7 @@ export class MailIndexer {
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, assertNotNull(importMailState._ownerGroup))
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 		const mailSets = await this.loadMailSets(mailbox)
-		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
+		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED) ?? null)
 
 		const importedMailSetEntryListId = importedMailSet.entries
 		// we only want to index mails with a receivedDate newer than the currentIndexTimestamp

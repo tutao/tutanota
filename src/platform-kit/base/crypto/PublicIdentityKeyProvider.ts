@@ -109,7 +109,7 @@ export class PublicIdentityKeyProvider {
 		})
 
 		try {
-			const identityKeyGetOut = await this.serviceExecutor.get(IdentityKeyService, requestData)
+			const identityKeyGetOut = await this.serviceExecutor.get(IdentityKeyService, requestData, null)
 			const identityKeyFromServer = this.convertFromIdentityKeyRawData({
 				publicIdentityKey: identityKeyGetOut.publicIdentityKey,
 				identityKeyVersion: identityKeyGetOut.publicIdentityKeyVersion,

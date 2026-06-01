@@ -6,28 +6,44 @@ import { SuspensionBehavior } from "../rest-client/types"
 assertMainOrNode()
 
 export interface IServiceExecutor {
-	get<S extends GetService>(service: S, data: ParamTypeFromRef<S["get"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["get"]["return"]>>
+	get<S extends GetService>(
+		service: S,
+		data: ParamTypeFromRef<S["get"]["data"]>,
+		params: ExtraServiceParams | null,
+	): Promise<ReturnTypeFromRef<S["get"]["return"]>>
 
 	post<S extends PostService>(
 		service: S,
 		data: ParamTypeFromRef<S["post"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null,
 	): Promise<ReturnTypeFromRef<S["post"]["return"]>>
 
-	put<S extends PutService>(service: S, data: ParamTypeFromRef<S["put"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["put"]["return"]>>
+	put<S extends PutService>(
+		service: S,
+		data: ParamTypeFromRef<S["put"]["data"]>,
+		params: ExtraServiceParams | null,
+	): Promise<ReturnTypeFromRef<S["put"]["return"]>>
 
 	delete<S extends DeleteService>(
 		service: S,
 		data: ParamTypeFromRef<S["delete"]["data"]>,
-		params?: ExtraServiceParams,
+		params: ExtraServiceParams | null,
 	): Promise<ReturnTypeFromRef<S["delete"]["return"]>>
 }
 
 export interface ExtraServiceParams {
-	queryParams?: Dict
-	sessionKey?: AesKey
-	extraHeaders?: Dict
-	suspensionBehavior?: SuspensionBehavior
+	queryParams: Dict | null
+	sessionKey: AesKey | null
+	extraHeaders: Dict | null
+	suspensionBehavior: SuspensionBehavior | null
 	/** override origin for the request */
-	baseUrl?: string
+	baseUrl: string | null
+}
+
+export const NULL_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
+	queryParams: null,
+	sessionKey: null,
+	extraHeaders: null,
+	suspensionBehavior: null,
+	baseUrl: null,
 }

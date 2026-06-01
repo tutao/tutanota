@@ -523,12 +523,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					const locationId = elementIdPart(location._id)
 					destinationFolders.set(locationId, location)
 
-					const destinationList = destinationsForMails.get(locationId) ?? assertNotNull(destinationsForMails.set(locationId, []).get(locationId))
+					const destinationList =
+						destinationsForMails.get(locationId) ?? assertNotNull(destinationsForMails.set(locationId, []).get(locationId) ?? null)
 					destinationList.push(mail.mail._id)
 				})
 
 				for (const [destinationId, mails] of destinationsForMails.entries()) {
-					const mailset = assertNotNull(destinationFolders.get(destinationId))
+					const mailset = assertNotNull(destinationFolders.get(destinationId) ?? null)
 					await mailLocator.mailModel.moveMails(mails, mailset, MoveMode.Mails)
 					totalMoved += mails.length
 				}

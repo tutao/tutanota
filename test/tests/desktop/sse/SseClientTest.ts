@@ -306,7 +306,7 @@ class RequestStub implements Partial<http.ClientRequest> {
 	}
 
 	async sendResponse(response: ResponseStub) {
-		await assertNotNull(this.eventListeners.get("response"))(response)
+		await assertNotNull(this.eventListeners.get("response") ?? null)(response)
 	}
 
 	async sendError(error: Error) {
@@ -350,7 +350,7 @@ class ResponseStub implements Partial<http.IncomingMessage> {
 	}
 
 	sendData(data: string) {
-		assertNotNull(this.eventListeners.get("data"))(data)
+		assertNotNull(this.eventListeners.get("data") ?? null)(data)
 	}
 
 	close() {

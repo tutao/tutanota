@@ -129,7 +129,7 @@ export class OfflineStorageMigrator {
 	 * @returns true if the database we're supposed to migrate has any higher schema versions than our schema version
 	 */
 	private isDbNewerThanCurrentClient(meta: Partial<OfflineDbMeta>): boolean {
-		return assertNotNull(meta[`offline-version`]) > CURRENT_OFFLINE_VERSION
+		return assertNotNull(meta[`offline-version`] ?? null) > CURRENT_OFFLINE_VERSION
 	}
 }
 

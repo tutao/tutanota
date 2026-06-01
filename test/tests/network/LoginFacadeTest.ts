@@ -15,7 +15,7 @@ import {
 	sha256Hash,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
-import { LoginFacade, LoginFailReason, LoginListener } from "../../../src/platform-kit/base/facades/LoginFacade"
+import { AsyncLoginStateKind, LoginFacade, LoginFailReason, LoginListener, ResumeSessionResultType } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade"
@@ -51,7 +51,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/crypto/Constants.js"
-import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
+import { CacheMode, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { DefaultLoginListener } from "../../../src/applications/common/workerUtils/DefaultLoginListener"
@@ -134,7 +134,7 @@ o.spec("LoginFacadeTest", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+		when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 			createTestEntity(SaltReturnTypeRef, { salt: SALT, kdfVersion: DEFAULT_KDF_TYPE }),
 		)
 
@@ -211,14 +211,16 @@ o.spec("LoginFacadeTest", function () {
 			const accessToken = "accessToken"
 
 			o.beforeEach(async function () {
-				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.post(SessionService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createTestEntity(CreateSessionReturnTypeRef, {
 						user: userId,
 						accessToken: accessToken,
 						challenges: [],
 					}),
 				)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(await makeUser(userId))
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					await makeUser(userId),
+				)
 			})
 
 			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
@@ -330,7 +332,7 @@ o.spec("LoginFacadeTest", function () {
 				}
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				// The call to /sys/session/...
 				when(
@@ -380,7 +382,9 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
-				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateKind.Idle, credentials: null, cacheInfo: null })(
+					"Synchronous login occured, so once resume returns we have already logged in",
+				)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
@@ -403,7 +407,9 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
-				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateKind.Running, credentials: null, cacheInfo: null })(
+					"Async login occurred so it is still running",
+				)
 			})
 
 			o.test("when resuming a session and a notAuthenticatedError is thrown, the error is propagated to the main thread", async function () {
@@ -473,7 +479,7 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -596,7 +602,7 @@ o.spec("LoginFacadeTest", function () {
 					timeRangeDate,
 				)
 
-				o(result.type).equals("success")
+				o(result.type).equals(ResumeSessionResultType.Success)
 
 				await deferred.promise
 
@@ -631,7 +637,7 @@ o.spec("LoginFacadeTest", function () {
 
 				console.log("after resolve " + calls.toString())
 
-				o(result.type).equals("success")
+				o(result.type).equals(ResumeSessionResultType.Success)
 				o(calls).deepEquals(["setUser", "sessionService"])
 
 				// Did not finish login
@@ -671,7 +677,7 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -779,9 +785,9 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
-				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
 				)
 
@@ -842,7 +848,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -860,7 +866,7 @@ o.spec("LoginFacadeTest", function () {
 					timeRangeDate,
 				)
 
-				o(result.type).equals("success")
+				o(result.type).equals(ResumeSessionResultType.Success)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
@@ -932,7 +938,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -950,7 +956,7 @@ o.spec("LoginFacadeTest", function () {
 					timeRangeDate,
 				)
 
-				o(result.type).equals("success")
+				o(result.type).equals(ResumeSessionResultType.Success)
 			})
 		})
 	})
@@ -978,6 +984,7 @@ o.spec("LoginFacadeTest", function () {
 					argThat(({ kdfVersion, oldVerifier, pwEncUserGroupKey, salt, verifier }) => {
 						return kdfVersion === KdfType.Argon2id
 					}),
+					null,
 				),
 			)
 			verify(cacheManagmentFacadeMock.reloadUser())

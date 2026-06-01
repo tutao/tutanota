@@ -107,7 +107,7 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 		const { timeColumnGrid, baseDate, eventInteractions, intervals } = columnViewAttrs
 
 		const firstInterval = getFirstOrThrow(intervals)
-		const secondInterval = assertNotNull(intervals.at(1))
+		const secondInterval = assertNotNull(intervals.at(1) ?? null)
 		const intervalIncrement = firstInterval.diff(secondInterval)
 		const lastInterval = lastThrow(intervals)
 

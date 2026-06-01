@@ -32,7 +32,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
-import { EntityRestClientLoadOptions } from "../../../../platform-kit/network/EntityRestClient"
+import { EntityRestClientLoadOptions, NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
@@ -313,7 +313,7 @@ export class MailModel {
 	 */
 	getLabelsForMail(mail: Mail): MailSet[] {
 		const groupLabels = this.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
-		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter(isNotNull)
+		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter((s): s is MailSet => s != null)
 	}
 
 	private getMailSetsForGroup(groupId: Id): MailboxSets | null {
@@ -620,7 +620,7 @@ export class MailModel {
 		return await this.mailFacade.unscheduleMail(mail._id)
 	}
 
-	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS): Promise<MailWithMailDetails[]> {
 		return this.bulkMailLoader.loadMailDetails(mails, options)
 	}
 

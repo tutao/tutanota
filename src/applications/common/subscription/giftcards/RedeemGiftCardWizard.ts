@@ -410,7 +410,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 		const isFree = locator.logins.getUserController().isFreeAccount()
 
 		return m("", [
-			mapNullable(model.newAccountData?.recoverCode, (code) =>
+			mapNullable(model.newAccountData?.recoverCode ?? null, (code) =>
 				m(
 					".pt-32.plr-24",
 					m(RecoverCodeField, {

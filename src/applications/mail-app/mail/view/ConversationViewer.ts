@@ -78,7 +78,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			{
 				key: Keys.R,
 				exec: () => {
-					assertNotNull(viewModel()).reply(false)
+					assertNotNull(viewModel() ?? null).reply(false)
 				},
 				enabled: isReplyAndForwardEnabled,
 				help: "reply_action",
@@ -87,7 +87,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				key: Keys.R,
 				shift: true,
 				exec: () => {
-					assertNotNull(viewModel()).reply(true)
+					assertNotNull(viewModel() ?? null).reply(true)
 				},
 				enabled: isReplyAndForwardEnabled,
 				help: "replyAll_action",
@@ -99,7 +99,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				shift: true,
 				enabled: isReplyAndForwardEnabled,
 				exec: () => {
-					assertNotNull(viewModel()).forward().catch(ofClass(UserError, showUserError))
+					assertNotNull(viewModel() ?? null)
+						.forward()
+						.catch(ofClass(UserError, showUserError))
 				},
 				help: "forward_action",
 			})

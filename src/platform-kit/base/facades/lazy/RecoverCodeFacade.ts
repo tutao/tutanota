@@ -14,6 +14,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityClient } from "../../../network/EntityClient.js"
+import { NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS } from "../../../network/EntityRestClient.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../crypto/KeyLoaderFacade.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys"
@@ -76,7 +77,7 @@ export class RecoverCodeFacade {
 			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
 		}
 
-		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { extraHeaders })
+		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { ...NULL_ENTITY_REST_CLIENT_LOAD_OPTIONS, extraHeaders })
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}

@@ -52,7 +52,7 @@ export class EntropyFacade {
 			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor
-			.put(EntropyService, entropyData)
+			.put(EntropyService, entropyData, null)
 			.catch(ofClass(LockedError, noOp))
 			.catch(
 				ofClass(ConnectionError, (e) => {

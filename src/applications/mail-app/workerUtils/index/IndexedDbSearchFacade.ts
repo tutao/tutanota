@@ -344,46 +344,59 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		const { key, iv } = await this.db.encryptionData()
 		// First read all metadata to narrow time range we search in.
 		return this.db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS]).then((transaction) => {
-			return this.promiseMapCompat(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
-				const [searchToken] = tokenInfo
-				let indexKey = encryptIndexKeyBase64(key, searchToken, iv)
-				return transaction.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
-					if (!metaData) {
-						tokenInfo[1] = 0 // "we've read all" (because we don't have anything
+			return this.promiseMapCompat(
+				searchResult.lastReadSearchIndexRow,
+				(tokenInfo, index) => {
+					const [searchToken] = tokenInfo
+					let indexKey = encryptIndexKeyBase64(key, searchToken, iv)
+					return transaction.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
+						if (!metaData) {
+							tokenInfo[1] = 0 // "we've read all" (because we don't have anything
 
-						// If there's no metadata for key, return empty result
-						return {
-							id: -index,
-							word: indexKey,
-							rows: [],
+							// If there's no metadata for key, return empty result
+							return {
+								id: -index,
+								word: indexKey,
+								rows: [],
+							}
 						}
-					}
 
-					return decryptMetaData(key, metaData)
-				})
-			})
+						return decryptMetaData(key, metaData)
+					})
+				},
+				null,
+			)
 				.thenOrApply((metaRows) => {
 					// Find index entry rows in which we will search.
-					const rowsToReadForIndexKeys = this.findRowsToReadFromMetaData(firstSearchTokenInfo, metaRows, typeInfo, maxResults)
+					const rowsToReadForIndexKeys = this.findRowsToReadFromMetaData(
+						firstSearchTokenInfo,
+						metaRows as SearchIndexMetaDataRow[],
+						typeInfo,
+						maxResults,
+					)
 
 					// Iterate each query token
-					return this.promiseMapCompat(rowsToReadForIndexKeys, (rowsToRead: RowsToReadForIndexKey) => {
-						// For each token find token entries in the rows we've found
-						return this.promiseMapCompat(rowsToRead.rows, (entry) => this.findEntriesForMetadata(transaction, entry))
-							.thenOrApply((a) => a.flat())
-							.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
-								return indexEntries.map((entry) => ({
-									encEntry: entry,
-									idHash: arrayHashSigned(getIdFromEncSearchIndexEntry(entry)),
-								}))
-							})
-							.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
-								return {
-									indexKey: rowsToRead.indexKey,
-									indexEntries: indexEntries,
-								}
-							}).value
-					}).value
+					return this.promiseMapCompat(
+						rowsToReadForIndexKeys,
+						(rowsToRead: RowsToReadForIndexKey) => {
+							// For each token find token entries in the rows we've found
+							return this.promiseMapCompat(rowsToRead.rows, (entry) => this.findEntriesForMetadata(transaction, entry), null)
+								.thenOrApply((a) => a.flat())
+								.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
+									return indexEntries.map((entry) => ({
+										encEntry: entry,
+										idHash: arrayHashSigned(getIdFromEncSearchIndexEntry(entry)),
+									}))
+								})
+								.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
+									return {
+										indexKey: rowsToRead.indexKey,
+										indexEntries: indexEntries,
+									}
+								}).value
+						},
+						null,
+					).value
 				})
 				.toPromise()
 		})

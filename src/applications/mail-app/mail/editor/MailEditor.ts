@@ -1269,14 +1269,18 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				// But for consistency we always show something to confirm the email was sent/scheduled, since it will be expected for a snackbar to appear
 				if (allowUndo && sendJob != null) {
 					// sent mail that can be undone
-					const sentMail = assertNotNull(model.draft?._id)
+					const sentMail = assertNotNull(model.draft?._id ?? null)
+					const capturedSendJob: IdTuple = sendJob
 
 					showUndoMailSnackbar(
 						model.undoModel,
 						async () => {
 							if (model.draft) {
-								await model.mailFacade.undoSendMail(sentMail, sendJob)
-								const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
+								await model.mailFacade.undoSendMail(sentMail, capturedSendJob)
+								const conversationEntry = await model.entity.load(
+									ConversationEntryTypeRef,
+									assertNotNull(model.draft.conversationEntry ?? null),
+								)
 								// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
 								const editorDialog = await newMailEditorFromDraft(
 									model.draft,
@@ -1764,7 +1768,7 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog?.show()
 }
@@ -1784,7 +1788,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
