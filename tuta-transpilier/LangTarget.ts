@@ -6,6 +6,7 @@ import {
 	ExpressionStatement,
 	FunctionDeclaration,
 	Identifier,
+	IfStatement,
 	ImportDeclaration,
 	InterfaceDeclaration,
 	NumericLiteral,
@@ -36,6 +37,7 @@ import { TOperatorToken } from "./constructs/TOperatorToken"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TClassDecl } from "./constructs/TClassDecl"
 import { TInterfaceDecl } from "./constructs/TInterfaceDecl"
+import { TIfStatement } from "./constructs/TIfStatement"
 import SyntaxKind = ts.SyntaxKind
 
 export const enum TargetLanguage {
@@ -110,6 +112,8 @@ export class LangTarget {
 			return new TEnum(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {
 			return new TTypeAlias(typedNode)
+		} else if (typedNode instanceof IfStatement) {
+			return new TIfStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
 			return new TCall(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
