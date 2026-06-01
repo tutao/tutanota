@@ -1,7 +1,7 @@
 import { program } from "commander"
 import { Project } from "ts-morph"
-import { KotlinTarget } from "./KotlinTarget.js"
 import { TUTANOTA_ROOT } from "./Constants.js"
+import { LangTarget, TargetLanguage } from "./LangTarget"
 
 program
 	.action(async () => {
@@ -12,10 +12,10 @@ program
 		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/AppType.ts")
 		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/boot/ClientConstants.ts")
 		project.addSourceFileAtPath(TUTANOTA_ROOT + "/src/platform-kit/app-env/TimeConstants.ts")
-		const targetTranspilation = project.getSourceFiles().map((sourceFile) => {
-			const kotlinTarget = new KotlinTarget(sourceFile)
-			kotlinTarget.generate()
-			kotlinTarget.writeToFile()
+		const targetTranspilation = project.getSourceFiles().map(async (sourceFile) => {
+			const langTarget = new LangTarget(sourceFile, TargetLanguage.Kotlin)
+			await langTarget.generate()
+			await langTarget.writeToFile()
 		})
 		await Promise.all(targetTranspilation)
 	})
