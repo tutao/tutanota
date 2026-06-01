@@ -179,19 +179,19 @@ impl Nonce {
 #[derive(Eq, PartialEq, Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the iv
-pub struct Iv([u8; IV_BYTE_SIZE]);
+pub struct InitializationVector([u8; INITIALIZATION_VECTOR_BYTE_SIZE]);
 
-impl Clone for Iv {
+impl Clone for InitializationVector {
 	/// Clone the initialization vector
 	///
 	/// This is implemented so that entity_facade_test_utils will work. You should never, ever, ever
 	/// re-use an IV, as this can lead to information leakage.
 	fn clone(&self) -> Self {
-		Iv(self.0)
+		InitializationVector(self.0)
 	}
 }
 
-impl Iv {
+impl InitializationVector {
 	/// Generate an initialisation vector.
 	#[must_use]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
@@ -199,16 +199,16 @@ impl Iv {
 	}
 
 	#[must_use]
-	pub fn from_arr(arr: [u8; IV_BYTE_SIZE]) -> Self {
+	pub fn from_arr(arr: [u8; INITIALIZATION_VECTOR_BYTE_SIZE]) -> Self {
 		Self(arr)
 	}
 
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
-		Ok(Self(array_cast_slice(bytes, "Iv")?))
+		Ok(Self(array_cast_slice(bytes, "Initialisation vector")?))
 	}
 
 	#[must_use]
-	pub fn get_inner(&self) -> &[u8; IV_BYTE_SIZE] {
+	pub fn get_inner(&self) -> &[u8; INITIALIZATION_VECTOR_BYTE_SIZE] {
 		&self.0
 	}
 
@@ -228,7 +228,7 @@ pub enum AesEncryptError {
 pub fn aes_128_encrypt(
 	key: &Aes128Key,
 	plaintext: &[u8],
-	iv: &Iv,
+	iv: &InitializationVector,
 	padding_mode: PaddingMode,
 	mac_mode: MacMode,
 ) -> Result<Vec<u8>, AesEncryptError> {
@@ -254,7 +254,7 @@ pub fn aes_128_encrypt_no_padding_fixed_iv(
 pub fn aes_256_encrypt(
 	key: &Aes256Key,
 	plaintext: &[u8],
-	iv: &Iv,
+	iv: &InitializationVector,
 	padding_mode: PaddingMode,
 ) -> Result<Vec<u8>, AesEncryptError> {
 	aes_encrypt(key, plaintext, iv, padding_mode, MacMode::WithMac)
@@ -278,7 +278,7 @@ pub enum AesDecryptError {
 pub struct PlaintextAndIv {
 	pub data: Vec<u8>,
 	// IV is small enough that a copy is the same size as a reference
-	pub iv: Iv,
+	pub iv: InitializationVector,
 }
 
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
@@ -339,7 +339,7 @@ pub const AES_128_KEY_SIZE: usize = 16;
 pub const AES_256_KEY_SIZE: usize = 32;
 
 /// The size of an AES initialisation vector in bytes
-pub const IV_BYTE_SIZE: usize = 16;
+pub const INITIALIZATION_VECTOR_BYTE_SIZE: usize = 16;
 
 /// The size of an AES-CTR nonce in bytes
 pub const NONCE_BYTE_SIZE: usize = 16;
@@ -410,7 +410,7 @@ fn aes_ctr_apply(key: &Aes256Key, text: &[u8], nonce: &Nonce) -> Vec<u8> {
 fn aes_encrypt<Key: AesKey>(
 	key: &Key,
 	plaintext: &[u8],
-	iv: &Iv,
+	iv: &InitializationVector,
 	padding_mode: PaddingMode,
 	mac_mode: MacMode,
 ) -> Result<Vec<u8>, AesEncryptError> {
@@ -476,7 +476,7 @@ fn decrypt_unpadded_vec_mut<C: BlockCipher + BlockDecrypt>(
 }
 
 /// The initialisation vector used when encrypting keys
-const FIXED_IV: [u8; IV_BYTE_SIZE] = [0x88; IV_BYTE_SIZE];
+const FIXED_IV: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] = [0x88; INITIALIZATION_VECTOR_BYTE_SIZE];
 
 #[derive(Debug)]
 struct CiphertextWithAuthentication<'a> {
@@ -487,7 +487,8 @@ struct CiphertextWithAuthentication<'a> {
 
 impl<'a> CiphertextWithAuthentication<'a> {
 	fn split_iv_and_ciphertext(&self) -> (&'a [u8], &'a [u8]) {
-		self.iv_and_ciphertext.split_at(IV_BYTE_SIZE)
+		self.iv_and_ciphertext
+			.split_at(INITIALIZATION_VECTOR_BYTE_SIZE)
 	}
 
 	fn parse(bytes: &'a [u8]) -> Result<Option<CiphertextWithAuthentication<'a>>, AesDecryptError> {
@@ -497,7 +498,7 @@ impl<'a> CiphertextWithAuthentication<'a> {
 		}
 
 		// Incorrect size for Hmac
-		if bytes.len() <= IV_BYTE_SIZE + HMAC_SHA256_SIZE {
+		if bytes.len() <= INITIALIZATION_VECTOR_BYTE_SIZE + HMAC_SHA256_SIZE {
 			return Err(AesDecryptError::MacError(MacError));
 		}
 
@@ -550,7 +551,7 @@ fn aes_decrypt<Key: AesKey>(
 	padding_mode: PaddingMode,
 	enforce_mac: EnforceMac,
 ) -> Result<PlaintextAndIv, AesDecryptError> {
-	if encrypted_bytes.len() < IV_BYTE_SIZE {
+	if encrypted_bytes.len() < INITIALIZATION_VECTOR_BYTE_SIZE {
 		return Err(AesDecryptError::InvalidDataSizeError);
 	}
 
@@ -567,7 +568,7 @@ fn aes_decrypt<Key: AesKey>(
 			return Err(AesDecryptError::MacError(MacError));
 		} else {
 			// Separate and check both the initialisation vector
-			let (iv_bytes, cipher_text) = encrypted_bytes.split_at(IV_BYTE_SIZE);
+			let (iv_bytes, cipher_text) = encrypted_bytes.split_at(INITIALIZATION_VECTOR_BYTE_SIZE);
 			(key.clone(), iv_bytes, cipher_text)
 		};
 
@@ -575,7 +576,7 @@ fn aes_decrypt<Key: AesKey>(
 	if encrypted_bytes.is_empty() {
 		return Ok(PlaintextAndIv {
 			data: vec![],
-			iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
+			iv: InitializationVector(iv_bytes.try_into().expect("iv is correct size")),
 		});
 	}
 
@@ -589,7 +590,7 @@ fn aes_decrypt<Key: AesKey>(
 
 	Ok(PlaintextAndIv {
 		data: plaintext_data,
-		iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
+		iv: InitializationVector(iv_bytes.try_into().expect("iv is correct size")),
 	})
 }
 
@@ -853,8 +854,8 @@ mod tests {
 		}
 	}
 
-	fn reproduce_iv_from_injected_seed(seed: &Vec<u8>) -> Iv {
-		Iv(seed[..IV_BYTE_SIZE].try_into().unwrap())
+	fn reproduce_iv_from_injected_seed(seed: &Vec<u8>) -> InitializationVector {
+		InitializationVector(seed[..INITIALIZATION_VECTOR_BYTE_SIZE].try_into().unwrap())
 	}
 
 	#[test]

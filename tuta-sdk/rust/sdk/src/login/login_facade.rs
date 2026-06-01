@@ -233,7 +233,7 @@ mod tests {
 	use crate::CustomId;
 	use crate::GeneratedId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
-	use crypto_primitives::aes::{Aes128Key, Aes256Key, Iv};
+	use crypto_primitives::aes::{Aes128Key, Aes256Key, InitializationVector};
 	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
@@ -244,7 +244,7 @@ mod tests {
 		let access_token = "ZB-VPZfACMABhx-jUBZ91wyBWLlaJ6AIzg".to_string();
 		let passphrase_key = Aes256Key::generate(&randomizer);
 		let salt: Vec<u8> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-		let iv = Iv::generate(&randomizer);
+		let iv = InitializationVector::generate(&randomizer);
 		let access_key = GenericAesKey::from(Aes256Key::generate(&randomizer));
 		let user = make_user(&user_id, salt, passphrase_key.clone(), &randomizer);
 		let session = make_session(&user_id, &access_key);
@@ -335,8 +335,10 @@ mod tests {
 				capability: None,
 				groupKeyVersion: 0,
 				group: GeneratedId("groupId".to_string()),
-				symEncGKey: GenericAesKey::Aes256(passphrase_key)
-					.encrypt_key(&user_group_key.into(), Iv::generate(randomizer)),
+				symEncGKey: GenericAesKey::Aes256(passphrase_key).encrypt_key(
+					&user_group_key.into(),
+					InitializationVector::generate(randomizer),
+				),
 				groupInfo: IdTupleGenerated {
 					list_id: GeneratedId("groupInfoListId".to_string()),
 					element_id: GeneratedId("groupInfoElId".to_string()),

@@ -10,7 +10,7 @@ use crate::{ApiCallError, TypeRef};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use core::str;
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use lz4_flex::block::DecompressError;
@@ -86,7 +86,7 @@ impl EntityFacadeImpl {
 		model_value: &ModelValue,
 		instance_value: &ElementValue,
 		session_key: &GenericAesKey,
-		iv: Iv,
+		iv: InitializationVector,
 	) -> Result<ElementValue, ApiCallError> {
 		let value_type = &model_value.value_type;
 
@@ -160,7 +160,7 @@ impl EntityFacadeImpl {
 					value_type,
 					instance_value,
 					sk,
-					Iv::generate(&self.randomizer_facade),
+					InitializationVector::generate(&self.randomizer_facade),
 				)?
 			};
 			encrypted.insert(value_id_string.to_string(), encrypted_value);
@@ -678,7 +678,7 @@ mod tests {
 	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::{collection, ApiCallError};
-	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::aes::{Aes256Key, InitializationVector};
 	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
@@ -749,7 +749,7 @@ mod tests {
 		let timestamp: u64 = 1738310400000;
 		let model_value = create_model_value(ValueType::String, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::String(timestamp.to_string());
 		let encrypted_value =
 			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone()).unwrap();
@@ -892,7 +892,7 @@ mod tests {
 	fn decrypt_compressed_string() {
 		let model_value = create_model_value(ValueType::CompressedString, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::String("this is a string value".to_string());
 
 		let encrypted_value =
@@ -926,7 +926,7 @@ mod tests {
 	#[test]
 	fn compress_empty_compressed_string() {
 		let session_key = GenericAesKey::from_bytes(&KNOWN_SK).unwrap();
-		let iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
+		let iv = InitializationVector::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
 		let encrypted_value = EntityFacadeImpl::encrypt_value(
 			&create_model_value(ValueType::CompressedString, true, Cardinality::One),
 			&ElementValue::String(String::default()),
@@ -987,7 +987,7 @@ mod tests {
 	fn encrypt_value_string() {
 		let model_value = create_model_value(ValueType::String, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::String("this is a string value".to_string());
 
 		let encrypted_value =
@@ -1004,7 +1004,7 @@ mod tests {
 	fn encrypt_value_compressed_string() {
 		let model_value = create_model_value(ValueType::CompressedString, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 
 		let value = ElementValue::String("Hello, world".to_string());
 
@@ -1026,7 +1026,7 @@ mod tests {
 	fn encrypt_value_bool() {
 		let model_value = create_model_value(ValueType::Boolean, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 
 		{
 			let value = ElementValue::Bool(true);
@@ -1052,7 +1052,7 @@ mod tests {
 	fn encrypt_value_date() {
 		let model_value = create_model_value(ValueType::Date, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
-		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let iv = InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng));
 		let value = ElementValue::Date(DateTime::from_system_time(SystemTime::now()));
 
 		let encrypted_value =
@@ -1070,7 +1070,7 @@ mod tests {
 		let model_value = create_model_value(ValueType::Bytes, true, Cardinality::One);
 		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
 		let randomizer_facade = &RandomizerFacade::from_core(rand_core::OsRng);
-		let iv = Iv::generate(randomizer_facade);
+		let iv = InitializationVector::generate(randomizer_facade);
 		let value = ElementValue::Bytes(randomizer_facade.generate_random_array::<5>().to_vec());
 
 		let encrypted_value =
@@ -1093,7 +1093,7 @@ mod tests {
 					&create_model_value(value_type.clone(), true, Cardinality::ZeroOrOne),
 					&ElementValue::Null,
 					&sk,
-					Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+					InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 				)
 				.unwrap()
 			);
@@ -1113,7 +1113,7 @@ mod tests {
 					&create_model_value(value_type.clone(), true, Cardinality::One),
 					&ElementValue::Null,
 					&sk,
-					Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
+					InitializationVector::generate(&RandomizerFacade::from_core(rand_core::OsRng)),
 				)
 			);
 		}
@@ -1131,7 +1131,7 @@ mod tests {
 		// this is not about the actual value, but that it is set at all
 		let expected_aggregate_id = make_random_aggregate_id(&random);
 
-		let iv = Iv::generate(&random);
+		let iv = InitializationVector::generate(&random);
 		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),

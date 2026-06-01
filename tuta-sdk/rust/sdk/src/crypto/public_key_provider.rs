@@ -9,8 +9,9 @@ use crate::services::generated::sys::PublicKeyService;
 use crate::services::service_executor::ServiceExecutor;
 use crate::services::ExtraServiceParams;
 use crate::tutanota_constants::PublicKeyIdentifierType;
-use crate::util::{convert_version_to_i64, convert_version_to_u64, Versioned};
+use crate::util::{convert_version_to_i64, convert_version_to_u64};
 use crate::ApiCallError;
+use crypto_primitives::versioned::Versioned;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq)]

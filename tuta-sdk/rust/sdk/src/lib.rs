@@ -18,7 +18,6 @@ use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::crypto_facade::create_auth_verifier;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
-use crate::crypto::key::VersionedAesKey;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
 #[cfg_attr(test, mockall_double::double)]
@@ -51,9 +50,10 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use bindings::file_client::FileClient;
 use bindings::rest_client::{RestClient, RestClientError};
-use crypto_primitives::aes::{Aes256Key, Iv};
+use crypto_primitives::aes::{Aes256Key, InitializationVector};
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use crypto_primitives::versioned::VersionedAesKey;
 
 pub mod contacts;
 pub mod crypto;
@@ -381,7 +381,7 @@ impl Sdk {
 		};
 		let encrypted_passphrase_key = GenericAesKey::Aes256(access_key).encrypt_key(
 			&GenericAesKey::Aes256(user_passphrase_key),
-			Iv::generate(&randomizer),
+			InitializationVector::generate(&randomizer),
 		);
 		let session_data_response = service_executor
 			.post::<SessionService>(session_data, ExtraServiceParams::default())

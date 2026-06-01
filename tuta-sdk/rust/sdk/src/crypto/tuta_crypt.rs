@@ -7,7 +7,8 @@ use crate::crypto::x25519::{
 	X25519SharedSecrets,
 };
 use crypto_primitives::aes::{
-	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
+	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError,
+	InitializationVector, PaddingMode,
 };
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use util::array::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
@@ -115,7 +116,7 @@ impl TutaCryptMessage {
 		recipient_x25519_key: &X25519PublicKey,
 		recipient_kyber_key: &KyberPublicKey,
 		bucket_key: &Aes256Key,
-		iv: Iv, //TODO this is error prone and dangerous, we should generate the iv inside the aes implementation
+		iv: InitializationVector, //TODO this is error prone and dangerous, we should generate the iv inside the aes implementation
 	) -> Result<Self, TutaCryptError> {
 		let x25519_shared_secret = x25519_encapsulate(
 			&sender_x25519_keypair.private_key,
@@ -293,7 +294,7 @@ mod tests {
 			};
 
 			let bucket_key = Aes256Key::try_from(i.bucket_key).unwrap();
-			let iv = Iv::from_bytes(&i.seed[i.seed.len() - 16..]).unwrap();
+			let iv = InitializationVector::from_bytes(&i.seed[i.seed.len() - 16..]).unwrap();
 
 			let encapsulation = TutaCryptMessage::encapsulate(
 				sender_x25519_keypair,

@@ -2,9 +2,9 @@ use crate::importer::importable_mail::{ImportableMailAttachment, ImportableMailW
 use crypto_primitives::aes;
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use crypto_primitives::versioned::VersionedAesKey;
 use std::iter::Peekable;
 use std::path::PathBuf;
-use tutasdk::crypto::key::VersionedAesKey;
 
 use tutasdk::entities::generated::tutanota::ImportMailData;
 
@@ -26,8 +26,10 @@ impl MailUploadDataWithAttachment {
 		importable_mail: ImportableMailWithPath,
 	) -> Self {
 		let session_key = GenericAesKey::Aes256(aes::Aes256Key::generate(randomizer_facade));
-		let owner_enc_session_key =
-			mail_group_key.encrypt_key(&session_key, aes::Iv::generate(randomizer_facade));
+		let owner_enc_session_key = mail_group_key.encrypt_key(
+			&session_key,
+			aes::InitializationVector::generate(randomizer_facade),
+		);
 
 		let ImportableMailWithPath {
 			mut importable_mail,

@@ -161,6 +161,10 @@ export class UserFacade extends LoggedInUserProvider {
 		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameId(g.group, groupId))
 
 		if (!membership) {
+			console.log(new Error().stack)
+		}
+
+		if (!membership) {
 			throw new Error(`No membership with groupId ${groupId} found!`)
 		}
 

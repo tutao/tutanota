@@ -1,10 +1,8 @@
 use super::rsa::*;
 use super::tuta_crypt::*;
 use crate::crypto::X25519PublicKey;
-use crate::util::Versioned;
 use crate::ApiCallError;
 use crypto_primitives::aes::*;
-use crypto_primitives::key::*;
 use std::fmt::{Debug, Formatter};
 use util::array::ArrayCastingError;
 
@@ -95,14 +93,3 @@ impl KeyLoadErrorSubtype for RSAKeyError {}
 
 /// Used to handle errors from the entity client
 impl KeyLoadErrorSubtype for ApiCallError {}
-
-pub type VersionedAesKey = Versioned<GenericAesKey>;
-
-impl Versioned<GenericAesKey> {
-	#[must_use]
-	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Versioned<Vec<u8>> {
-		let encrypted_key = self.object.encrypt_key(key_to_encrypt, iv);
-		// todo: this looks like the vec<u8> has the version which is not true
-		Versioned::new(encrypted_key, self.version)
-	}
-}

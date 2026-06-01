@@ -10,14 +10,14 @@ use crate::util::test_utils::{
 };
 use crate::GeneratedId;
 use crate::{IdTupleGenerated, TypeRef};
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::GenericAesKey;
 
 /// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
 #[must_use]
 pub fn generate_email_entity(
 	session_key: &GenericAesKey,
-	iv: &Iv,
+	iv: &InitializationVector,
 	confidential: bool,
 	subject: String,
 	sender_name: String,
@@ -62,7 +62,7 @@ pub fn generate_email_entity(
 fn typed_entity_to_encrypted_entity<T: Entity + serde::Serialize>(
 	entity: T,
 	session_key: &GenericAesKey,
-	iv: &Iv,
+	iv: &InitializationVector,
 ) -> ParsedEntity {
 	let provider = mock_type_model_provider();
 	let mut parsed = typed_entity_to_parsed_entity(entity);
@@ -80,7 +80,7 @@ fn encrypt_test_entity_dict_with_provider(
 	app: AppName,
 	type_id: TypeId,
 	session_key: &GenericAesKey,
-	iv: &Iv,
+	iv: &InitializationVector,
 ) {
 	let type_ref = TypeRef::new(app, type_id);
 	let Some(model) = provider.resolve_client_type_ref(&type_ref) else {

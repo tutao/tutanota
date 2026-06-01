@@ -1,17 +1,18 @@
 use crate::crypto::hkdf;
-use crate::crypto::key::VersionedAesKey;
 use crate::crypto::sha256;
 use crate::crypto::{Aes256Key, AES_256_KEY_SIZE};
 use crate::entities::generated::sys::{GroupMembership, User};
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_cache::KeyCache;
-use crate::util::{convert_version_to_u64, Versioned};
+use crate::util::convert_version_to_u64;
 use crate::ApiCallError;
 use crate::GeneratedId;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use crypto_primitives::key::GenericAesKey;
+use crypto_primitives::versioned::Versioned;
+use crypto_primitives::versioned::VersionedAesKey;
 use std::borrow::ToOwned;
 use std::sync::{Arc, RwLock};
 

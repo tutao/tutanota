@@ -27,7 +27,7 @@ use crate::IdTupleGenerated;
 use crate::{GeneratedId, ListLoadDirection};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::{GenericAesKey, KeyDecryptError};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use num_enum::TryFromPrimitive;
@@ -348,9 +348,10 @@ impl CryptoFacade {
 			.get_current_sym_group_key(owner_group)
 			.await?;
 
-		let owner_enc_session_key = versioned_owner_group_key
-			.object
-			.encrypt_key(&session_key, Iv::generate(&self.randomizer_facade));
+		let owner_enc_session_key = versioned_owner_group_key.object.encrypt_key(
+			&session_key,
+			InitializationVector::generate(&self.randomizer_facade),
+		);
 		Ok(ResolvedSessionKey {
 			session_key,
 			owner_enc_session_key,
@@ -490,7 +491,6 @@ mod test {
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
-	use crate::crypto::key::VersionedAesKey;
 	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, GroupInfo, InstanceSessionKey, Permission};
@@ -506,10 +506,11 @@ mod test {
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 	use crate::TypeModelProvider;
-	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::aes::{Aes256Key, InitializationVector};
 	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
+	use crypto_primitives::versioned::VersionedAesKey;
 	use mockall::predicate::eq;
 	use std::ops::Deref;
 	use std::sync::Arc;
@@ -623,9 +624,10 @@ mod test {
 
 		let constants = BucketKeyConstants::new(&randomizer_facade);
 		let session_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
-		let owner_enc_session_key = constants
-			.group_key
-			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+		let owner_enc_session_key = constants.group_key.encrypt_key(
+			&session_key,
+			InitializationVector::generate(&randomizer_facade),
+		);
 
 		let mail = Mail {
 			_id: Some(IdTupleGenerated {
@@ -669,17 +671,19 @@ mod test {
 		let constants = BucketKeyConstants::new(&randomizer_facade);
 		let permission_constants = BucketKeyConstants::new(&randomizer_facade);
 		let session_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
-		let owner_enc_session_key = constants
-			.group_key
-			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+		let owner_enc_session_key = constants.group_key.encrypt_key(
+			&session_key,
+			InitializationVector::generate(&randomizer_facade),
+		);
 
 		let permission_list = permission_constants.instance_list.clone();
 		let permission_id = permission_constants.instance_id.clone();
 		let permission_owner_group = permission_constants.key_group.clone();
 		let permission_owner_key_version = permission_constants.recipient_key_version;
-		let permission_owner_enc_session_key = permission_constants
-			.group_key
-			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+		let permission_owner_enc_session_key = permission_constants.group_key.encrypt_key(
+			&session_key,
+			InitializationVector::generate(&randomizer_facade),
+		);
 
 		let mock_calendar_group_info = GroupInfo {
 			_id: Some(IdTupleGenerated {
@@ -815,7 +819,7 @@ mod test {
 			let key_group = GeneratedId::test_random();
 			let bucket_key_generic = GenericAesKey::from(bucket_key.clone());
 
-			let bucket_enc_session_key_iv = Iv::generate(randomizer_facade);
+			let bucket_enc_session_key_iv = InitializationVector::generate(randomizer_facade);
 			let bucket_enc_session_key =
 				bucket_key_generic.encrypt_key(&mail_session_key, bucket_enc_session_key_iv);
 			let sender_key_version = 1;

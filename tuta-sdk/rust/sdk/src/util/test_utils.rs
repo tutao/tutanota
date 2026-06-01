@@ -151,7 +151,10 @@ pub fn generate_former_keys(
 		let current_key: &GenericAesKey = &current_key.clone().into();
 
 		let owner_enc_g_key = last_key
-			.encrypt_key(current_key, Iv::generate(randomizer_facade))
+			.encrypt_key(
+				current_key,
+				InitializationVector::generate(randomizer_facade),
+			)
 			.as_slice()
 			.to_vec();
 		let sym_enc_priv_x25519_key = current_key
@@ -161,7 +164,7 @@ pub fn generate_former_keys(
 					.private_key
 					.clone()
 					.as_bytes(),
-				Iv::generate(randomizer_facade),
+				InitializationVector::generate(randomizer_facade),
 			)
 			.unwrap();
 
@@ -200,7 +203,7 @@ pub fn generate_former_keys(
 									.private_key
 									.serialize()
 									.as_slice(),
-								Iv::generate(randomizer_facade),
+								InitializationVector::generate(randomizer_facade),
 							)
 							.unwrap(),
 					),
@@ -243,7 +246,7 @@ pub fn generate_group_with_keys(
 			let sym_enc_priv_rsa_key = group_key
 				.encrypt_data(
 					rsa_kp.private_key.serialize().as_slice(),
-					Iv::generate(randomizer_facade),
+					InitializationVector::generate(randomizer_facade),
 				)
 				.unwrap();
 			current_keys.pubRsaKey = Some(rsa_kp.public_key.serialize());
@@ -255,13 +258,13 @@ pub fn generate_group_with_keys(
 			let sym_enc_priv_x25519_key = group_key
 				.encrypt_data(
 					x25519_keys.private_key.as_bytes(),
-					Iv::generate(randomizer_facade),
+					InitializationVector::generate(randomizer_facade),
 				)
 				.unwrap();
 			let sync_enc_priv_kyber_key = group_key
 				.encrypt_data(
 					&kyber_keys.private_key.serialize(),
-					Iv::generate(randomizer_facade),
+					InitializationVector::generate(randomizer_facade),
 				)
 				.unwrap();
 			current_keys.pubEccKey = Some(x25519_keys.public_key.as_bytes().to_vec());
@@ -608,16 +611,17 @@ macro_rules! collection {
         }};
     }
 
-use crate::crypto::key::{AsymmetricKeyPair, VersionedAesKey};
+use crate::crypto::key::AsymmetricKeyPair;
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::Contact;
 use crate::entities::Entity;
 use crate::metamodel::TypeModel;
 use crate::type_model_provider::TypeModelProvider;
 use crate::TypeRef;
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use crypto_primitives::versioned::VersionedAesKey;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,4 +1,4 @@
-use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError, VersionedAesKey};
+use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError};
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::generated::sys::{Group, GroupKey, KeyPair};
 #[cfg_attr(test, mockall_double::double)]
@@ -7,12 +7,13 @@ use crate::key_cache::KeyCache;
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::{convert_version_to_u64, Versioned};
+use crate::util::convert_version_to_u64;
 use crate::CustomId;
 use crate::GeneratedId;
 use crate::IdTupleCustom;
 use crate::ListLoadDirection;
 use crypto_primitives::key::GenericAesKey;
+use crypto_primitives::versioned::{Versioned, VersionedAesKey};
 use futures::future::BoxFuture;
 use std::cmp::Ordering;
 use std::sync::Arc;
@@ -414,7 +415,7 @@ mod tests {
 	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
 	use crate::IdTupleGenerated;
-	use crypto_primitives::aes::Iv;
+	use crypto_primitives::aes::InitializationVector;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate;
@@ -502,9 +503,10 @@ mod tests {
 
 		{
 			let user_group_id = user_group._id.clone();
-			let sym_enc_g_key = user_group_key
-				.object
-				.encrypt_key(&current_group_key.object, Iv::generate(randomizer));
+			let sym_enc_g_key = user_group_key.object.encrypt_key(
+				&current_group_key.object,
+				InitializationVector::generate(randomizer),
+			);
 			let sym_enc_g_key_clone = sym_enc_g_key.clone();
 
 			let current_group_key = current_group_key.clone();

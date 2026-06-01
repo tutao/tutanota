@@ -11,6 +11,7 @@ pub mod randomizer_facade;
 pub mod sha;
 #[cfg(test)]
 mod test_utils;
+pub mod versioned;
 
 use ed25519::Ed25519KeyPair;
 use randomizer_facade::RandomizerFacade;

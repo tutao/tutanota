@@ -57,7 +57,7 @@ impl GenericAesKey {
 
 	/// Encrypts `key_to_encrypt` with this key.
 	#[must_use]
-	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Vec<u8> {
+	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: InitializationVector) -> Vec<u8> {
 		match self {
 			Self::Aes128(key) => {
 				aes_128_encrypt_no_padding_fixed_iv(key, key_to_encrypt.as_bytes()).unwrap()
@@ -71,7 +71,11 @@ impl GenericAesKey {
 
 	/// Encrypts `text` with this key.
 	/// TODO passing the iv is error prone and dangerous, we should generate it inside
-	pub fn encrypt_data(&self, text: &[u8], iv: Iv) -> Result<Vec<u8>, AesEncryptError> {
+	pub fn encrypt_data(
+		&self,
+		text: &[u8],
+		iv: InitializationVector,
+	) -> Result<Vec<u8>, AesEncryptError> {
 		let ciphertext = match self {
 			Self::Aes128(key) => {
 				aes_128_encrypt(key, text, &iv, PaddingMode::WithPadding, MacMode::WithMac)?
@@ -156,7 +160,7 @@ mod tests {
 
 		let random_string = generate_random_string::<10>();
 		let raw_text = random_string.as_bytes();
-		let iv = Iv::generate(&randomizer);
+		let iv = InitializationVector::generate(&randomizer);
 		let key: GenericAesKey = Aes128Key::generate(&randomizer).into();
 
 		let ciphertext = key.encrypt_data(raw_text, iv).unwrap();
@@ -171,7 +175,7 @@ mod tests {
 
 		let random_string = generate_random_string::<10>();
 		let raw_text = random_string.as_bytes();
-		let iv = Iv::generate(&randomizer);
+		let iv = InitializationVector::generate(&randomizer);
 		let key: GenericAesKey = Aes256Key::generate(&randomizer).into();
 
 		let ciphertext = key.encrypt_data(raw_text, iv).unwrap();

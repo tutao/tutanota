@@ -25,7 +25,7 @@ use crate::GeneratedId;
 use crate::{crypto, ApiCallError, HeadersProvider};
 use base64::Engine;
 use crypto::sha256;
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::collections::HashMap;
@@ -168,7 +168,10 @@ impl BlobFacade {
 			for blob in blobs {
 				let encrypted_blob = file_datum
 					.session_key
-					.encrypt_data(blob, Iv::generate(&self.randomizer_facade))
+					.encrypt_data(
+						blob,
+						InitializationVector::generate(&self.randomizer_facade),
+					)
 					.map_err(|e| ApiCallError::internal_with_err(e, "Cannot encrypt blob"))?;
 				let short_hash: Vec<u8> = sha256(&encrypted_blob).into_iter().take(6).collect();
 
@@ -316,7 +319,10 @@ impl BlobFacade {
 			.await?;
 
 		let encrypted_blob = session_key
-			.encrypt_data(blob, Iv::generate(&self.randomizer_facade))
+			.encrypt_data(
+				blob,
+				InitializationVector::generate(&self.randomizer_facade),
+			)
 			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt blob")))?;
 		let query_params =
 			self.create_query_params_single_blob_legacy(&encrypted_blob, blob_access_token);

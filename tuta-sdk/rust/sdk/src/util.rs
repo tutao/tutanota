@@ -20,25 +20,6 @@ pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	copy
 }
 
-#[derive(Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this might print a key
-pub struct Versioned<T> {
-	pub object: T,
-	pub version: u64,
-}
-
-impl<T> Versioned<T> {
-	pub fn new(object: T, version: u64) -> Versioned<T> {
-		Versioned { object, version }
-	}
-	pub fn as_ref(&self) -> Versioned<&T> {
-		Versioned {
-			object: &self.object,
-			version: self.version,
-		}
-	}
-}
-
 #[must_use]
 pub fn convert_version_to_u64(version: i64) -> u64 {
 	version.try_into().expect("got an invalid version number")

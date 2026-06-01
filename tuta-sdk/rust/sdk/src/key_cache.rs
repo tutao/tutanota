@@ -1,7 +1,7 @@
-use crate::crypto::key::VersionedAesKey;
 use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::User;
 use crate::GeneratedId;
+use crypto_primitives::versioned::VersionedAesKey;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::RwLock;
 

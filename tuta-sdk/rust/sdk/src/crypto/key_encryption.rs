@@ -118,7 +118,7 @@ mod tests {
 	use crate::crypto::TutaCryptKeyPairs;
 	use crate::entities::generated::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
-	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::aes::{Aes256Key, InitializationVector};
 	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
@@ -144,7 +144,7 @@ mod tests {
 				parent_key
 					.encrypt_data(
 						junk_x25519_pair.private_key.as_bytes(),
-						Iv::generate(&randomizer),
+						InitializationVector::generate(&randomizer),
 					)
 					.unwrap(),
 			),
@@ -152,7 +152,7 @@ mod tests {
 				parent_key
 					.encrypt_data(
 						&tuta_crypt_key_pair.kyber_keys.private_key.serialize(),
-						Iv::generate(&randomizer),
+						InitializationVector::generate(&randomizer),
 					)
 					.unwrap(),
 			),
@@ -195,7 +195,7 @@ mod tests {
 				parent_key
 					.encrypt_data(
 						rsa_key_pair.private_key.serialize().as_slice(),
-						Iv::generate(&randomizer),
+						InitializationVector::generate(&randomizer),
 					)
 					.unwrap(),
 			),
@@ -235,7 +235,7 @@ mod tests {
 				parent_key
 					.encrypt_data(
 						rsa_x25519_key_pair.x25519_key_pair.private_key.as_bytes(),
-						Iv::generate(&randomizer),
+						InitializationVector::generate(&randomizer),
 					)
 					.unwrap(),
 			),
@@ -248,7 +248,7 @@ mod tests {
 							.private_key
 							.serialize()
 							.as_slice(),
-						Iv::generate(&randomizer),
+						InitializationVector::generate(&randomizer),
 					)
 					.unwrap(),
 			),

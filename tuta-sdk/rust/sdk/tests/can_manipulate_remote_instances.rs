@@ -1,9 +1,9 @@
-use crypto_primitives::aes::Iv;
+use crypto_primitives::aes::InitializationVector;
 use crypto_primitives::key::GenericAesKey;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::sync::Arc;
 use tutasdk::bindings::test_file_client::TestFileClient;
-use tutasdk::crypto::{Aes256Key, IV_BYTE_SIZE};
+use tutasdk::crypto::{Aes256Key, INITIALIZATION_VECTOR_BYTE_SIZE};
 use tutasdk::date::DateTime;
 use tutasdk::entities::generated::sys::PushIdentifier;
 use tutasdk::entities::generated::tutanota::Mail;
@@ -39,7 +39,8 @@ async fn can_create_remote_instance() {
 
 	let _owner_enc_session_key = user_group_key.encrypt_key(
 		&session_key,
-		Iv::from_bytes(&rand::random::<[u8; IV_BYTE_SIZE]>()).unwrap(),
+		InitializationVector::from_bytes(&rand::random::<[u8; INITIALIZATION_VECTOR_BYTE_SIZE]>())
+			.unwrap(),
 	);
 	let user_push_identifier_list_id = logged_in_sdk
 		.get_user()
