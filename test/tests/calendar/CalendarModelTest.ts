@@ -20,7 +20,7 @@ import {
 import { FileController } from "../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
-import { ExternalCalendarFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types/ExternalCalendarFacade.js"
+import { ExternalCalendarFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker.js"
 import { LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel.js"
@@ -29,7 +29,6 @@ import { AlarmScheduler } from "../../../src/applications/common/calendar/date/A
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/common/calendar/import/ImportExportUtils"
 import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
 	CalendarEvent,
@@ -63,6 +62,7 @@ import { ProgressMonitorInterface } from "../../../src/platform-kit/network/Prog
 import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
+import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
