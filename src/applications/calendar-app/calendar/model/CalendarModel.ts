@@ -886,7 +886,7 @@ export class CalendarModel {
 	 *
 	 * note about recurrenceId in event series https://stackoverflow.com/questions/11456406/recurrence-id-in-icalendar-rfc-5545
 	 */
-	async resolveCalendarEventProgenitor({ uid, _ownerGroup }: Pick<CalendarEvent, "uid" | "_ownerGroup">): Promise<CalendarEvent | null> {
+	async resolveCalendarEventProgenitor({ uid, _ownerGroup }: Pick<CalendarEvent, "uid" | "_ownerGroup">): Promise<CalendarEventProgenitor | null> {
 		const progenitorUid = assertNotNull(uid, "could not resolve progenitor: no uid")
 		const progenitorOwnerGroup = assertNotNull(_ownerGroup, "could not resolve progenitor: no _ownerGroup")
 		return (await this.getEventsByUid(progenitorUid, progenitorOwnerGroup))?.progenitor ?? null
