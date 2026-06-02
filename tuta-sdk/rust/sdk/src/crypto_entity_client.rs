@@ -223,8 +223,7 @@ impl CryptoEntityClient {
 				.parse_entity::<T>(decrypted_entity)
 				.map_err(|error| ApiCallError::InternalSdkError {
 					error_message: format!(
-						"Failed to parse unencrypted entity into proper types: {}",
-						error
+						"Failed to parse unencrypted entity into proper types: {error}"
 					),
 				})?;
 			result.push(typed_entity);
