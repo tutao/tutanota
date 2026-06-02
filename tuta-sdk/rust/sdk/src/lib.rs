@@ -26,7 +26,10 @@ use crate::crypto_entity_client::CryptoEntityClient;
 use crate::date::date_provider::SystemDateProvider;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
-use crate::entities::generated::sys::{CreateSessionData, SaltData, User};
+use crate::entities::generated::sys::{
+	Challenge, CreateSessionData, CreateSessionReturn, SaltData, SecondFactorAuthData,
+	SecondFactorAuthDeleteData, SecondFactorAuthGetData, User,
+};
 use crate::entities::generated::tutanota::Mail;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -36,14 +39,15 @@ use crate::json_serializer::{InstanceMapperError, JsonSerializer};
 use crate::key_cache::KeyCache;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
-use crate::login::login_facade::{derive_user_passphrase_key, KdfType};
+use crate::login::login_facade::{derive_user_passphrase_key, parse_session_id, KdfType};
 use crate::login::{CredentialType, Credentials, LoginError, LoginFacade};
 use crate::mail_facade::MailFacade;
 use crate::rest_error::{HttpError, ParseFailureError};
-use crate::services::generated::sys::{SaltService, SessionService};
+use crate::services::generated::sys::{SaltService, SecondFactorAuthService, SessionService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
 use crate::services::ExtraServiceParams;
+use crate::tutanota_constants::SecondFactorType;
 use crate::type_model_provider::TypeModelProvider;
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
@@ -169,6 +173,15 @@ impl HeadersProvider {
 
 		headers
 	}
+}
+
+/// Response returned by [`Sdk::initiate_session`]. When `challenges` is empty
+/// the caller can directly pass `credentials` to [`Sdk::login`]. Otherwise
+/// the second factor challenges must first be resolved.
+#[derive(uniffi::Record, Clone)]
+pub struct SessionInitResponse {
+	pub credentials: Credentials,
+	pub challenges: Vec<Challenge>,
 }
 
 /// The external facing interface used by the consuming code via FFI
@@ -335,28 +348,41 @@ impl Sdk {
 		mail_address: &str,
 		passphrase: &str,
 	) -> Result<Arc<LoggedInSdk>, LoginError> {
-		let headers_provider = Arc::new(HeadersProvider::new(None));
-		let entity_facade = Arc::new(EntityFacadeImpl::new(
-			self.type_model_provider.clone(),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		));
+		let response = self.initiate_session(mail_address, passphrase).await?;
+		if !response.challenges.is_empty() {
+			return Err(LoginError::ApiCall {
+				source: ApiCallError::internal(
+					"second factor authentication required: use initiate_session, authenticate_with_second_factor_totp, then login".to_string(),
+				),
+			});
+		}
+		self.login(response.credentials).await
+	}
 
-		let service_executor = ServiceExecutor::new(
-			headers_provider.clone(),
-			None,
-			entity_facade,
-			self.instance_mapper.clone(),
-			self.json_serializer.clone(),
-			self.rest_client.clone(),
-			self.type_model_provider.clone(),
-			self.base_url.to_string(),
-		);
-		let salt_get_input: SaltData = SaltData {
-			_format: 0,
-			mailAddress: mail_address.to_string(),
-		};
+	/// Initiate a new session. If the user has a second factor enabled, the
+	/// returned response contains the pending challenges and the caller must
+	/// resolve them via [`Sdk::authenticate_with_second_factor_totp`] (and
+	/// optionally poll [`Sdk::is_second_factor_pending`]) before completing
+	/// login via [`Sdk::login`].
+	///
+	/// Mirrors TS `LoginFacade.createSession` returning challenges.
+	pub async fn initiate_session(
+		&self,
+		mail_address: &str,
+		passphrase: &str,
+	) -> Result<SessionInitResponse, LoginError> {
+		// Mirror TS `LoginFacade.createSession`, which normalizes the mail
+		// address before deriving the salt and creating the session.
+		let mail_address = mail_address.trim().to_lowercase();
+		let service_executor = self.make_unauthenticated_service_executor();
 		let salt_return = service_executor
-			.get::<SaltService>(salt_get_input, ExtraServiceParams::default())
+			.get::<SaltService>(
+				SaltData {
+					_format: 0,
+					mailAddress: mail_address.clone(),
+				},
+				ExtraServiceParams::default(),
+			)
 			.await?;
 
 		let Ok(salt) = salt_return.salt.try_into() else {
@@ -369,13 +395,13 @@ impl Sdk {
 		let access_key = Aes256Key::generate(&randomizer);
 		let user_passphrase_key = derive_user_passphrase_key(KdfType::Argon2id, passphrase, salt);
 		let auth_verifier = create_auth_verifier(user_passphrase_key.clone());
-		let session_data: CreateSessionData = CreateSessionData {
+		let session_data = CreateSessionData {
 			_format: 0,
 			accessKey: Some(access_key.as_bytes().to_vec()),
 			authToken: None,
 			authVerifier: Some(auth_verifier),
 			clientIdentifier: "Linux Desktop".to_string(),
-			mailAddress: Some(mail_address.to_string()),
+			mailAddress: Some(mail_address.clone()),
 			recoverCodeVerifier: None,
 			user: None,
 		};
@@ -383,18 +409,107 @@ impl Sdk {
 			&GenericAesKey::Aes256(user_passphrase_key),
 			Iv::generate(&randomizer),
 		);
-		let session_data_response = service_executor
+		let session_return: CreateSessionReturn = service_executor
 			.post::<SessionService>(session_data, ExtraServiceParams::default())
 			.await?;
 
-		self.login(Credentials {
-			login: mail_address.to_string(),
-			user_id: session_data_response.user.clone(),
-			access_token: session_data_response.accessToken.clone(),
-			encrypted_passphrase_key,
-			credential_type: CredentialType::Internal,
+		Ok(SessionInitResponse {
+			credentials: Credentials {
+				login: mail_address,
+				user_id: session_return.user.clone(),
+				access_token: session_return.accessToken.clone(),
+				encrypted_passphrase_key,
+				credential_type: CredentialType::Internal,
+			},
+			challenges: session_return.challenges,
 		})
-		.await
+	}
+
+	/// Submit a TOTP code to resolve a second factor challenge for a session
+	/// returned by [`Sdk::initiate_session`].
+	///
+	/// Mirrors TS `LoginFacade.authenticateWithSecondFactor` for TOTP.
+	pub async fn authenticate_with_second_factor_totp(
+		&self,
+		access_token: &str,
+		totp_code: u32,
+	) -> Result<(), LoginError> {
+		let session_id =
+			parse_session_id(access_token).map_err(|e| LoginError::InvalidAccessToken {
+				error_message: format!("{e}"),
+			})?;
+
+		let service_executor = self.make_unauthenticated_service_executor();
+		let auth_data = SecondFactorAuthData {
+			_format: 0,
+			r#type: Some(SecondFactorType::Totp.into()),
+			otpCode: Some(i64::from(totp_code)),
+			session: Some(session_id),
+			u2f: None,
+			webauthn: None,
+		};
+		service_executor
+			.post::<SecondFactorAuthService>(auth_data, ExtraServiceParams::default())
+			.await?;
+		Ok(())
+	}
+
+	/// Check whether the server is still waiting for a second factor to be
+	/// resolved for the given session. Returns `false` once the second factor
+	/// has been accepted.
+	///
+	/// This is a single request; retrying and cancellation are left to the
+	/// caller. Corresponds to the request performed in each iteration of TS
+	/// `LoginFacade.waitUntilSecondFactorApproved`.
+	pub async fn is_second_factor_pending(
+		&self,
+		access_token: &str,
+	) -> Result<bool, LoginError> {
+		let service_executor = self.make_unauthenticated_service_executor();
+		let result = service_executor
+			.get::<SecondFactorAuthService>(
+				SecondFactorAuthGetData {
+					_format: 0,
+					accessToken: access_token.to_string(),
+				},
+				ExtraServiceParams::default(),
+			)
+			.await?;
+		Ok(result.secondFactorPending)
+	}
+
+	/// Cancel a session that is awaiting second factor approval.
+	///
+	/// Mirrors TS `LoginFacade.cancelCreateSession`.
+	pub async fn cancel_create_session(
+		&self,
+		access_token: &str,
+	) -> Result<(), LoginError> {
+		let session_id =
+			parse_session_id(access_token).map_err(|e| LoginError::InvalidAccessToken {
+				error_message: format!("{e}"),
+			})?;
+
+		let service_executor = self.make_unauthenticated_service_executor();
+		let result = service_executor
+			.delete::<SecondFactorAuthService>(
+				SecondFactorAuthDeleteData {
+					_format: 0,
+					session: session_id,
+				},
+				ExtraServiceParams::default(),
+			)
+			.await;
+		match result {
+			Ok(())
+			// The session may already be gone (deleted by a concurrent
+			// successful authentication) or locked. Mirror TS
+			// `LoginFacade.cancelCreateSession`, which treats both as success.
+			| Err(ApiCallError::ServerResponseError {
+				source: HttpError::NotFoundError | HttpError::LockedError,
+			}) => Ok(()),
+			Err(e) => Err(e.into()),
+		}
 	}
 
 	#[must_use]
@@ -421,6 +536,24 @@ impl Sdk {
 }
 
 impl Sdk {
+	fn make_unauthenticated_service_executor(&self) -> ServiceExecutor {
+		let headers_provider = Arc::new(HeadersProvider::new(None));
+		let entity_facade = Arc::new(EntityFacadeImpl::new(
+			self.type_model_provider.clone(),
+			RandomizerFacade::from_core(rand_core::OsRng),
+		));
+		ServiceExecutor::new(
+			headers_provider,
+			None,
+			entity_facade,
+			self.instance_mapper.clone(),
+			self.json_serializer.clone(),
+			self.rest_client.clone(),
+			self.type_model_provider.clone(),
+			self.base_url.clone(),
+		)
+	}
+
 	fn new_internal(
 		base_url: String,
 		rest_client: Arc<dyn RestClient>,
@@ -715,6 +848,8 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::entities::generated::tutanota::Mail;
+	use crate::login::LoginError;
+	use crate::tutanota_constants::SecondFactorType;
 	use crate::util::test_utils::create_test_entity_dict;
 	use crate::Sdk;
 
@@ -728,5 +863,46 @@ mod tests {
 
 		let parsed_mail = create_test_entity_dict::<Mail>();
 		let _ = sdk.serialize_mail(parsed_mail);
+	}
+
+	#[test]
+	fn second_factor_type_values_match_typescript() {
+		assert_eq!(i64::from(SecondFactorType::U2f), 0);
+		assert_eq!(i64::from(SecondFactorType::Totp), 1);
+		assert_eq!(i64::from(SecondFactorType::Webauthn), 2);
+	}
+
+	fn make_test_sdk() -> Sdk {
+		Sdk::new(
+			"http://localhost:9000".to_string(),
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
+		)
+	}
+
+	#[tokio::test]
+	async fn authenticate_with_second_factor_totp_rejects_invalid_access_token() {
+		let sdk = make_test_sdk();
+		let err = sdk
+			.authenticate_with_second_factor_totp("not-base64!", 123_456)
+			.await
+			.expect_err("must reject invalid access token");
+		assert!(
+			matches!(err, LoginError::InvalidAccessToken { .. }),
+			"expected InvalidAccessToken, got: {err:?}",
+		);
+	}
+
+	#[tokio::test]
+	async fn cancel_create_session_rejects_invalid_access_token() {
+		let sdk = make_test_sdk();
+		let err = sdk
+			.cancel_create_session("not-base64!")
+			.await
+			.expect_err("must reject invalid access token");
+		assert!(
+			matches!(err, LoginError::InvalidAccessToken { .. }),
+			"expected InvalidAccessToken, got: {err:?}",
+		);
 	}
 }
