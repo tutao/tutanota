@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./storage/", "../../types/"],
+	"include": ["./storage/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./storage/",
 		"outDir": "../../build/entities/storage",

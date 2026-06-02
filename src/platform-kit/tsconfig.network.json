@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["network", "../../types/*"],
+	"include": ["network", "../types/*"],
 	"compilerOptions": {
 		"rootDir": "network",
 		"outDir": "../../build/network",

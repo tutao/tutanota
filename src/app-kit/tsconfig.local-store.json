@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["local-store", "../../types/*.d.ts"],
+	"include": ["local-store", "../types/*.d.ts"],
 	"compilerOptions": {
 		"rootDir": "local-store",
 		"outDir": "../../build/local-store",

@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./tutanota/", "../../types/"],
+	"include": ["./tutanota/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./tutanota/",
 		"outDir": "../../build/entities/tutanota",

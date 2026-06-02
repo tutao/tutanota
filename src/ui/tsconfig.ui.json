@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./", "../../types/", "../global.d.ts"],
+	"include": ["./", "../types/", "../global.d.ts"],
 	"compilerOptions": {
 		"rootDir": "./",
 		"outDir": "../../build/ui",

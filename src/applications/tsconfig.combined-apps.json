@@ -5,7 +5,7 @@
 		"./mail-app/",
 		"./calendar-app/",
 		"./drive-app/",
-		"../../types/",
+		"../types/",
 		"../global.d.ts",
 		"../../libs/tensorflow-platform-stub.js",
 		"../../libs/luxon.js"

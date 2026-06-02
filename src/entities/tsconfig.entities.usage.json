@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./usage/", "../../types/"],
+	"include": ["./usage/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./usage/",
 		"outDir": "../../build/entities/usage",

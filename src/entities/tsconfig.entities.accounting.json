@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./accounting/", "../../types/"],
+	"include": ["./accounting/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./accounting/",
 		"outDir": "../../build/entities/accounting",
