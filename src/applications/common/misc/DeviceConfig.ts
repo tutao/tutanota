@@ -40,7 +40,8 @@ interface ConfigObject {
 	scheduledAlarmModelVersionPerUser: Record<Id, number>
 	_themeId: ThemePreference
 	_language: LanguageCode | null
-	_defaultCalendarView: Record<Id, CalendarViewType | null>
+	lastSelectedCalendarView: Record<Id, CalendarViewType | undefined>
+	defaultCalendarViewSetting: Record<Id, CalendarViewType | undefined | null>
 	/** map from user id to a list of calendar grouproots*/
 	_hiddenCalendars: Record<Id, Id[]>
 	/** map from user id to a list of expanded mailSets (elementId)*/
@@ -98,7 +99,7 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
-	public static readonly Version = 7
+	public static readonly Version = 8
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -137,7 +138,8 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			_themeId: loadedConfig._themeId ?? defaultThemePreference,
 			scheduledAlarmModelVersionPerUser: loadedConfig.scheduledAlarmModelVersionPerUser ?? {},
 			_language: loadedConfig._language ?? null,
-			_defaultCalendarView: loadedConfig._defaultCalendarView ?? {},
+			lastSelectedCalendarView: loadedConfig.lastSelectedCalendarView ?? {},
+			defaultCalendarViewSetting: loadedConfig.defaultCalendarViewSetting ?? {},
 			_hiddenCalendars: loadedConfig._hiddenCalendars ?? {},
 			expandedMailFolders: loadedConfig.expandedMailFolders ?? {},
 			_testDeviceId: loadedConfig._testDeviceId ?? null,
@@ -331,16 +333,34 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 		}
 	}
 
-	getDefaultCalendarView(userId: Id): CalendarViewType | null {
-		return this.config._defaultCalendarView[userId]
+	getLastSelectedCalendarView(userId: Id): CalendarViewType | null {
+		return this.config.lastSelectedCalendarView[userId] ?? null
 	}
 
-	setDefaultCalendarView(userId: Id, defaultView: CalendarViewType) {
-		if (this.config._defaultCalendarView[userId] !== defaultView) {
-			this.config._defaultCalendarView[userId] = defaultView
+	setLastSelectedCalendarView(userId: Id, defaultView: CalendarViewType) {
+		if (this.config.lastSelectedCalendarView[userId] !== defaultView) {
+			this.config.lastSelectedCalendarView[userId] = defaultView
 
 			this.writeToStorage()
 		}
+	}
+
+	getDefaultCalenderViewSetting(userId: Id): CalendarViewType | null {
+		return this.config.defaultCalendarViewSetting[userId] ?? null
+	}
+
+	setDefaultCalendarViewSetting(userId: Id, setting: CalendarViewType | null) {
+		if (this.config.defaultCalendarViewSetting[userId] !== setting) {
+			this.config.defaultCalendarViewSetting[userId] = setting
+
+			this.writeToStorage()
+		}
+	}
+
+	getDefaultCalendarView(userId: Id): CalendarViewType {
+		const setting = this.getDefaultCalenderViewSetting(userId)
+		const lastSelected = this.getLastSelectedCalendarView(userId)
+		return setting ?? lastSelected ?? CalendarViewType.MONTH
 	}
 
 	getHiddenCalendars(user: Id): Id[] {
@@ -566,6 +586,11 @@ export function migrateConfig(loadedConfig: any) {
 
 	if (loadedConfig._version < 7) {
 		loadedConfig.installationDate = getStartOfDay(new Date()).getTime().toString()
+	}
+
+	if (loadedConfig._version < 8) {
+		loadedConfig.lastSelectedCalendarView = loadedConfig._defaultCalendarView
+		delete loadedConfig._defaultCalendarView
 	}
 }
 
