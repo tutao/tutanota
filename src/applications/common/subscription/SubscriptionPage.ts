@@ -135,6 +135,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 					showMultiUser: false,
 					discountDetails,
 					targetPlan: data.targetPlanType,
+					personalPlansAvailable: true,
 				}),
 			),
 		])

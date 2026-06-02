@@ -144,6 +144,7 @@ export async function showSwitchDialog({
 					showMultiUser: multipleUsersAllowed,
 					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 					discountDetails,
+					personalPlansAvailable: true,
 				}),
 			),
 		)

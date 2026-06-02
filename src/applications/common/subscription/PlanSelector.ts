@@ -33,7 +33,7 @@ export type PlanSelectorAttr = {
 	targetPlan: PlanType
 	onContinue?: any
 	newSignupFlow?: boolean
-	personalPlansAvailable?: boolean
+	personalPlansAvailable: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {

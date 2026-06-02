@@ -281,7 +281,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 											this.wizardViewModel.options.paymentInterval(),
 										),
 									onPrev: (ctx) => {
-										if (ctx.viewModel.options.businessUse()) {
+										if (ctx.viewModel.options.businessUse() && ctx.viewModel.personalPlansAvailable) {
 											ctx.viewModel.options.businessUse(false)
 										} else {
 											m.route.set("/")
