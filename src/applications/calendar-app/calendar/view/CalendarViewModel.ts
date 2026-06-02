@@ -34,7 +34,7 @@ import {
 	UpgradePromptType,
 	WeekStart,
 } from "../../../../platform-kit/app-env"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { LoginController } from "../../../common/api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -82,12 +82,12 @@ import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
+import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 
 export interface EventWrapperFlags {
 	/**
@@ -946,8 +946,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	async importIcsFile(groupRoot: CalendarGroupRoot, calendarInfo: CalendarInfoBase) {
 		const parsedEventAlarmTuples = await showProgressDialog("loading_msg", selectAndParseIcalFile())
-		const importer = new CalendarImporter(this.calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, this.timeZone)
-		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, calendarInfo.type)
+		const importer = new CalendarImporter(
+			this.calendarModel,
+			new ImportInteractionHandler(),
+			this.operationProgressTracker,
+			new EventSeriesResolver(this.calendarModel),
+			this.timeZone,
+		)
+		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
 	}
 }
 

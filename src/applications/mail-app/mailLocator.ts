@@ -172,6 +172,7 @@ import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarP
 import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
+import { EventSeriesResolver } from "../common/calendar/import/EventSeriesResolver"
 
 assertMainOrNode()
 
@@ -1173,8 +1174,20 @@ class MailLocator implements CommonLocator {
 				dialog.close()
 
 				const calendarModel = await this.calendarModel()
-				const calendarImporter = new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone())
-				await calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, parsedEvents, selectedCalendar.type)
+				const calendarImporter = new CalendarImporter(
+					calendarModel,
+					new ImportInteractionHandler(),
+					this.operationProgressTracker,
+					new EventSeriesResolver(calendarModel),
+					getTimeZone(),
+				)
+				await calendarImporter.import(
+					selectedCalendar.groupRoot,
+					selectedCalendar,
+					parsedEvents,
+					CalendarImporter.classifyImportedEvents,
+					selectedCalendar.type,
+				)
 			})
 		}
 	}

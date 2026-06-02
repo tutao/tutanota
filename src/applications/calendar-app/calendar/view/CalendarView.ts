@@ -123,6 +123,7 @@ import { getExternalCalendarName } from "../../../common/calendar/import/ImportE
 import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
+import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 
 export type GroupColors = Map<Id, string>
 
@@ -977,10 +978,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.getCalendarModel(),
 				new ImportInteractionHandler(),
 				locator.operationProgressTracker,
+				new EventSeriesResolver(calendarModel),
 				getTimeZone(),
 			)
 
-			await calendarImporter.import(calendarGroupRoot, calendarInfo, events, CalendarType.External)
+			await calendarImporter.import(calendarGroupRoot, calendarInfo, events, CalendarImporter.classifyImportedEvents, CalendarType.External)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}

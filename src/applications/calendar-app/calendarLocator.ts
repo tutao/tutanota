@@ -139,6 +139,7 @@ import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
 import { CalendarImporter } from "../common/calendar/import/CalendarImporter.js"
 import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
+import { EventSeriesResolver } from "../common/calendar/import/EventSeriesResolver"
 
 assertMainOrNode()
 
@@ -860,7 +861,13 @@ class CalendarLocator implements CommonLocator {
 				await this.calendarModel(),
 				this.logins.getUserController(),
 				parsedEvents,
-				new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone()),
+				new CalendarImporter(
+					calendarModel,
+					new ImportInteractionHandler(),
+					this.operationProgressTracker,
+					new EventSeriesResolver(calendarModel),
+					getTimeZone(),
+				),
 			)
 		}
 	}

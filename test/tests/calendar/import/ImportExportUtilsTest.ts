@@ -2,7 +2,12 @@ import o from "@tutao/otest"
 
 import { createTestEntity } from "../../TestUtils"
 import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
-import { eventHasSameFields, makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils"
+import {
+	checkURLString,
+	eventHasSameFields,
+	makeCalendarEventFromIcsCalendarEvent,
+	normalizeCalendarUrl,
+} from "../../../../src/applications/common/calendar/import/ImportExportUtils"
 import { object } from "testdouble"
 import { clone } from "../../../../src/platform-kit/meta"
 
@@ -214,6 +219,54 @@ o.spec("ImportExportUtilsTest", function () {
 
 				o.check(eventHasSameFields(eventA, eventB)).equals(true)
 			})
+		})
+	})
+
+	o.spec("normalizeCalendarUrl", function () {
+		o("converts webcal:// to https://", function () {
+			o(normalizeCalendarUrl("webcal://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("converts webcals:// to https://", function () {
+			o(normalizeCalendarUrl("webcals://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("leaves https:// unchanged", function () {
+			o(normalizeCalendarUrl("https://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("leaves http:// unchanged", function () {
+			o(normalizeCalendarUrl("http://example.com/calendar.ics")).equals("http://example.com/calendar.ics")
+		})
+	})
+
+	o.spec("checkURLString", function () {
+		o("accepts https:// protocol", function () {
+			const result = checkURLString("https://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("https:")
+		})
+
+		o("accepts webcal:// protocol", function () {
+			const result = checkURLString("webcal://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("webcal:")
+		})
+
+		o("accepts webcals:// protocol", function () {
+			const result = checkURLString("webcals://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("webcals:")
+		})
+
+		o("rejects http:// protocol", function () {
+			const result = checkURLString("http://example.com/calendar.ics")
+			o(result).equals("invalidURLProtocol_msg")
+		})
+
+		o("rejects invalid URLs", function () {
+			const result = checkURLString("not a url")
+			o(result).equals("invalidURL_msg")
 		})
 	})
 })
