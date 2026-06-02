@@ -3,7 +3,7 @@ import { TUTANOTA_ROOT } from "./Constants.js"
 import { TConstruct } from "./constructs/TConstruct"
 import fs from "node:fs"
 import path from "node:path"
-import { TIdentifierKind, TIdentitider } from "./constructs/TIdentitider"
+import { TIdentifierFormatting, TIdentitider } from "./constructs/TIdentitider"
 import { NodeRedirector } from "./NodeRedirector"
 
 export const enum TargetLanguage {
@@ -23,7 +23,7 @@ export class LangTarget {
 		const sourceFileRelativeDir: string = path.relative(path.join(TUTANOTA_ROOT, "src"), this.sourceFile.getDirectoryPath())
 		this.packageDeclaration = sourceFileRelativeDir
 			.split(path.sep)
-			.map((pathComponent) => new TIdentitider(pathComponent, TIdentifierKind.Variable))
+			.map((pathComponent) => new TIdentitider(pathComponent).withFormattingKind(TIdentifierFormatting.VariableLike))
 			.map((pathIdent) => {
 				if (this.targetLanguage === TargetLanguage.Kotlin) {
 					return pathIdent.generateKotlin()

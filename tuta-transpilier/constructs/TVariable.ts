@@ -1,19 +1,20 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
-import { TIdentifierKind, TIdentitider } from "./TIdentitider"
+import { TIdentitider } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
+import { TTypeName } from "./TTypeName"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind
 	private name: TIdentitider
-	private dataType: TIdentitider
+	private dataType: TTypeName
 	private readonly initializer: TConstruct | null = null
 
 	constructor(variableDeclaration: VariableDeclaration) {
 		super()
 		this.declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
-		this.name = new TIdentitider(variableDeclaration.getSymbol().getName(), TIdentifierKind.Variable)
-		this.dataType = new TIdentitider(variableDeclaration.getType().getApparentType().getSymbol().getName(), TIdentifierKind.TypeName)
+		this.name = new TIdentitider(variableDeclaration.getSymbol().getName())
+		this.dataType = new TTypeName(variableDeclaration.getType().getApparentType().getSymbol().getName())
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
 			this.initializer = NodeRedirector.redirectNode(initializer)
@@ -24,11 +25,15 @@ export class TVariable extends TConstruct {
 		const dataType = this.dataType.generateKotlin()
 		const name = this.name.generateKotlin()
 
-		let lhs: string
+		let lhs: string = ""
 		if (this.declarationType === VariableDeclarationKind.Const) {
-			lhs = `const val ${name}`
+			if (this.dataType.isPrimitiveType()) {
+				lhs = `const val ${name}`
+			} else {
+				lhs = `val ${name}`
+			}
 		} else if (this.declarationType === VariableDeclarationKind.Let) {
-			lhs = `val ${name}`
+			lhs = `var ${name}`
 		} else if (this.declarationType === VariableDeclarationKind.Using || this.declarationType === VariableDeclarationKind.AwaitUsing) {
 			throw new Error("awaitUsing or Using is not supported!!")
 		}

@@ -32,7 +32,7 @@ import { TBinaryExpr } from "./constructs/TBinaryExpr"
 import * as Assert from "node:assert"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TReturnKeyword } from "./constructs/TKeywords"
-import { TIdentifierKind, TIdentitider } from "./constructs/TIdentitider"
+import { TIdentitider } from "./constructs/TIdentitider"
 import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
 import { TOperatorToken } from "./constructs/TOperatorToken"
 import { TNotSupported } from "./constructs/TNotSupported"
@@ -79,8 +79,7 @@ export class NodeRedirector {
 			const returnExpressionConstruct = NodeRedirector.redirectNode(returnExpression)
 			return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
 		} else if (typedNode instanceof Identifier) {
-			const identKind = TIdentifierKind.Variable // todo
-			return new TIdentitider(typedNode.getSymbol().getName(), identKind)
+			return new TIdentitider(typedNode.getSymbol().getName())
 		} else if (typedNode instanceof NumericLiteral) {
 			return new TNumericLiteral(typedNode)
 		} else if (typedNode instanceof StringLiteral) {

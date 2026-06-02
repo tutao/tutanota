@@ -1,5 +1,5 @@
 import { EnumDeclaration } from "ts-morph"
-import { TIdentifierKind, TIdentitider } from "./TIdentitider.js"
+import { TIdentifierFormatting, TIdentitider } from "./TIdentitider.js"
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { TVisibility } from "./TVisibility"
 
@@ -10,9 +10,9 @@ export class TEnum extends TConstruct {
 
 	constructor(enumDecleration: EnumDeclaration) {
 		super()
-		this.name = new TIdentitider(enumDecleration.getName(), TIdentifierKind.TypeName)
+		this.name = new TIdentitider(enumDecleration.getName())
 		this.visibility = new TVisibility(enumDecleration)
-		this.variants = enumDecleration.getMembers().map((enumMember) => new TIdentitider(enumMember.getName(), TIdentifierKind.TypeName))
+		this.variants = enumDecleration.getMembers().map((enumMember) => new TIdentitider(enumMember.getName()))
 	}
 
 	generateKotlin(): ConstructOut {

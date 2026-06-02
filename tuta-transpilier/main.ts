@@ -18,8 +18,10 @@ program
 
 		const project = new Project({
 			tsConfigFilePath: `src/platform-kit/tsconfig.app-env.json`,
+			skipAddingFilesFromTsConfig: false,
 		})
 		project.removeSourceFile(project.getSourceFileOrThrow("types/index.d.ts"))
+		project.removeSourceFile(project.getSourceFileOrThrow("types/globals.d.ts"))
 
 		const targetTranspilation = project.getSourceFiles().map(async (sourceFile) => {
 			const langTarget = new LangTarget(sourceFile, TargetLanguage.Kotlin)

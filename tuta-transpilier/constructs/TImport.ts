@@ -1,6 +1,8 @@
 import { ImportDeclaration } from "ts-morph"
-import { TIdentifierKind, TIdentitider } from "./TIdentitider"
+import { TIdentifierFormatting, TIdentitider } from "./TIdentitider"
 import { ConstructOut, TConstruct } from "./TConstruct"
+import path from "node:path"
+import { TUTANOTA_SRC } from "../Constants"
 
 export const enum TImportKind {
 	Relative,
@@ -19,26 +21,33 @@ export class TImport extends TConstruct {
 
 	constructor(importDeclaration: ImportDeclaration) {
 		super()
+
 		const moduleSpecifier = importDeclaration.getModuleSpecifierValue()
 		const isRelativeImport = moduleSpecifier.startsWith("./") || moduleSpecifier.startsWith("../")
 		const isExternalImport = moduleSpecifier.startsWith("@")
 		const isAbsoluteImport = moduleSpecifier.startsWith("/")
 
-		this.specifierComponents = moduleSpecifier
-			.replace(/^@/, "") // starting @ for external package
-			.replace("../", "") // replace up directory
-			.replace("./", "") // replace current directory
-			.split("/")
-			.map((c) => new TIdentitider(c, TIdentifierKind.Variable))
 		this.namedImports = importDeclaration
 			.getImportClause()
 			.getNamedImports()
-			.map((ident) => new TIdentitider(ident.getName(), TIdentifierKind.Variable))
+			.map((ident) => new TIdentitider(ident.getName()))
 		this.aliasedImports = []
 
-		if (isRelativeImport) this.importKind = TImportKind.Relative
-		else if (isExternalImport) this.importKind = TImportKind.External
-		else if (isAbsoluteImport) throw new Error("Absolute import is not allowed")
+		if (isRelativeImport) {
+			const importedFilePath = importDeclaration.getModuleSpecifierSourceFile().getFilePath()
+			const moduleSpecifierProjPath = path.relative(TUTANOTA_SRC, importedFilePath)
+			this.specifierComponents = moduleSpecifierProjPath
+				.replaceAll(".ts", "")
+				.split("/")
+				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
+			this.importKind = TImportKind.Relative
+		} else if (isExternalImport) {
+			this.specifierComponents = moduleSpecifier
+				.replace(/^@/, "") // starting @ for external package
+				.split("/")
+				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
+			this.importKind = TImportKind.External
+		} else if (isAbsoluteImport) throw new Error("Absolute import is not allowed")
 		else throw new Error("For custom-define alias, prefer to start with @tutao/")
 	}
 
@@ -55,16 +64,25 @@ export class TImport extends TConstruct {
 
 	private getKotlinSpecifier(): string {
 		const namedImportsMap = {
-			"@tutao/utils": "de.tutao.utils",
-			"@tutao/app-env": "de.tutao.appEnv",
+			"@tutao/utils": "de.tutao.platformKit.utils",
+			"@tutao/app-env": "de.tutao.platformKit.appEnv",
 		}
 
-		const specifierSuffix = this.specifierComponents.map((sc) => sc.generateKotlin()).join(".")
 		if (this.importKind === TImportKind.Relative) {
-			const currentPackage = "de.tutao"
-			return currentPackage + "." + specifierSuffix
+			const [layerName, moduleName] = this.specifierComponents
+			return `de.tutao.${layerName.generateKotlin()}.${moduleName.generateKotlin()}`
 		} else if (this.importKind === TImportKind.External) {
-			return namedImportsMap[specifierSuffix] ?? specifierSuffix
+			const specifierSuffix = this.specifierComponents.map((sc) => sc.generateKotlin()).join(".")
+			if (namedImportsMap[specifierSuffix]) {
+				return namedImportsMap[specifierSuffix]
+			} else {
+				// todo: throw error
+				// the file we want to transpile should not use external library,
+				// we can extract a interface of things we use from external library and manually implement
+				// them in targetLanguage. And in this file, just use that interface
+				console.log("external library imported: " + specifierSuffix)
+				return specifierSuffix
+			}
 		}
 	}
 }

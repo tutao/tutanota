@@ -1,29 +1,29 @@
 import { FunctionDeclaration } from "ts-morph"
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
-import { TIdentifierKind, TIdentitider, TTypedIdentifier } from "./TIdentitider"
+import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 import { NodeRedirector } from "../NodeRedirector"
+import { TTypeName } from "./TTypeName"
 
 export class TFunctionDecl extends TConstruct {
 	private readonly name: TIdentitider
-	private readonly returnType: TIdentitider
+	private readonly returnType: TTypeName
 	private readonly parameters: Array<TTypedIdentifier>
 	private readonly visibility: TVisibility
 	private readonly functionBody: Array<TConstruct>
 
-	constructor(functionDecleration: FunctionDeclaration) {
+	constructor(functionDeclaration: FunctionDeclaration) {
 		super()
 
-		this.visibility = new TVisibility(functionDecleration)
-		this.name = new TIdentitider(functionDecleration.getName(), TIdentifierKind.Variable)
-		// todo: this should be TTypeName instead of TIdentifier
-		this.returnType = new TIdentitider(functionDecleration.getReturnType().getApparentType().getSymbol().getName(), TIdentifierKind.TypeName)
-		this.parameters = functionDecleration.getParameters().map((param) => {
-			const identName = new TIdentitider(param.getName(), TIdentifierKind.Variable)
-			const typeName = new TIdentitider(param.getType().getApparentType().getSymbol().getName(), TIdentifierKind.TypeName)
+		this.visibility = new TVisibility(functionDeclaration)
+		this.name = new TIdentitider(functionDeclaration.getName())
+		this.returnType = new TTypeName(functionDeclaration.getReturnType().getApparentType().getSymbol().getName())
+		this.parameters = functionDeclaration.getParameters().map((param) => {
+			const identName = new TIdentitider(param.getName())
+			const typeName = new TTypeName(param.getType().getApparentType().getSymbol().getName())
 			return { identName, typeName }
 		})
-		this.functionBody = functionDecleration
+		this.functionBody = functionDeclaration
 			.getBody()
 			.forEachChildAsArray()
 			.map((stmt) => NodeRedirector.redirectNode(stmt))

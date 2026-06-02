@@ -1,4 +1,5 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
+import { TTypeName } from "./TTypeName"
 
 const reservedKeywords = {
 	swift: new Set(),
@@ -7,23 +8,26 @@ const reservedKeywords = {
 
 export type TTypedIdentifier = {
 	identName: TIdentitider
-	typeName: TIdentitider
+	typeName: TTypeName
 }
 
-export enum TIdentifierKind {
-	Variable,
-	GlobalConstant,
-	TypeName,
+export enum TIdentifierFormatting {
+	VariableLike,
+	Preserve,
 }
 
 export class TIdentitider extends TConstruct {
 	private readonly makeUniqIdent = "_snkm"
+	private formattingKind: TIdentifierFormatting
 
-	constructor(
-		private readonly rawName: string,
-		private readonly kind: TIdentifierKind,
-	) {
+	constructor(private readonly rawName: string) {
 		super()
+		this.formattingKind = TIdentifierFormatting.Preserve
+	}
+
+	withFormattingKind(kind: TIdentifierFormatting): this {
+		this.formattingKind = kind
+		return this
 	}
 
 	generateKotlin(): ConstructOut {
@@ -32,35 +36,20 @@ export class TIdentitider extends TConstruct {
 			identifier += this.makeUniqIdent
 		}
 
-		switch (this.kind) {
-			case TIdentifierKind.GlobalConstant: {
-				break
-			}
-			case TIdentifierKind.Variable: {
-				identifier = TIdentitider.makeCamelCase(identifier)
-				break
-			}
-			case TIdentifierKind.TypeName: {
-				identifier = TIdentitider.makePascalCase(identifier)
-				break
-			}
+		if (this.formattingKind === TIdentifierFormatting.Preserve) {
+			// noop
+		} else if (this.formattingKind === TIdentifierFormatting.VariableLike) {
+			identifier = TIdentitider.makeCamelCase(identifier)
 		}
-
-		identifier = TIdentitider.makeCamelCase(identifier)
 
 		return identifier
 	}
 
 	private static makeCamelCase(identifier: string) {
 		if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:[-_][A-Za-z0-9_$]+)*$/.test(identifier)) {
-			throw new Error(`Invalid identifier: "${identifier}"`)
+			throw new Error(`Invalid identifier: ${identifier}`)
 		}
 
 		return identifier.replace(/[-_]+(.)/g, (_, ch) => ch.toUpperCase()).replace(/^[A-Z]/, (ch) => ch.toLowerCase())
-	}
-
-	private static makePascalCase(identifier: string) {
-		const camel = TIdentitider.makeCamelCase(identifier)
-		return camel.charAt(0).toUpperCase() + camel.slice(1)
 	}
 }

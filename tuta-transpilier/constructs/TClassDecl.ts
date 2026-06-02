@@ -1,6 +1,6 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { ClassDeclaration } from "ts-morph"
-import { TIdentifierKind, TIdentitider } from "./TIdentitider"
+import { TIdentifierFormatting, TIdentitider } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 
 export class TClassDecl extends TConstruct {
@@ -10,7 +10,7 @@ export class TClassDecl extends TConstruct {
 	constructor(classDeceleration: ClassDeclaration) {
 		super()
 		this.visibility = new TVisibility(classDeceleration)
-		this.name = new TIdentitider(classDeceleration.getName(), TIdentifierKind.TypeName)
+		this.name = new TIdentitider(classDeceleration.getName())
 	}
 
 	generateKotlin(): ConstructOut {
