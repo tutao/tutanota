@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -58,7 +58,7 @@ import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailInd
 assertWorkerOrNode()
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
+const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day
 
 const TAG = "WebMailIndexer"
 
