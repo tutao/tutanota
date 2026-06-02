@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "Määritä ylläpitäjiä, jotka voivat muuttaa kaikkia asetuksia.",
 		"pricing.saveAmount_label": "Säästä {amount}",
 		"pricing.saveAmountFirstYear_label": "Säästä {amount} 1. vuoden ajan",
-		"pricing.saveAmountNow_label": "Säästä {amount}% nyt!",
+		"pricing.saveAmountNow_label": "Säästä {amount} nyt!",
 		"pricing.search_msg": "Rajoittamaton haku",
 		"pricing.search_tooltip": "Hae postilaatikostasi luottamuksellisesti salatulla hakuindeksillä.",
 		"pricing.security_label": "Tietoturva",

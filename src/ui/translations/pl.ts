@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "Zdefiniuj administratorów, którzy mają dostęp do wszystkiego.",
 		"pricing.saveAmount_label": "Zaoszczędź {amount}",
 		"pricing.saveAmountFirstYear_label": "Zaoszczędź {amount} w pierwszym roku",
-		"pricing.saveAmountNow_label": "Oszczędź {amount}%!",
+		"pricing.saveAmountNow_label": "Oszczędź {amount}!",
 		"pricing.search_msg": "Nieograniczone wyszukiwanie",
 		"pricing.search_tooltip": "Przeszukaj poufnie całą swoją skrzynkę pocztową za pomocą naszego zaszyfrowanego indeksu wyszukiwania.",
 		"pricing.security_label": "Bezpieczeństwo",

@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "You can define administrators who have access to everything.",
 		"pricing.saveAmount_label": "Save {amount}",
 		"pricing.saveAmountFirstYear_label": "Save {amount} for first year",
-		"pricing.saveAmountNow_label": "Save {amount}% now!",
+		"pricing.saveAmountNow_label": "Save {amount} now!",
 		"pricing.search_msg": "Unlimited search",
 		"pricing.search_tooltip": "Search your entire mailbox confidentially via our encrypted search index.",
 		"pricing.security_label": "Security",

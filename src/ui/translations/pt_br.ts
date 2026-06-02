@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "Definir administradores globais que têm acesso a tudo e administradores locais que só podem gerir membros específicos da equipe.\n.",
 		"pricing.saveAmount_label": "Poupar {amount}",
 		"pricing.saveAmountFirstYear_label": "Economize {amount} no primeiro ano",
-		"pricing.saveAmountNow_label": "Economize{amount}% agora!",
+		"pricing.saveAmountNow_label": "Economize{amount} agora!",
 		"pricing.search_msg": "Pesquisa Ilimitada",
 		"pricing.search_tooltip": "Pesquise toda a sua caixa de correio confidencialmente através do nosso índice de pesquisa criptografado.\n.",
 		"pricing.security_label": "Segurança",

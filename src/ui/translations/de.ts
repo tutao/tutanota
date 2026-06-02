@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "Du kannst Administratoren festlegen. Diese Zugriff auf alles haben.",
 		"pricing.saveAmount_label": "Spare {amount}",
 		"pricing.saveAmountFirstYear_label": "Spare {amount} im ersten Jahr",
-		"pricing.saveAmountNow_label": "Spare jetzt {amount}%!",
+		"pricing.saveAmountNow_label": "Spare jetzt {amount}!",
 		"pricing.search_msg": "Unbegrenzte Suche",
 		"pricing.search_tooltip": "Vertrauliche Suche in deiner gesamten Mailbox mit Hilfe unseres verschlüsselten Suchindexes.",
 		"pricing.security_label": "Sicherheit",

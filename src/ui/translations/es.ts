@@ -1567,7 +1567,7 @@ export default {
 		"pricing.roles_tooltip": "Define administradores globales que tengan acceso a todo.",
 		"pricing.saveAmount_label": "Ahorrar {amount}",
 		"pricing.saveAmountFirstYear_label": "Ahorra {amount} durante el primer año.",
-		"pricing.saveAmountNow_label": "¡Ahorra {amount}% ya!",
+		"pricing.saveAmountNow_label": "¡Ahorra {amount} ya!",
 		"pricing.search_msg": "Búsqueda ilimitada",
 		"pricing.search_tooltip": "Busca en todo tu buzón de forma confidencial, a través de nuestro índice de búsqueda encriptado.",
 		"pricing.security_label": "Seguridad",

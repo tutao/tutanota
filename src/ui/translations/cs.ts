@@ -1564,7 +1564,7 @@ export default {
 		"pricing.roles_tooltip": "Určete správce, kteří budou mít přístup ke všemu.",
 		"pricing.saveAmount_label": "Ušetřete {amount}",
 		"pricing.saveAmountFirstYear_label": "Ušetřete {amount} za první rok",
-		"pricing.saveAmountNow_label": "Ušetřete {amount} %!",
+		"pricing.saveAmountNow_label": "Ušetřete {amount} !",
 		"pricing.search_msg": "Neomezené vyhledávání",
 		"pricing.search_tooltip": "Důvěrně vyhledávejte v celé své schránce díky našemu šifrovanému vyhledávání.",
 		"pricing.security_label": "Bezpečnost",
