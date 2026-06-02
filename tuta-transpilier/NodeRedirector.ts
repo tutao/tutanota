@@ -1,5 +1,6 @@
 import { TConstruct, TConstructMultiple, TsNode } from "./constructs/TConstruct"
 import {
+	ArrayLiteralExpression,
 	BinaryExpression,
 	CallExpression,
 	ClassDeclaration,
@@ -37,9 +38,11 @@ import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
 import { TOperatorToken } from "./constructs/TOperatorToken"
 import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
+import { TArrayLiteral } from "./constructs/TArrayLiteral"
+import { IgnorableError } from "./errors/IgnorableError"
 
 export class NodeRedirector {
-	public static redirectNode(node: TsNode): TConstruct {
+	private static redirectNodeInner(node: TsNode): TConstruct {
 		if (node.getSourceFile().getFilePath().includes("src/types/")) {
 			// we have many complicated types in this folder, skip for now
 			return new TEmpty()
@@ -91,8 +94,22 @@ export class NodeRedirector {
 			return new TStringLiteral(typedNode)
 		} else if (TOperatorToken.isOperatorToken(nodeKind)) {
 			return new TOperatorToken(typedNode)
+		} else if (typedNode instanceof ArrayLiteralExpression) {
+			return new TArrayLiteral(typedNode)
 		} else {
 			return new TNotSupported(node)
+		}
+	}
+
+	public static redirectNode(node: TsNode): TConstruct {
+		try {
+			return this.redirectNodeInner(node)
+		} catch (e) {
+			if (e instanceof IgnorableError) {
+				console.log("Error skipped: " + e.message)
+			} else {
+				throw e
+			}
 		}
 	}
 }

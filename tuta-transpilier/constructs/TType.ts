@@ -5,22 +5,24 @@ import * as Assert from "node:assert"
 const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "Int", swift: "" },
 	Boolean: { kotlin: "Boolean", swift: "" },
-	ReadonlyArray: { kotlin: "Array", swift: "" },
+	Array: { kotlin: "Array", swift: "" },
 })
 
 export class TType extends TConstruct {
+	public readonly isJavascriptObject: boolean = false
 	private readonly isNullable: boolean = false
-	private readonly isArrayOfBaseType: boolean = false
+	private readonly genericTypes: Array<TType> = []
 	private readonly baseType: string | TType
 
 	constructor(typ: Type) {
 		super()
 		const apparentType = typ.getApparentType()
 		const typeName = apparentType.getSymbol()?.getName() ?? null
+		this.isJavascriptObject = apparentType.isObject()
 
 		if (typ.isArray()) {
-			this.baseType = new TType(apparentType.getArrayElementType())
-			this.isArrayOfBaseType = true
+			this.baseType = typ.isReadonlyArray() ? "List" : "Array"
+			this.genericTypes.push(new TType(apparentType.getArrayElementType()))
 		} else if (typeName != null) {
 			this.baseType = typeName
 		} else if (typ.isUnion()) {
@@ -36,7 +38,7 @@ export class TType extends TConstruct {
 	}
 
 	isPrimitiveType(): boolean {
-		return !this.isArrayOfBaseType && MappedPrimitiveType[this.getFinalName()] != null
+		return this.genericTypes.length === 0 && MappedPrimitiveType[this.getFinalName()] != null
 	}
 
 	private getFinalName(): string {
@@ -50,8 +52,9 @@ export class TType extends TConstruct {
 	generateKotlin(): ConstructOut {
 		let finalType = this.getFinalName()
 		finalType = MappedPrimitiveType[finalType]?.kotlin ?? finalType
-		if (this.isArrayOfBaseType) {
-			finalType = `Array<${finalType}>`
+		if (this.genericTypes.length > 0) {
+			const genericTypes = this.genericTypes.map((t) => t.generateKotlin()).join(", ")
+			finalType = `${finalType}<${genericTypes}>`
 		} else if (this.isNullable) {
 			finalType += "?"
 		}
