@@ -19,7 +19,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platform-kit/app-env"
+import { EndType, RepeatPeriod, reverse, TimeConstants } from "../../../../platform-kit/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -437,11 +437,11 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 	let durationInMillis = 0
 
 	if (duration.week) {
-		durationInMillis += DAY_IN_MILLIS * 7 * duration.week
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * 7 * duration.week
 	}
 
 	if (duration.day) {
-		durationInMillis += DAY_IN_MILLIS * duration.day
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * duration.day
 	}
 
 	if (duration.hour) {

@@ -1,7 +1,7 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { filterInt } from "../../../../platform-kit/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import { CancelledError, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
+import { CancelledError, TimeConstants } from "../../../../platform-kit/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
 import { Scheduler } from "../../../common/api/common/utils/Scheduler"
@@ -45,7 +45,7 @@ type QueuedTransfer =
 type FileId = TransferId
 
 /** @private visibleForTesting */
-export const FINISHED_TRANSFER_RETAIN_TIMEOUT_MS = 4 * SECOND_IN_MILLIS
+export const FINISHED_TRANSFER_RETAIN_TIMEOUT_MS = 4 * TimeConstants.SECOND_IN_MILLIS
 
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []

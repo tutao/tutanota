@@ -4,14 +4,14 @@
  * are dependent on the system time zone.
  */
 
-import { DAY_IN_MILLIS, daysToMillis } from "@tutao/app-env"
+import { TimeConstants } from "@tutao/app-env"
 
 /**
  * The minimum length of a calendar year.
  *
  * This should not be used for calculating duration since leap years (which are 97/400 of all years) have 366 days.
  */
-export const YEAR_IN_MILLIS = daysToMillis(365)
+export const YEAR_IN_MILLIS = TimeConstants.daysToMillis(365)
 
 /**
  * dates from before 1970 have negative timestamps and are currently considered edge cases
@@ -77,7 +77,7 @@ export function isSameDay(date1: Date, date2: Date): boolean {
  * periods of time and are not subject to daylight saving.
  */
 export function getDayShifted(date: Date, days: number): Date {
-	return new Date(date.getTime() + daysToMillis(days))
+	return new Date(date.getTime() + TimeConstants.daysToMillis(days))
 }
 
 /**
@@ -139,5 +139,5 @@ export function isValidDate(date: Date): boolean {
  * not interested in any fancy calendar edge cases, only use this where approximation is ok
  */
 export function millisToDays(millis: number): number {
-	return millis / DAY_IN_MILLIS
+	return millis / TimeConstants.DAY_IN_MILLIS
 }

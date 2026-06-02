@@ -53,7 +53,6 @@ import {
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
-	DAY_IN_MILLIS,
 	DEFAULT_CALENDAR_COLOR,
 	EndType,
 	EventTextTimeOption,
@@ -62,6 +61,7 @@ import {
 	ProgrammingError,
 	RepeatPeriod,
 	ShareCapability,
+	TimeConstants,
 	Weekday,
 	WeekStart,
 } from "../../../../platform-kit/app-env"
@@ -292,7 +292,7 @@ export function getRowDateFromMousePos(mouseEvent: MouseEvent, dayCount: number,
 	const xPosition = mouseEvent.pageX - diffFromOrigin
 	const daysToAdd = Math.floor(xPosition / daysDivisionsWidth)
 
-	return new Date(startOfPeriod.getTime() + DAY_IN_MILLIS * daysToAdd)
+	return new Date(startOfPeriod.getTime() + TimeConstants.DAY_IN_MILLIS * daysToAdd)
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4

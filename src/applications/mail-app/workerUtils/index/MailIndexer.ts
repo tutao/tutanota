@@ -1,4 +1,4 @@
-import { CancelledError, DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
+import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "../../../../platform-kit/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -47,7 +47,7 @@ import { isFolder } from "../../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
-const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
+const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day
 
 const TAG = "MailIndexer"
 

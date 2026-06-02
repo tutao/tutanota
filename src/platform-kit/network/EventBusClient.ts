@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, isAdminClient, isBrowser, isTest, OutOfSyncError, SECOND_IN_MILLIS } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, isAdminClient, isBrowser, isTest, OutOfSyncError, TimeConstants } from "@tutao/app-env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -508,7 +508,7 @@ export class EventBusClient {
 					reconnectionInterval = RECONNECT_INTERVAL.LARGE
 				}
 
-				this.tryReconnect(false, false, SECOND_IN_MILLIS * randomIntFromInterval(reconnectionInterval[0], reconnectionInterval[1]))
+				this.tryReconnect(false, false, TimeConstants.SECOND_IN_MILLIS * randomIntFromInterval(reconnectionInterval[0], reconnectionInterval[1]))
 			}
 		}
 	}

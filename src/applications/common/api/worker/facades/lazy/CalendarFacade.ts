@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, DAY_IN_MILLIS, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { getLetId, getListId, isSameId, listIdPart } from "@tutao/meta"
 import {
 	assertNotNull,
@@ -125,8 +125,8 @@ export class CalendarFacade {
 		// Because of the timezones and all day events, we might not load an event which we need to display.
 		// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
 		// events anyway.
-		const startId = getEventElementMinId(month.start - DAY_IN_MILLIS)
-		const endId = geEventElementMaxId(month.end + DAY_IN_MILLIS)
+		const startId = getEventElementMinId(month.start - TimeConstants.DAY_IN_MILLIS)
+		const endId = geEventElementMaxId(month.end + TimeConstants.DAY_IN_MILLIS)
 
 		// We collect events from all calendars together and then replace map synchronously.
 		// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.

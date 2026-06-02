@@ -1,6 +1,6 @@
 import { OperationType, timestampToGeneratedId, TypeRef } from "../../../../../src/platform-kit/meta"
 import { DbFacade } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
-import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "../../../../../src/platform-kit/app-env"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbIndexer.js"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import o, { mock } from "@tutao/otest"
@@ -46,7 +46,7 @@ contactList.contacts = "contactListId"
 // Beware: these tests use partial mocking and other actionable practices. It would be nice to refactor the class to
 // not do this.
 o.spec("IndexedDbIndexer", () => {
-	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
+	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - TimeConstants.daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
 
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
 		instance: null,

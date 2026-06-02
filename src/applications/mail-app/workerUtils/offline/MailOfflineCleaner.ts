@@ -8,7 +8,7 @@ import {
 	listIdPart,
 } from "../../../../platform-kit/meta"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { daysToMillis } from "../../../../platform-kit/app-env"
+import { TimeConstants } from "../../../../platform-kit/app-env"
 import { UserTypeRef } from "@tutao/entities/sys"
 import { AccountType } from "../../../../entities/sys/Utils"
 import { getOfflineStorageDefaultTimeRangeDays } from "../../mail/MailUtils"
@@ -33,7 +33,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			const cutoffDate =
 				accountType !== AccountType.FREE && timeRangeDate != null
 					? timeRangeDate
-					: new Date(now - daysToMillis(getOfflineStorageDefaultTimeRangeDays(accountType)))
+					: new Date(now - TimeConstants.daysToMillis(getOfflineStorageDefaultTimeRangeDays(accountType)))
 			this.cutOffId = constructMailSetEntryId(new Date(cutoffDate), GENERATED_MAX_ID)
 		}
 		return this.cutOffId

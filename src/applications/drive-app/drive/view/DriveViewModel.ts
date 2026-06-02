@@ -9,7 +9,7 @@ import { DriveTransferController, DriveTransferState } from "./DriveTransferCont
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
 
-import { Const, OperationStatus, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
+import { Const, OperationStatus, TimeConstants } from "../../../../platform-kit/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
@@ -702,7 +702,7 @@ export class DriveViewModel {
 	/**
 	 * Update the used storage. Debounce it so that we don't request it too frequently.
 	 */
-	private readonly refreshStorage = debounceStart(60 * SECOND_IN_MILLIS, async () => {
+	private readonly refreshStorage = debounceStart(60 * TimeConstants.SECOND_IN_MILLIS, async () => {
 		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
 		this.storage = {
 			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),

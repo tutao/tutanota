@@ -6,7 +6,7 @@ import { makeEvent } from "./CalendarTestUtils.js"
 import { isAllDayEvent } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { getAllDayDateUTCFromZone, getStartOfDayWithZone, getStartOfNextDayWithZone } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
-import { DAY_IN_MILLIS } from "../../../src/platform-kit/app-env"
+import { TimeConstants } from "../../../src/platform-kit/app-env"
 
 const INIT_MOUSE_POS = {
 	x: 0,
@@ -113,7 +113,7 @@ o.spec("EventDragHandler", function () {
 				o(callbackMock.onDragStart.callCount).equals(1)
 				o(callbackMock.onDragStart.callCount).equals(1)
 				const [calendarEvent, timeToMoveBy] = callbackMock.onDragStart.args
-				o(timeToMoveBy).equals(2 * DAY_IN_MILLIS)
+				o(timeToMoveBy).equals(2 * TimeConstants.DAY_IN_MILLIS)
 				o(handler.isDragging).equals(true)
 				o(handler.originalCalendarEventWrapper?.flags.isTransientEvent).equals(true)
 
@@ -122,7 +122,7 @@ o.spec("EventDragHandler", function () {
 				handler.handleDrag(dragDate, DRAG_MOUSE_POS)
 				o(callbackMock.onDragUpdate.callCount).equals(1)
 				const [updateTimeToMoveBy] = callbackMock.onDragUpdate.args
-				o(updateTimeToMoveBy).equals(3 * DAY_IN_MILLIS)
+				o(updateTimeToMoveBy).equals(3 * TimeConstants.DAY_IN_MILLIS)
 
 				// drag end
 				const deferredCallbackComplete = defer()
@@ -131,7 +131,7 @@ o.spec("EventDragHandler", function () {
 				const endDragPromise = handler.endDrag(dragDate, DRAG_MOUSE_POS)
 				o(callbackMock.onDragEnd.callCount).equals(1)
 				const [endTimeToMoveBy] = callbackMock.onDragEnd.args
-				o(endTimeToMoveBy).equals(3 * DAY_IN_MILLIS)
+				o(endTimeToMoveBy).equals(3 * TimeConstants.DAY_IN_MILLIS)
 				// check that drag handler state resets itself before onDragEnd callback is complete
 				o(handler.isDragging).equals(false)
 				deferredCallbackComplete.resolve(true)

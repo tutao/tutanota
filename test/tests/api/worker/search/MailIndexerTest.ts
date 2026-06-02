@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "../../../../../src/platform-kit/app-env"
 import {
 	constructMailSetEntryId,
 	isSameId,
@@ -492,7 +492,7 @@ o.spec("MailIndexer", () => {
 				o.check(indexer._isIndexing).equals(false)
 
 				const indexRangeInDays = expectedNewestTimestampForIndexMailListCall
-					? Math.ceil((expectedNewestTimestampForIndexMailListCall - endIndexTimestamp) / DAY_IN_MILLIS)
+					? Math.ceil((expectedNewestTimestampForIndexMailListCall - endIndexTimestamp) / TimeConstants.DAY_IN_MILLIS)
 					: 0
 				const loadMailDataRequests = Math.ceil(indexRangeInDays / MAIL_INDEXER_CHUNK)
 
@@ -951,7 +951,7 @@ o.spec("MailIndexer", () => {
 
 			const loadMailDataRequests = 5
 			const totalMails = MAIL_INDEXER_CHUNK * loadMailDataRequests
-			const rangeStart = DAY_IN_MILLIS * totalMails
+			const rangeStart = TimeConstants.DAY_IN_MILLIS * totalMails
 			const rangeEnd = 0
 
 			const lotsOfMails: Mail[] = []

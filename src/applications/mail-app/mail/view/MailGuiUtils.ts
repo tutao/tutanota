@@ -25,7 +25,7 @@ import {
 	isDesktop,
 	MailAuthenticationStatus,
 	ProgrammingError,
-	secondsToMillis,
+	TimeConstants,
 } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
@@ -72,7 +72,7 @@ import { TransferId } from "../../../../entities/drive/Utils"
 import { elementIdPart, getIds, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 
-const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
+const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.

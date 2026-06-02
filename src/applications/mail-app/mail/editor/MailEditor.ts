@@ -45,8 +45,7 @@ import {
 	isIOSApp,
 	Keys,
 	MailAuthenticationStatus,
-	minutesToMillis,
-	secondsToMillis,
+	TimeConstants,
 	UNDO_SEND_TIMEOUT_SECONDS,
 	UpgradePromptType,
 } from "../../../../platform-kit/app-env"
@@ -137,13 +136,13 @@ import { DataFile } from "../../../../entities/tutanota/MailBundle"
 //
 // This will save while the user is typing, thus the user only loses a few seconds of progress at most if the app
 // unexpectedly closes (crash, power outage, etc.).
-const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(5)
+const AUTOSAVE_LOCAL_TIMEOUT: number = TimeConstants.secondsToMillis(5)
 
 // If the editor is left untouched for this amount of time, then the draft will automatically save to the server.
-const AUTOSAVE_REMOTE_TIMEOUT: number = minutesToMillis(5)
+const AUTOSAVE_REMOTE_TIMEOUT: number = TimeConstants.minutesToMillis(5)
 
 // Maximum allowed time before the undo button hides.
-const UNDO_SEND_TIMEOUT: number = secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
+const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
 
 export type MailEditorAttrs = {
 	model: SendMailModel

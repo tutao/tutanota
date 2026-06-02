@@ -1,4 +1,4 @@
-import { ApprovalStatus, assertMainOrNode, daysToMillis, minutesToMillis, ProgrammingError } from "@tutao/app-env"
+import { ApprovalStatus, assertMainOrNode, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
 import {
 	EntityEventsListener,
@@ -944,9 +944,9 @@ export class SendMailModel {
 		}
 
 		const nowMillis = new Date().getTime()
-		if (this.sendAt.getTime() < nowMillis + minutesToMillis(SEND_LATER_MIN_MINUTES_IN_FUTURE)) {
+		if (this.sendAt.getTime() < nowMillis + TimeConstants.minutesToMillis(SEND_LATER_MIN_MINUTES_IN_FUTURE)) {
 			return SendAtStatus.InThePast
-		} else if (this.sendAt.getTime() > nowMillis + daysToMillis(SEND_LATER_MAX_DAYS_IN_FUTURE)) {
+		} else if (this.sendAt.getTime() > nowMillis + TimeConstants.daysToMillis(SEND_LATER_MAX_DAYS_IN_FUTURE)) {
 			return SendAtStatus.TooFarInTheFuture
 		} else {
 			return SendAtStatus.WithinRange
