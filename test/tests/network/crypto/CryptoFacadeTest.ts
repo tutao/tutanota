@@ -97,7 +97,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { LocalInstanceSessionKeysCache } from "../../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache.js"
+import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
@@ -140,7 +140,7 @@ o.spec("CryptoFacadeTest", function () {
 	let keyRotationFacade: KeyRotationFacade
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
-	let instanceSessionKeysCache: LocalInstanceSessionKeysCache
+	let instanceSessionKeysCache: InstanceSessionKeysCache
 
 	async function prepareBucketKeyInstance(
 		bucketEncMailSessionKey: Uint8Array,

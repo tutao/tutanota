@@ -38,7 +38,7 @@ import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyL
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../src/platform-kit/base/base-crypto/KeyRotationFacade"
-import { LocalInstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import {
 	BodyTypeRef,
@@ -162,7 +162,7 @@ o.spec("EntityRestClient", function () {
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
-			new LocalInstanceSessionKeysCache(),
+			new InstanceSessionKeysCache(),
 			cryptoWrapper,
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
