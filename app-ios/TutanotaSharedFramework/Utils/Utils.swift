@@ -82,3 +82,10 @@ public func getLogs() -> String {
 	let entries = TUTLogger.sharedInstance().entries()
 	return entries.joined(separator: "\n")
 }
+public func base64ToBase64Url(inputText: String) -> String {
+	// on iOS 26.4+ we could pass NSData.Base64EncodingOptions.base64URLAlphabet
+	// to Data.base64EncodedString() but that's too new of a target
+
+	let base64url = inputText.replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+	return base64url
+}

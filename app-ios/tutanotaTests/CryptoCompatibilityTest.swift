@@ -242,7 +242,7 @@ struct EncryptedTestData: Decodable {
 
 // used for testing Swift code
 struct CryptoCompatibilityTest {
-	private let facade = IosNativeCryptoFacade()
+	private let facade = IosNativeCryptoFacade(tempFs: TempFs())
 	private var testData: EncryptedTestData = CompatibilityTestData.load()
 
 	@Test func testArgon2id() async throws {

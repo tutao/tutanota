@@ -4,17 +4,18 @@ import tutasdk
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
 public actor IosNativeCryptoFacade: NativeCryptoFacade {
-	public init() {}
+	let tempFs: TempFs
+	public init(tempFs: TempFs) { self.tempFs = tempFs }
 
 	public func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
-
-		if !FileUtils.fileExists(atPath: fileUri) { throw CryptoError(message: "File to encrypt does not exist \(fileUri)") }
+		let fileInfo = try await tempFs.fileInfo(uri: fileUri)
+		let fileName = fileInfo.name
+		let chunkData = try await self.tempFs.fileStream(tutaUri: fileUri)
+		if !(try await self.tempFs.fileExists(uri: fileUri)) { throw CryptoError(message: "File to encrypt does not exist \(fileUri)") }
 		let encryptedFolder = try FileUtils.getEncryptedFolder()
-		let fileName = (fileUri as NSString).lastPathComponent
 		let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
-		let plainTextData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
-		let outputData = try aesEncryptData(plainTextData, withKey: key.data, withIV: iv.data)
-		let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: plainTextData.count)
+		let outputData = try aesEncryptData(chunkData, withKey: key.data, withIV: iv.data)
+		let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: Int(fileInfo.size))
 
 		try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
 

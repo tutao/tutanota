@@ -5,11 +5,37 @@ import os
 
 public typealias ProgressUpdater = @Sendable (String, Int) -> Void
 
+public struct FileInfo: Sendable {
+	let name: String
+	let size: Int64
+}
+
+public func getFileSize(_ file: String) throws -> Int {
+	let attrs = try FileManager.default.attributesOfItem(atPath: file)
+	let size = attrs[.size] as! UInt64
+	// Technically we shouldn't do this but we are always running on 64bit devices and
+	// max Int64 number (even signed) is pretty huge so this is safe.
+	// If we somehow overflow we will actually crash.
+	return Int(size)
+}
+
+public func getFileInfo(fileUri: URL) throws -> FileInfo {
+	let scheme = fileUri.scheme
+	if scheme == nil || scheme == "file" {
+		let filePath = fileUri.path(percentEncoded: false)
+		let fileSize = try getFileSize(filePath)
+		return FileInfo(name: fileUri.lastPathComponent, size: Int64(fileSize))
+	} else {
+		throw FileError(message: "could not resolve file name / size for URL \(fileUri)")
+	}
+}
+
 public final class IosFileFacade: FileFacade {
 	private let chooser: TUTFileChooser
 	private let viewer: FileViewer
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
+	private let tempFs: TempFs
 	private let downloadProgress: ProgressUpdater
 	private let uploadProgress: ProgressUpdater
 	/// Map from fileId to the corresponding task
@@ -20,6 +46,7 @@ public final class IosFileFacade: FileFacade {
 		viewer: FileViewer,
 		schemeHandler: ApiSchemeHandler,
 		urlSession: URLSession,
+		tempFs: TempFs,
 		downloadProgress: @escaping ProgressUpdater,
 		uploadProgress: @escaping ProgressUpdater
 	) {
@@ -27,6 +54,7 @@ public final class IosFileFacade: FileFacade {
 		self.viewer = viewer
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
+		self.tempFs = tempFs
 		self.downloadProgress = downloadProgress
 		self.uploadProgress = uploadProgress
 	}
@@ -68,29 +96,18 @@ public final class IosFileFacade: FileFacade {
 	public func deleteFile(_ file: String) async throws {
 		do { try FileManager.default.removeItem(atPath: file) } catch {
 			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
-			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
+			throw FileError(message: "Failed to delete file \(file)", underlyingError: error)
 		}
 	}
 
 	public func getName(_ file: String) async throws -> String {
 		let fileName = (file as NSString).lastPathComponent
-		if FileUtils.fileExists(atPath: file) {
-			return fileName
-		} else {
-			throw TUTErrorFactory.createError(withDomain: FILES_ERROR_DOMAIN, message: "File does not exists")
-		}
+		if FileUtils.fileExists(atPath: file) { return fileName } else { throw FileError(message: "File does not exists") }
 	}
 
 	public func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: file) }
 
-	public func getSize(_ file: String) async throws -> Int {
-		let attrs = try FileManager.default.attributesOfItem(atPath: file)
-		let size = attrs[.size] as! UInt64
-		// Technically we shouldn't do this but we are always running on 64bit devices and
-		// max Int64 number (even signed) is pretty huge so this is safe.
-		// If we somehow overflow we will actually crash.
-		return Int(size)
-	}
+	public func getSize(_ file: String) async throws -> Int { try getFileSize(file) }
 
 	public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
 		fatalError("not implemented on this platform")
@@ -202,7 +219,7 @@ public final class IosFileFacade: FileFacade {
 		return filePath
 	}
 
-	public func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil().hashFile(fileUri: fileUri) }
+	public func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil(tempFs: self.tempFs).hashFile(fileUri: fileUri) }
 
 	func zipDirectory(fileUrl: URL) throws -> String {
 		var returnPath: String = ""
@@ -220,7 +237,7 @@ public final class IosFileFacade: FileFacade {
 					return
 				}
 			}
-		if let e = err ?? ourError { throw GenericTutanotaError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
+		if let e = err ?? ourError { throw FileError(message: "could not read directory at \(fileUrl)", underlyingError: e) }
 		return returnPath
 	}
 
@@ -232,11 +249,11 @@ public final class IosFileFacade: FileFacade {
 	}
 
 	public func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
-		try await BlobUtil().joinFiles(fileName: filename, filePathsToJoin: files)
+		try await BlobUtil(tempFs: self.tempFs).joinFiles(fileName: filename, filePathsToJoin: files)
 	}
 
 	public func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
-		try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
+		try await BlobUtil(tempFs: self.tempFs).splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
 	}
 
 	public func writeTempDataFile(_ file: DataFile) async throws -> String {
