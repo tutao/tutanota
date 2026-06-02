@@ -125,7 +125,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import {
@@ -137,7 +137,7 @@ import {
 	SyncStatus,
 } from "../../../common/calendar/import/ImportExportUtils"
 import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "../export/CalendarParser"
-import { classifyImportedEvents, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
+import { CalendarImporter, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -316,6 +316,13 @@ export class CalendarModel {
 	 */
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
+	}
+
+	/**
+	 * Provides public access to {@link CalendarFacade.createCalendarEvents}
+	 */
+	async createCalendarEvents(events: EventAlarmInfoTemplatesTuple[], operationId: OperationId) {
+		return await this.calendarFacade.createCalendarEvents(events, operationId)
 	}
 
 	/**
@@ -583,7 +590,7 @@ export class CalendarModel {
 			 * - Update existing events
 			 * - Add new
 			 */
-			const { rejectedEvents, eventsForCreationTuples } = classifyImportedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(
 				parsedExternalEvents,
 				existingEventList,
 				currentCalendarGroupRoot,
