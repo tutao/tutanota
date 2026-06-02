@@ -26,6 +26,7 @@ import {
 } from "./instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { SubKeyInfo, SubKeyProvider } from "./instance-pipeline-crypto/encryption/SubKeyProvider"
 import { SymmetricCipherFacade, SymmetricEncryptionScheme } from "./instance-pipeline-crypto/SymmetricCipherFacade"
+import { OwnerKeyProvider } from "./PatchMerger"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -74,14 +75,18 @@ export class CryptoMapper {
 		}
 	}
 
-	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, groupId: Nullable<Id>): Promise<Nullable<AesKey>> {
+	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<Nullable<AesKey>> {
 		if (requiredGroupKeyVersion === "none") {
 			return null
 		}
-		if (groupId === null) {
-			throw new CryptoError("Cannot load group key. Missing group Id.")
+		if (ownerKeyProvider == null) {
+			throw new CryptoError("Cannot load group key. Missing owner key provider.")
 		}
-		return this.symGroupKeyLoader().loadSymGroupKey(groupId, requiredGroupKeyVersion)
+		return await ownerKeyProvider(requiredGroupKeyVersion)
+	}
+
+	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
+		return groupId ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion) : null
 	}
 
 	public async decryptParsedInstance(
@@ -89,7 +94,7 @@ export class CryptoMapper {
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
-		ownerGroupId: Nullable<Id>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string = "",
 	): Promise<ServerModelParsedInstance> {
 		const instanceTypeId: InstanceTypeId = {
@@ -98,14 +103,14 @@ export class CryptoMapper {
 		}
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, instanceTypeId)
 
-		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerGroupId, fieldPathPrefix)
+		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPathPrefix)
 	}
 
 	private async decryptParsedInstanceInternal(
 		serverTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
-		ownerGroupId: Nullable<Id>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string = "",
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
@@ -121,7 +126,7 @@ export class CryptoMapper {
 					const encryptedValueInfo = valueInfo as EncryptedModelValue
 					const encryptedString = encryptedValue as Base64
 					const fieldPath = `${fieldPathPrefix}${valueInfo.id}`
-					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerGroupId, fieldPath)
+					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerKeyProvider, fieldPath)
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -151,7 +156,7 @@ export class CryptoMapper {
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
 					instanceDecryptor,
-					ownerGroupId,
+					ownerKeyProvider,
 					fieldPathPrefixForThisAssociation,
 				)
 				decrypted[associationId] = decryptedAggregates
@@ -189,7 +194,7 @@ export class CryptoMapper {
 		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
-		ownerGroupId: Nullable<Id>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
@@ -200,7 +205,7 @@ export class CryptoMapper {
 				associationServerTypeModel,
 				encryptedAggregate,
 				instanceDecryptor,
-				ownerGroupId,
+				ownerKeyProvider,
 				fieldPathPrefixForThisAssociation,
 			)
 			decryptedAggregates.push(decryptedAggregate)
@@ -280,7 +285,7 @@ export class CryptoMapper {
 		},
 		value: Nullable<Base64>,
 		instanceDecryptor: InstanceDecryptor,
-		groupId: Nullable<Id>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPath: string,
 	): Promise<Nullable<ParsedValue>> {
 		if (value == null) {
@@ -298,7 +303,7 @@ export class CryptoMapper {
 		if (valueDecryptor === MissingSessionKey) {
 			throw new SessionKeyNotFoundError("")
 		}
-		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, groupId)
+		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 
 		if (valueType.type === ValueType.Bytes) {

@@ -1,11 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import {
-	aes256RandomKey,
-	AesKey,
-	SymmetricCipherVersion,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, SymmetricCipherVersion, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
 import { convertJsToDbType, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoaderFacade"
@@ -49,7 +43,7 @@ import {
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { AttributeModel, Entity, EncryptedModelValue, ServerModelParsedInstance } from "../../../src/platform-kit/meta"
+import { AttributeModel, EncryptedModelValue, Entity, ServerModelParsedInstance } from "../../../src/platform-kit/meta"
 
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"

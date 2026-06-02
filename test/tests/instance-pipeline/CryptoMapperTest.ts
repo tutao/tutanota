@@ -20,11 +20,20 @@ import {
 	ServerTypeModel,
 	ValueType,
 } from "../../../src/platform-kit/meta"
-import { arrayEquals, base64ToUint8Array, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
+import {
+	arrayEquals,
+	base64ToUint8Array,
+	KeyVersion,
+	neverNull,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "../../../src/platform-kit/utils"
 import {
 	ClientTypeReferenceResolver,
 	CryptoMapper,
-	ModelMapper, ServerTypeReferenceResolver,
+	ModelMapper,
+	ServerTypeReferenceResolver,
 	SymmetricGroupKeyLoader,
 } from "../../../src/platform-kit/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
@@ -260,7 +269,8 @@ o.spec("CryptoMapper", () => {
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, instanceTypeId)
 			const groupId = "groupId"
 			when(keyLoader.loadSymGroupKey(groupId, groupKey.version)).thenResolve(groupKey.object)
-			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, groupId, fieldPath)
+			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion)
+			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
 			o.check(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
 		})
 	})
@@ -274,7 +284,8 @@ o.spec("CryptoMapper", () => {
 			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, "")
+		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, ownerKeyProvider, "")
 
 		o.check(decryptedInstance[1]).equals("encrypted string")
 		o.check((decryptedInstance[5] as Date).toISOString()).equals("2025-01-01T13:00:00.000Z")
@@ -315,7 +326,8 @@ o.spec("CryptoMapper", () => {
 			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
-		const instance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, null, null, "")
+		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const instance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, null, null, ownerKeyProvider, "")
 		o.check(instance[1]).equals("") // default value is assigned in case of crypto errors
 		o.check(instance._errors?.[14]).equals("Probably temporary SessionKeyNotFound")
 	})
@@ -343,7 +355,8 @@ o.spec("CryptoMapper", () => {
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, "")
+		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, ownerKeyProvider, "")
 
 		o.check(decryptedInstance[1]).equals("")
 		o.check(decryptedInstance[2]).equals(null)
@@ -359,7 +372,8 @@ o.spec("CryptoMapper", () => {
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 
-		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, "")
+		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk, null, ownerKeyProvider, "")
 		console.log(instanceWithErrors._errors?.[1])
 		o.check(typeof instanceWithErrors._errors?.[1]).equals("string")
 	})
@@ -401,7 +415,8 @@ o.spec("CryptoMapper", () => {
 			const aes256Key = aes256RandomKey()
 			when(keyLoader.loadSymGroupKey(groupId, matchers.anything())).thenReturn(Promise.resolve(aes256Key))
 
-			await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, groupId, "")
+			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion)
+			await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, ownerKeyProvider, "")
 			verify(valueDecryptor.getValue(aes256Key))
 		})
 
@@ -425,8 +440,9 @@ o.spec("CryptoMapper", () => {
 			const encryptedInstance: ServerModelEncryptedParsedInstance = {
 				3: [{ 6: "someCustomId", 9: [{ 17: uint8ArrayToBase64(Uint8Array.of(42)), 11: "anotherCustomId" }], 10: [] }],
 			} as any as ServerModelEncryptedParsedInstance
+			const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 			try {
-				await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sessionKey, null, "")
+				await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sessionKey, null, ownerKeyProvider, "")
 			} catch (_) {
 				/* empty */
 			}

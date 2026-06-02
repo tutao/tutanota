@@ -420,7 +420,7 @@ export class EventBusClient {
 					encryptedParsedInstance,
 					sessionKey,
 					validateKdfNonceLength(entityAdapter._kdfNonce),
-					entityAdapter._ownerGroup,
+					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 				)
 
 				// we do not want to process the instance if there are _errors (when decrypting)
@@ -439,7 +439,7 @@ export class EventBusClient {
 							mailDetailsBlobEncryptedParsedInstance,
 							sessionKey,
 							validateKdfNonceLength(entityAdapter._kdfNonce),
-							entityAdapter._ownerGroup,
+							this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 						)
 						return { parsedInstance, parsedBlobInstance }
 					}

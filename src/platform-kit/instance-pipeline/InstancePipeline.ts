@@ -82,7 +82,7 @@ export class InstancePipeline {
 			encryptedParsedInstance,
 			sk,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
-			entityAdapter._ownerGroup,
+			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 		)
 		return await this.modelMapper.mapToInstance(typeRef, parsedInstance)
 	}

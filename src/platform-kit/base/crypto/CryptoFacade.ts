@@ -17,7 +17,6 @@ import { assertEnumValue, elementIdPart, getElementId, getListId, isSameId, isSa
 import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
-	Aes256Key,
 	AesKey,
 	cryptoUtils,
 	isPqKeyPairs,
@@ -442,7 +441,7 @@ export class CryptoFacade extends CryptoNetworkHelper implements SessionKeyResol
 				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
 				validateKdfNonceLength(instance._kdfNonce ?? null),
-				instance._ownerGroup ?? null,
+				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(instance._ownerGroup ?? null),
 			)
 			decryptedInstance = await this.instancePipeline.modelMapper.mapToInstance(instance._type, parsedInstance)
 		}

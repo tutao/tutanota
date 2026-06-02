@@ -174,7 +174,7 @@ export class EntityRestClient implements EntityRestInterface {
 			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 			validateKdfNonceLength(migratedEntity._kdfNonce),
-			migratedEntity._ownerGroup,
+			opts.ownerKeyProvider ?? this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
 		)
 		tm?.endMeasurement()
 		return decrypted
@@ -232,7 +232,7 @@ export class EntityRestClient implements EntityRestInterface {
 			suspensionBehavior: opts.suspensionBehavior,
 		})
 		const parsedResponse: Array<ServerModelUntypedInstance> = JSON.parse(json)
-		return await this._handleLoadResult(typeRef, parsedResponse)
+		return await this._handleLoadResult(typeRef, parsedResponse, opts.ownerKeyProvider ?? null)
 	}
 
 	async loadRange<T extends ListElementEntity>(
@@ -276,7 +276,7 @@ export class EntityRestClient implements EntityRestInterface {
 				})
 			}
 			tm?.endMeasurement()
-			return this._handleLoadResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
+			return this._handleLoadResult(typeRef, JSON.parse(json), opts.ownerKeyProvider ?? null, ownerEncSessionKeyProvider)
 		})
 		return loadedChunks.flat()
 	}
@@ -344,6 +344,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async _handleLoadResult<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<ServerModelUntypedInstance>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -353,7 +354,12 @@ export class EntityRestClient implements EntityRestInterface {
 				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
 				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
-				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
+				return this._decryptAndMap(
+					serverTypeModel,
+					entityAdapter,
+					ownerKeyProvider ?? this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+					ownerEncSessionKeyProvider,
+				)
 			},
 			{
 				concurrency: 5,
@@ -364,6 +370,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async _decryptAndMap(
 		serverTypeModel: ServerTypeModel,
 		entityAdapter: EntityAdapter,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<ServerModelParsedInstance> {
 		let sessionKey: AesKey | null
@@ -392,7 +399,7 @@ export class EntityRestClient implements EntityRestInterface {
 			entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
-			entityAdapter._ownerGroup,
+			ownerKeyProvider,
 		)
 	}
 

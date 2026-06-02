@@ -317,7 +317,13 @@ export class PatchMerger {
 		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId] as EncryptedModelValue
-			return this.instancePipeline.cryptoMapper.decryptValue(encryptedValueInfo, value as Base64, instanceDecryptor, ownerGroup, fieldPath)
+			return this.instancePipeline.cryptoMapper.decryptValue(
+				encryptedValueInfo,
+				value as Base64,
+				instanceDecryptor,
+				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
+				fieldPath,
+			)
 		} else if (isAggregation) {
 			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
 			const modelAssociation = typeModel.associations[attributeId]
@@ -327,7 +333,7 @@ export class PatchMerger {
 				aggregationTypeModel,
 				encryptedAggregatedEntities,
 				instanceDecryptor,
-				ownerGroup,
+				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
 				`${fieldPath}/`,
 			)
 			if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
