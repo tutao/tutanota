@@ -87,7 +87,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const renderActionButton = (onContinue: any): Children => {
 			let temp = (event: any, dom: any) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom)
-			let isBusiness = options.businessUse()
 			if (onContinue) {
 				temp = () => onContinue(this.selectedPlan())
 			}

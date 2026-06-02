@@ -1,8 +1,8 @@
-import m, { Children, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Params, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { type ReferralData, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
 import { getCurrentPaymentInterval, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
@@ -38,6 +38,30 @@ export const PlanTypeParameter = Object.freeze({
 	ADVANCED: "advanced",
 	UNLIMITED: "unlimited",
 })
+
+export function getPreselectedPlanType(subscriptionParams: SubscriptionParameters | null): PlanType {
+	if (subscriptionParams == null) {
+		return PlanType.Legend
+	}
+
+	switch (subscriptionParams.subscription) {
+		case PlanTypeParameter.FREE:
+			return PlanType.Free
+		case PlanTypeParameter.REVOLUTIONARY:
+			return PlanType.Revolutionary
+		case PlanTypeParameter.LEGEND:
+			return PlanType.Legend
+		case PlanTypeParameter.ESSENTIAL:
+			return PlanType.Essential
+		case PlanTypeParameter.ADVANCED:
+			return PlanType.Advanced
+		case PlanTypeParameter.UNLIMITED:
+			return PlanType.Unlimited
+		default:
+			console.log("Unknown subscription passed: ", subscriptionParams)
+			return PlanType.Legend
+	}
+}
 
 export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null

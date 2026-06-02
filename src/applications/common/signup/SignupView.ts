@@ -45,6 +45,7 @@ import { Icons } from "../../../ui/base/icons/Icons"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
+import { getPreselectedPlanType } from "../subscription/SubscriptionPage"
 
 assertMainOrNode()
 
@@ -123,7 +124,7 @@ export class SignupViewModel {
 		}
 		this.price = null
 		this.nextYearPrice = null
-		this.targetPlanType = PlanType.Legend
+		this.targetPlanType = getPreselectedPlanType(subscriptionParams)
 		this.accountingInfo = null
 		this.customer = null
 		this.newAccountData = null
