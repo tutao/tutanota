@@ -9,14 +9,19 @@ const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = O
 })
 
 export class TType extends TConstruct {
-	private readonly isNullable: boolean
+	private readonly isNullable: boolean = false
+	private readonly isArrayOfBaseType: boolean = false
 	private readonly baseType: string | TType
 
 	constructor(typ: Type) {
 		super()
 		const apparentType = typ.getApparentType()
 		const typeName = apparentType.getSymbol()?.getName() ?? null
-		if (typeName != null) {
+
+		if (typ.isArray()) {
+			this.baseType = new TType(apparentType.getArrayElementType())
+			this.isArrayOfBaseType = true
+		} else if (typeName != null) {
 			this.baseType = typeName
 		} else if (typ.isUnion()) {
 			const [firstType, secondType, ...rest] = typ.getUnionTypes()
@@ -31,7 +36,7 @@ export class TType extends TConstruct {
 	}
 
 	isPrimitiveType(): boolean {
-		return MappedPrimitiveType[this.getFinalName()] != null
+		return !this.isArrayOfBaseType && MappedPrimitiveType[this.getFinalName()] != null
 	}
 
 	private getFinalName(): string {
@@ -43,11 +48,14 @@ export class TType extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		const finalName = this.getFinalName()
-		const mappedName = MappedPrimitiveType[finalName]?.kotlin ?? finalName
-		if (this.isNullable) {
-			return `${mappedName}?`
+		let finalType = this.getFinalName()
+		finalType = MappedPrimitiveType[finalType]?.kotlin ?? finalType
+		if (this.isArrayOfBaseType) {
+			finalType = `Array<${finalType}>`
+		} else if (this.isNullable) {
+			finalType += "?"
 		}
-		return mappedName
+
+		return finalType
 	}
 }
