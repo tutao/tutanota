@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./mimimi/napi-out", "../../types/"],
+	"include": ["./mimimi/napi-out", "../types/"],
 	"exclude": ["app-kit/mimimi/make.ts"],
 	"compilerOptions": {
 		"rootDir": "mimimi/napi-out",

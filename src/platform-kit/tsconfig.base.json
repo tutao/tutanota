@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./base/", "../../types/"],
+	"include": ["./base/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./base/",
 		"outDir": "../../build/base",

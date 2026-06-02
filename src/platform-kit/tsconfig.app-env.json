@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./app-env/", "../../types/"],
+	"include": ["./app-env/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./app-env/",
 		"outDir": "../../build/app-env",
