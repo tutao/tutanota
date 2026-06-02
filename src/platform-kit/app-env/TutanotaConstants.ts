@@ -1,7 +1,19 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
 
-export type Country = any
+/**
+ * parameter names are shortened to reduce size
+ */
+export type Country = {
+	/** name */
+	n: string
+	/** abbreviation */
+	a: string
+	/** type */
+	t: number
+	/** DecimalSeparator */
+	d: number
+}
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key = Object.keys(e).find((k) => e[k] === value) ?? null
