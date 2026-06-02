@@ -9,7 +9,8 @@ import Foundation
  Functions for working with larger files from Blob Store
  */
 public class BlobUtil {
-	public init() {}
+	let tempFs: TempFs
+	public init(tempFs: TempFs) { self.tempFs = tempFs }
 	public func hashFile(fileUri: String) async throws -> String {
 		let url = URL(fileURLWithPath: fileUri)
 		let data = try Data(contentsOf: url)
@@ -24,7 +25,7 @@ public class BlobUtil {
 		let outputFileUri = URL(fileURLWithPath: outputFilePath)
 
 		let createdFile = FileManager.default.createFile(atPath: outputFilePath, contents: nil, attributes: nil)
-		guard createdFile else { throw TUTErrorFactory.createError("Could not create file \(outputFileUri)") }
+		guard createdFile else { throw FileError(message: "Could not create file \(outputFileUri)") }
 		let outputFileHandle = try! FileHandle(forWritingTo: outputFileUri)
 
 		for inputFile in filePathsToJoin {
@@ -40,25 +41,18 @@ public class BlobUtil {
 	public func splitFile(fileUri: String, maxBlobSize: Int) async throws -> [String] {
 		let fileHandle = FileHandle(forReadingAtPath: fileUri)
 		if fileHandle == nil { throw TUTErrorFactory.createError("Tried to attach invalid file: \(fileUri)") }
+		let fileInfo = try getFileInfo(fileUri: URL(string: fileUri)!)
+		let fileSize = fileInfo.size
 
-		var result = [String]()
-		while true {
-			let chunk = fileHandle!.readData(ofLength: maxBlobSize)
-
-			if chunk.isEmpty {
-				// End of file
-				break
-			}
-
-			let hash = Data(CryptoKit.SHA256.hash(data: chunk))
-			let outputFileName = "\(hash.subdata(in: 0..<6).hexEncodedString()).blob"
-			let decryptedDir = try! FileUtils.getDecryptedFolder() as NSString
-			let outputPath = decryptedDir.appendingPathComponent(outputFileName)
-			let outputUrl = URL(fileURLWithPath: outputPath)
-			try chunk.write(to: outputUrl)
-
-			result.append(outputPath)
+		var chunkUris = [String]()
+		var currentOffset: Int64 = 0
+		while currentOffset < fileSize {
+			let start = currentOffset
+			let length = (start + Int64(maxBlobSize) > fileSize) ? fileSize - start : Int64(maxBlobSize)
+			let chunkUri = try await self.tempFs.createFileChunkUri(fileUri: fileUri, start: start, length: length).absoluteString
+			chunkUris.append(chunkUri)
+			currentOffset = start + length
 		}
-		return result
+		return chunkUris
 	}
 }

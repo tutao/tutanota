@@ -1,7 +1,6 @@
 import Foundation
 import UniformTypeIdentifiers
 
-public let FILES_ERROR_DOMAIN = "tutanota_files"
 let SHARED_CONTENT_DIRNAME = "shared-content"
 let ENCRYPTED_DIRNAME = "encrypted"
 let DECRYPTED_DIRNAME = "decrypted"
@@ -18,8 +17,8 @@ public class FileUtils {
 
 	public static func delete(file: URL) throws {
 		do { try FileManager.default.removeItem(at: file) } catch {
-			if let err = error as? NSError, err.code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
-			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
+			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
+			throw FileError(message: "Failed to delete file \(file)", underlyingError: error)
 		}
 	}
 
@@ -41,9 +40,7 @@ public class FileUtils {
 	}
 	public static func getApplicationSupportFolder() throws -> URL {
 		let appSupportDirURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last
-		guard let appSupportDirURL else {
-			throw TUTErrorFactory.createError(withDomain: FILES_ERROR_DOMAIN, message: "could not get application support directory URL")
-		}
+		guard let appSupportDirURL else { throw FileError(message: "could not get application support directory URL") }
 		try FileManager.default.createDirectory(at: appSupportDirURL, withIntermediateDirectories: true, attributes: nil)
 		return appSupportDirURL
 	}
@@ -59,7 +56,7 @@ public class FileUtils {
 
 	static func getAppGroupFolder() throws -> URL {
 		guard let sharedDir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: getAppGroupName()) else {
-			throw TUTErrorFactory.createError(withDomain: FILES_ERROR_DOMAIN, message: "could not get app group shared storage")
+			throw FileError(message: "could not get app group shared storage")
 		}
 		return sharedDir
 	}
@@ -80,4 +77,33 @@ public func getFileMIMETypeWithDefault(path: String) -> String { getFileMIMEType
 public func getFileMIMEType(path: String) -> String? {
 	let fileExtension = URL(fileURLWithPath: path).pathExtension
 	return UTType(filenameExtension: fileExtension)?.preferredMIMEType
+}
+
+extension URL {
+	func queryParameter(_ param: String) -> String? {
+		if let components = URLComponents(string: self.absoluteString), let value = components.queryItems?.first(where: { $0.name == param })?.value {
+			return value
+		} else {
+			return nil
+		}
+	}
+}
+
+func urlFromString(string: String) throws -> URL {
+	guard let url = URL(string: string) else { throw FileError(message: "could not build URL object for: \(string)") }
+	return url
+}
+
+struct FileError: TutanotaError {
+	static let name: String = "de.tutao.tutashared.FileError"
+	let message: String
+	let underlyingError: (any Error)?
+	init(message: String) {
+		self.message = message
+		self.underlyingError = nil
+	}
+	init(message: String, underlyingError: any Error) {
+		self.message = message
+		self.underlyingError = underlyingError
+	}
 }

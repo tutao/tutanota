@@ -5,7 +5,8 @@ import Testing
 
 struct KyberTest {
 	@Test func testRoundTrip() async throws {
-		let facade = IosNativeCryptoFacade()
+		let tempFs = TempFs()
+		let facade = IosNativeCryptoFacade(tempFs: tempFs)
 		let ignoredSeed = generateRandomNumbers(count: 64).wrap()
 		let keypair = try await facade.generateKyberKeypair(ignoredSeed)
 		let encaps = try await facade.kyberEncapsulate(keypair.publicKey, ignoredSeed)
