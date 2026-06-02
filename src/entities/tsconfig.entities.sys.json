@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./sys/", "../../types/"],
+	"include": ["./sys/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./sys/",
 		"outDir": "../../build/entities/sys",

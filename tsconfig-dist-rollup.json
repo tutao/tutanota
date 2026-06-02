@@ -8,6 +8,6 @@
 		"noEmit": false,
 		"composite": false
 	},
-	"include": ["src/**/*", "libs", "types"],
+	"include": ["src/**/*", "libs", "src/types"],
 	"exclude": ["build"]
 }

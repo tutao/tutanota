@@ -1,6 +1,6 @@
 {
 	"extends": "../tsconfig_common.json",
-	"include": ["./otest", "../types/"],
+	"include": ["./otest", "../src/types/"],
 	"exclude": ["build"],
 	"compilerOptions": {
 		"rootDir": "otest",

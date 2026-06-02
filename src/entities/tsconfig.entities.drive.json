@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./drive/", "../../types/"],
+	"include": ["./drive/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./drive/",
 		"outDir": "../../build/entities/drive",

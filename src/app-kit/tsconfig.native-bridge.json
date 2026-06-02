@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["native-bridge", "../../types/", "../../types.d.ts"],
+	"include": ["native-bridge", "../types/", "../../types.d.ts"],
 	"compilerOptions": {
 		"rootDir": "native-bridge",
 		"outDir": "../../build/native-bridge",
