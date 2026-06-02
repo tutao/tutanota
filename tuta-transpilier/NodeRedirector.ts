@@ -13,6 +13,8 @@ import {
 	ImportDeclaration,
 	InterfaceDeclaration,
 	NumericLiteral,
+	ParenthesizedExpression,
+	PropertyAccessExpression,
 	ReturnStatement,
 	StringLiteral,
 	SyntaxKind,
@@ -40,6 +42,7 @@ import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
 import { TArrayLiteral } from "./constructs/TArrayLiteral"
 import { IgnorableError } from "./errors/IgnorableError"
+import { TPropAccess } from "./constructs/TPropAccess"
 
 export class NodeRedirector {
 	private static redirectNodeInner(node: TsNode): TConstruct {
@@ -96,6 +99,13 @@ export class NodeRedirector {
 			return new TOperatorToken(typedNode)
 		} else if (typedNode instanceof ArrayLiteralExpression) {
 			return new TArrayLiteral(typedNode)
+		} else if (typedNode instanceof ParenthesizedExpression) {
+			const [paranOpen, ...exprAndParanClose] = typedNode.getChildren()
+			const [expression, paranClose] = exprAndParanClose
+			const expressionConstructs = expression.forEachChildAsArray().map((ex) => NodeRedirector.redirectNode(ex))
+			return new TConstructMultiple(new TOperatorToken(paranOpen), new TConstructMultiple(...expressionConstructs), new TOperatorToken(paranClose))
+		} else if (typedNode instanceof PropertyAccessExpression) {
+			return new TPropAccess(typedNode)
 		} else {
 			return new TNotSupported(node)
 		}

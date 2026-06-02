@@ -2,7 +2,7 @@ import { ConstructOut, TConstruct } from "./TConstruct"
 import { SyntaxKind, TypeAliasDeclaration } from "ts-morph"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
-import { TType, TTypeName } from "./TType"
+import { TType } from "./TType"
 
 export class TTypeAlias extends TConstruct {
 	private name: TIdentitider
@@ -17,13 +17,6 @@ export class TTypeAlias extends TConstruct {
 		const typeNode = typeAliasDeclaration.getTypeNodeOrThrow()
 		this.properties = typeNode.getDescendantsOfKind(SyntaxKind.PropertySignature).map((p) => {
 			const identName = new TIdentitider(p.getName())
-			try {
-				new TType(p.getType())
-			} catch (e) {
-				const n = this.name
-				const a = 1
-				throw e
-			}
 			const typeName = new TType(p.getType())
 			return { identName, typeName }
 		})

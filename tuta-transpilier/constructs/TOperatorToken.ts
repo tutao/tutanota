@@ -22,6 +22,8 @@ export class TOperatorToken extends TConstruct {
 			SyntaxKind.EqualsGreaterThanToken,
 			SyntaxKind.LessThanEqualsToken,
 			SyntaxKind.GreaterThanEqualsToken,
+			SyntaxKind.OpenParenToken,
+			SyntaxKind.CloseParenToken,
 		]).has(nodeKind)
 	}
 

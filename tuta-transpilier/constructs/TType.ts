@@ -17,7 +17,7 @@ export class TType extends TConstruct {
 	constructor(typ: Type) {
 		super()
 		const apparentType = typ.getApparentType()
-		const typeName = apparentType.getSymbol()?.getName() ?? null
+		const typeName = apparentType.getAliasSymbol()?.getName() ?? apparentType.getSymbol()?.getName() ?? null
 		this.isJavascriptObject = apparentType.isObject()
 
 		if (typ.isArray()) {
