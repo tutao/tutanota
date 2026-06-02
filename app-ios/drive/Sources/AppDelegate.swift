@@ -30,15 +30,17 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			cryptoFns: CommonCryptoCryptoFunctions()
 		)
 
+		let tempFs = TempFs()
 		self.viewController = ViewController(
-			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(),
+			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(tempFs: tempFs),
 			themeManager: ThemeManager(userPreferencesProvider: userPreferencesProvider),
 			keychainManager: keychainManager,
 			credentialsEncryption: credentialsEncryption,
-			blobUtils: BlobUtil(),
+			blobUtils: BlobUtil(tempFs: tempFs),
 			contactsSynchronization: IosMobileContactsFacade(),
 			userPreferencesProvider: userPreferencesProvider,
-			urlSession: self.urlSession
+			urlSession: self.urlSession,
+			tempFs: tempFs,
 		)
 		self.window!.rootViewController = viewController
 

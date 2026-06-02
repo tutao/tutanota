@@ -32,7 +32,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
 		userPreferencesProvider: any UserPreferencesProvider,
-		urlSession: URLSession
+		urlSession: URLSession,
+		tempFs: TempFs,
 	) {
 
 		self.themeManager = themeManager
@@ -76,6 +77,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 				viewer: FileViewer(viewController: self),
 				schemeHandler: apiSchemeHandler,
 				urlSession: urlSession,
+				tempFs: tempFs,
 				downloadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.downloadProgress(fileId, bytes) } },
 				uploadProgress: { [weak self] fileId, bytes in Task { try await self?.commonNativeFacade.uploadProgress(fileId, bytes) } }
 			),

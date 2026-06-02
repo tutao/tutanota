@@ -62,19 +62,21 @@ public let MAILTO_SCHEME = "mailto"
 			credentialsDb: credentialsDb,
 			cryptoFns: CommonCryptoCryptoFunctions()
 		)
+		let tempFs = TempFs()
 
 		self.viewController = ViewController(
-			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(),
+			crypto: TutanotaSharedFramework.IosNativeCryptoFacade(tempFs: tempFs),
 			themeManager: ThemeManager(userPreferencesProvider: userPreferencesProvider),
 			keychainManager: keychainManager,
 			notificationStorage: notificationStorage,
 			alarmManager: alarmManager,
 			notificaionsHandler: notificationsHandler,
 			credentialsEncryption: credentialsEncryption,
-			blobUtils: BlobUtil(),
+			blobUtils: BlobUtil(tempFs: tempFs),
 			contactsSynchronization: IosMobileContactsFacade(userDefaults: userPreferencesProvider),
 			userPreferencesProvider: userPreferencesProvider,
-			urlSession: self.urlSession
+			urlSession: self.urlSession,
+			tempFs: tempFs,
 		)
 		self.window!.rootViewController = viewController
 
