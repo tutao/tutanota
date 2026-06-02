@@ -3,6 +3,7 @@ import {
 	CallExpression,
 	ClassDeclaration,
 	EnumDeclaration,
+	ExportDeclaration,
 	ExpressionStatement,
 	FunctionDeclaration,
 	Identifier,
@@ -38,6 +39,7 @@ import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TClassDecl } from "./constructs/TClassDecl"
 import { TInterfaceDecl } from "./constructs/TInterfaceDecl"
 import { TIfStatement } from "./constructs/TIfStatement"
+import { TExportDecl } from "./constructs/TExportDecl"
 import SyntaxKind = ts.SyntaxKind
 
 export const enum TargetLanguage {
@@ -46,7 +48,6 @@ export const enum TargetLanguage {
 }
 
 export class LangTarget {
-	private fileEnded: boolean = false
 	protected outputContent: string = ""
 	private readonly collectedNodes: ReadonlyArray<TConstruct>
 
@@ -82,10 +83,10 @@ export class LangTarget {
 		}
 	}
 
-	public async writeToFile(): Promise<void> {
-		const tsFileProjPath = path.relative(TUTANOTA_ROOT, this.sourceFile.getDirectoryPath())
-		const outDir = path.join(TUTANOTA_ROOT, "kotlin-sdk", tsFileProjPath)
+	public async writeToFile(targetLanguageRoot: string): Promise<void> {
+		const sourceFileRelativeDir = path.relative(path.join(TUTANOTA_ROOT, "src"), this.sourceFile.getDirectoryPath())
 		const outFileName = this.sourceFile.getBaseNameWithoutExtension() + this.targetLanguage
+		const outDir = path.join(targetLanguageRoot, sourceFileRelativeDir)
 		const fullOutPath = path.join(outDir, outFileName)
 		fs.mkdirSync(outDir, { recursive: true })
 		fs.writeFileSync(fullOutPath, this.outputContent, { encoding: "utf-8" })
@@ -101,6 +102,8 @@ export class LangTarget {
 			return new TEmpty()
 		} else if (typedNode instanceof ImportDeclaration) {
 			return new TImport(typedNode)
+		} else if (typedNode instanceof ExportDeclaration) {
+			return new TExportDecl(typedNode)
 		} else if (typedNode instanceof VariableStatement) {
 			const declarations = typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
 			return new TConstructMultiple(...declarations).withSeperator(";\n")

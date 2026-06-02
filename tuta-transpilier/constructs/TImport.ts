@@ -49,8 +49,8 @@ export class TImport extends TConstruct {
 			.map(({ symbol, alias }) => {
 				return { symbol: symbol.generateKotlin(), alias: alias.generateKotlin() }
 			})
-			.map(({ symbol, alias }) => `import ${specifier}.${symbol} as ${alias}`)
-		return namedImports.concat(aliasedImports).join(";\n")
+			.map(({ symbol, alias }) => `import ${specifier}.${symbol} as ${alias};`)
+		return namedImports.concat(aliasedImports).join("\n")
 	}
 
 	private getKotlinSpecifier(): string {
