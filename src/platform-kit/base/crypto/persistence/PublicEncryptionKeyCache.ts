@@ -38,7 +38,7 @@ export class PublicEncryptionKeyCache {
 		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version))
 	}
 
-	makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {
+	private makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {
 		// we use JSON.stringify to get a canonical form and so that we do not have to worry about collisions of these different length parts of the key string
 		return JSON.stringify({ version, object: publicKeyIdentifier })
 	}

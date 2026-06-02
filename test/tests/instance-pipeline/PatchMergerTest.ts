@@ -32,7 +32,7 @@ import { EphemeralCacheStorage } from "../../../src/app-kit/local-store/Ephemera
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "../../../src/platform-kit/app-env"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
-import { LocalInstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/LocalInstanceSessionKeysCache"
+import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
 import { CacheStorage } from "../../../src/app-kit/local-store/CacheStorage"
 import {
 	CalendarEvent,
@@ -85,7 +85,7 @@ o.spec("PatchMergerTest", () => {
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
 			instance(PublicEncryptionKeyProvider),
-			new LocalInstanceSessionKeysCache(),
+			new InstanceSessionKeysCache(),
 			cryptoWrapper,
 			() => instance(KeyRotationFacade),
 			typeModelResolver,

@@ -48,7 +48,7 @@ import { initClientModels } from "../instance-pipeline/ClientModelInfoInitialize
 import { ServiceExecutor } from "../network/ServiceExecutor"
 import { isAdminClient, isAndroidApp, isBrowser, isIOSApp } from "@tutao/app-env"
 import { PublicEncryptionKeyCache } from "./crypto/persistence/PublicEncryptionKeyCache"
-import { LocalInstanceSessionKeysCache } from "./crypto/persistence/LocalInstanceSessionKeysCache.js"
+import { InstanceSessionKeysCache } from "./crypto/persistence/InstanceSessionKeysCache.js"
 import { Argon2idFacade, WASMArgon2idFacade } from "./crypto/WasmArgon2idFacade"
 import { NativeArgon2idFacade } from "./crypto/NativeArgon2idFacade"
 import { BrowserData } from "../app-env/boot/ClientConstants"
@@ -280,7 +280,7 @@ export async function createBaseLocator({
 		keyLoader,
 		asymmetricCrypto,
 		publicEncryptionKeyProvider,
-		new LocalInstanceSessionKeysCache(),
+		new InstanceSessionKeysCache(),
 		cryptoWrapper,
 		lazyMemoized(() => keyRotation),
 		typeModelResolver,
