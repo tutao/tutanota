@@ -20,6 +20,7 @@ import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { isApp } from "../../../../platform-kit/app-env"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType

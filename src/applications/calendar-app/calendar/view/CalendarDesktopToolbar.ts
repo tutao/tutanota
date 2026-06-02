@@ -6,6 +6,8 @@ import { IconSegmentControl } from "../../../../ui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 type CalendarDesktopToolbarAttrs = {
 	navConfig: CalendarNavConfiguration
