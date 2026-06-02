@@ -1687,6 +1687,7 @@ export default {
 		"replyTentativeEventInfo_msg": "<strong>{name}</strong> deltar <strong>kanskje</strong> på hendelsen din.",
 		"replyTo_label": "Svar til",
 		"reportEmail_action": "Rapporter e-post",
+		"reportNotSpam_action": "Aldri søppelpost",
 		"reportPhishing_action": "Rapporter nettfiske",
 		"reportSpam_action": "Rapporter søppelpost",
 		"requestApproval_msg": "Du har for øyeblikket ikke lov til å sende eller motta e-postmeldinger (unntatt til og fra Tutas brukerstøtte) fordi kontoen din venter på godkjenning. Dette er for å unngå misbruk av kontoen, som f.eks. å bruke den til å sende søppelpost. Ta kontakt med oss på approval@tutao.de direkte fra din Tuta-konto og beskriv hva du vil bruke denne e-postkontoen til. Skriv på engelsk eller tysk slik at vi kan forstå deg. Takk!",
