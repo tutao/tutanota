@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Åpne appen";
 TutaoWidgetUnexpectedErrorMsg = "Ops! Noe gikk galt.";
 TutaoWidgetSendLogsAction = "Send loggene";
 TutaoWidgetNoEventsMsg = "Ingen hendelser";
+TutaoWidgetNoEventsTodayMsg = "Ingen hendelser i dag";
 TutaoWidgetCredentialsErrorMsg = "Ingen tilgjengelige innloggingsdetaljer";
 TutaoAccountLabel = "Bruker";
 TutaoCalendarsLabel = "Kalendre";

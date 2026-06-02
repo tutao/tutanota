@@ -16,6 +16,7 @@
     <string name="widgetCredentialsError_msg">Logg inn i kalender-appen</string>
     <string name="widgetOpenApp_action">Åpne appen</string>
     <string name="widgetNoEvents_msg">Ingen hendelser</string>
+    <string name="widgetNoEventsToday_msg">Ingen hendelser i dag</string>
     <string name="widgetDescription_msg">Vis dagens kommende hendelser</string>
     <string name="birthdayCalendar_label">Fødselsdager</string>
     <string name="birthdayEvent_title">Fødselsdag for {name}</string>
