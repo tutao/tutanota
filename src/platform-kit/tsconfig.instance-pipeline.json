@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["instance-pipeline", "../../types/"],
+	"include": ["instance-pipeline", "../types/"],
 	"compilerOptions": {
 		"rootDir": "instance-pipeline",
 		"outDir": "../../build/instance-pipeline",

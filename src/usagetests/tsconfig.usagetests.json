@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./", "../../types/"],
+	"include": ["./", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./",
 		"outDir": "../../build/usagetests",
