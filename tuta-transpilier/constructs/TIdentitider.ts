@@ -23,6 +23,16 @@ export class TIdentitider extends TConstruct {
 			identifier += this.makeUniqIdent
 		}
 
+		identifier = TIdentitider.makeCamelCase(identifier)
+
 		return identifier
+	}
+
+	private static makeCamelCase(identifier: string) {
+		if (!/^[A-Za-z_$][A-Za-z0-9_$]*(?:[-_][A-Za-z0-9_$]+)*$/.test(identifier)) {
+			throw new Error(`Invalid identifier: "${identifier}"`)
+		}
+
+		return identifier.replace(/[-_]+(.)/g, (_, ch) => ch.toUpperCase()).replace(/^[A-Z]/, (ch) => ch.toLowerCase())
 	}
 }

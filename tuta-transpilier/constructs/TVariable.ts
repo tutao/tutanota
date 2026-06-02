@@ -1,7 +1,7 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
-import { LangTarget } from "../LangTarget"
+import { NodeRedirector } from "../NodeRedirector"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind
@@ -16,7 +16,7 @@ export class TVariable extends TConstruct {
 		this.dataType = new TIdentitider(variableDeclaration.getType().getApparentType().getSymbol().getName())
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
-			this.initializer = LangTarget.redirectNode(initializer)
+			this.initializer = NodeRedirector.redirectNode(initializer)
 		}
 	}
 

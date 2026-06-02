@@ -1,2 +1,2 @@
-package org.tutao
+package de.tutao
 

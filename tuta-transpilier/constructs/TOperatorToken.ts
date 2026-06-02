@@ -1,12 +1,12 @@
 import { ConstructOut, TConstruct, TsNode } from "./TConstruct"
 import { SyntaxKind } from "ts-morph"
-import { Assert } from "../Constants"
+import * as Assert from "node:assert"
 
 export class TOperatorToken extends TConstruct {
 	private operatorRaw: string
 	constructor(symbolNode: TsNode) {
 		super()
-		Assert.isTrue(TOperatorToken.isOperatorToken(symbolNode.getKind()), "Non-operator node passed")
+		Assert.equal(TOperatorToken.isOperatorToken(symbolNode.getKind()), true, "Non-operator node passed")
 		this.operatorRaw = symbolNode.getText(false)
 	}
 

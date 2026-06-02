@@ -1,7 +1,7 @@
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { BinaryExpression } from "ts-morph"
-import { LangTarget } from "../LangTarget"
-import { Assert } from "../Constants"
+import { NodeRedirector } from "../NodeRedirector"
+import * as Assert from "node:assert"
 
 export class TBinaryExpr extends TConstruct {
 	private readonly lhs: TConstruct
@@ -10,8 +10,8 @@ export class TBinaryExpr extends TConstruct {
 
 	constructor(binaryExpression: BinaryExpression) {
 		super()
-		Assert.isTrue(binaryExpression.getChildCount() === 3, "binary expression always expects 3 node")
-		const [lhs, operand, rhs] = binaryExpression.getChildren().map((n) => LangTarget.redirectNode(n))
+		Assert.equal(binaryExpression.getChildCount(), 3, "binary expression always expects 3 node")
+		const [lhs, operand, rhs] = binaryExpression.getChildren().map((n) => NodeRedirector.redirectNode(n))
 		this.lhs = lhs
 		this.operand = operand
 		this.rhs = rhs

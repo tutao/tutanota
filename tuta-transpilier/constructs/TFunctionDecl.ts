@@ -2,7 +2,7 @@ import { FunctionDeclaration } from "ts-morph"
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
-import { LangTarget } from "../LangTarget"
+import { NodeRedirector } from "../NodeRedirector"
 
 export class TFunctionDecl extends TConstruct {
 	private readonly name: TIdentitider
@@ -25,7 +25,7 @@ export class TFunctionDecl extends TConstruct {
 		this.functionBody = functionDecleration
 			.getBody()
 			.forEachChildAsArray()
-			.map((stmt) => LangTarget.redirectNode(stmt))
+			.map((stmt) => NodeRedirector.redirectNode(stmt))
 	}
 
 	generateKotlin(): ConstructOut {

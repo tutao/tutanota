@@ -1,13 +1,13 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { Expression } from "ts-morph"
-import { LangTarget } from "../LangTarget"
+import { NodeRedirector } from "../NodeRedirector"
 
 export class TExpression extends TConstruct {
 	private readonly innerConstructs: Array<TConstruct> = []
 	constructor(expression: Expression) {
 		super()
 
-		const childExpressions = expression.forEachChildAsArray().flatMap((childExpr) => LangTarget.redirectNode(childExpr))
+		const childExpressions = expression.forEachChildAsArray().flatMap((childExpr) => NodeRedirector.redirectNode(childExpr))
 		this.innerConstructs.push(...childExpressions)
 	}
 
