@@ -2293,3 +2293,4 @@ export type TranslationKeyType =
 	| "importEventIcsDuplicate_msg"
 	| "emptyIcsFile_msg"
 	| "noImportableEvents_msg"
+	| "importAlarmsError_msg"

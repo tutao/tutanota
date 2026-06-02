@@ -120,4 +120,12 @@ export class ImportInteractionHandler {
 			}),
 		)
 	}
+
+	showImportAlarmsError(e: ImportError) {
+		return Dialog.message(
+			lang.getTranslation("importAlarmsError_msg", {
+				"{amount}": e.numFailed,
+			}),
+		)
+	}
 }

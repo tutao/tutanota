@@ -84,6 +84,7 @@ import { CalendarImporter } from "../../../common/calendar/import/CalendarImport
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
+import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1329,7 +1330,13 @@ export class MailViewerViewModel {
 				calendarModel,
 				this.logins.getUserController(),
 				data.contents,
-				new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone()),
+				new CalendarImporter(
+					calendarModel,
+					new ImportInteractionHandler(),
+					this.operationProgressTracker,
+					new EventSeriesResolver(calendarModel),
+					getTimeZone(),
+				),
 			)
 		} catch (e) {
 			console.log(e)
