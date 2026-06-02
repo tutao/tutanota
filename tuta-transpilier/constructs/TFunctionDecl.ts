@@ -1,6 +1,6 @@
 import { FunctionDeclaration } from "ts-morph"
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
-import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
+import { TIdentifierKind, TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 import { NodeRedirector } from "../NodeRedirector"
 
@@ -15,11 +15,12 @@ export class TFunctionDecl extends TConstruct {
 		super()
 
 		this.visibility = new TVisibility(functionDecleration)
-		this.name = new TIdentitider(functionDecleration.getName())
-		this.returnType = new TIdentitider(functionDecleration.getReturnType().getApparentType().getSymbol().getName())
+		this.name = new TIdentitider(functionDecleration.getName(), TIdentifierKind.Variable)
+		// todo: this should be TTypeName instead of TIdentifier
+		this.returnType = new TIdentitider(functionDecleration.getReturnType().getApparentType().getSymbol().getName(), TIdentifierKind.TypeName)
 		this.parameters = functionDecleration.getParameters().map((param) => {
-			const identName = new TIdentitider(param.getName())
-			const typeName = new TIdentitider(param.getType().getApparentType().getSymbol().getName())
+			const identName = new TIdentitider(param.getName(), TIdentifierKind.Variable)
+			const typeName = new TIdentitider(param.getType().getApparentType().getSymbol().getName(), TIdentifierKind.TypeName)
 			return { identName, typeName }
 		})
 		this.functionBody = functionDecleration

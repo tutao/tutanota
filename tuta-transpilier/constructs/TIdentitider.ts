@@ -10,10 +10,19 @@ export type TTypedIdentifier = {
 	typeName: TIdentitider
 }
 
+export enum TIdentifierKind {
+	Variable,
+	GlobalConstant,
+	TypeName,
+}
+
 export class TIdentitider extends TConstruct {
 	private readonly makeUniqIdent = "_snkm"
 
-	constructor(private readonly rawName: string) {
+	constructor(
+		private readonly rawName: string,
+		private readonly kind: TIdentifierKind,
+	) {
 		super()
 	}
 
@@ -21,6 +30,20 @@ export class TIdentitider extends TConstruct {
 		let identifier = this.rawName
 		if (reservedKeywords.kotlin.has(this.rawName)) {
 			identifier += this.makeUniqIdent
+		}
+
+		switch (this.kind) {
+			case TIdentifierKind.GlobalConstant: {
+				break
+			}
+			case TIdentifierKind.Variable: {
+				identifier = TIdentitider.makeCamelCase(identifier)
+				break
+			}
+			case TIdentifierKind.TypeName: {
+				identifier = TIdentitider.makePascalCase(identifier)
+				break
+			}
 		}
 
 		identifier = TIdentitider.makeCamelCase(identifier)
@@ -34,5 +57,10 @@ export class TIdentitider extends TConstruct {
 		}
 
 		return identifier.replace(/[-_]+(.)/g, (_, ch) => ch.toUpperCase()).replace(/^[A-Z]/, (ch) => ch.toLowerCase())
+	}
+
+	private static makePascalCase(identifier: string) {
+		const camel = TIdentitider.makeCamelCase(identifier)
+		return camel.charAt(0).toUpperCase() + camel.slice(1)
 	}
 }

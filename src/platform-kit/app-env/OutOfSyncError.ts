@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "./index"
+import { TutanotaError } from "./TutanotaError"
 
 export class OutOfSyncError extends TutanotaError {
 	constructor(message: string) {

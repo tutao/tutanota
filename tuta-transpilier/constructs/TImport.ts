@@ -1,5 +1,5 @@
 import { ImportDeclaration } from "ts-morph"
-import { TIdentitider } from "./TIdentitider"
+import { TIdentifierKind, TIdentitider } from "./TIdentitider"
 import { ConstructOut, TConstruct } from "./TConstruct"
 
 export const enum TImportKind {
@@ -29,11 +29,11 @@ export class TImport extends TConstruct {
 			.replace("../", "") // replace up directory
 			.replace("./", "") // replace current directory
 			.split("/")
-			.map((c) => new TIdentitider(c))
+			.map((c) => new TIdentitider(c, TIdentifierKind.Variable))
 		this.namedImports = importDeclaration
 			.getImportClause()
 			.getNamedImports()
-			.map((ident) => new TIdentitider(ident.getName()))
+			.map((ident) => new TIdentitider(ident.getName(), TIdentifierKind.Variable))
 		this.aliasedImports = []
 
 		if (isRelativeImport) this.importKind = TImportKind.Relative
@@ -61,7 +61,7 @@ export class TImport extends TConstruct {
 
 		const specifierSuffix = this.specifierComponents.map((sc) => sc.generateKotlin()).join(".")
 		if (this.importKind === TImportKind.Relative) {
-			const currentPackage = "org.tutao"
+			const currentPackage = "de.tutao"
 			return currentPackage + "." + specifierSuffix
 		} else if (this.importKind === TImportKind.External) {
 			return namedImportsMap[specifierSuffix] ?? specifierSuffix

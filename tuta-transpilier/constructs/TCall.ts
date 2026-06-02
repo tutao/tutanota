@@ -1,6 +1,6 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { CallExpression } from "ts-morph"
-import { TIdentitider } from "./TIdentitider"
+import { TIdentifierKind, TIdentitider } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
 
 export class TCall extends TConstruct {
@@ -9,7 +9,7 @@ export class TCall extends TConstruct {
 
 	constructor(callExpression: CallExpression) {
 		super()
-		this.functionName = new TIdentitider(callExpression.getExpression().getSymbol().getName())
+		this.functionName = new TIdentitider(callExpression.getExpression().getSymbol().getName(), TIdentifierKind.Variable)
 		this.callArguments = callExpression.getArguments().map((arg) => NodeRedirector.redirectNode(arg))
 	}
 
