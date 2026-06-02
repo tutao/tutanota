@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["meta", "../../types/"],
+	"include": ["meta", "../types/"],
 	"compilerOptions": {
 		"rootDir": "meta",
 		"outDir": "../../build/meta",

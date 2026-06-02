@@ -2,7 +2,7 @@
  * This file is used for *monkey-patching* existing declarations. Don't use it to declare global variables.
  */
 
-export { NativeApp } from "../types/globals"
+export { NativeApp } from "./types/globals"
 
 type Tutao = {
 	currentView: TopLevelView | null

@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["crypto", "../../types/*.d.ts"],
+	"include": ["crypto", "../types/*.d.ts"],
 	"compilerOptions": {
 		"rootDir": "crypto",
 		"outDir": "../../build/crypto-primitives",

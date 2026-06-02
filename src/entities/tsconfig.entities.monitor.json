@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./monitor/", "../../types/"],
+	"include": ["./monitor/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./monitor/",
 		"outDir": "../../build/entities/monitor",
