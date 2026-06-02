@@ -18,13 +18,13 @@ import { Button, ButtonType } from "../../../../ui/base/Button"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
-import { CountryType } from "../../gui/CountryList"
+import { getClientType, PaymentDataResultType } from "@tutao/app-env"
+import { Country, CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
@@ -148,6 +148,12 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		})
 		return progressDialogPromise.finally(() => locator.eventController.removeEntityUpdatesListener(entityUpdatesListener))
 	})
+}
+
+export type InvoiceData = {
+	invoiceAddress: string
+	country: Country | null
+	vatNumber: string // only for EU countries otherwise empty
 }
 
 export async function updatePaymentData(
