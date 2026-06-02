@@ -39,7 +39,7 @@ import {
 	getWeekNumber,
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { DAY_IN_MILLIS, DEFAULT_CALENDAR_COLOR, EndType, isAppleDevice, Keys, RepeatPeriod, ShareCapability, Weekday, WeekStart } from "@tutao/app-env"
+import { DEFAULT_CALENDAR_COLOR, EndType, isAppleDevice, Keys, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { Duration } from "luxon"
@@ -267,7 +267,7 @@ export function getRowDateFromMousePos(mouseEvent: MouseEvent, dayCount: number,
 	const xPosition = mouseEvent.pageX - diffFromOrigin
 	const daysToAdd = Math.floor(xPosition / daysDivisionsWidth)
 
-	return new Date(startOfPeriod.getTime() + DAY_IN_MILLIS * daysToAdd)
+	return new Date(startOfPeriod.getTime() + TimeConstants.DAY_IN_MILLIS * daysToAdd)
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4

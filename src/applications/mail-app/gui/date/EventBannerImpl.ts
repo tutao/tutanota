@@ -38,7 +38,7 @@ import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { EventTextTimeOption, Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-env"
+import { EventTextTimeOption, Keys, ProgrammingError, TabIndex, TimeConstants } from "@tutao/app-env"
 import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
@@ -642,7 +642,7 @@ export async function loadEventsAroundInvite(
 			})),
 		}
 
-		const oneHour = SECOND_IN_MILLIS * 3600
+		const oneHour = TimeConstants.SECOND_IN_MILLIS * 3600
 		if (!closestConflictingEventBeforeStartTime) {
 			const eventBefore = normalEvents
 				.sort((a, b) => b.event.startTime.getTime() - a.event.startTime.getTime())

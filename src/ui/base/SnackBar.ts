@@ -8,7 +8,7 @@ import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewMod
 import { styles } from "../styles"
 import { LayerType } from "./RootView"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode, secondsToMillis } from "../../platform-kit/app-env"
+import { assertMainOrNode, TimeConstants } from "../../platform-kit/app-env"
 import { isNotEmpty, remove } from "../../platform-kit/utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
@@ -18,9 +18,9 @@ import { fabBottomSpacing } from "./FloatingActionButton"
 
 assertMainOrNode()
 
-const SNACKBAR_SHOW_TIME = secondsToMillis(6)
-const SNACKBAR_HIDE_DELAY_TIME = secondsToMillis(1.5)
-const INFO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
+const SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(6)
+const SNACKBAR_HIDE_DELAY_TIME = TimeConstants.secondsToMillis(1.5)
+const INFO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: MaybeTranslation

@@ -1,4 +1,4 @@
-import { DAY_IN_MILLIS } from "./TimeConstants.js"
+import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
 
 export type Country = any
@@ -29,8 +29,8 @@ type ConstType = {
 }
 
 export const Const: ConstType = {
-	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * DAY_IN_MILLIS,
-	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * DAY_IN_MILLIS,
+	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
+	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
 	MEMORY_GB_FACTOR: 1000000000,
 	MEMORY_WARNING_FACTOR: 0.9,
 	// Sets the current date for testing date dependent services. Only available in test environments.

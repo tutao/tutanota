@@ -2,7 +2,7 @@ import { Time } from "../date/Time"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { layout_size, px } from "../../../../ui/size"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
-import { DAY_IN_MINUTES } from "@tutao/app-env"
+import { TimeConstants } from "@tutao/app-env"
 
 export interface TimeIndicatorAttrs {
 	timeBadgeConfig?: {
@@ -38,6 +38,6 @@ export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
 	}
 
 	static calculateYPosition(time: Time, dayHeight: number) {
-		return (time.asMinutes() * dayHeight) / DAY_IN_MINUTES
+		return (time.asMinutes() * dayHeight) / TimeConstants.DAY_IN_MINUTES
 	}
 }

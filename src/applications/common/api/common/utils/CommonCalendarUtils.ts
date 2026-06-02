@@ -1,6 +1,6 @@
 import { cleanMailAddress, stringToBase64UrlCustomId } from "@tutao/utils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
-import { DAY_IN_MILLIS } from "@tutao/app-env"
+import { TimeConstants } from "@tutao/app-env"
 import { CalendarEvent, CalendarEventParams } from "@tutao/entities/tutanota"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../../calendar-app/calendar/export/CalendarParser"
 
@@ -11,7 +11,7 @@ export type CalendarEventDateTimeFields = CalendarEventTimes & CalendarEventTime
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
  */
-export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
+export const DAYS_SHIFTED_MS = 15 * TimeConstants.DAY_IN_MILLIS
 
 /*
  * convenience wrapper for isAllDayEventByTimes
