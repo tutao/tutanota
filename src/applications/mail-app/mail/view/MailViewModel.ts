@@ -497,7 +497,13 @@ export class MailViewModel {
 	}
 
 	// deinit the old list model if it exists and create and init a new one
-	private updateListModel() {
+	private async updateListModel() {
+		if (this._folder) {
+			if (!this.syncTracker.isSyncDone) {
+				await this.cacheStorage.deleteRange(MailSetEntryTypeRef, this._folder.entries)
+			}
+		}
+
 		if (this._folder == null) {
 			this.listStreamSubscription?.end(true)
 			this.listStreamSubscription = null
