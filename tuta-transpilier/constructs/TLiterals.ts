@@ -5,7 +5,13 @@ export class TNumericLiteral extends TConstruct {
 	private value: number
 	constructor(literal: NumericLiteral) {
 		super()
-		this.value = literal.getLiteralValue().valueOf()
+		this.value = literal.getLiteralValue()
+	}
+
+	static fromValue(value: number): TNumericLiteral {
+		return new TNumericLiteral({
+			getLiteralValue: () => value,
+		} as any)
 	}
 
 	generateKotlin(): ConstructOut {
@@ -19,6 +25,12 @@ export class TStringLiteral extends TConstruct {
 	constructor(literal: StringLiteral) {
 		super()
 		this.value = literal.getLiteralValue()
+	}
+
+	static fromValue(value: string): TStringLiteral {
+		return new TStringLiteral({
+			getLiteralValue: () => value,
+		} as any)
 	}
 
 	generateKotlin(): ConstructOut {
