@@ -10,8 +10,16 @@ class NotificationService: UNNotificationServiceExtension {
 
 	private var contentHandler: ((UNNotificationContent) -> Void)?
 	private var bestAttemptContent: UNMutableNotificationContent?
-	private let urlSession: URLSession = makeUrlSession()
+	private let urlSession: URLSession
 	private let logger = Logger(subsystem: "TutaNotifications", category: "Notifications")
+	override init() {
+		do { self.urlSession = try makeBackgroundUrlSession() } catch {
+			self.logger.error("[Error] Cannot create background url Session due to: \(String(describing: error))")
+			self.logger.info("Fallingback to urlSession as backgroundUrlSession can not be constructed")
+			self.urlSession = makeUrlSession()
+		}
+		super.init()
+	}
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler

@@ -65,6 +65,18 @@ public func makeUrlSession() -> URLSession {
 
 	return urlSession
 }
+	
+public func makeBackgroundUrlSession() throws -> URLSession {
+	let backgroundSessionId =
+		if let bundleId = Bundle.main.bundleIdentifier { "\(bundleId).TutaNotificationAction" } else {
+			throw GenericTutanotaError(message: "No bundleId found")
+		}
+	let config = URLSessionConfiguration.background(withIdentifier: backgroundSessionId)
+	config.timeoutIntervalForRequest = 20
+	config.requestCachePolicy = .reloadIgnoringCacheData
+	config.httpAdditionalHeaders = ["cv": appVersion()]
+	return URLSession(configuration: config)
+}
 
 func appVersion() -> String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String }
 
