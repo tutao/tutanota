@@ -2,19 +2,19 @@ import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
-import { TTypeName } from "./TTypeName"
+import { TType } from "./TType"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind
 	private name: TIdentitider
-	private dataType: TTypeName
+	private dataType: TType
 	private readonly initializer: TConstruct | null = null
 
 	constructor(variableDeclaration: VariableDeclaration) {
 		super()
 		this.declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
 		this.name = new TIdentitider(variableDeclaration.getSymbol().getName())
-		this.dataType = new TTypeName(variableDeclaration.getType().getApparentType().getSymbol().getName())
+		this.dataType = new TType(variableDeclaration.getType())
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
 			this.initializer = NodeRedirector.redirectNode(initializer)

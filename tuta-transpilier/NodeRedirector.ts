@@ -40,6 +40,11 @@ import { TVariable } from "./constructs/TVariable"
 
 export class NodeRedirector {
 	public static redirectNode(node: TsNode): TConstruct {
+		if (node.getSourceFile().getFilePath().includes("src/types/")) {
+			// we have many complicated types in this folder, skip for now
+			return new TEmpty()
+		}
+
 		const nodeKindName = node.getKindName()
 		const nodeKind = node.getKind()
 		const typedNode = node.asKindOrThrow(nodeKind)

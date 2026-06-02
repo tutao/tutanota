@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
-import { TTypeName } from "./TTypeName"
+import { TType } from "./TType"
 
 const reservedKeywords = {
 	swift: new Set(),
@@ -8,7 +8,7 @@ const reservedKeywords = {
 
 export type TTypedIdentifier = {
 	identName: TIdentitider
-	typeName: TTypeName
+	typeName: TType
 }
 
 export enum TIdentifierFormatting {

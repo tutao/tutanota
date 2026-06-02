@@ -3,11 +3,11 @@ import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 import { NodeRedirector } from "../NodeRedirector"
-import { TTypeName } from "./TTypeName"
+import { TType } from "./TType"
 
 export class TFunctionDecl extends TConstruct {
 	private readonly name: TIdentitider
-	private readonly returnType: TTypeName
+	private readonly returnType: TType
 	private readonly parameters: Array<TTypedIdentifier>
 	private readonly visibility: TVisibility
 	private readonly functionBody: Array<TConstruct>
@@ -17,10 +17,10 @@ export class TFunctionDecl extends TConstruct {
 
 		this.visibility = new TVisibility(functionDeclaration)
 		this.name = new TIdentitider(functionDeclaration.getName())
-		this.returnType = new TTypeName(functionDeclaration.getReturnType().getApparentType().getSymbol().getName())
+		this.returnType = new TType(functionDeclaration.getReturnType())
 		this.parameters = functionDeclaration.getParameters().map((param) => {
 			const identName = new TIdentitider(param.getName())
-			const typeName = new TTypeName(param.getType().getApparentType().getSymbol().getName())
+			const typeName = new TType(param.getType())
 			return { identName, typeName }
 		})
 		this.functionBody = functionDeclaration
