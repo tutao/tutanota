@@ -5,6 +5,7 @@ import * as Assert from "node:assert"
 const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "Int", swift: "" },
 	Boolean: { kotlin: "Boolean", swift: "" },
+	ReadonlyArray: { kotlin: "Array", swift: "" },
 })
 
 export class TType extends TConstruct {
