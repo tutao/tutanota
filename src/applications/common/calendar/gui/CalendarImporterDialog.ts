@@ -6,9 +6,7 @@ import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { getFirstOrThrow, isNotEmpty, ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
-import { ImportError } from "../../api/common/error/ImportError.js"
-import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
+import { promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
 import { isApp, ShareCapability } from "@tutao/app-env"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
@@ -20,7 +18,6 @@ import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api
 import { CalendarImporter } from "../import/CalendarImporter"
 import { UserController } from "../../api/main/UserController.js"
 import { parseCalendarFile, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
-import { EventAlarmInfoTemplatesTuple } from "../import/ImportExportUtils"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
 import { component_size } from "../../../../ui/size"
@@ -288,6 +285,6 @@ export async function importCalendarFile(
 
 	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
 		dialog.close()
-		calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, events, selectedCalendar.type)
+		calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, events, CalendarImporter.classifyImportedEvents, selectedCalendar.type)
 	})
 }

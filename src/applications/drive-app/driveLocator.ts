@@ -136,6 +136,7 @@ import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarP
 import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
+import { EventSeriesResolver } from "../common/calendar/import/EventSeriesResolver"
 
 assertMainOrNode()
 
@@ -786,7 +787,13 @@ class DriveLocator implements CommonLocator {
 				calendarModel,
 				this.logins.getUserController(),
 				parsedEvents,
-				new CalendarImporter(calendarModel, new ImportInteractionHandler(), this.operationProgressTracker, getTimeZone()),
+				new CalendarImporter(
+					calendarModel,
+					new ImportInteractionHandler(),
+					this.operationProgressTracker,
+					new EventSeriesResolver(calendarModel),
+					getTimeZone(),
+				),
 			)
 		}
 	}

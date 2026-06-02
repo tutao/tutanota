@@ -1,27 +1,60 @@
 import { ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
-import { deferWithHandler, getFirstOrThrow, groupBy, isEmpty, isNotEmpty, isNotNull } from "@tutao/utils"
+import { deferWithHandler, groupBy, isEmpty, isNotEmpty, isNotNull } from "@tutao/utils"
 import { generateEventElementId, isBefore } from "../../api/common/utils/CommonCalendarUtils"
 import { assignEventId, CalendarEventValidity, CalendarType, checkEventValidity } from "../date/CalendarUtils"
 import { EventAlarmInfoTemplatesTuple, makeCalendarEventFromIcsCalendarEvent, shallowIsSameEvent } from "./ImportExportUtils"
 import { CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
 import { ImportInteractionHandler } from "../gui/ImportInteractionHandler"
-import { AlarmInfoTemplate, CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api/worker/facades/lazy/CalendarFacade"
+import {
+	AlarmInfoTemplate,
+	CalendarEventAlteredInstance,
+	CalendarEventProgenitor,
+	CreateCalendarEventsResult,
+} from "../../api/worker/facades/lazy/CalendarFacade"
 import { ImportError } from "../../api/common/error/ImportError"
-import { locator } from "../../api/main/CommonLocator"
 import { OperationHandle, OperationProgressTracker } from "../../api/main/OperationProgressTracker"
 import { CalendarEvent, CalendarGroupRoot } from "@tutao/entities/tutanota"
 import { EventSeriesResolver } from "./EventSeriesResolver"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { DateTime } from "luxon"
 import { clone } from "@tutao/meta"
+import { EndType } from "@tutao/app-env"
+import { errorsToString } from "../../../../platform-kit/utils/Utils"
 
 export class CalendarImporter {
 	constructor(
 		private readonly calendarModel: CalendarModel,
 		private readonly importInteractionHandler: ImportInteractionHandler,
 		private readonly operationProgressTracker: OperationProgressTracker,
+		private readonly eventSeriesResolver: EventSeriesResolver,
 		private readonly timezone: string,
 	) {}
+
+	/** Sort parsed events into event to create and rejected events with a rejection reason
+	 *
+	 * This function will assign event id according to the calendarGroupRoot and the long/short event list
+	 **/
+	static classifyImportedEvents(
+		parsedEventAlarmTuples: ParsedEventAlarmTuple[],
+		existingEvents: Array<CalendarEvent>,
+		calendarGroupRoot: CalendarGroupRoot,
+		zone: string,
+	): ClassifiedParsedEvents {
+		const parsedEventsByUid = groupBy(parsedEventAlarmTuples, (e) => e.icsCalendarEvent.uid)
+		const existingEventsByUid = groupBy(existingEvents, (e) => e.uid)
+
+		const result: ClassifiedParsedEvents = { rejectedEvents: new Map(), eventsForCreationTuples: [] }
+
+		for (const [uid, parsedEventsAlarmTuples] of parsedEventsByUid) {
+			const existingUidGroup = existingEventsByUid.get(uid) ?? []
+
+			const classification = classifyUidGroup(parsedEventsAlarmTuples, existingUidGroup, calendarGroupRoot, zone)
+
+			appendClassificationResult(result, classification)
+		}
+
+		return result
+	}
 
 	/**
 	 * Public function responsible to:
@@ -32,85 +65,131 @@ export class CalendarImporter {
 	 * @param calendarGroupRoot
 	 * @param calendarInfo
 	 * @param parsedEventAlarmTuples
+	 * @param eventsClassifier
 	 * @param calendarType
 	 */
 	async import(
 		calendarGroupRoot: CalendarGroupRoot,
 		calendarInfo: CalendarInfoBase,
 		parsedEventAlarmTuples: ParsedEventAlarmTuple[],
+		eventsClassifier: EventsClassifier,
 		calendarType: CalendarType = CalendarType.Private,
-	): Promise<void> {
+	): Promise<CreateCalendarEventsResult | null> {
 		if (isEmpty(parsedEventAlarmTuples)) {
-			return this.importInteractionHandler.showEmptyFileMessage()
+			this.importInteractionHandler.showEmptyFileMessage()
+			return null
 		}
 
 		const existingEvents = await this.calendarModel.loadAllEvents(calendarGroupRoot)
-
-		const { rejectedEvents, eventsForCreationTuples } = classifyImportedEvents(parsedEventAlarmTuples, existingEvents, calendarGroupRoot, this.timezone)
-
+		const { rejectedEvents, eventsForCreationTuples } = eventsClassifier(parsedEventAlarmTuples, existingEvents, calendarGroupRoot, this.timezone)
 		const continueWithImportAndSkipRejectedEvents = await this.importInteractionHandler.confirmPartialImport(rejectedEvents, parsedEventAlarmTuples)
 		if (!continueWithImportAndSkipRejectedEvents) {
-			return
+			return null
 		}
 
 		const operation = this.operationProgressTracker.startNewOperation()
+		const deferredImportEventHandler = this.getDeferredImportEventHandler(eventsForCreationTuples, operation, calendarGroupRoot)
 
-		const deferredImportEventHandler = deferWithHandler(async () => {
+		const calendarEvents = eventsForCreationTuples.map((ev) => ev.event)
+
+		try {
+			if (calendarType === CalendarType.External) {
+				return await this.importInteractionHandler.doActionWithProgressDialog("importCalendar_label", deferredImportEventHandler.promise, operation)
+			}
+			const onConfirmAction = async (dialog: Dialog) => {
+				dialog.close()
+				deferredImportEventHandler.resolve(null)
+				await this.importInteractionHandler.doActionWithProgressDialog("importCalendar_label", deferredImportEventHandler.promise, operation)
+			}
+
+			this.importInteractionHandler.showImportSummaryDialog("importEvents_label", calendarEvents, onConfirmAction, calendarInfo)
+			return await deferredImportEventHandler.promise
+		} catch (e) {
+			if (e instanceof ImportError) {
+				if (e.message.includes("Failed to create events")) {
+					await this.importInteractionHandler.showImportEventsError(e, calendarEvents)
+				} else if (e.message.includes("Failed to create some alarms for imported events")) {
+					console.warn(`Some alarms could not be imported!\n\n${e.message}`)
+					await this.importInteractionHandler.showImportAlarmsError(e)
+				}
+			}
+		}
+
+		return null
+	}
+
+	/**
+	 * Import action that will be executed after reviewing the import summary dialog and confirming the previewed results.
+	 * @param eventsForCreationTuples
+	 * @param operation
+	 * @param calendarGroupRoot
+	 * @private
+	 */
+	private getDeferredImportEventHandler(
+		eventsForCreationTuples: Array<EventAlarmInfoTemplatesTuple>,
+		operation: OperationHandle,
+		calendarGroupRoot: CalendarGroupRoot,
+	) {
+		return deferWithHandler(async () => {
 			const progressData = {
 				maxOperations: eventsForCreationTuples.length,
 			}
 
 			await this.prepareProgenitorsAndAlteredInstances(eventsForCreationTuples, operation, calendarGroupRoot._id, progressData)
+			const prioritizedEvents = this.prioritizeRelevantEventsForImport(eventsForCreationTuples)
 
-			console.time("prioritization")
-			const today = new Date()
-			const startOfRange = DateTime.fromJSDate(today).minus({ month: 1 }).startOf("month")
-			const endOfRange = clone(startOfRange).plus({ month: 3 })
-			const prioritizedEvents = []
-			for (const tuple of eventsForCreationTuples) {
-				if (isBefore(tuple.event.startTime, endOfRange.toJSDate()) && !isBefore(tuple.event.startTime, startOfRange.toJSDate())) {
-					prioritizedEvents.unshift(tuple)
-				} else {
-					prioritizedEvents.push(tuple)
-				}
-			}
-			console.timeEnd("prioritization")
-
-			const result = await locator.calendarFacade.createCalendarEvents(prioritizedEvents, operation.id)
+			const result = await this.calendarModel.createCalendarEvents(prioritizedEvents, operation.id)
 			await this.operationProgressTracker.onProgress(operation.id, (prioritizedEvents.length / progressData.maxOperations) * 100)
 
 			if (isNotEmpty(result.failedEventErrors)) {
-				throw new ImportError(getFirstOrThrow(result.failedEventErrors), "failed to create calendar events", result.failedEvents.length)
+				const errors = errorsToString(result.failedEventErrors)
+				throw new ImportError(Error(errors), "Failed to create calendar events", result.failedEvents.length)
 			}
-			return
-		})
 
-		const calendarEvents = eventsForCreationTuples.map((ev) => ev.event)
-		try {
-			if (calendarType === CalendarType.External) {
-				return await this.importInteractionHandler.doActionWithProgressDialog("importCalendar_label", deferredImportEventHandler.promise, operation)
-			} else {
-				const onConfirmAction = async (dialog: Dialog) => {
-					dialog.close()
-					deferredImportEventHandler.resolve(null)
-					await this.importInteractionHandler.doActionWithProgressDialog("importCalendar_label", deferredImportEventHandler.promise, operation)
-				}
-				this.importInteractionHandler.showImportSummaryDialog("importEvents_label", calendarEvents, onConfirmAction, calendarInfo)
+			if (isNotEmpty(result.failedAlarms)) {
+				const errors = errorsToString(result.failedAlarmErrors)
+				throw new ImportError(Error(errors), "Failed to create some alarms for imported events", result.failedAlarms.length)
 			}
-		} catch (e) {
-			if (e instanceof ImportError) {
-				await this.importInteractionHandler.showImportEventsError(e, calendarEvents)
+
+			return result
+		})
+	}
+
+	/**
+	 * Modifies array in-place by moving events occurring close to Today or repeating with EndType.Never to the front.
+	 *
+	 * On large calendars, it sometimes takes a long time for the events to all show up.  This process prioritizes events close to
+	 * Today they so they imported to the calendar first and show up much sooner.
+	 *
+	 * @param eventsForCreationTuples
+	 * @private
+	 */
+	private prioritizeRelevantEventsForImport(eventsForCreationTuples: EventAlarmInfoTemplatesTuple[]): EventAlarmInfoTemplatesTuple[] {
+		const today = new Date()
+		const startOfRange = DateTime.fromJSDate(today).minus({ month: 1 }).startOf("month")
+		const endOfRange = clone(startOfRange).plus({ month: 3 })
+		const prioritizedEvents: EventAlarmInfoTemplatesTuple[] = []
+
+		for (const tuple of eventsForCreationTuples) {
+			const isBeforeEndOfCurrentRange = isBefore(tuple.event.startTime, endOfRange.toJSDate())
+			if (
+				(isBeforeEndOfCurrentRange && tuple.event.repeatRule?.endType === EndType.Never) ||
+				(isBeforeEndOfCurrentRange && !isBefore(tuple.event.startTime, startOfRange.toJSDate()))
+			) {
+				prioritizedEvents.unshift(tuple)
+			} else {
+				prioritizedEvents.push(tuple)
 			}
 		}
+		return prioritizedEvents
 	}
+
 	private async prepareProgenitorsAndAlteredInstances(
 		eventsForCreationTuples: Array<EventAlarmInfoTemplatesTuple>,
 		operation: OperationHandle,
 		calendarGroupId: Id,
 		progressData: { maxOperations: number },
 	) {
-		const eventSeriesResolver = new EventSeriesResolver(this.calendarModel)
-
 		const newAlteredInstances = eventsForCreationTuples
 			.filter((tuple) => isNotNull(tuple.event.recurrenceId))
 			.map((tuple) => tuple.event as CalendarEventAlteredInstance)
@@ -120,10 +199,10 @@ export class CalendarImporter {
 
 		progressData.maxOperations += newAlteredInstances.length + newProgenitors.length
 
-		await eventSeriesResolver.updateExistingProgenitorForNewAlteredInstances(newAlteredInstances, calendarGroupId)
+		await this.eventSeriesResolver.updateExistingProgenitorForNewAlteredInstances(newAlteredInstances, calendarGroupId)
 		await this.operationProgressTracker.onProgress(operation.id, (newAlteredInstances.length / progressData.maxOperations) * 100)
 
-		await eventSeriesResolver.resolveAllExcludedDatesForNewProgenitors(newProgenitors, newAlteredInstances, calendarGroupId)
+		await this.eventSeriesResolver.resolveAllExcludedDatesForNewProgenitors(newProgenitors, newAlteredInstances, calendarGroupId)
 		await this.operationProgressTracker.onProgress(operation.id, (newProgenitors.length / progressData.maxOperations) * 100)
 	}
 }
@@ -142,31 +221,12 @@ export type ClassifiedParsedEvents = {
 	eventsForCreationTuples: Array<EventAlarmInfoTemplatesTuple>
 }
 
-/** Sort parsed events into event to create and rejected events with a rejection reason
- *
- * This function will assign event id according to the calendarGroupRoot and the long/short event list
- **/
-export function classifyImportedEvents(
+export type EventsClassifier = (
 	parsedEventAlarmTuples: ParsedEventAlarmTuple[],
 	existingEvents: Array<CalendarEvent>,
 	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
-): ClassifiedParsedEvents {
-	const parsedEventsByUid = groupBy(parsedEventAlarmTuples, (e) => e.icsCalendarEvent.uid)
-	const existingEventsByUid = groupBy(existingEvents, (e) => e.uid)
-
-	const result: ClassifiedParsedEvents = { rejectedEvents: new Map(), eventsForCreationTuples: [] }
-
-	for (const [uid, parsedEventsAlarmTuples] of parsedEventsByUid) {
-		const existingUidGroup = existingEventsByUid.get(uid) ?? []
-
-		const classification = classifyUidGroup(parsedEventsAlarmTuples, existingUidGroup, calendarGroupRoot, zone)
-
-		appendClassificationResult(result, classification)
-	}
-
-	return result
-}
+) => ClassifiedParsedEvents
 
 function classifyUidGroup(
 	parsedUidGroup: ParsedEventAlarmTuple[],
