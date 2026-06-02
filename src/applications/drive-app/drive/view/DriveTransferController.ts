@@ -1,7 +1,7 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { filterInt } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import { CancelledError } from "@tutao/app-env"
+import { CancelledError, TimeConstants } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
@@ -54,6 +54,9 @@ export interface DriveTransfers {
 }
 
 type FileId = TransferId
+
+/** @private visibleForTesting */
+export const FINISHED_TRANSFER_RETAIN_TIMEOUT_MS = 4 * TimeConstants.SECOND_IN_MILLIS
 
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []

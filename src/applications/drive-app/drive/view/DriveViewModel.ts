@@ -8,7 +8,7 @@ import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgume
 import { DriveTransferController, DriveTransfers } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
-import { Const, isDesktop, OperationStatus, SECOND_IN_MILLIS } from "@tutao/app-env"
+import { Const, isDesktop, OperationStatus, TimeConstants } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
@@ -776,7 +776,7 @@ export class DriveViewModel {
 	/**
 	 * Update the used storage. Debounce it so that we don't request it too frequently.
 	 */
-	private readonly refreshStorage = debounceStart(60 * SECOND_IN_MILLIS, async () => {
+	private readonly refreshStorage = debounceStart(60 * TimeConstants.SECOND_IN_MILLIS, async () => {
 		const customerInfo = await this.loginController.getUserController().loadCustomerInfo()
 		this.storage = {
 			usedBytes: await this.userManagementFacade.readUsedUserStorage(this.loginController.getUserController().user),

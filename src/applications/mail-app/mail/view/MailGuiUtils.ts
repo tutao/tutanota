@@ -27,7 +27,7 @@ import {
 	isIOSApp,
 	MailAuthenticationStatus,
 	ProgrammingError,
-	secondsToMillis,
+	TimeConstants,
 } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
@@ -77,7 +77,7 @@ import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
 
-const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
+const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.

@@ -32,7 +32,7 @@ import {
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/app-env"
+import { EndType, RepeatPeriod, TimeConstants } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -533,11 +533,11 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 	let durationInMillis = 0
 
 	if (duration.week) {
-		durationInMillis += DAY_IN_MILLIS * 7 * duration.week
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * 7 * duration.week
 	}
 
 	if (duration.day) {
-		durationInMillis += DAY_IN_MILLIS * duration.day
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * duration.day
 	}
 
 	if (duration.hour) {
