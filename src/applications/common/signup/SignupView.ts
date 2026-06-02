@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode, Country, InvoiceData, isDesktop, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNode, isDesktop, isIOSApp } from "@tutao/app-env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
@@ -47,6 +47,8 @@ import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities
 import { getPreselectedPlanType } from "../subscription/SubscriptionPage"
 import { UsageTestModel } from "../misc/UsageTestModel"
 import { UsageTestController } from "@tutao/usagetests"
+import { InvoiceData } from "../subscription/utils/PaymentUtils"
+import { Country } from "../gui/CountryList"
 
 assertMainOrNode()
 

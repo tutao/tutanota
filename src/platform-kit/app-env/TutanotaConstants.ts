@@ -1,8 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
 
-export type Country = any
-
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key = Object.keys(e).find((k) => e[k] === value) ?? null
 
@@ -668,12 +666,6 @@ export const enum ClientType {
 
 export type PayPalData = {
 	account: string
-}
-
-export type InvoiceData = {
-	invoiceAddress: string
-	country: Country | null
-	vatNumber: string // only for EU countries otherwise empty
 }
 
 export enum UsageTestState {

@@ -5,10 +5,10 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { InvoiceDataInput } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "@tutao/rest-client/error"
-import type { InvoiceData } from "@tutao/app-env"
 import { ofClass } from "@tutao/utils"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { AccountingInfo } from "@tutao/entities/sys"
+import { InvoiceData } from "./utils/PaymentUtils"
 
 export function show(
 	businessUse: boolean,

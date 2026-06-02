@@ -1,5 +1,5 @@
 import { defer } from "@tutao/utils"
-import { assertMainOrNode, InvoiceData, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 import stream from "mithril/stream"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
@@ -22,8 +22,8 @@ import type { UsageTest } from "@tutao/usagetests"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, NewPaidPlans, PlanType } from "../../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
-
 import { isFreeSignupOnly } from "../misc/LoginUtils"
+import { InvoiceData } from "./utils/PaymentUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {

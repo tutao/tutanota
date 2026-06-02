@@ -14,7 +14,7 @@ import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { locator } from "../../api/main/CommonLocator"
 import { getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg } from "./GiftCardUtils"
-import { CancelledError, Country } from "@tutao/app-env"
+import { CancelledError } from "@tutao/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/LoginUtils"
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
@@ -36,7 +36,7 @@ import { AccountingInfo, AccountingInfoTypeRef, CustomerInfoTypeRef, GiftCardRed
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { renderCountryDropdown } from "../../gui/CountryDropdown"
 import { elementIdPart, idToElementId, isSameId } from "@tutao/meta"
-import { getByAbbreviation } from "../../gui/CountryList"
+import { Country, getByAbbreviation } from "../../gui/CountryList"
 import { windowFacade } from "../../misc/WindowFacade"
 
 const enum GetCredentialsMethod {

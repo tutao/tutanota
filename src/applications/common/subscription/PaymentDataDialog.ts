@@ -17,8 +17,7 @@ import { getVisiblePaymentMethods, isOnAccountAllowed, validatePaymentData } fro
 import { MessageBox } from "../../../ui/base/MessageBox"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { PaymentMethodType } from "../../../entities/sys/Utils"
-import { Country } from "@tutao/app-env"
-import { getByAbbreviation } from "../gui/CountryList"
+import { Country, getByAbbreviation } from "../gui/CountryList"
 
 function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 	return m(SimplifiedCreditCardInput, { viewModel: ccViewModel })

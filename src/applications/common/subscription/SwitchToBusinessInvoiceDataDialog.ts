@@ -5,10 +5,10 @@ import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { BadRequestError } from "@tutao/rest-client/error"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import type { InvoiceData } from "@tutao/app-env"
 import { ProgrammingError } from "@tutao/app-env"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { defer, ofClass } from "@tutao/utils"
+import { InvoiceData } from "./utils/PaymentUtils"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
