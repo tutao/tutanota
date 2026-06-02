@@ -156,7 +156,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const userId = locator.logins.getUserController().user._id
 
 		this.viewModel = attrs.calendarViewModel
-		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
+		this.currentViewType = deviceConfig.getDefaultCalendarView(userId)
 		this.htmlSanitizer = import("../../../common/misc/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
 		this.sidebarColumn = new ViewColumn(
 			{
@@ -696,7 +696,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.setUrl(m.route.param("view"), new Date())
 				this.viewModel.triggerForceAnimateScroll()
 			},
-			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
+			onViewTypeSelected: (viewType) => this.selectView(viewType),
 		})
 	}
 
@@ -720,7 +720,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.setUrl(m.route.param("view"), new Date())
 				this.viewModel.triggerForceAnimateScroll()
 			},
-			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
+			onViewTypeSelected: (viewType) => this.selectView(viewType),
 			onTap: (_event, dom) => {
 				if (this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY && styles.isSingleColumnLayout()) {
 					this.viewModel.setDaySelectorExpanded(!this.viewModel.isDaySelectorExpanded())
@@ -762,22 +762,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return [
 			{
 				key: Keys.ONE,
-				exec: () => this.setUrl(CalendarViewType.WEEK, this.viewModel.selectedDate()),
+				exec: () => this.selectView(CalendarViewType.WEEK),
 				help: "switchWeekView_action",
 			},
 			{
 				key: Keys.TWO,
-				exec: () => this.setUrl(CalendarViewType.MONTH, this.viewModel.selectedDate()),
+				exec: () => this.selectView(CalendarViewType.MONTH),
 				help: "switchMonthView_action",
 			},
 			{
 				key: Keys.THREE,
-				exec: () => this.setUrl(CalendarViewType.THREE_DAY, this.viewModel.selectedDate()),
+				exec: () => this.selectView(CalendarViewType.THREE_DAY),
 				help: "switchAgendaView_action",
 			},
 			{
 				key: Keys.FOUR,
-				exec: () => this.setUrl(CalendarViewType.AGENDA, this.viewModel.selectedDate()),
+				exec: () => this.selectView(CalendarViewType.AGENDA),
 				help: "switchAgendaView_action",
 			},
 			{
@@ -1222,8 +1222,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.viewSlider.focus(this.viewSlider.getMainColumn())
 				}
 			}
-
-			deviceConfig.setDefaultCalendarView(locator.logins.getUserController().user._id, this.currentViewType)
 		}
 	}
 
@@ -1246,6 +1244,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				state: this.buildRouteState(view, resetState, dateString),
 			},
 		)
+	}
+
+	private selectView(view: CalendarViewType) {
+		this.setUrl(view, this.viewModel.selectedDate(), false, true)
+		deviceConfig.setLastSelectedCalendarView(locator.logins.getUserController().userId, view)
 	}
 
 	private buildRouteState(view: string, resetState: boolean, dateString: string) {
