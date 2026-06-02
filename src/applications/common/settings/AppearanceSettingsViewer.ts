@@ -15,6 +15,7 @@ import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { UserSettingsGroupRootTypeRef } from "../../../entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getHourCycle } from "../../../entities/tutanota/Utils"
+import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -89,6 +90,22 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
+
+		const defaultCalendarViewDownAttrs: DropDownSelectorAttrs<CalendarViewType | null> = {
+			label: "defaultCalendarView_label",
+			items: [
+				{ name: lang.getTranslationText("lastSelected_label"), value: null },
+				{ name: lang.getTranslationText("agenda_label"), value: CalendarViewType.AGENDA },
+				{ name: lang.getTranslationText("threeDays_label"), value: CalendarViewType.THREE_DAY },
+				{ name: lang.getTranslationText("week_label"), value: CalendarViewType.WEEK },
+				{ name: lang.getTranslationText("month_label"), value: CalendarViewType.MONTH },
+			],
+			selectedValue: deviceConfig.getDefaultCalenderViewSetting(locator.logins.getUserController().user._id),
+			selectionChangedHandler: (value) => {
+				deviceConfig.setDefaultCalendarViewSetting(locator.logins.getUserController().user._id, value)
+			},
+		}
+
 		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m("#devicesettings.h4.mt-32", lang.get("settingsForDevice_label")),
 			m("#language", m(LanguageDropdown, { variant: "TextField", deviceConfig })),
@@ -97,6 +114,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			m("#usersettings.h4.mt-32", lang.get("userSettings_label")),
 			m("#hourformat", m(DropDownSelector, hourFormatDropDownAttrs)),
 			m("#weekstart", m(DropDownSelector, weekStartDropDownAttrs)),
+			m("#defaultcalendarview", m(DropDownSelector, defaultCalendarViewDownAttrs)),
 		])
 	}
 
