@@ -1,7 +1,19 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
 
-export type Country = any
+/**
+ * parameter names are shortened to reduce size
+ */
+export type Country = {
+	/** name */
+	n: string
+	/** abbreviation */
+	a: string
+	/** type */
+	t: number
+	/** DecimalSeparator */
+	d: number
+}
 
 type ObjectPropertyKey = string | number | symbol
 export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
