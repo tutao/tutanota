@@ -366,8 +366,8 @@ mod tests {
 		let mut ciphertext = aead_facade
 			.encrypt(&sub_keys, plaintext, associated_data)
 			.unwrap();
-		let ciphertext_len = ciphertext.len();
-		*ciphertext.get_mut(ciphertext_len - 1).unwrap() += 1;
+		let last_ciphertext_byte = ciphertext.last_mut().unwrap();
+		*last_ciphertext_byte = last_ciphertext_byte.wrapping_add(1);
 		let decrypted = aead_facade.decrypt(&sub_keys, &ciphertext, associated_data);
 		assert_eq!(decrypted, Err(AeadDecryptError::DecryptionError));
 	}
