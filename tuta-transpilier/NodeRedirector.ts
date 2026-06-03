@@ -2,8 +2,10 @@ import { TConstruct, TConstructMultiple, TsNode } from "./constructs/TConstruct"
 import {
 	ArrayLiteralExpression,
 	BinaryExpression,
+	Block,
 	CallExpression,
 	ClassDeclaration,
+	ConditionalExpression,
 	EnumDeclaration,
 	ExportDeclaration,
 	ExpressionStatement,
@@ -43,6 +45,8 @@ import { TVariable } from "./constructs/TVariable"
 import { TArrayLiteral } from "./constructs/TArrayLiteral"
 import { IgnorableError } from "./errors/IgnorableError"
 import { TPropAccess } from "./constructs/TPropAccess"
+import { TNull } from "./constructs/TNull"
+import { TBlock } from "./constructs/TBlock"
 
 export class NodeRedirector {
 	private static redirectNodeInner(node: TsNode): TConstruct {
@@ -73,7 +77,9 @@ export class NodeRedirector {
 		} else if (typedNode instanceof TypeAliasDeclaration) {
 			return new TTypeAlias(typedNode)
 		} else if (typedNode instanceof IfStatement) {
-			return new TIfStatement(typedNode)
+			return TIfStatement.fromIfStatement(typedNode)
+		} else if (typedNode instanceof ConditionalExpression) {
+			return TIfStatement.fromConditionalStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
 			return new TCall(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
@@ -111,6 +117,10 @@ export class NodeRedirector {
 			return new TConstructMultiple(new TOperatorToken(paranOpen), new TConstructMultiple(...expressionConstructs), new TOperatorToken(paranClose))
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
+		} else if (typedNode instanceof Block) {
+			return new TBlock(typedNode)
+		} else if (TNull.isNull(node)) {
+			return new TNull(node)
 		} else {
 			return new TNotSupported(node)
 		}
