@@ -1,17 +1,17 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "../../../../platform-kit/utils"
+import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
-import { isOfflineError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import Stream from "mithril/stream"
 import { Router } from "../../../../ui/ScopedRouter.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { assertSystemFolderOfType } from "../model/MailUtils.js"
+import { assertSystemFolderOfType, getSystemFolderName } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
 import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
@@ -24,16 +24,16 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
 import { ImportMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
-import { ProgrammingError } from "../../../../platform-kit/app-env"
+import { ProgrammingError } from "@tutao/app-env"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -81,8 +81,6 @@ export class MailViewModel {
 	private currentShowTargetMarker: object = {}
 	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
-
-	private listModelReloadPromise: Promise<void> = Promise.resolve()
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -434,16 +432,6 @@ export class MailViewModel {
 			// if the preference for conversation in the list has changed, we need to re-create the list model
 			this.updateListModel()
 		}
-		this.syncTracker.addSyncDoneListener({
-			onSyncDone: async () => {
-				if (this.listModel) {
-					this.listModelReloadPromise = this.listModel?.reload()
-				} else {
-					this.updateListModel()
-				}
-			},
-			priority: SyncDonePriority.HIGH,
-		})
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
@@ -498,12 +486,6 @@ export class MailViewModel {
 
 	// deinit the old list model if it exists and create and init a new one
 	private async updateListModel() {
-		if (this._folder) {
-			if (!this.syncTracker.isSyncDone) {
-				await this.cacheStorage.deleteRange(MailSetEntryTypeRef, this._folder.entries)
-			}
-		}
-
 		if (this._folder == null) {
 			this.listStreamSubscription?.end(true)
 			this.listStreamSubscription = null
@@ -513,9 +495,20 @@ export class MailViewModel {
 			// We need to populate the mail set entries cache when loading mails so that we can react to updates later.
 			const folder = this._folder
 
-			let listModel: MailSetListModel
+			if (!this.syncTracker.isSyncDone) {
+				const listModel = this._listModel
+				console.log(`AAA deleting range for  ${getSystemFolderName(getMailSetKind(folder))}`)
+				await this.cacheStorage.deleteRange(MailSetEntryTypeRef, folder.entries)
+				console.log(`AAA range deleted for ${getSystemFolderName(getMailSetKind(folder))}`)
+				// list might have changed
+				if (this._listModel !== listModel || this._folder == null || !isSameId(this._folder._id, folder._id)) {
+					return
+				}
+			}
+
+			let newListModel: MailSetListModel
 			if (this.groupMailsByConversation(folder)) {
-				listModel = new ConversationListModel(
+				newListModel = new ConversationListModel(
 					folder,
 					this.conversationPrefProvider,
 					this.entityClient,
@@ -525,7 +518,7 @@ export class MailViewModel {
 					this.connectivityModel,
 				)
 			} else {
-				listModel = new MailListModel(
+				newListModel = new MailListModel(
 					folder,
 					this.conversationPrefProvider,
 					this.entityClient,
@@ -536,9 +529,9 @@ export class MailViewModel {
 				)
 			}
 			this.listStreamSubscription?.end(true)
-			this.listStreamSubscription = listModel.stateStream.map((state: ListState<Mail>) => this.onListStateChange(listModel, state))
-			void listModel.loadInitial()
-			this._listModel = listModel
+			this.listStreamSubscription = newListModel.stateStream.map((state: ListState<Mail>) => this.onListStateChange(newListModel, state))
+			void newListModel.loadInitial()
+			this._listModel = newListModel
 		}
 
 		this.shouldAttemptCounterFixup = true
@@ -737,8 +730,9 @@ export class MailViewModel {
 			}
 
 			if (isInitialSyncDone) {
+				// FIXME update comment
 				// we need to await the reload promise here, to populate the map (conversationMap/mailMap) inside the list model
-				this.listModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
+				await listModel.handleEntityUpdate(update)
 			}
 		}
 	}
