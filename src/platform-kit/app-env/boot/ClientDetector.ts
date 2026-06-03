@@ -364,8 +364,10 @@ export class ClientDetector {
 
 	getIdentifier(): string {
 		if (env.mode === Mode.App) {
-			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
-			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
+			if (this.appType === AppType.Integrated) {
+				throw new Error("AppType.Integrated is not allowed for mobile apps")
+			}
+			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${client.device} ${appType} App`
 		} else if (isBrowser()) {
 			return client.browser + " Browser"
