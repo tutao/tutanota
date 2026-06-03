@@ -4,44 +4,49 @@ This is the official Tuta Mail plugin for nextcloud.
 
 ## Setting up nextcloud container for development
 
-1) Install docker:
-    * for Debian 13 use: `sudo apt install docker.io docker-compose`
-    * Add yourself to docker group: `sudo usermod -aG docker $USER`
-    * Logout-Login or reboot. Run `groups` to make sure you are in the docker group
-    * start the docker daemon: `sudo systemct start docker`
-2) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/`nextcloud-docker-dev
-3) In `nextcloud-docker-dev` run the`./bootstart.sh` script.
-4) In `docker-compose.yml` add these two lines under services>nextcloud>volumes,
+### Install Docker
+
+1) for Debian 13 use: `sudo apt install docker.io docker-compose`
+2) Add yourself to docker group: `sudo usermod -aG docker $USER`
+3) Logout-Login or reboot. Run `groups` to make sure you are in the docker group
+4) start the docker daemon: `sudo systemct start docker`
+
+### Setup and configure the nextcloud dev containers
+
+1) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/`nextcloud-docker-dev
+2) In `nextcloud-docker-dev` run the`./bootstart.sh` script.
+3) In `docker-compose.yml` add these two lines under services>nextcloud>volumes,
    and make sure to replace
    `/path/to/tutanota/repository` with the correct path:
    ```yaml
        - '/path/to/tutanota/repository/integrations/nextcloud/tutamail:/var/www/html/apps-extra/tutamail'
        - '/path/to/tutanota/repository/build/:/var/www/html/apps-extra/tutamail/js'
    ```
-5) Start the nextcloud container:
+4) Start the nextcloud container:
     * `docker compose up -d nextcloud` to start nextcloud
     * `rm .env` and run `./bootstrap.sh` again if something goes wrong.
-6) Visit `http://nextcloud.local` from your browser
+5) Visit `http://nextcloud.local` from your browser
+6) Under Admin Settings in Nextcloud, activate install the "manual_install" deploy daemon.
 
-## Plugin Usage
+## How to build the plugin (Local Dev)
 
 1. [Setup](#setting-up-nextcloud-container-for-development) the nextcloud-docker-dev environment
-2. Clone this repo into *nextcloud-docker-dev/workspace/server/apps-extra/* and name it `tutamail`
-
-```bash
-1. Run `npm ci` from *apps-extra/tutamail*
-2. Run `npm ci` from *apps-extra/tutamail/tuta*
-3. Follow instruction
-   from [tutanota client project](https://github.com/tutao/tutanota/blob/master/doc/BUILDING.md#build-steps)
-   on how to build the client but pass the flag `--integrate-nextcloud`. Example:
+2. Clone this repo into `nextcloud-docker-dev/workspace/server/apps-extra/` and name it `tutamail`
+3. Build the Tuta Web App in `nextcloud-docker-dev/workspace/server/apps-extra/tutamail`
 
 ```bash
 npm ci
-npm run build-packages
 node make --integrate-nextcloud
 ```
+4. Run the ExApp Proxy:
+```bash
+cd `/path/to/nextcloud-docker-dev/workspace/server/apps-extra/tutamail/`
+go run main.go -targetHost "https://app.tuta.com"
+```
 
-## IDE Setup
+
+
+## PHP IDE Setup
 
 1. Use phpStorm ( You can download from your jetbrains toolbox)
 2. Make sure [docker_dev setup is up and running](#setting-up-nextcloud-container-for-development)
