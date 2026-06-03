@@ -18,6 +18,7 @@ import {
 	NewExpression,
 	NumericLiteral,
 	ParenthesizedExpression,
+	PrefixUnaryExpression,
 	PropertyAccessExpression,
 	ReturnStatement,
 	StringLiteral,
@@ -132,6 +133,10 @@ export class NodeRedirector {
 			return new TBlock(typedNode)
 		} else if (typedNode instanceof SuperExpression) {
 			return new TSuperKeyword(typedNode)
+		} else if (typedNode instanceof PrefixUnaryExpression) {
+			const [operator, expression, ...rest] = typedNode.getChildren()
+			Assert.equal(rest.length, 0, "Ahh! too much token")
+			return new TConstructMultiple(new TOperatorToken(operator), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof TrueLiteral || typedNode instanceof FalseLiteral) {
 			return new TBooleanLiteral(typedNode)
 		} else if (TNull.isNull(node)) {

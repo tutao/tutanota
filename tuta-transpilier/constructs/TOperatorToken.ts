@@ -30,12 +30,21 @@ export class TOperatorToken extends TConstruct {
 			SyntaxKind.ThisKeyword,
 			SyntaxKind.EqualsToken,
 			SyntaxKind.ExclamationEqualsToken,
+			SyntaxKind.ExclamationEqualsEqualsToken,
+			SyntaxKind.GreaterThanToken,
+			SyntaxKind.EqualsGreaterThanToken,
+			SyntaxKind.LessThanEqualsToken,
+			SyntaxKind.LessThanToken,
+			SyntaxKind.ExclamationToken,
+			SyntaxKind.PlusEqualsToken,
 		]).has(nodeKind)
 	}
 
 	generateKotlin(): ConstructOut {
 		if (this.operatorRaw === "===") {
 			return "=="
+		} else if (this.operatorRaw === "!==") {
+			return "!="
 		} else if (this.operatorRaw === "??") {
 			return "?:"
 		}
