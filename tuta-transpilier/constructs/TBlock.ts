@@ -13,7 +13,7 @@ export class TBlock extends TConstruct {
 		const removedStatements = new Array<TConstruct>()
 		this.blockBody = this.blockBody
 			.flatMap((b) => {
-				if (b instanceof TConstructMultiple) return b.constructs
+				if (b instanceof TConstructMultiple) return b.getAsArray()
 				else return [b]
 			})
 			.filter((v) => {

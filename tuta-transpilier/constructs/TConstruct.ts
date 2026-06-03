@@ -12,13 +12,17 @@ export abstract class TConstruct {
 }
 
 export class TConstructMultiple<V extends TConstruct = TConstruct> extends TConstruct {
-	public readonly constructs: V[]
+	private readonly constructs: V[]
 	private separator: string
 
 	constructor(...constructs: V[]) {
 		super()
 		this.constructs = constructs
 		this.separator = " "
+	}
+
+	getAsArray(): V[] {
+		return this.constructs
 	}
 
 	withSeparator(separator: string): this {

@@ -130,10 +130,10 @@ export class TClassDecl extends TConstruct {
 				return param.isProperty ? `val ${typedIdent}` : typedIdent
 			})
 			const ctorBody = this.constructorFunction.body.generateKotlin()
-			return `${visibility} class ${name} ${ctorVisibility} constructor (${ctorParams}) ${baseClassInitialization}\n { ${staticThings}\n ${properties}\n init ${ctorBody}\n ${methods} }`
+			return `${visibility} open class ${name} ${ctorVisibility} constructor (${ctorParams}) ${baseClassInitialization}\n { ${staticThings}\n ${properties}\n init ${ctorBody}\n ${methods} }`
 		} else {
 			const properties = new TConstructMultiple(...this.properties).withSeparator("\n").generateKotlin()
-			return `${visibility} class ${name} { ${staticThings}\n ${properties}\n ${methods} }`
+			return `${visibility} open class ${name} { ${staticThings}\n ${properties}\n ${methods} }`
 		}
 	}
 }

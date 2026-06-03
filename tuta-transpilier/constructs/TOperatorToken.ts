@@ -2,52 +2,51 @@ import { ConstructOut, TConstruct, TsNode } from "./TConstruct"
 import { SyntaxKind } from "ts-morph"
 import * as Assert from "node:assert"
 
+type KnownOperator = { kotlin: string | null; swift: string | null }
+const MAPPED_TOKENS: Record<any, KnownOperator> = {
+	[SyntaxKind.AsteriskToken]: { kotlin: null, swift: null },
+	[SyntaxKind.PlusToken]: { kotlin: null, swift: null },
+	[SyntaxKind.MinusToken]: { kotlin: null, swift: null },
+	[SyntaxKind.AmpersandToken]: { kotlin: null, swift: null },
+	[SyntaxKind.AmpersandAmpersandToken]: { kotlin: null, swift: null },
+	[SyntaxKind.EqualsEqualsEqualsToken]: { kotlin: "==", swift: null },
+	[SyntaxKind.ExclamationEqualsEqualsToken]: { kotlin: "!=", swift: null },
+	[SyntaxKind.QuestionQuestionToken]: { kotlin: "?:", swift: null },
+	[SyntaxKind.EqualsEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.EqualsGreaterThanToken]: { kotlin: null, swift: null },
+	[SyntaxKind.LessThanEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.GreaterThanEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.OpenParenToken]: { kotlin: null, swift: null },
+	[SyntaxKind.CloseParenToken]: { kotlin: null, swift: null },
+	[SyntaxKind.BarBarToken]: { kotlin: null, swift: null },
+	[SyntaxKind.QuestionToken]: { kotlin: null, swift: null },
+	[SyntaxKind.ThisKeyword]: { kotlin: "this", swift: null },
+	[SyntaxKind.EqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.ExclamationEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.GreaterThanToken]: { kotlin: null, swift: null },
+	[SyntaxKind.LessThanToken]: { kotlin: null, swift: null },
+	[SyntaxKind.ExclamationToken]: { kotlin: null, swift: null },
+	[SyntaxKind.PlusEqualsToken]: { kotlin: null, swift: null },
+} as const
+
 export class TOperatorToken extends TConstruct {
-	private operatorRaw: string
+	private readonly operator: KnownOperator
 	constructor(symbolNode: TsNode) {
 		super()
-		Assert.equal(TOperatorToken.isOperatorToken(symbolNode.getKind()), true, "Non-operator node passed")
-		this.operatorRaw = symbolNode.getText(false)
+		const nodeKind = symbolNode.getKind()
+		Assert.equal(TOperatorToken.isOperatorToken(nodeKind), true, "Non-operator node passed")
+
+		const nodeRawText = symbolNode.getText(false)
+		const kotlin = MAPPED_TOKENS[nodeKind].kotlin ?? nodeRawText
+		const swift = MAPPED_TOKENS[nodeKind].swift ?? nodeRawText
+		this.operator = { kotlin, swift }
 	}
 
 	static isOperatorToken(nodeKind: SyntaxKind): boolean {
-		return new Set([
-			SyntaxKind.AsteriskToken,
-			SyntaxKind.PlusToken,
-			SyntaxKind.MinusToken,
-			SyntaxKind.AmpersandToken,
-			SyntaxKind.AmpersandAmpersandToken,
-			SyntaxKind.EqualsEqualsEqualsToken,
-			SyntaxKind.EqualsEqualsToken,
-			SyntaxKind.EqualsGreaterThanToken,
-			SyntaxKind.LessThanEqualsToken,
-			SyntaxKind.GreaterThanEqualsToken,
-			SyntaxKind.OpenParenToken,
-			SyntaxKind.CloseParenToken,
-			SyntaxKind.BarBarToken,
-			SyntaxKind.QuestionToken,
-			SyntaxKind.QuestionQuestionToken,
-			SyntaxKind.ThisKeyword,
-			SyntaxKind.EqualsToken,
-			SyntaxKind.ExclamationEqualsToken,
-			SyntaxKind.ExclamationEqualsEqualsToken,
-			SyntaxKind.GreaterThanToken,
-			SyntaxKind.EqualsGreaterThanToken,
-			SyntaxKind.LessThanEqualsToken,
-			SyntaxKind.LessThanToken,
-			SyntaxKind.ExclamationToken,
-			SyntaxKind.PlusEqualsToken,
-		]).has(nodeKind)
+		return MAPPED_TOKENS[nodeKind] != null
 	}
 
 	generateKotlin(): ConstructOut {
-		if (this.operatorRaw === "===") {
-			return "=="
-		} else if (this.operatorRaw === "!==") {
-			return "!="
-		} else if (this.operatorRaw === "??") {
-			return "?:"
-		}
-		return this.operatorRaw
+		return this.operator.kotlin
 	}
 }
