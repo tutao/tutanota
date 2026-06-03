@@ -24,7 +24,7 @@ import {
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { aesDecryptUnauthenticated } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aesDecryptUnauthenticated } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {

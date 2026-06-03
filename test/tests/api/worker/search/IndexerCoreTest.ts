@@ -39,7 +39,7 @@ import {
 	encryptIndexKeyUint8Array,
 	encryptMetaData,
 } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
-import { aesDecryptUnauthenticated, aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aesDecryptUnauthenticated, aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)

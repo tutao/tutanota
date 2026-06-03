@@ -12,7 +12,10 @@ import {
 	assert256BitKey,
 	createAuthVerifier,
 	cryptoUtils,
+	CryptoWrapper,
+	EncryptedPqKeyPairs,
 	getAndVerifyAesKeyLength,
+	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
 	PQKeyPairs,
@@ -89,8 +92,6 @@ import { AccountType, GroupType } from "../../../entities/sys/Utils"
 import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
-import { EncryptedPqKeyPairs, isEncryptedPqKeyPairs } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

@@ -101,9 +101,9 @@ import {
 import { InstanceSessionKeysCache } from "../../../../src/app-kit/local-store/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
-import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { aesDecrypt, aesEncrypt } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { CryptoWrapper } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { aesDecrypt, aesEncrypt } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 

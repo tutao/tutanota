@@ -104,8 +104,8 @@ import {
 import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/base-crypto/Constants.js"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
-import { AbstractEncryptedKeyPair, EncryptedPqKeyPairs } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { AbstractEncryptedKeyPair, EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4

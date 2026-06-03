@@ -13,7 +13,7 @@ import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../../../../s
 import { hasError } from "../../../../src/platform-kit/meta"
 
 import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
-import { encryptKey } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { encryptKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade

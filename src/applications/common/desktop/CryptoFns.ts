@@ -7,11 +7,13 @@ import {
 	aes256RandomKey,
 	AesKey,
 	base64ToKey,
+	decryptKey,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
+	encryptKey,
 	random,
 	uint8ArrayToKey,
 } from "@tutao/crypto"
-import { aesDecrypt, aesDecryptUnauthenticated, aesEncrypt } from "../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { decryptKey, decryptKeyUnauthenticatedWithDeviceKeyChain, encryptKey } from "@tutao/instance-pipeline"
+import { aesDecrypt, aesDecryptUnauthenticated, aesEncrypt } from "../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it

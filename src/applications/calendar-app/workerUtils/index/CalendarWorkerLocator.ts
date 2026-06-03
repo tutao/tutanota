@@ -74,12 +74,10 @@ import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
 import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import {
 	ApplicationTypesFacade,
-	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
-	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -115,7 +113,7 @@ import { Challenge, UserTypeRef } from "@tutao/entities/sys"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { random } from "@tutao/crypto"
+import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 
 assertWorkerOrNode()
 

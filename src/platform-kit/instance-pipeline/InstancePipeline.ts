@@ -3,13 +3,11 @@ import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, lazy, Nullable } from "@tutao/utils"
-import { AesKey, SymmetricCipherVersion, validateKdfNonceLength } from "@tutao/crypto"
+import { AesKey, SubKeyInfo, SymmetricCipherFacade, SymmetricCipherVersion, validateKdfNonceLength } from "@tutao/crypto"
 import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
-import { SubKeyInfo } from "./instance-pipeline-crypto/encryption/SubKeyProvider"
-import { SymmetricCipherFacade } from "./instance-pipeline-crypto/SymmetricCipherFacade"
 
 assertWorkerOrNode()
 

@@ -2,6 +2,7 @@ import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import {
 	bytesToKyberPublicKey,
 	cryptoUtils,
+	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
 	isVersionedPqPublicKey,
 	isVersionedRsaOrRsaX25519PublicKey,
@@ -18,7 +19,6 @@ import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../facades/l
 import { MaybeSignedPublicKey, PublicEncryptionKeyCache } from "../../../app-kit/local-store/PublicEncryptionKeyCache"
 import { CryptoTypes } from "./Constants"
 import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeyService, SystemKeysReturn } from "@tutao/entities/sys"
-import { EncryptedPqKeyPairs } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 /**
  * Load public encryption keys.

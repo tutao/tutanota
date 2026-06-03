@@ -6,7 +6,7 @@
 import { AssociationType, AttributeModel, hasError, isSameId, isSameTypeRef, TypeRef } from "../meta"
 import { assertNotNull, deepEqual, isEmpty, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
 import { convertDbToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
-import { AesKey, InstanceTypeId, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
+import { AesKey, InstanceDecryptor, InstanceTypeId, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import {
 	EncryptedModelValue,
@@ -25,8 +25,6 @@ import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
-import { SymmetricCipherFacade } from "./instance-pipeline-crypto/SymmetricCipherFacade"
-import { InstanceDecryptor } from "./instance-pipeline-crypto/decryption/InstanceDecryptor"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -97,8 +95,9 @@ export class PatchMerger {
 			const ownerGroup = instance._ownerGroup ?? null
 			const kdfNonce = validateKdfNonceLength(instance._kdfNonce ?? null)
 			const instanceTypeId: InstanceTypeId = {
-				applicationName: instanceType.app,
-				typeId: instanceType.typeId,
+				app: instanceType.app,
+				id: instanceType.typeId,
+				name: instanceType.typeId.toString(),
 			}
 			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sk, kdfNonce, instanceTypeId)
 			// We need to preserve the order of patches, so no promiseMap here

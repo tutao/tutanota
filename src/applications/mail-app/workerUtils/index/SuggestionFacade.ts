@@ -3,7 +3,7 @@ import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/Index
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { TypeRef } from "../../../../platform-kit/meta"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 export type SuggestionsType = Record<string, string[]>
 

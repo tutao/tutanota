@@ -38,9 +38,9 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { encryptKey, encryptRsaKey, encryptX25519Key } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { encryptKey, encryptRsaKey, encryptX25519Key } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache

@@ -17,6 +17,7 @@ import { MembershipRemovedError } from "../../../common/api/common/error/Members
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import {
+	_encryptKeyWithVersionedKey,
 	aes256RandomKey,
 	AesKey,
 	AesKeyLength,
@@ -45,10 +46,10 @@ import { OutOfSyncError } from "../../../../platform-kit/app-env/OutOfSyncError"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembership, User, UserTypeRef } from "@tutao/entities/sys"
 import { getMembershipGroupType, GroupType } from "../../../../entities/sys/Utils"
-import { _encryptKeyWithVersionedKey, ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
+import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { decryptKey } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { decryptKey } from "../../../../platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 export type InitParams = {
 	user: User

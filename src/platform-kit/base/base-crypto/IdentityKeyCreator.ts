@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { AsymmetricKeyPair, KeyPairType, VersionedKey } from "@tutao/crypto"
+import { AsymmetricKeyPair, CryptoWrapper, KeyPairType, VersionedKey } from "@tutao/crypto"
 import { Ed25519Facade } from "./Ed25519Facade"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
@@ -13,7 +13,6 @@ import { CacheManagementInterface } from "../../../app-kit/local-store/CacheMana
 import { KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
 import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

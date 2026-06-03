@@ -101,7 +101,7 @@ import {
 } from "../../../common/api/worker/search/IndexEncryptionUtils"
 import { ContactList } from "@tutao/entities/tutanota"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

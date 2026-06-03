@@ -1,7 +1,22 @@
-import { AssociationType, AttributeModel, Cardinality, hasError, TypeRef, ValueType } from "../meta"
+import { AssociationType, AttributeModel, Cardinality, ClientTypeModel, hasError, TypeRef, ValueType } from "../meta"
 import { base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { AesKey, AsymmetricKeyPair, DomainSeparator, InstanceTypeId, KdfNonce, SymmetricCipherVersion, VersionedKey } from "@tutao/crypto"
+import {
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
+	AesKey,
+	AsymmetricKeyPair,
+	DomainSeparator,
+	InstanceDecryptor,
+	KdfNonce,
+	MissingSessionKey,
+	SubKeyInfo,
+	SubKeyProvider,
+	SymmetricCipherFacade,
+	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
+	VersionedKey,
+} from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter.js"
@@ -9,7 +24,6 @@ import { User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
-	ClientTypeModel,
 	EncryptedModelValue,
 	ModelValue,
 	ParsedValue,
@@ -18,14 +32,6 @@ import {
 	ServerTypeModel,
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
-import {
-	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
-	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
-	InstanceDecryptor,
-	MissingSessionKey,
-} from "./instance-pipeline-crypto/decryption/InstanceDecryptor"
-import { SubKeyInfo, SubKeyProvider } from "./instance-pipeline-crypto/encryption/SubKeyProvider"
-import { SymmetricCipherFacade, SymmetricEncryptionScheme } from "./instance-pipeline-crypto/SymmetricCipherFacade"
 import { OwnerKeyProvider } from "./PatchMerger"
 
 export interface SymmetricGroupKeyLoader {
@@ -97,11 +103,7 @@ export class CryptoMapper {
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string = "",
 	): Promise<ServerModelParsedInstance> {
-		const instanceTypeId: InstanceTypeId = {
-			applicationName: serverTypeModel.app,
-			typeId: serverTypeModel.id,
-		}
-		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, instanceTypeId)
+		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, serverTypeModel)
 
 		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPathPrefix)
 	}

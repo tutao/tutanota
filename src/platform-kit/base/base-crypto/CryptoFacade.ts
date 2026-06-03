@@ -17,8 +17,12 @@ import { assertEnumValue, elementIdPart, getElementId, getListId, isSameId, isSa
 import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
+	aesEncrypt,
 	AesKey,
 	cryptoUtils,
+	CryptoWrapper,
+	decryptKey,
+	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
@@ -71,9 +75,6 @@ import {
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
 } from "@tutao/entities/tutanota"
-import { decryptKey, encryptKey } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { aesEncrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

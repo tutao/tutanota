@@ -1,6 +1,6 @@
 import { AeadSubKeys, AesKey, SymmetricAeadCipherVersion, SymmetricAesCbcCipherVersion, SymmetricSubKeys } from "@tutao/crypto"
 
-export interface SubKeyCache<K, V> {
+interface SubKeyCache<K, V> {
 	set: (instanceSubKeyCacheKey: K, cachedSubKeys: V) => void
 	get: (instanceSubKeyCacheKey: K) => V | undefined
 	has: (instanceSubKeyCacheKey: K) => boolean

@@ -38,11 +38,11 @@ import {
 } from "../../../src/platform-kit/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
-import { SubKeyInfo } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/encryption/SubKeyProvider"
-import { InstanceDecryptor, MissingSessionKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/InstanceDecryptor"
-import { ValueDecryptor } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/ValueDecryptor"
-import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
-import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
+import { InstanceDecryptor, MissingSessionKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
+import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
+import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 o.spec("CryptoMapper", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE
@@ -56,8 +56,9 @@ o.spec("CryptoMapper", () => {
 		modelMapper,
 	)
 	const instanceTypeId: InstanceTypeId = {
-		applicationName: AppNameEnum.Tutanota,
-		typeId: 0,
+		app: AppNameEnum.Tutanota,
+		id: 0,
+		name: "name",
 	}
 	o.spec("decryptValue aesCbc", () => {
 		o.test("decrypt string / number value", async () => {
@@ -243,8 +244,9 @@ o.spec("CryptoMapper", () => {
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, clientTypeModel)
 			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, fieldPath))
 			const instanceTypeId: InstanceTypeId = {
-				applicationName: clientTypeModel.app,
-				typeId: clientTypeModel.id,
+				app: clientTypeModel.app,
+				id: clientTypeModel.id,
+				name: "name",
 			}
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sessionKey, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, fieldPath)
@@ -263,8 +265,9 @@ o.spec("CryptoMapper", () => {
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, clientTypeModel)
 			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, fieldPath))
 			const instanceTypeId: InstanceTypeId = {
-				applicationName: clientTypeModel.app,
-				typeId: clientTypeModel.id,
+				app: clientTypeModel.app,
+				id: clientTypeModel.id,
+				name: "name",
 			}
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, instanceTypeId)
 			const groupId = "groupId"

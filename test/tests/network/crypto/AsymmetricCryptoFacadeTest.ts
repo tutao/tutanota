@@ -38,7 +38,7 @@ import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/f
 import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
-import { CryptoWrapper } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation

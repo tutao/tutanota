@@ -1,7 +1,4 @@
-import {
-	Aes256Key,
-	InitializationVector,
-} from "@tutao/crypto"
+import { Aes256Key, InitializationVector } from "@tutao/crypto"
 import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
@@ -17,7 +14,7 @@ import {
 	aes256EncryptSearchIndexEntry,
 	aes256EncryptSearchIndexEntryWithInitializationVector,
 	aesDecryptUnauthenticated,
-} from "../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+} from "../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbInitializationVector))

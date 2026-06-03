@@ -4,6 +4,7 @@ import { InvalidDataError } from "@tutao/rest-client/error"
 import {
 	AsymmetricKeyPair,
 	cryptoUtils,
+	CryptoWrapper,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
 	EncodedEd25519Signature,
@@ -21,7 +22,6 @@ import {
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "./Constants"
 import { createPublicKeySignature, PublicKeySignature } from "@tutao/entities/sys"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

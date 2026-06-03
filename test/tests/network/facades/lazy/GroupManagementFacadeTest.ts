@@ -15,7 +15,7 @@ import { freshVersioned } from "../../../../../src/platform-kit/utils"
 import { AesKey, KeyPairType, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "@tutao/entities/sys"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything } = matchers
 

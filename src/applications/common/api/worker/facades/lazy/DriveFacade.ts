@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
@@ -43,7 +43,6 @@ import {
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
-import { CryptoWrapper } from "@tutao/instance-pipeline"
 
 export interface BreadcrumbEntry {
 	folderName: string

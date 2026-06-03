@@ -27,12 +27,10 @@ import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import {
 	ApplicationTypesFacade,
-	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
-	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -109,7 +107,7 @@ import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { random } from "@tutao/crypto"
+import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 
 assertWorkerOrNode()
 

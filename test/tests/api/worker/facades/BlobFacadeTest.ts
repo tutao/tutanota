@@ -44,7 +44,7 @@ import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { File, FileTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 const { anything, captor } = matchers
 

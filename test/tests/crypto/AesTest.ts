@@ -21,7 +21,7 @@ import {
 	aesDecryptUnauthenticated,
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
-} from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+} from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 o.spec("aes", function () {
 	const initializationVector = validateInitializationVectorLength(

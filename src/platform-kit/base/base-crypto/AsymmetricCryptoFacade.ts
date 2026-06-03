@@ -12,6 +12,7 @@ import {
 	AesKeyLength,
 	AsymmetricKeyPair,
 	cryptoUtils,
+	CryptoWrapper,
 	isPqKeyPairs,
 	isRsaOrRsaX25519KeyPair,
 	isRsaX25519KeyPair,
@@ -40,7 +41,6 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
 import { TypeId } from "../../meta/EntityTypes"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

@@ -1,6 +1,7 @@
 import { DbFacade } from "../../search/DbFacade.js"
 import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import {
+	_encryptKeyWithVersionedKey,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
@@ -35,9 +36,8 @@ import {
 	aesDecryptUnauthenticated,
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
-} from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { decryptKey } from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { _encryptKeyWithVersionedKey } from "@tutao/instance-pipeline"
+} from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { decryptKey } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"

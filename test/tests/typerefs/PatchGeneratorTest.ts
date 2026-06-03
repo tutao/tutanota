@@ -34,7 +34,7 @@ import { createTestEntityWithDummyResolver } from "../TestUtils"
 import { object } from "testdouble"
 
 import { createPatch } from "@tutao/entities/sys"
-import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 
 o.spec("computePatches", function () {
 	const dummyTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver

@@ -24,7 +24,7 @@ import { RSA_TEST_KEYPAIR } from "../../../api/worker/facades/RsaPqPerformanceTe
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { EncodedEd25519Signature } from "../../../../../src/platform-kit/crypto/encryption/Ed25519"
 import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/base-crypto/Constants.js"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
 	let ed25519Facade: Ed25519Facade

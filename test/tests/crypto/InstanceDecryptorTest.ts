@@ -16,14 +16,15 @@ import {
 	InstanceTypeId,
 	SymmetricKeyDeriver,
 } from "@tutao/crypto/symmetric-key-deriver"
-import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
-import { MacTag, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
-import { ValueDecryptor } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/ValueDecryptor"
 import {
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
-} from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/InstanceDecryptor"
+	MacTag,
+	SymmetricCipherVersion,
+} from "../../../src/platform-kit/crypto"
+import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 o.spec("InstanceDecryptorTest", () => {
@@ -52,8 +53,9 @@ o.spec("InstanceDecryptorTest", () => {
 			authenticationKey: aes256RandomKey(),
 		}
 		instanceTypeId = {
-			applicationName: AppNameEnum.Tutanota,
-			typeId: 0,
+			app: AppNameEnum.Tutanota,
+			id: 0,
+			name: "name",
 		}
 	})
 

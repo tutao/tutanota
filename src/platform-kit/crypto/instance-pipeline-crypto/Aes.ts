@@ -1,4 +1,4 @@
-import { Aes256Key, AesKey, InitializationVector } from "../../crypto/encryption/symmetric/SymmetricCipherUtils.js"
+import { Aes256Key, AesKey, InitializationVector } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade"
 
 /**

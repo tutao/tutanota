@@ -27,8 +27,8 @@ import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instanc
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { decryptKey, encryptKey } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {

@@ -1,6 +1,8 @@
 import { KyberFacade } from "./KyberFacade.js"
 import {
 	Aes256Key,
+	aesDecrypt,
+	aesEncrypt,
 	AesKeyLength,
 	generateX25519KeyPair,
 	getKeyLengthInBytes,
@@ -20,7 +22,6 @@ import {
 import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "@tutao/app-env"
-import { aesDecrypt, aesEncrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
 
 export type DecapsulatedSymKey = {
 	senderIdentityPubKey: X25519PublicKey

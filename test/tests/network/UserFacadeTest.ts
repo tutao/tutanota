@@ -6,7 +6,7 @@ import { createTestEntity } from "../TestUtils.js"
 import { aes256RandomKey } from "../../../src/platform-kit/crypto"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
-import { encryptKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache

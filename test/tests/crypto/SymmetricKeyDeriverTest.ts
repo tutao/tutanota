@@ -67,8 +67,9 @@ o.spec("SymmetricKeyDeriverTest", function () {
 
 	o.spec("AEAD", function () {
 		const instanceTypeId = {
-			applicationName: AppNameEnum.Tutanota,
-			typeId: 97,
+			app: AppNameEnum.Tutanota,
+			id: 97,
+			name: "name",
 		}
 		let kdfNonce: KdfNonce
 		o.beforeEach(function () {

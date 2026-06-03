@@ -19,8 +19,8 @@ import { Metadata } from "../../../../../src/applications/common/api/worker/sear
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota/Utils"
-import { aesEncrypt } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { decryptKey, encryptKey } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade

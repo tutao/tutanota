@@ -4,26 +4,26 @@ import { AppNameEnum, ClientTypeModel } from "../../../src/platform-kit/meta"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
-import { SubKeyInfo, SubKeyProvider } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/encryption/SubKeyProvider"
+import { SubKeyInfo, SubKeyProvider } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
 
 o.spec("SubKeyProviderTest", () => {
 	let symmetricKeyDeriver: SymmetricKeyDeriver
-	let clientTypeModel: ClientTypeModel
+	let instanceTypeId: ClientTypeModel
 	let versionedKey: VersionedKey
 	let kdfNonce: KdfNonce
 
 	o.before(() => {
 		symmetricKeyDeriver = object()
-		clientTypeModel = object()
-		clientTypeModel.app = AppNameEnum.Tutanota
-		clientTypeModel.name = "name"
+		instanceTypeId = object()
+		instanceTypeId.app = AppNameEnum.Tutanota
+		instanceTypeId.name = "name"
 		versionedKey = { object: aes256RandomKey(), version: 0 }
 		kdfNonce = generateKdfNonce()
 	})
 
 	o.test("subKeyInfo must be set when calling getSubKeys", async () => {
 		const subKeyInfo: SubKeyInfo = null
-		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, clientTypeModel)
+		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, instanceTypeId)
 		const e = await assertThrows(CryptoError, async () => {
 			subKeyProvider.getSubKeys()
 		})
@@ -35,7 +35,7 @@ o.spec("SubKeyProviderTest", () => {
 			cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
 			sessionKey: null,
 		}
-		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, clientTypeModel)
+		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, instanceTypeId)
 		const e = await assertThrows(CryptoError, async () => {
 			subKeyProvider.getSubKeys()
 		})
@@ -48,7 +48,7 @@ o.spec("SubKeyProviderTest", () => {
 			groupKey: null,
 			kdfNonce: kdfNonce,
 		}
-		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, clientTypeModel)
+		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, instanceTypeId)
 		const e = await assertThrows(CryptoError, async () => {
 			subKeyProvider.getSubKeys()
 		})
@@ -61,7 +61,7 @@ o.spec("SubKeyProviderTest", () => {
 			groupKey: versionedKey,
 			kdfNonce: null,
 		}
-		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, clientTypeModel)
+		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, instanceTypeId)
 		const e = await assertThrows(CryptoError, async () => {
 			subKeyProvider.getSubKeys()
 		})
@@ -73,7 +73,7 @@ o.spec("SubKeyProviderTest", () => {
 			cipherVersion: SymmetricCipherVersion.AeadWithSessionKey,
 			sessionKey: null,
 		}
-		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, clientTypeModel)
+		const subKeyProvider: SubKeyProvider = new SubKeyProvider(subKeyInfo, symmetricKeyDeriver, instanceTypeId)
 		const e = await assertThrows(CryptoError, async () => {
 			subKeyProvider.getSubKeys()
 		})

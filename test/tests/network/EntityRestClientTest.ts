@@ -60,10 +60,10 @@ import {
 	UpdateKdfNonceService,
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
-import { SubKeyInfo } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/encryption/SubKeyProvider"
-import { SymmetricEncryptionScheme } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
-import { decryptKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { CryptoWrapper } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
+import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 

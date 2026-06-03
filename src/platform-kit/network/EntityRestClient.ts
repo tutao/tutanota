@@ -14,7 +14,6 @@ import {
 	OwnerEncSessionKeyProvider,
 	OwnerKeyProvider,
 	SessionKeyResolver,
-	SymmetricEncryptionScheme,
 	TypeModelResolver,
 	typeModelToRestPath,
 } from "@tutao/instance-pipeline"
@@ -47,8 +46,16 @@ import {
 	NotFoundError,
 	PayloadTooLargeError,
 } from "@tutao/rest-client/error"
-import { AesKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, validateKdfNonceLength, VersionedKey } from "@tutao/crypto"
-import { SubKeyInfo } from "../instance-pipeline/instance-pipeline-crypto/encryption/SubKeyProvider"
+import {
+	AesKey,
+	generateKdfNonce,
+	KdfNonce,
+	SubKeyInfo,
+	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
+	validateKdfNonceLength,
+	VersionedKey,
+} from "@tutao/crypto"
 
 assertWorkerOrNode()
 

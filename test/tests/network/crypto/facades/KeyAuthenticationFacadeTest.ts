@@ -7,18 +7,10 @@ import {
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade.js"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	cryptoUtils,
-	Ed25519PublicKey,
-	KeyPairType,
-	KyberPublicKey,
-	X25519PublicKey,
-} from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, cryptoUtils, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible

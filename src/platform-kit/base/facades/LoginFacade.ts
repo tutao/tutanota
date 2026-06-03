@@ -20,18 +20,23 @@ import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
+	_encryptString,
+	aes256DecryptWithRecoveryKey,
 	Aes256Key,
 	aes256RandomKey,
+	aesDecrypt,
 	AesKey,
 	AesKeyLength,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
+	encryptKey,
 	generateKeyFromPassphraseBcrypt,
 	generateRandomSalt,
 	KeyLength,
 	keyToUint8Array,
 	sha256Hash,
+	SymmetricEncryptionScheme,
 	TotpSecret,
 	TotpVerifier,
 	uint8ArrayToKey,
@@ -43,7 +48,7 @@ import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
 import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
-import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, SymmetricEncryptionScheme, typeModelToRestPath } from "@tutao/instance-pipeline"
+import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
 import { CacheStorageLateInitializer, SessionTypeProvider } from "../../../app-kit/local-store/Types.js"
@@ -100,9 +105,6 @@ import {
 	NotFoundError,
 	SessionExpiredError,
 } from "@tutao/rest-client/error"
-import { aes256DecryptWithRecoveryKey, encryptKey } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { aesDecrypt } from "../../instance-pipeline/instance-pipeline-crypto/Aes"
-import { _encryptString } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

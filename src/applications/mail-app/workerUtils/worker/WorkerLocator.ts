@@ -69,12 +69,10 @@ import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLo
 import { KeyRotationFacade } from "../../../../platform-kit/base/base-crypto/KeyRotationFacade.js"
 import {
 	ApplicationTypesFacade,
-	CryptoWrapper,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
-	SYMMETRIC_CIPHER_FACADE,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
@@ -131,7 +129,7 @@ import { EntityRestInterface } from "../../../../platform-kit/network/EntityRest
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
-import { random } from "@tutao/crypto"
+import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
 
 assertWorkerOrNode()
 

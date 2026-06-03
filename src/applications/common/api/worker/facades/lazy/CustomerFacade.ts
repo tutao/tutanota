@@ -22,7 +22,16 @@ import { AsymmetricCryptoFacade } from "../../../../../../platform-kit/base/base
 import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { cryptoUtils, hexToRsaPublicKey, keyToUint8Array, PQKeyPairs, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import {
+	_encryptKeyWithVersionedKey,
+	cryptoUtils,
+	CryptoWrapper,
+	hexToRsaPublicKey,
+	keyToUint8Array,
+	PQKeyPairs,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { CacheMode } from "../../../../../../platform-kit/network/EntityRestClient"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService } from "@tutao/entities/tutanota"
@@ -55,7 +64,6 @@ import {
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import { getByAbbreviation } from "../../../../gui/CountryList"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
-import { _encryptKeyWithVersionedKey, CryptoWrapper } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()
 

@@ -17,12 +17,12 @@ import {
 } from "@tutao/crypto/symmetric-cipher-utils"
 import o, { assertThrows } from "@tutao/otest"
 import { InstanceTypeId, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
-import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { MacTag } from "../../../src/platform-kit/crypto"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
 import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { ValueDecryptor } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/ValueDecryptor"
-import { MissingSessionKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/InstanceDecryptor"
+import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
+import { MissingSessionKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 
@@ -45,8 +45,9 @@ o.spec("ValueDecryptorTest", () => {
 		macTag = new Uint8Array(32) as MacTag
 		initializationVector = validateInitializationVectorLength(new Uint8Array(16))
 		instanceTypeId = {
-			applicationName: AppNameEnum.Tutanota,
-			typeId: 0,
+			app: AppNameEnum.Tutanota,
+			id: 0,
+			name: "name",
 		}
 	})
 

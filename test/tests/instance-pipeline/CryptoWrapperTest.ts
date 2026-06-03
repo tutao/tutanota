@@ -5,7 +5,7 @@ import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { WASMKyberFacade } from "../../../src/platform-kit/base/base-crypto/KyberFacade"
 
 import { loadLibOQSWASM } from "../crypto/WebAssemblyTestUtils"
-import { CryptoWrapper } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("CryptoWrapperTest", function () {
 	let cryptoWrapper: CryptoWrapper

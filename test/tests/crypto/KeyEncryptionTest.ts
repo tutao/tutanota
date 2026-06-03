@@ -23,7 +23,7 @@ import {
 	decryptRsaKey,
 	encryptKey,
 	encryptRsaKey,
-} from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
+} from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =

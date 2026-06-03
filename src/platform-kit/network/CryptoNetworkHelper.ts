@@ -1,6 +1,6 @@
 import { AttributeModel, elementIdPart, isSameTypeRef, TypeRef } from "../meta"
-import { aes256RandomKey, AesKey, cryptoUtils, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { decryptKey, EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
+import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { HttpMethod, RestClientInterface } from "../rest-client/types"
@@ -25,7 +25,6 @@ import { GroupType } from "../../entities/sys/Utils"
 import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { PatchOperationType } from "../instance-pipeline/PatchGenerator"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
-import { CryptoWrapper } from "../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 export class CryptoNetworkHelper {
 	constructor(

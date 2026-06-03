@@ -5,23 +5,16 @@ import {
 	KdfNonce,
 	keyToUint8Array,
 	uint8ArrayToKey,
-} from "../../crypto/encryption/symmetric/SymmetricCipherUtils.js"
-import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../../crypto/encryption/symmetric/AesCbcFacade.js"
-import { SymmetricAesCbcCipherVersion, SymmetricCipherVersion } from "../../crypto/encryption/symmetric/SymmetricCipherVersion.js"
+} from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
+import { SymmetricAesCbcCipherVersion, SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "../../crypto/encryption/symmetric/AesKeyLength"
-import { AEAD_FACADE, AeadFacade } from "../../crypto/encryption/symmetric/AeadFacade.js"
-import {
-	AeadSubKeys,
-	AesCbcSubKeys,
-	InstanceTypeId,
-	SYMMETRIC_KEY_DERIVER,
-	SymmetricKeyDeriver,
-} from "../../crypto/encryption/symmetric/SymmetricKeyDeriver.js"
+import { AesKeyLength, getAndVerifyAesKeyLength } from "../encryption/symmetric/AesKeyLength"
+import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
+import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
-import { InitializationVectorSource, InitializationVectorVariant, parseVersionedCiphertext } from "../../crypto/encryption/symmetric/ParsedCiphertext"
-import { ClientTypeModel } from "@tutao/meta"
+import { InitializationVectorSource, InitializationVectorVariant, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -298,11 +291,11 @@ export class SymmetricCipherFacade {
 	 * Gets a sub-key provider to be used for encryption.
 	 *
 	 * @param subKeyInfo		Necessary information to derive the sub-keys.
-	 * @param clientTypeModel	The type model of the instance to be encrypted using the sub-keys.
+	 * @param instanceTypeId	The type ID of the instance to be encrypted using the sub-keys.
 	 * @return 					The sub-key provider.
 	 */
-	getSubKeyProvider(subKeyInfo: SubKeyInfo, clientTypeModel: ClientTypeModel) {
-		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, clientTypeModel)
+	getSubKeyProvider(subKeyInfo: SubKeyInfo, instanceTypeId: InstanceTypeId) {
+		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, instanceTypeId)
 	}
 }
 export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER)

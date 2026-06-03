@@ -9,6 +9,7 @@ import {
 	Ed25519PublicKey,
 	ed25519PublicKeyToBytes,
 	ed25519SignatureToBytes,
+	EncodedEd25519Signature,
 	generateEd25519KeyPair,
 	initEd25519,
 	signWithEd25519,
@@ -16,7 +17,6 @@ import {
 } from "@tutao/crypto"
 import { LazyLoaded } from "@tutao/utils"
 import { IPCEd25519PrivateKey, IPCEd25519PublicKey, IPCEd25519Signature, NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { EncodedEd25519Signature } from "../../crypto/encryption/Ed25519"
 
 assertWorkerOrNode()
 

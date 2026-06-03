@@ -18,6 +18,9 @@ import {
 	AesKey,
 	createAuthVerifier,
 	cryptoUtils,
+	CryptoWrapper,
+	decryptKey,
+	encryptKey,
 	generateRandomSalt,
 	keyToUint8Array,
 	murmurHash,
@@ -52,7 +55,7 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../../../../platform-kit/network/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { CryptoWrapper, decryptKey, encryptKey, OwnerEncSessionKeyProvider, UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
+import { OwnerEncSessionKeyProvider, UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
@@ -172,7 +175,7 @@ import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../../platform-kit/base/b
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
-import { aesEncrypt } from "../../../../../../platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>

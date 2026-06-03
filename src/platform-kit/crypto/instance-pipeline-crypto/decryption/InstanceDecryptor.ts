@@ -1,20 +1,17 @@
 import { Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
-import { AesKey, KdfNonce } from "../../../crypto/encryption/symmetric/SymmetricCipherUtils"
-import { AesCbcFacade } from "../../../crypto/encryption/symmetric/AesCbcFacade"
-import { AeadFacade } from "../../../crypto/encryption/symmetric/AeadFacade"
-import { InstanceTypeId, SymmetricKeyDeriver } from "../../../crypto/encryption/symmetric/SymmetricKeyDeriver"
-import { SymmetricCipherVersion } from "../../../crypto/encryption/symmetric/SymmetricCipherVersion"
+import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
+import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
+import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
+import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { CryptoError } from "@tutao/crypto/error"
 import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache, serializeInstanceSubKeyCacheKey, subKeyCache } from "./SubKeyCache"
 import { AeadWithGroupKeyDecryptor, AeadWithSessionKeyDecryptor, AesCbcDecryptor, ValueDecryptor } from "./ValueDecryptor"
-import { parseVersionedCiphertext } from "../../../crypto/encryption/symmetric/ParsedCiphertext"
-import { DomainSeparator, UNIT_SEPARATOR_CHAR } from "../../../crypto/CryptoTypes"
+import { parseVersionedCiphertext } from "../../encryption/symmetric/ParsedCiphertext"
+import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
 
 export const MissingSessionKey = "missing session key" as const
 export type MissingSessionKey = typeof MissingSessionKey
-
-export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
-export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
 
 export class InstanceDecryptor {
 	private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache = subKeyCache(serializeInstanceSubKeyCacheKey)

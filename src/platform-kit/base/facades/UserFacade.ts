@@ -1,4 +1,4 @@
-import { Aes256Key, AesKey, cryptoUtils, VersionedKey } from "@tutao/crypto"
+import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { isSameId } from "../../meta"
@@ -8,9 +8,6 @@ import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
-import { SymmetricEncryptionScheme } from "../../instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
-import { decryptKey } from "../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { CryptoWrapper } from "../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {

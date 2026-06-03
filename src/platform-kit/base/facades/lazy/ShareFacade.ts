@@ -3,7 +3,17 @@ import type { ShareCapability } from "@tutao/app-env"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
-import { aes256RandomKey, cryptoUtils, keyToUint8Array, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
+import {
+	_encryptBytes,
+	_encryptKeyWithVersionedKey,
+	_encryptString,
+	aes256RandomKey,
+	cryptoUtils,
+	encryptKey,
+	keyToUint8Array,
+	uint8ArrayToKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
@@ -22,8 +32,6 @@ import {
 	InternalRecipientKeyDataTypeRef,
 } from "@tutao/entities/tutanota"
 import { GroupInfo, GroupInfoTypeRef, ReceivedGroupInvitation } from "@tutao/entities/sys"
-import { encryptKey } from "../../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString } from "../../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

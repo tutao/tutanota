@@ -6,7 +6,7 @@ import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { PQFacade } from "../../base-crypto/PQFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
-import { AesKey, PQKeyPairs, VersionedKey } from "@tutao/crypto"
+import { _encryptKeyWithVersionedKey, _encryptString, AesKey, CryptoWrapper, PQKeyPairs, VersionedKey } from "@tutao/crypto"
 import { IdentityKeyCreator } from "../../base-crypto/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../base-crypto/AdminKeyLoaderFacade"
 import { CacheManagementInterface } from "../../../../app-kit/local-store/CacheManagementInterface"
@@ -37,7 +37,6 @@ import {
 	TemplateGroupService,
 	UserAreaGroupData,
 } from "@tutao/entities/tutanota"
-import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper } from "../../../instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 assertWorkerOrNode()
 

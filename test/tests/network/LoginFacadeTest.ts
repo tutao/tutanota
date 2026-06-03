@@ -53,8 +53,8 @@ import {
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-crypto/Constants.js"
 import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
-import { encryptKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { _encryptString } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, argThat } = matchers
 

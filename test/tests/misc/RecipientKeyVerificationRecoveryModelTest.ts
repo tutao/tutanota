@@ -26,7 +26,7 @@ o.spec("RecipientKeyVerificationRecoveryModelTest", function () {
 		// @ts-ignore
 		recipient["address"] = RECIPIENT_ADDRESS
 		// @ts-ignore
-		recipient["address"] = RECIPIENT2_ADDRESS
+		recipient2["address"] = RECIPIENT2_ADDRESS
 		keyVerificationErrorModel = new RecipientKeyVerificationRecoveryModel(keyVerificationFacade, publicIdentityKeyProvider, [recipient, recipient2])
 	})
 

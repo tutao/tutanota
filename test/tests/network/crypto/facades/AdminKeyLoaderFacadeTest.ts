@@ -25,7 +25,7 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-
 import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyMac, KeyMacTypeRef, PubEncKeyDataTypeRef } from "@tutao/entities/sys"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 const { anything, captor } = matchers
 

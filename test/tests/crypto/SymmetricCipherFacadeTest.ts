@@ -17,7 +17,7 @@ import {
 import { _aes128RandomKey } from "./AesTest.js"
 import { concat } from "../../../src/platform-kit/utils"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
-import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 

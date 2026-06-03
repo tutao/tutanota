@@ -69,9 +69,9 @@ import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/b
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
-import { aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
-import { decryptKey, encryptKey } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
-import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 
@@ -516,8 +516,9 @@ o.spec("CompatibilityTest", function () {
 				const kdfNonce = validateKdfNonceLength(hexToUint8Array(td.kdfNonceHex))
 				const splitGlobalInstanceTypeId = td.globalInstanceTypeId.split("/")
 				const instanceTypeId: InstanceTypeId = {
-					applicationName: splitGlobalInstanceTypeId[0],
-					typeId: filterInt(splitGlobalInstanceTypeId[1]),
+					app: splitGlobalInstanceTypeId[0],
+					id: filterInt(splitGlobalInstanceTypeId[1]),
+					name: "name",
 				}
 				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
 					freshVersioned(uint8ArrayToKey(hexToUint8Array(td.groupKey256Hex))),
