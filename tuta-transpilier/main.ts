@@ -18,8 +18,9 @@ program
 
 		const project = new Project({
 			tsConfigFilePath: `src/platform-kit/tsconfig.app-env.json`,
-			skipAddingFilesFromTsConfig: false,
+			skipAddingFilesFromTsConfig: true,
 		})
+		project.addSourceFileAtPath("src/platform-kit/app-env/CancelledError.ts")
 
 		const targetTranspilation = project.getSourceFiles().map(async (sourceFile) => {
 			const langTarget = new LangTarget(sourceFile, TargetLanguage.Kotlin)

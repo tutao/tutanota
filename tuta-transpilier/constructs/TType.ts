@@ -27,13 +27,13 @@ export class TType extends TConstruct {
 			this.baseType = typeName
 		} else if (typ.isUnion()) {
 			const [firstType, secondType, ...rest] = typ.getUnionTypes()
-			this.isNullable = firstType.isNull() || secondType.isNull()
+			const firstTypeIsNull = firstType.isNull() || firstType.isUndefined()
+			const secondTypeIsNull = secondType.isNull() || secondType.isUndefined()
+			this.isNullable = firstTypeIsNull || secondTypeIsNull
+
 			Assert.equal(rest.length === 0 && this.isNullable, true, "Only union of type will | null is allowed")
-			if (firstType.isNull()) {
-				this.baseType = new TType(secondType)
-			} else if (secondType.isNull()) {
-				this.baseType = new TType(firstType)
-			}
+			if (firstTypeIsNull) this.baseType = new TType(secondType)
+			else if (secondTypeIsNull) this.baseType = new TType(firstType)
 		}
 	}
 

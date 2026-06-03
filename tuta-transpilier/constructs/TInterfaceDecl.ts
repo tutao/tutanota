@@ -9,7 +9,7 @@ export class TInterfaceDecl extends TConstruct {
 
 	constructor(classDeceleration: InterfaceDeclaration) {
 		super()
-		this.visibility = new TVisibility(classDeceleration)
+		this.visibility = TVisibility.checkExported(classDeceleration)
 		this.name = new TIdentitider(classDeceleration.getName())
 	}
 

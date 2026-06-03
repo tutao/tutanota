@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
-import { CallExpression } from "ts-morph"
+import { ArgumentedNode, CallExpression, ExpressionedNode, NewExpression } from "ts-morph"
 import { NodeRedirector } from "../NodeRedirector"
 import { TPropAccess, TSpecialPropAccess } from "./TPropAccess"
 import { TArrayLiteral } from "./TArrayLiteral"
@@ -9,11 +9,11 @@ export class TCall extends TConstruct {
 	private readonly callIdentifier: TConstruct
 	private readonly callArguments: Array<TConstruct>
 
-	constructor(callExpression: CallExpression) {
+	private constructor(call: ArgumentedNode & ExpressionedNode) {
 		super()
 
-		this.callIdentifier = NodeRedirector.redirectNode(callExpression.getExpression())
-		this.callArguments = callExpression.getArguments().map((arg) => NodeRedirector.redirectNode(arg))
+		this.callIdentifier = NodeRedirector.redirectNode(call.getExpression())
+		this.callArguments = call.getArguments().map((arg) => NodeRedirector.redirectNode(arg))
 
 		// == special handeling for some function calls
 		// =========================================
@@ -29,6 +29,13 @@ export class TCall extends TConstruct {
 			this.callIdentifier = new TEmpty()
 			;(this.callArguments[0] as TArrayLiteral).asReadOnly()
 		}
+	}
+
+	public static fromCalLExpr(callExpression: CallExpression): TCall {
+		return new TCall(callExpression)
+	}
+	public static fromNewExpression(newExpression: NewExpression): TCall {
+		return new TCall(newExpression)
 	}
 
 	generateKotlin(): ConstructOut {

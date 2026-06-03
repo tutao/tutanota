@@ -12,7 +12,7 @@ export class TTypeAlias extends TConstruct {
 	constructor(typeAliasDeclaration: TypeAliasDeclaration) {
 		super()
 		this.name = new TIdentitider(typeAliasDeclaration.getName())
-		this.visibility = new TVisibility(typeAliasDeclaration)
+		this.visibility = TVisibility.checkExported(typeAliasDeclaration)
 
 		const typeNode = typeAliasDeclaration.getTypeNodeOrThrow()
 		this.properties = typeNode.getDescendantsOfKind(SyntaxKind.PropertySignature).map((p) => {

@@ -19,7 +19,7 @@ export class TEnum extends TConstruct {
 
 		const variantValueType = new Set<string>()
 		this.name = new TIdentitider(enumDecleration.getName())
-		this.visibility = new TVisibility(enumDecleration)
+		this.visibility = TVisibility.checkExported(enumDecleration)
 		this.variants = enumDecleration.getMembers().map((enumMember) => {
 			variantValueType.add(enumMember.getType().getApparentType().getSymbol().getName())
 			const name = new TIdentitider(enumMember.getName())

@@ -1,8 +1,8 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
-import { NodeRedirector } from "../NodeRedirector"
 import { TType } from "./TType"
+import { NodeRedirector } from "../NodeRedirector"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind

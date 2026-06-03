@@ -14,6 +14,7 @@ import {
 	IfStatement,
 	ImportDeclaration,
 	InterfaceDeclaration,
+	NewExpression,
 	NumericLiteral,
 	ParenthesizedExpression,
 	PropertyAccessExpression,
@@ -81,9 +82,14 @@ export class NodeRedirector {
 		} else if (typedNode instanceof ConditionalExpression) {
 			return TIfStatement.fromConditionalStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
-			return new TCall(typedNode)
+			return TCall.fromCalLExpr(typedNode)
+		} else if (typedNode instanceof NewExpression) {
+			// for both swift and kotlin,
+			// we can create new obj with `ClassName()`
+			// and new keyword have no meaning
+			return TCall.fromNewExpression(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
-			return new TFunctionDecl(typedNode)
+			return TFunctionDecl.fromFunction(typedNode)
 		} else if (typedNode instanceof BinaryExpression) {
 			return new TBinaryExpr(typedNode)
 		} else if (typedNode instanceof ExpressionStatement) {
