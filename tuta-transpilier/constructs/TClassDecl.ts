@@ -69,7 +69,9 @@ export class TClassDecl extends TConstruct {
 		this.name = new TType(classDeceleration.getType())
 		this.methods = classDeceleration.getMethods().map((m) => new TClassMethod(m))
 		this.properties = classDeceleration.getProperties().map((prop) => TClassProperty.outsideConstructorParam(prop))
-		this.extendedClass = new TType(classDeceleration.getExtends().getType())
+		if (classDeceleration.getExtends()) {
+			this.extendedClass = new TType(classDeceleration.getExtends().getType())
+		}
 
 		for (const ctor of classDeceleration.getConstructors()) {
 			Assert.equal(this.constructorFunction, null, "Expected one constructor at most")

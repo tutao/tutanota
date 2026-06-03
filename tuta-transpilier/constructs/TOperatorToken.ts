@@ -25,12 +25,16 @@ export class TOperatorToken extends TConstruct {
 			SyntaxKind.OpenParenToken,
 			SyntaxKind.CloseParenToken,
 			SyntaxKind.BarBarToken,
+			SyntaxKind.QuestionToken,
+			SyntaxKind.QuestionQuestionToken,
 		]).has(nodeKind)
 	}
 
 	generateKotlin(): ConstructOut {
 		if (this.operatorRaw === "===") {
 			return "=="
+		} else if (this.operatorRaw === "??") {
+			return "?:"
 		}
 		return this.operatorRaw
 	}

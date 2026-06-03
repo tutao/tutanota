@@ -1,6 +1,5 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { Type } from "ts-morph"
-import * as Assert from "node:assert"
 
 const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "Int", swift: "" },
@@ -16,11 +15,15 @@ export class TType extends TConstruct {
 
 	constructor(typ: Type) {
 		super()
+
 		const apparentType = typ.getApparentType()
-		const typeName = apparentType.getAliasSymbol()?.getName() ?? apparentType.getSymbol()?.getName() ?? null
+		const typeParamName = typ.isTypeParameter() ? typ.getSymbol().getName() : null
+		const typeName = apparentType.getAliasSymbol()?.getName() ?? apparentType.getSymbol()?.getName() ?? typeParamName ?? null
 		this.isJavascriptObject = apparentType.isObject()
 
-		if (typ.isArray()) {
+		if (typ.isVoid()) {
+			this.baseType = "void"
+		} else if (typ.isArray()) {
 			this.baseType = typ.isReadonlyArray() ? "List" : "Array"
 			this.genericTypes.push(new TType(apparentType.getArrayElementType()))
 		} else if (typeName != null) {
@@ -31,9 +34,20 @@ export class TType extends TConstruct {
 			const secondTypeIsNull = secondType.isNull() || secondType.isUndefined()
 			this.isNullable = firstTypeIsNull || secondTypeIsNull
 
-			Assert.equal(rest.length === 0 && this.isNullable, true, "Only union of type will | null is allowed")
+			// todo: uncomment
+			// Assert.equal(rest.length === 0 && this.isNullable, true, "Only union of type will | null is allowed")
 			if (firstTypeIsNull) this.baseType = new TType(secondType)
 			else if (secondTypeIsNull) this.baseType = new TType(firstType)
+			else {
+				// todo: remove this branch
+				this.baseType = "UnmappedUnionType"
+			}
+		} else if (typ.isAny()) {
+			// todo: rmeove this branch
+			this.baseType = "ANYYYYYY"
+		} else {
+			// todo: rmeove this branchs2
+			throw new Error("Unknown type: " + typ.getText())
 		}
 	}
 
@@ -47,7 +61,7 @@ export class TType extends TConstruct {
 		} else if (typeof this.baseType === "string") {
 			return this.baseType
 		} else {
-			throw new Error("Expected either TTYpe or string")
+			throw new Error("Expected either TType or string")
 		}
 	}
 
