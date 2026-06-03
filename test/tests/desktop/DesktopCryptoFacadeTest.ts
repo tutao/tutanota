@@ -3,9 +3,7 @@ import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import type { CryptoFunctions } from "../../../src/applications/common/desktop/CryptoFns.js"
-import {
-	Aes256Key, aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToKey ,
-} from "../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToKey } from "../../../src/platform-kit/crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/applications/common/desktop/files/TempFs.js"
 
