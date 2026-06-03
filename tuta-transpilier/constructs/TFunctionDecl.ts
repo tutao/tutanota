@@ -43,7 +43,9 @@ export class TFunctionDecl extends TConstruct {
 }
 
 export class TClassMethod extends TFunctionDecl {
+	public readonly isStatic: boolean
 	constructor(methodDeclaration: MethodDeclaration) {
 		super(new TIdentitider(methodDeclaration.getName()), TVisibility.checkScope(methodDeclaration), methodDeclaration)
+		this.isStatic = methodDeclaration.isStatic()
 	}
 }

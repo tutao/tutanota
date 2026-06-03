@@ -27,6 +27,9 @@ export class TOperatorToken extends TConstruct {
 			SyntaxKind.BarBarToken,
 			SyntaxKind.QuestionToken,
 			SyntaxKind.QuestionQuestionToken,
+			SyntaxKind.ThisKeyword,
+			SyntaxKind.EqualsToken,
+			SyntaxKind.ExclamationEqualsToken,
 		]).has(nodeKind)
 	}
 

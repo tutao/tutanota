@@ -46,7 +46,7 @@ export class TBooleanLiteral extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		if (this.value) return "True"
-		else return "False"
+		if (this.value) return "true"
+		else return "false"
 	}
 }

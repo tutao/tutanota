@@ -25,8 +25,7 @@ export class TVariable extends TConstruct {
 		let declarator: string
 		if (this.declarationType === VariableDeclarationKind.Const) {
 			const dataTypeIsPrimitive = this.typedIdentifier.typeName.isPrimitiveType()
-			if (dataTypeIsPrimitive) declarator = `const val`
-			else declarator = `val`
+			declarator = `val`
 		} else if (this.declarationType === VariableDeclarationKind.Let) {
 			declarator = `var`
 		} else if (this.declarationType === VariableDeclarationKind.Using || this.declarationType === VariableDeclarationKind.AwaitUsing) {
@@ -36,9 +35,9 @@ export class TVariable extends TConstruct {
 		const typedId = this.typedIdentifier.generateKotlin()
 		if (this.initializer != null) {
 			const rhs = this.initializer.generateKotlin()
-			return `${declarator} ${typedId} = ${rhs};`
+			return `${declarator} ${typedId} = ${rhs}`
 		} else {
-			return `lateinit ${declarator} ${typedId};`
+			return `lateinit ${declarator} ${typedId}`
 		}
 	}
 }

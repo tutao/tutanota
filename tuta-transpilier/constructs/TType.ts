@@ -5,6 +5,8 @@ const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = O
 	Number: { kotlin: "Int", swift: "" },
 	Boolean: { kotlin: "Boolean", swift: "" },
 	Array: { kotlin: "Array", swift: "" },
+	String: { kotlin: "String", swift: "" },
+	Void: { kotlin: "Unit", swift: "" },
 })
 
 export class TType extends TConstruct {
@@ -22,7 +24,9 @@ export class TType extends TConstruct {
 		this.isJavascriptObject = apparentType.isObject()
 
 		if (typ.isVoid()) {
-			this.baseType = "void"
+			this.baseType = "Void"
+		} else if (typ.isString()) {
+			this.baseType = "String"
 		} else if (typ.isArray()) {
 			this.baseType = typ.isReadonlyArray() ? "List" : "Array"
 			this.genericTypes.push(new TType(apparentType.getArrayElementType()))

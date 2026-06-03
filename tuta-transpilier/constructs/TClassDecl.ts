@@ -2,7 +2,7 @@ import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { ClassDeclaration, ParameterDeclaration, PropertyDeclaration, ts } from "ts-morph"
 import { TVisibility } from "./TVisibility"
 import { TType } from "./TType"
-import { TClassMethod, TFunctionDecl } from "./TFunctionDecl"
+import { TClassMethod } from "./TFunctionDecl"
 import * as Assert from "node:assert"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
@@ -18,6 +18,7 @@ class TClassProperty extends TConstruct {
 
 	private constructor(
 		public readonly isDefinedInConstructor: boolean,
+		public readonly isStatic: boolean,
 		property: PropertyDeclaration | ParameterDeclaration,
 	) {
 		super()
@@ -29,12 +30,12 @@ class TClassProperty extends TConstruct {
 	}
 
 	public static outsideConstructorParam(property: PropertyDeclaration) {
-		return new TClassProperty(false, property)
+		return new TClassProperty(false, property.isStatic(), property)
 	}
 
 	public static fromConstructorParam(property: ParameterDeclaration) {
 		Assert.equal(property.isParameterProperty(), true, "Given parameter is not a property")
-		return new TClassProperty(true, property)
+		return new TClassProperty(true, false, property)
 	}
 
 	generateKotlin(): ConstructOut {
@@ -45,7 +46,7 @@ class TClassProperty extends TConstruct {
 			const initializer = this.initializer.generateKotlin()
 			return `${variableType} ${name}: ${dataType} = ${initializer}`
 		} else {
-			return `${variableType} ${name}: ${dataType}`
+			return `lateinit ${variableType} ${name}: ${dataType}`
 		}
 	}
 }
@@ -60,17 +61,27 @@ export class TClassDecl extends TConstruct {
 	private readonly extendedClass: TType | null
 	private readonly implementedInterface: TType | null
 	private readonly constructorFunction: TConstructor | null
-	private readonly methods: Array<TFunctionDecl>
-	private readonly properties: Array<TClassProperty>
+	private readonly methods: Array<TClassMethod> = []
+	private readonly staticMethods: Array<TClassMethod> = []
+	private readonly properties: Array<TClassProperty> = []
+	private readonly staticProperties: Array<TClassProperty> = []
 
 	constructor(classDeceleration: ClassDeclaration) {
 		super()
 		this.visibility = TVisibility.checkExported(classDeceleration)
 		this.name = new TType(classDeceleration.getType())
-		this.methods = classDeceleration.getMethods().map((m) => new TClassMethod(m))
-		this.properties = classDeceleration.getProperties().map((prop) => TClassProperty.outsideConstructorParam(prop))
 		if (classDeceleration.getExtends()) {
 			this.extendedClass = new TType(classDeceleration.getExtends().getType())
+		}
+
+		const allMethods = classDeceleration.getMethods().map((m) => new TClassMethod(m))
+		for (const method of allMethods) {
+			;(method.isStatic ? this.staticMethods : this.methods).push(method)
+		}
+
+		const allProperties = classDeceleration.getProperties().map((prop) => TClassProperty.outsideConstructorParam(prop))
+		for (const property of allProperties) {
+			;(property.isStatic ? this.staticProperties : this.properties).push(property)
 		}
 
 		for (const ctor of classDeceleration.getConstructors()) {
@@ -96,6 +107,9 @@ export class TClassDecl extends TConstruct {
 		const visibility = this.visibility.generateKotlin()
 		const name = this.name.generateKotlin()
 		const methods = new TConstructMultiple(...this.methods).withSeparator("\n").generateKotlin()
+		const staticProperties = new TConstructMultiple(...this.staticProperties).withSeparator(";\n").generateKotlin()
+		const staticMethods = new TConstructMultiple(...this.staticMethods).withSeparator(";\n").generateKotlin()
+		const staticThings = `companion object { ${staticProperties}\n ${staticMethods} }`
 
 		if (this.constructorFunction) {
 			const properties = new TConstructMultiple(...this.properties.filter((p) => !p.isDefinedInConstructor)).withSeparator("\n").generateKotlin()
@@ -116,10 +130,10 @@ export class TClassDecl extends TConstruct {
 				return param.isProperty ? `val ${typedIdent}` : typedIdent
 			})
 			const ctorBody = this.constructorFunction.body.generateKotlin()
-			return `${visibility} class ${name} ${ctorVisibility} constructor (${ctorParams}) ${baseClassInitialization} { ${properties}\n init ${ctorBody} ${methods} }`
+			return `${visibility} class ${name} ${ctorVisibility} constructor (${ctorParams}) ${baseClassInitialization}\n { ${staticThings}\n ${properties}\n init ${ctorBody}\n ${methods} }`
 		} else {
 			const properties = new TConstructMultiple(...this.properties).withSeparator("\n").generateKotlin()
-			return `${visibility} class ${name} { ${properties} ${methods} }`
+			return `${visibility} class ${name} { ${staticThings}\n ${properties}\n ${methods} }`
 		}
 	}
 }

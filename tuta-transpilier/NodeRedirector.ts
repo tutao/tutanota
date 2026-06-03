@@ -9,6 +9,7 @@ import {
 	EnumDeclaration,
 	ExportDeclaration,
 	ExpressionStatement,
+	FalseLiteral,
 	FunctionDeclaration,
 	Identifier,
 	IfStatement,
@@ -22,6 +23,7 @@ import {
 	StringLiteral,
 	SuperExpression,
 	SyntaxKind,
+	TrueLiteral,
 	TypeAliasDeclaration,
 	VariableStatement,
 } from "ts-morph"
@@ -40,7 +42,7 @@ import * as Assert from "node:assert"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TReturnKeyword } from "./constructs/TKeywords"
 import { TIdentitider } from "./constructs/TIdentitider"
-import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
+import { TBooleanLiteral, TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
 import { TOperatorToken } from "./constructs/TOperatorToken"
 import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
@@ -130,6 +132,8 @@ export class NodeRedirector {
 			return new TBlock(typedNode)
 		} else if (typedNode instanceof SuperExpression) {
 			return new TSuperKeyword(typedNode)
+		} else if (typedNode instanceof TrueLiteral || typedNode instanceof FalseLiteral) {
+			return new TBooleanLiteral(typedNode)
 		} else if (TNull.isNull(node)) {
 			return new TNull(node)
 		} else {
