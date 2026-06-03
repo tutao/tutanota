@@ -84,11 +84,16 @@ export class NodeRedirector {
 			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
 			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeperator("")
 		} else if (typedNode instanceof ReturnStatement) {
-			Assert.equal(typedNode.getChildCount(), 2, "return statement should only have one expression")
+			const childNodeCount = typedNode.getChildCount()
+			Assert.equal(childNodeCount === 1 || childNodeCount === 2, true, "return statement should have either 1 or 2 expression")
 			const [returnKeyword, returnExpression] = typedNode.getChildren()
 			const returnKeywordConstruct = new TReturnKeyword(returnKeyword)
-			const returnExpressionConstruct = NodeRedirector.redirectNode(returnExpression)
-			return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
+			if (returnExpression == null) {
+				return returnKeywordConstruct
+			} else {
+				const returnExpressionConstruct = NodeRedirector.redirectNode(returnExpression)
+				return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
+			}
 		} else if (typedNode instanceof Identifier) {
 			return new TIdentitider(typedNode.getSymbol().getName())
 		} else if (typedNode instanceof NumericLiteral) {
@@ -117,6 +122,7 @@ export class NodeRedirector {
 		} catch (e) {
 			if (e instanceof IgnorableError) {
 				console.log("Error skipped: " + e.message)
+				return new TEmpty()
 			} else {
 				throw e
 			}

@@ -1,5 +1,6 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { IfStatement, Statement } from "ts-morph"
+import { NodeRedirector } from "../NodeRedirector"
 
 enum IfStatementLevel {
 	FirstIfStmt,
@@ -28,11 +29,35 @@ abstract class BranchesOfIfStmt extends TConstruct {
 }
 
 export class TIfStatement extends TConstruct {
+	private readonly ifCondition: TConstruct
+	private readonly elseBody: TConstruct | null
+	private readonly ifBody: TConstruct
+
 	constructor(ifStatement: IfStatement) {
 		super()
+		this.ifCondition = NodeRedirector.redirectNode(ifStatement.getExpression())
+
+		const thenStmt = ifStatement.getThenStatement()
+		// todo: uncomment
+		// Assert.equal(thenStmt.getKind() === SyntaxKind.Block, true, "if statement better to be a block")
+		this.ifBody = NodeRedirector.redirectNode(thenStmt)
+
+		const elseStmt = ifStatement.getElseStatement() ?? null
+		if (elseStmt != null) {
+			// todo: uncomment
+			// Assert.equal(elseStmt.getKind() === SyntaxKind.Block, true, "else statement better to be a block")
+			this.elseBody = NodeRedirector.redirectNode(elseStmt)
+		}
 	}
 
 	generateKotlin(): ConstructOut {
-		return `NOT_IMPLEMETED(ifStatement)`
+		const ifCondition = this.ifCondition.generateKotlin()
+		const ifBody = this.ifBody.generateKotlin()
+		if (this.elseBody != null) {
+			const elseBody = this.elseBody.generateKotlin()
+			return `if (${ifCondition}) ${ifBody} else ${elseBody}`
+		} else {
+			return `if (${ifCondition}) ${ifBody}`
+		}
 	}
 }
