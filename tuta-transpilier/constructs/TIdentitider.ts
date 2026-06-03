@@ -6,9 +6,17 @@ const reservedKeywords = {
 	kotlin: new Set(),
 }
 
-export type TTypedIdentifier = {
-	identName: TIdentitider
-	typeName: TType
+export class TTypedIdentifier extends TConstruct {
+	constructor(
+		public readonly identName: TIdentitider,
+		public readonly typeName: TType,
+	) {
+		super()
+	}
+
+	generateKotlin(): ConstructOut {
+		return `${this.identName.generateKotlin()}: ${this.typeName.generateKotlin()}`
+	}
 }
 
 export enum TIdentifierFormatting {

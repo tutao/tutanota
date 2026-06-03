@@ -20,6 +20,7 @@ import {
 	PropertyAccessExpression,
 	ReturnStatement,
 	StringLiteral,
+	SuperExpression,
 	SyntaxKind,
 	TypeAliasDeclaration,
 	VariableStatement,
@@ -32,7 +33,7 @@ import { TInterfaceDecl } from "./constructs/TInterfaceDecl"
 import { TEnum } from "./constructs/TEnum"
 import { TTypeAlias } from "./constructs/TTypeAlias"
 import { TIfStatement } from "./constructs/TIfStatement"
-import { TCall } from "./constructs/TCall"
+import { TCall, TNew } from "./constructs/TCall"
 import { TFunctionDecl } from "./constructs/TFunctionDecl"
 import { TBinaryExpr } from "./constructs/TBinaryExpr"
 import * as Assert from "node:assert"
@@ -48,6 +49,7 @@ import { IgnorableError } from "./errors/IgnorableError"
 import { TPropAccess } from "./constructs/TPropAccess"
 import { TNull } from "./constructs/TNull"
 import { TBlock } from "./constructs/TBlock"
+import { TSuperKeyword } from "./constructs/TSuperKeyword"
 
 export class NodeRedirector {
 	private static redirectNodeInner(node: TsNode): TConstruct {
@@ -68,7 +70,7 @@ export class NodeRedirector {
 			return new TExportDecl(typedNode)
 		} else if (typedNode instanceof VariableStatement) {
 			const declarations = typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
-			return new TConstructMultiple(...declarations).withSeperator(";\n")
+			return new TConstructMultiple(...declarations).withSeparator(";\n")
 		} else if (typedNode instanceof ClassDeclaration) {
 			return new TClassDecl(typedNode)
 		} else if (typedNode instanceof InterfaceDeclaration) {
@@ -82,19 +84,16 @@ export class NodeRedirector {
 		} else if (typedNode instanceof ConditionalExpression) {
 			return TIfStatement.fromConditionalStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
-			return TCall.fromCalLExpr(typedNode)
+			return TCall.from(typedNode)
 		} else if (typedNode instanceof NewExpression) {
-			// for both swift and kotlin,
-			// we can create new obj with `ClassName()`
-			// and new keyword have no meaning
-			return TCall.fromNewExpression(typedNode)
+			return new TNew(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
-			return TFunctionDecl.fromFunction(typedNode)
+			return TFunctionDecl.new(typedNode)
 		} else if (typedNode instanceof BinaryExpression) {
 			return new TBinaryExpr(typedNode)
 		} else if (typedNode instanceof ExpressionStatement) {
 			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
-			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeperator("")
+			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeparator("")
 		} else if (typedNode instanceof ReturnStatement) {
 			const childNodeCount = typedNode.getChildCount()
 			Assert.equal(childNodeCount === 1 || childNodeCount === 2, true, "return statement should have either 1 or 2 expression")
@@ -120,11 +119,17 @@ export class NodeRedirector {
 			const [paranOpen, ...exprAndParanClose] = typedNode.getChildren()
 			const [expression, paranClose] = exprAndParanClose
 			const expressionConstructs = expression.forEachChildAsArray().map((ex) => NodeRedirector.redirectNode(ex))
-			return new TConstructMultiple(new TOperatorToken(paranOpen), new TConstructMultiple(...expressionConstructs), new TOperatorToken(paranClose))
+			return new TConstructMultiple<TConstruct>(
+				new TOperatorToken(paranOpen),
+				new TConstructMultiple(...expressionConstructs),
+				new TOperatorToken(paranClose),
+			)
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
 		} else if (typedNode instanceof Block) {
 			return new TBlock(typedNode)
+		} else if (typedNode instanceof SuperExpression) {
+			return new TSuperKeyword(typedNode)
 		} else if (TNull.isNull(node)) {
 			return new TNull(node)
 		} else {

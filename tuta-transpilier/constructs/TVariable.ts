@@ -1,20 +1,20 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
-import { TIdentitider } from "./TIdentitider"
+import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TType } from "./TType"
 import { NodeRedirector } from "../NodeRedirector"
 
 export class TVariable extends TConstruct {
 	private readonly declarationType: VariableDeclarationKind
-	private name: TIdentitider
-	private dataType: TType
+	private readonly typedIdentifier: TTypedIdentifier
 	private readonly initializer: TConstruct | null = null
 
 	constructor(variableDeclaration: VariableDeclaration) {
 		super()
+		const name = new TIdentitider(variableDeclaration.getSymbol().getName())
+		const dataType = new TType(variableDeclaration.getType())
+		this.typedIdentifier = new TTypedIdentifier(name, dataType)
 		this.declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
-		this.name = new TIdentitider(variableDeclaration.getSymbol().getName())
-		this.dataType = new TType(variableDeclaration.getType())
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
 			this.initializer = NodeRedirector.redirectNode(initializer)
@@ -22,27 +22,23 @@ export class TVariable extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		const dataType = this.dataType.generateKotlin()
-		const name = this.name.generateKotlin()
-
-		let lhs: string = ""
+		let declarator: string
 		if (this.declarationType === VariableDeclarationKind.Const) {
-			if (this.dataType.isPrimitiveType()) {
-				lhs = `const val ${name}`
-			} else {
-				lhs = `val ${name}`
-			}
+			const dataTypeIsPrimitive = this.typedIdentifier.typeName.isPrimitiveType()
+			if (dataTypeIsPrimitive) declarator = `const val`
+			else declarator = `val`
 		} else if (this.declarationType === VariableDeclarationKind.Let) {
-			lhs = `var ${name}`
+			declarator = `var`
 		} else if (this.declarationType === VariableDeclarationKind.Using || this.declarationType === VariableDeclarationKind.AwaitUsing) {
 			throw new Error("awaitUsing or Using is not supported!!")
 		}
 
+		const typedId = this.typedIdentifier.generateKotlin()
 		if (this.initializer != null) {
 			const rhs = this.initializer.generateKotlin()
-			return `${lhs}: ${dataType} = ${rhs};`
+			return `${declarator} ${typedId} = ${rhs};`
 		} else {
-			return `lateinit ${lhs}: ${dataType};`
+			return `lateinit ${declarator} ${typedId};`
 		}
 	}
 }

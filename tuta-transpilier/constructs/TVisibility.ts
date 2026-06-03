@@ -2,7 +2,7 @@ import { ConstructOut, TConstruct } from "./TConstruct"
 import { ExportGetableNode, Scope, ScopedNode } from "ts-morph"
 
 export class TVisibility extends TConstruct {
-	constructor(private readonly scope: Scope) {
+	private constructor(private readonly scope: Scope) {
 		super()
 	}
 

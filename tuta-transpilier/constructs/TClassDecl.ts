@@ -1,24 +1,40 @@
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
-import { ClassDeclaration, ParameterDeclaration, PropertyDeclaration } from "ts-morph"
+import { ClassDeclaration, ParameterDeclaration, PropertyDeclaration, ts } from "ts-morph"
 import { TVisibility } from "./TVisibility"
 import { TType } from "./TType"
-import { TFunctionDecl } from "./TFunctionDecl"
+import { TClassMethod, TFunctionDecl } from "./TFunctionDecl"
 import * as Assert from "node:assert"
-import { TIdentitider } from "./TIdentitider"
+import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
+import { TBlock } from "./TBlock"
+import { SpecialCall, TCall } from "./TCall"
+import SyntaxKind = ts.SyntaxKind
 
 class TClassProperty extends TConstruct {
 	private readonly initializer: TConstruct | null
 	private readonly name: TIdentitider
 	private readonly dataType: TType
 	private readonly isReadOnly: boolean
-	constructor(property: PropertyDeclaration | ParameterDeclaration) {
+
+	private constructor(
+		public readonly isDefinedInConstructor: boolean,
+		property: PropertyDeclaration | ParameterDeclaration,
+	) {
 		super()
 		const initializer = property.getInitializer()
 		this.initializer = initializer != null ? NodeRedirector.redirectNode(initializer) : null
 		this.name = new TIdentitider(property.getName())
 		this.dataType = new TType(property.getType())
 		this.isReadOnly = property.isReadonly()
+	}
+
+	public static outsideConstructorParam(property: PropertyDeclaration) {
+		return new TClassProperty(false, property)
+	}
+
+	public static fromConstructorParam(property: ParameterDeclaration) {
+		Assert.equal(property.isParameterProperty(), true, "Given parameter is not a property")
+		return new TClassProperty(true, property)
 	}
 
 	generateKotlin(): ConstructOut {
@@ -34,13 +50,16 @@ class TClassProperty extends TConstruct {
 	}
 }
 
+type TConstructorParam = { id: TTypedIdentifier; isProperty: boolean }
+type TConstructor = { visibility: TVisibility; parameters: Array<TConstructorParam>; body: TBlock }
+
 export class TClassDecl extends TConstruct {
 	private readonly name: TType
 	private readonly visibility: TVisibility
 	private readonly isAbstract: boolean
-	private readonly extendedClass: TType | number
-	private readonly implementedInterface: TType | number
-	private readonly constructorFunction: TFunctionDecl | null
+	private readonly extendedClass: TType | null
+	private readonly implementedInterface: TType | null
+	private readonly constructorFunction: TConstructor | null
 	private readonly methods: Array<TFunctionDecl>
 	private readonly properties: Array<TClassProperty>
 
@@ -48,27 +67,57 @@ export class TClassDecl extends TConstruct {
 		super()
 		this.visibility = TVisibility.checkExported(classDeceleration)
 		this.name = new TType(classDeceleration.getType())
-		this.methods = classDeceleration.getMethods().map((m) => TFunctionDecl.fromClassMethod(m))
-		this.constructorFunction = classDeceleration.getConstructors().map((c) => TFunctionDecl.fromConstructor(c))[0] ?? null
-		this.properties = classDeceleration.getProperties().map((prop) => new TClassProperty(prop))
-		if (this.constructorFunction != null) {
-			const propertiesDefinedInConstructor = classDeceleration
-				.getConstructors()[0]
-				.getParameters()
-				.filter((param) => param.isParameterProperty())
-				.map((param) => new TClassProperty(param))
-			this.properties.push(...propertiesDefinedInConstructor)
-		}
+		this.methods = classDeceleration.getMethods().map((m) => new TClassMethod(m))
+		this.properties = classDeceleration.getProperties().map((prop) => TClassProperty.outsideConstructorParam(prop))
+		this.extendedClass = new TType(classDeceleration.getExtends().getType())
 
-		Assert.equal(classDeceleration.getConstructors().length <= 1, true, "Expected one constructor at most")
+		for (const ctor of classDeceleration.getConstructors()) {
+			Assert.equal(this.constructorFunction, null, "Expected one constructor at most")
+
+			const visibility = TVisibility.checkScope(ctor)
+			const body = new TBlock(ctor.getBody().asKindOrThrow(SyntaxKind.Block, "Constructor should always have atleast empty body"))
+
+			const parameters = new Array<TConstructorParam>()
+			for (const parameter of ctor.getParameters()) {
+				const id = new TTypedIdentifier(new TIdentitider(parameter.getName()), new TType(parameter.getType()))
+				const isProperty = parameter.isParameterProperty()
+				if (isProperty) {
+					this.properties.push(TClassProperty.fromConstructorParam(parameter))
+				}
+				parameters.push({ id, isProperty })
+			}
+			this.constructorFunction = { visibility, parameters, body }
+		}
 	}
 
 	generateKotlin(): ConstructOut {
 		const visibility = this.visibility.generateKotlin()
 		const name = this.name.generateKotlin()
-		const properties = new TConstructMultiple(...this.properties).withSeperator(",").generateKotlin()
+		const methods = new TConstructMultiple(...this.methods).withSeparator("\n").generateKotlin()
 
-		const body = "/** TODO **/"
-		return `${visibility} class ${name}(${properties}) {${body}}`
+		if (this.constructorFunction) {
+			const properties = new TConstructMultiple(...this.properties.filter((p) => !p.isDefinedInConstructor)).withSeparator("\n").generateKotlin()
+			const allSuperCalls = this.constructorFunction.body.removeStatements((construct) => {
+				return construct instanceof TCall && construct.specialCall === SpecialCall.SuperCall
+			})
+			let superFunctionCall: TCall | null = null
+			if (allSuperCalls.length > 0) {
+				Assert.notEqual(this.extendedClass, null, "If superCall is found, there must be a base class")
+				superFunctionCall = (allSuperCalls[0] as TCall).setBaseClassName(this.extendedClass)
+			}
+
+			const baseClassInitialization = superFunctionCall ? ` :${superFunctionCall.generateKotlin()}` : ""
+
+			const ctorVisibility = this.constructorFunction.visibility.generateKotlin()
+			const ctorParams = this.constructorFunction.parameters.map((param) => {
+				const typedIdent = param.id.generateKotlin()
+				return param.isProperty ? `val ${typedIdent}` : typedIdent
+			})
+			const ctorBody = this.constructorFunction.body.generateKotlin()
+			return `${visibility} class ${name} ${ctorVisibility} constructor (${ctorParams}) ${baseClassInitialization} { ${properties}\n init ${ctorBody} ${methods} }`
+		} else {
+			const properties = new TConstructMultiple(...this.properties).withSeparator("\n").generateKotlin()
+			return `${visibility} class ${name} { ${properties} ${methods} }`
+		}
 	}
 }

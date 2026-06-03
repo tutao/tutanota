@@ -11,22 +11,22 @@ export abstract class TConstruct {
 	}
 }
 
-export class TConstructMultiple extends TConstruct {
-	private readonly constructs: TConstruct[]
-	private seperator: string
+export class TConstructMultiple<V extends TConstruct = TConstruct> extends TConstruct {
+	public readonly constructs: V[]
+	private separator: string
 
-	constructor(...constructs: TConstruct[]) {
+	constructor(...constructs: V[]) {
 		super()
 		this.constructs = constructs
-		this.seperator = " "
+		this.separator = " "
 	}
 
-	withSeperator(seperator: string): this {
-		this.seperator = seperator
+	withSeparator(separator: string): this {
+		this.separator = separator
 		return this
 	}
 
 	generateKotlin(): ConstructOut {
-		return this.constructs.map((c) => c.generateKotlin()).join(this.seperator)
+		return this.constructs.map((c) => c.generateKotlin()).join(this.separator)
 	}
 }

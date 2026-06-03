@@ -41,11 +41,13 @@ export class TType extends TConstruct {
 		return this.genericTypes.length === 0 && MappedPrimitiveType[this.getFinalName()] != null
 	}
 
-	private getFinalName(): string {
+	public getFinalName(): string {
 		if (this.baseType instanceof TType) {
 			return this.baseType.getFinalName()
 		} else if (typeof this.baseType === "string") {
 			return this.baseType
+		} else {
+			throw new Error("Expected either TTYpe or string")
 		}
 	}
 
