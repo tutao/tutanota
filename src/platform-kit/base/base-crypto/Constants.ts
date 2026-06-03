@@ -1,5 +1,7 @@
 import { CryptoProtocolVersion, GroupKeyRotationType, reverse } from "@tutao/app-env"
-import { PublicKeyIdentifierType } from "@tutao/crypto"
+// The absolute module import doesn't play well with chunking, so we let this one slide.
+// eslint-disable-next-line no-restricted-imports
+import { PublicKeyIdentifierType } from "../../crypto/CryptoTypes.js"
 
 export const enum BucketPermissionType {
 	Public = "2",

@@ -409,7 +409,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/platform-kit/rest-client/error.ts") ||
 		isIn("src/platform-kit/instance-pipeline/utils") ||
 		isIn("src/ui/utils") ||
-		isIn("src/platform-kit/base/crypto/Constants.ts") ||
+		isIn("src/platform-kit/base/base-crypto/Constants.ts") ||
 		isIn("src/platform-kit/crypto/CryptoTypes.ts") ||
 		isIn("src/platform-kit/network/GroupUtils.ts") ||
 		isIn("src/platform-kit/network/EntityClient.ts") ||
