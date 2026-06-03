@@ -3,7 +3,6 @@ import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "@tutao
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	AeadFacade,
 	AeadSubKeys,
 	Aes128Key,
 	Aes256Key,
@@ -13,13 +12,14 @@ import {
 	InitializationVector,
 	keyToUint8Array,
 	MacTag,
-	SymmetricKeyDeriver,
 	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
 import { concat } from "../../../src/platform-kit/utils"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("SymmetricCipherFacadeTest", function () {
 	const customInitializationVector = object<InitializationVector>()

@@ -3,7 +3,7 @@ import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/a
 import { MailExportTokenFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailExportTokenFacade.js"
 import { BulkMailLoader } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
-import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 

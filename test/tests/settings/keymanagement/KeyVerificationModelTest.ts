@@ -8,7 +8,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { Versioned } from "../../../../src/platform-kit/utils"
 import { PermissionType } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/PermissionType.js"
 import { QRCode } from "jsqr"
-import { PublicIdentityKeyProvider } from "../../../../src/platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../../src/platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { TrustDBEntry } from "../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
 import {
 	IdentityKeyQrVerificationResult,

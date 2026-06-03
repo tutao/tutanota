@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest.js"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import {
 	AsymmetricKeyPair,
 	cryptoUtils,
@@ -13,14 +13,14 @@ import {
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
 import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 
-import { Ed25519Facade } from "../../../../../src/platform-kit/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
-import { IdentityKeyCreator } from "../../../../../src/platform-kit/base/crypto/IdentityKeyCreator"
-import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+import { Ed25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
+import { IdentityKeyCreator } from "../../../../../src/platform-kit/base/base-crypto/IdentityKeyCreator"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { Versioned } from "../../../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 

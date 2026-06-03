@@ -1,7 +1,7 @@
 import typescriptEslint from "typescript-eslint"
 import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
-import {defineConfig, globalIgnores} from "eslint/config"
+import { defineConfig, globalIgnores } from "eslint/config"
 
 export default defineConfig([
 	{
@@ -35,7 +35,7 @@ export default defineConfig([
 			"no-useless-backreference": "warn",
 			"use-isnan": "error",
 			"valid-typeof": "error",
-			eqeqeq: ["error", "always", {null: "ignore"}],
+			eqeqeq: ["error", "always", { null: "ignore" }],
 			"no-case-declarations": "error",
 			"no-delete-var": "error",
 			"no-empty": "warn",
@@ -55,6 +55,29 @@ export default defineConfig([
 			"no-var": "error",
 			"no-with": "error",
 			"require-yield": "error",
+		},
+	},
+	{
+		files: ["**/*.ts"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							group: ["**platform-kit/crypto/**", "../crypto/**", "**/../crypto/**"],
+							message:
+								"Do not import from crypto internals directly. Use the public api under @tutao/crypto such as the `SymmetricCipherFacade` instead.",
+						},
+					],
+				},
+			],
+		},
+	},
+	{
+		files: ["test/**/*.ts"],
+		rules: {
+			"no-restricted-imports": 0,
 		},
 	},
 	...typescriptEslint.configs.recommended,

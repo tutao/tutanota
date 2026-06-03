@@ -3,27 +3,20 @@ import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
-import {
-	aes256RandomKey,
-	AesKey,
-	createAuthVerifier,
-	generateRandomSalt,
-	random,
-	VersionedKey,
-} from "@tutao/crypto"
+import { aes256RandomKey, AesKey, createAuthVerifier, generateRandomSalt, random, VersionedKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
-import { PQFacade } from "../../../../../../platform-kit/base/crypto/PQFacade.js"
-import { KeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
+import { PQFacade } from "../../../../../../platform-kit/base/base-crypto/PQFacade.js"
+import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { RecoverCodeFacade, RecoverData } from "../../../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
-import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../../../../platform-kit/base/crypto/IdentityKeyCreator"
+import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService, User, UserService } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
-import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/crypto/Constants"
+import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/base-crypto/Constants"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, encryptKey } from "@tutao/instance-pipeline"
 
 assertWorkerOrNode()

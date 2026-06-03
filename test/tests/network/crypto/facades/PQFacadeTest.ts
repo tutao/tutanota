@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { aes256RandomKey, generateX25519KeyPair, keyToUint8Array, pqKeyPairsToPublicKeys } from "../../../../../src/platform-kit/crypto"
-import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
+import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 

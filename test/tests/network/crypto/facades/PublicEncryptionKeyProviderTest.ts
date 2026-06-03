@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "../../../../../src/platform-kit/utils"
-import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
@@ -14,9 +14,9 @@ import {
 	RsaPublicKey,
 } from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
-import * as restError from "../../../../../src/platform-kit/rest-client/error"
+import { InvalidDataError } from "../../../../../src/platform-kit/rest-client/error"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
@@ -33,7 +33,6 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
-import { InvalidDataError } from "../../../../../src/platform-kit/rest-client/error"
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"

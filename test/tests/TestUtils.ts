@@ -32,7 +32,7 @@ import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
-import { KeyLoaderFacade } from "../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
 

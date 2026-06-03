@@ -40,7 +40,7 @@ import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js
 import { SearchModel } from "../../search/model/SearchModel.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { AttachmentType, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"

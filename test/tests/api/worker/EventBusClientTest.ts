@@ -8,7 +8,7 @@ import { SleepDetector } from "../../../../src/applications/common/api/worker/ut
 import { UserFacade } from "../../../../src/platform-kit/base/facades/UserFacade"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
-import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { Thunk } from "../../../../src/platform-kit/utils"
 import { ConnectMode, WsConnectionState } from "../../../../src/platform-kit/network/Constants"
 import { MailTypeRef } from "@tutao/entities/tutanota"

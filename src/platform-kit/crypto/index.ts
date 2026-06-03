@@ -19,8 +19,10 @@ import {
 	ed25519PublicKeyToBytes,
 	type Ed25519Signature,
 	ed25519SignatureToBytes,
+	type EncodedEd25519Signature,
 	generateEd25519KeyPair,
 	initEd25519,
+	type SigningPublicKey,
 	signWithEd25519,
 	verifyEd25519Signature,
 } from "./encryption/Ed25519"
@@ -30,6 +32,8 @@ export {
 	type Ed25519PublicKey,
 	type Ed25519KeyPair,
 	type Ed25519Signature,
+	type SigningPublicKey,
+	type EncodedEd25519Signature,
 	generateEd25519KeyPair,
 	signWithEd25519,
 	verifyEd25519Signature,
@@ -139,10 +143,9 @@ export {
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
-export { AeadFacade, PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
+export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
 export {
-	SymmetricKeyDeriver,
 	type SymmetricSubKeys,
 	type AeadSubKeys,
 	type AeadWithGroupKeySubKeys,

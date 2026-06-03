@@ -1,6 +1,6 @@
 import { assertWorkerOrNode, Const, Country, CryptoProtocolVersion, FeatureType, InvoiceData, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
-import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
@@ -13,23 +13,16 @@ import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFaca
 import { PaymentInterval } from "../../../../subscription/utils/PriceUtils.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
-import { PQFacade } from "../../../../../../platform-kit/base/crypto/PQFacade.js"
+import { PQFacade } from "../../../../../../platform-kit/base/base-crypto/PQFacade.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
-import { KeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "../../../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
-import { AsymmetricCryptoFacade } from "../../../../../../platform-kit/base/crypto/AsymmetricCryptoFacade.js"
-import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider"
+import { AsymmetricCryptoFacade } from "../../../../../../platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
+import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import {
-	cryptoUtils,
-	hexToRsaPublicKey,
-	keyToUint8Array,
-	PQKeyPairs,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "@tutao/crypto"
+import { cryptoUtils, hexToRsaPublicKey, keyToUint8Array, PQKeyPairs, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { CacheMode } from "../../../../../../platform-kit/network/EntityRestClient"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService } from "@tutao/entities/tutanota"

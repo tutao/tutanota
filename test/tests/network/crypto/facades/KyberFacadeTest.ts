@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "../../../../../src/platform-kit/crypto"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"

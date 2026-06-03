@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadFacade, Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -7,6 +7,7 @@ import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { concat } from "../../../src/platform-kit/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade

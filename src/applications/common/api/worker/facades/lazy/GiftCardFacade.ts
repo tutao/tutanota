@@ -12,11 +12,11 @@ import {
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
 import { aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
-import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { CustomerFacade } from "./CustomerFacade.js"
-import { KeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import {
 	createGiftCardCreateData,
 	createGiftCardRedeemData,

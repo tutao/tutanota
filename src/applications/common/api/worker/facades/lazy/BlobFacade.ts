@@ -3,7 +3,7 @@ import { handleRestError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { HttpMethod, MediaType } from "../../../../../../platform-kit/rest-client/types"
-import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	assertNonNull,
 	assertNotNull,
@@ -23,7 +23,7 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
-import {  AesKey, sha256Hash } from "@tutao/crypto"
+import { AesKey, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"

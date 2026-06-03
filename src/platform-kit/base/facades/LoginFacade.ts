@@ -37,17 +37,17 @@ import {
 	uint8ArrayToKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { CryptoFacade } from "../crypto/CryptoFacade"
+import { CryptoFacade } from "../base-crypto/CryptoFacade"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
-import { DatabaseKeyFactory } from "../crypto/DatabaseKeyFactory.js"
+import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
 import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, SymmetricEncryptionScheme, typeModelToRestPath } from "@tutao/instance-pipeline"
-import { KeyRotationFacade, KeyRotationRolloutAction } from "../crypto/KeyRotationFacade.js"
+import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
 import { CacheStorageLateInitializer, SessionTypeProvider } from "../../../app-kit/local-store/Types.js"
-import { Argon2idFacade } from "../crypto/WasmArgon2idFacade"
+import { Argon2idFacade } from "../base-crypto/WasmArgon2idFacade"
 import { CacheManagementInterface } from "../../../app-kit/local-store/CacheManagementInterface"
 import {
 	Challenge,
@@ -76,7 +76,7 @@ import { EventBusClient } from "../../network/EventBusClient"
 import { CacheMode, EntityRestClient } from "../../network/EntityRestClient"
 import { CloseEventBusOption, ConnectMode } from "../../network/Constants"
 import { Credentials, CredentialType } from "../../network/types"
-import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../crypto/Constants"
+import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
 import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
 import {

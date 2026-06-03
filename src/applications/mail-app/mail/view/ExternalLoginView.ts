@@ -25,7 +25,7 @@ import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
 import { assertMainOrNode, Keys } from "../../../../platform-kit/app-env"
-import { asKdfType, KdfType } from "../../../../platform-kit/base/crypto/Constants"
+import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 
 assertMainOrNode()
 

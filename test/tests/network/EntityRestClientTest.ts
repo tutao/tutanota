@@ -4,7 +4,7 @@ import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/typ
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
-import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
@@ -25,19 +25,12 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
-import {
-	aes256RandomKey,
-	AesKey,
-	generateKdfNonce,
-	KdfNonce,
-	SymmetricCipherVersion,
-	VersionedKey,
-} from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
-import { KeyLoaderFacade } from "../../../src/platform-kit/base/crypto/KeyLoaderFacade"
-import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade"
-import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider"
-import { KeyRotationFacade } from "../../../src/platform-kit/base/crypto/KeyRotationFacade"
+import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
+import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
+import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
+import { KeyRotationFacade } from "../../../src/platform-kit/base/base-crypto/KeyRotationFacade"
 import { InstanceSessionKeysCache } from "../../../src/app-kit/local-store/InstanceSessionKeysCache"
 import { CacheManagementInterface } from "../../../src/app-kit/local-store/CacheManagementInterface"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
@@ -877,11 +870,7 @@ o.spec("EntityRestClient", function () {
 				permissionListId: "permissionListId",
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
-				PersistenceResourcePostReturnTypeRef,
-				persistentPostReturn,
-				null,
-			)
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
 				JSON.stringify(untypedPersistentPostReturn),
 			)
@@ -916,11 +905,7 @@ o.spec("EntityRestClient", function () {
 				permissionListId: "permissionListId",
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
-				PersistenceResourcePostReturnTypeRef,
-				persistentPostReturn,
-				null,
-			)
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
 				JSON.stringify(untypedPersistentPostReturn),
 			)
@@ -1378,11 +1363,7 @@ o.spec("EntityRestClient", function () {
 
 			calendarEvent._kdfNonce = null
 
-			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
-				PersistenceResourcePostReturnTypeRef,
-				persistentPostReturn,
-				null,
-			)
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
 				JSON.stringify(untypedPersistentPostReturn),
 			)
@@ -1430,11 +1411,7 @@ o.spec("EntityRestClient", function () {
 
 			calendarEvent._kdfNonce = null
 
-			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
-				PersistenceResourcePostReturnTypeRef,
-				persistentPostReturn,
-				null,
-			)
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
 				JSON.stringify(untypedPersistentPostReturn),
 			)
@@ -1447,9 +1424,7 @@ o.spec("EntityRestClient", function () {
 
 			let kdfNonce = generateKdfNonce()
 
-			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenResolve(
-				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
-			)
+			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenResolve(createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }))
 
 			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
 
@@ -1486,11 +1461,7 @@ o.spec("EntityRestClient", function () {
 			const originalKdfNonce = generateKdfNonce()
 			calendarEvent._kdfNonce = originalKdfNonce
 
-			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(
-				PersistenceResourcePostReturnTypeRef,
-				persistentPostReturn,
-				null,
-			)
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, matchers.anything()), { times: 1 }).thenResolve(
 				JSON.stringify(untypedPersistentPostReturn),
 			)

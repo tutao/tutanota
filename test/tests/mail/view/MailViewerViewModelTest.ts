@@ -18,7 +18,7 @@ import { MailFacade } from "../../../../src/applications/common/api/worker/facad
 import { FileController } from "../../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "../../../../src/platform-kit/app-env"
-import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/applications/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../../src/applications/common/contactsFunctionality/ContactModel.js"

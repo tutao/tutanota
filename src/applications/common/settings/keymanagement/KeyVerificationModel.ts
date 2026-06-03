@@ -5,7 +5,7 @@ import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
-import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import {
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,

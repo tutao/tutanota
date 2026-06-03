@@ -6,6 +6,7 @@ import {
 	cryptoUtils,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
+	EncodedEd25519Signature,
 	isPqKeyPairs,
 	isPqPublicKey,
 	isRsaOrRsaX25519KeyPair,
@@ -17,7 +18,6 @@ import {
 	PublicKey,
 	rsaPublicKeyToBytes,
 } from "@tutao/crypto"
-import { EncodedEd25519Signature } from "../../crypto/encryption/Ed25519"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "./Constants"
 import { createPublicKeySignature, PublicKeySignature } from "@tutao/entities/sys"

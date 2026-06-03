@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { RsaImplementation } from "../../../../src/app-kit/native-bridge/worker/RsaImplementation.js"
-import { PQFacade } from "../../../../src/platform-kit/base/crypto/PQFacade.js"
+import { PQFacade } from "../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	CryptoProtocolVersion,
@@ -29,14 +29,14 @@ import {
 	RsaX25519PublicKey,
 	X25519KeyPair,
 } from "../../../../src/platform-kit/crypto"
-import { KeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRequest.js"
 import { KeyVersion, Versioned } from "../../../../src/platform-kit/utils"
 
 import { createTestEntity } from "../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
-import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
+import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 

@@ -23,7 +23,7 @@ import {
 	neverNull,
 	stringToUtf8Uint8Array,
 } from "../../../../../src/platform-kit/utils"
-import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"

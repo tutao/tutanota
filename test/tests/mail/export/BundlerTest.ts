@@ -7,7 +7,7 @@ import { FileController } from "../../../../src/applications/common/file/FileCon
 import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 
 import {
 	BodyTypeRef,

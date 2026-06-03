@@ -14,8 +14,8 @@ import {
 import testData from "../../../../api/worker/crypto/CompatibilityTestData.json"
 import { createTestEntity } from "../../../../TestUtils"
 import { KeyVerificationMismatchError } from "../../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
-import { PublicKeySignatureFacade } from "../../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
-import { PublicIdentityKeyProvider } from "../../../../../../src/platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicKeySignatureFacade } from "../../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
+import { PublicIdentityKeyProvider } from "../../../../../../src/platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../../src/app-kit/local-store/IdentityKeyTrustDatabase"
 
 import { SigningPublicKey } from "../../../../../../src/platform-kit/crypto/encryption/Ed25519"

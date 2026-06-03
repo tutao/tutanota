@@ -10,8 +10,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
-import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()

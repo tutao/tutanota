@@ -9,17 +9,9 @@ import {
 } from "../../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { DbStub } from "../search/DbStub.js"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	AesKey,
-	generateInitializationVector,
-	InitializationVector,
-	random,
-	VersionedKey,
-} from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, generateInitializationVector, InitializationVector, random, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
 import { DbFacade, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"

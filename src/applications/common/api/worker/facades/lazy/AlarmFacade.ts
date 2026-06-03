@@ -8,7 +8,7 @@ import { CryptoWrapper, InstancePipeline } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
-import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
 	AlarmInfo,

@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import {
-	AeadFacade,
 	AesKeyLength,
 	AsymmetricKeyPair,
 	bitArrayToUint8Array,
@@ -39,7 +38,6 @@ import {
 	rsaDecrypt,
 	rsaEncrypt,
 	SymmetricCipherVersion,
-	SymmetricKeyDeriver,
 	uint8ArrayToKey,
 	validateKdfNonceLength,
 	verifyHmacSha256,
@@ -64,20 +62,22 @@ import {
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/platform-kit/instance-pipeline"
 import { matchers, object, when } from "testdouble"
-import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
-import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kit/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
+import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
-import { aes256EncryptSearchIndexEntry, aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
+import { aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/Aes"
 import { decryptKey, encryptKey } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 const originalRandom = random.generateRandomData
 
-const liboqs = await loadLibOQSWASM()
+const libOQS = await loadLibOQSWASM()
 
 o.spec("CompatibilityTest", function () {
 	o.afterEach(function () {
@@ -108,16 +108,16 @@ o.spec("CompatibilityTest", function () {
 			const randomizer = object<Randomizer>()
 			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
 
-			const encapsulation = encapsulateKyber(liboqs, publicKey, randomizer)
+			const encapsulation = encapsulateKyber(libOQS, publicKey, randomizer)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
 			//
 			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
-			const roundTripSharedSecret = decapsulateKyber(liboqs, privateKey, encapsulation.ciphertext)
+			const roundTripSharedSecret = decapsulateKyber(libOQS, privateKey, encapsulation.ciphertext)
 			o(encapsulation.sharedSecret).deepEquals(roundTripSharedSecret)
 			// o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 			// o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
 
-			const decapsulatedSharedSecret = decapsulateKyber(liboqs, privateKey, hexToUint8Array(td.cipherText))
+			const decapsulatedSharedSecret = decapsulateKyber(libOQS, privateKey, hexToUint8Array(td.cipherText))
 			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 		}
 	})
@@ -374,7 +374,7 @@ o.spec("CompatibilityTest", function () {
 				kyberPublicKey: kyberKeyPair.publicKey,
 			}
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
-			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
+			const pqFacade = new PQFacade(new WASMKyberFacade(libOQS))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
@@ -419,7 +419,7 @@ o.spec("CompatibilityTest", function () {
 					x25519PublicKey,
 				}
 			} else {
-				// we expect that an rsa key pair are present
+				// we expect that an RSA key pair is present
 				let rsaPublicKey = hexToRsaPublicKey(td.pubRsaKey)
 				if (td.pubEccKey) {
 					let keyPairType = KeyPairType.RSA_AND_X25519

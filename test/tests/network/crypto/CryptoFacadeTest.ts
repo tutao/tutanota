@@ -1,13 +1,13 @@
 import o, { spy } from "@tutao/otest"
 import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "../../../../src/platform-kit/utils"
-import { CryptoFacade } from "../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 } from "../../../../src/platform-kit/app-env"
-import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/platform-kit/base/crypto/Constants.js"
+import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/platform-kit/base/base-crypto/Constants.js"
 import {
 	AttributeModel,
 	elementIdPart,
@@ -44,17 +44,17 @@ import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRe
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../src/platform-kit/base/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../src/platform-kit/crypto/error"
-import { WASMKyberFacade } from "../../../../src/platform-kit/base/crypto/KyberFacade.js"
-import { PQFacade } from "../../../../src/platform-kit/base/crypto/PQFacade.js"
-import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/platform-kit/base/crypto/PQMessage.js"
+import { WASMKyberFacade } from "../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
+import { PQFacade } from "../../../../src/platform-kit/base/base-crypto/PQFacade.js"
+import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/platform-kit/base/base-crypto/PQMessage.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { KeyLoaderFacade } from "../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
-import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { KeyRotationFacade } from "../../../../src/platform-kit/base/crypto/KeyRotationFacade.js"
+import { KeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
+import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
+import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto/KeyRotationFacade.js"
 import { EntityAdapter, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"

@@ -45,34 +45,34 @@ import { DriveWorkerImpl } from "./DriveWorkerImpl"
 import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
 import { CacheInfo, LoginFacade, LoginFailReason, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
-import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { EntityRestCache, EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EventBusClient } from "../../../../platform-kit/network/EventBusClient"
 import { createRsaImplementation, RsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../../platform-kit/base/crypto/KyberFacade"
-import { PQFacade } from "../../../../platform-kit/base/crypto/PQFacade"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../../platform-kit/base/base-crypto/KyberFacade"
+import { PQFacade } from "../../../../platform-kit/base/base-crypto/PQFacade"
 import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade"
 import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade"
 import { KeyCache } from "../../../../app-kit/local-store/KeyCache"
-import { KeyLoaderFacade } from "../../../../platform-kit/base/crypto/KeyLoaderFacade"
-import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
+import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { KeyAuthenticationFacade } from "../../../../platform-kit/network/KeyAuthenticationFacade"
-import PublicEncryptionKeyProvider from "../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider"
-import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import PublicEncryptionKeyProvider from "../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
-import { KeyRotationFacade } from "../../../../platform-kit/base/crypto/KeyRotationFacade"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../../platform-kit/base/crypto/Ed25519Facade"
-import { PublicKeySignatureFacade } from "../../../../platform-kit/base/crypto/PublicKeySignatureFacade"
+import { KeyRotationFacade } from "../../../../platform-kit/base/base-crypto/KeyRotationFacade"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../../platform-kit/base/base-crypto/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../platform-kit/base/base-crypto/PublicKeySignatureFacade"
 import { RolloutFacade } from "../../../../platform-kit/base/facades/RolloutFacade"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
 import { CounterFacade } from "../../../../platform-kit/network/CounterFacade"
 import { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade"
-import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
+import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
 import { RecoverCodeFacade } from "../../../../platform-kit/base/facades/lazy/RecoverCodeFacade"
 import { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade"
 import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { DeviceEncryptionFacade } from "../../../../platform-kit/base/crypto/DeviceEncryptionFacade"
+import { DeviceEncryptionFacade } from "../../../../platform-kit/base/base-crypto/DeviceEncryptionFacade"
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
@@ -93,7 +93,7 @@ import { EphemeralCacheStorage } from "../../../../app-kit/local-store/Ephemeral
 import { LateInitializedCacheStorageImpl } from "../../../../app-kit/local-store/CacheStorageProxy"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { PublicEncryptionKeyCache } from "../../../../app-kit/local-store/PublicEncryptionKeyCache"
-import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/crypto/AsymmetricCryptoFacade"
+import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/base-crypto/AsymmetricCryptoFacade"
 import { InstanceSessionKeysCache } from "../../../../app-kit/local-store/InstanceSessionKeysCache"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { CustomCalendarEventCacheHandler } from "../../../calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
@@ -102,8 +102,8 @@ import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../..
 
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
-import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/crypto/WasmArgon2idFacade"
-import { NativeArgon2idFacade } from "../../../../platform-kit/base/crypto/NativeArgon2idFacade"
+import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
+import { NativeArgon2idFacade } from "../../../../platform-kit/base/base-crypto/NativeArgon2idFacade"
 import { Credentials } from "../../../../platform-kit/network/types"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate"
@@ -404,7 +404,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	})
 
 	locator.identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("../../../../platform-kit/base/crypto/IdentityKeyCreator")
+		const { IdentityKeyCreator } = await import("../../../../platform-kit/base/base-crypto/IdentityKeyCreator")
 		return new IdentityKeyCreator(
 			locator.user,
 			locator.cachingEntityClient,
@@ -481,7 +481,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("../../../../platform-kit/base/crypto/DatabaseKeyFactory")
+	const { DatabaseKeyFactory } = await import("../../../../platform-kit/base/base-crypto/DatabaseKeyFactory")
 
 	locator.login = new LoginFacade(
 		locator.restClient,

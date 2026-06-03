@@ -11,7 +11,7 @@ import { InboxRuleHandler } from "../../../src/applications/mail-app/mail/model/
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
 import { MailboxDetail } from "../../../src/applications/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
-import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import * as restError from "../../../src/platform-kit/rest-client/error"
 import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {

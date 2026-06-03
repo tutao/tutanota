@@ -26,13 +26,13 @@ import { RestClient, restSuspension } from "../../../../platform-kit/rest-client
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { DeviceEncryptionFacade } from "../../../../platform-kit/base/crypto/DeviceEncryptionFacade.js"
+import { DeviceEncryptionFacade } from "../../../../platform-kit/base/base-crypto/DeviceEncryptionFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
 import type { RsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
-import { CryptoFacade } from "../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
@@ -59,19 +59,19 @@ import { EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFaca
 import { BlobAccessTokenFacade } from "../../../../platform-kit/network/BlobAccessTokenFacade.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { NativeArgon2idFacade } from "../../../../platform-kit/base/crypto/NativeArgon2idFacade.js"
+import { NativeArgon2idFacade } from "../../../../platform-kit/base/base-crypto/NativeArgon2idFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../../platform-kit/base/crypto/KyberFacade.js"
-import { PQFacade } from "../../../../platform-kit/base/crypto/PQFacade.js"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "../../../../platform-kit/base/base-crypto/KyberFacade.js"
+import { PQFacade } from "../../../../platform-kit/base/base-crypto/PQFacade.js"
 import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
-import { KeyLoaderFacade } from "../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
-import { KeyRotationFacade } from "../../../../platform-kit/base/crypto/KeyRotationFacade.js"
+import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
+import { KeyRotationFacade } from "../../../../platform-kit/base/base-crypto/KeyRotationFacade.js"
 import { RecoverCodeFacade } from "../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "../worker/CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
-import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade } from "../../../../platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import {
 	ApplicationTypesFacade,
 	CryptoWrapper,
@@ -84,17 +84,17 @@ import {
 	UpdateAppTypesHashMiddleware,
 } from "../../../../platform-kit/instance-pipeline"
 import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import PublicEncryptionKeyProvider from "../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../../platform-kit/base/crypto/Ed25519Facade"
+import PublicEncryptionKeyProvider from "../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../../platform-kit/base/base-crypto/Ed25519Facade"
 import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
 import { RolloutFacade } from "../../../../platform-kit/base/facades/RolloutFacade"
-import { PublicKeySignatureFacade } from "../../../../platform-kit/base/crypto/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
-import { IdentityKeyCreator } from "../../../../platform-kit/base/crypto/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicKeySignatureFacade } from "../../../../platform-kit/base/base-crypto/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/IdentityKeyTrustDatabase"
 import { PublicEncryptionKeyCache } from "../../../../app-kit/local-store/PublicEncryptionKeyCache"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -104,7 +104,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache, EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
-import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/crypto/WasmArgon2idFacade"
+import { Argon2idFacade, WASMArgon2idFacade } from "../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
 import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { KeyAuthenticationFacade } from "../../../../platform-kit/network/KeyAuthenticationFacade"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
@@ -418,7 +418,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	})
 
 	locator.identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("../../../../platform-kit/base/crypto/IdentityKeyCreator.js")
+		const { IdentityKeyCreator } = await import("../../../../platform-kit/base/base-crypto/IdentityKeyCreator.js")
 		return new IdentityKeyCreator(
 			locator.user,
 			locator.cachingEntityClient,
@@ -495,7 +495,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	}
 
 	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("../../../../platform-kit/base/crypto/DatabaseKeyFactory.js")
+	const { DatabaseKeyFactory } = await import("../../../../platform-kit/base/base-crypto/DatabaseKeyFactory.js")
 
 	locator.login = new LoginFacade(
 		locator.restClient,

@@ -20,7 +20,7 @@ import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtil
 import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider"
 import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"

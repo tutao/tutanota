@@ -5,7 +5,7 @@ import { matchers, object, when } from "testdouble"
 import { MailAddressFacade, TokenBucket } from "../../../../../src/applications/common/api/worker/facades/lazy/MailAddressFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { arrayEquals, freshVersioned } from "../../../../../src/platform-kit/utils"
-import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider"
 
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"

@@ -1,12 +1,5 @@
 import { EntityClient } from "../../network/EntityClient.js"
-import {
-	AesKey,
-	AsymmetricKeyPair,
-	cryptoUtils,
-	Ed25519PrivateKey,
-	isRsaOrRsaX25519KeyPair,
-	VersionedKey,
-} from "@tutao/crypto"
+import { AesKey, AsymmetricKeyPair, cryptoUtils, Ed25519PrivateKey, isRsaOrRsaX25519KeyPair, VersionedKey } from "@tutao/crypto"
 import { base64UrlCustomIdToString, KeyVersion, lazyAsync, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"

@@ -14,9 +14,9 @@ import {
 } from "@tutao/crypto"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
-import { KeyLoaderFacade } from "../../crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys"
-import { asKdfType } from "../../crypto/Constants"
+import { asKdfType } from "../../base-crypto/Constants"
 import { decryptKey, encryptKey } from "../../../instance-pipeline/instance-pipeline-crypto/KeyEncryption"
 
 assertWorkerOrNode()

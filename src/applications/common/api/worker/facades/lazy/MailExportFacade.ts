@@ -1,7 +1,7 @@
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "./BlobFacade.js"
-import { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"

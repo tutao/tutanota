@@ -1,7 +1,7 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { RestClient } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestClientOptions } from "../../../src/platform-kit/rest-client/types"
-import { CryptoFacade } from "../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/platform-kit/meta"
 import { deepEqual, downcast } from "../../../src/platform-kit/utils"

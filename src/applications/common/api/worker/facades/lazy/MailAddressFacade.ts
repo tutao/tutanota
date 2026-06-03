@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { assertNotNull, DateProvider, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../../../platform-kit/network/GroupUtils.js"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
-import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/AdminKeyLoaderFacade"
+import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { VersionedKey } from "@tutao/crypto"
 import {
 	ChangePrimaryAddressService,

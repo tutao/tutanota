@@ -36,7 +36,7 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { KeyLoaderFacade } from "../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"

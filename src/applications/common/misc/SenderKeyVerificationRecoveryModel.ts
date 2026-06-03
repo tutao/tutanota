@@ -1,5 +1,5 @@
 import type { KeyVerificationFacade } from "../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { PublicIdentityKeyProvider } from "../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { MailAddressAndName } from "../api/common/CommonMailUtils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 import { PublicKeyIdentifierType } from "../../../platform-kit/crypto/CryptoTypes"

@@ -1,5 +1,5 @@
 import type { KeyVerificationFacade } from "../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { PublicIdentityKeyProvider } from "../../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { PublicIdentityKeyProvider } from "../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
 import { PublicKeyIdentifierType } from "../../../platform-kit/crypto/CryptoTypes.js"

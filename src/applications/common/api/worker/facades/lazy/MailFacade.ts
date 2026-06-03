@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../../../../../platform-kit/base/crypto/CryptoFacade.js"
+import type { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	containsId,
 	elementIdPart,
@@ -57,8 +57,8 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
-import { KeyLoaderFacade } from "../../../../../../platform-kit/base/crypto/KeyLoaderFacade.js"
-import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
+import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
+import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../../../../platform-kit/network/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "../../../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
@@ -168,7 +168,7 @@ import {
 	RecipientType,
 	ReportedMailFieldType,
 } from "../../../../../../entities/tutanota/Utils"
-import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../../platform-kit/base/crypto/Constants.js"
+import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../../platform-kit/base/base-crypto/Constants.js"
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"

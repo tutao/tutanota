@@ -3,18 +3,12 @@ import type { ShareCapability } from "@tutao/app-env"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
-import {
-	aes256RandomKey,
-	cryptoUtils,
-	keyToUint8Array,
-	uint8ArrayToKey,
-	VersionedKey,
-} from "@tutao/crypto"
+import { aes256RandomKey, cryptoUtils, keyToUint8Array, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
-import { KeyLoaderFacade } from "../../crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
-import { CryptoFacade } from "../../crypto/CryptoFacade"
+import { CryptoFacade } from "../../base-crypto/CryptoFacade"
 import { EntityClient } from "../../../network/EntityClient"
 import {
 	createGroupInvitationDeleteData,

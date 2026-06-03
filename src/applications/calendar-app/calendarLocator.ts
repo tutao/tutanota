@@ -43,7 +43,7 @@ import { UsageTestController } from "@tutao/usagetests"
 import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../common/misc/UsageTestModel.js"
 import { NewsModel } from "../common/misc/news/NewsModel.js"
 import { IServiceExecutor } from "../../platform-kit/network/ServiceRequest.js"
-import { CryptoFacade } from "../../platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	CommonSystemFacade,
 	ContactSuggestion,
@@ -115,12 +115,12 @@ import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
-import PublicEncryptionKeyProvider from "../../platform-kit/base/crypto/PublicEncryptionKeyProvider"
+import PublicEncryptionKeyProvider from "../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
-import { IdentityKeyCreator } from "../../platform-kit/base/crypto/IdentityKeyCreator"
-import { PublicIdentityKeyProvider } from "../../platform-kit/base/crypto/PublicIdentityKeyProvider"
+import { IdentityKeyCreator } from "../../platform-kit/base/base-crypto/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../../ui/WhitelabelThemeGenerator"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../../ui/utils/LanguageViewModel.js"
@@ -135,7 +135,7 @@ import { CALENDAR_MIME_TYPE } from "../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
-import { KdfType } from "../../platform-kit/base/crypto/Constants"
+import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 
 assertMainOrNode()
 

@@ -12,7 +12,7 @@ import type { EventAlarmInfoTemplatesTuple } from "../../../../../src/applicatio
 import { NativePushFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
-import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { elementIdPart, listIdPart, OperationType } from "../../../../../src/platform-kit/meta"
 import {
 	AlarmInfoTypeRef,

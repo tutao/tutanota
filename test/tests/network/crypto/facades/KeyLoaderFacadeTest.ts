@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
-import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
-import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade.js"
+import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -17,7 +17,7 @@ import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId 
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { matchers, object, reset, verify, when } from "testdouble"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { KeyCache } from "../../../../../src/app-kit/local-store/KeyCache.js"
 import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"

@@ -4,7 +4,7 @@ import {
 	KeyRotationRolloutAction,
 	MultiAdminGroupKeyAdminActionPath,
 	PendingKeyRotation,
-} from "../../../../../src/platform-kit/base/crypto/KeyRotationFacade.js"
+} from "../../../../../src/platform-kit/base/base-crypto/KeyRotationFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
@@ -28,8 +28,8 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/KeyLoaderFacade.js"
-import type { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade.js"
+import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
+import type { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest.js"
 import {
 	AdminSymKeyAuthenticationParams,
@@ -47,7 +47,7 @@ import {
 	TutanotaError,
 } from "../../../../../src/platform-kit/app-env"
 
-import { CryptoFacade } from "../../../../../src/platform-kit/base/crypto/CryptoFacade.js"
+import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "../../../../../src/platform-kit/utils"
 import { RecoverCodeFacade } from "../../../../../src/platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
@@ -55,11 +55,11 @@ import { ShareFacade } from "../../../../../src/platform-kit/base/facades/lazy/S
 import { GroupManagementFacade } from "../../../../../src/platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../../../../src/platform-kit/network/error/RecipientsNotFoundError.js"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
-import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/platform-kit/base/crypto/AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, PubEncSymKey } from "../../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
-import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/crypto/PublicEncryptionKeyProvider.js"
-import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
-import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/crypto/AdminKeyLoaderFacade"
+import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
+import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
@@ -101,7 +101,7 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/crypto/Constants.js"
+import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/base-crypto/Constants.js"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { AbstractEncryptedKeyPair, EncryptedPqKeyPairs } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/KeyEncryption"

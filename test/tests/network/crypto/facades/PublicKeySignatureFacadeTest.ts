@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { DeserializedPublicKeyForSigning, PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/crypto/PublicKeySignatureFacade"
+import { DeserializedPublicKeyForSigning, PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
 import {
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
@@ -16,14 +16,14 @@ import {
 	RsaX25519PublicKey,
 } from "../../../../../src/platform-kit/crypto"
 
-import { Ed25519Facade } from "../../../../../src/platform-kit/base/crypto/Ed25519Facade"
+import { Ed25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
 import { KeyVersion, Versioned } from "../../../../../src/platform-kit/utils"
-import { PQFacade } from "../../../../../src/platform-kit/base/crypto/PQFacade"
-import { WASMKyberFacade } from "../../../../../src/platform-kit/base/crypto/KyberFacade"
+import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade"
+import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade"
 import { RSA_TEST_KEYPAIR } from "../../../api/worker/facades/RsaPqPerformanceTest"
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { EncodedEd25519Signature } from "../../../../../src/platform-kit/crypto/encryption/Ed25519"
-import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/crypto/Constants.js"
+import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/base-crypto/Constants.js"
 import { CryptoWrapper } from "../../../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("PublicKeySignatureFacadeTest", function () {

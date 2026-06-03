@@ -18,12 +18,13 @@ import {
 import o, { assertThrows } from "@tutao/otest"
 import { InstanceTypeId, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/SymmetricCipherFacade"
-import { AeadFacade, MacTag } from "../../../src/platform-kit/crypto"
+import { MacTag } from "../../../src/platform-kit/crypto"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
 import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { ValueDecryptor } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { MissingSessionKey } from "../../../src/platform-kit/instance-pipeline/instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 o.spec("ValueDecryptorTest", () => {
 	let symmetricCipherFacade: SymmetricCipherFacade

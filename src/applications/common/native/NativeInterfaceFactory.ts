@@ -40,7 +40,7 @@ import { deviceConfig } from "../misc/DeviceConfig.js"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { WebMobileFacade } from "./WebMobileFacade.js"
-import { CryptoFacade } from "../../../platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../platform-kit/base/base-crypto/CryptoFacade"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
 

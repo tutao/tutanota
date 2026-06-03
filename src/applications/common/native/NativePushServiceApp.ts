@@ -8,7 +8,7 @@ import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorage
 import { NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/enums"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
-import { CryptoFacade } from "../../../platform-kit/base/crypto/CryptoFacade"
+import { CryptoFacade } from "../../../platform-kit/base/base-crypto/CryptoFacade"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
 import { getElementId } from "@tutao/meta"
