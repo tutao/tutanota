@@ -94,6 +94,7 @@ export class CalendarImporter {
 
 		try {
 			if (calendarType === CalendarType.External) {
+				deferredImportEventHandler.resolve(null)
 				return await this.importInteractionHandler.doActionWithProgressDialog("importCalendar_label", deferredImportEventHandler.promise, operation)
 			}
 			const onConfirmAction = async (dialog: Dialog) => {
