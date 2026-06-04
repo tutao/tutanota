@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode } from "../Env"
+import { assertMainOrNodeBoot, envProvider, Mode } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -6,13 +6,13 @@ import { AppType } from "../AppType"
 assertMainOrNodeBoot()
 
 export class ClientDetector {
-	userAgent!: string
-	browser!: BrowserType
-	browserVersion!: number
-	device!: DeviceType
-	overflowAuto!: string
-	isMacOS!: boolean
-	appType!: AppType
+	userAgent: string | null = null
+	browser: BrowserType | null = null
+	browserVersion: number | null = null
+	device: DeviceType | null = null
+	overflowAuto: string | null = null
+	isMacOS: boolean | null = null
+	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
 
 	constructor(private readonly env: Env) {}
@@ -204,17 +204,17 @@ export class ClientDetector {
 	}
 
 	_setBrowserAndVersion() {
-		const operaIndex1 = this.userAgent.indexOf("Opera")
-		const operaIndex2 = this.userAgent.indexOf("OPR/")
-		const firefoxIndex = this.userAgent.indexOf("Firefox/")
-		const paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
-		const iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
-		const chromeIndex = this.userAgent.indexOf("Chrome/")
-		const chromeIosIndex = this.userAgent.indexOf("CriOS/")
-		const safariIndex = this.userAgent.indexOf("Safari/")
-		const edgeIndex = this.userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
+		const operaIndex1 = this.userAgent!.indexOf("Opera")
+		const operaIndex2 = this.userAgent!.indexOf("OPR/")
+		const firefoxIndex = this.userAgent!.indexOf("Firefox/")
+		const paleMoonIndex = this.userAgent!.indexOf("PaleMoon/")
+		const iceweaselIndex = this.userAgent!.indexOf("Iceweasel/")
+		const chromeIndex = this.userAgent!.indexOf("Chrome/")
+		const chromeIosIndex = this.userAgent!.indexOf("CriOS/")
+		const safariIndex = this.userAgent!.indexOf("Safari/")
+		const edgeIndex = this.userAgent!.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 
-		const androidIndex = this.userAgent.indexOf("Android")
+		const androidIndex = this.userAgent!.indexOf("Android")
 		let versionIndex = -1
 
 		if (edgeIndex !== -1) {
@@ -222,7 +222,7 @@ export class ClientDetector {
 			versionIndex = edgeIndex + 5
 		} else if (operaIndex1 !== -1) {
 			this.browser = BrowserType.OPERA
-			versionIndex = this.userAgent.indexOf("Version/")
+			versionIndex = this.userAgent!.indexOf("Version/")
 
 			if (versionIndex !== -1) {
 				versionIndex += 8
@@ -256,7 +256,7 @@ export class ClientDetector {
 			// Chrome and black berry pretends to be Safari, so it is skipped
 			this.browser = BrowserType.SAFARI
 			// Safari prints its version after "Version/"
-			versionIndex = this.userAgent.indexOf("Version/")
+			versionIndex = this.userAgent!.indexOf("Version/")
 
 			if (versionIndex !== -1) {
 				versionIndex += 8
@@ -265,7 +265,7 @@ export class ClientDetector {
 				this.extractIosVersion()
 				return
 			}
-		} else if (this.userAgent.match(/iPad.*AppleWebKit/) || this.userAgent.match(/iPhone.*AppleWebKit/)) {
+		} else if (this.userAgent!.match(/iPad.*AppleWebKit/) || this.userAgent!.match(/iPhone.*AppleWebKit/)) {
 			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
 			// after "OS" the iOS version is sent, so use that one
 			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
@@ -274,11 +274,11 @@ export class ClientDetector {
 		}
 
 		if (versionIndex !== -1) {
-			const mainVersionEndIndex = this.userAgent.indexOf(".", versionIndex)
+			const mainVersionEndIndex = this.userAgent!.indexOf(".", versionIndex)
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = Number(this.userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = Number(this.userAgent!.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -294,7 +294,7 @@ export class ClientDetector {
 	extractIosVersion() {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
-		const versionIndex = this.userAgent.indexOf(" OS ")
+		const versionIndex = this.userAgent!.indexOf(" OS ")
 
 		if (versionIndex !== -1) {
 			this.browser = BrowserType.SAFARI
@@ -304,10 +304,10 @@ export class ClientDetector {
 				let pos = versionIndex + 4
 				let hadNan = false
 
-				while (pos < this.userAgent.length) {
+				while (pos < this.userAgent!.length) {
 					pos++
 
-					if (isNaN(Number(this.userAgent.charAt(pos)))) {
+					if (isNaN(Number(this.userAgent!.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
@@ -316,7 +316,7 @@ export class ClientDetector {
 					}
 				}
 
-				const numberString = this.userAgent.substring(versionIndex + 4, pos)
+				const numberString = this.userAgent!.substring(versionIndex + 4, pos)
 				this.browserVersion = Number(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
@@ -328,22 +328,22 @@ export class ClientDetector {
 		this.device = DeviceType.DESKTOP
 
 		if (
-			this.userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
+			this.userAgent!.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent && /.*Chrome.*/.test(this.userAgent) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent!) && window.TouchEvent && /.*Chrome.*/.test(this.userAgent!) === false)
 		) {
 			this.device = DeviceType.IPAD
-		} else if (this.userAgent.match(/iPhone.*AppleWebKit/) != null) {
+		} else if (this.userAgent!.match(/iPhone.*AppleWebKit/) != null) {
 			this.device = DeviceType.IPHONE
-		} else if (this.userAgent.match(/Android/) != null) {
-			if (this.userAgent.match(/Ubuntu/) != null) {
+		} else if (this.userAgent!.match(/Android/) != null) {
+			if (this.userAgent!.match(/Ubuntu/) != null) {
 				this.device = DeviceType.OTHER_MOBILE
 			} else {
 				this.device = DeviceType.ANDROID
 			}
-		} else if (this.userAgent.match(/Windows NT/) != null) {
+		} else if (this.userAgent!.match(/Windows NT/) != null) {
 			this.device = DeviceType.DESKTOP
-		} else if (this.userAgent.match(/Mobile/) != null || this.userAgent.match(/Tablet/) != null) {
+		} else if (this.userAgent!.match(/Mobile/) != null || this.userAgent!.match(/Tablet/) != null) {
 			this.device = DeviceType.OTHER_MOBILE
 		}
 	}
@@ -369,7 +369,7 @@ export class ClientDetector {
 			}
 			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${client.device} ${appType} App`
-		} else if (isBrowser()) {
+		} else if (envProvider.isBrowser()) {
 			return client.browser + " Browser"
 		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
@@ -389,25 +389,25 @@ export class ClientDetector {
 	notOldFirefox(): boolean {
 		// issue only occurs for old Firefox browsers
 		// Object.hasOwn() is only supported starting in 92
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 92
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion! > 92
 	}
 
 	notOldChrome(): boolean {
 		// Object.hasOwn() is only supported starting in 93
-		return this.browser !== BrowserType.CHROME || this.browserVersion > 93
+		return this.browser !== BrowserType.CHROME || this.browserVersion! > 93
 	}
 
 	needsMicrotaskHack(): boolean {
 		return (
 			this.isIos() ||
 			this.browser === BrowserType.SAFARI ||
-			(this.browser === BrowserType.FIREFOX && this.browserVersion <= 60) ||
-			(this.browser === BrowserType.CHROME && this.browserVersion < 59)
+			(this.browser === BrowserType.FIREFOX && this.browserVersion! <= 60) ||
+			(this.browser === BrowserType.CHROME && this.browserVersion! < 59)
 		)
 	}
 
 	needsExplicitIDBIds(): boolean {
-		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
+		return this.browser === BrowserType.SAFARI && this.browserVersion! < 12.2
 	}
 
 	browserData(): BrowserData {
@@ -424,32 +424,32 @@ export class ClientDetector {
 	}
 
 	isCalendarApp(): boolean {
-		return isApp() && this.appType === AppType.Calendar
+		return envProvider.isApp() && this.appType === AppType.Calendar
 	}
 
 	isMailApp(): boolean {
-		return isApp() && this.appType === AppType.Mail
+		return envProvider.isApp() && this.appType === AppType.Mail
 	}
 
 	isDriveApp(): boolean {
-		return isApp() && this.appType === AppType.Drive
+		return envProvider.isApp() && this.appType === AppType.Drive
 	}
 
 	getClientPlatform(): ClientPlatform {
-		if (isDesktop()) {
-			if (env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
-			if (env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
-			if (env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
+		if (envProvider.isDesktop()) {
+			if (this.env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
+			if (this.env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
+			if (this.env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
 			return ClientPlatform.DESKTOP_UNKNOWN
 		}
-		if (!isApp()) return ClientPlatform.WEB
+		if (!envProvider.isApp()) return ClientPlatform.WEB
 
-		if (isAndroidApp()) {
-			return APP_TYPE === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
+		if (envProvider.isAndroidApp()) {
+			return this.appType! === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
 		}
 
-		if (isIOSApp()) {
-			return APP_TYPE === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+		if (envProvider.isIOSApp()) {
+			return this.appType! === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
 		}
 
 		// Fallback
@@ -472,4 +472,4 @@ export enum ClientPlatform {
 	DESKTOP_WINDOWS,
 }
 
-export const client: ClientDetector = new ClientDetector(env)
+export const client: ClientDetector = new ClientDetector({} as any)

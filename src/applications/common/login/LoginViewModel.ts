@@ -5,7 +5,7 @@ import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUti
 import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNode, CancelledError, ProgrammingError, SessionType } from "@tutao/app-env"
+import { assertMainOrNode, CancelledError, DomainConfig, ProgrammingError, SessionType } from "@tutao/app-env"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/utils"

@@ -1,7 +1,7 @@
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, isApp, isDesktop, ProgrammingError } from "../../platform-kit/app-env"
+import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, isApp, isDesktop, ProgrammingError } from "../../platform-kit/app-env"
 import { assertNotNull } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"

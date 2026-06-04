@@ -1,3 +1,5 @@
+import { DomainConfig } from "@tutao/app-env"
+
 export class DomainConfigProvider {
 	/** Get domain config for the current domain (staticUrl or the one the app is running on). */
 	getCurrentDomainConfig(): DomainConfig {
