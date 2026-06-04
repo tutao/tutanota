@@ -34,7 +34,7 @@ export class TFunctionDecl extends TConstruct {
 		const name = this.name.generateKotlin()
 		const returnType = this.returnType.generateKotlin()
 
-		return `${visibility} fun ${name}(${parameters}): ${returnType} { ${functionBody} }`
+		return `${visibility} fun ${name}(${parameters}): ${returnType} ${functionBody}`
 	}
 }
 

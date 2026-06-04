@@ -1,4 +1,4 @@
-import { ConstructOut, TConstruct } from "./TConstruct"
+import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { PropertyAccessExpression } from "ts-morph"
 import { TIdentitider } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
@@ -23,8 +23,6 @@ export class TPropAccess extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		const objName = this.referencedObjName.generateKotlin()
-		const propName = this.propertyName.generateKotlin()
-		return `${objName}.${propName}`
+		return new TConstructMultiple(this.referencedObjName, this.propertyName).withSeparator(".").generateKotlin()
 	}
 }

@@ -31,6 +31,14 @@ export class TConstructMultiple<V extends TConstruct = TConstruct> extends TCons
 	}
 
 	generateKotlin(): ConstructOut {
-		return this.constructs.map((c) => c.generateKotlin()).join(this.separator)
+		return this.constructs
+			.map((c) => {
+				if (c == null) {
+					const a = this.constructs
+					const b = 1
+				}
+				return c.generateKotlin()
+			})
+			.join(this.separator)
 	}
 }

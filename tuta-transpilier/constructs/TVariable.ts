@@ -33,11 +33,11 @@ export class TVariable extends TConstruct {
 		}
 
 		const typedId = this.typedIdentifier.generateKotlin()
-		if (this.initializer != null) {
+		if (this.initializer == null) {
+			return `lateinit ${declarator} ${typedId}`
+		} else {
 			const rhs = this.initializer.generateKotlin()
 			return `${declarator} ${typedId} = ${rhs}`
-		} else {
-			return `lateinit ${declarator} ${typedId}`
 		}
 	}
 }

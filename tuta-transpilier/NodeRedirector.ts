@@ -27,6 +27,7 @@ import {
 	ThrowStatement,
 	ts,
 	TypeAliasDeclaration,
+	TypeReferenceNode,
 	VariableStatement,
 } from "ts-morph"
 import { TEmpty } from "./constructs/TEmpty"
@@ -53,6 +54,8 @@ import { IgnorableError } from "./errors/IgnorableError"
 import { TPropAccess } from "./constructs/TPropAccess"
 import { TBlock } from "./constructs/TBlock"
 import { TSuperKeyword } from "./constructs/TSuperKeyword"
+import { TType } from "./constructs/TType"
+import { TAsExpr } from "./constructs/TAsExpr"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -83,6 +86,8 @@ export class NodeRedirector {
 			return new TEnum(typedNode)
 		} else if (typedNode instanceof TypeAliasDeclaration) {
 			return new TTypeAlias(typedNode)
+		} else if (typedNode instanceof TypeReferenceNode) {
+			return new TType(typedNode.getType())
 		} else if (typedNode instanceof IfStatement) {
 			return TIfStatement.fromIfStatement(typedNode)
 		} else if (typedNode instanceof ConditionalExpression) {
@@ -143,11 +148,7 @@ export class NodeRedirector {
 			Assert.equal(rest.length, 0, "Ahh! too much token")
 			return new TConstructMultiple(new TReservedWord(operator), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof AsExpression) {
-			Assert.equal(typedNode.getChildCount(), 3, "Expected 3 token in AsExpression")
-			const asKeyword = typedNode.getChildAtIndex(1)
-			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
-			const targetType = NodeRedirector.redirectNode(typedNode.getTypeNode())
-			return new TConstructMultiple(expression, new TReservedWord(asKeyword), targetType).withSeparator(" ")
+			return new TAsExpr(typedNode)
 		} else if (typedNode instanceof ThrowStatement) {
 			Assert.equal(typedNode.getChildCount(), 2, "Expected only two child for throw")
 			const [throwKeyword, thrownObj] = typedNode.getChildren()
