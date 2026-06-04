@@ -232,4 +232,8 @@ export class NativeFileApp {
 	async readChunk(streamUri: string, maxChunkSize: number): Promise<string | null> {
 		return await this.fileFacade.readChunk(streamUri, maxChunkSize)
 	}
+
+	async readDirectory(dirPath: string): Promise<DirectoryContents> {
+		return await this.fileFacade.readDirectory(dirPath)
+	}
 }

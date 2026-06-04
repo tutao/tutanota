@@ -211,6 +211,13 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"readDirectory" -> {
+				val filePath: String = json.decodeFromString(arg[0])
+				val result: DirectoryContents = this.facade.readDirectory(
+					filePath,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for FileFacade: $method")
 		}
 	}
