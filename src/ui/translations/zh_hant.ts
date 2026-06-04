@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "與朋友分享私隱保護和安全",
 		"referralCreditPosting_label": "推薦回贈",
 		"referralLink_label": "推薦連結",
-		"referralLinkLong_msg": "推薦您的朋友使用Tuta：如果他們使用您的個人推薦連結註冊成為年繳會員，您將收到他們首次付款的25%作為回贈存入您的帳戶，他們也將獲得額外一個月免費。",
 		"referralLinkShare_msg": "即時加入Tuta：{referralLink}",
 		"referralSettings_label": "推薦給朋友",
 		"referralSignup_msg": "您獲邀使用Tuta！選擇任何年繳付費計劃，您即獲得額外一個月免費。",

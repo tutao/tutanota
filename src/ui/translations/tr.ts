@@ -1629,7 +1629,6 @@ export default {
 		"redo_action": "yeniden yap",
 		"referralCreditPosting_label": "Yönlendirme avansı",
 		"referralLink_label": "Başvuru bağlantısı",
-		"referralLinkLong_msg": "Arkadaşlarınızı Tuta'ya yönlendirin: Kişisel referans bağlantınızla yıllık üyelik için kaydolurlarsa, hesabınıza ilk ödemelerinin %25'ini bakiye olarak alırsınız ve onlar da fazladan bir ay ücretsiz üyelik kazanırlar.",
 		"referralLinkShare_msg": "Tuta'ya şimdi katılın: {referralLink}",
 		"referralSettings_label": "Bir arkadaşınızı yönlendirin",
 		"referralSignup_msg": "Tuta'ya davetlisiniz! Premium veya Teams yıllık aboneliğini seçin ve ek olarak ücretsiz bir aylık abonelik kazanın.",

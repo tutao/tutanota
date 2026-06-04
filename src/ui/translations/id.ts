@@ -1254,7 +1254,6 @@ export default {
 		"redo_action": "Ulangi kembali",
 		"referralCreditPosting_label": "Kredit rujukan",
 		"referralLink_label": "Tautan rujukan",
-		"referralLinkLong_msg": "Referensikan teman Anda ke Tuta: Jika mereka mendaftar keanggotaan tahunan dengan tautan referral pribadi Anda, Anda akan menerima 25% dari pembayaran pertama mereka dalam bentuk kredit di akun Anda, dan mereka akan mendapatkan satu bulan gratis.",
 		"referralLinkShare_msg": "Bergabunglah dengan Tuta sekarang di: {referralLink}",
 		"referralSettings_label": "Rujuk seorang teman",
 		"referralSignup_msg": "Anda diundang ke Tuta! Pilih langganan tahunan dari paket berbayar apa pun & Anda akan mendapatkan satu bulan gratis.",

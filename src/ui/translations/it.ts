@@ -1355,7 +1355,6 @@ export default {
 		"redo_action": "Ripristina",
 		"referralCreditPosting_label": "Credito da inviti",
 		"referralLink_label": "Link referral",
-		"referralLinkLong_msg": "Segnala Tuta ai tuoi amici: Se si iscrivono a un abbonamento annuale con il tuo link personale, riceverai il 25% del loro primo pagamento in credito sul tuo conto e loro riceveranno un ulteriore mese gratuito.",
 		"referralLinkShare_msg": "Unisciti a Tuta ora a: {referralLink}",
 		"referralSettings_label": "Invita un amico",
 		"referralSignup_msg": "Sei invitato a Tuta! Scegli un abbonamento annuale di qualsiasi piano a pagamento e ottieni un mese gratuito aggiuntivo.",

@@ -1164,7 +1164,6 @@ export default {
 		"redo_action": "Làm tiếp",
 		"referralCreditPosting_label": "Tín dụng do giới thiệu",
 		"referralLink_label": "Liên kết giới thiệu",
-		"referralLinkLong_msg": "Giới thiệu Tuta với bạn bè: Nếu họ dùng liên kết giới thiệu của bạn để đăng kí thuê bao hằng năm, bạn sẽ nhận được một khoản tín dụng trong danh khoản với giá trị bằng 25% khoản thanh toán đầu tiên của họ, còn họ sẽ được thêm một tháng miễn phí.",
 		"referralLinkShare_msg": "Gia nhập Tuta ngay ở địa chỉ: {referralLink}",
 		"referralSettings_label": "Giới thiệu bạn bè",
 		"referralSignup_msg": "Bạn đã được mời gia nhập Tuta! Chọn một thuê bao hằng năm & bạn sẽ được thêm một tháng miễn phí.",

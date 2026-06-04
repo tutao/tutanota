@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Comparte a privacidade e seguridade coas túas amizades",
 		"referralCreditPosting_label": "Crédito por recomendar",
 		"referralLink_label": "Ligazón de convite",
-		"referralLinkLong_msg": "Preséntalles Tuta ás túas amizades: se crean unha conta de subscrición anual a través da túa ligazón de convite recibirás un 25% do seu primeiro pagamento como crédito na túa conta, e elas obterán un mes adicional gratis.",
 		"referralLinkShare_msg": "Únete agora a Tuta: {referralLink}",
 		"referralSettings_label": "Recomendar a amizade",
 		"referralSignup_msg": "Convidáronte a Tuta! Elixe unha subscrición anual ou Premium ou Teams e obterás un mes adicional de xeito gratuíto.",

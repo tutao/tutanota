@@ -1632,7 +1632,6 @@ export default {
 		"redo_action": "Gjenta",
 		"referralCreditPosting_label": "Henvisningskreditt",
 		"referralLink_label": "Henvisningslenke",
-		"referralLinkLong_msg": "Verv en venn til Tuta: Hvis de registrerer seg for et årsmedlemskap med din personlige henvisningslenke vil du få 25% av deres første betaling i kreditt på din konto, og de vil få en ekstra gratis måned.",
 		"referralLinkShare_msg": "Bli med hos Tuta nå: {referralLink}",
 		"referralSettings_label": "Verv en venn",
 		"referralSignup_msg": "Du er invitert til Tuta! Velg et årsabonnement på et valgfritt betalt abonnement, og du får én ekstra gratis måned.",

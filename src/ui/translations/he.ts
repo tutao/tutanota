@@ -1122,7 +1122,6 @@ export default {
 		"redo_action": "שחזר",
 		"referralCreditPosting_label": "זיכוי מהפניה",
 		"referralLink_label": "קישור הפניה",
-		"referralLinkLong_msg": "תפנו את חברך Tuta: אם הם נרשמים למנוי שנתי עם הקישור אישי שלך,תקבלו 25% מהתשלום הראשון שלהם כזכות account, והם יקבלו חודש נוסף בחינם.",
 		"referralLinkShare_msg": "הצטרפו לTuta עכשיו: {referralLink}",
 		"referralSettings_label": "הפניית חברים",
 		"referralSignup_msg": "אתם מוזמנים ל- Tuta! תרכשו כל מנוי שנתי ותקבלו חודש נוסף חינם.",

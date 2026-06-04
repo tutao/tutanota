@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Jaa yksityisyyttä ja tietoturvaa ystävillesi",
 		"referralCreditPosting_label": "Kutsusaldo",
 		"referralLink_label": "Kutsulinkki",
-		"referralLinkLong_msg": "Tuo kaverisi Tutan käyttäjäksi: jos hän tilaa Tutan vuodeksi henkilökohtaisen linkkisi kautta, saat ilmaista saldoa 25% verran hänen ensimmäisestä tekemästään maksusta ja hän saa yhden lisäkuukauden ilmaiseksi.",
 		"referralLinkShare_msg": "Aloita Tutan käyttö: {referralLink}",
 		"referralSettings_label": "Kutsu kavereita",
 		"referralSignup_msg": "Sinut on kutsuttu Tutaan! Tilaa mikä tahansa maksullinen tilaus vuodeksi ja saat ilmaisen lisäkuukauden.",

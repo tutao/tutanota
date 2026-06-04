@@ -1563,7 +1563,6 @@ export default {
 		"redo_action": "Refés",
 		"referralCreditPosting_label": "Crèdit de referència",
 		"referralLink_label": "Enllaç de referència",
-		"referralLinkLong_msg": "Fes referència als teus amics a Tuta: si es registren per obtenir una subscripció anual amb el teu enllaç de referència personal, rebràs el 25% del seu primer pagament en crèdit al teu compte i tindran un mes addicional gratuït.",
 		"referralLinkShare_msg": "Uneix-te a Tuta ara a: {enllaç de referència}",
 		"referralSettings_label": "Recomana un amic",
 		"referralSignup_msg": "Esteu convidats a Tuta! Trieu una subscripció anual a qualsevol pla de pagament i obtindreu un mes addicional gratuït.",

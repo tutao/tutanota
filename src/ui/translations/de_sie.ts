@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Teilen Sie Sicherheit und Privatsphäre mit Ihren Freunden",
 		"referralCreditPosting_label": "Empfehlungsgutschrift",
 		"referralLink_label": "Empfehlungslink",
-		"referralLinkLong_msg": "Laden Sie Ihre Freund*innen zu Tuta ein: Wenn sie sich über Ihren persönlichen Empfehlungslink für eine Jahresmitgliedschaft anmelden, erhalten Sie 25 % ihrer ersten Zahlung auf Ihr Konto gutgeschrieben und Ihre Freund*innen erhalten einen zusätzlichen Gratismonat.",
 		"referralLinkShare_msg": "Hol dir jetzt deine Tuta-Mailbox unter: {referralLink}",
 		"referralSettings_label": "Freunde werben",
 		"referralSignup_msg": "Sie melden sich mit einem persönlichen Empfehlungslink an. Abonnieren Sie Tuta für ein Jahr und Sie erhalten einen zusätzlichen Gratismonat!",

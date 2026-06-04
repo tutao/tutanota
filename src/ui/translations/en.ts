@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Share privacy and security with Friends",
 		"referralCreditPosting_label": "Referral credit",
 		"referralLink_label": "Referral link",
-		"referralLinkLong_msg": "Refer your friends to Tuta: If they sign up for a yearly membership with your personal referral link, you will receive 25% of their first payment in credit on your account, and they will get an additional free month.",
 		"referralLinkShare_msg": "Join Tuta now at: {referralLink}",
 		"referralSettings_label": "Refer a friend",
 		"referralSignup_msg": "You are invited to Tuta! Choose a yearly subscription of any paid plan & you will get an additional free month.",

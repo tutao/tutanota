@@ -1580,7 +1580,6 @@ export default {
 		"redo_action": "Refă",
 		"referralCreditPosting_label": "Credit de recomandare",
 		"referralLink_label": "Legătură de recomandare",
-		"referralLinkLong_msg": "Recomandă-ți prietenii la Tuta: Dacă aceștia se înscriu pentru un abonament anual folosind legătura ta de recomandare, vei primi 25% din prima lor plată sub formă de credit în contul tău, iar ei vor primi o lună suplimentară gratuită.",
 		"referralLinkShare_msg": "Înscrie-te acum în Tuta: {referralLink}",
 		"referralSettings_label": "Recomandă un prieten",
 		"referralSignup_msg": "Ești invitat în Tuta! Alege un abonament anual din oricare cont cu plată și vei primi în plus o lună gratis.",

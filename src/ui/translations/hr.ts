@@ -1416,7 +1416,6 @@ export default {
 		"redo_action": "Ponovi",
 		"referralCreditPosting_label": "Kredit od preporuke",
 		"referralLink_label": "Poveznica za preporuku",
-		"referralLinkLong_msg": "Uputite svoje prijatelje na Tutanotu: Ako se prijave za godišnje članstvo s vašom osobnom vezom za preporuku, primit ćete 25% njihove prve uplate u kreditu na svoj račun, a oni će dobiti dodatni besplatni mjesec.",
 		"referralLinkShare_msg": "Pridruži se Tutanoti putem: {referralLink}",
 		"referralSettings_label": "Preporučite prijatelja",
 		"referralSignup_msg": "Pozvani ste u Tutanotu! Odaberite godišnju pretplatu bilo koje plaćene tarife i dobit ćete dodatni besplatni mjesec.",

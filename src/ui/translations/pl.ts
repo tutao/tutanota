@@ -1677,7 +1677,6 @@ export default {
 		"referAFriendTitle_label": "Podziel się prywatnością i bezpieczeństwem z swoimi przyjaciółmi",
 		"referralCreditPosting_label": "Premia za polecenie",
 		"referralLink_label": "Link polecający",
-		"referralLinkLong_msg": "Poleć swoim znajomym Tuta: Jeśli zapiszą się na roczne członkostwo za pomocą twojego osobistego linku polecającego, otrzymasz 25% ich pierwszej płatności w postaci kredytu na swoim koncie, a oni otrzymają dodatkowy darmowy miesiąc.",
 		"referralLinkShare_msg": "Dołącz do Tuta na: {referralLink}",
 		"referralSettings_label": "Poleć znajomemu",
 		"referralSignup_msg": "Zaproszono cię do Tuta! Wybierz dowolną płatną ofertę w subskrypcji rocznej, a otrzymasz dodatkowy miesiąc za darmo.",

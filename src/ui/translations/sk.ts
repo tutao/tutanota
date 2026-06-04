@@ -1116,7 +1116,6 @@ export default {
 		"redo_action": "Znova",
 		"referralCreditPosting_label": "Kredit za odporúčanie",
 		"referralLink_label": "Odporúčací odkaz",
-		"referralLinkLong_msg": "Odporuč Tutanotu svojim priateľom: Ak si zakúpia ročné členstvo prostredníctvom tvojho osobného odporúčacieho odkazu, získaš 25 % z ich prvej platby vo forme kreditu na účet a oni získajú ďalší mesiac používania zadarmo.",
 		"referralLinkShare_msg": "Pripoj sa k Tutanote teraz pomocou tohto odkazu: {referralLink}",
 		"referralSettings_label": "Odporučiť priateľa",
 		"referralSignup_msg": "Pozývam ťa do Tuta. Vyber si ktorékoľvek ročné predplatné a získaš navyše mesiac zdarma.",

@@ -1153,7 +1153,6 @@ export default {
 		"redo_action": "되돌리기",
 		"referralCreditPosting_label": "추천인 크레딧",
 		"referralLink_label": "추천인 링크",
-		"referralLinkLong_msg": "Tuta를 친구에게 추천하세요: 친구가 추천인 링크를 통해 연간 멤버십에 가입하면 첫 결제 금액의 25%를 계정 크레딧으로 받을 수 있으며, 무료 한 달을 추가로 받을 수 있습니다.",
 		"referralLinkShare_msg": "지금 Tuta에 가입하세요: {referralLink}",
 		"referralSettings_label": "친구에게 추천하기",
 		"referralSignup_msg": "Tuta에 초대받으셨습니다! 프리미엄(Premium) 또는 팀(Teams) 플랜으로 연간 구독시 무료 1개월 추가 혜택을 드립니다.",

@@ -1655,7 +1655,6 @@ export default {
 		"redo_action": "Opnieuw",
 		"referralCreditPosting_label": "Verwijzingskrediet",
 		"referralLink_label": "Verwijzingslink",
-		"referralLinkLong_msg": "Verwijs vrienden naar Tuta: Als zij zich aanmelden voor een jaarabonnement met uw persoonlijke doorverwijslink, ontvangt u 25% van hun eerste betaling in krediet op uw rekening, en krijgen zij een extra gratis maand.",
 		"referralLinkShare_msg": "Word nu lid van Tuta op: {referralLink}",
 		"referralSettings_label": "Verwijs een vriend",
 		"referralSignup_msg": "U bent uitgenodigd voor Tuta! Kies een jaarlijks abonnement & u krijgt een extra gratis maand.",

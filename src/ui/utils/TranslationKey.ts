@@ -582,7 +582,6 @@ export type TranslationKeyType =
 	| "referralSettings_label"
 	| "referralLink_label"
 	| "referralLinkShare_msg"
-	| "referralLinkLong_msg"
 	| "referralCreditPosting_label"
 	| "redo_action"
 	| "redeemedGiftCardPosting_label"

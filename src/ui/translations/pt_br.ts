@@ -1677,7 +1677,6 @@ export default {
 		"referAFriendTitle_label": "Compartilhe privacidade e segurança com os amigos",
 		"referralCreditPosting_label": "Crédito de encaminhamento",
 		"referralLink_label": "Link de encaminhamento",
-		"referralLinkLong_msg": "Indique o Tutatnota aos seus amigos: Se eles se inscreverem para uma assinatura anual com o seu link de encaminhamento pessoal, você receberá 25% do primeiro pagamento em crédito na sua conta, e eles receberão um mês adicional gratuito.",
 		"referralLinkShare_msg": "Junte-se ao Tuta agora em:{referralLink}",
 		"referralSettings_label": "Encaminhe um amigo",
 		"referralSignup_msg": "Está convidado a se inscrever no Tuta! Escolha uma assinatura anual de qualquer plano pago e você receberá um mês adicional grátis.",

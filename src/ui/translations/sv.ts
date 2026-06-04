@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Dela information om integritet och säkerhet med vänner",
 		"referralCreditPosting_label": "Referral kredit",
 		"referralLink_label": "Tipslänk",
-		"referralLinkLong_msg": "Tipsa dina vänner om Tuta: Om de registrerar sig för ett årsmedlemskap med din personliga länk får du 25 % av deras första betalning i kredit på ditt konto och de får ytterligare en gratis månad.",
 		"referralLinkShare_msg": "Gå med i Tuta på: {referralLink}",
 		"referralSettings_label": "Tipsa en vän",
 		"referralSignup_msg": "Du är inbjuden till Tuta! Om du väljer en årlig prenumeration på en betald plan får du ytterligare en gratis månad.",

@@ -1661,7 +1661,6 @@ export default {
 		"redo_action": "Znova uveljavi",
 		"referralCreditPosting_label": "Dobropis za priporočitev",
 		"referralLink_label": "Priporočilna povezava",
-		"referralLinkLong_msg": "Priporočite Tutanoto prijateljem: če se prijavijo za letno članstvo z vašo priporočilno povezavo, boste prejeli 25 % njihovega prvega plačila kot dobroimetje v svoj račun, poleg tega pa bodo prijatelji prejeli še dodaten brezplačen mesec.",
 		"referralLinkShare_msg": "Pridružite se Tutanoti zdaj: {referralLink}",
 		"referralSettings_label": "Priporočite prijatelja",
 		"referralSignup_msg": "Vabljeni v Tutanoto! Izberite katerokoli plačljivo letno naročnino in dobili boste dodaten brezplačen mesec.",

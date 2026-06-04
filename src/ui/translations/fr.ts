@@ -1678,7 +1678,6 @@ export default {
 		"referAFriendTitle_label": "Partagez la confidentialité et la sécurité avec vos amis",
 		"referralCreditPosting_label": "Crédit de parrainage",
 		"referralLink_label": "Lien de parrainage",
-		"referralLinkLong_msg": "Parrainez vos amis sur Tuta : S'ils s'inscrivent à un abonnement annuel avec votre lien de parrainage personnel, vous recevrez 25% de leur premier paiement en crédit sur votre compte, et ils obtiendront un mois supplémentaire gratuit.",
 		"referralLinkShare_msg": "Rejoignez Tuta dès maintenant : {referralLink}",
 		"referralSettings_label": "Parrainer un ami",
 		"referralSignup_msg": "Vous êtes invité à Tuta ! Choisissez un abonnement annuel Premium ou Teams et vous obtiendrez un mois supplémentaire gratuit.",
