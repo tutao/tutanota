@@ -25,7 +25,7 @@ export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[
 	return key
 }
 
-type ConstType = {
+export type ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
 	MEMORY_GB_FACTOR: number
