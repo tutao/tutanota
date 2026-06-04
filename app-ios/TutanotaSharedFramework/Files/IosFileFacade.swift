@@ -291,6 +291,8 @@ public final class IosFileFacade: FileFacade {
 		let files = try fileManager.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])
 		for file in files where !file.hasDirectoryPath { try fileManager.removeItem(at: file) }
 	}
+
+	public func readDirectory(_ filePath: String) async throws -> TutanotaSharedFramework.DirectoryContents { fatalError("not implemented on this platform") }
 }
 
 extension UploadTaskResponse {

@@ -87,6 +87,7 @@ import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../api/common/ClientModelInfoInitializer"
+import { loadWasmFromFileOrNetwork } from "../../../platform-kit/utils/WebAssembly"
 
 mp()
 
@@ -121,12 +122,7 @@ const commandExecutor = new CommandExecutor(child_process)
 const desktopUtils = new DesktopUtils(process, tfs, electron, commandExecutor, windowsRegistryFacade)
 
 // Argon2 is already built for the web part, we don't need to have another copy.
-const loadArgon2 = async () => {
-	const wasmSourcePath = path.join(electron.app.getAppPath(), "argon2.wasm")
-	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
-	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
-	return exports as unknown as Argon2IDExports
-}
+const loadArgon2 = (): Promise<Argon2IDExports> => loadWasmFromFileOrNetwork("../argon2.wasm", import.meta.url)
 const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, tfs, loadArgon2())
 const opts = {
 	registerAsMailHandler: process.argv.some((arg) => arg === "-r"),

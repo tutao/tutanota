@@ -6,6 +6,7 @@ import { FileFacade } from "./generatedipc/types/FileFacade.js"
 import { ExportFacade } from "./generatedipc/types/ExportFacade.js"
 import { FileReference } from "../../../entities/tutanota/Utils"
 import { DataFile, MailBundle } from "../../../entities/tutanota/MailBundle"
+import { DirectoryContents } from "@tutao/native-bridge/generatedIpc/types"
 
 export type FileUri = string
 
@@ -227,5 +228,9 @@ export class NativeFileApp {
 	 */
 	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<ReadonlyArray<FileUri>> {
 		return this.fileFacade.splitFile(fileUri, maxChunkSizeBytes)
+	}
+
+	async readDirectory(dirPath: string): Promise<DirectoryContents> {
+		return await this.fileFacade.readDirectory(dirPath)
 	}
 }
