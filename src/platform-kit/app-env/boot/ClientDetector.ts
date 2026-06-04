@@ -15,7 +15,7 @@ export class ClientDetector {
 	appType!: AppType
 	isAutomatedBrowser: boolean = false
 
-	constructor() {}
+	constructor(private readonly env: Env) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
@@ -363,7 +363,7 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		if (env.mode === Mode.App) {
+		if (this.env.mode === Mode.App) {
 			if (this.appType === AppType.Integrated) {
 				throw new Error("AppType.Integrated is not allowed for mobile apps")
 			}
@@ -371,11 +371,11 @@ export class ClientDetector {
 			return `${client.device} ${appType} App`
 		} else if (isBrowser()) {
 			return client.browser + " Browser"
-		} else if (env.platformId === "linux") {
+		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
-		} else if (env.platformId === "darwin") {
+		} else if (this.env.platformId === "darwin") {
 			return "Mac Desktop"
-		} else if (env.platformId === "win32") {
+		} else if (this.env.platformId === "win32") {
 			return "Windows Desktop"
 		}
 
@@ -472,4 +472,4 @@ export enum ClientPlatform {
 	DESKTOP_WINDOWS,
 }
 
-export const client: ClientDetector = new ClientDetector()
+export const client: ClientDetector = new ClientDetector(env)
