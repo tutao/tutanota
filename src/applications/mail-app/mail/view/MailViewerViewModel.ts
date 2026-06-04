@@ -80,11 +80,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
-import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
-import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
-import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1320,6 +1316,12 @@ export class MailViewerViewModel {
 	private async importCalendar(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
+			const [{ CalendarImporter }, { ImportInteractionHandler }, { getTimeZone }, { EventSeriesResolver }] = await Promise.all([
+				import("../../../common/calendar/import/CalendarImporter"),
+				import("../../../common/calendar/gui/ImportInteractionHandler"),
+				import("../../../common/calendar/date/CalendarUtils"),
+				import("../../../common/calendar/import/EventSeriesResolver"),
+			])
 			const { parseCalendarFile } = await import("../../../calendar-app/calendar/export/CalendarParser")
 			const { importCalendarFile } = await import("../../../common/calendar/gui/CalendarImporterDialog")
 

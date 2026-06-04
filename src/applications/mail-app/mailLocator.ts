@@ -169,10 +169,7 @@ import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
-import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
-import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
-import { EventSeriesResolver } from "../common/calendar/import/EventSeriesResolver"
 
 assertMainOrNode()
 
@@ -1149,6 +1146,15 @@ class MailLocator implements CommonLocator {
 
 			await importer.importContactsFromFile(vCardData, contactListId)
 		} else if (areAllFilesICS) {
+			const [{ parseCalendarFile }, { CalendarImporter }, { calendarSelectionDialog }, { EventSeriesResolver }, { ImportInteractionHandler }] =
+				await Promise.all([
+					import("../calendar-app/calendar/export/CalendarParser"),
+					import("../common/calendar/import/CalendarImporter"),
+					import("../common/calendar/gui/CalendarImporterDialog"),
+					import("../common/calendar/import/EventSeriesResolver"),
+					import("../common/calendar/gui/ImportInteractionHandler"),
+				])
+
 			const calendarModel = await this.calendarModel()
 			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
 			const calendarInfos = await calendarModel.getCalendarInfos()
@@ -1156,9 +1162,6 @@ class MailLocator implements CommonLocator {
 				acc.set(gc.group, gc.color)
 				return acc
 			}, new Map())
-
-			const { parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarParser")
-			const { calendarSelectionDialog } = await import("../common/calendar/gui/CalendarImporterDialog")
 
 			let parsedEvents: ParsedEventAlarmTuple[] = []
 

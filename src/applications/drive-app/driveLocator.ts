@@ -1,16 +1,4 @@
-import {
-	AppType,
-	assertMainOrNode,
-	Const,
-	FeatureType,
-	isAndroidApp,
-	isApp,
-	isBrowser,
-	isDesktop,
-	isIOSApp,
-	Mode,
-	ProgrammingError,
-} from "../../platform-kit/app-env"
+import { AppType, assertMainOrNode, Const, FeatureType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -39,7 +27,7 @@ import { PageContextLoginListener } from "../common/api/main/PageContextLoginLis
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "../../platform-kit/utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -119,7 +107,7 @@ import { IdentityKeyCreator } from "../../platform-kit/base/base-crypto/Identity
 import { WhitelabelThemeGenerator } from "../../ui/WhitelabelThemeGenerator"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade"
-import { ClientModelInfo } from "../../platform-kit/instance-pipeline"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { Router, ScopedRouter, ThrottledRouter } from "../../ui/ScopedRouter"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
@@ -133,10 +121,6 @@ import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
-import { CalendarImporter } from "../common/calendar/import/CalendarImporter"
-import { ImportInteractionHandler } from "../common/calendar/gui/ImportInteractionHandler"
-import { getTimeZone } from "../common/calendar/date/CalendarUtils"
-import { EventSeriesResolver } from "../common/calendar/import/EventSeriesResolver"
 
 assertMainOrNode()
 
@@ -773,8 +757,21 @@ class DriveLocator implements CommonLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
-			const { parseCalendarFile } = await import("../calendar-app/calendar/export/CalendarParser")
-			const { importCalendarFile } = await import("../common/calendar/gui/CalendarImporterDialog")
+			const [
+				{ parseCalendarFile },
+				{ CalendarImporter },
+				{ importCalendarFile },
+				{ EventSeriesResolver },
+				{ ImportInteractionHandler },
+				{ getTimeZone },
+			] = await Promise.all([
+				import("../calendar-app/calendar/export/CalendarParser"),
+				import("../common/calendar/import/CalendarImporter"),
+				import("../common/calendar/gui/CalendarImporterDialog"),
+				import("../common/calendar/import/EventSeriesResolver"),
+				import("../common/calendar/gui/ImportInteractionHandler"),
+				import("../common/calendar/date/CalendarUtils"),
+			])
 
 			let parsedEvents: ParsedEventAlarmTuple[] = []
 			for (const fileRef of files) {
