@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, UpgradePromptType } from "../../../../platform-kit/app-env"
-import { downcast, YEAR_IN_MILLIS } from "../../../../platform-kit/utils"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, UpgradePromptType } from "@tutao/app-env"
+import { downcast, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List.js"
@@ -25,7 +25,7 @@ import { mailLocator } from "../../mailLocator"
 import { CircleLoadingBar } from "../../../../ui/ProgressSnackBar"
 import { formatDate } from "../../../../ui/utils/Formatter"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
-import { isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
+import { isSameTypeRef, TypeRef } from "@tutao/meta"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 
@@ -145,13 +145,16 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 			innerChildren = [
 				m(CircleLoadingBar, { percentage, backgroundColor: theme.surface_container }),
 				m(".pl-4.pr-32", lang.getTranslationText("indexingEmails_msg")),
-				m(Button, {
-					label: "cancel_action",
-					type: ButtonType.Primary,
-					click: () => {
-						mailLocator.indexerFacade.cancelMailIndexing()
-					},
-				}),
+				// we always index everything on offline storage, so cancelling isn't possible
+				isOfflineStorageAvailable()
+					? null
+					: m(Button, {
+							label: "cancel_action",
+							type: ButtonType.Primary,
+							click: () => {
+								mailLocator.indexerFacade.cancelMailIndexing()
+							},
+						}),
 			]
 		} else if (
 			attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
