@@ -57,7 +57,6 @@ import {
 	EndType,
 	EventTextTimeOption,
 	isAppleDevice,
-	Keys,
 	ProgrammingError,
 	RepeatPeriod,
 	ShareCapability,
@@ -92,6 +91,7 @@ import { AdvancedRepeatRule, CalendarEvent } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { clone } from "../../../../platform-kit/meta"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface IntervalOption {
 	value: number

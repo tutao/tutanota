@@ -8,7 +8,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ButtonType } from "../../../../ui/base/Button"
-import { Keys } from "../../../../platform-kit/app-env"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export function showOverwriteRemoteDraftDialog(updatedAt: number): Promise<"cancel" | "overwrite" | "discard"> {
 	return new Promise((resolve) => {

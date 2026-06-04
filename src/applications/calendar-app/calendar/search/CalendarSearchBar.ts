@@ -9,7 +9,7 @@ import { TypeRef } from "../../../../platform-kit/meta"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp } from "../../../../platform-kit/app-env"
 import { styles } from "../../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "../../../../platform-kit/utils"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
@@ -24,6 +24,7 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 export type ShowMoreAction = {

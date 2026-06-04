@@ -3,7 +3,7 @@ import type { PositionRect } from "../../../../ui/base/Overlay"
 import { displayOverlay } from "../../../../ui/base/Overlay"
 import { component_size, px } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { assertMainOrNode, Keys } from "@tutao/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../api/main/CommonLocator"
 import { ElectronResult } from "@tutao/native-bridge/generatedIpc/types"
@@ -12,6 +12,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
 import { styles } from "../../../../ui/styles.js"
 import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils.js"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

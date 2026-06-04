@@ -8,10 +8,11 @@ import { theme } from "../theme"
 import { styles } from "../styles"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
-import { assertMainOrNode, isDesktop, Keys } from "../../platform-kit/app-env"
+import { assertMainOrNode, isDesktop } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
+import { Keys } from "../KeyboardKeys"
 
 assertMainOrNode()
 export type NavButtonAttrs = {

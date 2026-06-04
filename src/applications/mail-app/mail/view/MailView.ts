@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { assertMainOrNode, CancelledError, FeatureType, isApp, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, CancelledError, FeatureType, isApp } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
@@ -89,6 +89,7 @@ import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

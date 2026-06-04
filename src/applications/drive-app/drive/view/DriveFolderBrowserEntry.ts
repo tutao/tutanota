@@ -3,9 +3,10 @@ import { theme } from "../../../../ui/theme"
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { FolderItem } from "./DriveUtils"
-import { Keys, TabIndex } from "../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface DriveFolderBrowserEntryAttrs {
 	item: FolderItem

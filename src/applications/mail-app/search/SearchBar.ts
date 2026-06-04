@@ -8,7 +8,7 @@ import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys, ProgrammingError } from "../../../platform-kit/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, ProgrammingError } from "../../../platform-kit/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
@@ -28,6 +28,7 @@ import { compareMails } from "../mail/model/MailUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { WhitelabelChild } from "@tutao/entities/sys"
 import { windowFacade } from "../../common/misc/WindowFacade"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 export type ShowMoreAction = {

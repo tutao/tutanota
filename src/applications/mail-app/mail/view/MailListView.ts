@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Mail } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { assertMainOrNode, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { getElementId, getLetId, haveSameId } from "../../../../platform-kit/meta"
 import { component_size } from "../../../../ui/size"
 import { styles } from "../../../../ui/styles"
@@ -32,6 +32,7 @@ import { DropType } from "../../../../ui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

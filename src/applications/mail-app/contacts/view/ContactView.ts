@@ -7,7 +7,7 @@ import { ContactEditor } from "../ContactEditor"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
-import { assertMainOrNode, ContactMergeAction, isApp, Keys, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, ContactMergeAction, isApp, UpgradePromptType } from "../../../../platform-kit/app-env"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { keyManager } from "../../../../ui/utils/KeyManager"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -67,6 +67,7 @@ import { Contact, ContactTypeRef } from "../../../../entities/tutanota/TypeRefs"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

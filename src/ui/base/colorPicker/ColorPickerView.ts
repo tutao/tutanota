@@ -8,8 +8,9 @@ import { ColorPickerModel } from "./ColorPickerModel.js"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { isDarkTheme, theme } from "../../theme.js"
 import { assertNotNull, clamp, filterInt } from "../../../platform-kit/utils"
-import { Keys, TabIndex } from "../../../platform-kit/app-env"
+import { TabIndex } from "../../../platform-kit/app-env"
 import { isKeyPressed } from "../../utils/KeyManager"
+import { Keys } from "../../KeyboardKeys"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1
 const HUE_GRADIENT_HEIGHT = 40

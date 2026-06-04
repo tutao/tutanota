@@ -3,9 +3,10 @@ import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
 import { assertNotNull, defer } from "@tutao/utils"
 import m from "mithril"
 import { CommonButtonAttrs, PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
-import { ApprovalStatus, CancelledError, Keys } from "@tutao/app-env"
+import { ApprovalStatus, CancelledError } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { renderMoreInfoLink } from "./news/MoreInfoLink"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 // Function that will be called if user presses fast-track buttons
 // Opens a new MailEditor Window with prefilled mailto and subject

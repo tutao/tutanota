@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { theme } from "../../../../../ui/theme.js"
-import { isApp, Keys, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
+import { isApp, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
 import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
@@ -12,6 +12,7 @@ import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { lang, Translation, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export type TimePickerAttrs = {
 	time: Time | null

@@ -15,9 +15,10 @@ import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
-import { isApp, isIOSApp, Keys, TabIndex } from "../../../../../platform-kit/app-env"
+import { isApp, isIOSApp, TabIndex } from "../../../../../platform-kit/app-env"
 import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../../ui/base/InputButton.js"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export enum PickerPosition {
 	TOP,

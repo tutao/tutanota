@@ -1,5 +1,5 @@
 import { Dialog } from "../../../../ui/base/Dialog"
-import { Keys } from "@tutao/app-env"
+
 import { MultiPageDialog } from "../../../../ui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { RecipientKeyVerificationRecoveryInfoPage } from "./dialogpages/RecipientKeyVerificationRecoveryInfoPage"
@@ -15,6 +15,7 @@ import { SenderKeyVerificationRecoverySuccessPage } from "./dialogpages/SenderKe
 import { SenderKeyVerificationRecoveryInfoPage } from "./dialogpages/SenderKeyVerificationRecoveryInfoPage"
 import { MultiRecipientsKeyVerificationRecoveryUserSelectionPage } from "./dialogpages/MultiRecipientsKeyVerificationRecoveryUserSelectionPage"
 import { windowFacade } from "../../misc/WindowFacade"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export enum MultiRecipientsKeyVerificationRecoveryDialogPages {
 	USER_SELECTION = "USER_SELECTION",

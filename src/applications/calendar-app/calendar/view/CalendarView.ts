@@ -24,7 +24,6 @@ import {
 	isAndroidApp,
 	isApp,
 	isDesktop,
-	Keys,
 	ProgrammingError,
 	reverse,
 	ShareCapability,
@@ -119,6 +118,7 @@ import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type GroupColors = Map<Id, string>
 

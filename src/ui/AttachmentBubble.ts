@@ -6,7 +6,6 @@ import { formatStorageSize } from "./utils/Formatter.js"
 import { defer, DeferredObject, noOp, Thunk } from "../platform-kit/utils"
 import { modal, ModalComponent } from "./base/Modal.js"
 import { focusNext, focusPrevious, Shortcut } from "./utils/KeyManager.js"
-import { Keys } from "../platform-kit/app-env"
 import { px } from "./size.js"
 import { AllIcons, Icon } from "./base/Icon.js"
 import { theme } from "./theme.js"
@@ -19,6 +18,7 @@ import { lang } from "./utils/LanguageViewModel.js"
 import { PosRect } from "./utils/PosRect"
 import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kit/utils/FileConstants"
+import { Keys } from "./KeyboardKeys"
 
 export enum AttachmentType {
 	GENERIC,

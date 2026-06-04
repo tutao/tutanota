@@ -43,7 +43,6 @@ import {
 	isBrowser,
 	isDesktop,
 	isIOSApp,
-	Keys,
 	MailAuthenticationStatus,
 	TimeConstants,
 	UNDO_SEND_TIMEOUT_SECONDS,
@@ -131,6 +130,7 @@ import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 // Interval where we save drafts locally.
 //

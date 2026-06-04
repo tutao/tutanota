@@ -2,7 +2,7 @@ import { component_size, font_size, px } from "../../../../ui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import { assertMainOrNode, CancelledError, FeatureType, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, CancelledError, FeatureType } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
@@ -35,6 +35,7 @@ import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { File, Mail } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
 import { createEmailSenderListElement } from "@tutao/entities/sys"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

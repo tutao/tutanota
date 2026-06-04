@@ -4,11 +4,11 @@ import { LegacyTextField } from "../../../../ui/base/LegacyTextField"
 import { modal } from "../../../../ui/base/Modal"
 import { isKeyPressed, Shortcut } from "../../../../ui/utils/KeyManager"
 import { lastIndex } from "../../../../platform-kit/utils"
-import { Keys } from "../../../../platform-kit/app-env"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { theme } from "../../../../ui/theme"
 import { boxShadowHigh } from "../../../../ui/main-styles"
 import { QuickAction, QuickActionsModel } from "./QuickActionsModel"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 interface Attrs {
 	runAction: (action: QuickAction) => unknown

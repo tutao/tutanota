@@ -39,7 +39,7 @@ declare type NativeRequestType = "ipc" | "facade"
 /** Requests from native to web */
 declare type JsRequestType = "ipc"
 
-declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
+declare type EnvMode = Mode
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
 /**

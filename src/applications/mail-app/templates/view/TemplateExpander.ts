@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { component_size, px } from "../../../../ui/size"
-import { Keys } from "../../../../platform-kit/app-env"
 import { TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
@@ -8,6 +7,7 @@ import { memoized } from "../../../../platform-kit/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { theme } from "../../../../ui/theme.js"
 import { EmailTemplate } from "@tutao/entities/tutanota"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.

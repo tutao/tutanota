@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, FeatureType, isApp, isBrowser, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { getElementId, getIds, isSameId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -120,6 +120,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

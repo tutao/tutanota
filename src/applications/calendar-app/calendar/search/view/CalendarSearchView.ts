@@ -32,7 +32,7 @@ import {
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
-import { assertMainOrNode, FeatureType, isAndroidApp, Keys, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
+import { assertMainOrNode, FeatureType, isAndroidApp, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils.js"
@@ -58,6 +58,7 @@ import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog
 import { CalendarInfo } from "../../model/CalendarModel"
 import { windowFacade } from "../../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../gui/HeaderButtons"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

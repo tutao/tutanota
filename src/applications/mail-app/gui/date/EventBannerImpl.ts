@@ -38,8 +38,9 @@ import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, IcsCalendarEvent, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { Keys, ProgrammingError, TabIndex, TimeConstants } from "../../../../platform-kit/app-env"
+import { ProgrammingError, TabIndex, TimeConstants } from "../../../../platform-kit/app-env"
 import { clone, GENERATED_MIN_ID } from "../../../../platform-kit/meta"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData

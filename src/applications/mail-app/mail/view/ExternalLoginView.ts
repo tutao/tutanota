@@ -24,8 +24,9 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
-import { assertMainOrNode, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

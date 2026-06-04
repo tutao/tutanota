@@ -7,7 +7,7 @@ import { component_size, size } from "../../../../ui/size.js"
 import { AllIcons, Icon, IconSize } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme.js"
-import { Keys, TabIndex } from "../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../platform-kit/app-env"
 import { getElementId } from "../../../../platform-kit/meta"
 import { getLabelColor } from "../../../../ui/base/Label.js"
 import { LabelState } from "../model/MailModel.js"
@@ -18,6 +18,7 @@ import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { MailSet } from "@tutao/entities/tutanota"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 /**
  * Popup that displays assigned labels and allows changing them

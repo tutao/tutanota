@@ -7,7 +7,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/I
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { RecipientButton } from "../../../../ui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import { isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
+import { isAndroidApp, isDesktop, isIOSApp, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
 import { Icon, progressIcon } from "../../../../ui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../../ui/utils/Formatter.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
@@ -35,6 +35,7 @@ import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import { File } from "@tutao/entities/tutanota"
 import { InboxRuleType, NewsletterBannerRule } from "../../../../entities/tutanota/Utils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

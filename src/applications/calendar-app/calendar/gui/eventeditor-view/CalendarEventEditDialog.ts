@@ -9,7 +9,7 @@
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../../ui/base/Button.js"
-import { Keys, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
+import { ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertNotNull, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
@@ -28,6 +28,7 @@ import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
 import { PosRect } from "../../../../../ui/utils/PosRect"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 const enum ConfirmationResult {
 	Cancel,

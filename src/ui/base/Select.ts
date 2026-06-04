@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../size.js"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { focusNext, focusPrevious, isKeyPressed, keyManager, Shortcut, ShortcutType } from "../utils/KeyManager.js"
 import { DomRectReadOnlyPolyfilled } from "./Dropdown.js"
 import { lang } from "../utils/LanguageViewModel.js"
@@ -15,6 +15,7 @@ import { animations, opacity, transform, TransformEnum } from "../animation/Anim
 import { ease } from "../animation/Easing.js"
 import { BaseButton } from "./buttons/BaseButton.js"
 import { Icons } from "./icons/Icons"
+import { Keys } from "../KeyboardKeys"
 
 /**
  * **GENERIC** Interface to declare everything that is important to use at the select option

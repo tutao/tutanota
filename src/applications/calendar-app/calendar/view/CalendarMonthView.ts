@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { layout_size, px, size } from "../../../../ui/size"
-import { EventTextTimeOption, isAppleDevice, isIOSApp, Keys, WeekStart } from "../../../../platform-kit/app-env"
+import { EventTextTimeOption, isAppleDevice, isIOSApp, WeekStart } from "../../../../platform-kit/app-env"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -45,6 +45,7 @@ import { isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

@@ -18,7 +18,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { Keys, OperationStatus, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { OperationStatus, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
@@ -51,6 +51,7 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs

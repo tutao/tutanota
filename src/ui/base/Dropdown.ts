@@ -6,7 +6,7 @@ import { component_size, px } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../utils/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
-import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
+import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import { $Promisable, assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "../../platform-kit/utils"
 import { pureComponent } from "./PureComponent"
@@ -21,6 +21,7 @@ import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 
 import { PosRect } from "../utils/PosRect"
+import { Keys } from "../KeyboardKeys"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {

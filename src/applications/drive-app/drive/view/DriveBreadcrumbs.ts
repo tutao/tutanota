@@ -2,7 +2,6 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { getElementId, getListId } from "../../../../platform-kit/meta"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "../../../../platform-kit/app-env"
 import { Dropdown } from "../../../../ui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../../ui/base/buttons/BaseButton"
 import { theme } from "../../../../ui/theme"
@@ -12,6 +11,7 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { modal } from "../../../../ui/base/Modal"
 import { DriveFolder } from "@tutao/entities/drive"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null

@@ -1,4 +1,4 @@
-import { assertMainOrNode, isWebClient, Keys } from "@tutao/app-env"
+import { assertMainOrNode, isWebClient } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
@@ -24,6 +24,7 @@ import { CacheMode } from "../../../platform-kit/network/EntityRestClient"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

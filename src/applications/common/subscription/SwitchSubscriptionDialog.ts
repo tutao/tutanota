@@ -17,7 +17,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, InvoiceData, isIOSApp, Keys, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, InvoiceData, isIOSApp, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -54,6 +54,7 @@ import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { Keys } from "../../../ui/KeyboardKeys"
 import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 
 /**

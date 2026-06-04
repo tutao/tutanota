@@ -6,7 +6,7 @@ import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import type Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { Keys, ShareCapability } from "../../../../platform-kit/app-env"
+import { ShareCapability } from "../../../../platform-kit/app-env"
 import { TemplatePopupResultRow } from "./TemplatePopupResultRow.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { TemplateExpander } from "./TemplateExpander.js"
@@ -32,6 +32,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

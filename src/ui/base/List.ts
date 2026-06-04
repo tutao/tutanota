@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { createResizeObserver, debounce, memoized, numberRange } from "../../platform-kit/utils"
 import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys, ProgrammingError, TabIndex } from "../../platform-kit/app-env"
+import { ProgrammingError, TabIndex } from "../../platform-kit/app-env"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
@@ -11,6 +11,7 @@ import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
 import { theme, ThemeId } from "../theme.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { styles } from "../styles.js"
+import { Keys } from "../KeyboardKeys"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>
