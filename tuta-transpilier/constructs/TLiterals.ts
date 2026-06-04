@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
-import { BooleanLiteral, NumericLiteral, StringLiteral } from "ts-morph"
+import { NumericLiteral, StringLiteral } from "ts-morph"
 
 export class TNumericLiteral extends TConstruct {
 	private value: number
@@ -35,18 +35,5 @@ export class TStringLiteral extends TConstruct {
 
 	generateKotlin(): ConstructOut {
 		return '"' + this.value + '"'
-	}
-}
-
-export class TBooleanLiteral extends TConstruct {
-	private value: boolean
-	constructor(literal: BooleanLiteral) {
-		super()
-		this.value = literal.getLiteralValue()
-	}
-
-	generateKotlin(): ConstructOut {
-		if (this.value) return "true"
-		else return "false"
 	}
 }

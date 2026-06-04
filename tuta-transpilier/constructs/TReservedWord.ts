@@ -28,14 +28,18 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.LessThanToken]: { kotlin: null, swift: null },
 	[SyntaxKind.ExclamationToken]: { kotlin: null, swift: null },
 	[SyntaxKind.PlusEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.ThrowKeyword]: { kotlin: "throw", swift: "throw" },
+	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },
+	[SyntaxKind.FalseKeyword]: { kotlin: "false", swift: "" },
+	[SyntaxKind.TrueKeyword]: { kotlin: "", swift: "" },
 } as const
 
-export class TOperatorToken extends TConstruct {
+export class TReservedWord extends TConstruct {
 	private readonly operator: KnownOperator
 	constructor(symbolNode: TsNode) {
 		super()
 		const nodeKind = symbolNode.getKind()
-		Assert.equal(TOperatorToken.isOperatorToken(nodeKind), true, "Non-operator node passed")
+		Assert.equal(TReservedWord.isReservedWord(nodeKind), true, "Non-operator node passed")
 
 		const nodeRawText = symbolNode.getText(false)
 		const kotlin = MAPPED_TOKENS[nodeKind].kotlin ?? nodeRawText
@@ -43,7 +47,7 @@ export class TOperatorToken extends TConstruct {
 		this.operator = { kotlin, swift }
 	}
 
-	static isOperatorToken(nodeKind: SyntaxKind): boolean {
+	static isReservedWord(nodeKind: SyntaxKind): boolean {
 		return MAPPED_TOKENS[nodeKind] != null
 	}
 

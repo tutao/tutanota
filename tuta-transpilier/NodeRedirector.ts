@@ -11,7 +11,6 @@ import {
 	EnumDeclaration,
 	ExportDeclaration,
 	ExpressionStatement,
-	FalseLiteral,
 	FunctionDeclaration,
 	Identifier,
 	IfStatement,
@@ -25,7 +24,7 @@ import {
 	ReturnStatement,
 	StringLiteral,
 	SuperExpression,
-	TrueLiteral,
+	ThrowStatement,
 	ts,
 	TypeAliasDeclaration,
 	VariableStatement,
@@ -45,14 +44,13 @@ import * as Assert from "node:assert"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TReturnKeyword } from "./constructs/TKeywords"
 import { TIdentitider } from "./constructs/TIdentitider"
-import { TBooleanLiteral, TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
-import { TOperatorToken } from "./constructs/TOperatorToken"
+import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
+import { TReservedWord } from "./constructs/TReservedWord"
 import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
 import { TArrayLiteral } from "./constructs/TArrayLiteral"
 import { IgnorableError } from "./errors/IgnorableError"
 import { TPropAccess } from "./constructs/TPropAccess"
-import { TNull } from "./constructs/TNull"
 import { TBlock } from "./constructs/TBlock"
 import { TSuperKeyword } from "./constructs/TSuperKeyword"
 import SyntaxKind = ts.SyntaxKind
@@ -121,8 +119,8 @@ export class NodeRedirector {
 			return new TNumericLiteral(typedNode)
 		} else if (typedNode instanceof StringLiteral) {
 			return new TStringLiteral(typedNode)
-		} else if (TOperatorToken.isOperatorToken(nodeKind)) {
-			return new TOperatorToken(typedNode)
+		} else if (TReservedWord.isReservedWord(nodeKind)) {
+			return new TReservedWord(typedNode)
 		} else if (typedNode instanceof ArrayLiteralExpression) {
 			return new TArrayLiteral(typedNode)
 		} else if (typedNode instanceof ParenthesizedExpression) {
@@ -130,9 +128,9 @@ export class NodeRedirector {
 			const [expression, paranClose] = exprAndParanClose
 			const expressionConstructs = expression.forEachChildAsArray().map((ex) => NodeRedirector.redirectNode(ex))
 			return new TConstructMultiple<TConstruct>(
-				new TOperatorToken(paranOpen),
+				new TReservedWord(paranOpen),
 				new TConstructMultiple(...expressionConstructs),
-				new TOperatorToken(paranClose),
+				new TReservedWord(paranClose),
 			).withSeparator("")
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
@@ -143,17 +141,17 @@ export class NodeRedirector {
 		} else if (typedNode instanceof PrefixUnaryExpression) {
 			const [operator, expression, ...rest] = typedNode.getChildren()
 			Assert.equal(rest.length, 0, "Ahh! too much token")
-			return new TConstructMultiple(new TOperatorToken(operator), NodeRedirector.redirectNode(expression))
+			return new TConstructMultiple(new TReservedWord(operator), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof AsExpression) {
 			Assert.equal(typedNode.getChildCount(), 3, "Expected 3 token in AsExpression")
 			const asKeyword = typedNode.getChildAtIndex(1)
 			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
 			const targetType = NodeRedirector.redirectNode(typedNode.getTypeNode())
-			return new TConstructMultiple(expression, new TOperatorToken(asKeyword), targetType).withSeparator(" ")
-		} else if (typedNode instanceof TrueLiteral || typedNode instanceof FalseLiteral) {
-			return new TBooleanLiteral(typedNode)
-		} else if (TNull.isNull(node)) {
-			return new TNull(node)
+			return new TConstructMultiple(expression, new TReservedWord(asKeyword), targetType).withSeparator(" ")
+		} else if (typedNode instanceof ThrowStatement) {
+			Assert.equal(typedNode.getChildCount(), 2, "Expected only two child for throw")
+			const [throwKeyword, thrownObj] = typedNode.getChildren()
+			return new TConstructMultiple(new TReservedWord(throwKeyword), NodeRedirector.redirectNode(thrownObj)).withSeparator(" ")
 		} else {
 			return new TNotSupported(node)
 		}
