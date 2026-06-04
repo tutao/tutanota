@@ -10,6 +10,7 @@ const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = O
 	String: { kotlin: "String", swift: "" },
 	Void: { kotlin: "Unit", swift: "" },
 	Record: { kotlin: "Map", swift: "" },
+	RegExp: { kotlin: "Regex", swift: "" },
 })
 
 export class TType extends TConstruct {

@@ -21,6 +21,7 @@ import {
 	ParenthesizedExpression,
 	PrefixUnaryExpression,
 	PropertyAccessExpression,
+	RegularExpressionLiteral,
 	ReturnStatement,
 	StringLiteral,
 	SuperExpression,
@@ -56,6 +57,7 @@ import { TBlock } from "./constructs/TBlock"
 import { TSuperKeyword } from "./constructs/TSuperKeyword"
 import { TType } from "./constructs/TType"
 import { TAsExpr } from "./constructs/TAsExpr"
+import { TRegexLiteral } from "./constructs/TRegexLiteral"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -128,6 +130,8 @@ export class NodeRedirector {
 			return new TReservedWord(typedNode)
 		} else if (typedNode instanceof ArrayLiteralExpression) {
 			return new TArrayLiteral(typedNode)
+		} else if (typedNode instanceof RegularExpressionLiteral) {
+			return new TRegexLiteral(typedNode)
 		} else if (typedNode instanceof ParenthesizedExpression) {
 			const [paranOpen, ...exprAndParanClose] = typedNode.getChildren()
 			const [expression, paranClose] = exprAndParanClose

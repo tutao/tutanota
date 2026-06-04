@@ -32,6 +32,7 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },
 	[SyntaxKind.FalseKeyword]: { kotlin: "false", swift: "" },
 	[SyntaxKind.TrueKeyword]: { kotlin: "", swift: "" },
+	[SyntaxKind.InstanceOfKeyword]: { kotlin: "is", swift: "" },
 } as const
 
 export class TReservedWord extends TConstruct {
