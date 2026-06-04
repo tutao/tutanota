@@ -8,6 +8,7 @@ import { InstanceSessionKey } from "@tutao/entities/sys"
 export class InstanceSessionKeysCache {
 	// string representation of the Id | IdTuple of the instance with the bucket key -> InstanceSessionKeys for the main and the child instances
 	private readonly cache: Map<string, Array<InstanceSessionKey>> = new Map<string, Array<InstanceSessionKey>>()
+
 	constructor() {}
 
 	/**
@@ -32,6 +33,6 @@ export class InstanceSessionKeysCache {
 	}
 
 	private makeLookupKey(mainInstance: Entity): string {
-		return assertNotNull(mainInstance["_id"]).toString()
+		return assertNotNull(mainInstance["_id"] ?? null).toString()
 	}
 }
