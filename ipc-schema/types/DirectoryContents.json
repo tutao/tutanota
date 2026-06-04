@@ -1,0 +1,10 @@
+{
+	"name": "DirectoryContents",
+	"type": "struct",
+	"fields": {
+		"name": "string",
+		"path": "string",
+		"files": "List<string>",
+		"folders": "List<string>"
+	}
+}

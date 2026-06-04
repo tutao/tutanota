@@ -3,7 +3,6 @@
 import { MobilePaymentResult } from "../types/MobilePaymentResult"
 import { MobilePlanPrice } from "../types/MobilePlanPrice"
 import { MobilePaymentSubscriptionOwnership } from "../types/MobilePaymentSubscriptionOwnership"
-
 /**
  * Operations for handling mobile payments.
  */

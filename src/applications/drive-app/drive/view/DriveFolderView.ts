@@ -5,7 +5,7 @@ import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { px, size } from "../../../../ui/size"
-import { assertNotNull, isEmpty } from "../../../../platform-kit/utils"
+import { assertNotNull, isEmpty, partition } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
@@ -27,10 +27,11 @@ export interface DriveFolderViewAttrs {
 	parents: readonly DriveFolder[]
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
-	onDropFiles: (files: File[]) => unknown
+	onDropFiles: (files: File[], folders: FileSystemDirectoryEntry[]) => unknown
 	loadParents: () => Promise<DriveFolder[]>
-	onNewFile: (event: MouseEvent, dom: HTMLElement) => unknown
-	onNewFolder: () => unknown
+	onUploadFiles: (event: MouseEvent, dom: HTMLElement) => unknown
+	onCreateFolder: () => unknown
+	onUploadFolders: (event: MouseEvent, dom: HTMLElement) => unknown
 	fileActions: FileActions
 	onMove: (items: FolderItemId[], into: FolderFolderItem) => unknown
 	sortOrder: SortingPreference
@@ -59,8 +60,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			selectionEvents,
 			listState,
 			loadParents,
-			onNewFile,
-			onNewFolder,
+			onUploadFiles,
+			onCreateFolder,
+			onUploadFolders,
 			fileActions,
 			onMove,
 			sortOrder,
@@ -97,9 +99,11 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					this.draggedOver = false
 
 					if (canDropFilesToFolder(currentFolder) && event.dataTransfer) {
-						// We need some fancier code to read the directories.
-						const definitelyFileItems = Array.from(event.dataTransfer.items).filter((item) => item.webkitGetAsEntry()?.isFile)
-						onDropFiles(definitelyFileItems.map((item) => assertNotNull(item.getAsFile())))
+						const [files, folder] = partition(Array.from(event.dataTransfer.items), (item) => item.webkitGetAsEntry()?.isFile ?? false)
+						onDropFiles(
+							files.map((item) => assertNotNull(item.getAsFile())),
+							folder.map((item) => item.webkitGetAsEntry() as FileSystemDirectoryEntry),
+						)
 					}
 				},
 				ondragleave: (event: DragEvent) => {
@@ -111,7 +115,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				oncontextmenu: (e: MouseEvent) => {
 					if (!isMobileDriveLayout()) {
 						e.preventDefault()
-						const dropdown = new Dropdown(() => newItemActions({ onNewFile, onNewFolder }), 300)
+						const dropdown = new Dropdown(() => newItemActions({ onUploadFiles, onCreateFolder, onUploadFolders }), 300)
 						dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 						modal.displayUnique(dropdown, false)
 					}

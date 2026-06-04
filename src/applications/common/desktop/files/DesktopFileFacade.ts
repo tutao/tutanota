@@ -1,6 +1,13 @@
 import { default as stream, Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
-import { CommonNativeFacade, DownloadTaskResponse, FileFacade, IpcClientRect, UploadTaskResponse } from "@tutao/native-bridge/generatedIpc/types"
+import {
+	CommonNativeFacade,
+	DirectoryContents,
+	DownloadTaskResponse,
+	FileFacade,
+	IpcClientRect,
+	UploadTaskResponse,
+} from "@tutao/native-bridge/generatedIpc/types"
 import { FileUri } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import path from "node:path"
@@ -395,6 +402,19 @@ export class DesktopFileFacade implements FileFacade {
 			}
 		} catch (e) {
 			return null
+		}
+	}
+
+	async readDirectory(filePath: string): Promise<DirectoryContents> {
+		const children = await this.fs.promises.readdir(filePath, { withFileTypes: true })
+		const files = children.filter((f) => f.isFile()).map((f) => this.path.join(filePath, f.name))
+		const folders = children.filter((f) => f.isDirectory()).map((f) => this.path.join(filePath, f.name))
+		const name = this.path.basename(filePath)
+		return {
+			name,
+			files: files,
+			path: filePath,
+			folders: folders,
 		}
 	}
 

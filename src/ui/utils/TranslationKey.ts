@@ -2301,3 +2301,4 @@ export type TranslationKeyType =
 	| "selectAllFiles_action"
 	| "clearFileSelection_action"
 	| "emptyString_msg"
+	| "uploadFolders_action"

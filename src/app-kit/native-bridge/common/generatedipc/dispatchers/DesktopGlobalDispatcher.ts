@@ -1,36 +1,34 @@
 /* generated file, don't edit. */
 
-import {
-	CommonSystemFacade,
-	DesktopSystemFacade,
-	ExportFacade,
-	ExternalCalendarFacade,
-	FileFacade,
-	InterWindowEventFacade,
-	NativeCredentialsFacade,
-	NativeCryptoFacade,
-	NativeMailImportFacade,
-	NativePushFacade,
-	SearchTextInAppFacade,
-	SettingsFacade,
-	SqlCipherFacade,
-	ThemeFacade,
-	WebAuthnFacade,
-} from "@tutao/native-bridge/generatedIpc/types"
+import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CommonSystemFacadeReceiveDispatcher } from "./CommonSystemFacadeReceiveDispatcher.js"
+import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopSystemFacadeReceiveDispatcher } from "./DesktopSystemFacadeReceiveDispatcher.js"
+import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ExportFacadeReceiveDispatcher } from "./ExportFacadeReceiveDispatcher.js"
+import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ExternalCalendarFacadeReceiveDispatcher } from "./ExternalCalendarFacadeReceiveDispatcher.js"
+import { FileFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
+import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
+import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeCryptoFacadeReceiveDispatcher } from "./NativeCryptoFacadeReceiveDispatcher.js"
+import { NativeMailImportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeMailImportFacadeReceiveDispatcher } from "./NativeMailImportFacadeReceiveDispatcher.js"
+import { NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativePushFacadeReceiveDispatcher } from "./NativePushFacadeReceiveDispatcher.js"
+import { SearchTextInAppFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { SearchTextInAppFacadeReceiveDispatcher } from "./SearchTextInAppFacadeReceiveDispatcher.js"
+import { SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { SettingsFacadeReceiveDispatcher } from "./SettingsFacadeReceiveDispatcher.js"
+import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { SqlCipherFacadeReceiveDispatcher } from "./SqlCipherFacadeReceiveDispatcher.js"
+import { ThemeFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ThemeFacadeReceiveDispatcher } from "./ThemeFacadeReceiveDispatcher.js"
+import { WebAuthnFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { WebAuthnFacadeReceiveDispatcher } from "./WebAuthnFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
