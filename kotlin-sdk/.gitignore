@@ -8,3 +8,4 @@ tmp/
 .settings/
 .idea
 src/main/kotlin/platformKit
+src/main/kotlin/types

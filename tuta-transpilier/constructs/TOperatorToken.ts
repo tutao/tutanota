@@ -8,6 +8,7 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.PlusToken]: { kotlin: null, swift: null },
 	[SyntaxKind.MinusToken]: { kotlin: null, swift: null },
 	[SyntaxKind.AmpersandToken]: { kotlin: null, swift: null },
+	[SyntaxKind.AsKeyword]: { kotlin: "as", swift: "as?" },
 	[SyntaxKind.AmpersandAmpersandToken]: { kotlin: null, swift: null },
 	[SyntaxKind.EqualsEqualsEqualsToken]: { kotlin: "==", swift: null },
 	[SyntaxKind.ExclamationEqualsEqualsToken]: { kotlin: "!=", swift: null },

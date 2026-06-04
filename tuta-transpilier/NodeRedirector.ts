@@ -2,6 +2,7 @@ import { TConstruct, TConstructMultiple, TsNode } from "./constructs/TConstruct"
 import {
 	ArrayLiteralExpression,
 	ArrowFunction,
+	AsExpression,
 	BinaryExpression,
 	Block,
 	CallExpression,
@@ -24,8 +25,8 @@ import {
 	ReturnStatement,
 	StringLiteral,
 	SuperExpression,
-	SyntaxKind,
 	TrueLiteral,
+	ts,
 	TypeAliasDeclaration,
 	VariableStatement,
 } from "ts-morph"
@@ -54,6 +55,7 @@ import { TPropAccess } from "./constructs/TPropAccess"
 import { TNull } from "./constructs/TNull"
 import { TBlock } from "./constructs/TBlock"
 import { TSuperKeyword } from "./constructs/TSuperKeyword"
+import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
 	private static redirectNodeInner(node: TsNode): TConstruct {
@@ -112,7 +114,9 @@ export class NodeRedirector {
 				return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
 			}
 		} else if (typedNode instanceof Identifier) {
-			return new TIdentitider(typedNode.getSymbol().getName())
+			const symbol = typedNode.getSymbol()
+			Assert.notEqual(symbol, null, "Symbol for an identifier is null? is this defined in global .d.ts. Dont do that")
+			return new TIdentitider(symbol.getName())
 		} else if (typedNode instanceof NumericLiteral) {
 			return new TNumericLiteral(typedNode)
 		} else if (typedNode instanceof StringLiteral) {
@@ -140,6 +144,12 @@ export class NodeRedirector {
 			const [operator, expression, ...rest] = typedNode.getChildren()
 			Assert.equal(rest.length, 0, "Ahh! too much token")
 			return new TConstructMultiple(new TOperatorToken(operator), NodeRedirector.redirectNode(expression))
+		} else if (typedNode instanceof AsExpression) {
+			Assert.equal(typedNode.getChildCount(), 3, "Expected 3 token in AsExpression")
+			const asKeyword = typedNode.getChildAtIndex(1)
+			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
+			const targetType = NodeRedirector.redirectNode(typedNode.getTypeNode())
+			return new TConstructMultiple(expression, new TOperatorToken(asKeyword), targetType).withSeparator(" ")
 		} else if (typedNode instanceof TrueLiteral || typedNode instanceof FalseLiteral) {
 			return new TBooleanLiteral(typedNode)
 		} else if (TNull.isNull(node)) {
@@ -157,7 +167,14 @@ export class NodeRedirector {
 				console.log("Error skipped: " + e.message)
 				return new TEmpty()
 			} else {
-				throw e
+				console.error("===========================")
+				console.error("Uncaught error: " + e)
+				console.error(
+					"Error happened while processing file: " + node.getSourceFile().getFilePath() + `:${node.getStartLineNumber()}:${node.getStartLinePos()}`,
+				)
+				console.error("Token that is problamatic: " + node.getText())
+				console.error("It's parent token: " + node.getParent().getText())
+				process.exit(1)
 			}
 		}
 	}
