@@ -13,6 +13,7 @@ import { ArchiveDataType } from "../../../src/entities/sys/Utils"
 import { TransferId } from "../../../src/entities/drive/Utils"
 import { BlobTypeRef } from "@tutao/entities/sys"
 import { FileReference } from "../../../src/entities/tutanota/Utils"
+import { buildDirectoryStructure } from "../../../src/applications/common/file/FileController"
 
 const { anything, argThat } = matchers
 
@@ -152,6 +153,107 @@ o.spec("FileControllerTest", function () {
 				id: file._id,
 				cid: undefined,
 			})
+		})
+	})
+
+	o.spec("buildDirectoryStructure", function () {
+		o.test("it returns one folder for flat structure", function () {
+			const file1 = { name: "file1", webkitRelativePath: "A/file1" } as File
+			const file2 = { name: "file2", webkitRelativePath: "A/file2" } as File
+			const result = buildDirectoryStructure([file1, file2])
+			o(result).deepEquals([
+				{
+					name: "A",
+					folders: [],
+					files: [
+						{ _type: "WebFile", file: file1 },
+						{ _type: "WebFile", file: file2 },
+					],
+				},
+			])
+		})
+		o.test("it returns nested folders for 1 level nested structure", function () {
+			const file1 = { name: "file1", webkitRelativePath: "A/file1" } as File
+			const file2 = { name: "file2", webkitRelativePath: "A/file2" } as File
+			const file3 = { name: "file3", webkitRelativePath: "A/B/file3" } as File
+			const result = buildDirectoryStructure([file1, file2, file3])
+			o(result).deepEquals([
+				{
+					name: "A",
+					folders: [{ name: "B", folders: [], files: [{ _type: "WebFile", file: file3 }] }],
+					files: [
+						{ _type: "WebFile", file: file1 },
+						{ _type: "WebFile", file: file2 },
+					],
+				},
+			])
+		})
+		o.test("it returns nested folder for 2 level nested structure", function () {
+			const file1 = { name: "file1", webkitRelativePath: "A/file1" } as File
+			const file2 = { name: "file2", webkitRelativePath: "A/file2" } as File
+			const file3 = { name: "file3", webkitRelativePath: "A/B/file3" } as File
+			const file4 = { name: "file4", webkitRelativePath: "A/B/C/file4" } as File
+			const result = buildDirectoryStructure([file1, file2, file3, file4])
+			o(result).deepEquals([
+				{
+					name: "A",
+					folders: [
+						{
+							name: "B",
+							folders: [
+								{
+									name: "C",
+									folders: [],
+									files: [
+										{
+											_type: "WebFile",
+											file: file4,
+										},
+									],
+								},
+							],
+							files: [{ _type: "WebFile", file: file3 }],
+						},
+					],
+					files: [
+						{ _type: "WebFile", file: file1 },
+						{ _type: "WebFile", file: file2 },
+					],
+				},
+			])
+		})
+		o.test("it returns nested folders having a folder with no files in it", function () {
+			const file1 = { name: "file1", webkitRelativePath: "A/file1" } as File
+			const file2 = { name: "file2", webkitRelativePath: "A/file2" } as File
+			const file3 = { name: "file3", webkitRelativePath: "A/B/C/file3" } as File
+			const result = buildDirectoryStructure([file1, file2, file3])
+			o(result).deepEquals([
+				{
+					name: "A",
+					folders: [
+						{
+							name: "B",
+							folders: [
+								{
+									name: "C",
+									folders: [],
+									files: [
+										{
+											_type: "WebFile",
+											file: file3,
+										},
+									],
+								},
+							],
+							files: [],
+						},
+					],
+					files: [
+						{ _type: "WebFile", file: file1 },
+						{ _type: "WebFile", file: file2 },
+					],
+				},
+			])
 		})
 	})
 })

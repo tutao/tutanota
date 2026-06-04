@@ -135,4 +135,7 @@ public protocol FileFacade : Sendable {
 	func readDataFile(
 		_ filePath: String
 	) async throws -> DataFile?
+	func readDirectory(
+		_ filePath: String
+	) async throws -> DirectoryContents
 }

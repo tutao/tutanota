@@ -230,6 +230,7 @@ class DriveLocator implements CommonLocator {
 		const { DriveViewModel } = await import("./drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
 		const { DriveTransferController } = await import("./drive/view/DriveTransferController.js")
+		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 
 		const redraw = await this.redraw()
 		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
@@ -243,6 +244,7 @@ class DriveLocator implements CommonLocator {
 			this.logins,
 			this.userManagementFacade,
 			driveUploadStackModel,
+			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp) : null,
 			redraw,
 		)
 	})
