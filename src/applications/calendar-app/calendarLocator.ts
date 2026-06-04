@@ -698,7 +698,11 @@ class CalendarLocator implements CommonLocator {
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
-				new WebDesktopFacade(this.logins, async () => this.native, this.desktopSettingsFacade),
+				new WebDesktopFacade(
+					this.logins,
+					async () => this.native,
+					() => this.desktopSettingsFacade,
+				),
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
