@@ -247,7 +247,7 @@ export async function run({ integration, filter, regexp, exclude }: { integratio
 }
 
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { random } = await import("../../src/platform-kit/crypto")
+	const { random, EntropySource } = await import("../../src/platform-kit/crypto")
 	const { WorkerImpl } = await import("../../src/applications/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 
@@ -264,7 +264,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
 
-		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
@@ -317,7 +317,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	})
 	o.before(async function () {
 		// setup the Entropy for all testcases
-		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 	})
 
 	o.afterEach(function () {

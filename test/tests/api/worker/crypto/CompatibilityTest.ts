@@ -39,6 +39,10 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKey,
+	RsaKeyPair,
+	RsaPublicKey,
+	RsaX25519KeyPair,
+	RsaX25519PublicKey,
 	random,
 	Randomizer,
 	rsaDecrypt,
@@ -388,9 +392,9 @@ o.spec("CompatibilityTest", function () {
 			const cryptoWrapper = new CryptoWrapper()
 			const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 
-			let encryptionKeyPair: AsymmetricKeyPair
+			let encryptionKeyPair: PQKeyPairs | RsaX25519KeyPair | RsaKeyPair
 			const keyPairVersion = cryptoUtils.checkKeyVersionConstraints(td.keyPairVersion)
-			let encryptionPublicKey: PublicKey
+			let encryptionPublicKey: PQPublicKeys | RsaX25519PublicKey | RsaPublicKey
 
 			if (td.pubKyberKey) {
 				let keyPairType = KeyPairType.TUTA_CRYPT

@@ -4,6 +4,7 @@ import { EntropyDataChunk, EntropyFacade } from "../../../../src/platform-kit/ba
 import { matchers, object, when } from "testdouble"
 import { SchedulerMock } from "../../TestUtils.js"
 import { getFromMap, remove } from "../../../../src/platform-kit/utils"
+import { EntropySource } from "../../../../src/platform-kit/crypto"
 
 class FakeWindow {
 	listeners: Map<string, ((e: unknown) => unknown)[]> = new Map()
@@ -55,8 +56,8 @@ o.spec("EntropyCollector", function () {
 	let addedEntropy: EntropyDataChunk[][]
 	let fakeWindow: FakeWindow
 
-	const TIME_ENTROPY = { source: "time", entropy: 2, data: 3 } as const
-	const RANDOM_ENTROPY = { source: "random", entropy: 32, data: 32 } as const
+	const TIME_ENTROPY = { source: EntropySource.Time, entropy: 2, data: 3 } as const
+	const RANDOM_ENTROPY = { source: EntropySource.Random, entropy: 32, data: 32 } as const
 	const ENTROPY_SUFFIX = [
 		TIME_ENTROPY,
 		RANDOM_ENTROPY,
@@ -112,7 +113,7 @@ o.spec("EntropyCollector", function () {
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
 			{
-				source: "mouse",
+				source: EntropySource.Mouse,
 				entropy: 2,
 				data: 113,
 			},
@@ -148,7 +149,7 @@ o.spec("EntropyCollector", function () {
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
 			{
-				source: "mouse",
+				source: EntropySource.Mouse,
 				entropy: 2,
 				data: 435,
 			},
@@ -167,7 +168,7 @@ o.spec("EntropyCollector", function () {
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
 			{
-				source: "key",
+				source: EntropySource.Key,
 				entropy: 2,
 				data: 48,
 			},
@@ -191,7 +192,7 @@ o.spec("EntropyCollector", function () {
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
 			{
-				source: "touch",
+				source: EntropySource.Touch,
 				entropy: 2,
 				data: 7,
 			},
@@ -215,7 +216,7 @@ o.spec("EntropyCollector", function () {
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
 			{
-				source: "touch",
+				source: EntropySource.Touch,
 				entropy: 2,
 				data: 7,
 			},
@@ -237,9 +238,9 @@ o.spec("EntropyCollector", function () {
 
 		o(addedEntropy.length).equals(1)("added entropy")
 		o(addedEntropy[0]).deepEquals([
-			{ source: "accel", entropy: 2, data: 2 },
-			{ source: "time", entropy: 2, data: 3 },
-			{ source: "accel", entropy: 0, data: 90 },
+			{ source: EntropySource.Accel, entropy: 2, data: 2 },
+			{ source: EntropySource.Time, entropy: 2, data: 3 },
+			{ source: EntropySource.Accel, entropy: 0, data: 90 },
 			...ENTROPY_SUFFIX,
 		])
 	})
