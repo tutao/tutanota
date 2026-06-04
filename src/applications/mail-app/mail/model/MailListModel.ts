@@ -25,6 +25,8 @@ import {
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
+import { mailLocator } from "../../mailLocator"
+import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
 
 assertMainOrNode()
 
@@ -307,7 +309,14 @@ export class MailListModel implements MailSetListModel {
 		let complete = false
 
 		try {
-			const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(startingId), elementIdPart(startingId), count, true)
+			const mailSetEntries = await this.entityClient.loadRange(
+				MailSetEntryTypeRef,
+				listIdPart(startingId),
+				elementIdPart(startingId),
+				count,
+				true,
+				!mailLocator.syncTracker.isSyncDone ? { cacheMode: CacheMode.Direct } : undefined,
+			)
 
 			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
 			complete = mailSetEntries.length < count

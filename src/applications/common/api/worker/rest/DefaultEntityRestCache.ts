@@ -785,6 +785,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 * @return true if the cache can be used, false if a direct network request should be performed
 	 */
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
+		if (opts != null) {
+			const behavior = getCacheModeBehavior(opts.cacheMode)
+			if (!behavior.writesToCache && !behavior.readsFromCache) {
+				return false
+			}
+		}
+
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
 		if (!isTest() && !this.storage.isInitialized()) {
