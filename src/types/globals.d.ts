@@ -84,19 +84,7 @@ type DomainConfig = {
 /** A map from hostname to parameters for that domain. */
 type DomainConfigMap = Record<string, DomainConfig>
 
-type Env = {
-	staticUrl?: string // if null the url from the browser is used
-	mode: EnvMode
-	platformId: PlatformId | null
-	dist: boolean
-	versionNumber: string
-	timeout: number
-	domainConfigs: DomainConfigMap
-	networkDebugging: boolean
-	clientName?: string
-}
-
-declare var env: Env
+declare var env: EnvType
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }
 
