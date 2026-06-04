@@ -27,7 +27,7 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"

@@ -2,6 +2,7 @@ import {
 	AppType,
 	assertMainOrNodeBoot,
 	bootFinished,
+	DomainConfig,
 	FeatureType,
 	isAdminClient,
 	isApp,
