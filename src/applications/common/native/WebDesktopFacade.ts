@@ -2,7 +2,7 @@ import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut, SettingsFacad
 import { Shortcut } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
-import { lazyAsync } from "@tutao/utils"
+import { lazy, lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
 
@@ -10,7 +10,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	constructor(
 		private logins: LoginController,
 		private nativeInterface: lazyAsync<NativeInterfaceMain>,
-		private settingsFacade: SettingsFacade,
+		private settingsFacade: lazy<SettingsFacade>,
 	) {}
 
 	print(): Promise<void> {
@@ -19,7 +19,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	async showSpellcheckDropdown(): Promise<void> {
-		await new SpellcheckLanguageDialog(this.settingsFacade).showSpellcheckLanguageDialog()
+		await new SpellcheckLanguageDialog(this.settingsFacade()).showSpellcheckLanguageDialog()
 	}
 
 	async applySearchResultToOverlay(result: ElectronResult | null): Promise<void> {
