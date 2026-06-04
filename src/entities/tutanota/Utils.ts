@@ -425,6 +425,12 @@ export interface WebFile {
 	file: globalThis.File
 }
 
+export interface WebFolder {
+	readonly _type: "WebFolder"
+	name: string
+	children: (WebFile | WebFolder)[]
+}
+
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }

@@ -4,7 +4,7 @@ import { IpcClientRect } from "../types/IpcClientRect"
 import { UploadTaskResponse } from "../types/UploadTaskResponse"
 import { DownloadTaskResponse } from "../types/DownloadTaskResponse"
 import { DataFile } from "../types/DataFile"
-
+import { DirectoryContents } from "../types/DirectoryContents"
 /**
  * filesystem-related operations. none of the methods writing files to disk guarantee a fixed file name or location, except for putFileIntoDownloadsFolder.
  */
@@ -103,4 +103,6 @@ export interface FileFacade {
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */
 	readDataFile(filePath: string): Promise<DataFile | null>
+
+	readDirectory(filePath: string): Promise<DirectoryContents>
 }

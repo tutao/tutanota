@@ -1,6 +1,6 @@
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { assertMainOrNode, isApp } from "@tutao/app-env"
-import { assertNotNull, filterInt, neverNull, newPromise, promiseMap } from "@tutao/utils"
+import { assertNotNull, filterInt, isNotNull, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { deduplicateFilenames, sanitizeFilename } from "../../../ui/utils/FileUtils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
@@ -17,6 +17,7 @@ import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
+import { DiskFolder } from "../../drive-app/drive/view/DriveUtils"
 
 assertMainOrNode()
 
@@ -223,6 +224,44 @@ export function runFileChooser(allowMultiple: boolean, allowedExtensions?: Array
 	return promise
 }
 
+/**
+ * @param allowMultiple allow selecting multiple files
+ */
+export function runFolderChooser(allowMultiple: boolean): Promise<File[]> {
+	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
+	// remove the last file input
+	const fileInput = document.getElementById("hiddenFileChooser")
+	const body = neverNull(document.body)
+
+	if (fileInput) {
+		// remove the old one because it may contain a file already
+		body.removeChild(fileInput)
+	}
+
+	const newFileInput = document.createElement("input")
+	newFileInput.setAttribute("type", "file")
+	newFileInput.setAttribute("webkitdirectory", "true")
+
+	if (allowMultiple) {
+		newFileInput.setAttribute("multiple", "multiple")
+	}
+
+	newFileInput.setAttribute("id", "hiddenFileChooser")
+
+	newFileInput.style.display = "none"
+	const promise: Promise<File[]> = newPromise((resolve) => {
+		newFileInput.addEventListener("change", (e: Event) => {
+			console.log("input entries", newFileInput.webkitEntries)
+			resolve(newFileInput.files != null ? Array.from(newFileInput.files) : [])
+		})
+		newFileInput.addEventListener("cancel", () => resolve([]))
+	})
+	// the file input must be put into the dom, otherwise it does not work in IE
+	body.appendChild(newFileInput)
+	newFileInput.click()
+	return promise
+}
+
 export async function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
 	const files = await runFileChooser(allowMultiple, allowedExtensions)
 	return readLocalFiles(files).catch(async (e) => {
@@ -237,6 +276,36 @@ export async function showStandardsFileChooser(allowMultiple: boolean, allowedEx
 	return selectedFiles.map((f) => {
 		return { _type: "WebFile", file: f }
 	})
+}
+
+export async function showBrowserFolderChooser(allowMultiple: boolean): Promise<DiskFolder<WebFile>[]> {
+	const selectedFiles = await runFolderChooser(allowMultiple)
+	return buildDirectoryStructure(selectedFiles)
+}
+
+export function buildDirectoryStructure(filesWithRelativePaths: readonly File[]): DiskFolder<WebFile>[] {
+	const virtualRootFolder: DiskFolder<WebFile> = {
+		folders: [],
+		files: [],
+		name: "\0",
+	}
+	for (const file of filesWithRelativePaths) {
+		const pathComponents = file.webkitRelativePath.split("/")
+		pathComponents.pop() // remove the file name itself
+		let currentLevelFolder: DiskFolder<WebFile> = virtualRootFolder
+		for (const component of pathComponents) {
+			const matchingFolder = currentLevelFolder.folders.find((folder) => folder.name === component)
+			if (isNotNull(matchingFolder)) {
+				currentLevelFolder = matchingFolder
+			} else {
+				const newFolder: DiskFolder<WebFile> = { folders: [], files: [], name: component }
+				currentLevelFolder.folders.push(newFolder)
+				currentLevelFolder = newFolder
+			}
+		}
+		currentLevelFolder.files.push({ file: file, _type: "WebFile" })
+	}
+	return virtualRootFolder.folders
 }
 
 /**

@@ -50,6 +50,7 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { WebFile } from "../../../../entities/tutanota/Utils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -249,8 +250,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					const dropdown = new Dropdown(
 						() =>
 							newItemActions({
-								onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
-								onNewFolder: () => this.onNewFolder(),
+								onUploadFiles: (event, dom) => this.onPickFilesForUpload(dom.getBoundingClientRect()),
+								onUploadFolders: (event, dom) => this.onPickFoldersForUpload(dom.getBoundingClientRect()),
+								onCreateFolder: () => this.onCreateFolder(),
 							}),
 						300,
 					)
@@ -399,8 +401,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											createDropdown({
 												lazyButtons: () =>
 													newItemActions({
-														onNewFile: () => this.onNewFile(dom.getBoundingClientRect()),
-														onNewFolder: () => this.onNewFolder(),
+														onUploadFiles: () => this.onPickFilesForUpload(dom.getBoundingClientRect()),
+														onUploadFolders: () => this.onPickFoldersForUpload(dom.getBoundingClientRect()),
+														onCreateFolder: () => this.onCreateFolder(),
 													}),
 											})(ev, ev.target as HTMLElement)
 										},
@@ -512,8 +515,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(FabMenu, {
 			title: lang.getTranslation("newDriveItem_action"),
 			actions: newItemActions({
-				onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
-				onNewFolder: () => this.onNewFolder(),
+				onUploadFiles: (event, dom) => this.onPickFilesForUpload(dom.getBoundingClientRect()),
+				onUploadFolders: (event, dom) => this.onPickFoldersForUpload(dom.getBoundingClientRect()),
+				onCreateFolder: () => this.onCreateFolder(),
 			}),
 		} satisfies FabMenuAttrs)
 	}
@@ -559,8 +563,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									mainButtonAttrs: { icon: Icons.Plus, title: "newDriveItem_action" },
 									childAttrs: () =>
 										newItemActions({
-											onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
-											onNewFolder: () => this.onNewFolder(),
+											onUploadFiles: (event, dom) => this.onPickFilesForUpload(dom.getBoundingClientRect()),
+											onUploadFolders: (event, dom) => this.onPickFoldersForUpload(dom.getBoundingClientRect()),
+											onCreateFolder: () => this.onCreateFolder(),
 										}),
 								}),
 							),
@@ -575,12 +580,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
 		return m(DriveFolderView, {
 			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
-			onDropFiles: (files) => {
-				this.driveViewModel.uploadFiles(
-					files.map((f) => {
-						return { _type: "WebFile", file: f }
-					}),
-				)
+			onDropFiles: async (files, folderTransferItems) => {
+				this.driveViewModel.filesDropped(files, folderTransferItems)
 			},
 			currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 			parents: this.driveViewModel.parents,
@@ -616,12 +617,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				},
 			},
 			loadParents: () => this.driveViewModel.getMoreParents(),
-			onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
-			onNewFolder: () =>
+			onUploadFiles: (_event, dom) => this.onPickFilesForUpload(dom.getBoundingClientRect()),
+			onCreateFolder: () =>
 				showNewFolderDialog(
 					async (folderName) => this.driveViewModel.createNewFolder(folderName),
 					() => m.redraw(),
 				),
+			onUploadFolders: (_event, dom) => this.onPickFoldersForUpload(dom.getBoundingClientRect()),
 			fileActions: {
 				onOpenItem: (item) => {
 					if (item.type === "folder") {
@@ -700,12 +702,17 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		showRenameDialog(item, (newName) => this.driveViewModel.rename(item, newName))
 	}
 
-	async onNewFile(boundingRect: DOMRect): Promise<void> {
+	async onPickFilesForUpload(boundingRect: DOMRect): Promise<void> {
 		const files = await this.filePicker.pickFiles(boundingRect)
 		await this.driveViewModel.uploadFiles(files)
 	}
 
-	async onNewFolder(): Promise<void> {
+	private async onPickFoldersForUpload(boundingRect: DOMRect): Promise<void> {
+		const folders = await this.filePicker.pickFolders(boundingRect)
+		await this.driveViewModel.uploadFiles([], folders)
+	}
+
+	async onCreateFolder(): Promise<void> {
 		await showNewFolderDialog(
 			async (folderName) => this.driveViewModel.createNewFolder(folderName),
 			() => m.redraw(),
