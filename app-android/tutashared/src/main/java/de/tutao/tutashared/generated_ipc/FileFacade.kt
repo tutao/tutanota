@@ -138,4 +138,7 @@ interface FileFacade {
 	suspend fun readDataFile(
 		filePath: String,
 	): DataFile?
+	suspend fun readDirectory(
+		filePath: String,
+	): DirectoryContents
 }

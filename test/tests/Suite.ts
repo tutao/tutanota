@@ -240,6 +240,7 @@ import "./crypto/InstanceDecryptorTest.js"
 import "./crypto/ParsedCiphertextTest.js"
 import "./crypto/ValueDecryptorTest.js"
 import "./crypto/SubKeyProviderTest.js"
+import "./drive/DriveFilePickerTests.js"
 
 import * as td from "testdouble"
 import { Mode } from "../../src/platform-kit/app-env"

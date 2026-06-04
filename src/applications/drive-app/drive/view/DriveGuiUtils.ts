@@ -8,33 +8,48 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
+import { isBrowser, isDesktop } from "@tutao/app-env"
 
 export function newItemActions({
-	onNewFile,
-	onNewFolder,
+	onUploadFiles,
+	onCreateFolder,
+	onUploadFolders,
 }: {
-	onNewFile: (event: MouseEvent, dom: HTMLElement) => unknown
-	onNewFolder: (event: MouseEvent, dom: HTMLElement) => unknown
+	onUploadFiles: (event: MouseEvent, dom: HTMLElement) => unknown
+	onUploadFolders: (event: MouseEvent, dom: HTMLElement) => unknown
+	onCreateFolder: (event: MouseEvent, dom: HTMLElement) => unknown
 }): DropdownButtonAttrs[] {
-	return [
+	let newItemDropdown: DropdownButtonAttrs[] = []
+	newItemDropdown.push(
 		{
 			click: (event, dom) => {
-				onNewFolder(event, dom)
+				onCreateFolder(event, dom)
 			},
 			label: lang.getTranslation("createFolder_action"),
 			icon: Icons.FolderFilled,
 		},
 		{
 			click: (event, dom) => {
-				onNewFile(event, dom)
+				onUploadFiles(event, dom)
 			},
 			label: lang.getTranslation("uploadFile_action"),
 			icon: Icons.Upload,
 		},
-	]
+	)
+	if (isBrowser() || isDesktop()) {
+		newItemDropdown.push({
+			click: (event, dom) => {
+				onUploadFolders(event, dom)
+			},
+			label: lang.getTranslation("uploadFolders_action"),
+			icon: Icons.Upload,
+		})
+	}
+
+	return newItemDropdown
 }
 
-export async function showNewFolderDialog(createFolder: (folderName: string) => Promise<void>, updateUi: () => void): Promise<void> {
+export async function showNewFolderDialog(createFolder: (folderName: string) => Promise<DriveFolder>, updateUi: () => void): Promise<void> {
 	const defaultFolderName = lang.getTranslationText("untitledFolder_label")
 
 	Dialog.showProcessTextInputDialog(

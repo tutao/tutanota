@@ -24,6 +24,7 @@ import de.tutao.tutashared.getFileInfo
 import de.tutao.tutashared.getNonClobberingFileName
 import de.tutao.tutashared.ipc.DataFile
 import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.DirectoryContents
 import de.tutao.tutashared.ipc.DownloadTaskResponse
 import de.tutao.tutashared.ipc.FileFacade
 import de.tutao.tutashared.ipc.IpcClientRect
@@ -549,6 +550,10 @@ class AndroidFileFacade(
 		val mimeType = getMimeType(uri, context)
 
 		return DataFile(fileInfo.name, mimeType, bytes.wrap(), fileInfo.size.toInt())
+	}
+
+	override suspend fun readDirectory(filePath: String): DirectoryContents {
+		error("not implemented for this platform")
 	}
 
 	@Throws(IOException::class)

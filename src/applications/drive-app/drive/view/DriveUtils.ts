@@ -1,9 +1,10 @@
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
-import { partition } from "../../../../platform-kit/utils"
+import { assertNotNull, defer, isEmpty, isNotEmpty, partition, promiseMap } from "../../../../platform-kit/utils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { getElementId } from "../../../../platform-kit/meta"
+import { getElementId } from "@tutao/meta"
+import { WebFile } from "../../../../entities/tutanota/Utils"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -108,5 +109,99 @@ export function folderItemToId(item: FolderItem): FolderItemId {
 	return {
 		id: folderItemEntity(item)._id,
 		type: item.type,
+	}
+}
+
+export interface DiskFolder<FileType> {
+	// not present for root-level
+	entry?: FileSystemDirectoryEntry
+
+	name: string
+	files: FileType[]
+	folders: DiskFolder<FileType>[]
+}
+
+export async function childFileFromEntry(entry: FileSystemFileEntry): Promise<WebFile> {
+	const resolver = defer<globalThis.File>()
+	entry.file(
+		(fileResult) => {
+			resolver.resolve(fileResult)
+		},
+		(error) => {
+			throw error
+		},
+	)
+
+	const file = await resolver.promise
+	return { _type: "WebFile", file: file }
+}
+
+// assumes that files and folders passed in have the same parent
+export async function traverse<FileType>(
+	folders: FileSystemDirectoryEntry[],
+	resolveFileEntry: (fileEntry: FileSystemFileEntry) => Promise<FileType>,
+): Promise<DiskFolder<FileType>[]> {
+	const virtualRoot: DiskFolder<FileType> = {
+		name: "\0",
+		files: [],
+		folders: [],
+	}
+
+	for (const rootFolder of folders) {
+		await walkTree({ folder: rootFolder, parent: virtualRoot }, async ({ folder, parent }) => {
+			const childEntries = await readAllFolderEntries(folder)
+			const childFileEntries = childEntries.filter((e) => e.isFile) as FileSystemFileEntry[]
+			const childFiles = await promiseMap(childFileEntries, resolveFileEntry)
+			const childFolderEntries = childEntries.filter((e) => e.isDirectory) as FileSystemDirectoryEntry[]
+			const resultFolder: DiskFolder<FileType> = {
+				name: folder.name,
+				files: childFiles,
+				folders: [],
+			}
+			parent.folders.push(resultFolder)
+			return childFolderEntries.map((f) => ({ folder: f, parent: resultFolder }))
+		})
+	}
+	return virtualRoot.folders
+}
+
+async function readFolderEntriesChunk(folderReader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> {
+	const folderHasBeenRead = defer<FileSystemEntry[]>()
+	folderReader.readEntries(
+		(entries) => {
+			folderHasBeenRead.resolve(entries)
+		},
+		(e) => folderHasBeenRead.reject(e),
+	)
+	return await folderHasBeenRead.promise
+}
+
+async function readAllFolderEntries(folder: FileSystemDirectoryEntry): Promise<FileSystemEntry[]> {
+	const folderReader = folder.createReader()
+	const result: FileSystemEntry[] = []
+	// MDN says on Chrome you need to call readEntries() multiple times because it only returns up to 100 entries.
+	while (true) {
+		const entriesChunk = await readFolderEntriesChunk(folderReader)
+		if (isEmpty(entriesChunk)) {
+			break
+		} else {
+			result.push(...entriesChunk)
+		}
+	}
+	return result
+}
+
+/**
+ * Walk a tree-link data structure.
+ * @param root starting point/(sub)tree root
+ * @param processNode callback invoked for every node in the tree. Returns children of that node that need to be processed
+ */
+export async function walkTree<EL>(root: EL, processNode: (el: EL) => Promise<EL[]>) {
+	const stack: EL[] = []
+	stack.push(root)
+	while (isNotEmpty(stack)) {
+		const currentEl = assertNotNull(stack.pop())
+		const newElements = await processNode(currentEl)
+		stack.push(...newElements)
 	}
 }
