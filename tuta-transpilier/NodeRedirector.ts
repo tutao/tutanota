@@ -1,6 +1,7 @@
 import { TConstruct, TConstructMultiple, TsNode } from "./constructs/TConstruct"
 import {
 	ArrayLiteralExpression,
+	ArrowFunction,
 	BinaryExpression,
 	Block,
 	CallExpression,
@@ -37,7 +38,7 @@ import { TEnum } from "./constructs/TEnum"
 import { TTypeAlias } from "./constructs/TTypeAlias"
 import { TIfStatement } from "./constructs/TIfStatement"
 import { TCall, TNew } from "./constructs/TCall"
-import { TFunctionDecl } from "./constructs/TFunctionDecl"
+import { TArrow, TFunctionDecl } from "./constructs/TFunctionDecl"
 import { TBinaryExpr } from "./constructs/TBinaryExpr"
 import * as Assert from "node:assert"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
@@ -88,6 +89,8 @@ export class NodeRedirector {
 			return TIfStatement.fromConditionalStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
 			return TCall.from(typedNode)
+		} else if (typedNode instanceof ArrowFunction) {
+			return new TArrow(typedNode)
 		} else if (typedNode instanceof NewExpression) {
 			return new TNew(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
@@ -126,7 +129,7 @@ export class NodeRedirector {
 				new TOperatorToken(paranOpen),
 				new TConstructMultiple(...expressionConstructs),
 				new TOperatorToken(paranClose),
-			)
+			).withSeparator("")
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
 		} else if (typedNode instanceof Block) {

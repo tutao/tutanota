@@ -1,23 +1,21 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
-import { PropertyAccessExpression, ts } from "ts-morph"
+import { PropertyAccessExpression } from "ts-morph"
+import { TIdentitider } from "./TIdentitider"
 import { NodeRedirector } from "../NodeRedirector"
-import SyntaxKind = ts.SyntaxKind
 
 export enum TSpecialPropAccess {
 	ObjectFreeze,
 }
 
 export class TPropAccess extends TConstruct {
-	private readonly components: Array<TConstruct>
+	private readonly propertyName: TIdentitider
 	public readonly specialPropAccess: TSpecialPropAccess | null = null
+	private readonly referencedObjName: TConstruct
 
 	constructor(propertyAccess: PropertyAccessExpression) {
 		super()
-
-		this.components = propertyAccess
-			.getChildren()
-			.filter((v) => v.getKind() !== SyntaxKind.DotToken)
-			.map((ch) => NodeRedirector.redirectNode(ch))
+		this.referencedObjName = NodeRedirector.redirectNode(propertyAccess.getExpression())
+		this.propertyName = new TIdentitider(propertyAccess.getName())
 
 		if (propertyAccess.getText(false) === "Object.freeze") {
 			this.specialPropAccess = TSpecialPropAccess.ObjectFreeze
@@ -25,6 +23,8 @@ export class TPropAccess extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		return this.components.map((c) => c.generateKotlin()).join(".")
+		const objName = this.referencedObjName.generateKotlin()
+		const propName = this.propertyName.generateKotlin()
+		return `${objName}.${propName}`
 	}
 }
