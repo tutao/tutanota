@@ -11,6 +11,7 @@ import { initCommonLocator } from "../../../../../src/applications/common/api/ma
 import { IMailLocator } from "../../../../../src/applications/mail-app/mailLocator.js"
 
 import { Customer, User } from "@tutao/entities/sys"
+import { DomainConfig } from "../../../../../src/platform-kit/app-env"
 
 o.spec("ReferralLinkNews", function () {
 	let dateProvider: DateProvider

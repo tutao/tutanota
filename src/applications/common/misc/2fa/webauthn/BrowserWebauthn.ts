@@ -1,5 +1,5 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
-import { CancelledError, isApp, ProgrammingError } from "@tutao/app-env"
+import { CancelledError, DomainConfig, isApp, ProgrammingError } from "@tutao/app-env"
 import {
 	WebAuthnFacade,
 	WebAuthnRegistrationChallenge,
