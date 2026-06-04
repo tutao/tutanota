@@ -11,12 +11,12 @@ import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextFiel
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
 import { cleanMailAddress, lazy, noOp } from "../../../platform-kit/utils"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { Keys } from "../../../platform-kit/app-env"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { ContactListEditorModel } from "./ContactListEditorModel"
 import { ContactListGroupRoot } from "@tutao/entities/tutanota"
 import { clone, isSameId } from "../../../platform-kit/meta"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,

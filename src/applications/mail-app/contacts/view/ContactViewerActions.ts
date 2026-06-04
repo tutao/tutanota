@@ -2,8 +2,8 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
-import { Keys } from "../../../../platform-kit/app-env"
 import { Contact } from "@tutao/entities/tutanota"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface ContactViewToolbarAttrs {
 	contacts: Contact[]

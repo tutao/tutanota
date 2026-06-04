@@ -7,7 +7,7 @@ import { isMailAddress } from "../../../../platform-kit/utils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { Keys, TabIndex } from "../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../platform-kit/app-env"
 import { progressIcon } from "../../../../ui/base/Icon"
 import { Editor } from "../../../../ui/editor/Editor"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
@@ -19,6 +19,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getDefaultSender } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailMethod } from "../../../../entities/tutanota/Utils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 type PressContact = {
 	email: string

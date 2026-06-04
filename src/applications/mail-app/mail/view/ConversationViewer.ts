@@ -7,7 +7,6 @@ import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { component_size, px, size } from "../../../../ui/size.js"
-import { Keys } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { styles } from "../../../../ui/styles.js"
 import { responsiveCardHMargin } from "../../../../ui/cards.js"
@@ -19,6 +18,7 @@ import { MailViewerMoreActions } from "./MailViewerUtils"
 import { MailHeaderActions } from "./MailViewerHeader"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { elementIdPart, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel

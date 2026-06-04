@@ -6,9 +6,9 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../../ui/base/Dialo
 import { ButtonType } from "../../../../ui/base/Button.js"
 import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { Keys } from "../../../../platform-kit/app-env"
 import m from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 /**
  * Shows a dialog that lets the user choose how to handle a certificate error during IMAP Migration Wizard.

@@ -7,8 +7,9 @@ import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
-import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
+import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
+import { Keys } from "../KeyboardKeys"
 
 assertMainOrNode()
 

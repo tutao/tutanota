@@ -5,7 +5,6 @@ import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import type { ModalComponent } from "../../../../../ui/base/Modal.js"
 import { modal } from "../../../../../ui/base/Modal.js"
 import { DROPDOWN_MARGIN, showDropdown } from "../../../../../ui/base/Dropdown.js"
-import { Keys } from "../../../../../platform-kit/app-env"
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { CalendarContactPreviewViewModel } from "./CalendarContactPreviewViewModel.js"
 import { ContactPreviewView } from "./ContactPreviewView.js"
@@ -17,6 +16,7 @@ import { stringToBase64 } from "../../../../../platform-kit/utils"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { PosRect } from "../../../../../ui/utils/PosRect"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 /**
  * small modal displaying all relevant information about a contact in a compact fashion. offers limited editing capabilities to participants in the
