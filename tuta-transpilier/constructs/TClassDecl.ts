@@ -46,7 +46,7 @@ class TClassProperty extends TConstruct {
 			const initializer = this.initializer.generateKotlin()
 			return `${variableType} ${name}: ${dataType} = ${initializer}`
 		} else {
-			return `lateinit ${variableType} ${name}: ${dataType}`
+			return `${variableType} ${name}: ${dataType}`
 		}
 	}
 }

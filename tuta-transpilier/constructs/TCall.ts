@@ -29,13 +29,12 @@ export class TCall extends TConstruct {
 
 		// Case I: Object.freeze([])
 		// we want readonly array that cannot be modified ( reassign/remove/add element ) during runtime
-		const isObjectFreezeOnArray =
-			this.callIdentifier instanceof TPropAccess &&
-			this.callIdentifier.specialPropAccess === TSpecialPropAccess.ObjectFreeze &&
-			this.callArguments.length === 1 &&
-			this.callArguments[0] instanceof TArrayLiteral
+		const isObjectFreeze = this.callIdentifier instanceof TPropAccess && this.callIdentifier.specialPropAccess === TSpecialPropAccess.ObjectFreeze
+		const isObjectFreezeOnArray = isObjectFreeze && this.callArguments.length === 1 && this.callArguments[0] instanceof TArrayLiteral
 		if (isObjectFreezeOnArray) {
 			this.specialCall = SpecialCall.ObjectFreezeOnArrayLiteral
+		} else if (isObjectFreeze) {
+			throw new Error("Object.freeze call is only supported in array")
 		}
 		// Case II: is a super(...) all
 		else if (this.callIdentifier instanceof TSuperKeyword) {

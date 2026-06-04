@@ -1,4 +1,4 @@
-import { ArrowFunction, BodiedNode, FunctionDeclaration, MethodDeclaration, ParameteredNode, ReturnTypedNode } from "ts-morph"
+import { ArrowFunction, Block, BodiedNode, FunctionDeclaration, MethodDeclaration, ParameteredNode, ReturnTypedNode } from "ts-morph"
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TIdentifierFormatting, TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"

@@ -24,7 +24,6 @@ export class TVariable extends TConstruct {
 	generateKotlin(): ConstructOut {
 		let declarator: string
 		if (this.declarationType === VariableDeclarationKind.Const) {
-			const dataTypeIsPrimitive = this.typedIdentifier.typeName.isPrimitiveType()
 			declarator = `val`
 		} else if (this.declarationType === VariableDeclarationKind.Let) {
 			declarator = `var`

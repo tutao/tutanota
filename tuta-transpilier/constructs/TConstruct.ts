@@ -2,7 +2,9 @@ import { Node as TsMorphNode } from "ts-morph"
 
 export type TsNode = TsMorphNode
 
-export type ConstructOut = string | Array<string>
+export type UnitConstructOut = string
+
+export type ConstructOut = UnitConstructOut | Array<UnitConstructOut>
 
 export abstract class TConstruct {
 	abstract generateKotlin(): ConstructOut
