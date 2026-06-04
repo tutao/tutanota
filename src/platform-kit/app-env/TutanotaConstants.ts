@@ -25,7 +25,7 @@ export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey
 		{} as Record<V, K>,
 	)
 
-type ConstType = {
+export type ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
 	MEMORY_GB_FACTOR: number
