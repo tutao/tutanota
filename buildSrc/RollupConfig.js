@@ -259,7 +259,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/calendar-app/calendar/model") ||
 		isIn("src/applications/calendar-app/calendar/gui") ||
 		isIn("src/applications/common/calendar/gui") ||
-		isIn("src/applications/mail-app/gui/date")
+		isIn("src/applications/mail-app/gui/date") ||
+		isIn("src/applications/common/calendar/import")
 	) {
 		// this contains code that is important to the calendar view but might be used by other parts of the app on the main thread
 		// like time-based input components and formatting code.
