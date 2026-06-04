@@ -58,13 +58,14 @@ export const allowedImports = {
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
-	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra"],
+	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra", "calendar-importer"],
+	"calendar-importer": ["polyfill-helpers", "common-min", "common", "boot", "date", "date-gui"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "ui-extra"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "date-gui"],
 	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
-	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
+	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts", "calendar-importer"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	signup: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "settings", "login"],
 	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
@@ -452,6 +453,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "gui-base"
 	} else if (isIn("src/ui")) {
 		return "main"
+	} else if (isIn("src/applications/common/calendar/import")) {
+		return "calendar-importer"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
