@@ -2,7 +2,8 @@ import type { BrowserWindow, ContextMenuParams, HandlerDetails, NativeImage, Res
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import type { lazy } from "@tutao/utils"
 import { capitalizeFirstLetter, newPromise, noOp, typedEntries, typedKeys } from "@tutao/utils"
-import { CancelledError, Keys } from "@tutao/app-env"
+
+import { CancelledError } from "@tutao/app-env"
 import type { Key } from "../../../ui/utils/KeyManager"
 import path from "node:path"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
@@ -17,6 +18,7 @@ import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {

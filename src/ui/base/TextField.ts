@@ -6,11 +6,12 @@ import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import type { lazy } from "../../platform-kit/utils"
 import { isKeyPressed, keyHandler, useKeyHandler } from "../utils/KeyManager"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { Autocapitalize, Autocomplete, LegacyTextFieldType } from "./LegacyTextField"
+import { Keys } from "../KeyboardKeys"
 
 export type TextFieldAttrs = {
 	id?: string

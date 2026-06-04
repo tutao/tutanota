@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
+import { Keys } from "../KeyboardKeys"
 
 export type relDocument = "privacy-policy" | "terms-of-service" | "license" | "me"
 

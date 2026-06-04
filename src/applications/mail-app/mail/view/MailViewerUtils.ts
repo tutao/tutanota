@@ -1,4 +1,4 @@
-import { isApp, isBrowser, isDesktop, Keys } from "../../../../platform-kit/app-env"
+import { isApp, isBrowser, isDesktop } from "../../../../platform-kit/app-env"
 import { assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
@@ -39,6 +39,7 @@ import { Card } from "../../../../ui/base/Card"
 import { isDarkTheme, theme } from "../../../../ui/theme"
 import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 
 export type MailViewerMoreActions = {

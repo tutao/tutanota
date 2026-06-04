@@ -2,7 +2,7 @@ import m, { ChildArray, Children } from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { ContactMergeAction, Keys } from "../../../../platform-kit/app-env"
+import { ContactMergeAction } from "../../../../platform-kit/app-env"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { formatContactDate } from "../../../common/contactsFunctionality/ContactUtils.js"
@@ -19,6 +19,7 @@ import { Contact } from "@tutao/entities/tutanota"
 import { ContactAddressType } from "../../../../entities/tutanota/Utils"
 import { getContactSocialType } from "../ContactUtils"
 import { HtmlSanitizerInterface } from "../../../../ui/utils/HtmlSanitizerInterface"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export class ContactMergeView {
 	dialog: Dialog

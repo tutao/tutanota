@@ -5,9 +5,10 @@ import { theme } from "../theme"
 import { lazy } from "../../platform-kit/utils"
 import { component_size, px, size } from "../size"
 import { ExpanderPanel } from "./Expander"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { styles } from "../styles"
+import { Keys } from "../KeyboardKeys"
 
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation

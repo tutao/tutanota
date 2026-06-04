@@ -69,8 +69,9 @@ import {
 	ContactWebsiteType,
 } from "../../../entities/tutanota/Utils"
 import { clone, timestampToGeneratedId } from "../../../platform-kit/meta"
-import { assertMainOrNode, Keys, ProgrammingError } from "../../../platform-kit/app-env"
+import { assertMainOrNode, ProgrammingError } from "../../../platform-kit/app-env"
 import { GroupType } from "../../../entities/sys/Utils"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 assertMainOrNode()
 

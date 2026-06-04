@@ -10,11 +10,11 @@ import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "../../../../platform-kit/app-env"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 import { assertNotNull } from "../../../../platform-kit/utils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 

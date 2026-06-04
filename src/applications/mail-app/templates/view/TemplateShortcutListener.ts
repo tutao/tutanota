@@ -1,12 +1,12 @@
 import { Editor } from "../../../../ui/editor/Editor"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { downcast, getFirstOrThrow } from "../../../../platform-kit/utils"
-import { Keys } from "../../../../platform-kit/app-env"
 import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { lang, languageByCode, LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
 import { Dropdown } from "../../../../ui/base/Dropdown.js"
 import { modal } from "../../../../ui/base/Modal"
 import { showTemplatePopupInEditor } from "./TemplatePopup.js"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)

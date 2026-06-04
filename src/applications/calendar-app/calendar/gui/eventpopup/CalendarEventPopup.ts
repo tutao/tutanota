@@ -7,7 +7,6 @@ import { modal } from "../../../../../ui/base/Modal.js"
 import { EventPreviewView, EventPreviewViewAttrs } from "./EventPreviewView.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { createAsyncDropdown, DROPDOWN_MARGIN, showDropdown } from "../../../../../ui/base/Dropdown.js"
-import { Keys } from "../../../../../platform-kit/app-env"
 import type { HtmlSanitizer } from "../../../../common/misc/HtmlSanitizer.js"
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { convertTextToHtml } from "../../../../../ui/utils/Formatter.js"
@@ -16,6 +15,7 @@ import { showDeletePopup } from "../CalendarGuiUtils.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 
 import { PosRect } from "../../../../../ui/utils/PosRect"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the

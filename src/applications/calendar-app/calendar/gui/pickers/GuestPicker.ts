@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../../ui/base/Select.js"
-import { Keys, TabIndex } from "../../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../../platform-kit/app-env"
 import { SingleLineTextField } from "../../../../../ui/base/SingleLineTextField.js"
 import { debounceStart, getFirstOrThrow } from "../../../../../platform-kit/utils"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
@@ -16,6 +16,7 @@ import { px, size } from "../../../../../ui/size.js"
 import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { keyboardEventToKeyPress } from "../../../../../ui/utils/KeyManager.js"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export interface GuestPickerAttrs {
 	ariaLabel: TranslationKey

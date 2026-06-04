@@ -1,5 +1,5 @@
 import { Dialog } from "../../../../ui/base/Dialog"
-import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "../../../../platform-kit/app-env"
+import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod } from "../../../../platform-kit/app-env"
 import { KeyVerificationFacade } from "../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { DesktopSystemFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { UsageTestController } from "@tutao/usagetests"
@@ -19,6 +19,7 @@ import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchIn
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 import { assertNotNull } from "../../../../platform-kit/utils"
 import { windowFacade } from "../../misc/WindowFacade"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",

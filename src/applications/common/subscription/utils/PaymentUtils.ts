@@ -23,9 +23,10 @@ import {
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
+import { Country, getClientType, InvoiceData, PaymentDataResultType } from "@tutao/app-env"
 import { CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {

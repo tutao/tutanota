@@ -9,7 +9,7 @@ import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCa
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
-import { isIOSApp, Keys } from "@tutao/app-env"
+import { isIOSApp } from "@tutao/app-env"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
@@ -25,6 +25,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { GiftCard, GiftCardOption, GiftCardService, GiftCardTypeRef } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
