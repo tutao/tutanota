@@ -1,7 +1,6 @@
 import { assert, getDayShifted, getStartOfDay } from "@tutao/utils"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
-import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
 import { GENERATED_ID_MIN_TIMESTAMP, isAdminClient, isBrowser } from "@tutao/app-env"
 import { getOfflineStorageDefaultTimeRangeDays } from "../../mail-app/mail/MailUtils"
 
@@ -54,15 +53,6 @@ export class OfflineStorageSettingsModel {
 		// in our 42 bit timestamp in the id.
 		const now = Date.now()
 		return newDate.getTime() < now && newDate.getTime() > GENERATED_ID_MIN_TIMESTAMP
-	}
-
-	isFixedDays(): boolean {
-		// Free users only have the last OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS (31) days
-		return this.userController.isFreeAccount()
-	}
-
-	getStartOfTheWeekOffset(): number {
-		return getStartOfTheWeekOffsetForUser(this.userController.userSettingsGroupRoot)
 	}
 
 	/**
