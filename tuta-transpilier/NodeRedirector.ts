@@ -27,6 +27,7 @@ import {
 	StringLiteral,
 	SuperExpression,
 	ThrowStatement,
+	TryStatement,
 	ts,
 	TypeAliasDeclaration,
 	TypeReferenceNode,
@@ -59,6 +60,7 @@ import { TSuperKeyword } from "./constructs/TSuperKeyword"
 import { TType } from "./constructs/TType"
 import { TAsExpr } from "./constructs/TAsExpr"
 import { TRegexLiteral } from "./constructs/TRegexLiteral"
+import { TTry } from "./constructs/TTry"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -159,6 +161,8 @@ export class NodeRedirector {
 			return new TConstructMultiple(new TReservedWord(operator, null), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof AsExpression) {
 			return new TAsExpr(typedNode)
+		} else if (typedNode instanceof TryStatement) {
+			return new TTry(typedNode)
 		} else if (typedNode instanceof ThrowStatement) {
 			Assert.equal(typedNode.getChildCount(), 2, "Expected only two child for throw")
 			const [throwKeyword, thrownObj] = typedNode.getChildren()
@@ -177,7 +181,7 @@ export class NodeRedirector {
 				return new TEmpty()
 			} else {
 				console.error("===========================")
-				console.error("Uncaught error: " + e)
+				console.trace("Uncaught error: " + e)
 				console.error(
 					"Error happened while processing file: " + node.getSourceFile().getFilePath() + `:${node.getStartLineNumber()}:${node.getStartLinePos()}`,
 				)
