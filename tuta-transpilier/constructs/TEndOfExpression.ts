@@ -6,6 +6,6 @@ export class TEndOfExpression extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		return ";\n"
+		return ";"
 	}
 }

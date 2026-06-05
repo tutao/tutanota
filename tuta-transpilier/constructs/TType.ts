@@ -2,6 +2,7 @@ import { ConstructOut, TConstruct, TConstructMultiple, UnitConstructOut } from "
 import { Signature, Type } from "ts-morph"
 import * as Assert from "node:assert"
 import { TargetLanguage } from "../LangTarget"
+import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 
 const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "Int", swift: "" },
@@ -23,8 +24,9 @@ export class TType extends TConstruct {
 		super()
 
 		const apparentType = typ.getApparentType()
-		const typeParamName = typ.isTypeParameter() ? typ.getSymbol().getName() : null
 		this.isJavascriptObject = apparentType.isObject()
+		const typeParamName = typ.isTypeParameter() ? typ.getSymbol().getName() : null
+		const typeName = apparentType.getAliasSymbol()?.getName() ?? apparentType.getSymbol()?.getName() ?? typeParamName ?? null
 
 		if (typ.isVoid()) {
 			this.baseType = "Void"
@@ -35,34 +37,39 @@ export class TType extends TConstruct {
 			this.genericTypes.push(new TType(apparentType.getArrayElementType()))
 		} else if (typ.isBoolean() || typ.isBooleanLiteral()) {
 			this.baseType = "Boolean"
-		} else if (typ.isUnion()) {
-			const [firstType, secondType, ...rest] = typ.getUnionTypes()
-			const firstTypeIsNull = firstType.isNull() || firstType.isUndefined()
-			const secondTypeIsNull = secondType.isNull() || secondType.isUndefined()
-			this.isNullable = firstTypeIsNull || secondTypeIsNull
-
-			// todo: uncomment
-			// Assert.equal(rest.length === 0 && this.isNullable, true, "Only union of type will | null is allowed")
-			if (firstTypeIsNull) this.baseType = new TType(secondType)
-			else if (secondTypeIsNull) this.baseType = new TType(firstType)
-			else {
-				// todo: remove this branch
-				this.baseType = "UnmappedUnionType"
-			}
+		} else if (typ.isEnum()) {
+			Assert.notEqual(typeName, null, "All enum should have a name")
+			this.baseType = typeName
+		} else if (typ.isIntersection()) {
+			throw new Error("Convert it to interface and just extend that interface instead of using intersection")
+		} else if (typ.isAny()) {
+			this.baseType = "ANYYYYYY"
 		} else if (apparentType.getCallSignatures().length > 0) {
 			Assert.equal(apparentType.getCallSignatures().length, 1, "Callable type with overload ( multiple signature ) is not supported")
 			this.baseType = new TCallableTType(apparentType.getCallSignatures()[0])
-		} else if (typ.isAny()) {
-			// todo: rmeove this branch
-			this.baseType = "ANYYYYYY"
-		} else {
-			const typeName = apparentType.getAliasSymbol()?.getName() ?? apparentType.getSymbol()?.getName() ?? typeParamName ?? null
-			if (typeName != null) {
-				this.baseType = typeName
+		} else if (typ.isUnion() && typeName == null) {
+			const unionTypes = typ.getUnionTypes()
+			this.isNullable = unionTypes.some((u) => u.isNull())
+			const nonNullVariants = unionTypes.filter((u) => !u.isNull())
+			const restIsEnum = nonNullVariants.every((u) => u.isEnumLiteral())
+			if (restIsEnum) {
+				const enumBaseType = nonNullVariants[0].getBaseTypeOfLiteralType()
+				Assert.equal(
+					nonNullVariants.every((u) => u.getBaseTypeOfLiteralType().getSymbol() === enumBaseType.getSymbol()),
+					true,
+					"Do not mix multiple enum in single union type",
+				)
+				this.baseType = new TType(enumBaseType)
+			} else if (nonNullVariants.length === 1 && this.isNullable) {
+				this.baseType = new TType(nonNullVariants[0])
 			} else {
-				// todo: remove this branchs2
-				throw new Error("Unknown type: " + typ.getText())
+				// todo: remove this branch
+				this.baseType = "UnmappedUnionType"
 			}
+		} else if (typeName != null) {
+			this.baseType = typeName
+		} else {
+			throw new Error("Unknown type: " + typ.getText())
 		}
 
 		const typeArguments = apparentType.getAliasTypeArguments().map((t) => new TType(t))
@@ -96,14 +103,18 @@ export class TType extends TConstruct {
 }
 
 class TCallableTType extends TConstruct {
-	private readonly inputTypes: TConstructMultiple<TType>
+	private readonly parameters: TConstructMultiple<TTypedIdentifier>
 	private readonly returnType: TType
 
 	constructor(callSignature: Signature) {
 		super()
 		this.returnType = new TType(callSignature.getReturnType())
-		const inputTypes = callSignature.getTypeParameters().map((t) => new TType(t))
-		this.inputTypes = new TConstructMultiple(...inputTypes)
+		const inputTypes = callSignature.getParameters().map((t) => {
+			const ident = new TIdentitider(t.getName())
+			const dType = new TType(t.getValueDeclaration().getType())
+			return new TTypedIdentifier(ident, dType)
+		})
+		this.parameters = new TConstructMultiple(...inputTypes)
 	}
 
 	public generate(targetLanguage: TargetLanguage): UnitConstructOut {
@@ -117,7 +128,7 @@ class TCallableTType extends TConstruct {
 
 	generateKotlin(): UnitConstructOut {
 		const returnType = this.returnType.generateKotlin()
-		const inputTypes = this.inputTypes.withSeparator(",").generateKotlin()
+		const inputTypes = this.parameters.withSeparator(",").generateKotlin()
 		return `(${inputTypes}) -> ${returnType}`
 	}
 

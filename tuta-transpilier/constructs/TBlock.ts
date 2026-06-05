@@ -31,7 +31,7 @@ export class TBlock extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		const blockBody = new TConstructMultiple(...this.blockBody).withSeparator(";\n").generateKotlin()
+		const blockBody = new TConstructMultiple(...this.blockBody).withSeparator("\n").generateKotlin()
 		return `{\n${blockBody}\n}`
 	}
 }

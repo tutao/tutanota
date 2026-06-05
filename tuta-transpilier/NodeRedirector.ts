@@ -79,7 +79,7 @@ export class NodeRedirector {
 			return new TExportDecl(typedNode)
 		} else if (typedNode instanceof VariableStatement) {
 			const declarations = typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
-			return new TConstructMultiple(...declarations).withSeparator(";\n")
+			return new TConstructMultiple(...declarations).withSeparator("\n")
 		} else if (typedNode instanceof ClassDeclaration) {
 			return new TClassDecl(typedNode)
 		} else if (typedNode instanceof InterfaceDeclaration) {

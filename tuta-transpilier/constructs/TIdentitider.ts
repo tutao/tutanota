@@ -1,4 +1,4 @@
-import { ConstructOut, TConstruct } from "./TConstruct"
+import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TType } from "./TType"
 
 const reservedKeywords = {
@@ -15,7 +15,7 @@ export class TTypedIdentifier extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		return `${this.identName.generateKotlin()}: ${this.typeName.generateKotlin()}`
+		return new TConstructMultiple<TConstruct>(this.identName, this.typeName).withSeparator(": ").generateKotlin()
 	}
 }
 
@@ -39,13 +39,13 @@ export class TIdentitider extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
+		if (this.formattingKind === TIdentifierFormatting.Preserve) {
+			return this.rawName
+		}
+
 		let identifier = this.rawName
 		if (reservedKeywords.kotlin.has(this.rawName)) {
 			identifier += this.makeUniqIdent
-		}
-
-		if (this.formattingKind === TIdentifierFormatting.Preserve) {
-			// noop
 		} else if (this.formattingKind === TIdentifierFormatting.VariableLike) {
 			identifier = TIdentitider.makeCamelCase(identifier)
 		}
