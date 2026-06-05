@@ -7,6 +7,7 @@ import { DropType } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
+import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 
 export function newItemActions({
 	onNewFile,
@@ -51,6 +52,30 @@ export async function showNewFolderDialog(createFolder: (folderName: string) => 
 
 			console.log("User called the folder: ", folderName)
 			createFolder(folderName).then(() => updateUi())
+		},
+	)
+}
+
+export async function showRenameDialog(item: FolderItem, rename: (newName: string) => void): Promise<void> {
+	const originalName = item.type === "file" ? item.file.name : item.folder.name
+
+	// Determine how much of the original filename to pre-select,
+	// for easier renaming of files with extensions.
+	let selectionEnd = originalName.length
+	const [basename] = getFileBaseNameAndExtensions(originalName)
+	if (basename) {
+		selectionEnd = basename.length
+	}
+
+	Dialog.showProcessTextInputDialog(
+		{
+			title: "renameItem_action",
+			label: "enterNewName_label",
+			defaultValue: originalName,
+			selectionRange: [0, selectionEnd],
+		},
+		async (newName: string) => {
+			rename(newName)
 		},
 	)
 }
