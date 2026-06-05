@@ -1,5 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
+import { TsMath } from "./TranspileCompatibility"
 
 /**
  * parameter names are shortened to reduce size
@@ -207,7 +208,7 @@ export enum FeatureType {
 	SolutionPartner = "23",
 }
 
-export const GENERATED_ID_MAX_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+export const GENERATED_ID_MAX_TIMESTAMP: number = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 export const GENERATED_ID_MIN_TIMESTAMP: number = 0
 
 export const FULL_INDEXED_TIMESTAMP: number = GENERATED_ID_MIN_TIMESTAMP
