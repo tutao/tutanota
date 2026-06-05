@@ -1,5 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
+import { TsMath, TsObject } from "./TranspileCompatibility"
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key = Object.keys(e).find((k) => e[k] === value) ?? null
@@ -47,7 +48,7 @@ export const Const: ConstType = {
 	EXECUTE_KDF_MIGRATION: true,
 } as const
 
-export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
+export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
 	"tuta.com",
 	"tutamail.com",
 	"tuta.io",
@@ -196,7 +197,7 @@ export enum FeatureType {
 	RespectMxRecord = "25",
 }
 
-export const GENERATED_ID_MAX_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+export const GENERATED_ID_MAX_TIMESTAMP: number = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 export const GENERATED_ID_MIN_TIMESTAMP: number = 0
 
 export const FULL_INDEXED_TIMESTAMP: number = GENERATED_ID_MIN_TIMESTAMP

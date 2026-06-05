@@ -17,6 +17,7 @@ import { once } from "../utils/memoized"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 import { ClientDetector } from "../app-env/boot/ClientDetector"
 import { isNull } from "../utils/Utils"
+import { TsDate } from "../app-env/TranspileCompatibility"
 
 assertWorkerOrNode()
 
@@ -312,10 +313,10 @@ export class RestClient implements RestClientInterface {
 
 		if (serverTimestamp != null) {
 			// check that serverTimestamp has been returned
-			const serverTime = new Date(serverTimestamp).getTime()
+			const serverTime = new TsDate(serverTimestamp).getTime()
 
 			if (!isNaN(serverTime)) {
-				const now = Date.now()
+				const now = TsDate.now()
 				this.serverTimeOffsetMs = serverTime - now
 			}
 		}
@@ -328,7 +329,7 @@ export class RestClient implements RestClientInterface {
 	 */
 	getServerTimestampMs(): number {
 		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")
-		return Date.now() + timeOffset
+		return TsDate.now() + timeOffset
 	}
 
 	/**
