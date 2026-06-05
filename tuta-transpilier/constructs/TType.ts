@@ -4,17 +4,17 @@ import * as Assert from "node:assert"
 import { TargetLanguage } from "../LangTarget"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 
-const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
+export const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "Number", swift: "NSNumber" },
 	Boolean: { kotlin: "Boolean", swift: "" },
 	Array: { kotlin: "Array", swift: "" },
-	String: { kotlin: "String", swift: "" },
+	String: { kotlin: "de.tutao.jsCompatibility.TsString", swift: "" },
 	Void: { kotlin: "Unit", swift: "" },
 	Record: { kotlin: "Map", swift: "" },
-	Date: { kotlin: "de.tutao.jsCompatibility.JsDate", swift: "" },
+	Date: { kotlin: "de.tutao.jsCompatibility.TsDate", swift: "" },
 	Error: { kotlin: "de.tutao.jsCompatibility.TsError", swift: "" },
 	RegExp: { kotlin: "Regex", swift: "" },
-})
+} as const)
 
 export class TType extends TConstruct {
 	public readonly isJavascriptObject: boolean = false

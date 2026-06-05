@@ -1,5 +1,6 @@
 import { ConstructOut, TConstruct } from "./TConstruct"
 import { NumericLiteral, StringLiteral } from "ts-morph"
+import { MappedPrimitiveType } from "./TType"
 
 export class TNumericLiteral extends TConstruct {
 	private value: number
@@ -44,6 +45,7 @@ export class TStringLiteral extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		return '"' + this.value + '"'
+		const stringType = MappedPrimitiveType.String.kotlin
+		return `${stringType}("${this.value}")`
 	}
 }
