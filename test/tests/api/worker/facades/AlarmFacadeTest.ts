@@ -35,6 +35,7 @@ import {
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "@tutao/entities/tutanota"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/import/ImportExportUtils"
 
 o.spec("AlarmFacadeTest", function () {
 	let nativePushFacadeMock: NativePushFacade
