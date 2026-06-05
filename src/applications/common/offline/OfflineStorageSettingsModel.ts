@@ -56,15 +56,6 @@ export class OfflineStorageSettingsModel {
 		return newDate.getTime() < now && newDate.getTime() > GENERATED_ID_MIN_TIMESTAMP
 	}
 
-	isFixedDays(): boolean {
-		// Free users only have the last OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS (31) days
-		return this.userController.isFreeAccount()
-	}
-
-	getStartOfTheWeekOffset(): number {
-		return getStartOfTheWeekOffsetForUser(this.userController.userSettingsGroupRoot)
-	}
-
 	/**
 	 * get stored time range, will error out if offlineStorage isn't available.
 	 * if the user account is free, always returns the default time range and
