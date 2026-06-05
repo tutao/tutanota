@@ -26,7 +26,7 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.ExclamationEqualsToken]: { kotlin: null, swift: null },
 	[SyntaxKind.GreaterThanToken]: { kotlin: null, swift: null },
 	[SyntaxKind.LessThanToken]: { kotlin: null, swift: null },
-	[SyntaxKind.ExclamationToken]: { kotlin: "!!", swift: null },
+	[SyntaxKind.ExclamationToken]: { kotlin: "!", swift: null },
 	[SyntaxKind.PlusEqualsToken]: { kotlin: null, swift: null },
 	[SyntaxKind.ThrowKeyword]: { kotlin: "throw", swift: "throw" },
 	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },

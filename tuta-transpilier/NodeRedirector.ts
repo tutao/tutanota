@@ -61,6 +61,7 @@ import { TType } from "./constructs/TType"
 import { TAsExpr } from "./constructs/TAsExpr"
 import { TRegexLiteral } from "./constructs/TRegexLiteral"
 import { TTry } from "./constructs/TTry"
+import { TNonNullExpr } from "./constructs/TNonNullExpr"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -106,10 +107,7 @@ export class NodeRedirector {
 		} else if (typedNode instanceof FunctionDeclaration) {
 			return TFunctionDecl.new(typedNode)
 		} else if (typedNode instanceof NonNullExpression) {
-			Assert.equal(typedNode.getChildCount(), 2, "Expected a expression and exclamation token")
-			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
-			const exclToken = new TReservedWord(typedNode.getChildAtIndex(1), SyntaxKind.ExclamationToken)
-			return new TConstructMultiple(expression, exclToken).withSeparator("")
+			return new TNonNullExpr(typedNode)
 		} else if (typedNode instanceof BinaryExpression) {
 			return new TBinaryExpr(typedNode)
 		} else if (typedNode instanceof ExpressionStatement) {

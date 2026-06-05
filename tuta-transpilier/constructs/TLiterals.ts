@@ -24,7 +24,16 @@ export class TStringLiteral extends TConstruct {
 	private value: string
 	constructor(literal: StringLiteral) {
 		super()
-		this.value = literal.getLiteralValue()
+		const literalValue = literal.getLiteralValue()
+		this.value = `${
+			literalValue
+				.replace(/\\/g, "\\\\") // backslash first
+				.replace(/"/g, '\\"') // double quotes
+				.replace(/\r\n/g, "\\n") // Windows newline
+				.replace(/\n/g, "\\n") // Unix newline
+				.replace(/\r/g, "\\n") // old Mac newline
+				.replace(/\t/g, "\\t") // tabs
+		}`
 	}
 
 	static fromValue(value: string): TStringLiteral {
