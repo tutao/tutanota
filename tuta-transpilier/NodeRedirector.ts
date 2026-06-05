@@ -8,6 +8,7 @@ import {
 	CallExpression,
 	ClassDeclaration,
 	ConditionalExpression,
+	ElementAccessExpression,
 	EnumDeclaration,
 	ExportDeclaration,
 	ExpressionStatement,
@@ -32,6 +33,7 @@ import {
 	TypeAliasDeclaration,
 	TypeReferenceNode,
 	VariableStatement,
+	WhileStatement,
 } from "ts-morph"
 import { TEmpty } from "./constructs/TEmpty"
 import { TImport } from "./constructs/TImport"
@@ -62,6 +64,8 @@ import { TAsExpr } from "./constructs/TAsExpr"
 import { TRegexLiteral } from "./constructs/TRegexLiteral"
 import { TTry } from "./constructs/TTry"
 import { TNonNullExpr } from "./constructs/TNonNullExpr"
+import { TWhileLoop } from "./constructs/TLoop"
+import { TElementAccess } from "./constructs/TElementAccess"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -113,6 +117,10 @@ export class NodeRedirector {
 		} else if (typedNode instanceof ExpressionStatement) {
 			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
 			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeparator("")
+		} else if (typedNode instanceof WhileStatement) {
+			return new TWhileLoop(typedNode)
+		} else if (typedNode instanceof ElementAccessExpression) {
+			return new TElementAccess(typedNode)
 		} else if (typedNode instanceof ReturnStatement) {
 			const childNodeCount = typedNode.getChildCount()
 			Assert.equal(childNodeCount === 1 || childNodeCount === 2, true, "return statement should have either 1 or 2 expression")
