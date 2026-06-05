@@ -85,12 +85,12 @@ export class OfflineStorageMigrator {
 
 	private async runMigrations(meta: Pick<OfflineDbMeta, "offline-version">, storage: OfflineStorage) {
 		let currentOfflineVersion = meta[`offline-version`]
-		for (const { version, migrate } of this.migrations) {
-			if (currentOfflineVersion < version) {
-				console.log(`running offline db migration from ${currentOfflineVersion} to ${version}`)
-				await migrate(storage)
-				await storage.setCurrentOfflineSchemaVersion(version)
-				currentOfflineVersion = version
+		for (const migration of this.migrations) {
+			if (currentOfflineVersion < migration.version) {
+				console.log(`running offline db migration from ${currentOfflineVersion} to ${migration.version}`)
+				await migration.migrate(storage)
+				await storage.setCurrentOfflineSchemaVersion(migration.version)
+				currentOfflineVersion = migration.version
 				console.log(`migration finished to ${currentOfflineVersion}`)
 			}
 		}
