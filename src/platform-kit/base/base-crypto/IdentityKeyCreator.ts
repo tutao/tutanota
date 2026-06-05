@@ -1,4 +1,4 @@
-import { assertNotNull, Versioned } from "@tutao/utils"
+import { assertNotNull, Nullable, Versioned } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
@@ -44,7 +44,7 @@ export class IdentityKeyCreator {
 		groupId: Id,
 		currentKeyPairToBeSigned: Versioned<AsymmetricKeyPair>,
 		formerKeyPairsToBeSigned: Versioned<AsymmetricKeyPair>[],
-		encryptingKey: VersionedKey | undefined = undefined,
+		encryptingKey: Nullable<VersionedKey> = null,
 	): Promise<void> {
 		if (currentKeyPairToBeSigned.object.keyPairType === KeyPairType.RSA) {
 			throw new ProgrammingError("Must convert a current RSA key pair into an RSA_ECC key pair before signing")
@@ -109,6 +109,7 @@ export class IdentityKeyCreator {
 				identityKeyPair,
 				signatures,
 			}),
+			null,
 		)
 	}
 

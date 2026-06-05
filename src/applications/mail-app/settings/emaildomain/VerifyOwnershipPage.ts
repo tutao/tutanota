@@ -16,6 +16,7 @@ import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerU
 import { assertEnumValue } from "../../../../platform-kit/meta"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { CustomDomainType, CustomDomainTypeCount } from "../../../../entities/sys/Utils"
+import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -115,7 +116,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 				return true
 			})
 			.catch(
-				ofClass(PreconditionFailedError, async (e) => {
+				ofClassAsync(PreconditionFailedError, async (e) => {
 					if (e.data === CustomDomainFailureReasons.LIMIT_REACHED) {
 						const nbrOfCustomDomains = this.data.customerInfo.domainInfos.filter((domainInfo) => domainInfo.whitelabelConfig == null).length
 						const plans = await getAvailableMatchingPlans(locator.serviceExecutor, (config) => {

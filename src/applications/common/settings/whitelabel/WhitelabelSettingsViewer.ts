@@ -307,7 +307,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (domainInfo && domainInfo.whitelabelConfig) {
 			return Promise.all([
 				locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
-				locator.serviceExecutor.get(BrandingDomainService, null).then((response) => neverNull(response.certificateInfo)),
+				locator.serviceExecutor.get(BrandingDomainService, null, null).then((response) => neverNull(response.certificateInfo)),
 			]).then(([whitelabelConfig, certificateInfo]) => ({
 				whitelabelConfig,
 				certificateInfo,

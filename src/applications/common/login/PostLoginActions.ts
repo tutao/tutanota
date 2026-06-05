@@ -145,7 +145,7 @@ export class PostLoginActions implements PostLoginAction {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData, null)
 			if (receiveInfoServicePostOut && receiveInfoServicePostOut.outdatedVersion) {
 				return Dialog.updateReminder(true, () => {
 					this.updateClient()

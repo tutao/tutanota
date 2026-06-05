@@ -66,7 +66,7 @@ export class InvoiceDataInput implements Component {
 	}
 
 	oncreate() {
-		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.get(LocationService, null, null).then((location: LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
 				const country = Countries.find((c) => c.a === location.country)
 

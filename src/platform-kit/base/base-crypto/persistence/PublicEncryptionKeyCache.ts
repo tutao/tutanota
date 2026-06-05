@@ -34,8 +34,8 @@ export class PublicEncryptionKeyCache {
 	/**
 	 * Return a cached public encryption key or null if it is not cached.
 	 */
-	get(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): MaybeSignedPublicKey | undefined {
-		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version))
+	get(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): MaybeSignedPublicKey | null {
+		return this.cache.get(this.makeLookupKey(publicKeyIdentifier, version)) ?? null
 	}
 
 	private makeLookupKey(publicKeyIdentifier: PublicKeyIdentifier, version: KeyVersion): string {

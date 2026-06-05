@@ -333,7 +333,7 @@ async function runTemplateCleanupFlow(customer: Customer) {
 				if (deletedTemplateGroups.has(group)) {
 					continue
 				}
-				await locator.serviceExecutor.delete(TemplateGroupService, createUserAreaGroupDeleteData({ group }))
+				await locator.serviceExecutor.delete(TemplateGroupService, createUserAreaGroupDeleteData({ group }), null)
 				deletedTemplateGroups.add(group)
 			}
 		}
@@ -467,7 +467,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
-		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
+		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData, null)
 		return PlanType.Free
 	} catch (e) {
 		if (e instanceof PreconditionFailedError) {
@@ -545,7 +545,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		})
 
 		try {
-			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn))
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn, null))
 			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
 			return
 		} catch (e) {

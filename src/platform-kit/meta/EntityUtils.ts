@@ -145,10 +145,11 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
-export function get_IdValue(typeModel?: TypeModel): ModelValue | undefined {
+export function get_IdValue(typeModel?: TypeModel): ModelValue | null {
 	if (typeModel) {
-		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id")
+		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
+	return null
 }
 
 export function base64UrlIdToUint8array(id: Id): Uint8Array {
@@ -511,7 +512,7 @@ export const TECHNICAL_FIELDS = ["_original", "_errors"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== undefined && _idValue.type === ValueType.CustomId
+	return _idValue !== null && _idValue.type === ValueType.CustomId
 }
 
 /**

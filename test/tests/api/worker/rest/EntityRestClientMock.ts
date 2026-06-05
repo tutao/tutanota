@@ -21,9 +21,9 @@ import {
 } from "../../../../../src/platform-kit/meta"
 import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
-import { downcast } from "../../../../../src/platform-kit/utils"
+import { downcast, Nullable } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
 import { SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 
@@ -132,7 +132,11 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T extends SomeEntity>(_typeRef: TypeRef<T>, id: T["_id"], _opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async load<T extends SomeEntity>(
+		_typeRef: TypeRef<T>,
+		id: T["_id"],
+		_opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<T> {
 		if (id instanceof Array && id.length === 2) {
 			// list element request
 			const listId = id[0]
@@ -233,7 +237,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
+	async setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Nullable<Dict>): Promise<Id> {
 		const populatedInstance = clone(instance)
 		const elementId = this.idGenerator.getNext()
 		populatedInstance._id = listId == null ? elementId : [listId, elementId]

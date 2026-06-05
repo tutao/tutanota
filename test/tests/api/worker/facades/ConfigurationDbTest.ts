@@ -9,7 +9,15 @@ import {
 } from "../../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { DbStub } from "../search/DbStub.js"
-import { Aes256Key, aes256RandomKey, generateInitializationVector, InitializationVector, random, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	EntropySource,
+	generateInitializationVector,
+	InitializationVector,
+	random,
+	VersionedKey,
+} from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -26,7 +34,7 @@ o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 
 	o.beforeEach(async function () {
-		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		keyLoaderFacade = object()
 	})
 

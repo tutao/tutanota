@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestClientMiddleware } from "../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestClientMiddleware, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -85,7 +85,7 @@ o.spec("RestClientTest", function () {
 				deferred.resolve()
 			})
 			restClient.request("/get/with-body", HttpMethod.GET, {
-				body: request,
+				body: new RestTextBody(request),
 				responseType: MediaType.Json,
 				baseUrl,
 			})
@@ -130,7 +130,7 @@ o.spec("RestClientTest", function () {
 					res.send(responseText)
 				})
 				const res = await restClient.request(url, method, {
-					body: requestText,
+					body: new RestTextBody(requestText),
 					responseType: MediaType.Json,
 					baseUrl,
 				})
@@ -159,7 +159,7 @@ o.spec("RestClientTest", function () {
 					res.send(response)
 				})
 				const res = await restClient.request(url, method, {
-					body: new Uint8Array(request),
+					body: new RestBinaryBody(new Uint8Array(request)),
 					responseType: MediaType.Binary,
 					baseUrl,
 				})

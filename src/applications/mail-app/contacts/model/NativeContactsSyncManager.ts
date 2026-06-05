@@ -309,7 +309,7 @@ export class NativeContactsSyncManager {
 		await this.loginController.waitForFullLogin()
 		for (const contact of syncResult.createdOnDevice) {
 			const newContact = createContact(this.createContactFromNative(contact))
-			const entityId = await this.entityClient.setup(listId, newContact)
+			const entityId = await this.entityClient.setup(listId, newContact, null, null)
 			const loginUsername = this.loginController.getUserController().loginUsername
 			// save the contact right away so that we don't lose the server id to native contact mapping if we don't process entity update quickly enough
 			await this.mobileContactsFacade.saveContacts(loginUsername, [

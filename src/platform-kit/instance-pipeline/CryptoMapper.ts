@@ -37,7 +37,7 @@ import { OwnerKeyProvider } from "./PatchMerger"
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
-	loadCurrentKeyPair(groupId: Id, currentGroupKey: VersionedKey | undefined): Promise<Versioned<AsymmetricKeyPair>>
+	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
 }
 

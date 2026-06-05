@@ -16,7 +16,7 @@ import {
 } from "@tutao/utils"
 import { AttributeModel, GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
-import { RestClient } from "@tutao/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
@@ -43,7 +43,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { CryptoFacade } from "../base-crypto/CryptoFacade"
-import { IServiceExecutor } from "../../network/ServiceRequest"
+import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
@@ -75,7 +75,7 @@ import {
 	UserTypeRef,
 	WebsocketLeaderStatus,
 } from "../../../entities/sys/TypeRefs"
-import { CacheMode, EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
 import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
 import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
@@ -285,7 +285,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessKey = aes256RandomKey()
 			createSessionData.accessKey = keyToUint8Array(accessKey)
 		}
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
+		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData, null)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
 		const forceNewDatabase = sessionType === SessionType.Persistent && databaseKey == null
@@ -374,7 +374,7 @@ export class LoginFacade implements SessionTypeProvider {
 			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
-		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn)
+		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn, null)
 		// We reload the user because we experienced a race condition
 		// were we do not process the User update after doing the argon2 migration from the web client.´
 		// In order do not rework the entity processing and its initialization for new clients we
@@ -419,7 +419,7 @@ export class LoginFacade implements SessionTypeProvider {
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
 
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData)
+		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData, null)
 
 		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
 		const cacheInfo = await this.initCache({
@@ -474,7 +474,7 @@ export class LoginFacade implements SessionTypeProvider {
 			session: sessionId,
 		})
 		await this.serviceExecutor
-			.delete(SecondFactorAuthService, secondFactorAuthDeleteData)
+			.delete(SecondFactorAuthService, secondFactorAuthDeleteData, null)
 			.catch(
 				ofClass(NotFoundError, (e) => {
 					// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
@@ -493,8 +493,8 @@ export class LoginFacade implements SessionTypeProvider {
 	}
 
 	/** Finishes 2FA process either using second factor or approving session on another client. */
-	async authenticateWithSecondFactor(data: SecondFactorAuthData, host?: string): Promise<void> {
-		await this.serviceExecutor.post(SecondFactorAuthService, data, { baseUrl: host })
+	async authenticateWithSecondFactor(data: SecondFactorAuthData, host: string | null): Promise<void> {
+		await this.serviceExecutor.post(SecondFactorAuthService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, baseUrl: host })
 	}
 
 	/**
@@ -607,6 +607,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const queryParams: Dict = pushIdentifier == null ? {} : { pushIdentifier }
 		return this.restClient
 			.request(path, HttpMethod.DELETE, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers,
 				responseType: MediaType.Json,
 				queryParams,
@@ -653,7 +654,7 @@ export class LoginFacade implements SessionTypeProvider {
 			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 
-		await this.serviceExecutor.post(ChangePasswordService, service)
+		await this.serviceExecutor.post(ChangePasswordService, service, null)
 
 		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
@@ -693,7 +694,7 @@ export class LoginFacade implements SessionTypeProvider {
 		} else {
 			deleteCustomerData.takeoverMailAddress = null
 		}
-		await this.serviceExecutor.delete(CustomerService, deleteCustomerData)
+		await this.serviceExecutor.delete(CustomerService, deleteCustomerData, null)
 	}
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
@@ -750,10 +751,11 @@ export class LoginFacade implements SessionTypeProvider {
 			() => this.entityMigrator,
 		)
 		const entityClient = new EntityClient(eventRestClient, this.typeModelResolver)
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
+		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData, null) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 
 		const { userId, accessToken } = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null)
 		const user = await entityClient.load(UserTypeRef, userId, {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			extraHeaders: {
 				accessToken,
 			},
@@ -766,7 +768,10 @@ export class LoginFacade implements SessionTypeProvider {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 		}
 
-		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, { extraHeaders: recoverCodeExtraHeaders })
+		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			extraHeaders: recoverCodeExtraHeaders,
+		})
 		try {
 			const groupKey = aes256DecryptWithRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
 			const salt = generateRandomSalt()
@@ -790,7 +795,7 @@ export class LoginFacade implements SessionTypeProvider {
 			const extraHeaders = {
 				accessToken,
 			}
-			await this.serviceExecutor.post(ChangePasswordService, postData, { extraHeaders })
+			await this.serviceExecutor.post(ChangePasswordService, postData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, extraHeaders })
 		} finally {
 			this.deleteSession(accessToken)
 		}
@@ -807,7 +812,7 @@ export class LoginFacade implements SessionTypeProvider {
 				authVerifier,
 				recoverCodeVerifier,
 			})
-			return this.serviceExecutor.delete(ResetFactorsService, deleteData)
+			return this.serviceExecutor.delete(ResetFactorsService, deleteData, null)
 		})
 	}
 
@@ -827,7 +832,7 @@ export class LoginFacade implements SessionTypeProvider {
 				recoverCodeVerifier,
 				targetAccountMailAddress,
 			})
-			return this.serviceExecutor.post(TakeOverDeletedAddressService, data)
+			return this.serviceExecutor.post(TakeOverDeletedAddressService, data, null)
 		})
 	}
 
@@ -862,7 +867,7 @@ export class LoginFacade implements SessionTypeProvider {
 		})
 
 		const authVerifier = createAuthVerifier(passphraseKey)
-		const out = await this.serviceExecutor.post(VerifierTokenService, createVerifierTokenServiceIn({ authVerifier }))
+		const out = await this.serviceExecutor.post(VerifierTokenService, createVerifierTokenServiceIn({ authVerifier }), null)
 		return out.token
 	}
 
@@ -927,7 +932,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessToken,
 		})
 		try {
-			const secondFactorAuthGetReturn = await this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
+			const secondFactorAuthGetReturn = await this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData, null)
 			if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
 				throw new CancelledError("login cancelled")
 			}
@@ -1063,7 +1068,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 		try {
 			// We need to use up-to-date user to make sure that we are not checking for outdated verified against cached user.
-			const user = await this.entityClient.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })
+			const user = await this.entityClient.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
 			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
 			// this may be the second time we set user in case we had a partial offline login before
@@ -1171,7 +1176,7 @@ export class LoginFacade implements SessionTypeProvider {
 	}> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
-		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest)
+		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest, null)
 		const kdfType = asKdfType(saltReturn.kdfVersion)
 		return {
 			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),
@@ -1204,6 +1209,7 @@ export class LoginFacade implements SessionTypeProvider {
 		// we cannot use the entity client yet because this type is encrypted and we don't have an owner key yet
 		return this.restClient
 			.request(path, HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers,
 				responseType: MediaType.Json,
 			})

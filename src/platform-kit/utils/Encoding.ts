@@ -160,7 +160,7 @@ export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
 
 const REPLACEMENT_CHAR = "\uFFFD"
 
-export function _replaceLoneSurrogates(s: string | null | undefined): string {
+export function _replaceLoneSurrogates(s: string | null): string {
 	if (s == null) {
 		return ""
 	}

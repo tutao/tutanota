@@ -1,6 +1,6 @@
 import o, { assertThrows, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
 import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
@@ -847,8 +847,8 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: argThat(async (json) => {
-						const untypedInstance = JSON.parse(json)
+					body: argThat(async (json: RestTextBody) => {
+						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
@@ -970,7 +970,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(v) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: JSON.stringify(untypedSupportData),
+					body: new RestTextBody(JSON.stringify(untypedSupportData)),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
@@ -1038,8 +1038,8 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: argThat(async (json) => {
-						const untypedInstance = JSON.parse(json)
+					body: argThat(async (json: RestTextBody) => {
+						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
@@ -1083,7 +1083,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(untypedGroupMembers),
+					body: new RestTextBody(JSON.stringify(untypedGroupMembers)),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedPersistentPostReturn]))
@@ -1114,7 +1114,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(untypedGroupMembers),
+					body: new RestTextBody(JSON.stringify(untypedGroupMembers)),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPostReturns))
@@ -1144,7 +1144,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(untypedGroupMembers.slice(0, 100)),
+					body: new RestTextBody(JSON.stringify(untypedGroupMembers.slice(0, 100))),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPostReturns.slice(0, 100)))
@@ -1154,7 +1154,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(untypedGroupMembers.slice(100)),
+					body: new RestTextBody(JSON.stringify(untypedGroupMembers.slice(100))),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPostReturns.slice(100)))
@@ -1221,7 +1221,7 @@ o.spec("EntityRestClient", function () {
 			let step = 0
 			when(restClient.request(anything(), anything(), anything())).thenDo((path: string, method: HttpMethod, { body }) => {
 				//post multiple - body is an array
-				if (body && body.startsWith("[")) {
+				if (body instanceof RestTextBody && body.payload.startsWith("[")) {
 					throw new restError.PayloadTooLargeError("test") //post single
 				} else if (step === 1) {
 					step += 1

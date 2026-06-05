@@ -133,7 +133,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		Dialog.showActionDialog({
 			title: "addInboxRule_action",
 			child: form,
-			validator: () => validateInboxRuleInput(inboxRuleType(), inboxRuleValue(), ruleOrTemplate._id),
+			validator: async () => validateInboxRuleInput(inboxRuleType(), inboxRuleValue(), ruleOrTemplate._id),
 			allowOkWithReturn: true,
 			okAction: addInboxRuleOkAction,
 		})

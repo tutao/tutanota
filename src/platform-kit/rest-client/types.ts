@@ -36,17 +36,31 @@ export const enum HttpMethod {
 	DELETE = "DELETE",
 }
 
+export abstract class RestBody {}
+
+export class RestTextBody extends RestBody {
+	constructor(public readonly payload: string) {
+		super()
+	}
+}
+
+export class RestBinaryBody extends RestBody {
+	constructor(public readonly payload: Uint8Array) {
+		super()
+	}
+}
+
 export interface RestClientOptions {
-	body?: string | Uint8Array
-	responseType?: MediaType
-	progressListener?: ProgressListener
-	baseUrl?: string
-	headers?: Dict
-	queryParams?: Dict
-	noCORS?: boolean
+	body: RestBody | null
+	responseType: MediaType | null
+	progressListener: ProgressListener | null
+	baseUrl: string | null
+	headers: Dict | null
+	queryParams: Dict | null
+	noCORS: boolean | null
 	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: SuspensionBehavior
-	abortSignal?: AbortSignal
+	suspensionBehavior: SuspensionBehavior | null
+	abortSignal: AbortSignal | null
 }
 
 export const enum SuspensionBehavior {

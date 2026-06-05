@@ -76,10 +76,7 @@ export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectW
 	return deferred
 }
 
-export async function asyncFind<T>(
-	array: ReadonlyArray<T>,
-	finder: (item: T, index: number, arrayLength: number) => Promise<boolean>,
-): Promise<T | null | undefined> {
+export async function asyncFind<T>(array: ReadonlyArray<T>, finder: (item: T, index: number, arrayLength: number) => Promise<boolean>): Promise<T | null> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 
@@ -94,7 +91,7 @@ export async function asyncFind<T>(
 export async function asyncFindAndMap<T, R>(
 	array: ReadonlyArray<T>,
 	finder: (item: T, index: number, arrayLength: number) => Promise<R | null>,
-): Promise<R | null | undefined> {
+): Promise<R | null> {
 	for (let i = 0; i < array.length; i++) {
 		const item = array[i]
 		const mapped = await finder(item, i, array.length)
@@ -132,7 +129,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNotNull<T>(value: T | null | undefined, message: string = "null"): T {
+export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
 	if (value == null) {
 		throw new Error("AssertNotNull failed : " + message)
 	}
@@ -145,7 +142,7 @@ export function assertNotNull<T>(value: T | null | undefined, message: string = 
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNull<T>(value: T | null | undefined, message: string = "not null") {
+export function assertNull<T>(value: T | null, message: string = "not null") {
 	if (value != null) {
 		throw new Error("AssertNull failed : " + message)
 	}
@@ -157,18 +154,18 @@ export function assertNull<T>(value: T | null | undefined, message: string = "no
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNonNull<T>(value: T | null | undefined, message: string = "null"): asserts value is T {
+export function assertNonNull<T>(value: T | null, message: string = "null"): asserts value is T {
 	if (value == null) {
 		throw new Error("AssertNonNull failed: " + message)
 	}
 }
 
-export function isNotNull<T>(t: T | null | undefined): t is T {
+export function isNotNull<T>(t: T | null): t is NonNullable<T> {
 	return t != null
 }
 
-export function assert(assertion: MaybeLazy<boolean>, message: string) {
-	if (!resolveMaybeLazy(assertion)) {
+export function assert(assertion: boolean, message: string) {
+	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
 	}
 }
@@ -231,7 +228,7 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
  * but ones in the middle (which happen too often) are discarded.
  */
 export function debounceStart<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let timeoutId: ReturnType<typeof setTimeout> | null = null
 	let lastInvoked = 0
 	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
@@ -260,7 +257,7 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
  * is being called repeatedly.
  */
 export function throttle<F extends (...args: any) => void>(periodMs: number, toThrottle: F): F {
-	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let timeoutId: ReturnType<typeof setTimeout> | null
 	let lastArgs: any[]
 
 	return ((...args: any) => {
@@ -369,13 +366,6 @@ export function errorToString(error: ErrorInfo): string {
 
 export function errorsToString(errors: Array<ErrorInfo>): string {
 	return errors.join("\n--- next error ---\n")
-}
-
-/**
- * Like {@link Object.entries} but preserves the type of the key and value
- */
-export function objectEntries<A extends string | symbol, B>(object: Record<A, B>): Array<[A, B]> {
-	return downcast(Object.entries(object))
 }
 
 /**
@@ -524,20 +514,6 @@ export function typedValues<K extends string, V>(obj: Record<K, V>): Array<V> {
 	return downcast(Object.values(obj))
 }
 
-export type MaybeLazy<T> = T | lazy<T>
-
-export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {
-	return typeof maybe === "function" ? (maybe as () => T)() : maybe
-}
-
-export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {
-	return typeof maybe === "function" ? downcast(maybe) : () => maybe
-}
-
-export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (arg0: T) => U): lazy<U> {
-	return () => mapping(resolveMaybeLazy(maybe))
-}
-
 /**
  * Stricter version of parseInt() from MDN. parseInt() allows some arbitrary characters at the end of the string.
  * Returns NaN in case there's anything non-number in the string.
@@ -569,7 +545,7 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
 /**
  * If val is non null, returns the result of val passed to action, else null
  */
-export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) => U | null | undefined): U | null {
+export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) => U | null): U | null {
 	if (val != null) {
 		const result = action(val)
 

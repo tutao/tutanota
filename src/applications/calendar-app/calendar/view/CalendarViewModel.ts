@@ -9,7 +9,6 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, Contac
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
-	$Promisable,
 	assertNotNull,
 	debounce,
 	deepEqual,
@@ -89,6 +88,7 @@ import { CalendarImporter } from "../../../common/calendar/import/CalendarImport
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
+import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 
 export interface EventWrapperFlags {
 	/**

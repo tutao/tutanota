@@ -11,7 +11,7 @@ import {
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
 import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
-import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
@@ -61,7 +61,7 @@ export class GiftCardFacade {
 				ownerEncSessionKey: ownerEncSessionKey.key,
 				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			}),
-			{ sessionKey },
+			{ ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey },
 		)
 
 		return giftCard
@@ -76,6 +76,7 @@ export class GiftCardFacade {
 				countryCode: "",
 			}),
 			{
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: base64ToKey(key),
 			},
 		)
@@ -98,6 +99,7 @@ export class GiftCardFacade {
 				keyHash: sha256Hash(base64ToUint8Array(key)),
 				countryCode,
 			}),
+			null,
 		)
 	}
 

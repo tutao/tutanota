@@ -248,7 +248,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									icon: Icons.More,
 									size: ButtonSize.Compact,
 								},
-								childAttrs: () => [
+								childAttrs: async () => [
 									{
 										label: "showRejectReason_action",
 										click: () => showRejectedSendersInfoDialog(rejectedSender),

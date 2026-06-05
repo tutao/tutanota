@@ -1511,7 +1511,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											icon: Icons.More,
 											title: "more_label",
 										},
-										childAttrs: () => [
+										childAttrs: async () => [
 											{
 												label: "edit_action",
 												icon: Icons.PenFilled,

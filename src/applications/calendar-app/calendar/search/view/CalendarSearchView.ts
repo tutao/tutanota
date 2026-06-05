@@ -363,7 +363,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			m(
 				".pl-4.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
-					date: this.searchViewModel.startDate ?? undefined,
+					date: this.searchViewModel.startDate,
 					onDateSelected: (date) => {
 						if (this.searchViewModel.selectStartDate(date) !== PaidFunctionResult.Success) {
 							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)

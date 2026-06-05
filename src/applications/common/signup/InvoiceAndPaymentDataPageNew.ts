@@ -41,7 +41,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
-		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.get(LocationService, null, null).then((location: LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
 

@@ -3,7 +3,7 @@ import { assertNotNull, neverNull } from "@tutao/utils"
 import { UsageTestMetricType } from "@tutao/app-env"
 import { SuspensionError } from "../api/common/error/SuspensionError"
 import { DateProvider } from "../../../platform-kit/utils/DateProvider.js"
-import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
+import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
@@ -322,9 +322,11 @@ export class UsageTestModel implements PingAdapter {
 		try {
 			const response: UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
+						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
 				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
+						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
@@ -390,7 +392,7 @@ export class UsageTestModel implements PingAdapter {
 			pingListId,
 			pingId,
 		})
-		await this.serviceExecutor.delete(UsageTestParticipationService, data)
+		await this.serviceExecutor.delete(UsageTestParticipationService, data, null)
 		console.log(`Removed Ping: ${pingId}, ${pingListId}`)
 	}
 
@@ -428,6 +430,7 @@ export class UsageTestModel implements PingAdapter {
 
 		try {
 			const { pingListId, pingId } = await this.serviceExecutor.post(UsageTestParticipationService, data, {
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
 			})
 			return { pingListId, pingId }

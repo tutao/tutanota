@@ -43,7 +43,6 @@ export {
 	partitionAsync,
 	arrayOf,
 	count,
-	zeroOut,
 	compare,
 	collectToMap,
 	splitArrayAt,
@@ -120,24 +119,10 @@ export { LazyLoaded } from "./LazyLoaded.js"
 export { mergeMaps, getFromMap, addMapEntry, deleteMapEntry, mapMap, takeFromMap } from "./MapUtils.js"
 export { pMap } from "./PromiseMap.js"
 export type { Mapper } from "./PromiseMap.js"
-export { mapInCallContext, promiseMap, promiseMapCompat, PromisableWrapper, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"
-export type { PromiseMapFn, $Promisable } from "./PromiseUtils.js"
+export { promiseMap, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"
 export { SortedArray } from "./SortedArray.js"
 export type { CompareFn } from "./SortedArray.js"
-export {
-	pad,
-	startsWith,
-	capitalizeFirstLetter,
-	endsWith,
-	lazyStringValue,
-	repeat,
-	cleanMatch,
-	NBSP,
-	splitAt,
-	toLowerCase,
-	localeCompare,
-	byteLength,
-} from "./StringUtils.js"
+export { pad, startsWith, capitalizeFirstLetter, endsWith, repeat, cleanMatch, NBSP, splitAt, toLowerCase, localeCompare, byteLength } from "./StringUtils.js"
 export {
 	defer,
 	deferWithHandler,
@@ -159,7 +144,6 @@ export {
 	throttleStart,
 	randomIntFromInterval,
 	errorToString,
-	objectEntries,
 	deepEqual,
 	getChangedProps,
 	freezeMap,
@@ -167,9 +151,6 @@ export {
 	typedKeys,
 	typedEntries,
 	typedValues,
-	resolveMaybeLazy,
-	getAsLazy,
-	mapLazily,
 	filterInt,
 	insideRect,
 	mapNullable,
@@ -193,7 +174,6 @@ export type {
 	lazyAsync,
 	Thunk,
 	DeferredObjectWithHandler,
-	MaybeLazy,
 	TimeoutSetter,
 	ErrorInfo,
 	Versioned,

@@ -574,7 +574,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				size: ButtonSize.Compact,
 				colors: ButtonColor.Nav,
 			},
-			childAttrs: () => {
+			childAttrs: async () => {
 				const vcardButtons: Array<DropdownButtonAttrs> = isApp()
 					? [
 							{
@@ -632,7 +632,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				colors: ButtonColor.Nav,
 				size: ButtonSize.Compact,
 			},
-			childAttrs: () => {
+			childAttrs: async () => {
 				return [
 					{
 						label: "edit_action",

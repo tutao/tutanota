@@ -113,7 +113,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 									icon: Icons.ArrowDown,
 									size: ButtonSize.Compact,
 								},
-								childAttrs: () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
+								childAttrs: async () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
 								showDropdown: () => true,
 								width: 250,
 							}),

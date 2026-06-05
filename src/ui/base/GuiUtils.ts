@@ -2,8 +2,9 @@ import type { MaybeTranslation, TranslationKey } from "../utils/LanguageViewMode
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs } from "./Dropdown.js"
-import type { $Promisable, lazy, MaybeLazy } from "../../platform-kit/utils"
-import { assertNotNull, resolveMaybeLazy } from "../../platform-kit/utils"
+import type { lazy } from "../../platform-kit/utils"
+import { assertNotNull } from "../../platform-kit/utils"
+import { MaybeLazy, resolveMaybeLazy } from "../MaybeLazy"
 import { Dialog } from "./Dialog"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import m, { Children } from "mithril"
@@ -48,7 +49,7 @@ export type ClickHandler = (event: MouseEvent, dom: HTMLElement) => void
 export type KeyboardHandler = (event: KeyboardEvent, dom: HTMLElement) => void
 
 export function createMoreActionButtonAttrs(
-	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	lazyChildren: MaybeLazy<Promise<ReadonlyArray<DropdownChildAttrs | null>>>,
 	dropdownWidth?: number,
 ): IconButtonAttrs {
 	return {

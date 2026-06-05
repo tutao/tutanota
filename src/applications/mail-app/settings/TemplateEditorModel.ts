@@ -113,7 +113,7 @@ export class TemplateEditorModel {
 				return this._entityClient.update(this.template)
 			} else {
 				this.template._ownerGroup = this._templateGroupRoot._id
-				return this._entityClient.setup(this._templateGroupRoot.templates, this.template)
+				return this._entityClient.setup(this._templateGroupRoot.templates, this.template, null)
 			}
 		})
 	}

@@ -182,7 +182,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 									// is focused programmatically
 									tabindex: TabIndex.Programmatic,
 								},
-								childAttrs: () => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload),
+								childAttrs: async () => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload),
 							}),
 							oncreate: (vnode: VnodeDOM<IconButtonAttrs, _NoLifecycle<IconButton>>) => {
 								this.moreButtonDom = vnode.dom as HTMLElement

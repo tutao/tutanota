@@ -1,4 +1,10 @@
-import { EntityRestClientEraseOptions, EntityRestClientLoadOptions, EntityRestClientSetupOptions, EntityRestClientUpdateOptions } from "./EntityRestClient"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	EntityRestClientEraseOptions,
+	EntityRestClientLoadOptions,
+	EntityRestClientSetupOptions,
+	EntityRestClientUpdateOptions,
+} from "./EntityRestClient"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
@@ -13,7 +19,7 @@ import {
 	TypeRef,
 	ValueType,
 } from "../meta"
-import { downcast, groupByAndMap, last, promiseMap } from "@tutao/utils"
+import { downcast, groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
@@ -34,7 +40,11 @@ export class EntityClient {
 	/**
 	 * Important: we can't pass functions through the bridge, so we can't pass ownerKeyProvider from the page context.
 	 */
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<T> {
 		return this._target.load(typeRef, id, opts)
 	}
 
@@ -96,7 +106,7 @@ export class EntityClient {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
 		return this._target.loadRange(typeRef, listId, start, count, reverse, opts)
 	}
@@ -106,19 +116,24 @@ export class EntityClient {
 	 */
 	loadMultiple<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
-		listId: Id | null,
+		listId: Nullable<Id>,
 		elementIds: Id[],
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
 		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
+	setup<T extends SomeEntity>(
+		listId: Nullable<Id>,
+		instance: T,
+		extraHeaders: Nullable<Dict> = null,
+		options: Nullable<EntityRestClientSetupOptions> = null,
+	): Promise<Nullable<Id>> {
 		return this._target.setup(listId, instance, extraHeaders, options)
 	}
 
-	setupMultipleEntities<T extends SomeEntity>(listId: Id | null, instances: ReadonlyArray<T>): Promise<Array<Id>> {
+	setupMultipleEntities<T extends SomeEntity>(listId: Nullable<Id>, instances: ReadonlyArray<T>): Promise<Array<Id>> {
 		return this._target.setupMultiple(listId, instances)
 	}
 
@@ -134,7 +149,11 @@ export class EntityClient {
 		return this._target.eraseMultiple(listId, instances, options)
 	}
 
-	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async loadRoot<T extends ElementEntity>(
+		typeRef: TypeRef<T>,
+		groupId: Id,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<T> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const rootId = [groupId, typeModel.rootId] as const

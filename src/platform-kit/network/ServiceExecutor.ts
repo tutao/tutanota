@@ -11,10 +11,10 @@ import {
 	ReturnTypeFromRef,
 	TypeRef,
 } from "../meta"
-import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "../rest-client/types"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "@tutao/rest-client"
+import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
-import { lazy } from "@tutao/utils"
+import { lazy, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
@@ -37,7 +37,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	get<S extends GetService>(
 		service: S,
 		data: ParamTypeFromRef<S["get"]["data"]>,
-		params?: ExtraServiceParams,
+		params: Nullable<ExtraServiceParams>,
 	): Promise<ReturnTypeFromRef<S["get"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.GET, data, params)
 	}
@@ -45,7 +45,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	post<S extends PostService>(
 		service: S,
 		data: ParamTypeFromRef<S["post"]["data"]>,
-		params?: ExtraServiceParams,
+		params: Nullable<ExtraServiceParams>,
 	): Promise<ReturnTypeFromRef<S["post"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.POST, data, params)
 	}
@@ -53,7 +53,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	put<S extends PutService>(
 		service: S,
 		data: ParamTypeFromRef<S["put"]["data"]>,
-		params?: ExtraServiceParams,
+		params: Nullable<ExtraServiceParams>,
 	): Promise<ReturnTypeFromRef<S["put"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.PUT, data, params)
 	}
@@ -61,7 +61,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	delete<S extends DeleteService>(
 		service: S,
 		data: ParamTypeFromRef<S["delete"]["data"]>,
-		params?: ExtraServiceParams,
+		params: Nullable<ExtraServiceParams>,
 	): Promise<ReturnTypeFromRef<S["delete"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.DELETE, data, params)
 	}
@@ -69,8 +69,8 @@ export class ServiceExecutor implements IServiceExecutor {
 	private async executeServiceRequest(
 		service: AnyService,
 		method: HttpMethod,
-		requestEntity: Entity | null,
-		params: ExtraServiceParams | undefined,
+		requestEntity: Nullable<Entity>,
+		params: Nullable<ExtraServiceParams> = null,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
 		if (
@@ -92,13 +92,14 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
-		const data: string | undefined = await this.restClient.request(path, method, {
-			queryParams: params?.queryParams,
+		const data: string | null = await this.restClient.request(path, method, {
+			...DEFAULT_REST_CLIENT_OPTIONS,
+			queryParams: params?.queryParams ?? null,
 			headers,
 			responseType: MediaType.Json,
-			body: encryptedEntity ?? undefined,
-			suspensionBehavior: params?.suspensionBehavior,
-			baseUrl: params?.baseUrl,
+			body: encryptedEntity ? new RestTextBody(encryptedEntity) : null,
+			suspensionBehavior: params?.suspensionBehavior ?? DEFAULT_REST_CLIENT_OPTIONS.suspensionBehavior,
+			baseUrl: params?.baseUrl ?? null,
 		})
 
 		if (methodDefinition.return) {
@@ -156,7 +157,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
+	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: Nullable<ExtraServiceParams> = null): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)

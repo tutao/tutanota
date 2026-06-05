@@ -189,7 +189,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 			.then(async (sendableNotification) => {
 				// Error messages are already shown if sendableNotification is null. We do not close the dialog.
 				if (this._isNewNotification()) {
-					await this._entityClient.setup(null, sendableNotification)
+					await this._entityClient.setup(null, sendableNotification, null)
 				} else {
 					await this._entityClient.update(sendableNotification)
 				}

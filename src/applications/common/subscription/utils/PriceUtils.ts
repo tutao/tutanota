@@ -157,7 +157,7 @@ export class PriceAndConfigProvider {
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})
-		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
+		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data, null)
 		if (isIOSApp()) {
 			this.mobilePrices = new Map()
 

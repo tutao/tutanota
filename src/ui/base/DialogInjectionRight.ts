@@ -2,8 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
 import { px } from "../size"
-import type { MaybeLazy } from "../../platform-kit/utils"
-import { resolveMaybeLazy } from "../../platform-kit/utils"
+import { MaybeLazy, resolveMaybeLazy } from "../MaybeLazy"
 import Stream from "mithril/stream"
 
 export type DialogInjectionRightAttrs<T extends object> = {

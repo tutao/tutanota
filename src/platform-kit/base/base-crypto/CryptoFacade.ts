@@ -14,10 +14,9 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
 import { assertEnumValue, AttributeModel, ClientTypeModel, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
-import { RestClientInterface } from "@tutao/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
-	Aes256Key,
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
@@ -88,7 +87,7 @@ import {
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
 } from "@tutao/entities/tutanota"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
 import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
@@ -123,12 +122,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
-	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
-		const ownerKey = await ownerKeyProvider?.(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+		const ownerKey = ownerKeyProvider != null ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
 		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
 	}
 
-	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKey && migratedEntity._ownerEncSessionKey) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
@@ -363,7 +362,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		const id = downcast<SomeEntity>(instance)._id
 		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
 
-		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
+		let resolvedSessionKeyForInstance: AesKey | null = null
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))
@@ -422,7 +421,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 						keyGroup,
 						"trying to authenticate an asymmetrically encrypted message, but we can't determine the recipient's group ID",
 					)
-					const currentKeyPair = await this.symGroupKeyLoader.loadCurrentKeyPair(recipientGroup, undefined)
+					const currentKeyPair = await this.symGroupKeyLoader.loadCurrentKeyPair(recipientGroup, null)
 					encryptionAuthStatus = EncryptionAuthStatus.RSA_NO_AUTHENTICATION
 					if (isPqKeyPairs(currentKeyPair.object)) {
 						const keyRotationFacade = this.keyRotationFacade()
@@ -603,7 +602,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	async resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null> {
 		if (instance._ownerPublicEncSessionKey) {
 			// we assume the server uses the current key pair of the recipient
-			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), undefined)
+			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), null)
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
 			return (
 				await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
@@ -718,7 +717,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				permission: permission._id,
 				bucketPermission: bucketPermission._id,
 			})
-			await this.serviceExecutor.post(UpdatePermissionKeyService, updateService)
+			await this.serviceExecutor.post(UpdatePermissionKeyService, updateService, null)
 		}
 	}
 
@@ -762,7 +761,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {
 		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
-		await this.serviceExecutor.post(UpdateSessionKeysService, input)
+		await this.serviceExecutor.post(UpdateSessionKeysService, input, null)
 	}
 
 	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
@@ -808,7 +807,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	async postUpdateKdfNonceService(instanceKdfNonce: InstanceKdfNonce): Promise<UpdateKdfNoncePostOut> {
 		const input = createUpdateKdfNoncePostIn({ instanceKdfNonce: instanceKdfNonce })
-		return await this.serviceExecutor.post(UpdateKdfNonceService, input)
+		return await this.serviceExecutor.post(UpdateKdfNonceService, input, null)
 	}
 
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
@@ -847,8 +846,9 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers,
-				body: JSON.stringify(patchPayload),
+				body: new RestTextBody(JSON.stringify(patchPayload)),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

@@ -246,7 +246,7 @@ function allocateStringCopy(str: string, exports: WASMExports, toFree: Ptr[]): U
 	}
 }
 
-function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[]): Uint8Array {
+function allocateArrayCopy(arr: ArrayLike<number>, exports: WASMExports, toFree: Ptr[]): Uint8Array {
 	const allocationAmount = arr.length
 	let buf = allocateBuffer(allocationAmount, exports)
 	try {
@@ -259,7 +259,7 @@ function allocateArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, to
 	}
 }
 
-function allocateSecureArrayCopy(arr: Uint8Array | Int8Array, exports: WASMExports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
+function allocateSecureArrayCopy(arr: Uint8Array, exports: WASMExports, toFree: Ptr[], toClear: Uint8Array[]): Uint8Array {
 	const arrayInWASM = allocateArrayCopy(arr, exports, toFree)
 	try {
 		toClear.push(arrayInWASM)

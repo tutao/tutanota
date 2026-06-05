@@ -334,7 +334,7 @@ export class AsymmetricCryptoFacade {
 			symEncPrivEccKey,
 			keyGroup: keyGroupId,
 		})
-		await this.serviceExecutor.put(PublicKeyService, data)
+		await this.serviceExecutor.put(PublicKeyService, data, null)
 		return newX25519KeyPair
 	}
 }

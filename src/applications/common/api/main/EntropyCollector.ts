@@ -1,6 +1,6 @@
 /// <reference lib="dom" /> // fixes MouseEvent conflict with react
 import { assertMainOrNode } from "@tutao/app-env"
-import type { EntropySource } from "@tutao/crypto"
+import { EntropySource } from "@tutao/crypto"
 import type { EntropyDataChunk, EntropyFacade } from "../../../../platform-kit/base/facades/EntropyFacade.js"
 import { Scheduler } from "../common/utils/Scheduler.js"
 
@@ -28,27 +28,27 @@ export class EntropyCollector {
 	private mouse = (e: MouseEvent) => {
 		const value = e.clientX ^ e.clientY
 
-		this.addEntropy(value, 2, "mouse")
+		this.addEntropy(value, 2, EntropySource.Mouse)
 	}
 
 	private keyDown = (e: KeyboardEvent) => {
 		const value = e.key ? e.key.charCodeAt(0) : undefined
-		this.addEntropy(value, 2, "key")
+		this.addEntropy(value, 2, EntropySource.Key)
 	}
 
 	private touch = (e: TouchEvent) => {
 		const value = e.touches[0].clientX ^ e.touches[0].clientY
 
-		this.addEntropy(value, 2, "touch")
+		this.addEntropy(value, 2, EntropySource.Touch)
 	}
 
 	/** e is a DeviceMotionEvent but it's typed in a very annoying way */
 	private accelerometer = (e: any) => {
 		if (e.accelerationIncludingGravity) {
-			this.addEntropy(e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z, 2, "accel")
+			this.addEntropy(e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z, 2, EntropySource.Accel)
 		}
 
-		this.addEntropy(this.window.screen.orientation.angle, 0, "accel")
+		this.addEntropy(this.window.screen.orientation.angle, 0, EntropySource.Accel)
 	}
 
 	/**
@@ -68,13 +68,13 @@ export class EntropyCollector {
 
 		if (this.window.performance && typeof window.performance.now === "function") {
 			this.entropyCache.push({
-				source: "time",
+				source: EntropySource.Time,
 				entropy: 2,
 				data: this.window.performance.now(),
 			})
 		} else {
 			this.entropyCache.push({
-				source: "time",
+				source: EntropySource.Time,
 				entropy: 2,
 				data: new Date().valueOf(),
 			})
@@ -104,7 +104,7 @@ export class EntropyCollector {
 				const value = entry[key]
 				if (typeof value === "number" && value !== 0) {
 					if (added.indexOf(value) === -1) {
-						this.addEntropy(value, 1, "static")
+						this.addEntropy(value, 1, EntropySource.Static)
 						added.push(value)
 					}
 				}
@@ -121,7 +121,7 @@ export class EntropyCollector {
 
 		for (let i = 0; i < valueList.length; i++) {
 			// 32 because we have 32-bit values Uint32Array
-			this.addEntropy(valueList[i], 32, "random")
+			this.addEntropy(valueList[i], 32, EntropySource.Random)
 		}
 	}
 

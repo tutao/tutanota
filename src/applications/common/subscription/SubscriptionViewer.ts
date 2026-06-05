@@ -419,6 +419,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const appStoreSubscriptionData = await locator.serviceExecutor.get(
 			AppStoreSubscriptionService,
 			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
+			null,
 		)
 
 		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {
@@ -832,7 +833,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 						icon: Icons.More,
 						size: ButtonSize.Compact,
 					},
-					childAttrs: () => [
+					childAttrs: async () => [
 						{
 							label: "view_label",
 							click: () => showGiftCardToShare(giftCard),

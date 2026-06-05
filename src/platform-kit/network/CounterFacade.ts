@@ -15,7 +15,7 @@ export class CounterFacade {
 			rowName,
 			columnName,
 		})
-		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
+		const counterReturn = await this.serviceExecutor.get(CounterService, counterData, null)
 		return Number(counterReturn.counterValues[0].value)
 	}
 
@@ -25,7 +25,7 @@ export class CounterFacade {
 			rowName: customerId,
 			columnName: null,
 		})
-		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
+		const counterReturn = await this.serviceExecutor.get(CounterService, counterData, null)
 		return counterReturn.counterValues
 	}
 }

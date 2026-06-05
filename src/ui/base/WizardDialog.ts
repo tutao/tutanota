@@ -8,7 +8,6 @@ import { theme } from "../theme"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
-import { $Promisable } from "../../platform-kit/utils"
 import { IWindowFacade } from "../IWindowFacade"
 
 assertMainOrNode()
@@ -391,7 +390,7 @@ export function createWizardDialog<T>({
 }: {
 	data: T
 	pages: ReadonlyArray<WizardPageWrapper<T>>
-	closeAction?: () => $Promisable<void>
+	closeAction?: () => Promise<void>
 	dialogType: DialogType.EditLarge | DialogType.EditSmall
 	cancelButtonText?: TranslationKey
 	windowFacade: IWindowFacade

@@ -364,7 +364,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			})
 		}),
 	})
-	await locator.serviceExecutor.post(ReportErrorService, errorData)
+	await locator.serviceExecutor.post(ReportErrorService, errorData, null)
 }
 
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {

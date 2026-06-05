@@ -27,7 +27,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 				icon: Icons.More,
 				size: ButtonSize.Compact,
 			},
-			childAttrs: () => [
+			childAttrs: async () => [
 				{
 					label: vnode.attrs.disabled ? "activate_action" : "deactivate_action",
 					click: vnode.attrs.disableClicked,

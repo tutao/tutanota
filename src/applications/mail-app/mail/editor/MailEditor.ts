@@ -567,7 +567,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					icon: Icons.More,
 					size: ButtonSize.Compact,
 				},
-				childAttrs: () => [
+				childAttrs: async () => [
 					{
 						label: "add_action",
 						click: () => {
@@ -1764,7 +1764,7 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog?.show()
 }
@@ -1784,7 +1784,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
+	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))

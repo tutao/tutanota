@@ -29,7 +29,7 @@ export class BookingFacade {
 			date: Const.CURRENT_DATE,
 			priceRequest: priceRequestData,
 		})
-		return this.serviceExecutor.get(PriceService, serviceData)
+		return this.serviceExecutor.get(PriceService, serviceData, null)
 	}
 
 	/**
@@ -41,7 +41,7 @@ export class BookingFacade {
 			date: null,
 			priceRequest: null,
 		})
-		return this.serviceExecutor.get(PriceService, serviceData)
+		return this.serviceExecutor.get(PriceService, serviceData, null)
 	}
 
 	/**

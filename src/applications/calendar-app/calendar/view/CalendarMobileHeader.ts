@@ -135,7 +135,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					icon: getIconForViewType(attrs.viewType),
 					title: "view_label",
 				},
-				childAttrs: () => {
+				childAttrs: async () => {
 					const calendarViewValues: Array<{ name: TranslationKey; value: CalendarViewType }> = [
 						{
 							name: "agenda_label",

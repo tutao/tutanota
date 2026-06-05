@@ -13,6 +13,7 @@ import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeSta
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
+import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -84,7 +85,7 @@ export class CalendarNotificationSender {
 			event,
 			sender,
 		}).catch(
-			ofClass(RecipientsNotFoundError, (e) => {
+			ofClassAsync(RecipientsNotFoundError, async (e) => {
 				// we want to delete the event even if the recipient is not an existing tutanota address
 				// and just exclude them from sending out updates but leave the event untouched for other recipients
 				const invalidRecipients = e.message.split("\n")
