@@ -31,7 +31,7 @@ const MAPPED_REPLACEMENTS: Record<any, TARGET_REPLACEMENT> = {
 	[SyntaxKind.ThrowKeyword]: { kotlin: "throw", swift: "throw" },
 	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },
 	[SyntaxKind.FalseKeyword]: { kotlin: "false", swift: "" },
-	[SyntaxKind.TrueKeyword]: { kotlin: "", swift: "" },
+	[SyntaxKind.TrueKeyword]: { kotlin: "true", swift: "" },
 	[SyntaxKind.InstanceOfKeyword]: { kotlin: "is", swift: "" },
 	[SyntaxKind.ReturnKeyword]: { kotlin: "return ", swift: "" },
 } as const

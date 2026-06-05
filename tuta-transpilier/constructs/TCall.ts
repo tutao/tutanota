@@ -10,6 +10,7 @@ import * as Assert from "node:assert"
 export const enum SpecialCall {
 	ObjectFreezeOnArrayLiteral,
 	SuperCall,
+	NewExpression,
 }
 
 export class TCall extends TConstruct {
@@ -40,6 +41,10 @@ export class TCall extends TConstruct {
 		else if (this.callIdentifier instanceof TSuperKeyword) {
 			this.specialCall = SpecialCall.SuperCall
 		}
+		/// Case III: is a new SomeCall() call
+		else if (call instanceof NewExpression) {
+			this.specialCall = SpecialCall.NewExpression
+		}
 	}
 
 	public static from(callExpression: CallExpression): TCall {
@@ -58,7 +63,7 @@ export class TCall extends TConstruct {
 	}
 
 	public setBaseClassName(baseClass: TType): this {
-		Assert.deepEqual(this.specialCall, SpecialCall.SuperCall, "This is not a super call")
+		Assert.equal(this.specialCall === SpecialCall.SuperCall || this.specialCall === SpecialCall.NewExpression, true, "This is not a super call")
 		this.callIdentifier = baseClass
 		return this
 	}
@@ -70,5 +75,6 @@ export class TNew extends TCall {
 	// and new keyword have no meaning
 	constructor(newExpression: NewExpression) {
 		super(newExpression)
+		this.setBaseClassName(new TType(newExpression.getType()))
 	}
 }

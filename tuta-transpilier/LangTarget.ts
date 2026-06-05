@@ -38,7 +38,9 @@ export class LangTarget {
 
 	public async generate(): Promise<void> {
 		this.writeDontEditComment()
-		this.writeKotlinTopLevelDecl()
+		if (this.targetLanguage === TargetLanguage.Kotlin) {
+			this.writeKotlinTopLevelDecl()
+		}
 
 		for (const construct of this.collectedNodes) {
 			const constructOut = (() => {

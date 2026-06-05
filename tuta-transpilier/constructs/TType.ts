@@ -5,12 +5,14 @@ import { TargetLanguage } from "../LangTarget"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 
 const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
-	Number: { kotlin: "Int", swift: "" },
+	Number: { kotlin: "Number", swift: "NSNumber" },
 	Boolean: { kotlin: "Boolean", swift: "" },
 	Array: { kotlin: "Array", swift: "" },
 	String: { kotlin: "String", swift: "" },
 	Void: { kotlin: "Unit", swift: "" },
 	Record: { kotlin: "Map", swift: "" },
+	Date: { kotlin: "de.tutao.jsCompatibility.JsDate", swift: "" },
+	Error: { kotlin: "de.tutao.jsCompatibility.TsError", swift: "" },
 	RegExp: { kotlin: "Regex", swift: "" },
 })
 

@@ -3,6 +3,7 @@ import { TIdentifierFormatting, TIdentitider } from "./TIdentitider"
 import { ConstructOut, TConstruct } from "./TConstruct"
 import path from "node:path"
 import { TUTANOTA_SRC } from "../Constants"
+import { TranspileIgnore } from "../TranspileIgnore"
 
 export const enum TImportKind {
 	Relative,
@@ -34,19 +35,22 @@ export class TImport extends TConstruct {
 		this.aliasedImports = []
 
 		if (isRelativeImport) {
+			this.importKind = TImportKind.Relative
 			const importedFilePath = importDeclaration.getModuleSpecifierSourceFile().getFilePath()
 			const moduleSpecifierProjPath = path.relative(TUTANOTA_SRC, importedFilePath)
-			this.specifierComponents = moduleSpecifierProjPath
-				.replaceAll(".ts", "")
-				.split("/")
-				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
-			this.importKind = TImportKind.Relative
+			let specifierComponents = moduleSpecifierProjPath.replaceAll(".ts", "").split("/")
+			if (TranspileIgnore.isIgnored(importedFilePath)) {
+				specifierComponents = ["de", "tutao", "jsCompatibility", ...specifierComponents]
+			} else {
+				specifierComponents = ["de", "tutao", ...specifierComponents]
+			}
+			this.specifierComponents = specifierComponents.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
 		} else if (isExternalImport) {
+			this.importKind = TImportKind.External
 			this.specifierComponents = moduleSpecifier
 				.replace(/^@/, "") // starting @ for external package
 				.split("/")
 				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
-			this.importKind = TImportKind.External
 		} else if (isAbsoluteImport) throw new Error("Absolute import is not allowed")
 		else throw new Error("For custom-define alias, prefer to start with @tutao/")
 	}
@@ -70,7 +74,7 @@ export class TImport extends TConstruct {
 
 		if (this.importKind === TImportKind.Relative) {
 			const [layerName, moduleName] = this.specifierComponents
-			return `de.tutao.${layerName.generateKotlin()}.${moduleName.generateKotlin()}`
+			return `${layerName.generateKotlin()}.${moduleName.generateKotlin()}`
 		} else if (this.importKind === TImportKind.External) {
 			const specifierSuffix = this.specifierComponents.map((sc) => sc.generateKotlin()).join(".")
 			if (namedImportsMap[specifierSuffix]) {

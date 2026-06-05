@@ -49,7 +49,6 @@ import { TArrow, TFunctionDecl } from "./constructs/TFunctionDecl"
 import { TBinaryExpr } from "./constructs/TBinaryExpr"
 import * as Assert from "node:assert"
 import { TEndOfExpression } from "./constructs/TEndOfExpression"
-import { TReturnKeyword } from "./constructs/TKeywords"
 import { TIdentitider } from "./constructs/TIdentitider"
 import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
 import { TOneToOneReplacement } from "./constructs/TOneToOneReplacement"
@@ -128,7 +127,7 @@ export class NodeRedirector {
 			const childNodeCount = typedNode.getChildCount()
 			Assert.equal(childNodeCount === 1 || childNodeCount === 2, true, "return statement should have either 1 or 2 expression")
 			const [returnKeyword, returnExpression] = typedNode.getChildren()
-			const returnKeywordConstruct = new TReturnKeyword(returnKeyword)
+			const returnKeywordConstruct = new TOneToOneReplacement(returnKeyword, SyntaxKind.ReturnKeyword)
 			if (returnExpression == null) {
 				return returnKeywordConstruct
 			} else {
