@@ -2294,6 +2294,8 @@ export default {
 		"importEventIcsDuplicate_msg": "{amount} of {total} events are duplicated in the file. Duplicates will not be imported. Will continue with the remaining events...",
 		"emptyIcsFile_msg": "The file was empty. No events to import.",
 		"noImportableEvents_msg": "Import operation had no results. All events were rejected.",
-		"importAlarmsError_msg": "{amount} alarms could not be imported."
+		"importAlarmsError_msg": "{amount} alarms could not be imported.",
+		"defaultCalendarView_label": "Default calendar view",
+		"lastSelected_label": "Last selected (default)",
 	}
 }
