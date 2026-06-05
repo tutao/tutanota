@@ -4,7 +4,6 @@ import { AppHeaderAttrs, Header } from "../../../../ui/Header"
 import m, { Children, Vnode } from "mithril"
 import { DriveOperationType, DriveViewModel, OperationUpdate } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
-import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
@@ -22,7 +21,7 @@ import { AppType, isAndroidApp, Keys, OperationStatus, UpgradePromptType } from 
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
-import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDialog } from "./DriveGuiUtils"
+import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDialog, showRenameDialog } from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -168,6 +167,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				ctrlOrCmd: false,
 				exec: () => {
 					this.driveViewModel.selectNone()
+				},
+			},
+			{
+				key: Keys.F2,
+				enabled: () => true,
+				help: "renameItem_action",
+				ctrlOrCmd: false,
+				exec: () => {
+					const selectedItem = this.driveViewModel.getSelectedItem()
+					if (selectedItem) {
+						this.onRename(selectedItem)
+					}
 				},
 			},
 			{
@@ -686,27 +697,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private onRename(item: FolderItem) {
-		const originalName = item.type === "file" ? item.file.name : item.folder.name
-
-		// Determine how much of the original filename to pre-select,
-		// for easier renaming of files with extensions.
-		let selectionEnd = originalName.length
-		const [basename] = getFileBaseNameAndExtensions(originalName)
-		if (basename) {
-			selectionEnd = basename.length
-		}
-
-		Dialog.showProcessTextInputDialog(
-			{
-				title: "renameItem_action",
-				label: "enterNewName_label",
-				defaultValue: originalName,
-				selectionRange: [0, selectionEnd],
-			},
-			async (newName: string) => {
-				this.driveViewModel.rename(item, newName)
-			},
-		)
+		showRenameDialog(item, (newName) => this.driveViewModel.rename(item, newName))
 	}
 
 	async onNewFile(boundingRect: DOMRect): Promise<void> {
