@@ -142,6 +142,7 @@ export class SecondFactorHandler {
 						u2f: null,
 						webauthn: null,
 					}),
+					null,
 				)
 
 				if (this.otherLoginDialog) {

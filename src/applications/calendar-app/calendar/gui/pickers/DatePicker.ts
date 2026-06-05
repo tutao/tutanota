@@ -6,7 +6,7 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { px } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
 
-import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "../../../../../platform-kit/utils"
+import { getStartOfDay, isSameDayOfDate, memoized, NBSP, Nullable } from "../../../../../platform-kit/utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { LegacyTextField, LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
@@ -25,7 +25,7 @@ export enum PickerPosition {
 }
 
 export interface DatePickerAttrs {
-	date?: Date
+	date: Nullable<Date>
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: MaybeTranslation
@@ -54,7 +54,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private domInput: HTMLElement | null = null
 	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
-	private previousPassedDownDate?: Date
+	private previousPassedDownDate: Nullable<Date> = null
 
 	constructor({ attrs }: Vnode<DatePickerAttrs>) {
 		this.inputText = attrs.date ? formatDate(attrs.date) : ""
@@ -62,7 +62,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	}
 
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
-		const date = attrs.date
+		const date = attrs.date ?? null
 
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
 		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically

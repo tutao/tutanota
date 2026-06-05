@@ -172,7 +172,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				pubEccKey: x25519PublicKey,
 				signature: object(),
 			})
-			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(undefined)
+			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(null)
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
 
 			const expectedPublicKey: MaybeSignedPublicKey = {

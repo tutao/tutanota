@@ -77,7 +77,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, cleanMailAddress, identity, lazy, Require } from "../../../../../platform-kit/utils"
+import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "../../../../../platform-kit/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -187,8 +187,8 @@ export async function makeCalendarEventModel(
 	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
-		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
-		const index = await calendarModel.getEventsByUid(initialValues.uid)
+		const initialValueUid = assertNotNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
+		const index = await calendarModel.getEventsByUid(initialValueUid)
 		if (index != null && index.progenitor != null) {
 			initialValues = index.progenitor
 		}

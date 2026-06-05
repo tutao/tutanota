@@ -266,7 +266,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 /**
  * clears an array to contain only zeros (0)
  */
-function _clear(array: Uint8Array | null | undefined) {
+function _clear(array: Uint8Array | null) {
 	if (!array) {
 		return
 	}

@@ -6,7 +6,7 @@ import {
 	pipelineEncryptAndUpload,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kit/rest-client"
-import { HttpMethod, RestClientOptions } from "../../../../../src/platform-kit/rest-client/types"
+import { HttpMethod, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../../../src/platform-kit/rest-client/types"
 import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.js"
 import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
@@ -153,7 +153,7 @@ o.spec("BlobFacade", function () {
 
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, optionsCaptor.capture()))
-			const encryptedData = optionsCaptor.value.body
+			const encryptedData = (optionsCaptor.value.body as RestBinaryBody).payload
 			const decryptedData = aesDecrypt(sessionKey, encryptedData)
 			o(arrayEquals(decryptedData, blobData)).equals(true)
 			o(optionsCaptor.value.baseUrl).equals("w1")
@@ -262,7 +262,7 @@ o.spec("BlobFacade", function () {
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, optionsCaptor.capture()))
 			o(optionsCaptor.value.baseUrl).equals("someBaseUrl")
 			o(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
-			o(optionsCaptor.value.body).deepEquals(JSON.stringify(requestBody))
+			o((optionsCaptor.value.body as RestTextBody).payload).deepEquals(JSON.stringify(requestBody))
 		})
 
 		o("downloadAndDecrypt multiple", async function () {
@@ -755,14 +755,14 @@ o.spec("BlobFacade", function () {
 				restClientMock.request(
 					BLOB_SERVICE_REST_PATH,
 					HttpMethod.GET,
-					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === "1"),
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse((options.body as RestTextBody).payload).body === "1"),
 				),
 			).thenResolve(blobResponse1)
 			when(
 				restClientMock.request(
 					BLOB_SERVICE_REST_PATH,
 					HttpMethod.GET,
-					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === "2"),
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse((options.body as RestTextBody).payload).body === "2"),
 				),
 			).thenResolve(blobResponse2)
 

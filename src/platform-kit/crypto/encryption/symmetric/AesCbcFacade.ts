@@ -118,7 +118,7 @@ export class AesCbcFacade {
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement,
 		verifyHmac: (key: AesKey, data: Uint8Array, tag: MacTag) => T,
-	): T | undefined {
+	): T | null {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			const verifiableCiphertext = this.assembleVerifiableCiphertext(parsedCiphertext)
@@ -126,7 +126,7 @@ export class AesCbcFacade {
 		} else if (parsedCiphertext.cipherVersion !== subKeys.cipherVersion) {
 			throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
 		}
-		return undefined
+		return null
 	}
 
 	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {

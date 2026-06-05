@@ -10,6 +10,7 @@ import {
 	decryptKey,
 	decryptKeyUnauthenticatedWithDeviceKeyChain,
 	encryptKey,
+	EntropySource,
 	random,
 	uint8ArrayToKey,
 } from "@tutao/crypto"
@@ -24,7 +25,7 @@ const seed = () => {
 	random
 		.addEntropy([
 			{
-				source: "random",
+				source: EntropySource.Random,
 				entropy: 128 * 8,
 				data: Array.from(entropy),
 			},

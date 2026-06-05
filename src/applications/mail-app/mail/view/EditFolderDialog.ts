@@ -135,7 +135,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 	Dialog.showActionDialog({
 		title: editedFolder ? "editFolder_action" : "addFolder_action",
 		child: form,
-		validator: () => checkFolderName(folders, folderNameValue, selectedParentFolder?._id ?? null),
+		validator: async () => checkFolderName(folders, folderNameValue, selectedParentFolder?._id ?? null),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})

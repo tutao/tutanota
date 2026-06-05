@@ -49,7 +49,7 @@ export class SecondFactorEditDialog {
 			allowCancel: attrs?.allowCancel ?? true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
-			validator: () => this.model.validationMessage(),
+			validator: async () => this.model.validationMessage(),
 		})
 	}
 

@@ -188,7 +188,7 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 						},
 						showDropdown: () => true,
 						width: 250,
-						childAttrs: () => dropdownButtons,
+						childAttrs: async () => dropdownButtons,
 					})
 		return {
 			cells: () => [{ main: addressInfo.address, info: [addressInfo.name] }, { main: statusLabel(addressInfo) }],

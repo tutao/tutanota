@@ -108,6 +108,7 @@ export function showCaptchaDialog(audioChallenge: CaptchaChallenge, visualChalle
 						visualChallengeResponse: viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? parsedInput : null,
 						audioChallengeResponse: viewModel.getSelectedCaptchaType() === CaptchaType.Audio ? parsedInput : null,
 					}),
+					null,
 				)
 				.then(() => {
 					resolve(token)

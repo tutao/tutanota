@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { random } from "../../../src/platform-kit/crypto"
+import { EntropySource, random } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 
@@ -16,7 +16,7 @@ o.spec("Randomizer", function () {
 			{
 				data: 10,
 				entropy: 255,
-				source: "mouse",
+				source: EntropySource.Mouse,
 			},
 		])
 		o(random.isReady()).equals(false)
@@ -27,7 +27,7 @@ o.spec("Randomizer", function () {
 			{
 				data: 10,
 				entropy: 1,
-				source: "key",
+				source: EntropySource.Key,
 			},
 		])
 		o(random.isReady()).equals(true)
@@ -37,7 +37,7 @@ o.spec("Randomizer", function () {
 			{
 				data: 10,
 				entropy: 256,
-				source: "key",
+				source: EntropySource.Key,
 			},
 		])
 
@@ -53,7 +53,7 @@ o.spec("Randomizer", function () {
 			{
 				data: 10,
 				entropy: 256,
-				source: "key",
+				source: EntropySource.Key,
 			},
 		])
 		let results = new Array(256).fill(0)

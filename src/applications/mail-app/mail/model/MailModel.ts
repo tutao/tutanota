@@ -21,7 +21,6 @@ import { FeatureType, isBrowser, ProgrammingError, TutanotaError } from "../../.
 import m from "mithril"
 import { Notifications, NotificationType } from "../../../../ui/Notifications.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
 import { isExpectedErrorForSynchronization, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
@@ -32,7 +31,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
-import { EntityRestClientLoadOptions } from "../../../../platform-kit/network/EntityRestClient"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/network/EntityRestClient"
 import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
@@ -620,7 +619,10 @@ export class MailModel {
 		return await this.mailFacade.unscheduleMail(mail._id)
 	}
 
-	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(
+		mails: readonly Mail[],
+		options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<MailWithMailDetails[]> {
 		return this.bulkMailLoader.loadMailDetails(mails, options)
 	}
 

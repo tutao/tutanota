@@ -164,7 +164,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						title: "more_label",
 						icon: Icons.More,
 					},
-					childAttrs: () => actions,
+					childAttrs: async () => actions,
 				}),
 			),
 		)

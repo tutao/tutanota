@@ -2,6 +2,7 @@ import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { EntityRestClientEraseOptions, EntityRestClientLoadOptions, EntityRestClientSetupOptions, EntityRestClientUpdateOptions } from "./EntityRestClient"
+import { Nullable } from "@tutao/utils"
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
@@ -47,7 +48,12 @@ export interface EntityRestInterface {
 	 * Creates a single element on the server. Entities are encrypted before they are sent.
 	 * @return the element id generated on the server side or null if it is a custom id
 	 */
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null>
+	setup<T extends SomeEntity>(
+		listId: Nullable<Id>,
+		instance: T,
+		extraHeaders: Nullable<Dict>,
+		options: Nullable<EntityRestClientSetupOptions>,
+	): Promise<Id | null>
 
 	/**
 	 * Creates multiple elements on the server. Entities are encrypted before they are sent.

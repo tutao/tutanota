@@ -100,7 +100,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			},
-			childAttrs: () => [
+			childAttrs: async () => [
 				locator.logins.getUserController().user.auth?.recoverCode
 					? {
 							label: "show_action",

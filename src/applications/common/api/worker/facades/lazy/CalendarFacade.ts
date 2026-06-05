@@ -415,7 +415,7 @@ export class CalendarFacade {
 	}
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId }))
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId }), null)
 	}
 
 	/**

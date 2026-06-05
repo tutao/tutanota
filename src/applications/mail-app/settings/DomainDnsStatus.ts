@@ -17,7 +17,7 @@ export class DomainDnsStatus {
 				domain: cleanDomainName,
 				customer: customerId ?? null,
 			})
-			return locator.serviceExecutor.get(CustomDomainCheckService, data)
+			return locator.serviceExecutor.get(CustomDomainCheckService, data, null)
 		})
 	}
 

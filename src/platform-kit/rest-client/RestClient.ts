@@ -2,7 +2,17 @@ import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAnd
 import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
-import { HttpMethod, MediaType, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
+import {
+	HttpMethod,
+	MediaType,
+	RestBinaryBody,
+	RestBody,
+	RestClientInterface,
+	RestClientMiddleware,
+	RestClientOptions,
+	RestTextBody,
+	SuspensionBehavior,
+} from "./types"
 import { once } from "../utils/memoized"
 
 assertWorkerOrNode()
@@ -18,6 +28,18 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/draftservice", REQUEST_SIZE_LIMIT_DEFAULT * 5], // should be large enough
 ])
 const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
+
+export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
+	body: null,
+	responseType: null,
+	progressListener: null,
+	baseUrl: null,
+	headers: null,
+	queryParams: null,
+	noCORS: null,
+	abortSignal: null,
+	suspensionBehavior: SuspensionBehavior.Suspend,
+}
 
 /**
  * Allows REST communication with the server.
@@ -46,7 +68,7 @@ export class RestClient implements RestClientInterface {
 		return this
 	}
 
-	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
+	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
 		const debug = typeof self !== "undefined" && self.debug
 		const verbose = isWorker() && debug
@@ -64,8 +86,8 @@ export class RestClient implements RestClientInterface {
 
 				const queryParams: Dict = options.queryParams ?? {}
 
-				if (method === HttpMethod.GET && typeof options.body === "string") {
-					queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
+				if (method === HttpMethod.GET && options.body instanceof RestTextBody) {
+					queryParams["_body"] = options.body.payload // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
 				}
 
 				if (options.noCORS) {
@@ -100,7 +122,7 @@ export class RestClient implements RestClientInterface {
 					if (requestTimeoutTimeoutID != null) {
 						clearTimeout(requestTimeoutTimeoutID)
 					}
-					const isBlobRequest = options.body instanceof Uint8Array
+					const isBlobRequest = options.body instanceof RestBinaryBody
 					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : env.timeout)
 				}
 				const cancelTimeoutTimer = () => {
@@ -262,10 +284,12 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				if (options.body instanceof Uint8Array) {
-					xhr.send(uint8ArrayToArrayBuffer(options.body))
+				if (options.body instanceof RestBinaryBody) {
+					xhr.send(uint8ArrayToArrayBuffer(options.body.payload))
+				} else if (options.body instanceof RestTextBody) {
+					xhr.send(options.body.payload)
 				} else {
-					xhr.send(options.body)
+					xhr.send()
 				}
 			})
 		}
@@ -307,15 +331,15 @@ export class RestClient implements RestClientInterface {
 	 * Ignores the method because GET requests etc. should not exceed the limits neither.
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
-	private checkRequestSizeLimit(path: string, method: HttpMethod, body: string | Uint8Array | null) {
+	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null) {
 		if (isAdminClient()) {
 			return
 		}
 
 		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
 
-		if (body && body.length > limit) {
-			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
+		if (body && body.payload.length > limit) {
+			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.payload.length}`)
 		}
 	}
 
@@ -329,9 +353,9 @@ export class RestClient implements RestClientInterface {
 		if (!options.noCORS) {
 			headers["cv"] = env.versionNumber
 			headers["cp"] = this.clientPlatform
-			if (body instanceof Uint8Array) {
+			if (body instanceof RestBinaryBody) {
 				headers["Content-Type"] = MediaType.Binary
-			} else if (typeof body === "string") {
+			} else if (body instanceof RestTextBody) {
 				headers["Content-Type"] = MediaType.Json
 			}
 
@@ -373,9 +397,12 @@ function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, opt
 	if (options.headers != null) {
 		args.push(Object.keys(options.headers))
 	}
-	if (options.body != null) {
-		const logBody = "string" === typeof options.body ? `[${options.body.length} characters]` : `[${options.body.length} bytes]`
+	const body = options.body
+	if (body instanceof RestTextBody) {
+		const logBody = `[${body.payload.length} characters]`
 		args.push(logBody)
+	} else if (body instanceof RestBinaryBody) {
+		args.push(`[${body.payload.length} bytes]`)
 	} else {
 		args.push("no body")
 	}

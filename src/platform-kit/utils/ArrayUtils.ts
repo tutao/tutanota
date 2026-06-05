@@ -39,7 +39,7 @@ export function* lazyNumberRange(min: number, max: number): Generator<number> {
  *
  * It is valid to compare Uint8Array to Array<T>, don't restrict it to be one type
  */
-export function arrayEquals<T, A extends Uint8Array | Array<T>>(a1: A, a2: A): boolean {
+export function arrayEquals<T>(a1: ArrayLike<T>, a2: ArrayLike<T>): boolean {
 	if (a1 === a2) {
 		return true
 	}
@@ -176,7 +176,7 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 /**
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
  */
-export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null | undefined): Array<R> {
+export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null): Array<R> {
 	const resultList: R[] = []
 
 	for (const item of array) {
@@ -190,7 +190,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
-export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array<T> {
+export function filterNull<T>(array: ReadonlyArray<T | null>): Array<NonNullable<T>> {
 	return downcast(array.filter((item) => item != null))
 }
 
@@ -199,8 +199,8 @@ export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last<T>(theArray: ReadonlyArray<T>): T | null | undefined {
-	return theArray[theArray.length - 1]
+export function last<T>(theArray: ReadonlyArray<T>): T | null {
+	return theArray.length > 0 ? theArray[theArray.length - 1] : null
 }
 
 export function isEmpty(array: ReadonlyArray<unknown>): boolean {
@@ -234,7 +234,7 @@ export function first<T>(array: ReadonlyArray<T>): T | null {
 	return array[0] || null
 }
 
-export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null | undefined {
+export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null {
 	const index = findLastIndex(array, predicate)
 
 	if (index !== -1) {
@@ -342,29 +342,42 @@ export function collectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element
  * @returns {Array<Array<T>>}
  */
 export function splitInChunks<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
-	return downcast(_chunk(chunkSize, array))
+	return _chunkArray(chunkSize, array)
 }
 
 export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
-	return downcast(_chunk(chunkSize, array))
+	return _chunkUint8Array(chunkSize, array)
 }
 
-function _chunk<T>(chunkSize: number, array: ReadonlyArray<T> | Uint8Array): Array<Array<T> | Uint8Array> {
+function _chunkArray<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
 	if (chunkSize < 1) {
 		return []
 	}
-
 	let chunkNum = 0
-	const chunks: Array<Array<T> | Uint8Array> = []
+	const chunks: Array<Array<T>> = []
 	let end
-
 	do {
 		let start = chunkNum * chunkSize
 		end = start + chunkSize
 		chunks[chunkNum] = array.slice(start, end)
 		chunkNum++
 	} while (end < array.length)
+	return chunks
+}
 
+function _chunkUint8Array(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
+	if (chunkSize < 1) {
+		return []
+	}
+	let chunkNum = 0
+	const chunks: Array<Uint8Array> = []
+	let end
+	do {
+		let start = chunkNum * chunkSize
+		end = start + chunkSize
+		chunks[chunkNum] = array.slice(start, end)
+		chunkNum++
+	} while (end < array.length)
 	return chunks
 }
 
@@ -582,15 +595,6 @@ export async function partitionAsync<T>(array: Array<T>, predicate: (item: T) =>
  */
 export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
 	return numberRange(0, n - 1).map(factory)
-}
-
-/**
- * Destroy contents of the byte arrays passed. Useful for purging unwanted memory.
- */
-export function zeroOut(...arrays: (Uint8Array | Int8Array)[]) {
-	for (const a of arrays) {
-		a.fill(0)
-	}
 }
 
 /**

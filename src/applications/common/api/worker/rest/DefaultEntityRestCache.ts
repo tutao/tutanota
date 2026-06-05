@@ -24,7 +24,7 @@ import {
 	TypeRef,
 	ValueType,
 } from "@tutao/meta"
-import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync } from "@tutao/utils"
+import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
@@ -32,6 +32,7 @@ import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/net
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
 import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	EntityRestClient,
 	EntityRestClientEraseOptions,
 	EntityRestClientLoadOptions,
@@ -131,7 +132,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 	) {}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async load<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<T> {
 		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
 			return await this.entityRestClient.load(typeRef, id, opts)
@@ -158,7 +163,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		listId: Id | null,
 		ids: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
@@ -167,7 +172,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return await this._loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
+	setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Dict, options: Nullable<EntityRestClientSetupOptions>): Promise<Id | null> {
 		return this.entityRestClient.setup(listId, instance, extraHeaders, options)
 	}
 
@@ -236,7 +241,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		listId: Id | null,
 		ids: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
 		let entitiesInCache: ServerModelParsedInstance[] = []
@@ -276,7 +281,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		opts: EntityRestClientLoadOptions = {},
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
 		const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 		if (customHandler && customHandler.loadRange) {
@@ -847,5 +852,5 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== undefined && _idValue.type === ValueType.GeneratedId
+	return _idValue !== null && _idValue.type === ValueType.GeneratedId
 }

@@ -18,7 +18,8 @@ import { DropDownSelector } from "./DropDownSelector.js"
 import { assertMainOrNode, DEFAULT_ERROR, isAndroidApp, Keys, TabIndex } from "../../platform-kit/app-env"
 import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
-import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, MaybeLazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
+import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
+import { getAsLazy, mapLazily, MaybeLazy } from "../MaybeLazy"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import Stream from "mithril/stream"
@@ -38,7 +39,7 @@ export const enum DialogType {
 	EditLarge = "EditLarge",
 }
 
-type Validator = () => $Promisable<TranslationKey | null>
+type Validator = () => Promise<TranslationKey | null>
 
 export type ActionDialogProps = {
 	title: MaybeTranslation
@@ -206,6 +207,7 @@ export class Dialog implements ModalComponent {
 			)
 		}
 	}
+
 	setInjectionRight(injectionRightAttrs: DialogInjectionRightAttrs<any>) {
 		this.injectionRightAttrs = injectionRightAttrs
 	}
@@ -883,7 +885,7 @@ export class Dialog implements ModalComponent {
 				return
 			}
 
-			let validationResult: $Promisable<TranslationKey | null> | null = null
+			let validationResult: Promise<TranslationKey | null> | null = null
 
 			if (validator) {
 				validationResult = validator()
@@ -1000,7 +1002,7 @@ export class Dialog implements ModalComponent {
 					},
 					helpLabel: () => (props.infoMsgId ? lang.getTranslationText(props.infoMsgId) : ""),
 				}),
-			validator: () => (props.inputValidator ? props.inputValidator(result) : null),
+			validator: async () => (props.inputValidator ? props.inputValidator(result) : null),
 			allowOkWithReturn: true,
 			okAction: wrappedOkAction,
 		})
@@ -1170,7 +1172,7 @@ export class Dialog implements ModalComponent {
 	}
 }
 
-export type stringValidator = (arg0: string) => (TranslationKey | null) | Promise<TranslationKey | null>
+export type stringValidator = (arg0: string) => TranslationKey | null
 
 function getUnsubscribeImageSuffix(themeId: string): ThemeId {
 	switch (themeId) {

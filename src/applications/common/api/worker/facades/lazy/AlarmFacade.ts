@@ -7,7 +7,7 @@ import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
@@ -128,7 +128,7 @@ export class AlarmFacade {
 
 	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost): Promise<void> {
 		try {
-			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { sessionKey: notificationSessionKey })
+			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: notificationSessionKey })
 		} catch (e) {
 			if (e instanceof TooManyRequestsError) {
 				return this.infoMessageHandler.onInfoMessage({

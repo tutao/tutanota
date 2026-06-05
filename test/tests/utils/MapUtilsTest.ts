@@ -49,7 +49,7 @@ o.spec("map utils", function () {
 		o.test("value is not present", () => {
 			// nothing is in the map
 			o.check(takeFromMap(someMap, "my key")).deepEquals({
-				item: undefined,
+				item: null,
 				wasPresent: false,
 			})
 		})
@@ -57,7 +57,7 @@ o.spec("map utils", function () {
 		o.test("value is present but undefined", () => {
 			someMap.set("my key", undefined)
 			o.check(takeFromMap(someMap, "my key")).deepEquals({
-				item: undefined,
+				item: null,
 				wasPresent: true,
 			})
 		})

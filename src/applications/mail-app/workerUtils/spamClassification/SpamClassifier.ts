@@ -247,7 +247,7 @@ export class SpamClassifier {
 			console.log(`no new spam classification training data for mailbox ${ownerGroup} since last update`)
 			return
 		}
-		const classifierToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
+		const classifierToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup) ?? null)
 
 		const trainingInput = await promiseMap(
 			trainingDataset.trainingData,

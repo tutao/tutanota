@@ -238,7 +238,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 					return new DOMRect(original.x, original.y - size.icon_24, original.width, original.height)
 				}
 			},
-			childAttrs: () => {
+			childAttrs: async () => {
 				return folder.folderType === MailSetKind.CUSTOM
 					? // cannot add new folder to custom folder in spam or trash folder
 						isSpamOrTrashFolder(folders, folder)

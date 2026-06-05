@@ -23,7 +23,7 @@ export class AffiliateViewModel {
 
 	public async load() {
 		try {
-			this._data = await this.serviceExecutor.get(AffiliatePartnerKpiService, null)
+			this._data = await this.serviceExecutor.get(AffiliatePartnerKpiService, null, null)
 		} finally {
 			this._isLoading = false
 		}

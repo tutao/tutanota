@@ -57,7 +57,7 @@ export class KnowledgeBaseEditorModel {
 			return this._entityClient.update(this.entry).catch(ofClass(NotFoundError, noOp))
 		} else {
 			this.entry._ownerGroup = this._templateGroupRoot._id
-			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry)
+			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry, null)
 		}
 	}
 

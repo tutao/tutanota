@@ -23,11 +23,12 @@ import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/uti
 import { GroupType } from "../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
-import { HttpMethod, RestClientInterface } from "@tutao/rest-client/types"
+import { HttpMethod, RestClientInterface, RestTextBody } from "@tutao/rest-client/types"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
 import { CryptoNetworkHelper } from "../../../platform-kit/network/CryptoNetworkHelper"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
 
 export class TutanotaEntityMigrator implements EntityMigrator {
 	constructor(
@@ -101,7 +102,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
-		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
+		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData, null)
 		return instance
 	}
 
@@ -141,8 +142,9 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers,
-				body: JSON.stringify(patchPayload),
+				body: new RestTextBody(JSON.stringify(patchPayload)),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

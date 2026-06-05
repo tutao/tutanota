@@ -95,6 +95,7 @@ export async function runCaptchaFlow({
 							})
 						: null,
 				}),
+				null,
 			)
 		} catch (e) {
 			if (e instanceof AccessExpiredError) {
@@ -181,7 +182,7 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
-	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data, null)
 	return await powWorker.solveChallenge({
 		base: BigInt(ret.base),
 		difficulty: Number(ret.difficulty),

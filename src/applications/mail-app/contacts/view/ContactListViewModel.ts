@@ -196,7 +196,7 @@ export class ContactListViewModel {
 	}
 
 	addEntryOnList(recipientsId: Id, recipient: ContactListEntry) {
-		this.entityClient.setup(recipientsId, recipient)
+		this.entityClient.setup(recipientsId, recipient, null, null)
 	}
 
 	private readonly entityEventsReceived: EntityEventsListener = {

@@ -1,5 +1,4 @@
 import {
-	$Promisable,
 	assertNotNull,
 	deepEqual,
 	defer,
@@ -98,7 +97,7 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import { NoopProgressMonitor, ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -140,6 +139,7 @@ import {
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
+import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -438,6 +438,7 @@ export class CalendarModel {
 						user: userController.userId,
 						group: membership.group,
 					}),
+					null,
 				)
 				.catch(() => console.log("error cleaning up membership for group: ", membership.group))
 		}
@@ -913,7 +914,7 @@ export class CalendarModel {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
-			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
+			const file = await this.entityClient.load(FileTypeRef, fileId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")

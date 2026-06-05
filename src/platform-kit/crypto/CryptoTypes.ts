@@ -1,15 +1,16 @@
 import { KeyVersion, Versioned } from "@tutao/utils"
 import { Aes256Key, AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
 
-export type HkdfKeyDerivationDomains =
-	| "userGroupKeyDistributionKey"
-	| "newAdminPubKeyAuthKeyForUserGroupKeyRotation"
-	| "adminGroupDistributionKeyPairEncryptionKey"
-	| "adminGroupDistKeyPairAuthKeyForMultiAdminRotation"
-	| "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser"
-	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
-	| "versionedUserGroupKeyDistributionKey"
-	| "publicIdentityKey"
+export const enum HkdfKeyDerivationDomains {
+	UserGroupKeyDistributionKey = "userGroupKeyDistributionKey",
+	NewAdminPubKeyAuthKeyForUserGroupKeyRotation = "newAdminPubKeyAuthKeyForUserGroupKeyRotation",
+	AdminGroupDistributionKeyPairEncryptionKey = "adminGroupDistributionKeyPairEncryptionKey",
+	AdminGroupDistKeyPairAuthKeyForMultiAdminRotation = "adminGroupDistKeyPairAuthKeyForMultiAdminRotation",
+	NewAdminSymKeyAuthKeyForMultiAdminRotationAsUser = "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser",
+	NewUserGroupKeyAuthKeyForRotationAsNonAdminUser = "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
+	VersionedUserGroupKeyDistributionKey = "versionedUserGroupKeyDistributionKey",
+	PublicIdentityKey = "publicIdentityKey",
+}
 export type MacTag = Uint8Array & { readonly __brand: "macTag" }
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
@@ -17,7 +18,15 @@ export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: Domain
 export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
 export const AEAD_GROUP_KEY_NONCE_DERIVATION: DomainSeparator = `GK and nonce instanceMessageKey${UNIT_SEPARATOR_CHAR}`
 export const AEAD_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNIT_SEPARATOR_CHAR}`
-export type EntropySource = "mouse" | "touch" | "key" | "random" | "static" | "time" | "accel"
+export const enum EntropySource {
+	Mouse = "mouse",
+	Touch = "touch",
+	Key = "key",
+	Random = "random",
+	Static = "static",
+	Time = "time",
+	Accel = "accel",
+}
 
 export enum KeyLength {
 	b128 = "128",

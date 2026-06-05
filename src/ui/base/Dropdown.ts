@@ -8,7 +8,7 @@ import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
 import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
-import { $Promisable, assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "../../platform-kit/utils"
+import { assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "../../platform-kit/utils"
 import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
 import { IconButtonAttrs } from "./IconButton.js"
@@ -513,7 +513,7 @@ export function showDropdownAtPosition(
 
 type AttachDropdownParams = {
 	mainButtonAttrs: Omit<IconButtonAttrs, "click">
-	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>
+	childAttrs: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>
 	/** called to determine if the dropdown actually needs to be shown */
 	showDropdown?: lazy<boolean>
 	width?: number

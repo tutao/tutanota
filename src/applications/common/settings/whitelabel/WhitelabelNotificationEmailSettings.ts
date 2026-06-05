@@ -73,7 +73,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 									icon: Icons.PenFilled,
 									size: ButtonSize.Compact,
 								},
-								childAttrs: () => [
+								childAttrs: async () => [
 									{
 										label: "edit_action",
 										click: () => onEditTemplate(template),

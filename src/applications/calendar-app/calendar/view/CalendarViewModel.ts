@@ -9,7 +9,6 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSett
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
-	$Promisable,
 	assertNotNull,
 	debounce,
 	deepEqual,
@@ -83,6 +82,7 @@ import { Time } from "../../../common/calendar/date/Time"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 
 export interface EventWrapperFlags {
 	/**

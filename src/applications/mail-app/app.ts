@@ -52,7 +52,7 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
-import { CacheMode } from "../../platform-kit/network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/network/EntityRestClient"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
@@ -213,7 +213,7 @@ import("../../ui/translations/en.js")
 						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
 							TutanotaPropertiesTypeRef,
 							mailLocator.logins.getUserController().user.userGroup.group,
-							{ cacheMode: CacheMode.WriteOnly },
+							{ ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly },
 						)
 
 						if (!reloadTutanotaProperties.defaultLabelCreated) {

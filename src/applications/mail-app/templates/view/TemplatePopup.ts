@@ -307,7 +307,7 @@ export class TemplatePopup implements ModalComponent {
 					icon: Icons.Plus,
 					colors: ButtonColor.DrawerNav,
 				},
-				childAttrs: () =>
+				childAttrs: async () =>
 					writeableGroups.map((groupInstances) => {
 						return {
 							label: lang.makeTranslation(
@@ -338,7 +338,7 @@ export class TemplatePopup implements ModalComponent {
 						title: "chooseLanguage_action",
 						icon: Icons.Language,
 					},
-					childAttrs: () =>
+					childAttrs: async () =>
 						selectedTemplate.contents.map((content) => {
 							const langCode: LanguageCode = downcast(content.languageCode)
 							return {

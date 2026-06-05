@@ -153,7 +153,7 @@ export class SecondFactorAuthDialog {
 		})
 
 		try {
-			await this.loginFacade.authenticateWithSecondFactor(authData)
+			await this.loginFacade.authenticateWithSecondFactor(authData, null)
 			this.waitingForSecondFactorDialog?.close()
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError) {

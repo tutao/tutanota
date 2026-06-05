@@ -41,14 +41,14 @@ export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V 
  * In the case that the key-value pair was present but its value was undefined, you can read wasPresent to
  * check that it was present (and therefore deleted).
  */
-export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | undefined; wasPresent: boolean } {
+export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | null; wasPresent: boolean } {
 	// Will return undefined if not present OR the value is actually === undefined
-	const item = map.get(key)
+	const item = map.get(key) ?? null
 
 	// Map#delete both removes the key-value and returns true/false if the key-value was present/absent
 	const wasPresent = map.delete(key)
 
-	return { item, wasPresent }
+	return { item: item, wasPresent }
 }
 
 /** Creates a new map with key and value added to {@param map}. It is like set() but for immutable map. */
