@@ -55,7 +55,7 @@ export class LazyLoaded<T> {
 		switch (this.state) {
 			case LoadState.NotLoaded: {
 				const loadingPromise = this.loadFunction().then(
-					(value) => {
+					(value): T => {
 						this.state = LoadState.Loaded
 						this.value = value
 						return value
