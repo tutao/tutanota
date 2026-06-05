@@ -5,7 +5,7 @@ import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from 
 import { Router } from "../../../../ui/ScopedRouter"
 import m from "mithril"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition } from "@tutao/utils"
-import { DriveTransferController, DriveTransfers, DriveTransferState } from "./DriveTransferController"
+import { DriveTransferController, DriveTransfers } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { Const, OperationStatus, SECOND_IN_MILLIS } from "@tutao/app-env"
@@ -566,6 +566,14 @@ export class DriveViewModel {
 		}
 	}
 
+	getSelectedItem(): FolderItem | null {
+		if (this.listModel.getSelectedAsArray().length === 1) {
+			return this.listModel.getActiveItem()
+		} else {
+			return null
+		}
+	}
+
 	async uploadFiles(files: WebFile[] | FileReference[]): Promise<void> {
 		if (this.roots == null) {
 			console.log("drive is not initialized")
@@ -608,6 +616,7 @@ export class DriveViewModel {
 	async openFile(file: DriveFile): Promise<void> {
 		this.transferController.download(file, "open")
 	}
+
 	async downloadFile(file: DriveFile): Promise<void> {
 		this.transferController.download(file, "download")
 	}

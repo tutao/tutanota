@@ -580,6 +580,10 @@ export const Keys = Object.freeze({
 		code: "f1",
 		name: "F1",
 	},
+	F2: {
+		code: "f2",
+		name: "F2",
+	},
 	F5: {
 		code: "f5",
 		name: "F5",
