@@ -6,7 +6,7 @@ import { ProgrammingError, SessionType } from "../../../../src/platform-kit/app-
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { NotAuthenticatedError } from "../../../../src/platform-kit/rest-client/error"
 import { Request } from "../../../../src/app-kit/native-bridge/shared/MessageTypes"
-import { initClientModels } from "../../../../src/platform-kit/instance-pipeline/ClientModelInfoInitializer"
+import { initClientModels } from "../../../../src/applications/common/api/common/ClientModelInfoInitializer"
 import { AppNameEnum } from "../../../../src/platform-kit/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"

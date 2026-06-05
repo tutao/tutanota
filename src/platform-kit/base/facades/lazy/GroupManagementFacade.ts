@@ -36,7 +36,7 @@ import {
 	TemplateGroupService,
 	UserAreaGroupData,
 } from "@tutao/entities/tutanota"
-import { CacheManager } from "../../crypto/persistence/CacheManager"
+import { CacheManager } from "../../base-crypto/persistence/CacheManager"
 
 assertWorkerOrNode()
 

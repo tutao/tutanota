@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
-import { KeyCache } from "../../../src/platform-kit/base/crypto/persistence/KeyCache.js"
+import { KeyCache } from "../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
 import { aes256RandomKey } from "../../../src/platform-kit/crypto"

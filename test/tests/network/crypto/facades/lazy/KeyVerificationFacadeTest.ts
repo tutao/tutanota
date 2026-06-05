@@ -21,8 +21,8 @@ import { LocalIdentityKeyTrustDatabase } from "../../../../../../src/app-kit/loc
 import { SigningPublicKey } from "../../../../../../src/platform-kit/crypto/encryption/Ed25519"
 
 import { PublicKeySignatureTypeRef } from "@tutao/entities/sys"
-import { MaybeSignedPublicKey } from "../../../../../../src/platform-kit/base/crypto/MaybeSignedPublicKey"
-import { TrustDBEntry } from "../../../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { MaybeSignedPublicKey } from "../../../../../../src/platform-kit/base/base-crypto/MaybeSignedPublicKey"
+import { TrustDBEntry } from "../../../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 const { anything } = matchers
 

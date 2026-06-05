@@ -60,13 +60,17 @@ import {
 	createInstanceSessionKey,
 	createPatch,
 	createPatchList,
+	createUpdateKdfNoncePostIn,
 	createUpdatePermissionKeyData,
 	createUpdateSessionKeysPostIn,
 	GroupTypeRef,
+	InstanceKdfNonce,
 	InstanceSessionKey,
 	PatchListTypeRef,
 	Permission,
 	PermissionTypeRef,
+	UpdateKdfNoncePostOut,
+	UpdateKdfNonceService,
 	UpdatePermissionKeyService,
 	UpdateSessionKeysService,
 } from "@tutao/entities/sys"
@@ -104,6 +108,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cache: () => Promise<CacheManager> | null,
+		private readonly symGroupKeyLoader: SymmetricGroupKeyLoader,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly instanceSessionKeysCache: InstanceSessionKeysCache,
@@ -761,7 +766,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
-		return await this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
+		return await this.symGroupKeyLoader.getCurrentSymGroupKey(groupId)
 	}
 
 	/**
@@ -779,7 +784,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				throw new Error(`ownerEncSessionKey already set ${JSON.stringify(instance)}`)
 			}
 			const sessionKey = aes256RandomKey()
-			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.symGroupKeyLoader.getCurrentSymGroupKey(instance._ownerGroup))
+			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.getCurrentSymGroupKey(instance._ownerGroup))
 			const encryptedSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
 
 			this.setOwnerEncSessionKey(instance, encryptedSessionKey)
@@ -799,6 +804,11 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	async decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
 		const gk = await this.symGroupKeyLoader.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion)
 		return decryptKey(gk, ownerEncSessionKey.key)
+	}
+
+	async postUpdateKdfNonceService(instanceKdfNonce: InstanceKdfNonce): Promise<UpdateKdfNoncePostOut> {
+		const input = createUpdateKdfNoncePostIn({ instanceKdfNonce: instanceKdfNonce })
+		return await this.serviceExecutor.post(UpdateKdfNonceService, input)
 	}
 
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {

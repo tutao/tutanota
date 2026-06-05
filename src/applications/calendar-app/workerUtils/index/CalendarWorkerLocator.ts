@@ -66,11 +66,12 @@ import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCac
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
-import { DefaultLoginListener } from "../../../common/workerUtils/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../common/misc/DefaultLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 
 assertWorkerOrNode()
 
@@ -191,10 +192,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		const { CacheManagementFacade } = await import("../../../common/api/worker/facades/lazy/CacheManagementFacade.js")
 		return new CacheManagementFacade(locator.base.user, locator.base.cachingEntityClient, locator.base.cache as DefaultEntityRestCache)
 	})
-
+	const clientModelInfo = initClientModels(apps)
 	locator.base = await createBaseLocator({
 		worker,
-		apps,
+		clientModelInfo,
 		browserData,
 		loginListenerProvider: (user) => new DefaultLoginListener(() => locator.eventBusClient, mainInterface.loginListener, user),
 		maybeUninitializedStorage,
@@ -206,16 +207,16 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		entityMigratorFactory: ({
-									cryptoWrapper,
-									user,
-									keyLoader,
-									cachingEntityClient,
-									serviceExecutor,
-									typeModelResolver,
-									instancePipeline,
-									restClient,
-									crypto,
-								}) =>
+			cryptoWrapper,
+			user,
+			keyLoader,
+			cachingEntityClient,
+			serviceExecutor,
+			typeModelResolver,
+			instancePipeline,
+			restClient,
+			crypto,
+		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
 				user,
@@ -278,7 +279,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		)
 	})
 
-	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
+	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker))
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(

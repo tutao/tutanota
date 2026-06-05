@@ -38,7 +38,6 @@ import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyL
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../src/platform-kit/base/base-crypto/KeyRotationFacade"
-import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import {
 	BodyTypeRef,
@@ -66,12 +65,12 @@ import {
 	UpdateKdfNonceService,
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
-import { CacheManager } from "../../../src/platform-kit/base/crypto/persistence/CacheManager"
-import { TutanotaEntityMigrator } from "../../../src/applications/common/misc/TutanotaEntityMigrator"
+import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 
 const { anything, argThat } = matchers
 

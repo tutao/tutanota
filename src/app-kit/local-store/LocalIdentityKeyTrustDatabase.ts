@@ -6,7 +6,7 @@ import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import type { OfflineStorageTable } from "./OfflineStorage"
 import { SigningPublicKey } from "../../platform-kit/crypto/encryption/Ed25519"
 import { TaggedSqlValue } from "./Types.js"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 import { SessionTypeProvider } from "../../platform-kit/base/facades/SessionTypeProvider"
 
 /**

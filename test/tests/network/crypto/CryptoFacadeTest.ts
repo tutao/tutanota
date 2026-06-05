@@ -24,9 +24,15 @@ import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.
 import {
 	Aes256Key,
 	aes256RandomKey,
+	aesDecrypt,
+	aesEncrypt,
 	AesKey,
 	bitArrayToUint8Array,
 	cryptoUtils,
+	CryptoWrapper,
+	decryptKey,
+	encryptKey,
+	encryptRsaKey,
 	generateX25519KeyPair,
 	KeyPairType,
 	keyToUint8Array,
@@ -97,13 +103,10 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache.js"
+import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
-import { decryptKey, encryptKey, encryptRsaKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
-import { aesDecrypt, aesEncrypt } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
-import { CacheManager } from "../../../../src/platform-kit/base/crypto/persistence/CacheManager"
+import { CacheManager } from "../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 
 const { anything, argThat } = matchers
 

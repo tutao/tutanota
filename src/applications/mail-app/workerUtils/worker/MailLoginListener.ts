@@ -1,4 +1,4 @@
-import { DefaultLoginListener } from "../../../common/workerUtils/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../common/misc/DefaultLoginListener"
 import { isAdminClient, isTest, SessionType } from "@tutao/app-env"
 import { CacheInfo, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade"
 import { Credentials } from "@tutao/network/types"

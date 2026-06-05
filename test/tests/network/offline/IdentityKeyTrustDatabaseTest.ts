@@ -12,7 +12,7 @@ import { LoginFacade } from "../../../../src/platform-kit/base/facades/LoginFaca
 import { SessionType } from "../../../../src/platform-kit/app-env/SessionType"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
-import { TrustDBEntry } from "../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {

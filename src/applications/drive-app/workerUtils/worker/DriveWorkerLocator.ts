@@ -20,7 +20,7 @@ import {
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { DriveWorkerImpl } from "./DriveWorkerImpl"
 import { DriveOfflineCleanerStub } from "../offline/DriveOfflineCleanerStub"
-import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
+import { KeyVerificationTableDefinitions, LocalIdentityKeyTrustDatabase } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase"
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
@@ -48,14 +48,14 @@ import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMoni
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
-import { random } from "../../../../platform-kit/crypto"
 import { EntityRestCache } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient"
-import { DefaultLoginListener } from "../../../common/workerUtils/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../common/misc/DefaultLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade"
 
 assertWorkerOrNode()
@@ -174,9 +174,10 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		return new CacheManagementFacade(locator.base.user, locator.base.cachingEntityClient, locator.base.cache as DefaultEntityRestCache)
 	})
 
+	const clientModelInfo = initClientModels(apps)
 	locator.base = await createBaseLocator({
 		worker,
-		apps,
+		clientModelInfo,
 		browserData,
 		loginListenerProvider: (user) => new DefaultLoginListener(() => locator.eventBusClient, mainInterface.loginListener, user),
 		maybeUninitializedStorage,
@@ -188,16 +189,16 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		entityMigratorFactory: ({
-									cryptoWrapper,
-									user,
-									keyLoader,
-									cachingEntityClient,
-									serviceExecutor,
-									typeModelResolver,
-									instancePipeline,
-									restClient,
-									crypto,
-								}) =>
+			cryptoWrapper,
+			user,
+			keyLoader,
+			cachingEntityClient,
+			serviceExecutor,
+			typeModelResolver,
+			instancePipeline,
+			restClient,
+			crypto,
+		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
 				user,

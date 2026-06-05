@@ -24,7 +24,7 @@ import { LocalIdentityKeyTrustDatabase } from "../../../../../src/app-kit/local-
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPair, IdentityKeyService, KeyMacTypeRef } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
-import { TrustDBEntry } from "../../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor

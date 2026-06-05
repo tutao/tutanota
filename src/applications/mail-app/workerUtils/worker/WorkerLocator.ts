@@ -85,6 +85,7 @@ import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../..
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 
 assertWorkerOrNode()
 
@@ -346,9 +347,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	})
 
 	// Create all platform-kit typed instances
+	const clientModelInfo = initClientModels(apps)
 	locator.base = await createBaseLocator({
 		worker,
-		apps,
+		clientModelInfo,
 		browserData,
 		loginListenerProvider: (user) => new MailLoginListener(() => locator.eventBusClient, mainInterface.loginListener, user, worker),
 		maybeUninitializedStorage,
@@ -360,16 +362,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		entityMigratorFactory: ({
-									cryptoWrapper,
-									user,
-									keyLoader,
-									cachingEntityClient,
-									serviceExecutor,
-									typeModelResolver,
-									instancePipeline,
-									restClient,
-									crypto,
-								}) =>
+			cryptoWrapper,
+			user,
+			keyLoader,
+			cachingEntityClient,
+			serviceExecutor,
+			typeModelResolver,
+			instancePipeline,
+			restClient,
+			crypto,
+		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
 				user,
@@ -529,7 +531,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.spamClassifierStorageFacade = lazyMemoized(async () => {
 			const { OfflineStorageSpamClassifierStorageFacade } = await import(
 				"../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js"
-				)
+			)
 			return new OfflineStorageSpamClassifierStorageFacade(locator.sqlCipherFacade)
 		})
 	} else {
