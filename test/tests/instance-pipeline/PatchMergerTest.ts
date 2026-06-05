@@ -23,7 +23,6 @@ import { EphemeralCacheStorage } from "../../../src/app-kit/local-store/Ephemera
 import { createSystemMail } from "../api/common/mail/CommonMailUtilsTest"
 import { EncryptionAuthStatus } from "../../../src/platform-kit/app-env"
 import PublicEncryptionKeyProvider from "../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
-import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/crypto/persistence/InstanceSessionKeysCache"
 import { CacheStorage } from "../../../src/app-kit/local-store/CacheStorage"
 import {
 	CalendarEvent,
@@ -46,9 +45,10 @@ import { AttributeModel, EncryptedModelValue, Entity, ServerModelParsedInstance 
 
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
-import { CacheManager } from "../../../src/platform-kit/base/crypto/persistence/CacheManager"
+import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

@@ -17,7 +17,7 @@ import {
 } from "../../../../platform-kit/app-env"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { PublicKeyIdentifierType } from "../../../../platform-kit/crypto/CryptoTypes"
-import { TrustDBEntry } from "../../../../platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../../platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 export type PublicIdentity = {
 	fingerprint: Hex

@@ -5,10 +5,9 @@
 import type { BaseLocator } from "../../src/platform-kit/base/BaseLocator.js"
 import type { LoginListener } from "../../src/platform-kit/base/facades/LoginFacade.js"
 import type { MainInterface } from "../../src/applications/common/api/worker/workerInterfaces.js"
-import type { IdentityKeyTrustDatabase } from "../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase.js"
 import type { NativeInterface } from "../../src/app-kit/native-bridge/common/NativeInterface.js"
 import type { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants.js"
-import type { NamedClientModel } from "../../src/platform-kit/instance-pipeline"
+import { initClientModels, NamedClientModel } from "../../src/platform-kit/instance-pipeline"
 
 import { createBaseLocator } from "../../src/platform-kit/base/BaseLocator.js"
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector.js"
@@ -36,6 +35,7 @@ import { RsaWeb } from "../../src/app-kit/native-bridge/worker/RsaImplementation
 import { TutanotaEntityMigrator } from "../../src/applications/common/misc/TutanotaEntityMigrator.js"
 import { DefaultEntityRestCache } from "../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { DomainConfigProvider } from "../../src/applications/common/api/common/DomainConfigProvider.js"
+import { IdentityKeyTrustDatabase } from "../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 export async function runPlatformKitExample() {
 	// ── argon2 facade (wasm from test/build/) ─────────────────────────────────────
@@ -138,9 +138,10 @@ export async function runPlatformKitExample() {
 	}
 
 	console.log("Creating BaseLocator...")
+	const clientModelInfo = initClientModels(apps)
 	base = await createBaseLocator({
 		worker,
-		apps,
+		clientModelInfo,
 		browserData,
 		loginListenerProvider: () => noOpLoginListener,
 		maybeUninitializedStorage,

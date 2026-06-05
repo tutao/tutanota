@@ -3,11 +3,11 @@ import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { isSameId } from "../../meta"
 import { CryptoError } from "@tutao/crypto/error"
-import { KeyCache } from "../crypto/persistence/KeyCache"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { KeyCache } from "../base-crypto/persistence/KeyCache"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {

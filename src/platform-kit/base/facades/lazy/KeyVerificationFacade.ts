@@ -12,9 +12,8 @@ import {
 } from "@tutao/crypto"
 import { PublicKeySignatureFacade } from "../../base-crypto/PublicKeySignatureFacade"
 import { PublicIdentityKeyProvider } from "../../base-crypto/PublicIdentityKeyProvider"
-
-import { MaybeSignedPublicKey } from "../../crypto/MaybeSignedPublicKey"
-import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../crypto/persistence/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../base-crypto/persistence/IdentityKeyTrustDatabase"
+import { MaybeSignedPublicKey } from "../../base-crypto/MaybeSignedPublicKey"
 
 assertWorkerOrNode()
 

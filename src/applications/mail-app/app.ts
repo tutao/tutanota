@@ -64,8 +64,8 @@ import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
-import { NamedClientModel } from "@tutao/instance-pipeline"
-import { initClientModels } from "@tutao/instance-pipeline"
+import type { NamedClientModel } from "@tutao/instance-pipeline"
+import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
 assertMainOrNodeBoot()
 bootFinished()

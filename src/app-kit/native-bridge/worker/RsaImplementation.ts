@@ -1,9 +1,8 @@
 import type { NativeInterface } from "../common/NativeInterface.js"
 import { NativeCryptoFacadeSendDispatcher } from "../common/generatedipc/dispatchers/NativeCryptoFacadeSendDispatcher.js"
 import type { RsaPrivateKey, RsaPublicKey } from "../../../platform-kit/crypto"
-import { random, rsaDecrypt, rsaEncrypt } from "../../../platform-kit/crypto"
+import { random, rsaDecrypt, rsaEncrypt, RsaImplementation } from "../../../platform-kit/crypto"
 import { isApp } from "../../../platform-kit/app-env"
-import { RsaImplementation } from "../../../platform-kit/crypto/encryption/RsaImplementation"
 
 export async function createRsaImplementation(native: NativeInterface): Promise<RsaImplementation> {
 	if (isApp()) {

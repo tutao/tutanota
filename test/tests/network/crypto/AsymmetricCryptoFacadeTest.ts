@@ -23,6 +23,7 @@ import {
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	RsaImplementation,
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,
@@ -38,7 +39,6 @@ import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-
 import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
-import { RsaImplementation } from "../../../../src/platform-kit/crypto/encryption/RsaImplementation"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation

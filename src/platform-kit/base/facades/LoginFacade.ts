@@ -103,8 +103,7 @@ import {
 } from "@tutao/rest-client/error"
 import { SessionTypeProvider } from "./SessionTypeProvider"
 import { CacheStorageLateInitializer } from "./CacheStorageLateInitializer"
-import { CacheManager } from "../crypto/persistence/CacheManager"
-import { ConnectMode } from "../../network/Constants"
+import { CacheManager } from "../base-crypto/persistence/CacheManager"
 
 assertWorkerOrNode()
 

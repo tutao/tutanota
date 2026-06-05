@@ -77,7 +77,6 @@ import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "../../../platform-kit/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
-import { initClientModels } from "@tutao/instance-pipeline"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
@@ -87,6 +86,7 @@ import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
+import { initClientModels } from "../api/common/ClientModelInfoInitializer"
 
 mp()
 

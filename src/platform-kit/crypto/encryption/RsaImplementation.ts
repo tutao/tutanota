@@ -1,4 +1,4 @@
-import type { RsaPrivateKey, RsaPublicKey } from "@tutao/crypto"
+import { RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair"
 
 export interface RsaImplementation {
 	encrypt(publicKey: RsaPublicKey, bytes: Uint8Array): Promise<Uint8Array>

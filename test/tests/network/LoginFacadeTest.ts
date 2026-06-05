@@ -53,7 +53,7 @@ import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-c
 import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
-import { DefaultLoginListener } from "../../../src/applications/common/workerUtils/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../src/applications/common/misc/DefaultLoginListener"
 import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 

@@ -20,7 +20,7 @@ import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypt
 
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { createTestEntity } from "../../../TestUtils"
-import { PublicEncryptionKeyCache } from "../../../../../src/platform-kit/base/crypto/persistence/PublicEncryptionKeyCache"
+import { PublicEncryptionKeyCache } from "../../../../../src/platform-kit/base/base-crypto/persistence/PublicEncryptionKeyCache"
 import {
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
@@ -34,7 +34,7 @@ import {
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
-import { MaybeSignedPublicKey } from "../../../../../src/platform-kit/base/crypto/MaybeSignedPublicKey"
+import { MaybeSignedPublicKey } from "../../../../../src/platform-kit/base/base-crypto/MaybeSignedPublicKey"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

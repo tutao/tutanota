@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { KeyCache } from "../../../../../src/platform-kit/base/crypto/persistence/KeyCache.js"
+import { KeyCache } from "../../../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"

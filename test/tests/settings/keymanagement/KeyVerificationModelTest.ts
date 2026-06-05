@@ -20,7 +20,7 @@ import { DesktopSystemFacade } from "../../../../src/app-kit/native-bridge/commo
 import { withOverriddenEnv } from "../../TestUtils"
 import { SigningPublicKey } from "../../../../src/platform-kit/crypto/encryption/Ed25519"
 import { PublicKeyIdentifierType } from "../../../../src/platform-kit/crypto"
-import { TrustDBEntry } from "../../../../src/platform-kit/base/crypto/persistence/IdentityKeyTrustDatabase"
+import { TrustDBEntry } from "../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
 
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel

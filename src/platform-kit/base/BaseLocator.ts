@@ -1,25 +1,23 @@
 import { LoginFacade, LoginListener } from "./facades/LoginFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
-import { CryptoFacade } from "./crypto/CryptoFacade.js"
-import { KeyCache } from "./crypto/persistence/KeyCache.js"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../crypto"
+import { CryptoWrapper, random, RsaImplementation, SYMMETRIC_CIPHER_FACADE } from "../crypto"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../network/BlobAccessTokenFacade.js"
 import { IServiceExecutor } from "../network/ServiceRequest.js"
-import { KeyLoaderFacade } from "./crypto/KeyLoaderFacade.js"
-import { AdminKeyLoaderFacade } from "./crypto/AdminKeyLoaderFacade.js"
-import { KeyRotationFacade } from "./crypto/KeyRotationFacade.js"
+import { KeyLoaderFacade } from "./base-crypto/KeyLoaderFacade.js"
+import { AdminKeyLoaderFacade } from "./base-crypto/AdminKeyLoaderFacade.js"
+import { KeyRotationFacade } from "./base-crypto/KeyRotationFacade.js"
 import { KeyAuthenticationFacade } from "../network/KeyAuthenticationFacade.js"
-import { AsymmetricCryptoFacade } from "./crypto/AsymmetricCryptoFacade.js"
-import { DeviceEncryptionFacade } from "./crypto/DeviceEncryptionFacade.js"
+import { AsymmetricCryptoFacade } from "./base-crypto/AsymmetricCryptoFacade.js"
+import { DeviceEncryptionFacade } from "./base-crypto/DeviceEncryptionFacade.js"
 import { RolloutFacade } from "./facades/RolloutFacade.js"
-import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./crypto/KyberFacade.js"
-import { PQFacade } from "./crypto/PQFacade.js"
-import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "./crypto/Ed25519Facade.js"
-import { PublicKeySignatureFacade } from "./crypto/PublicKeySignatureFacade.js"
-import PublicEncryptionKeyProvider from "./crypto/PublicEncryptionKeyProvider.js"
-import { PublicIdentityKeyProvider } from "./crypto/PublicIdentityKeyProvider.js"
-import type { IdentityKeyCreator } from "./crypto/IdentityKeyCreator.js"
+import { KyberFacade, NativeKyberFacade, WASMKyberFacade } from "./base-crypto/KyberFacade.js"
+import { PQFacade } from "./base-crypto/PQFacade.js"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "./base-crypto/Ed25519Facade.js"
+import { PublicKeySignatureFacade } from "./base-crypto/PublicKeySignatureFacade.js"
+import PublicEncryptionKeyProvider from "./base-crypto/PublicEncryptionKeyProvider.js"
+import { PublicIdentityKeyProvider } from "./base-crypto/PublicIdentityKeyProvider.js"
+import type { IdentityKeyCreator } from "./base-crypto/IdentityKeyCreator.js"
 import { RestClient, restSuspension } from "../rest-client"
 import { EntityRestInterface } from "../network/EntityRestCacheInterface.js"
 import { EntityClient } from "../network/EntityClient.js"
@@ -32,6 +30,7 @@ import type { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade
 import type { KeyVerificationFacade } from "./facades/lazy/KeyVerificationFacade.js"
 import {
 	ApplicationTypesFacade,
+	ClientModelInfo,
 	InstancePipeline,
 	NamedClientModel,
 	PatchMerger,
@@ -41,21 +40,21 @@ import {
 	UpdateAppTypesHashMiddleware,
 } from "../instance-pipeline"
 import { lazyAsync, lazyMemoized } from "../utils"
-import { RsaImplementation } from "../crypto/encryption/RsaImplementation.js"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { initClientModels } from "../instance-pipeline/ClientModelInfoInitializer.js"
 import { ServiceExecutor } from "../network/ServiceExecutor"
 import { isAdminClient, isAndroidApp, isBrowser, isIOSApp } from "@tutao/app-env"
-import { PublicEncryptionKeyCache } from "./crypto/persistence/PublicEncryptionKeyCache"
-import { InstanceSessionKeysCache } from "./crypto/persistence/InstanceSessionKeysCache.js"
-import { Argon2idFacade, WASMArgon2idFacade } from "./crypto/WasmArgon2idFacade"
-import { NativeArgon2idFacade } from "./crypto/NativeArgon2idFacade"
+import { PublicEncryptionKeyCache } from "./base-crypto/persistence/PublicEncryptionKeyCache"
+import { InstanceSessionKeysCache } from "./base-crypto/persistence/InstanceSessionKeysCache.js"
+import { Argon2idFacade, WASMArgon2idFacade } from "./base-crypto/WasmArgon2idFacade"
+import { NativeArgon2idFacade } from "./base-crypto/NativeArgon2idFacade"
 import { BrowserData } from "../app-env/boot/ClientConstants"
 import { CacheStorageLateInitializer } from "./facades/CacheStorageLateInitializer.js"
 import { GetOrPutInstance } from "../instance-pipeline/PatchMerger.js"
-import { CacheManager } from "./crypto/persistence/CacheManager.js"
-import { IdentityKeyTrustDatabase } from "./crypto/persistence/IdentityKeyTrustDatabase"
+import { CacheManager } from "./base-crypto/persistence/CacheManager.js"
+import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyTrustDatabase"
+import { KeyCache } from "./base-crypto/persistence/KeyCache"
+import { CryptoFacade } from "./base-crypto/CryptoFacade"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper
@@ -112,7 +111,7 @@ export type BaseLocatorConfig = {
 			infoMessageHandler: { onInfoMessage(msg: { translationKey: string; args: Record<string, unknown> }): void }
 		}
 	}
-	apps: Array<NamedClientModel>
+	clientModelInfo: ClientModelInfo
 	browserData: BrowserData
 	loginListenerProvider: (user: UserFacade) => LoginListener
 	maybeUninitializedStorage: CacheStorageLateInitializer & GetOrPutInstance
@@ -145,7 +144,7 @@ export type BaseLocatorConfig = {
 
 export async function createBaseLocator({
 	worker,
-	apps,
+	clientModelInfo,
 	browserData,
 	loginListenerProvider,
 	maybeUninitializedStorage,
@@ -172,8 +171,6 @@ export async function createBaseLocator({
 			args: {},
 		}),
 	)
-
-	const clientModelInfo = initClientModels(apps)
 
 	// Declared before serverModelInfo because it's captured by the lazy callback
 	let applicationTypesFacade: ApplicationTypesFacade
@@ -304,7 +301,7 @@ export async function createBaseLocator({
 		return new CounterFacade(serviceExecutor)
 	})
 	const identityKeyCreator = lazyMemoized(async () => {
-		const { IdentityKeyCreator } = await import("./crypto/IdentityKeyCreator.js")
+		const { IdentityKeyCreator } = await import("./base-crypto/IdentityKeyCreator.js")
 		return new IdentityKeyCreator(
 			user,
 			cachingEntityClient,
@@ -367,7 +364,7 @@ export async function createBaseLocator({
 	}
 
 	const deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("./crypto/DatabaseKeyFactory.js")
+	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
 
 	entityMigrator = entityMigratorFactory({
 		cryptoWrapper,
