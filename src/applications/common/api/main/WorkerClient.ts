@@ -11,7 +11,7 @@ import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 
 assertMainOrNode()
 

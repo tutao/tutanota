@@ -22,7 +22,7 @@ import { loadMultipleFromLists } from "../../../../platform-kit/network/EntityCl
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 import { BrowserType } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { Keys } from "../../../../ui/KeyboardKeys"
 

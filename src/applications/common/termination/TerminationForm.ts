@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../ui/ClientDetector.js"
 import { assertNotNull } from "../../../platform-kit/utils"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"

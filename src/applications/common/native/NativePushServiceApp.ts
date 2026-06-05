@@ -13,7 +13,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
 import { getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts

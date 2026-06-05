@@ -9,7 +9,7 @@ import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../base/RootView.js"
 import { assertMainOrNode } from "../../platform-kit/app-env"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../ClientDetector.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
 import { IWindowFacade } from "../IWindowFacade"
 

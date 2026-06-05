@@ -8,7 +8,7 @@ import { downcast, incrementDate, noOp, ofClass, promiseMap } from "@tutao/utils
 import { ThemeId, themeOptions, ThemePreference } from "../../../ui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
 import { locator } from "../api/main/CommonLocator"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../ui/ClientDetector.js"
 import { DateTime } from "luxon"
 import { LockedError } from "@tutao/rest-client/error"
 import { LanguageDropdown } from "../gui/LanguageDropdown"

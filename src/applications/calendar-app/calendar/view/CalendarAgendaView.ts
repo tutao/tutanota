@@ -30,7 +30,7 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type CalendarAgendaViewAttrs = {

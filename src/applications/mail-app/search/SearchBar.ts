@@ -10,7 +10,7 @@ import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model
 import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, ProgrammingError } from "../../../platform-kit/app-env"
 import { styles } from "../../../ui/styles"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"

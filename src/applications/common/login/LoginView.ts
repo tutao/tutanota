@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../ui/ClientDetector.js"
 import { assertMainOrNode, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/utils"

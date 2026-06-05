@@ -4,7 +4,7 @@ import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
 import { ClickHandler, DropData } from "./GuiUtils"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { assertNotNull } from "../../platform-kit/utils"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { theme } from "../theme"
 

@@ -19,7 +19,7 @@ import * as restError from "@tutao/rest-client/error"
 import { NotAuthorizedError } from "@tutao/rest-client/error"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 import {
 	AuditLogEntry,
 	AuditLogEntryTypeRef,

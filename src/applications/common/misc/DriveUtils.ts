@@ -1,6 +1,6 @@
 import type { LoginController } from "../api/main/LoginController"
 import { FeatureType, Mode } from "../../../platform-kit/app-env"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../ui/ClientDetector.js"
 
 export function isDriveEnabled(loginController: LoginController): boolean {
 	return (

@@ -24,7 +24,7 @@ import { ImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "../../../entities/sys/Utils"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.

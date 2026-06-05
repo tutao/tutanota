@@ -8,11 +8,11 @@ import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { matchers, object, reset, verify } from "testdouble"
 import { domainConfigStub } from "../TestUtils"
-import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDetector"
 
 import { getServiceRestPath } from "../../../src/platform-kit/meta"
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { ApplicationTypesService } from "@tutao/entities/base"
+import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientConstants"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 

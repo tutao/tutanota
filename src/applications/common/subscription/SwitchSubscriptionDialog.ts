@@ -53,7 +53,7 @@ import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 import { Keys } from "../../../ui/KeyboardKeys"
 import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 

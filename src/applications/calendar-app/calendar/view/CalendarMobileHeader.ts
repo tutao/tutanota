@@ -18,7 +18,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../../ui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../../ui/ClientDetector.js"
 import { isApp } from "../../../../platform-kit/app-env"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {

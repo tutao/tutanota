@@ -12,7 +12,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
 
 assertMainOrNode()

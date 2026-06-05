@@ -1,5 +1,4 @@
 import { assertMainOrNodeBoot } from "../Env"
-import { ClientPlatform } from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -28,6 +27,21 @@ export const enum DeviceType {
 	ANDROID = "Android",
 	DESKTOP = "Desktop",
 	OTHER_MOBILE = "Other mobile",
+}
+
+export enum ClientPlatform {
+	// this should be unused and exists so the clients that don't write the field get assigned
+	// UNKNOWN by default during migrations
+	UNKNOWN,
+	IOS_MAIL_APP,
+	ANDROID_MAIL_APP,
+	IOS_CALENDAR_APP,
+	ANDROID_CALENDAR_APP,
+	WEB,
+	DESKTOP_UNKNOWN,
+	DESKTOP_MAC,
+	DESKTOP_LINUX,
+	DESKTOP_WINDOWS,
 }
 
 /**

@@ -14,7 +14,7 @@ import { createDropdown } from "../../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
 import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../../ui/ClientDetector"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent

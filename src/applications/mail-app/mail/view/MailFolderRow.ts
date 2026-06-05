@@ -10,7 +10,7 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getFolderIcon } from "./MailGuiUtils"
 import { MailSet } from "@tutao/entities/tutanota"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 
 export type MailFolderRowAttrs = {
 	count: number

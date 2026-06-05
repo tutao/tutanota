@@ -1,4 +1,4 @@
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../ui/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"

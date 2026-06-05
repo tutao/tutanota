@@ -8,7 +8,7 @@ import { Dialog } from "./Dialog"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import m, { Children } from "mithril"
 import { IconButtonAttrs } from "./IconButton.js"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../ClientDetector.js"
 import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { size } from "../size"
 

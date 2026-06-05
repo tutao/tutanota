@@ -20,7 +20,7 @@ import { PowSolution } from "../../api/common/pow-worker"
 import { isIOSApp } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }

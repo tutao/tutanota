@@ -8,7 +8,7 @@ import { DROPDOWN_MARGIN, showDropdown } from "../../../../../ui/base/Dropdown.j
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { CalendarContactPreviewViewModel } from "./CalendarContactPreviewViewModel.js"
 import { ContactPreviewView } from "./ContactPreviewView.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../../../ui/ClientDetector.js"
 import { ContactEditor } from "../../../../mail-app/contacts/ContactEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { listIdPart } from "../../../../../platform-kit/meta"

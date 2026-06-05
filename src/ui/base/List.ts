@@ -3,7 +3,7 @@ import { createResizeObserver, debounce, memoized, numberRange } from "../../pla
 import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { ProgrammingError, TabIndex } from "../../platform-kit/app-env"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../ClientDetector.js"
 import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"

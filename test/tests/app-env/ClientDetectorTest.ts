@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { client } from "../../../src/platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../src/ui/ClientDetector.js"
 import { BrowserType, DeviceType } from "../../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { withOverriddenEnv } from "../TestUtils"
 import { AppType, Mode } from "../../../src/platform-kit/app-env"

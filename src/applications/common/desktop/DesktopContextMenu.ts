@@ -1,7 +1,7 @@
 import type { ContextMenuParams, Menu, WebContents } from "electron"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { WindowManager } from "./DesktopWindowManager.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 
 type Electron = typeof Electron.CrossProcessExports
 

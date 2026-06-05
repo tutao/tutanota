@@ -4,7 +4,7 @@ import { assertMainOrNodeBoot, isAdminClient, isTest } from "../platform-kit/app
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
-import { client } from "../platform-kit/app-env/boot/ClientDetector"
+import { client } from "./ClientDetector"
 
 assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"

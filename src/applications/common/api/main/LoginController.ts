@@ -13,7 +13,7 @@ import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
 import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 
 assertMainOrNodeBoot()
 

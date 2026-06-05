@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../../../../ui/base/Dialog.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { DatePicker } from "./DatePicker.js"
 import { px, size } from "../../../../../ui/size.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../../../ui/ClientDetector.js"
 import { assertMainOrNode } from "../../../../../platform-kit/app-env"
 import { debounceStart, newPromise, noOp } from "../../../../../platform-kit/utils"
 

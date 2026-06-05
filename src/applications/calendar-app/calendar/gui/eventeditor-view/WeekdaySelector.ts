@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Weekday } from "../../../../../platform-kit/app-env"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { client } from "../../../../../ui/ClientDetector.js"
 import { px } from "../../../../../ui/size.js"
 
 export interface WeekdayToTranslation {

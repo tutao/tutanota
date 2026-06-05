@@ -12,7 +12,7 @@ import { px } from "./size.js"
 import { theme } from "./theme.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "./utils/LanguageViewModel.js"
-import { client } from "../platform-kit/app-env/boot/ClientDetector"
+import { client } from "./ClientDetector"
 import { Icons } from "./base/icons/Icons"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {

@@ -1,5 +1,5 @@
 import { newPromise } from "../../platform-kit/utils"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../ClientDetector"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return newPromise((resolve, reject) => {

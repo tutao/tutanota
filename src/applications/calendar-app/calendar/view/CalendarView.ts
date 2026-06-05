@@ -116,7 +116,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../../ui/ClientDetector"
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
 import { Keys } from "../../../../ui/KeyboardKeys"
 

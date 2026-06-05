@@ -6,7 +6,7 @@ import type { KeyboardSizeListener, WindowSizeListener } from "../../../ui/utils
 import type { IWindowFacade } from "../../../ui/IWindowFacade"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client } from "../../../ui/ClientDetector"
 
 assertMainOrNodeBoot()
 

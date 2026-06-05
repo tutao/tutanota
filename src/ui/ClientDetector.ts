@@ -1,7 +1,7 @@
-import { assertMainOrNodeBoot, envProvider, Mode } from "../Env"
-import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
+import { assertMainOrNodeBoot, envProvider, Mode } from "../platform-kit/app-env/Env"
+import { BrowserData, BrowserType, ClientPlatform, DeviceType } from "../platform-kit/app-env/boot/ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
-import { AppType } from "../AppType"
+import { AppType } from "../platform-kit/app-env/AppType"
 
 assertMainOrNodeBoot()
 
@@ -455,21 +455,6 @@ export class ClientDetector {
 		// Fallback
 		return ClientPlatform.UNKNOWN
 	}
-}
-
-export enum ClientPlatform {
-	// this should be unused and exists so the clients that don't write the field get assigned
-	// UNKNOWN by default during migrations
-	UNKNOWN,
-	IOS_MAIL_APP,
-	ANDROID_MAIL_APP,
-	IOS_CALENDAR_APP,
-	ANDROID_CALENDAR_APP,
-	WEB,
-	DESKTOP_UNKNOWN,
-	DESKTOP_MAC,
-	DESKTOP_LINUX,
-	DESKTOP_WINDOWS,
 }
 
 export const client: ClientDetector = new ClientDetector({} as any)
