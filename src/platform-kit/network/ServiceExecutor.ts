@@ -66,12 +66,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		return this.executeServiceRequest(service, HttpMethod.DELETE, data, params)
 	}
 
-	private async executeServiceRequest(
-		service: AnyService,
-		method: HttpMethod,
-		requestEntity: Entity | null,
-		params: ExtraServiceParams | undefined,
-	): Promise<any> {
+	private async executeServiceRequest(service: AnyService, method: HttpMethod, requestEntity: Entity | null, params?: ExtraServiceParams): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
 		if (
 			methodDefinition.return &&
@@ -92,7 +87,7 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
-		const data: string | undefined = await this.restClient.request(path, method, {
+		const data: string | null = await this.restClient.request(path, method, {
 			queryParams: params?.queryParams,
 			headers,
 			responseType: MediaType.Json,
@@ -156,7 +151,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
+	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params?: ExtraServiceParams): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)

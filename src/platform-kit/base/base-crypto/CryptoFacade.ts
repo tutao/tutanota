@@ -123,12 +123,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
-	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
-		const ownerKey = await ownerKeyProvider?.(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+		const ownerKey = ownerKeyProvider != null ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
 		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
 	}
 
-	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKey && migratedEntity._ownerEncSessionKey) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
@@ -363,7 +363,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		const id = downcast<SomeEntity>(instance)._id
 		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
 
-		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
+		let resolvedSessionKeyForInstance: AesKey | null = null
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))

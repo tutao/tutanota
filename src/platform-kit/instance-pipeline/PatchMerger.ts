@@ -44,9 +44,9 @@ export interface SessionKeyResolver {
 	 */
 	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
 
-	resolveSessionKeyWithOwnerKey(ownerKeyProvider: AesKey | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKey(ownerKeyProvider: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
-	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
 
 	/**
 	 * Returns the session key for the provided service response:

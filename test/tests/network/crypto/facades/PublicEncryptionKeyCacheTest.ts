@@ -33,7 +33,7 @@ o.spec("PublicEncryptionKeyCacheTest", function () {
 
 	o.spec("put and get", function () {
 		o("get - not present returns undefined", async function () {
-			o(pubKeyCache.get(publicKeyIdentifier, version)).equals(undefined)
+			o(pubKeyCache.get(publicKeyIdentifier, version)).equals(null)
 		})
 
 		o("put and get success", async function () {
@@ -52,7 +52,7 @@ o.spec("PublicEncryptionKeyCacheTest", function () {
 		o("no update without signature", async function () {
 			publicKey.signature = null
 			pubKeyCache.put(publicKeyIdentifier, publicKey)
-			o(pubKeyCache.get(publicKeyIdentifier, version)).equals(undefined)
+			o(pubKeyCache.get(publicKeyIdentifier, version)).equals(null)
 		})
 
 		o("update without signature for system user group", async function () {

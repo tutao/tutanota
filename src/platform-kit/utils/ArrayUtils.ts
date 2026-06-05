@@ -176,7 +176,7 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 /**
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
  */
-export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null | undefined): Array<R> {
+export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null): Array<R> {
 	const resultList: R[] = []
 
 	for (const item of array) {
@@ -190,7 +190,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
-export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array<T> {
+export function filterNull<T>(array: ReadonlyArray<T | null>): Array<T> {
 	return downcast(array.filter((item) => item != null))
 }
 
@@ -199,8 +199,8 @@ export function filterNull<T>(array: ReadonlyArray<T | null | undefined>): Array
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last<T>(theArray: ReadonlyArray<T>): T | null | undefined {
-	return theArray[theArray.length - 1]
+export function last<T>(theArray: ReadonlyArray<T>): T | null {
+	return theArray.length > 0 ? theArray[theArray.length - 1] : null
 }
 
 export function isEmpty(array: ReadonlyArray<unknown>): boolean {
@@ -234,7 +234,7 @@ export function first<T>(array: ReadonlyArray<T>): T | null {
 	return array[0] || null
 }
 
-export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null | undefined {
+export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null {
 	const index = findLastIndex(array, predicate)
 
 	if (index !== -1) {

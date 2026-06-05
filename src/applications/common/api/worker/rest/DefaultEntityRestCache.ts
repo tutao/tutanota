@@ -847,5 +847,5 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== undefined && _idValue.type === ValueType.GeneratedId
+	return _idValue !== null && _idValue.type === ValueType.GeneratedId
 }

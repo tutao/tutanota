@@ -99,7 +99,7 @@ export const enum CacheMode {
  * Get the behavior of the cache mode for the options
  * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
-export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
+export function getCacheModeBehavior(cacheMode: Nullable<CacheMode> = null): {
 	readsFromCache: boolean
 	writesToCache: boolean
 } {
@@ -117,7 +117,7 @@ export interface EntityRestClientLoadOptions {
 	queryParams?: Dict
 	extraHeaders?: Dict
 	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
-	ownerKeyProvider?: OwnerKeyProvider
+	ownerKeyProvider: Nullable<OwnerKeyProvider>
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode?: CacheMode
 	baseUrl?: string
@@ -313,7 +313,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async loadMultipleBlobElements(
 		archiveId: Id | null,
 		queryParams: { ids: string },
-		headers: Dict | undefined,
+		headers: Dict,
 		path: string,
 		typeRef: TypeRef<any>,
 		opts: EntityRestClientLoadOptions = {},
@@ -437,7 +437,7 @@ export class EntityRestClient implements EntityRestInterface {
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey, instance, clientTypeModel)
+		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey ?? null, instance, clientTypeModel)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, subKeyInfo)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
@@ -532,7 +532,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
-		const subKeyInfo = await this.getSubKeyInfoOnUpdate(options?.ownerKey, instance)
+		const subKeyInfo = await this.getSubKeyInfoOnUpdate(options?.ownerKey ?? null, instance)
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(clientTypeModel, parsedInstance, subKeyInfo)
@@ -558,12 +558,12 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async getSubKeyInfoOnSetup<T extends SomeEntity>(
-		ownerKey: VersionedKey | undefined,
+		ownerKey: VersionedKey | null,
 		instance: T,
 		clientTypeModel: ClientTypeModel,
 	): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
-			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
+			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey ?? undefined)
 			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
 		} else {
 			if (ownerKey == null) {
@@ -583,9 +583,12 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | undefined, instance: T): Promise<SubKeyInfo> {
+	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | null, instance: T): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
-			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(ownerKey?.object, instance)
+			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
+				ownerKey != null ? ownerKey.object : null,
+				instance,
+			)
 			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
 		} else {
 			if (!ownerKey) {
@@ -635,7 +638,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions | undefined): Promise<void> {
+	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}
@@ -662,13 +665,13 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<any>,
 		listId: Id | null,
 		elementId: Id | null,
-		queryParams: Dict | undefined,
-		extraHeaders: Dict | undefined,
-		ownerKey: OwnerKeyProvider | VersionedKey | undefined,
+		queryParams?: Dict,
+		extraHeaders?: Dict,
+		ownerKey?: OwnerKeyProvider | VersionedKey,
 	): Promise<{
 		path: string
-		queryParams: Dict | undefined
-		headers: Dict | undefined
+		queryParams?: Dict
+		headers: Dict
 		clientTypeModel: ClientTypeModel
 	}> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)

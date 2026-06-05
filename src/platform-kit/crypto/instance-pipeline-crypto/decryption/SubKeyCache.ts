@@ -2,7 +2,7 @@ import { AeadSubKeys, AesKey, SymmetricAeadCipherVersion, SymmetricAesCbcCipherV
 
 interface SubKeyCache<K, V> {
 	set: (instanceSubKeyCacheKey: K, cachedSubKeys: V) => void
-	get: (instanceSubKeyCacheKey: K) => V | undefined
+	get: (instanceSubKeyCacheKey: K) => V | null
 	has: (instanceSubKeyCacheKey: K) => boolean
 }
 
@@ -10,8 +10,8 @@ export function subKeyCache<K, S extends string | number | boolean, V>(serialize
 	const map = new Map<S, V>()
 
 	return {
-		get(key: K): V | undefined {
-			return map.get(serialize(key))
+		get(key: K): V | null {
+			return map.get(serialize(key)) ?? null
 		},
 		set(key: K, value: V): void {
 			map.set(serialize(key), value)

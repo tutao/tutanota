@@ -94,7 +94,7 @@ export function incrementMonth(d: Date, byValue: number): Date {
 	return date
 }
 
-export function isSameDayOfDate(date1: Date | null | undefined, date2: Date | null | undefined): boolean {
+export function isSameDayOfDate(date1: Date | null, date2: Date | null): boolean {
 	return (
 		(!date1 && !date2) ||
 		(date1 != null &&

@@ -31,7 +31,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys == null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeys(this.sessionKey, this.parsedCiphertext.cipherVersion)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
@@ -62,7 +62,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 			aesKey: key,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys == null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
 				{ object: key, version: this.parsedCiphertext.groupKeyVersion },
 				this.kdfNonce,
@@ -91,7 +91,7 @@ export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys === undefined) {
+		if (subKeys == null) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.sessionKey, this.instanceTypeId)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
