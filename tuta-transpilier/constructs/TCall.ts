@@ -36,7 +36,7 @@ export class TCall extends TConstruct {
 		} else if (isObjectFreeze) {
 			throw new Error("Object.freeze call is only supported in array")
 		}
-		// Case II: is a super(...) all
+		// Case II: is a super(...) call
 		else if (this.callIdentifier instanceof TSuperKeyword) {
 			this.specialCall = SpecialCall.SuperCall
 		}

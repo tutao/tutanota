@@ -36,12 +36,12 @@ const MAPPED_REPLACEMENTS: Record<any, TARGET_REPLACEMENT> = {
 	[SyntaxKind.ReturnKeyword]: { kotlin: "return ", swift: "" },
 } as const
 
-export class TOneToOneReplacements extends TConstruct {
+export class TOneToOneReplacement extends TConstruct {
 	private readonly operator: TARGET_REPLACEMENT
 	constructor(symbolNode: TsNode, expectedWord: SyntaxKind | null) {
 		super()
 		const nodeKind = symbolNode.getKind()
-		Assert.equal(TOneToOneReplacements.canBeOneToOneReplaced(nodeKind), true, "Non-operator node passed")
+		Assert.equal(TOneToOneReplacement.canBeOneToOneReplaced(nodeKind), true, "Non-operator node passed")
 		if (expectedWord) Assert.equal(expectedWord, nodeKind, "Expectation mismatch for token")
 
 		const nodeRawText = symbolNode.getText(false)
