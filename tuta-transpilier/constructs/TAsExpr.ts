@@ -1,13 +1,13 @@
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { AsExpression, TypeReferenceNode } from "ts-morph"
-import { TReservedWord } from "./TReservedWord"
+import { TOneToOneReplacements } from "./TOneToOneReplacements"
 import { TType } from "./TType"
 import { NodeRedirector } from "../NodeRedirector"
 import * as Assert from "node:assert"
 
 export class TAsExpr extends TConstruct {
 	private readonly operand: TConstruct
-	private readonly asKeyword: TReservedWord
+	private readonly asKeyword: TOneToOneReplacements
 	private readonly targetType: TType
 	private readonly castedToConst: boolean
 
@@ -16,8 +16,8 @@ export class TAsExpr extends TConstruct {
 		Assert.equal(asExpression.getChildCount(), 3, "Expected 3 token in AsExpression")
 		const [operand, asKeyword, targetType] = asExpression.getChildren()
 		this.operand = NodeRedirector.redirectNode(operand)
-		this.asKeyword = new TReservedWord(asKeyword)
-		this.asKeyword = new TReservedWord(asExpression.getChildAtIndex(1))
+		this.asKeyword = new TOneToOneReplacements(asKeyword)
+		this.asKeyword = new TOneToOneReplacements(asExpression.getChildAtIndex(1))
 		this.operand = NodeRedirector.redirectNode(asExpression.getExpression())
 		this.targetType = new TType(targetType.getType())
 		// Note:

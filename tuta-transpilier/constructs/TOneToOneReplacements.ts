@@ -2,8 +2,8 @@ import { ConstructOut, TConstruct, TsNode } from "./TConstruct"
 import { SyntaxKind } from "ts-morph"
 import * as Assert from "node:assert"
 
-type KnownOperator = { kotlin: string | null; swift: string | null }
-const MAPPED_TOKENS: Record<any, KnownOperator> = {
+type TARGET_REPLACEMENT = { kotlin: string | null; swift: string | null }
+const MAPPED_REPLACEMENTS: Record<any, TARGET_REPLACEMENT> = {
 	[SyntaxKind.AsteriskToken]: { kotlin: null, swift: null },
 	[SyntaxKind.PlusToken]: { kotlin: null, swift: null },
 	[SyntaxKind.MinusToken]: { kotlin: null, swift: null },
@@ -36,22 +36,22 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.ReturnKeyword]: { kotlin: "return ", swift: "" },
 } as const
 
-export class TReservedWord extends TConstruct {
-	private readonly operator: KnownOperator
+export class TOneToOneReplacements extends TConstruct {
+	private readonly operator: TARGET_REPLACEMENT
 	constructor(symbolNode: TsNode, expectedWord: SyntaxKind | null) {
 		super()
 		const nodeKind = symbolNode.getKind()
-		Assert.equal(TReservedWord.isReservedWord(nodeKind), true, "Non-operator node passed")
+		Assert.equal(TOneToOneReplacements.canBeOneToOneReplaced(nodeKind), true, "Non-operator node passed")
 		if (expectedWord) Assert.equal(expectedWord, nodeKind, "Expectation mismatch for token")
 
 		const nodeRawText = symbolNode.getText(false)
-		const kotlin = MAPPED_TOKENS[nodeKind].kotlin ?? nodeRawText
-		const swift = MAPPED_TOKENS[nodeKind].swift ?? nodeRawText
+		const kotlin = MAPPED_REPLACEMENTS[nodeKind].kotlin ?? nodeRawText
+		const swift = MAPPED_REPLACEMENTS[nodeKind].swift ?? nodeRawText
 		this.operator = { kotlin, swift }
 	}
 
-	static isReservedWord(nodeKind: SyntaxKind): boolean {
-		return MAPPED_TOKENS[nodeKind] != null
+	static canBeOneToOneReplaced(nodeKind: SyntaxKind): boolean {
+		return MAPPED_REPLACEMENTS[nodeKind] != null
 	}
 
 	generateKotlin(): ConstructOut {

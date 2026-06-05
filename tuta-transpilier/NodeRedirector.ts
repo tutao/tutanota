@@ -49,7 +49,7 @@ import { TEndOfExpression } from "./constructs/TEndOfExpression"
 import { TReturnKeyword } from "./constructs/TKeywords"
 import { TIdentitider } from "./constructs/TIdentitider"
 import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
-import { TReservedWord } from "./constructs/TReservedWord"
+import { TOneToOneReplacements } from "./constructs/TOneToOneReplacements"
 import { TNotSupported } from "./constructs/TNotSupported"
 import { TVariable } from "./constructs/TVariable"
 import { TArrayLiteral } from "./constructs/TArrayLiteral"
@@ -132,8 +132,8 @@ export class NodeRedirector {
 			return new TNumericLiteral(typedNode)
 		} else if (typedNode instanceof StringLiteral) {
 			return new TStringLiteral(typedNode)
-		} else if (TReservedWord.isReservedWord(nodeKind)) {
-			return new TReservedWord(typedNode, null)
+		} else if (TOneToOneReplacements.canBeOneToOneReplaced(nodeKind)) {
+			return new TOneToOneReplacements(typedNode, null)
 		} else if (typedNode instanceof ArrayLiteralExpression) {
 			return new TArrayLiteral(typedNode)
 		} else if (typedNode instanceof RegularExpressionLiteral) {
@@ -143,9 +143,9 @@ export class NodeRedirector {
 			const [expression, paranClose] = exprAndParanClose
 			const expressionConstructs = expression.forEachChildAsArray().map((ex) => NodeRedirector.redirectNode(ex))
 			return new TConstructMultiple<TConstruct>(
-				new TReservedWord(paranOpen, SyntaxKind.OpenParenToken),
+				new TOneToOneReplacements(paranOpen, SyntaxKind.OpenParenToken),
 				new TConstructMultiple(...expressionConstructs),
-				new TReservedWord(paranClose, SyntaxKind.CloseParenToken),
+				new TOneToOneReplacements(paranClose, SyntaxKind.CloseParenToken),
 			).withSeparator("")
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
@@ -156,7 +156,7 @@ export class NodeRedirector {
 		} else if (typedNode instanceof PrefixUnaryExpression) {
 			const [operator, expression, ...rest] = typedNode.getChildren()
 			Assert.equal(rest.length, 0, "Ahh! too much token")
-			return new TConstructMultiple(new TReservedWord(operator, null), NodeRedirector.redirectNode(expression))
+			return new TConstructMultiple(new TOneToOneReplacements(operator, null), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof AsExpression) {
 			return new TAsExpr(typedNode)
 		} else if (typedNode instanceof TryStatement) {
@@ -164,7 +164,10 @@ export class NodeRedirector {
 		} else if (typedNode instanceof ThrowStatement) {
 			Assert.equal(typedNode.getChildCount(), 2, "Expected only two child for throw")
 			const [throwKeyword, thrownObj] = typedNode.getChildren()
-			return new TConstructMultiple(new TReservedWord(throwKeyword, SyntaxKind.ThrowKeyword), NodeRedirector.redirectNode(thrownObj)).withSeparator(" ")
+			return new TConstructMultiple(
+				new TOneToOneReplacements(throwKeyword, SyntaxKind.ThrowKeyword),
+				NodeRedirector.redirectNode(thrownObj),
+			).withSeparator(" ")
 		} else {
 			return new TNotSupported(node)
 		}
