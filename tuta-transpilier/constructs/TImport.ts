@@ -3,7 +3,8 @@ import { TIdentifierFormatting, TIdentitider } from "./TIdentitider"
 import { ConstructOut, TConstruct } from "./TConstruct"
 import path from "node:path"
 import { TUTANOTA_SRC } from "../Constants"
-import { TranspileIgnore } from "../TranspileIgnore"
+import { COMPATIBILITY_FILE } from "../LangTarget"
+import { IgnorableError } from "../errors/IgnorableError"
 
 export const enum TImportKind {
 	Relative,
@@ -38,21 +39,25 @@ export class TImport extends TConstruct {
 			this.importKind = TImportKind.Relative
 			const importedFilePath = importDeclaration.getModuleSpecifierSourceFile().getFilePath()
 			const moduleSpecifierProjPath = path.relative(TUTANOTA_SRC, importedFilePath)
-			let specifierComponents = moduleSpecifierProjPath.replaceAll(".ts", "").split("/")
-			if (TranspileIgnore.isIgnored(importedFilePath)) {
-				specifierComponents = ["de", "tutao", "jsCompatibility", ...specifierComponents]
-			} else {
-				specifierComponents = ["de", "tutao", ...specifierComponents]
+			this.specifierComponents = moduleSpecifierProjPath
+				.replaceAll(".ts", "")
+				.split("/")
+				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
+
+			if (importedFilePath === COMPATIBILITY_FILE) {
+				throw new IgnorableError("No need to import platform specific compatibility file")
 			}
-			this.specifierComponents = specifierComponents.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
 		} else if (isExternalImport) {
 			this.importKind = TImportKind.External
 			this.specifierComponents = moduleSpecifier
 				.replace(/^@/, "") // starting @ for external package
 				.split("/")
 				.map((c) => new TIdentitider(c).withFormattingKind(TIdentifierFormatting.VariableLike))
-		} else if (isAbsoluteImport) throw new Error("Absolute import is not allowed")
-		else throw new Error("For custom-define alias, prefer to start with @tutao/")
+		} else if (isAbsoluteImport) {
+			throw new Error("Absolute import is not allowed")
+		} else {
+			throw new Error("For custom-define alias, prefer to start with @tutao/")
+		}
 	}
 
 	generateKotlin(): ConstructOut {

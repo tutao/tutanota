@@ -18,7 +18,8 @@ export class TNumericLiteral extends TConstruct {
 	generateKotlin(): ConstructOut {
 		// todo: make sure this number is correctly suffixed
 
-		return this.value.toString()
+		const numberType = MappedPrimitiveType.Number.kotlin
+		return `${numberType}(${this.value})`
 	}
 }
 

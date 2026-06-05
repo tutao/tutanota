@@ -1,10 +1,12 @@
 import { SourceFile } from "ts-morph"
-import { TUTANOTA_ROOT } from "./Constants.js"
+import { TUTANOTA_ROOT, TUTANOTA_SRC } from "./Constants.js"
 import { TConstruct } from "./constructs/TConstruct"
 import fs from "node:fs"
 import path from "node:path"
 import { TIdentifierFormatting, TIdentitider } from "./constructs/TIdentitider"
 import { NodeRedirector } from "./NodeRedirector"
+
+export const COMPATIBILITY_FILE = path.join(TUTANOTA_SRC, "platform-kit", "app-env", "TranspileCompatibility.ts")
 
 export const enum TargetLanguage {
 	Kotlin = ".kt",
@@ -40,6 +42,8 @@ export class LangTarget {
 		this.writeDontEditComment()
 		if (this.targetLanguage === TargetLanguage.Kotlin) {
 			this.writeKotlinTopLevelDecl()
+			this.importKotlinCompatibilityLayer()
+			this.outputContent += "\n"
 		}
 
 		for (const construct of this.collectedNodes) {
@@ -80,6 +84,9 @@ export class LangTarget {
 	}
 
 	private writeKotlinTopLevelDecl() {
-		this.outputContent += "package de.tutao." + this.packageDeclaration + ";\n\n"
+		this.outputContent += `package de.tutao.${this.packageDeclaration};\n`
+	}
+	private importKotlinCompatibilityLayer() {
+		this.outputContent += `import de.tutao.jsCompatibility.*;\n`
 	}
 }

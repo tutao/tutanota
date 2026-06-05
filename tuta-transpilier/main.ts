@@ -1,9 +1,8 @@
 import { Option, program } from "commander"
 import { Project } from "ts-morph"
-import { LangTarget, TargetLanguage } from "./LangTarget"
+import { COMPATIBILITY_FILE, LangTarget, TargetLanguage } from "./LangTarget"
 import path from "node:path"
 import { TUTANOTA_ROOT } from "./Constants"
-import { TranspileIgnore } from "./TranspileIgnore"
 
 program
 	.addOption(new Option("--targetLanguage <targetLanguage>", "Language to transpile to").choices(["swift", "kotlin"]).default("kotlin"))
@@ -24,7 +23,7 @@ program
 
 		const targetTranspilation = project
 			.getSourceFiles()
-			.filter((sourceFile) => !TranspileIgnore.isIgnored(sourceFile.getFilePath()))
+			.filter((sourceFile) => sourceFile.getFilePath() !== COMPATIBILITY_FILE)
 			.map(async (sourceFile) => {
 				const langTarget = new LangTarget(sourceFile, TargetLanguage.Kotlin)
 				await langTarget.generate()
