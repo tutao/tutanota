@@ -17,6 +17,7 @@ import {
 	ImportDeclaration,
 	InterfaceDeclaration,
 	NewExpression,
+	NonNullExpression,
 	NumericLiteral,
 	ParenthesizedExpression,
 	PrefixUnaryExpression,
@@ -102,6 +103,11 @@ export class NodeRedirector {
 			return new TNew(typedNode)
 		} else if (typedNode instanceof FunctionDeclaration) {
 			return TFunctionDecl.new(typedNode)
+		} else if (typedNode instanceof NonNullExpression) {
+			Assert.equal(typedNode.getChildCount(), 2, "Expected a expression and exclamation token")
+			const expression = NodeRedirector.redirectNode(typedNode.getExpression())
+			const exclToken = new TReservedWord(typedNode.getChildAtIndex(1), SyntaxKind.ExclamationToken)
+			return new TConstructMultiple(expression, exclToken).withSeparator("")
 		} else if (typedNode instanceof BinaryExpression) {
 			return new TBinaryExpr(typedNode)
 		} else if (typedNode instanceof ExpressionStatement) {
@@ -127,7 +133,7 @@ export class NodeRedirector {
 		} else if (typedNode instanceof StringLiteral) {
 			return new TStringLiteral(typedNode)
 		} else if (TReservedWord.isReservedWord(nodeKind)) {
-			return new TReservedWord(typedNode)
+			return new TReservedWord(typedNode, null)
 		} else if (typedNode instanceof ArrayLiteralExpression) {
 			return new TArrayLiteral(typedNode)
 		} else if (typedNode instanceof RegularExpressionLiteral) {
@@ -137,9 +143,9 @@ export class NodeRedirector {
 			const [expression, paranClose] = exprAndParanClose
 			const expressionConstructs = expression.forEachChildAsArray().map((ex) => NodeRedirector.redirectNode(ex))
 			return new TConstructMultiple<TConstruct>(
-				new TReservedWord(paranOpen),
+				new TReservedWord(paranOpen, SyntaxKind.OpenParenToken),
 				new TConstructMultiple(...expressionConstructs),
-				new TReservedWord(paranClose),
+				new TReservedWord(paranClose, SyntaxKind.CloseParenToken),
 			).withSeparator("")
 		} else if (typedNode instanceof PropertyAccessExpression) {
 			return new TPropAccess(typedNode)
@@ -150,13 +156,13 @@ export class NodeRedirector {
 		} else if (typedNode instanceof PrefixUnaryExpression) {
 			const [operator, expression, ...rest] = typedNode.getChildren()
 			Assert.equal(rest.length, 0, "Ahh! too much token")
-			return new TConstructMultiple(new TReservedWord(operator), NodeRedirector.redirectNode(expression))
+			return new TConstructMultiple(new TReservedWord(operator, null), NodeRedirector.redirectNode(expression))
 		} else if (typedNode instanceof AsExpression) {
 			return new TAsExpr(typedNode)
 		} else if (typedNode instanceof ThrowStatement) {
 			Assert.equal(typedNode.getChildCount(), 2, "Expected only two child for throw")
 			const [throwKeyword, thrownObj] = typedNode.getChildren()
-			return new TConstructMultiple(new TReservedWord(throwKeyword), NodeRedirector.redirectNode(thrownObj)).withSeparator(" ")
+			return new TConstructMultiple(new TReservedWord(throwKeyword, SyntaxKind.ThrowKeyword), NodeRedirector.redirectNode(thrownObj)).withSeparator(" ")
 		} else {
 			return new TNotSupported(node)
 		}

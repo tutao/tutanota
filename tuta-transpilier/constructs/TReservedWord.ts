@@ -26,21 +26,23 @@ const MAPPED_TOKENS: Record<any, KnownOperator> = {
 	[SyntaxKind.ExclamationEqualsToken]: { kotlin: null, swift: null },
 	[SyntaxKind.GreaterThanToken]: { kotlin: null, swift: null },
 	[SyntaxKind.LessThanToken]: { kotlin: null, swift: null },
-	[SyntaxKind.ExclamationToken]: { kotlin: null, swift: null },
+	[SyntaxKind.ExclamationToken]: { kotlin: "!!", swift: null },
 	[SyntaxKind.PlusEqualsToken]: { kotlin: null, swift: null },
 	[SyntaxKind.ThrowKeyword]: { kotlin: "throw", swift: "throw" },
 	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },
 	[SyntaxKind.FalseKeyword]: { kotlin: "false", swift: "" },
 	[SyntaxKind.TrueKeyword]: { kotlin: "", swift: "" },
 	[SyntaxKind.InstanceOfKeyword]: { kotlin: "is", swift: "" },
+	[SyntaxKind.ReturnKeyword]: { kotlin: "return ", swift: "" },
 } as const
 
 export class TReservedWord extends TConstruct {
 	private readonly operator: KnownOperator
-	constructor(symbolNode: TsNode) {
+	constructor(symbolNode: TsNode, expectedWord: SyntaxKind | null) {
 		super()
 		const nodeKind = symbolNode.getKind()
 		Assert.equal(TReservedWord.isReservedWord(nodeKind), true, "Non-operator node passed")
+		if (expectedWord) Assert.equal(expectedWord, nodeKind, "Expectation mismatch for token")
 
 		const nodeRawText = symbolNode.getText(false)
 		const kotlin = MAPPED_TOKENS[nodeKind].kotlin ?? nodeRawText

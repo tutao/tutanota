@@ -23,6 +23,10 @@ export class TConstructMultiple<V extends TConstruct = TConstruct> extends TCons
 		this.separator = " "
 	}
 
+	public addConstructs(...constructs: V[]) {
+		this.constructs.push(...constructs)
+	}
+
 	getAsArray(): V[] {
 		return this.constructs
 	}
