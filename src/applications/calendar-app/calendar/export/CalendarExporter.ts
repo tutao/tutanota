@@ -1,7 +1,7 @@
 import { CalendarEvent, createFile } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
-import { EndType, RepeatPeriod, reverse, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
+import { EndType, RepeatPeriod, reverseStringEnum, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
 import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
@@ -98,7 +98,7 @@ function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[
 
 	if (isNotEmpty(advancedRules)) {
 		const BYRULES = new Map<string, string>()
-		const byRuleValueToKey = reverse(ByRule)
+		const byRuleValueToKey = reverseStringEnum(ByRule)
 		for (const r of advancedRules) {
 			const type = byRuleValueToKey[r.ruleType as ByRule]
 			BYRULES.set(type, BYRULES.get(type) ? `${BYRULES.get(type)},${r.interval}` : r.interval)

@@ -19,7 +19,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platform-kit/app-env"
+import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverseStringEnum } from "../../../../platform-kit/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -122,7 +122,7 @@ export const iCalReplacements = {
 	"\n": "\\n",
 }
 
-const revICalReplacements = reverse(iCalReplacements)
+const revICalReplacements = reverseStringEnum(iCalReplacements)
 
 // Right side of the semicolon
 
@@ -495,7 +495,7 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
 	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
 }
-const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
+const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverseStringEnum(calendarAttendeeStatusToParstat)
 
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
 	const methodProp = getProp(icalObject, "METHOD", true)

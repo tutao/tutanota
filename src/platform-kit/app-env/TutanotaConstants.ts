@@ -3,8 +3,15 @@ import { isAdminClient, isApp, isDesktop } from "./Env"
 
 export type Country = any
 
-type ObjectPropertyKey = string | number | symbol
-export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
+export const reverseStringEnum = <K extends string, V extends string>(objectMap: Record<K, V>): Record<V, K> =>
+	Object.keys(objectMap).reduce(
+		(r, k) => {
+			const v = objectMap[k as any as K]
+			return Object.assign(r, { [v]: k })
+		},
+		{} as Record<V, K>,
+	)
+export const reverseNumberEnum = <K extends string, V extends number>(objectMap: Record<K, V>): Record<V, K> =>
 	Object.keys(objectMap).reduce(
 		(r, k) => {
 			const v = objectMap[k as any as K]
@@ -836,10 +843,6 @@ export enum CredentialEncryptionMode {
 	 */
 	APP_PASSWORD = "APP_PASSWORD",
 }
-
-export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
-export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)
-export const UsageTestStateToName = reverse(UsageTestState)
 
 export function getClientType(): ClientType {
 	return isApp() ? ClientType.App : isDesktop() || isAdminClient() ? ClientType.Desktop : ClientType.Browser

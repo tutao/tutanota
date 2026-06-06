@@ -1,4 +1,4 @@
-import { Const, isIOSApp, ProgrammingError, reverse } from "@tutao/app-env"
+import { Const, isIOSApp, ProgrammingError, reverseNumberEnum, reverseStringEnum } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
@@ -25,7 +25,7 @@ export enum PaymentInterval {
 	Yearly = 12,
 }
 
-export const PaymentIntervalToName: Record<PaymentInterval, keyof typeof PaymentInterval> = Object.freeze(reverse(PaymentInterval))
+export const PaymentIntervalToName: Record<PaymentInterval, keyof typeof PaymentInterval> = Object.freeze(reverseNumberEnum(PaymentInterval))
 
 export const enum PriceType {
 	MonthlyPerMonth,

@@ -26,7 +26,7 @@ import {
 	isDesktop,
 	Keys,
 	ProgrammingError,
-	reverse,
+	reverseStringEnum,
 	ShareCapability,
 	TimeFormat,
 	UpgradePromptType,
@@ -130,7 +130,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	lazySearchBar: () => Children
 }
 
-const CalendarViewTypeByValue = reverse(CalendarViewType)
+const CalendarViewTypeByValue = reverseStringEnum(CalendarViewType)
 
 export class CalendarView extends BaseTopLevelView implements TopLevelView<CalendarViewAttrs> {
 	private readonly sidebarColumn: ViewColumn

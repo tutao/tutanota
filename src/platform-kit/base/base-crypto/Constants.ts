@@ -1,4 +1,4 @@
-import { CryptoProtocolVersion, GroupKeyRotationType, reverse } from "@tutao/app-env"
+import { CryptoProtocolVersion } from "@tutao/app-env"
 // The absolute module import doesn't play well with chunking, so we let this one slide.
 // eslint-disable-next-line no-restricted-imports
 import { PublicKeyIdentifierType } from "../../crypto/CryptoTypes.js"
@@ -15,6 +15,7 @@ export enum KdfType {
 
 // The Kdf type to use when deriving new(!) keys from passwords
 export const DEFAULT_KDF_TYPE = KdfType.Argon2id
+
 /**
  * The type of signature of a public encryption key, signed with an identity key pair.
  */
@@ -35,7 +36,6 @@ export type ExternalUserKeyDeriver = {
 	kdfType: KdfType
 	salt: Uint8Array
 }
-export const GroupKeyRotationTypeNameByCode = reverse(GroupKeyRotationType)
 
 export function asCryptoProtoocolVersion(maybe: NumberString): CryptoProtocolVersion {
 	if (Object.values(CryptoProtocolVersion).includes(maybe as CryptoProtocolVersion)) {

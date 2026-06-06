@@ -2,7 +2,7 @@ import http from "node:http"
 import type { DesktopNetworkClient } from "../net/DesktopNetworkClient"
 import { makeTaggedLogger } from "../DesktopLog"
 import { Scheduler } from "../../api/common/utils/Scheduler.js"
-import { ProgrammingError, reverse } from "../../../../platform-kit/app-env"
+import { ProgrammingError, reverseNumberEnum } from "../../../../platform-kit/app-env"
 
 import { newPromise } from "../../../../platform-kit/utils"
 
@@ -73,7 +73,7 @@ export class SseClient {
 	private heartBeatListenerHandle: NodeJS.Timeout | undefined = undefined
 
 	private set state(newState: State) {
-		const stateName = reverse(ConnectionState)[newState.state]
+		const stateName = reverseNumberEnum(ConnectionState)[newState.state]
 		log.debug("state:", stateName)
 		this._state = newState
 	}

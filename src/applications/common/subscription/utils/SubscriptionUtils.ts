@@ -1,7 +1,7 @@
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
-import { ApprovalStatus, CertificateType, getClientType, isIOSApp, ProgrammingError, reverse, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, getClientType, isIOSApp, ProgrammingError, reverseNumberEnum, reverseStringEnum, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
@@ -11,7 +11,6 @@ import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	AccountingInfo,
 	Booking,
-	CertificateInfo,
 	createPaymentDataServiceGetData,
 	CreditCard,
 	Customer,
@@ -297,7 +296,7 @@ export async function getAvailablePlansWithCalendarInvites(): Promise<Array<Avai
 	return getAtLeastOneAvailableMatchingPlan((config) => config.eventInvites, "no available plan with the Calendar Invite feature")
 }
 
-export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
+export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverseStringEnum(PlanType))
 
 /** name of the plan/product how it is expected by iOS AppStore */
 export function appStorePlanName(planType: PlanType): string {
@@ -556,7 +555,6 @@ export function canSubscribeToPlan(plan: AvailablePlanType): boolean {
 export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null): PaymentInterval | undefined {
 	return accountingInfo ? (parseInt(accountingInfo.paymentInterval) as PaymentInterval) : undefined
 }
-export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 export function getDefaultPaymentMethod(): PaymentMethodType {
 	if (isIOSApp()) {
@@ -570,11 +568,7 @@ export function getCustomerApprovalStatus(customer: Customer): ApprovalStatus {
 	return downcast(customer.approvalStatus)
 }
 
-export const UpgradePromptTypeByName = Object.freeze(reverse(UpgradePromptType))
-
-export function getCertificateType(certificateInfo: CertificateInfo): CertificateType {
-	return downcast(certificateInfo.type)
-}
+export const UpgradePromptTypeByName = Object.freeze(reverseNumberEnum(UpgradePromptType))
 
 export type PaymentData = {
 	paymentMethod: PaymentMethodType
