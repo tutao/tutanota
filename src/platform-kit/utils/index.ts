@@ -145,7 +145,6 @@ export {
 	throttleStart,
 	randomIntFromInterval,
 	errorToString,
-	objectEntries,
 	deepEqual,
 	getChangedProps,
 	freezeMap,

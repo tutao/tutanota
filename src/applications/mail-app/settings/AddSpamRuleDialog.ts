@@ -3,7 +3,7 @@ import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../../platform-kit/utils/FormatUtils"
 import { assertMainOrNode, TUTA_MAIL_ADDRESS_DOMAINS } from "../../../platform-kit/app-env"
-import { contains, objectEntries } from "../../../platform-kit/utils"
+import { contains } from "../../../platform-kit/utils"
 import { Dialog } from "../../../ui/base/Dialog"
 import stream from "mithril/stream"
 import type { SelectorItemList } from "../../../ui/base/DropDownSelector.js"
@@ -161,7 +161,8 @@ export function getSpamRuleFieldToName(): Record<SpamRuleFieldType, string> {
 }
 
 export function getSpamRuleFieldMapping(): SelectorItemList<SpamRuleFieldType> {
-	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({
+	let entries = Object.entries(getSpamRuleFieldToName()) as [SpamRuleFieldType, string][]
+	return entries.map(([value, name]) => ({
 		value,
 		name,
 	}))

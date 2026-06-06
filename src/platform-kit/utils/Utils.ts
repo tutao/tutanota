@@ -369,13 +369,6 @@ export function errorsToString(errors: Array<ErrorInfo>): string {
 }
 
 /**
- * Like {@link Object.entries} but preserves the type of the key and value
- */
-export function objectEntries<A extends string | symbol, B>(object: Record<A, B>): Array<[A, B]> {
-	return downcast(Object.entries(object))
-}
-
-/**
  * modified deepEquals from ospec is only needed as long as we use custom classes (TypeRef) and Date is not properly handled
  */
 export function deepEqual(a: any, b: any): boolean {
