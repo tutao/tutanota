@@ -2,7 +2,7 @@ import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from 
 import { handleRestError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType } from "../../../../../../platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestTextBody } from "../../../../../../platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -609,7 +609,7 @@ export class BlobFacade {
 					// uploading listeners is one of this. In this case though we really do want an upload listener so
 					// we sacrifice our CORS purity for functionality.
 					noCORS: onProgress == null,
-					body: encryptedData,
+					body: new RestBinaryBody(encryptedData),
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
 					abortSignal,
@@ -770,7 +770,7 @@ export class BlobFacade {
 				async (serverUrl) => {
 					const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
 						queryParams: queryParams,
-						body,
+						body: new RestTextBody(body),
 						responseType: MediaType.Binary,
 						baseUrl: serverUrl,
 						noCORS: true,

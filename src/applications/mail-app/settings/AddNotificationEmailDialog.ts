@@ -36,7 +36,7 @@ export class AddNotificationEmailDialog {
 						m(".small.mt-8", lang.get("emailPushNotification_msg")),
 					],
 				},
-				validator: () => this.validateAddNotificationEmailAddressInput(mailAddress),
+				validator: async () => this.validateAddNotificationEmailAddressInput(mailAddress),
 				allowOkWithReturn: true,
 				okAction: (dialog: Dialog) => {
 					this.createNotificationEmail(mailAddress, this.logins.getUserController().user)

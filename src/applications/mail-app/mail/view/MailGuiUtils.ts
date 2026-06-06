@@ -4,7 +4,6 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import {
-	$Promisable,
 	assertNotNull,
 	clamp,
 	cleanMailAddress,
@@ -71,6 +70,7 @@ import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entit
 import { TransferId } from "../../../../entities/drive/Utils"
 import { elementIdPart, getIds, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
+import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 

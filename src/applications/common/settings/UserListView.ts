@@ -145,7 +145,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						title: "more_label",
 						icon: Icons.More,
 					},
-					childAttrs: () => [
+					childAttrs: async () => [
 						{
 							label: "importUsers_action",
 							click: () => {

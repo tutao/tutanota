@@ -567,7 +567,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					icon: Icons.More,
 					size: ButtonSize.Compact,
 				},
-				childAttrs: () => [
+				childAttrs: async () => [
 					{
 						label: "add_action",
 						click: () => {

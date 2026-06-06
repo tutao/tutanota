@@ -12,7 +12,7 @@ import {
 	TypeRef,
 } from "../meta"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType } from "../rest-client/types"
+import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
 import { lazy } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
@@ -91,7 +91,7 @@ export class ServiceExecutor implements IServiceExecutor {
 			queryParams: params?.queryParams,
 			headers,
 			responseType: MediaType.Json,
-			body: encryptedEntity ?? undefined,
+			body: encryptedEntity ? new RestTextBody(encryptedEntity) : undefined,
 			suspensionBehavior: params?.suspensionBehavior,
 			baseUrl: params?.baseUrl,
 		})

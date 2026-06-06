@@ -1,6 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { $Promisable, assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "../../../../platform-kit/utils"
+import { assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "../../../../platform-kit/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -34,6 +34,7 @@ import { elementIdPart, getElementId, isSameId, OperationType } from "../../../.
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
+import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown

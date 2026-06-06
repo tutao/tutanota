@@ -25,8 +25,6 @@ import {
 	neverNull,
 	ofClass,
 	promiseMap,
-	promiseMapCompat,
-	PromiseMapFn,
 	tokenize,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
@@ -70,6 +68,7 @@ import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from 
 import { Contact, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { PromiseMapFn, promiseMapCompat } from "./IndexerPromiseUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string

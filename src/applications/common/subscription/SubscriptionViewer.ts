@@ -832,7 +832,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 						icon: Icons.More,
 						size: ButtonSize.Compact,
 					},
-					childAttrs: () => [
+					childAttrs: async () => [
 						{
 							label: "view_label",
 							click: () => showGiftCardToShare(giftCard),

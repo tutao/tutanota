@@ -34,7 +34,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	Dialog.showActionDialog({
 		title: "changePassword_label",
 		child: () => m(PasswordForm, { model }),
-		validator: () => model.getErrorMessageId(),
+		validator: async () => model.getErrorMessageId(),
 		okAction: changeUserPasswordAsAdminOkAction,
 	})
 }
@@ -107,7 +107,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		Dialog.showActionDialog({
 			title: "changePassword_label",
 			child: () => m(PasswordForm, { model }),
-			validator: () => model.getErrorMessageId(),
+			validator: async () => model.getErrorMessageId(),
 			okAction: async (dialog) => {
 				try {
 					await changeOwnPasswordOkAction(dialog)

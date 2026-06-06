@@ -1,6 +1,6 @@
 import o, { assertThrows, verify } from "@tutao/otest"
 import { RestClient } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestClientOptions } from "../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/platform-kit/meta"
@@ -129,7 +129,7 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.GET,
-					matchers.argThat((options: RestClientOptions) => options.body === `{"literal":"1"}`),
+					matchers.argThat((options: RestClientOptions) => (options.body as RestTextBody).payload === `{"literal":"1"}`),
 				),
 			)
 		})
@@ -275,7 +275,7 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.POST,
-					matchers.argThat((params: RestClientOptions) => params.body === `{"literal":"1"}`),
+					matchers.argThat((params: RestClientOptions) => (params.body as RestTextBody).payload === `{"literal":"1"}`),
 				),
 			)
 		})
@@ -369,7 +369,7 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.PUT,
-					matchers.argThat((params: RestClientOptions) => params.body === `{"literal":"1"}`),
+					matchers.argThat((options: RestClientOptions) => (options.body as RestTextBody).payload === `{"literal":"1"}`),
 				),
 			)
 		})
@@ -435,7 +435,7 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.DELETE,
-					matchers.argThat((params: RestClientOptions) => params.body === `{"literal":"1"}`),
+					matchers.argThat((options: RestClientOptions) => (options.body as RestTextBody).payload === `{"literal":"1"}`),
 				),
 			)
 		})
@@ -654,7 +654,7 @@ o.spec("ServiceExecutor", function () {
 				restClient.request(
 					"/rest/testapp/testservice",
 					HttpMethod.GET,
-					matchers.argThat((p) => p.body === `{"encrypted":"1"}`),
+					matchers.argThat((p) => (p.body as RestTextBody).payload === `{"encrypted":"1"}`),
 				),
 			)
 		})

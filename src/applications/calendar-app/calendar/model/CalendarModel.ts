@@ -1,5 +1,4 @@
 import {
-	$Promisable,
 	assertNotNull,
 	deepEqual,
 	defer,
@@ -140,6 +139,7 @@ import {
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
+import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3

@@ -219,7 +219,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			},
-			childAttrs: () => [
+			childAttrs: async () => [
 				{
 					label: "alwaysAsk_action",
 					click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),

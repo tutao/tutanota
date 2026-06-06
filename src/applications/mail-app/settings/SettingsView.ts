@@ -592,7 +592,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			mainButtonAttrs: this._createSettingsFolderNavButton(folder),
 			extraButton: m(
 				IconButton,
-				createMoreActionButtonAttrs(() => [
+				createMoreActionButtonAttrs(async () => [
 					isGroupOwner
 						? {
 								label: "delete_action",

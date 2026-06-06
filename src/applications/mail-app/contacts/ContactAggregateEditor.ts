@@ -75,7 +75,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 					icon: Icons.ArrowDown,
 					size: ButtonSize.Compact,
 				},
-				childAttrs: () =>
+				childAttrs: async () =>
 					attrs.typeLabels.map(([key, value]) => {
 						return {
 							label: value,

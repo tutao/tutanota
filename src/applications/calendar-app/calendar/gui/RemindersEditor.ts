@@ -69,7 +69,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 							title: "add_action",
 							icon: Icons.Plus,
 						},
-						childAttrs: () => [
+						childAttrs: async () => [
 							...createAlarmIntervalItems(lang.languageTag).map((i) => ({
 								label: lang.makeTranslation(i.name, i.name),
 								click: () => addNewAlarm(i.value),

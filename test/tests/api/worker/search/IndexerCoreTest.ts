@@ -12,7 +12,7 @@ import {
 	SearchIndexMetaDataRow,
 } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
-import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
+import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
 
 import { DbKey, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
@@ -40,6 +40,7 @@ import {
 	encryptMetaData,
 } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 import { aesDecryptUnauthenticated, aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { PromisableWrapper } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerPromiseUtils"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)

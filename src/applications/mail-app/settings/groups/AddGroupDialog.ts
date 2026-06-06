@@ -20,6 +20,7 @@ import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/s
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
 import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
+import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -203,7 +204,7 @@ function addTemplateGroup(name: string): Promise<boolean> {
 			.createTemplateGroup(name)
 			.then(() => true)
 			.catch(
-				ofClass(PreconditionFailedError, async (e) => {
+				ofClassAsync(PreconditionFailedError, async (e) => {
 					if (
 						e.data === TemplateGroupPreconditionFailedReason.BUSINESS_FEATURE_REQUIRED ||
 						e.data === TemplateGroupPreconditionFailedReason.UNLIMITED_REQUIRED

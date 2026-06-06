@@ -34,7 +34,6 @@
 
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
-	$Promisable,
 	arrayHashSigned,
 	assertNotNull,
 	defer,
@@ -47,9 +46,6 @@ import {
 	mergeMaps,
 	neverNull,
 	noOp,
-	PromisableWrapper,
-	promiseMapCompat,
-	PromiseMapFn,
 	tokenize,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
@@ -102,6 +98,7 @@ import {
 import { ContactList } from "@tutao/entities/tutanota"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { $Promisable, PromisableWrapper, promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

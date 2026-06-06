@@ -210,7 +210,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			Dialog.showActionDialog({
 				title: lang.makeTranslation(title, title),
 				child: () => m(PasswordForm, { model }),
-				validator: () => model.getErrorMessageId(),
+				validator: async () => model.getErrorMessageId(),
 				okAction: changePasswordOkAction,
 				cancelAction: () => reject(new CancelledError("user cancelled operation")),
 				allowCancel: true,

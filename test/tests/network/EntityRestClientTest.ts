@@ -847,8 +847,8 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: argThat(async (json) => {
-						const untypedInstance = JSON.parse(json)
+					body: argThat(async (json: RestTextBody) => {
+						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
@@ -1038,8 +1038,8 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: argThat(async (json) => {
-						const untypedInstance = JSON.parse(json)
+					body: argThat(async (json: RestTextBody) => {
+						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
