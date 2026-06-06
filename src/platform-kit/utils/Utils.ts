@@ -164,8 +164,8 @@ export function isNotNull<T>(t: T | null): t is T {
 	return t != null
 }
 
-export function assert(assertion: MaybeLazy<boolean>, message: string) {
-	if (!resolveMaybeLazy(assertion)) {
+export function assert(assertion: boolean, message: string) {
+	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
 	}
 }
@@ -519,20 +519,6 @@ export function typedEntries<K extends string, V>(obj: Record<K, V>): Array<[K, 
  */
 export function typedValues<K extends string, V>(obj: Record<K, V>): Array<V> {
 	return downcast(Object.values(obj))
-}
-
-export type MaybeLazy<T> = T | lazy<T>
-
-export function resolveMaybeLazy<T>(maybe: MaybeLazy<T>): T {
-	return typeof maybe === "function" ? (maybe as () => T)() : maybe
-}
-
-export function getAsLazy<T>(maybe: MaybeLazy<T>): lazy<T> {
-	return typeof maybe === "function" ? downcast(maybe) : () => maybe
-}
-
-export function mapLazily<T, U>(maybe: MaybeLazy<T>, mapping: (arg0: T) => U): lazy<U> {
-	return () => mapping(resolveMaybeLazy(maybe))
 }
 
 /**

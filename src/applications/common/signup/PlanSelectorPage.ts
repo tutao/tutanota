@@ -6,7 +6,7 @@ import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle } fro
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../subscription/PlanSelector"
-import { getAsLazy } from "@tutao/utils"
+import { getAsLazy } from "../../../ui/MaybeLazy"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px } from "../../../ui/size"
 import { styles } from "../../../ui/styles"

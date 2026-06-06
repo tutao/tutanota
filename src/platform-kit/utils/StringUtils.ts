@@ -43,10 +43,6 @@ export function endsWith(string: string, substring: string): boolean {
 	return string.endsWith(substring)
 }
 
-export function lazyStringValue(valueOrLazy: string | lazy<string>): string {
-	return typeof valueOrLazy === "function" ? valueOrLazy() : valueOrLazy
-}
-
 export function repeat(value: string, length: number): string {
 	let result = ""
 

@@ -123,20 +123,7 @@ export type { Mapper } from "./PromiseMap.js"
 export { promiseMap, delay, tap, ofClass, promiseFilter, settledThen } from "./PromiseUtils.js"
 export { SortedArray } from "./SortedArray.js"
 export type { CompareFn } from "./SortedArray.js"
-export {
-	pad,
-	startsWith,
-	capitalizeFirstLetter,
-	endsWith,
-	lazyStringValue,
-	repeat,
-	cleanMatch,
-	NBSP,
-	splitAt,
-	toLowerCase,
-	localeCompare,
-	byteLength,
-} from "./StringUtils.js"
+export { pad, startsWith, capitalizeFirstLetter, endsWith, repeat, cleanMatch, NBSP, splitAt, toLowerCase, localeCompare, byteLength } from "./StringUtils.js"
 export {
 	defer,
 	deferWithHandler,
@@ -166,9 +153,6 @@ export {
 	typedKeys,
 	typedEntries,
 	typedValues,
-	resolveMaybeLazy,
-	getAsLazy,
-	mapLazily,
 	filterInt,
 	insideRect,
 	mapNullable,
@@ -192,7 +176,6 @@ export type {
 	lazyAsync,
 	Thunk,
 	DeferredObjectWithHandler,
-	MaybeLazy,
 	TimeoutSetter,
 	ErrorInfo,
 	Versioned,

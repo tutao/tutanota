@@ -1,6 +1,7 @@
 import { Shortcut } from "../utils/KeyManager.js"
 import { isBrowser, Keys } from "../../platform-kit/app-env"
-import { mapLazily, NBSP } from "../../platform-kit/utils"
+import { NBSP } from "../../platform-kit/utils"
+import { mapLazily } from "../MaybeLazy"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { SearchToken, splitTextForHighlighting } from "../utils/QueryTokenUtils"
