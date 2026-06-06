@@ -240,6 +240,7 @@ import "./crypto/SubKeyProviderTest.js"
 
 import * as td from "testdouble"
 import { Mode } from "../../src/platform-kit/app-env"
+import { EntropySource } from "../../src/platform-kit/crypto"
 
 export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
 	await setupSuite({ integration })
@@ -268,7 +269,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process !== "undefined") {
 		// set up the Entropy for all testcases
 
-		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
@@ -321,7 +322,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	})
 	o.before(async function () {
 		// setup the Entropy for all testcases
-		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 	})
 
 	o.afterEach(function () {
