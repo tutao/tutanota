@@ -88,7 +88,7 @@ import {
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
 } from "@tutao/entities/tutanota"
-import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
 import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
@@ -848,7 +848,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {
 				headers,
-				body: JSON.stringify(patchPayload),
+				body: new RestTextBody(JSON.stringify(patchPayload)),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

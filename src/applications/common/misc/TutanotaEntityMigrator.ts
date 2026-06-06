@@ -23,7 +23,7 @@ import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/uti
 import { GroupType } from "../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
-import { HttpMethod, RestClientInterface } from "@tutao/rest-client/types"
+import { HttpMethod, RestClientInterface, RestTextBody } from "@tutao/rest-client/types"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
@@ -142,7 +142,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {
 				headers,
-				body: JSON.stringify(patchPayload),
+				body: new RestTextBody(JSON.stringify(patchPayload)),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

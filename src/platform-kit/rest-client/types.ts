@@ -36,8 +36,22 @@ export const enum HttpMethod {
 	DELETE = "DELETE",
 }
 
+export abstract class RestBody {}
+
+export class RestTextBody extends RestBody {
+	constructor(public readonly payload: string) {
+		super()
+	}
+}
+
+export class RestBinaryBody extends RestBody {
+	constructor(public readonly payload: Uint8Array) {
+		super()
+	}
+}
+
 export interface RestClientOptions {
-	body?: string | Uint8Array
+	body?: RestBody
 	responseType?: MediaType
 	progressListener?: ProgressListener
 	baseUrl?: string

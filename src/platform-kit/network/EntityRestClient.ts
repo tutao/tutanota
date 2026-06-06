@@ -1,5 +1,5 @@
 import { type RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, SuspensionBehavior } from "../rest-client/types"
+import { HttpMethod, MediaType, RestTextBody, SuspensionBehavior } from "../rest-client/types"
 import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
@@ -443,7 +443,7 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
-			body: JSON.stringify(untypedInstance),
+			body: new RestTextBody(JSON.stringify(untypedInstance)),
 			responseType: MediaType.Json,
 		})
 		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
@@ -483,7 +483,7 @@ export class EntityRestClient implements EntityRestInterface {
 				const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
 					queryParams,
 					headers,
-					body: JSON.stringify(encryptedEntities),
+					body: new RestTextBody(JSON.stringify(encryptedEntities)),
 					responseType: MediaType.Json,
 				})
 				const untypedPersistencePostReturn = JSON.parse(persistencePostReturn)
@@ -552,7 +552,7 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
-			body: JSON.stringify(patchPayload),
+			body: new RestTextBody(JSON.stringify(patchPayload)),
 			responseType: MediaType.Json,
 		})
 	}
