@@ -9,7 +9,7 @@ import { createEntropyData, EntropyService, TutanotaProperties } from "@tutao/en
 export interface EntropyDataChunk {
 	source: EntropySource
 	entropy: number
-	data: number | Array<number>
+	data: number
 }
 
 /** A class which accumulates the entropy and stores it on the server. */
