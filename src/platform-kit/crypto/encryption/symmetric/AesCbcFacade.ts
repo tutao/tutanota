@@ -1,13 +1,13 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import { AesKey, bitArrayToUint8Array, FIXED_INITIALIZATION_VECTOR, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertNotNull, concat } from "@tutao/utils"
+import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { SymmetricSubKeys } from "./SymmetricKeyDeriver"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
+import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
+import { AesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
-import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc } from "./ParsedCiphertext"
+import { InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
 
 export enum AuthenticationEnforcement {
@@ -34,7 +34,7 @@ export class AesCbcFacade {
 	encrypt(
 		subKeys: SymmetricSubKeys,
 		plainText: Uint8Array,
-		initializationVector: InitializationVectorSource,
+		initializationVector: InitializationVector,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
@@ -43,24 +43,28 @@ export class AesCbcFacade {
 		const usePadding = paddingStandard === PaddingStandard.Pkcs5
 		const ciphertext = bitArrayToUint8Array(
 			sjcl.mode.cbc.encrypt(
-				new sjcl.cipher.aes(subKeys.encryptionKey),
+				new sjcl.cipher.aes(subKeys.encryptionKey.bits),
 				uint8ArrayToBitArray(plainText),
-				uint8ArrayToBitArray(initializationVector === InitializationVectorVariant.Fixed ? FIXED_INITIALIZATION_VECTOR : initializationVector),
+				uint8ArrayToBitArray(initializationVector.bytes),
 				[],
 				usePadding,
 			),
 		)
 
 		let unauthenticatedCiphertext
-		if (initializationVector === InitializationVectorVariant.Fixed) {
+		if (initializationVector instanceof FixedInitializationVector) {
 			unauthenticatedCiphertext = ciphertext
 		} else {
 			//version byte is not included into authentication tag for legacy reasons
-			unauthenticatedCiphertext = concat(initializationVector, ciphertext)
+			unauthenticatedCiphertext = concat(initializationVector.bytes, ciphertext)
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				return unauthenticatedCiphertext
+				if (subKeys instanceof UnusedReservedUnauthenticatedSubKeys) {
+					return unauthenticatedCiphertext
+				} else {
+					throw new CryptoError("unexpected subKey for " + cipherVersion + " " + subKeys.constructor.name)
+				}
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				const authenticationKey = assertNotNull(subKeys.authenticationKey)
 				const authenticationTag = hmacSha256(authenticationKey, unauthenticatedCiphertext)
@@ -85,9 +89,9 @@ export class AesCbcFacade {
 		try {
 			return bitArrayToUint8Array(
 				sjcl.mode.cbc.decrypt(
-					new sjcl.cipher.aes(subKeys.encryptionKey),
+					new sjcl.cipher.aes(subKeys.encryptionKey.bits),
 					uint8ArrayToBitArray(parsedCiphertext.ciphertext),
-					uint8ArrayToBitArray(parsedCiphertext.initializationVector),
+					uint8ArrayToBitArray(parsedCiphertext.initializationVector.bytes),
 					[],
 					usePadding,
 				),
@@ -104,9 +108,9 @@ export class AesCbcFacade {
 	): Promise<Uint8Array> {
 		await this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256Async)
 		try {
-			const encryptionKey = await crypto.subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			const encryptionKey = await crypto.subtle.importKey("raw", keyToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
 			return new Uint8Array(
-				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector }, encryptionKey, parsedCiphertext.ciphertext),
+				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector.bytes }, encryptionKey, parsedCiphertext.ciphertext),
 			)
 		} catch (e) {
 			throw new CryptoError("aes decryption failed", e as Error)
@@ -122,7 +126,11 @@ export class AesCbcFacade {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			const verifiableCiphertext = this.assembleVerifiableCiphertext(parsedCiphertext)
-			return verifyHmac(subKeys.authenticationKey, verifiableCiphertext, parsedCiphertext.macTag)
+			return verifyHmac(
+				downcast<AesCbcThenHmacSubKeys>(subKeys).authenticationKey,
+				verifiableCiphertext,
+				downcast<ParsedCiphertextAesCbcThenHmac>(parsedCiphertext).macTag,
+			)
 		} else if (parsedCiphertext.cipherVersion !== subKeys.cipherVersion) {
 			throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
 		}
@@ -131,7 +139,7 @@ export class AesCbcFacade {
 
 	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {
 		if (parsedCiphertext.initializationVectorVariant === InitializationVectorVariant.Random) {
-			return concat(parsedCiphertext.initializationVector, parsedCiphertext.ciphertext)
+			return concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		} else {
 			return parsedCiphertext.ciphertext
 		}
@@ -145,9 +153,9 @@ export class AesCbcFacade {
 				return
 			} else {
 				// we must enforce authentication but for legacy 128-bit keys we cannot (backward compatibility)
-				const keyLength = getAndVerifyAesKeyLength(subKeys.encryptionKey)
+				const keyLength = subKeys.encryptionKey.keyLength
 				if (subKeys.authenticationKey != null) {
-					if (getAndVerifyAesKeyLength(subKeys.authenticationKey) !== keyLength) {
+					if (subKeys.authenticationKey.keyLength !== keyLength) {
 						throw new CryptoError("invalid sub-keys")
 					}
 				}

@@ -8,31 +8,27 @@ export enum KeyPairType {
 	TUTA_CRYPT,
 }
 
-export type AsymmetricKeyPair = RsaKeyPair | RsaX25519KeyPair | PQKeyPairs
-
-export type AbstractKeyPair = {
-	keyPairType: KeyPairType
+export abstract class AsymmetricKeyPair {
+	protected constructor(public readonly keyPairType: KeyPairType) {}
 }
 
-export type PublicKey = RsaPublicKey | RsaX25519PublicKey | PQPublicKeys
-
-export type AbstractPublicKey = {
-	keyPairType: KeyPairType
+export abstract class PublicKey {
+	abstract readonly keyPairType: KeyPairType
 }
 
-export function isPqKeyPairs(keyPair: AbstractKeyPair): keyPair is PQKeyPairs {
+export function isPqKeyPairs(keyPair: AsymmetricKeyPair): keyPair is PQKeyPairs {
 	return keyPair.keyPairType === KeyPairType.TUTA_CRYPT
 }
 
-export function isRsaOrRsaX25519KeyPair(keyPair: AbstractKeyPair): keyPair is RsaKeyPair {
+export function isRsaOrRsaX25519KeyPair(keyPair: AsymmetricKeyPair): keyPair is RsaKeyPair {
 	return keyPair.keyPairType === KeyPairType.RSA || keyPair.keyPairType === KeyPairType.RSA_AND_X25519
 }
 
-export function isRsaX25519KeyPair(keyPair: AbstractKeyPair): keyPair is RsaX25519KeyPair {
+export function isRsaX25519KeyPair(keyPair: AsymmetricKeyPair): keyPair is RsaX25519KeyPair {
 	return keyPair.keyPairType === KeyPairType.RSA_AND_X25519
 }
 
-export function isPqPublicKey(publicKey: AbstractPublicKey): publicKey is PQPublicKeys {
+export function isPqPublicKey(publicKey: PublicKey): publicKey is PQPublicKeys {
 	return publicKey.keyPairType === KeyPairType.TUTA_CRYPT
 }
 
@@ -40,7 +36,7 @@ export function isVersionedPqPublicKey(versionedPublicKey: Versioned<PublicKey>)
 	return isPqPublicKey(versionedPublicKey.object)
 }
 
-export function isRsaPublicKey(publicKey: AbstractPublicKey): publicKey is RsaPublicKey {
+export function isRsaPublicKey(publicKey: PublicKey): publicKey is RsaPublicKey {
 	return publicKey.keyPairType === KeyPairType.RSA
 }
 
@@ -48,7 +44,7 @@ export function isVersionedRsaPublicKey(versionedPublicKey: Versioned<PublicKey>
 	return isRsaPublicKey(versionedPublicKey.object)
 }
 
-export function isRsaX25519PublicKey(publicKey: AbstractPublicKey): publicKey is RsaX25519PublicKey {
+export function isRsaX25519PublicKey(publicKey: PublicKey): publicKey is RsaX25519PublicKey {
 	return publicKey.keyPairType === KeyPairType.RSA_AND_X25519
 }
 

@@ -60,7 +60,7 @@ export async function encryptItem(item: string, key: Aes256Key, initializationVe
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, initializationVector: InitializationVector): Promise<string> {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(initializationVector, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(initializationVector.bytes, encryptedAddress)))
 }
 
 /**
@@ -428,7 +428,7 @@ export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: Ke
 	const encryptionMetadata = await decryptMetaData(keyLoaderFacade, metaData)
 	if (encryptionMetadata == null) return
 	const { key, initializationVector } = encryptionMetadata
-	await encryptAndSaveDbKey(currentUserGroupKey, key, initializationVector, db, objectStoreName)
+	await encryptAndSaveDbKey(currentUserGroupKey, key, initializationVector.bytes, db, objectStoreName)
 }
 
 /**
@@ -498,7 +498,7 @@ export async function initializeDb(db: DbFacade, id: string, keyLoaderFacade: Ke
 	const key = aes256RandomKey()
 	const initializationVector = generateInitializationVector()
 	const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
-	await encryptAndSaveDbKey(userGroupKey, key, initializationVector, db, objectStoreName)
+	await encryptAndSaveDbKey(userGroupKey, key, initializationVector.bytes, db, objectStoreName)
 	return {
 		key,
 		initializationVector,

@@ -14,9 +14,7 @@ import {
 	cryptoUtils,
 	CryptoWrapper,
 	EncryptedPqKeyPairs,
-	getAndVerifyAesKeyLength,
 	HkdfKeyDerivationDomains,
-	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
 	PQKeyPairs,
@@ -58,6 +56,7 @@ import {
 	createKeyPair,
 	createMembershipPutIn,
 	createPubEncKeyData,
+	createPublicKeySignature,
 	createRecoverCodeData,
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
@@ -91,7 +90,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
 import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
-import { asPublicKeyIdentifier } from "./Constants"
+import { asPublicKeyIdentifier, PublicKeySignatureType } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 
 assertWorkerOrNode()
@@ -119,17 +118,14 @@ type PreparedUserAreaGroupKeyRotation = {
 	preparedReInvitations: GroupInvitationPostData[]
 }
 
-type EncryptedPqKeyPairsMaybeWithSignature = EncryptedPqKeyPairs & {
-	signature: PublicKeySignature | null
-}
 type GeneratedGroupKeys = {
 	symGroupKey: VersionedAes256Key
-	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature | null
+	encryptedKeyPair: EncryptedPqKeyPairs | null
 }
 
 type EncryptedGroupKeys = {
 	newGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
-	keyPair: EncryptedPqKeyPairsMaybeWithSignature | null
+	keyPair: EncryptedPqKeyPairs | null
 	adminGroupKeyEncNewGroupKey: VersionedEncryptedKey | null
 }
 
@@ -145,7 +141,7 @@ type EncryptedUserGroupKeys = {
 
 type EncryptedAndPlaintextKeyPair = {
 	plaintextKeyPair: PQKeyPairs
-	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature
+	encryptedKeyPair: EncryptedPqKeyPairs
 }
 
 /**
@@ -845,15 +841,13 @@ export class KeyRotationFacade {
 		const newPqPairs = await this.pqFacade.generateKeyPairs()
 		return {
 			plaintextKeyPair: newPqPairs,
-			encryptedKeyPair: {
-				pubRsaKey: null,
-				symEncPrivRsaKey: null,
-				pubEccKey: newPqPairs.x25519KeyPair.publicKey,
-				symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
-				pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
-				symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
-				signature: null, //we create the signature later once we have the correct version
-			},
+			encryptedKeyPair: new EncryptedPqKeyPairs(
+				newPqPairs.x25519KeyPair.publicKey,
+				this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
+				this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
+				this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
+				null, //we create the signature later once we have the correct version
+			),
 		}
 	}
 
@@ -1043,7 +1037,7 @@ export class KeyRotationFacade {
 	) {
 		const distEncAdminGroupSymKey = assertNotNull(userGroupKeyRotation.distEncAdminGroupSymKey, "missing new admin group key")
 		const pubAdminEncGKeyAuthHash = brandKeyMac(assertNotNull(distEncAdminGroupSymKey.symKeyMac, "missing new admin group key encrypted hash"))
-		if (userGroupKeyRotation.adminDistKeyPair == null || !isEncryptedPqKeyPairs(userGroupKeyRotation.adminDistKeyPair)) {
+		if (userGroupKeyRotation.adminDistKeyPair == null || !this.isEncryptedPqKeyPairs(userGroupKeyRotation.adminDistKeyPair)) {
 			throw new Error("missing some required parameters for a user group key rotation as admin")
 		}
 		//derive adminDistKeyPairDistributionKey
@@ -1358,21 +1352,45 @@ export class KeyRotationFacade {
 	public async getGroupIdsThatPerformedKeyRotations(): Promise<Array<Id>> {
 		return Array.from(this.groupIdsThatPerformedKeyRotations.values())
 	}
+
+	private isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
+		return (
+			keyPair.pubEccKey != null &&
+			keyPair.pubKyberKey != null &&
+			keyPair.symEncPrivEccKey != null &&
+			keyPair.symEncPrivKyberKey != null &&
+			keyPair.pubRsaKey == null &&
+			keyPair.symEncPrivRsaKey == null
+		)
+	}
 }
 
 /**
  * We require AES keys to be 256-bit long to be quantum-safe because of Grover's algorithm.
  */
 function isQuantumSafe(key: AesKey) {
-	return getAndVerifyAesKeyLength(key) === AesKeyLength.Aes256
+	return key.keyLength === AesKeyLength.Aes256
 }
 
 function hasNonQuantumSafeKeys(...keys: AesKey[]) {
 	return keys.some((key) => !isQuantumSafe(key))
 }
 
-function makeKeyPair(keyPair: EncryptedPqKeyPairsMaybeWithSignature | null): KeyPair | null {
-	return keyPair != null ? createKeyPair(keyPair) : null
+function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
+	if (keyPair == null) {
+		return null
+	} else {
+		const signature = keyPair.signature
+		return createKeyPair({
+			pubEccKey: keyPair.pubEccKey,
+			pubKyberKey: keyPair.pubKyberKey,
+			symEncPrivEccKey: keyPair.symEncPrivEccKey,
+			symEncPrivKyberKey: keyPair.symEncPrivKyberKey,
+			pubRsaKey: null,
+			symEncPrivRsaKey: null,
+			signature: keyPair.signature ? downcast<PublicKeySignature>(keyPair.signature) : null,
+		})
+	}
 }
 
 /**
@@ -1395,8 +1413,11 @@ export class KeyRotationRolloutAction implements RolloutAction {
 		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {
-				const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
-				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, assert256BitKey(requiredPasswordKey))
+				let requiredPasswordKey: Nullable<Aes256Key> = null
+				if (this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation) {
+					requiredPasswordKey = assert256BitKey(this.userPassphraseKey)
+				}
+				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
 			}
 		}
 	}

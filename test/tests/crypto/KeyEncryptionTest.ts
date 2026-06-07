@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array, concat } from "../../../src/platform-kit/utils"
+import { base64ToUint8Array, concat, hexToUint8Array } from "../../../src/platform-kit/utils"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -11,8 +11,8 @@ import {
 	hexToRsaPrivateKey,
 	keyToUint8Array,
 	uint8ArrayToBitArray,
+	UnusedReservedUnauthenticatedSubKeys,
 } from "../../../src/platform-kit/crypto"
-import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
 import sjcl from "@tutao/crypto/sjcl"
@@ -32,14 +32,14 @@ o.spec("key encryption", function () {
 		"02008e8bf43e2990a46042da8168aebec699d62e1e1fd068c5582fd1d5433cee8c8b918799e8ee1a22dd9d6e21dd959d7faed8034663225848c21b88c2733c73788875639425a87d54882285e598bf7e8c83861e8b77ab3cf62c53d35e143cee9bb8b3f36850aebd1548c1881dc7485bb51aa13c5a0391b88a8d7afce88ecd4a7e231ca7cfd063216d1d573ad769a6bb557c251ad34beb393a8fff4a886715315ba9eac0bc31541999b92fcb33d15efd2bd50bf77637d3fc5ba1c21082f67281957832ac832fbad6c383779341555993bd945659d7797b9c993396915e6decee9da2d5e060c27c3b5a9bc355ef4a38088af53e5f795ccc837f45d0583052547a736f"
 
 	o("encrypt / decrypt aes128 key with aes128", function () {
-		const gk = [3957386659, 354339016, 3786337319, 3366334248] as Aes128Key
-		const sk = [3229306880, 2716953871, 4072167920, 3901332676] as Aes128Key
+		const gk = new Aes128Key([3957386659, 354339016, 3786337319, 3366334248])
+		const sk = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332676])
 		const encryptedKey = encryptKey(gk, sk)
 		o(Array.from(encryptedKey)).deepEquals(Array.from(base64ToUint8Array("O3cyw7uo5DMm655aQiw0Xw==")))
 		o(decryptKey(gk, encryptedKey)).deepEquals(sk)
 	})
 	o("encrypt / decrypt private rsa key with aes128", function () {
-		const gk = [3957386659, 354339016, 3786337319, 3366334248] as Aes128Key
+		const gk = new Aes128Key([3957386659, 354339016, 3786337319, 3366334248])
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
 		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
@@ -62,7 +62,7 @@ o.spec("key encryption", function () {
 		const encryptedKey = encryptKey(encryptionKey, key)
 		const decryptedKey = decryptKey(encryptionKey, encryptedKey, AesKeyLength.Aes256)
 
-		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key)("It isn't somehow a no-op at least")
+		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key.bits)("It isn't somehow a no-op at least")
 		o(key).deepEquals(decryptedKey)("The round trip works")
 	})
 
@@ -109,18 +109,18 @@ o.spec("key encryption", function () {
 
 function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
 	const initializationVector = _aes128RandomKey()
-	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey), keyToBeEncrypted, initializationVector, [], false)
-	return concat(bitArrayToUint8Array(initializationVector), bitArrayToUint8Array(encryptedBits))
+	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey.bits), keyToBeEncrypted.bits, initializationVector.bits, [], false)
+	return concat(bitArrayToUint8Array(initializationVector.bits), bitArrayToUint8Array(encryptedBits))
 }
 
 //Do not use outside this test!!!
 //No padding, no mac, fixed initialization vector
 function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
-	const subKeys = new SymmetricKeyDeriver().deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
+	const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
 	const encryptedBits = sjcl.mode.cbc.encrypt(
-		new sjcl.cipher.aes(subKeys.encryptionKey),
+		new sjcl.cipher.aes(subKeys.encryptionKey.bits),
 		uint8ArrayToBitArray(bytes),
-		uint8ArrayToBitArray(FIXED_INITIALIZATION_VECTOR),
+		uint8ArrayToBitArray(FIXED_INITIALIZATION_VECTOR.bytes),
 		[],
 		false,
 	)

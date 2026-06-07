@@ -47,7 +47,7 @@ import {
 	X25519PublicKey,
 } from "../../../../src/platform-kit/crypto"
 import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRequest.js"
-import { matchers, object, verify, when } from "testdouble"
+import { instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../src/platform-kit/base/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../src/platform-kit/crypto/error"
 import { WASMKyberFacade } from "../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
@@ -103,6 +103,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { PQKeyPairs } from "../../../../src/platform-kit/crypto/encryption/PQKeyPairs.js"
 import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
@@ -343,6 +344,7 @@ o.spec("CryptoFacadeTest", function () {
 				argThat((p: UpdatePermissionKeyData) => {
 					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
 				}),
+				null,
 			),
 		).thenResolve(undefined)
 
@@ -568,17 +570,10 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(
-			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
-				{
-					keyPairType: pqKeyPairs_v1.keyPairType,
-					x25519KeyPair: pqKeyPairs_v1.x25519KeyPair,
-					kyberKeyPair: pqKeyPairs_v1.kyberKeyPair,
-				},
-				protocolVersion,
-				pubEncBucketKey,
-			),
-		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
+		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
+			decryptedAesKey: bk,
+			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
+		})
 		when(userFacade.createAuthHeaders()).thenReturn({})
 		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
 		when(
@@ -880,9 +875,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientPublicKey: Versioned<PQPublicKeys> = {
 			version: 0,
-			object: object(),
+			object: instance(PQPublicKeys),
 		}
-		recipientPublicKey.object.keyPairType = KeyPairType.TUTA_CRYPT
 		const loadedRecipientPublicKey: VerifiedPublicEncryptionKey = {
 			publicEncryptionKey: recipientPublicKey,
 			verificationState: EncryptionKeyVerificationState.NO_ENTRY,
@@ -931,9 +925,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientPublicKey: Versioned<PQPublicKeys> = {
 			version: 0,
-			object: object(),
+			object: instance(PQPublicKeys),
 		}
-		recipientPublicKey.object.keyPairType = KeyPairType.TUTA_CRYPT
 		const loadedRecipientPublicKey: VerifiedPublicEncryptionKey = {
 			publicEncryptionKey: recipientPublicKey,
 			verificationState: EncryptionKeyVerificationState.NO_ENTRY,
@@ -1099,11 +1092,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				kyberKeyPair: object(),
-				x25519KeyPair: object(),
-			},
+			object: new PQKeyPairs(object(), object()),
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
@@ -1129,11 +1118,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				kyberKeyPair: object(),
-				x25519KeyPair: object(),
-			},
+			object: new PQKeyPairs(object(), object()),
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
@@ -1269,7 +1254,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey, expectedSessionKey)
+							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					}),
 				).equals(true)
@@ -1451,7 +1436,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey, expectedSessionKey)
+							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					})
 				) {
@@ -1475,7 +1460,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey, expectedSessionKey)
+							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					}),
 				).equals(true)
@@ -1716,11 +1701,7 @@ o.spec("CryptoFacadeTest", function () {
 			recipientKeyVersion: "0",
 		})
 		when(keyLoaderFacade.loadCurrentKeyPair(recipientUser.userGroup._id, anything())).thenResolve({
-			object: {
-				keyPairType: KeyPairType.RSA,
-				publicKey: RSA_TEST_KEYPAIR.publicKey,
-				privateKey: RSA_TEST_KEYPAIR.privateKey,
-			},
+			object: RSA_TEST_KEYPAIR,
 			version: 0,
 		})
 
@@ -1803,7 +1784,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderIdentityKeyPair,
 			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs),
-			bitArrayToUint8Array(bk),
+			keyToUint8Array(bk),
 		)
 
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
@@ -1820,17 +1801,10 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(
-			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
-				{
-					keyPairType: pqKeyPairs.keyPairType,
-					x25519KeyPair: pqKeyPairs.x25519KeyPair,
-					kyberKeyPair: pqKeyPairs.kyberKeyPair,
-				},
-				CryptoProtocolVersion.TUTA_CRYPT,
-				pubEncBucketKey,
-			),
-		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
+		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
+			decryptedAesKey: bk,
+			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
+		})
 
 		when(
 			asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(

@@ -86,7 +86,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	o("unauthenticatedAes256DecryptKey", function () {
 		const { desktopCrypto } = setupSubject()
 		const key = desktopCrypto.decryptKeyUnauthenticatedWithDeviceKeyChain(aes256Key, aes256EncryptedKey)
-		o(Array.from(key)).deepEquals(Array.from(aes256DecryptedKey))
+		o(Array.from(key.bits)).deepEquals(Array.from(aes256DecryptedKey.bits))
 	})
 	o("aes256EncryptKey", function () {
 		const { desktopCrypto, cryptoFnsMock } = setupSubject()

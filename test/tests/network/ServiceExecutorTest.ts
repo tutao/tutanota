@@ -1,6 +1,6 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-import { RestClient } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "../../../src/platform-kit/rest-client"
+import { HttpMethod, MediaType, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/platform-kit/meta"
@@ -15,6 +15,7 @@ import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/ent
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/network/ServiceRequest"
 
 const { anything } = matchers
 
@@ -60,11 +61,11 @@ o.spec("ServiceExecutor", function () {
 	})
 
 	function assertThatNoRequestsWereMade() {
-		verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
+		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	function respondWith(response) {
-		when(restClient.request(anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
+		when(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
 	}
 
 	o("decryptResponse removes network debugging info", async function () {
@@ -95,10 +96,10 @@ o.spec("ServiceExecutor", function () {
 
 		respondWith(JSON.stringify(dataWithDebug))
 
-		const getResponse = await executor.get(getService, null)
-		const postResponse = await executor.post(getService, null)
-		const putResponse = await executor.put(getService, null)
-		const deleteResponse = await executor.delete(getService, null)
+		const getResponse = await executor.get(getService, null, null)
+		const postResponse = await executor.post(getService, null, null)
+		const putResponse = await executor.put(getService, null, null)
+		const deleteResponse = await executor.delete(getService, null, null)
 		o(getResponse).deepEquals(expectedInstance)
 		o(postResponse).deepEquals(expectedInstance)
 		o(putResponse).deepEquals(expectedInstance)
@@ -122,7 +123,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data)
+			const response = await executor.get(getService, data, null)
 
 			o(response).equals(undefined)
 			verify(
@@ -148,7 +149,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.get(getService, null)
+			const response = await executor.get(getService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -173,7 +174,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.get(getService, null)
+			const response = await executor.get(getService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -193,7 +194,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			await assertThrows(LoginIncompleteError, () => executor.get(getService, null))
+			await assertThrows(LoginIncompleteError, () => executor.get(getService, null, null))
 			assertThatNoRequestsWereMade()
 		})
 
@@ -205,7 +206,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const sessionKey = [1, 2, 3, 4] as Aes128Key
+			const sessionKey = new Aes128Key([1, 2, 3, 4])
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
@@ -213,7 +214,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.get(getService, null, { sessionKey })
+			const response = await executor.get(getService, null, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(returnData)
 			verify(
@@ -240,7 +241,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.get(getService, null)
+			const response = await executor.get(getService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -268,7 +269,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(undefined)
 
-			const response = await executor.post(postService, data)
+			const response = await executor.post(postService, data, null)
 
 			o(response).equals(undefined)
 			verify(
@@ -294,7 +295,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.post(postService, null)
+			const response = await executor.post(postService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -314,7 +315,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			await assertThrows(LoginIncompleteError, () => executor.post(postService, null))
+			await assertThrows(LoginIncompleteError, () => executor.post(postService, null, null))
 			assertThatNoRequestsWereMade()
 		})
 
@@ -326,7 +327,7 @@ o.spec("ServiceExecutor", function () {
 					return: SaltDataTypeRef,
 				},
 			}
-			const sessionKey = [1, 2, 3, 4] as Aes128Key
+			const sessionKey = new Aes128Key([1, 2, 3, 4])
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
@@ -334,7 +335,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.post(getService, null, { sessionKey })
+			const response = await executor.post(getService, null, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(returnData)
 			verify(
@@ -362,7 +363,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(undefined)
 
-			const response = await executor.put(putService, data)
+			const response = await executor.put(putService, data, null)
 
 			o(response).equals(undefined)
 			verify(
@@ -388,7 +389,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.put(putService, null)
+			const response = await executor.put(putService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -408,7 +409,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			await assertThrows(LoginIncompleteError, () => executor.put(putService, null))
+			await assertThrows(LoginIncompleteError, () => executor.put(putService, null, null))
 			assertThatNoRequestsWereMade()
 		})
 	})
@@ -428,7 +429,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(undefined)
 
-			const response = await executor.delete(deleteService, data)
+			const response = await executor.delete(deleteService, data, null)
 
 			o(response).equals(undefined)
 			verify(
@@ -454,7 +455,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(`{"literal":"1"}`)
 
-			const response = await executor.delete(deleteService, null)
+			const response = await executor.delete(deleteService, null, null)
 
 			o(response).equals(returnData)
 			verify(
@@ -475,7 +476,7 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			fullyLoggedIn = false
-			await assertThrows(LoginIncompleteError, () => executor.delete(deleteService, null))
+			await assertThrows(LoginIncompleteError, () => executor.delete(deleteService, null, null))
 			assertThatNoRequestsWereMade()
 		})
 	})
@@ -494,7 +495,7 @@ o.spec("ServiceExecutor", function () {
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, { queryParams: query })
+			const response = await executor.get(getService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, queryParams: query })
 
 			o(response).equals(undefined)
 			verify(
@@ -520,7 +521,7 @@ o.spec("ServiceExecutor", function () {
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data, { extraHeaders: headers })
+			const response = await executor.get(getService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, extraHeaders: headers })
 
 			o(response).equals(undefined)
 
@@ -553,7 +554,7 @@ o.spec("ServiceExecutor", function () {
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
-			const response = await executor.get(getService, data)
+			const response = await executor.get(getService, data, null)
 
 			o(response).equals(undefined)
 			verify(
@@ -590,7 +591,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(JSON.stringify(untypedInstance))
 
-			const response = await executor.get(CustomerAccountService, null)
+			const response = await executor.get(CustomerAccountService, null, null)
 
 			removeOriginals(response)
 			o(response).deepEquals(customerAccountReturn)
@@ -616,7 +617,7 @@ o.spec("ServiceExecutor", function () {
 
 			respondWith(JSON.stringify(untypedInstance))
 
-			const response = await executor.get(CustomerAccountService, null, { sessionKey })
+			const response = await executor.get(CustomerAccountService, null, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			removeOriginals(response)
 
@@ -641,13 +642,13 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
-			const sessionKey = [1, 2, 3, 4] as Aes128Key
+			const sessionKey = new Aes128Key([1, 2, 3, 4])
 			const encrypted = { encrypted: "1" }
 			when(instancePipeline.mapAndEncrypt(GiftCardCreateDataTypeRef, giftCardCreateData, sessionKey)).thenResolve(encrypted)
 
 			respondWith(undefined)
 
-			const response = await executor.get(getService, giftCardCreateData, { sessionKey })
+			const response = await executor.get(getService, giftCardCreateData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(undefined)
 			verify(
@@ -669,8 +670,8 @@ o.spec("ServiceExecutor", function () {
 			}
 			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
 
-			await o(() => executor.get(getService, giftCardCreateData)).asyncThrows(ProgrammingError)
-			verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
+			await o(() => executor.get(getService, giftCardCreateData, null)).asyncThrows(ProgrammingError)
+			verify(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { ignoreExtraArgs: true, times: 0 })
 		})
 	})
 })

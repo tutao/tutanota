@@ -63,7 +63,7 @@ export class TotpVerifier {
 
 	static readableKey(key: Uint8Array): Base32 {
 		return base32
-			.fromBits(uint8ArrayToKey(key))
+			.fromBits(uint8ArrayToBitArray(key))
 			.toLowerCase()
 			.replace(/(.{4})/g, "$1 ")
 			.replace(/=/g, "")

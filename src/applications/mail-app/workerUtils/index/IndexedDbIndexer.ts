@@ -332,7 +332,7 @@ export class IndexedDbIndexer implements Indexer {
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this.mailIndexer.mailIndexingEnabled)
-		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, initializationVector))
+		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, initializationVector.bytes))
 		await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, userEncDbKey.encryptingKeyVersion)
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this.serverDateProvider.now())
 		await this._initGroupData(groupBatches, transaction)

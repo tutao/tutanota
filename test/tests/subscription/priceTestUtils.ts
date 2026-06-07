@@ -199,7 +199,7 @@ export function createUpgradePriceServiceMock(
 	bonusMonths: number = 0,
 ): IServiceExecutor {
 	const executorMock = object<IServiceExecutor>()
-	when(executorMock.get(UpgradePriceService, matchers.anything())).thenResolve({
+	when(executorMock.get(UpgradePriceService, matchers.anything(), null)).thenResolve({
 		premiumPrices: planPrices.Premium,
 		premiumBusinessPrices: planPrices.PremiumBusiness,
 		teamsPrices: planPrices.Teams,

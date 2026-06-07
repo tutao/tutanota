@@ -16,21 +16,15 @@ import {
 } from "@tutao/crypto"
 import { aesDecrypt, aesDecryptUnauthenticated, aesEncrypt } from "../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
+import { EntropyDataChunk } from "../../../platform-kit/crypto/random/EntropyDataChunk"
+
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
 // we do it here because it's the first place in the dep. chain that knows it's
 // in node but the last one that knows the prng implementation
 const seed = () => {
-	const entropy = crypto.randomBytes(128)
-	random
-		.addEntropy([
-			{
-				source: EntropySource.Random,
-				entropy: 128 * 8,
-				data: Array.from(entropy),
-			},
-		])
-		.then()
+	const entropy = Array.from(crypto.randomBytes(128))
+	random.addEntropy(entropy.map((b) => new EntropyDataChunk(EntropySource.Random, 128 * 8, b))).then()
 }
 
 seed()

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { keyToUint8Array, TotpVerifier } from "../../../src/platform-kit/crypto"
+import { bitArrayToUint8Array, keyToUint8Array, TotpVerifier } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 
 o.spec("TotpVerifier", function () {
@@ -10,7 +10,7 @@ o.spec("TotpVerifier", function () {
 		let secret = new Uint8Array([99, 98, 3, 5, 7, 89, 4, 7, 9, 5, 22, 55, 1, 4, 88, 127])
 		let key = TotpVerifier.readableKey(secret)
 		o("mnra gbih leca ocif cy3q cbcy p4").equals(key)
-		o(Array.from(secret)).deepEquals(Array.from(keyToUint8Array(base32.toBits(key.replace(/ /g, "")))))
+		o(Array.from(secret)).deepEquals(Array.from(bitArrayToUint8Array(base32.toBits(key.replace(/ /g, "")))))
 	})
 	o("rfcTests", function () {
 		let key = stringToUtf8Uint8Array("12345678901234567890")

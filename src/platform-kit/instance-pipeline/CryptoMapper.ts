@@ -81,8 +81,8 @@ export class CryptoMapper {
 		}
 	}
 
-	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<Nullable<AesKey>> {
-		if (requiredGroupKeyVersion === "none") {
+	async getInputKey(requiredGroupKeyVersion: Nullable<KeyVersion>, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<Nullable<AesKey>> {
+		if (requiredGroupKeyVersion === null) {
 			return null
 		}
 		if (ownerKeyProvider == null) {
@@ -302,9 +302,6 @@ export class CryptoMapper {
 		}
 		const ciphertext = base64ToUint8Array(value)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
-		if (valueDecryptor === MissingSessionKey) {
-			throw new SessionKeyNotFoundError("")
-		}
 		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 

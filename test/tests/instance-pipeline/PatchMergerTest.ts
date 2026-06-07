@@ -1,5 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, AesKey, SymmetricCipherVersion, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	SubKeyInfoWithSessionKey,
+	SymmetricCipherVersion,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { convertJsToDbType, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
@@ -196,7 +203,7 @@ o.spec("PatchMergerTest", () => {
 			const subjectAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "subject"))
 			const valueType = mailTypeModel.values[subjectAttributeId] as EncryptedModelValue
 			let plaintext = "new subject"
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
 			let ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [
@@ -227,7 +234,7 @@ o.spec("PatchMergerTest", () => {
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
 			const plaintext = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [
@@ -257,7 +264,7 @@ o.spec("PatchMergerTest", () => {
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
 			const encryptionAuthStatusUntypedValue = convertJsToDbType(
 				mailTypeModel.values[encryptionAuthStatusAttributeId].type,
@@ -360,7 +367,7 @@ o.spec("PatchMergerTest", () => {
 
 			const pathString = `${senderAttributeId}/senderId/${nameAttributeId}`
 			let plaintext = "new name"
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [

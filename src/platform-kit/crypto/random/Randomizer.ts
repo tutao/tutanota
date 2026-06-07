@@ -4,6 +4,8 @@ import { CryptoError } from "@tutao/crypto/error"
 
 import { EntropySource } from "../CryptoTypes"
 
+import { EntropyDataChunk } from "./EntropyDataChunk"
+
 /**
  * This Interface provides an abstraction of the random number generator implementation.
  */
@@ -19,13 +21,7 @@ export class Randomizer {
 	 * @param entropyCache with: number Any number value, entropy The amount of entropy in the number in bit,
 	 * source The source of the number.
 	 */
-	addEntropy(
-		entropyCache: Array<{
-			source: EntropySource
-			entropy: number
-			data: number | Array<number>
-		}>,
-	): Promise<void> {
+	addEntropy(entropyCache: Array<EntropyDataChunk>): Promise<void> {
 		for (const entry of entropyCache) {
 			this.random.addEntropy(entry.data, entry.entropy, entry.source)
 		}

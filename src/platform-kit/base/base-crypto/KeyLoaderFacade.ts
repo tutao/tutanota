@@ -7,7 +7,6 @@ import {
 	decryptKey,
 	decryptKeyPair,
 	Ed25519PrivateKey,
-	EncryptedKeyPairs,
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -23,6 +22,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
+import { toEncryptedKeyPair } from "./EncryptedKeyPair"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
@@ -300,12 +300,12 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(id))
 	}
 
-	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey) {
+	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey): AsymmetricKeyPair {
 		if (keyPair == null) {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
-		const decryptedKeyPair = decryptKeyPair(groupKey.object, keyPair as EncryptedKeyPairs)
+		const decryptedKeyPair = decryptKeyPair(groupKey.object, toEncryptedKeyPair(keyPair))
 		if (groupKey.version !== 0 && isRsaOrRsaX25519KeyPair(decryptedKeyPair)) {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}

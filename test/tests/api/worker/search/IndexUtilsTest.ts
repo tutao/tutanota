@@ -10,7 +10,7 @@ import {
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 
-import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR, generateInitializationVector, InitializationVector } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import {
 	decryptMetaData,
@@ -27,10 +27,15 @@ import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { aesDecryptUnauthenticated } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 o.spec("Index Utils", () => {
+	let INITIALIZATION_VECTOR: InitializationVector
+	o.before(() => {
+		INITIALIZATION_VECTOR = generateInitializationVector()
+	})
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
-		let encryptedKey = encryptIndexKeyBase64(key, "blubb", FIXED_INITIALIZATION_VECTOR)
-		let decrypted = aesDecryptUnauthenticated(key, concat(FIXED_INITIALIZATION_VECTOR, base64ToUint8Array(encryptedKey)))
+
+		let encryptedKey = encryptIndexKeyBase64(key, "blubb", INITIALIZATION_VECTOR)
+		let decrypted = aesDecryptUnauthenticated(key, concat(INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
@@ -40,7 +45,7 @@ o.spec("Index Utils", () => {
 			attribute: 84,
 			positions: [12, 536, 3],
 		}
-		let encId = encryptIndexKeyUint8Array(key, entry.id, FIXED_INITIALIZATION_VECTOR)
+		let encId = encryptIndexKeyUint8Array(key, entry.id, INITIALIZATION_VECTOR)
 		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
 		// attribute 84 => 0x54,
 		// position[0] 12 => 0xC
@@ -49,7 +54,7 @@ o.spec("Index Utils", () => {
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
 		const result = aesDecryptUnauthenticated(key, encryptedEntry.slice(16))
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
-		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, FIXED_INITIALIZATION_VECTOR)
+		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, INITIALIZATION_VECTOR)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
 		const withoutEncId: any = decrypted
 		delete withoutEncId.encId

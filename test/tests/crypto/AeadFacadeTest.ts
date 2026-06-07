@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -19,7 +19,7 @@ o.spec("AeadFacadeTest", function () {
 		aeadFacade = new AeadFacade()
 		const encryptionKey = aes256RandomKey()
 		const authenticationKey = aes256RandomKey()
-		keys = { cipherVersion, encryptionKey, authenticationKey }
+		keys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 	})
 	o("encrypt roundtrip success", function () {
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
@@ -29,26 +29,19 @@ o.spec("AeadFacadeTest", function () {
 	})
 
 	o("encrypt_wrong_key_length", async function () {
-		const subKeys = {
-			cipherVersion,
-			encryptionKey: _aes128RandomKey() as any as Aes256Key,
-			authenticationKey: keys.authenticationKey,
-		}
+		const subKeys = new AeadWithSessionKeySubKeys(_aes128RandomKey() as any as Aes256Key, keys.authenticationKey)
 		const e = await assertThrows(CryptoError, async () => aeadFacade.encrypt(subKeys, plaintext, associatedData))
-		o(e.message).equals("Illegal key length: 128 (expected: 256)")
+		console.log(">>>>>>>", e.message)
+		o(e.message).equals("Illegal key length")
 	})
 
 	o("decrypt_wrong_key_length", async function () {
-		const subKeys = {
-			cipherVersion,
-			encryptionKey: _aes128RandomKey() as any as Aes256Key,
-			authenticationKey: keys.authenticationKey,
-		}
+		const subKeys = new AeadWithSessionKeySubKeys(_aes128RandomKey() as any as Aes256Key, keys.authenticationKey)
 		const emptyAd = new Uint8Array()
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, emptyAd)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 		const e = await assertThrows(CryptoError, async () => aeadFacade.decrypt(subKeys, parsedCiphertext, associatedData))
-		o(e.message).equals("Illegal key length: 128 (expected: 256)")
+		o(e.message).equals("Illegal key length")
 	})
 
 	o("decrypt_canonicalization_safe", async function () {

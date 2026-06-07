@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 
-import { RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
 	Aes128Key,
@@ -50,7 +50,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-crypto/Constants.js"
-import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { DefaultLoginListener } from "../../../src/applications/common/misc/DefaultLoginListener"
@@ -84,7 +84,7 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
 async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: AesKey = PASSWORD_KEY): Promise<User> {
-	const groupKey = encryptKey(userPassphraseKey, [3229306880, 2716953871, 4072167920, 3901332676] as Aes128Key)
+	const groupKey = encryptKey(userPassphraseKey, new Aes128Key([3229306880, 2716953871, 4072167920, 3901332676]))
 
 	return createTestEntity(UserTypeRef, {
 		_id: userId,
@@ -101,7 +101,7 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 	})
 }
 
-async function createSession(userId: string, accessKey: number[], instancePipeline: InstancePipeline) {
+async function createSession(userId: string, accessKey: AesKey, instancePipeline: InstancePipeline) {
 	const session = createTestEntity(SessionTypeRef, {
 		user: userId,
 		accessKey: keyToUint8Array(accessKey),
@@ -135,7 +135,7 @@ o.spec("LoginFacadeTest", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+		when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 			createTestEntity(SaltReturnTypeRef, { salt: SALT, kdfVersion: DEFAULT_KDF_TYPE }),
 		)
 
@@ -212,14 +212,16 @@ o.spec("LoginFacadeTest", function () {
 			const accessToken = "accessToken"
 
 			o.beforeEach(async function () {
-				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.post(SessionService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createTestEntity(CreateSessionReturnTypeRef, {
 						user: userId,
 						accessToken: accessToken,
 						challenges: [],
 					}),
 				)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(await makeUser(userId))
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					await makeUser(userId),
+				)
 			})
 
 			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
@@ -306,7 +308,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 
 			let credentials: Credentials
@@ -331,7 +333,9 @@ o.spec("LoginFacadeTest", function () {
 				}
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				// The call to /sys/session/...
 				when(
@@ -450,7 +454,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 
 			let user: User
@@ -474,7 +478,9 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -645,7 +651,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
@@ -672,7 +678,9 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -750,7 +758,7 @@ o.spec("LoginFacadeTest", function () {
 			const dbKey = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4])
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 			let calls: string[]
 			let fullLoginDeferred: DeferredObject<void>
@@ -780,9 +788,11 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
-				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
 				)
 
@@ -816,7 +826,7 @@ o.spec("LoginFacadeTest", function () {
 		o.spec("external sessions", function () {
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 
 			let user: User
@@ -843,7 +853,9 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -904,7 +916,7 @@ o.spec("LoginFacadeTest", function () {
 		o.spec("external sessions bcrypt", function () {
 			const passphrase = "hunter2"
 			const userId = "userId"
-			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677] as Aes128Key
+			const accessKey = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332677])
 			const accessToken = "accessToken"
 
 			let user: User
@@ -933,7 +945,9 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -961,7 +975,7 @@ o.spec("LoginFacadeTest", function () {
 			const user = await makeUser("userId", KdfType.Bcrypt)
 			user.salt = SALT
 
-			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: [1, 2, 3, 4] as Aes128Key, version: 0 })
+			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: new Aes128Key([1, 2, 3, 4]), version: 0 })
 			Const.EXECUTE_KDF_MIGRATION = true
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 
@@ -979,6 +993,7 @@ o.spec("LoginFacadeTest", function () {
 					argThat(({ kdfVersion, oldVerifier, pwEncUserGroupKey, salt, verifier }) => {
 						return kdfVersion === KdfType.Argon2id
 					}),
+					null,
 				),
 			)
 			verify(cacheManagmentFacadeMock.reloadUser())

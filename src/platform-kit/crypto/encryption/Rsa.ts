@@ -1,7 +1,7 @@
 // @ts-ignore[untyped-import]
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
 import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
-import type { RawRsaPublicKey, RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
+import { RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { KeyPairType } from "./AsymmetricKeyPair.js"
@@ -307,7 +307,7 @@ export function i2osp(i: number): Uint8Array {
  * @returns The public key in a persistable array format
  * @private
  */
-function _publicKeyToArray(publicKey: RawRsaPublicKey): BigInteger[] {
+function _publicKeyToArray(publicKey: RsaPublicKey): BigInteger[] {
 	return [_base64ToBigInt(publicKey.modulus)]
 }
 
@@ -421,11 +421,11 @@ export function rsaPrivateKeyToHex(privateKey: RsaPrivateKey): Hex {
 	return _keyArrayToHex(_privateKeyToArray(privateKey))
 }
 
-export function rsaPublicKeyToHex(publicKey: RawRsaPublicKey): Hex {
+export function rsaPublicKeyToHex(publicKey: RsaPublicKey): Hex {
 	return _keyArrayToHex(_publicKeyToArray(publicKey))
 }
 
-export function rsaPublicKeyToBytes(rsaPublicKey: RawRsaPublicKey) {
+export function rsaPublicKeyToBytes(rsaPublicKey: RsaPublicKey) {
 	return hexToUint8Array(rsaPublicKeyToHex(rsaPublicKey))
 }
 
@@ -437,11 +437,6 @@ export function hexToRsaPublicKey(publicKeyHex: Hex): RsaPublicKey {
 	return _arrayToPublicKey(_hexToKeyArray(publicKeyHex))
 }
 
-export function extractRawPublicRsaKeyFromPrivateRsaKey(privateRsaKey: RsaPrivateKey): RawRsaPublicKey {
-	return {
-		keyLength: privateRsaKey.keyLength,
-		modulus: privateRsaKey.modulus,
-		version: privateRsaKey.version,
-		publicExponent: RSA_PUBLIC_EXPONENT,
-	}
+export function extractRawPublicRsaKeyFromPrivateRsaKey(privateRsaKey: RsaPrivateKey): RsaPublicKey {
+	return new RsaPublicKey(privateRsaKey.version, privateRsaKey.keyLength, privateRsaKey.modulus, RSA_PUBLIC_EXPONENT)
 }

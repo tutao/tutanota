@@ -22,12 +22,12 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbInitia
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Uint8Array {
 	return aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array(indexKey), dbInitializationVector).slice(
-		dbInitializationVector.length,
+		dbInitializationVector.bytes.length,
 	)
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbInitializationVector: InitializationVector): string {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbInitializationVector, encIndexKey)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbInitializationVector.bytes, encIndexKey)))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
