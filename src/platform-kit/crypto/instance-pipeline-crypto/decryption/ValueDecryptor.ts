@@ -4,9 +4,9 @@ import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbc
 import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache } from "./SubKeyCache"
 import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
-import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
 import { CryptoError } from "@tutao/crypto/error"
+import { SymmetricCipherVersion } from "@tutao/crypto"
 
 /**
  * Decrypts one attribute of one given instance.

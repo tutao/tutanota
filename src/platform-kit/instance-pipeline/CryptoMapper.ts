@@ -13,7 +13,6 @@ import {
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
-	SymmetricCipherVersion,
 	SymmetricEncryptionScheme,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -33,6 +32,7 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
+import { SymmetricCipherVersion } from "../crypto/encryption/symmetric/SymmetricCipherVersion"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -302,9 +302,6 @@ export class CryptoMapper {
 		}
 		const ciphertext = base64ToUint8Array(value)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
-		if (valueDecryptor === MissingSessionKey) {
-			throw new SessionKeyNotFoundError("")
-		}
 		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 

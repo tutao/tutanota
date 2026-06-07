@@ -1,11 +1,10 @@
-import { AeadSubKeys } from "./SymmetricKeyDeriver.js"
+import { AeadSubKeys, AeadWithGroupKeySubKeys, AeadWithSessionKeySubKeys } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 import { concat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateInitializationVector, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
 import { CryptoError } from "../../error.js"
-import { SymmetricCipherVersion } from "./SymmetricCipherVersion"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedCiphertextAead } from "./ParsedCiphertext"
 
@@ -80,17 +79,16 @@ export class AeadFacade {
 	}
 
 	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array {
-		switch (subKeys.cipherVersion) {
-			case SymmetricCipherVersion.AeadWithGroupKey: {
-				const keyVersionLengthByte = 0
-				if (subKeys.groupKeyVersion == null) {
-					throw new ProgrammingError("AEAD encryption with group key requires a group key version")
-				}
-				return Uint8Array.of(subKeys.cipherVersion, keyVersionLengthByte, subKeys.groupKeyVersion)
+		if (subKeys instanceof AeadWithGroupKeySubKeys) {
+			const keyVersionLengthByte = 0
+			if (subKeys.groupKeyVersion == null) {
+				throw new ProgrammingError("AEAD encryption with group key requires a group key version")
 			}
-			case SymmetricCipherVersion.AeadWithSessionKey:
-				return Uint8Array.of(subKeys.cipherVersion)
+			return Uint8Array.of(subKeys.cipherVersion.getVersionByte(), keyVersionLengthByte, subKeys.groupKeyVersion)
+		} else if (subKeys instanceof AeadWithSessionKeySubKeys) {
+			return Uint8Array.of(subKeys.cipherVersion.getVersionByte())
 		}
+		throw new ProgrammingError("invalid sub-keys")
 	}
 
 	/**
