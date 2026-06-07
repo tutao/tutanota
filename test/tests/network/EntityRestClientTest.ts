@@ -1,11 +1,17 @@
 import o, { assertThrows, spy } from "@tutao/otest"
-import { RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
-import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	doBlobRequestWithRetry,
+	EntityMigrator,
+	EntityRestClient,
+	tryServers,
+} from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
-import { func, instance, matchers, object, verify, when } from "testdouble"
+import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
 	arrayEquals,
@@ -32,7 +38,15 @@ import {
 	TypeModelResolver,
 	typeModelToRestPath,
 } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	generateKdfNonce,
+	KdfNonce,
+	SubKeyInfoWithGroupKey,
+	SymmetricCipherVersion,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
@@ -66,7 +80,6 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
-import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
@@ -203,7 +216,7 @@ o.spec("EntityRestClient", function () {
 	})
 
 	function assertThatNoRequestsWereMade() {
-		verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
+		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	o.spec("Load", function () {
@@ -243,10 +256,9 @@ o.spec("EntityRestClient", function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
 				restClient.request(requestPath, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
-					queryParams: undefined,
-					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
@@ -267,10 +279,9 @@ o.spec("EntityRestClient", function () {
 			const untypedAccountingInfo = await instancePipeline.mapAndEncrypt(AccountingInfoTypeRef, accountingInfo, sk)
 			when(
 				restClient.request(`${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					responseType: MediaType.Json,
-					queryParams: undefined,
-					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify(untypedAccountingInfo))
 
@@ -294,16 +305,17 @@ o.spec("EntityRestClient", function () {
 			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
+				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 				queryParams: { foo: "bar" },
 				extraHeaders: { baz: "quux" },
 			})
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			verify(
 				restClient.request(requestPath, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion), baz: "quux" },
 					responseType: MediaType.Json,
 					queryParams: { foo: "bar" },
-					baseUrl: undefined,
 				}),
 			)
 
@@ -340,14 +352,14 @@ o.spec("EntityRestClient", function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
-					queryParams: undefined,
-					baseUrl: undefined,
 				}),
 			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
+				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 				ownerKeyProvider: async (_: KeyVersion) => ownerGroupKey.object,
 			})
 			removeOriginals(result)
@@ -421,11 +433,10 @@ o.spec("EntityRestClient", function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([untypedCal1, untypedCal2]))
 
@@ -487,11 +498,10 @@ o.spec("EntityRestClient", function () {
 			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
@@ -520,11 +530,10 @@ o.spec("EntityRestClient", function () {
 
 			verify(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: ids.join(",") },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			)
@@ -546,22 +555,20 @@ o.spec("EntityRestClient", function () {
 			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedSupportData1]))
 
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: "100" },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedSupportData2]))
@@ -594,33 +601,30 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedSupportData1]))
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(100, 100).join(",") },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedSupportData2]))
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(200, 11).join(",") },
 					responseType: MediaType.Json,
-					baseUrl: undefined,
-					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify([untypedSupportData3]))
@@ -765,6 +769,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: {},
 					queryParams: {
 						ids: "0,1,2,3,4",
@@ -775,11 +780,11 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 					noCORS: true,
 					baseUrl: firstServer,
-					suspensionBehavior: undefined,
 				}),
 			).thenReject(new restError.ConnectionError("test connection error for retry"))
 			when(
 				restClient.request(anything(), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: {},
 					queryParams: {
 						ids: "0,1,2,3,4",
@@ -790,7 +795,6 @@ o.spec("EntityRestClient", function () {
 					responseType: MediaType.Json,
 					noCORS: true,
 					baseUrl: otherServer,
-					suspensionBehavior: undefined,
 				}),
 			).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
@@ -843,9 +847,8 @@ o.spec("EntityRestClient", function () {
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(
 				restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, {
-					baseUrl: undefined,
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
-					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json: RestTextBody) => {
 						const untypedInstance = JSON.parse(json.payload)
@@ -864,7 +867,7 @@ o.spec("EntityRestClient", function () {
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const result = await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+			const result = await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 
 			o(result).equals(resultId)
 		})
@@ -889,15 +892,15 @@ o.spec("EntityRestClient", function () {
 				JSON.stringify(untypedPersistentPostReturn),
 			)
 
-			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
 
 			o.check(newCalendar._kdfNonce).equals(null)
-			await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+			await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 			o.check(newCalendar._kdfNonce).notEquals(null)
 
-			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
-			const subKeyInfo: SubKeyInfo = invocation[2]
+			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -924,18 +927,18 @@ o.spec("EntityRestClient", function () {
 				JSON.stringify(untypedPersistentPostReturn),
 			)
 
-			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
 
 			const originalKdfNonce = new Uint8Array(33) as KdfNonce // not length 32 so that it's not equal to the randomly generated one
 			newCalendar._kdfNonce = originalKdfNonce
 
-			await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+			await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 
 			o.check(arrayEquals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
 
-			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
-			const subKeyInfo: SubKeyInfo = invocation[2]
+			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -944,7 +947,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Setup list entity throws when no listid is passed", async function () {
 			const newContact = createTestEntity(ContactTypeRef)
-			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact))
+			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact, null, null))
 			o(result.message).equals("List id must be defined for LETs")
 		})
 
@@ -966,22 +969,21 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/tutanota/supportdata`, HttpMethod.POST, {
-					baseUrl: undefined,
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(v) },
-					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: new RestTextBody(JSON.stringify(untypedSupportData)),
 				}),
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const result = await entityRestClient.setup(null, newSupportData)
+			const result = await entityRestClient.setup(null, newSupportData, null, null)
 			o(result).equals(resultId)
 		})
 
 		o("Setup entity throws when listid is passed", async function () {
 			const newCustomer = createTestEntity(CustomerTypeRef)
-			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer))
+			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer, null, null))
 			o(result.message).equals("List id must not be defined for ETs")
 		})
 
@@ -1001,7 +1003,7 @@ o.spec("EntityRestClient", function () {
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify(untypedPersistentPostReturn))
-			await entityRestClient.setup("listId", newCalendar, undefined, {
+			await entityRestClient.setup("listId", newCalendar, null, {
 				baseUrl: "some url",
 				ownerKey: ownerGroupKey,
 			})
@@ -1034,9 +1036,8 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/accountinginfo`, HttpMethod.POST, {
-					baseUrl: undefined,
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
-					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json: RestTextBody) => {
 						const untypedInstance = JSON.parse(json.payload)
@@ -1055,7 +1056,7 @@ o.spec("EntityRestClient", function () {
 				{ times: 1 },
 			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const result = await entityRestClient.setup(null, newAccountingInfo, undefined, { ownerKey: ownerGroupKey })
+			const result = await entityRestClient.setup(null, newAccountingInfo, null, { baseUrl: null, ownerKey: ownerGroupKey })
 			verify(cryptoFacadePartialStub.resolveSessionKey(anything()), { times: 0 })
 
 			o(result).equals(resultId)
@@ -1080,6 +1081,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
@@ -1111,6 +1113,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
@@ -1141,6 +1144,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
@@ -1151,6 +1155,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
@@ -1199,7 +1204,7 @@ o.spec("EntityRestClient", function () {
 			})
 
 			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newGroupMembers))
-			verify(restClient.request(anything(), anything()), { times: 4, ignoreExtraArgs: true })
+			o(explain(restClient.request).callCount).equals(4)
 			o(result.failedInstances).deepEquals(newGroupMembers.slice(0, 100).concat(newGroupMembers.slice(200, 300)))
 			o(result.errors.length).equals(2)
 			o(result.errors.every((e) => e instanceof restError.BadRequestError)).equals(true)
@@ -1234,7 +1239,7 @@ o.spec("EntityRestClient", function () {
 				return await entityRestClient.setupMultiple(listId, instances)
 			})
 			//one post multiple and three individual posts
-			verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 4 })
+			verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 4 })
 			o(result.failedInstances.length).equals(1) //one individual post results in an error
 
 			o(result.errors.length).equals(1)
@@ -1329,7 +1334,7 @@ o.spec("EntityRestClient", function () {
 			newAccountingInfo._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 
 			when(restClient.request(anything(), anything(), anything())).thenResolve(null)
-			await entityRestClient.update(newAccountingInfo, { ownerKey: ownerGroupKey })
+			await entityRestClient.update(newAccountingInfo, { baseUrl: null, ownerKey: ownerGroupKey })
 
 			verify(
 				restClient.request(
@@ -1388,11 +1393,11 @@ o.spec("EntityRestClient", function () {
 			calendarEvent.summary = "totally different"
 			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
 
-			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenDo((_: any, postIn: UpdateKdfNoncePostIn) =>
+			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null)).thenDo((_: any, postIn: UpdateKdfNoncePostIn) =>
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: postIn.instanceKdfNonce.kdfNonce }),
 			)
 
-			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
 
 			o.check(calendarEvent._kdfNonce).notEquals(null)
 
@@ -1401,7 +1406,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfo = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1438,9 +1443,11 @@ o.spec("EntityRestClient", function () {
 
 			let kdfNonce = generateKdfNonce()
 
-			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything())).thenResolve(createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }))
+			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null)).thenResolve(
+				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
+			)
 
-			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
 
 			o.check(calendarEvent._kdfNonce).notEquals(null)
 
@@ -1449,7 +1456,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfo = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1486,9 +1493,9 @@ o.spec("EntityRestClient", function () {
 			calendarEvent.summary = "totally different"
 			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
 
-			await entityRestClient.update(calendarEvent, { ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
 
-			verify(serviceExecutor.post(UpdateKdfNonceService, matchers.anything()), { times: 0 })
+			verify(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null), { times: 0 })
 
 			o.check(arrayEquals(calendarEvent._kdfNonce, originalKdfNonce)).equals(true)
 
@@ -1497,7 +1504,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfo = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1517,8 +1524,8 @@ o.spec("EntityRestClient", function () {
 
 			verify(
 				restClient.request("/rest/sys/customer/id", HttpMethod.DELETE, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
-					queryParams: undefined,
 				}),
 			)
 		})
@@ -1539,6 +1546,7 @@ o.spec("EntityRestClient", function () {
 
 			verify(
 				restClient.request("/rest/tutanota/calendarevent/foo", HttpMethod.DELETE, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					queryParams: { ids: "id,id2" },
 				}),

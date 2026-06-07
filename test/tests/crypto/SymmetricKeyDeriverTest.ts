@@ -30,24 +30,10 @@ o.spec("SymmetricKeyDeriverTest", function () {
 		versionedAes256Key = freshVersioned(aes256Key)
 		versionedAes128Key = freshVersioned(aes128Key)
 	})
-	o.spec("unusedReservedUnauthenticated", function () {
-		o("aes 128", function () {
-			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes128Key, cipherVersion)
-			o(subKeys.authenticationKey).equals(null)
-			o(subKeys.encryptionKey).equals(aes128Key)
-		})
-		o("aes 256", function () {
-			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes256Key, cipherVersion)
-			o(subKeys.authenticationKey).equals(null)
-			o(subKeys.encryptionKey).equals(aes256Key)
-		})
-	})
 	o.spec("aesCbcThenHmac", function () {
 		o("aes 128", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes128Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes128Key)
 			const hash = sha256Hash(keyToUint8Array(aes128Key))
 			const expectedEncryptionKey = uint8ArrayToKey(hash.subarray(0, getKeyLengthInBytes(AesKeyLength.Aes128)))
 			const expectedAuthenticationKey = uint8ArrayToKey(hash.subarray(getKeyLengthInBytes(AesKeyLength.Aes128), hash.length))
@@ -56,7 +42,7 @@ o.spec("SymmetricKeyDeriverTest", function () {
 		})
 		o("aes 256", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-			const subKeys = symmetricKeyDeriver.deriveSubKeys(aes256Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes256Key)
 			const hash = sha512Hash(keyToUint8Array(aes256Key))
 			const expectedEncryptionKey = uint8ArrayToKey(hash.subarray(0, getKeyLengthInBytes(AesKeyLength.Aes256)))
 			const expectedAuthenticationKey = uint8ArrayToKey(hash.subarray(getKeyLengthInBytes(AesKeyLength.Aes256), hash.length))

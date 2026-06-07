@@ -1,10 +1,11 @@
 import o from "@tutao/otest"
 import { EntropyCollector } from "../../../../src/applications/common/api/main/EntropyCollector.js"
-import { EntropyDataChunk, EntropyFacade } from "../../../../src/platform-kit/base/facades/EntropyFacade.js"
+import { EntropyFacade } from "../../../../src/platform-kit/base/facades/EntropyFacade.js"
 import { EntropySource } from "../../../../src/platform-kit/crypto"
 import { matchers, object, when } from "testdouble"
 import { SchedulerMock } from "../../TestUtils.js"
 import { getFromMap, remove } from "../../../../src/platform-kit/utils"
+import { EntropyDataChunk } from "../../../../src/platform-kit/crypto/random/EntropyDataChunk"
 
 class FakeWindow {
 	listeners: Map<string, ((e: unknown) => unknown)[]> = new Map()

@@ -9,7 +9,6 @@ import {
 	Aes128Key,
 	Aes256Key,
 	AesKey,
-	AesKeyLength,
 	cryptoUtils,
 	MacTag,
 	PQKeyPairs,
@@ -73,8 +72,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		const groupKeyVersion = 2
 
 		const pubUserGroupEccKey = object<X25519PublicKey>()
-		const groupKeyBytes = object<Aes256Key>()
-		groupKeyBytes.length = AesKeyLength.Aes256 / 32
+		const groupKeyBytes = new Aes256Key([1])
 		const adminGroupEncGKey = object<Uint8Array>()
 		const pubAdminGroupEncSymKey = object<Uint8Array>()
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
@@ -230,8 +228,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 						}),
 						adminGroupKeyVersion: "1",
 					})
-					userGroupSymKeyV1 = object<Aes256Key>()
-					userGroupSymKeyV1.length = AesKeyLength.Aes256 / 32
+					userGroupSymKeyV1 = new Aes256Key([0])
 					const adminKeyPairV1 = object<PQKeyPairs>()
 					when(keyLoaderFacade.loadKeypair(adminGroupId, 1)).thenResolve(adminKeyPairV1)
 					when(

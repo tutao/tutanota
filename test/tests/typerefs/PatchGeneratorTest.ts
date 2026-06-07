@@ -19,7 +19,7 @@ import {
 	PatchOperationType,
 	ServerTypeReferenceResolver,
 } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, SubKeyInfoWithSessionKey, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import {
 	AttributeModel,
@@ -341,7 +341,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
@@ -394,7 +394,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
@@ -516,7 +516,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
@@ -559,7 +559,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
@@ -604,7 +604,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
@@ -649,7 +649,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,

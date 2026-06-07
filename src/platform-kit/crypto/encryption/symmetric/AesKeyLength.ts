@@ -1,6 +1,5 @@
 import { CryptoError } from "@tutao/crypto/error"
-import { Aes256Key, BitArray } from "./SymmetricCipherUtils.js"
-import { Nullable } from "@tutao/utils"
+import { Aes128Key, Aes256Key, AesKey, BitArray } from "./SymmetricCipherUtils.js"
 
 export enum AesKeyLength {
 	Aes128 = 128,
@@ -16,22 +15,34 @@ export function getKeyLengthInBytes(keyLength: AesKeyLength): number {
 	return keyLength / 8
 }
 
-export function getAndVerifyAesKeyLength(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): AesKeyLength {
+export function wrapKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): Aes256Key {
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
-	if (acceptedBitLengths.includes(keyLength)) {
-		return keyLength
-	} else {
+	if (!acceptedBitLengths.includes(keyLength)) {
 		throw new CryptoError(`Illegal key length: ${keyLength} (expected: ${acceptedBitLengths})`)
+	}
+	switch (keyLength) {
+		case AesKeyLength.Aes128:
+			return new Aes128Key(key)
+		case AesKeyLength.Aes256:
+			return new Aes256Key(key)
+	}
+	throw new CryptoError(`illegal key length ${keyLength}`)
+}
+
+export function assert256BitKey(key: AesKey): Aes256Key {
+	const length = key.bits.length * 4 * 8
+	if (key instanceof Aes256Key && length === AesKeyLength.Aes256) {
+		return key
+	} else {
+		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
 	}
 }
 
-export function assert256BitKey(key: BitArray): Aes256Key
-export function assert256BitKey(key: Nullable<BitArray>): Nullable<Aes256Key>
-export function assert256BitKey(key: Nullable<BitArray>): Nullable<Aes256Key> {
-	if (key == null) {
-		return null
+export function assertAesKey(key: AesKey): AesKey {
+	const length = key.bits.length * 4 * 8
+	if (length !== AesKeyLength.Aes128 && length !== AesKeyLength.Aes256) {
+		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
 	}
-	getAndVerifyAesKeyLength(key, [AesKeyLength.Aes256])
-	return key as Aes256Key
+	return key
 }

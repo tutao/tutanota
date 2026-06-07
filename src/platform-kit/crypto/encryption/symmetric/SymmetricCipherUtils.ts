@@ -3,9 +3,20 @@ import { CryptoError } from "@tutao/crypto/error"
 import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
+import { AesKeyLength, getKeyLengthInBytes, wrapKey } from "./AesKeyLength.js"
+import { KeyOrSubKey } from "./SymmetricKeyDeriver"
 
-export const FIXED_INITIALIZATION_VECTOR = hexToUint8Array("88888888888888888888888888888888") as InitializationVector
+export class InitializationVector {
+	constructor(public readonly bytes: Uint8Array) {}
+}
+
+export class FixedInitializationVector extends InitializationVector {
+	constructor() {
+		super(hexToUint8Array("88888888888888888888888888888888"))
+	}
+}
+
+export const FIXED_INITIALIZATION_VECTOR = new FixedInitializationVector()
 export const BLOCK_SIZE_BYTES = 16
 export const INITIALIZATION_VECTOR_LENGTH_BYTES = BLOCK_SIZE_BYTES
 export const KDF_NONCE_LENGTH_BYTES = 32
@@ -13,9 +24,23 @@ export const SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES = 1
 export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
 
 export type BitArray = number[]
-export type Aes256Key = BitArray & { readonly __brand: "Aes256Key" }
-export type Aes128Key = BitArray & { readonly __brand: "Aes128Key" }
-export type AesKey = Aes128Key | Aes256Key
+export abstract class AesKey extends KeyOrSubKey {
+	abstract readonly bits: BitArray
+	abstract readonly keyLength: AesKeyLength
+}
+
+export class Aes256Key extends AesKey {
+	keyLength = AesKeyLength.Aes256
+	constructor(public readonly bits: BitArray) {
+		super()
+	}
+}
+export class Aes128Key extends AesKey {
+	keyLength = AesKeyLength.Aes128
+	constructor(public readonly bits: BitArray) {
+		super()
+	}
+}
 
 /**
  * Creates the auth verifier from the password key.
@@ -89,12 +114,11 @@ export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof Ae
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
-	getAndVerifyAesKeyLength(key, acceptedBitLength ? [acceptedBitLength] : undefined)
-	return key as AesKey
+	return wrapKey(key, acceptedBitLength ? [acceptedBitLength] : undefined)
 }
 
-export function keyToUint8Array(key: BitArray): Uint8Array {
-	return bitArrayToUint8Array(key)
+export function keyToUint8Array(key: AesKey): Uint8Array {
+	return bitArrayToUint8Array(key.bits)
 }
 
 /**
@@ -103,15 +127,13 @@ export function keyToUint8Array(key: BitArray): Uint8Array {
  * @return The key.
  */
 export function aes256RandomKey(): Aes256Key {
-	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))) as Aes256Key
+	return new Aes256Key(uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))))
 }
-
-export type InitializationVector = Uint8Array & { readonly __brand: "InitializationVector" }
 
 export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
 
 export function generateInitializationVector(): InitializationVector {
-	return random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES) as InitializationVector
+	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES))
 }
 
 export function generateKdfNonce(): KdfNonce {
@@ -127,7 +149,7 @@ export function validateInitializationVectorLength(initializationVector: Nullabl
 	if (initializationVector.length !== INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError(`invalid initialization vector length: ${initializationVector.length} bytes`)
 	}
-	return initializationVector as InitializationVector
+	return new InitializationVector(initializationVector)
 }
 
 export function validateKdfNonceLength(kdfNonce: Uint8Array): KdfNonce

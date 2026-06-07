@@ -773,7 +773,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<AesKey | null> {
+	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey: Nullable<VersionedKey>): Promise<AesKey | null> {
 		if (!instance._ownerGroup) {
 			throw new Error(`no owner group set  ${JSON.stringify(instance)}`)
 		}

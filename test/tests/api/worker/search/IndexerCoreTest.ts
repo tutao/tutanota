@@ -20,7 +20,7 @@ import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, InitializationVector } from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, aes256RandomKey, generateInitializationVector, InitializationVector } from "../../../../../src/platform-kit/crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -77,7 +77,7 @@ o.spec("IndexerCore", () => {
 
 	o.beforeEach(function () {
 		key = aes256RandomKey()
-		initializationVector = FIXED_INITIALIZATION_VECTOR
+		initializationVector = generateInitializationVector()
 		encryptionData = { key, initializationVector }
 	})
 
@@ -1090,7 +1090,7 @@ o.spec("IndexerCore", () => {
 		const core = makeCore({
 			encryptionData: {
 				key: aes256RandomKey(),
-				initializationVector: FIXED_INITIALIZATION_VECTOR,
+				initializationVector: generateInitializationVector(),
 			},
 			transaction: {
 				createTransaction: () => deferred.promise,

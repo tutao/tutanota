@@ -13,7 +13,7 @@ import {
 	Type,
 } from "../../../src/platform-kit/meta"
 import { downcast, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { RestClient } from "../../../src/platform-kit/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { ApplicationTypesGetOut, compressString, decompressString, ServerModelInfo, ServerModels } from "../../../src/platform-kit/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
@@ -87,6 +87,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -102,6 +103,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		verify(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -117,6 +119,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -131,6 +134,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		verify(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -147,6 +151,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	o("should attempt to write file but not propagate write error", async () => {
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),
@@ -171,6 +176,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
 				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { v: baseModelInfo.version.toString() },
 					responseType: MediaType.Binary,
 				}),
@@ -186,6 +192,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
 			when(
 				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { v: baseModelInfo.version.toString() },
 					responseType: MediaType.Binary,
 				}),
@@ -201,6 +208,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array("{}"))
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers: { v: baseModelInfo.version.toString() },
 				responseType: MediaType.Binary,
 			}),

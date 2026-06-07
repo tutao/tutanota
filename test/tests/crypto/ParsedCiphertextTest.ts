@@ -45,13 +45,13 @@ o.spec("ParsedCiphertextTest", () => {
 			const initializationVector = generateInitializationVector()
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector, ciphertext)
+			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextUnusedReservedUnauthenticated
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(initializationVector)
 			o.check(parsedCiphertext.ciphertext).deepEquals(ciphertext)
 			const parsedCiphertextNoVersionByte = parseVersionedCiphertext(
-				concat(initializationVector, ciphertext),
+				concat(initializationVector.bytes, ciphertext),
 			) as ParsedCiphertextUnusedReservedUnauthenticated
 			o.check(parsedCiphertextNoVersionByte).deepEquals(parsedCiphertext)
 		})
@@ -75,7 +75,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector, ciphertext, macTag)
+			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAesCbcThenHmac
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(initializationVector)
@@ -89,7 +89,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = Uint8Array.of(0, 1, 2, 3)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector, ciphertext, macTag)
+			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext, InitializationVectorVariant.Fixed))
 			o.check(e.message).equals("AEAD requires a random initialization vector")
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAeadWithSessionKey
@@ -109,7 +109,7 @@ o.spec("ParsedCiphertextTest", () => {
 
 			const versionedCiphertext = concat(
 				Uint8Array.of(symmetricCipherVersion, groupKeyVersionLength, groupKeyVersion),
-				initializationVector,
+				initializationVector.bytes,
 				ciphertext,
 				macTag,
 			)

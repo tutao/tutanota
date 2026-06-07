@@ -137,7 +137,7 @@ export class AdminKeyLoaderFacade {
 
 		// this function is called recursively. therefore we must not return the group key version from the group but from the pubAdminEncUserKeyData
 		const versionedDecryptedUserGroupKey = {
-			object: assert256BitKey(decryptedUserGroupKey),
+			object: decryptedUserGroupKey,
 			version: cryptoUtils.parseKeyVersion(assertNotNull(pubAdminEncUserKeyData.symKeyMac).taggedKeyVersion),
 		}
 

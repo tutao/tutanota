@@ -1,28 +1,28 @@
 import { KeyVersion, Nullable } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
-import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache } from "./SubKeyCache"
-import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
-import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
 import { CryptoError } from "@tutao/crypto/error"
+import { InstanceSubKeyCache } from "./SubKeyCache"
+import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 
-/**
+/**`
  * Decrypts one attribute of one given instance.
  */
 export interface ValueDecryptor {
-	readonly requiredGroupKeyVersion: "none" | KeyVersion
+	readonly requiredGroupKeyVersion: Nullable<KeyVersion>
 	getValue(key?: Nullable<AesKey>): Uint8Array
 }
 
 export class AesCbcDecryptor implements ValueDecryptor {
-	readonly requiredGroupKeyVersion = "none" as const
+	readonly requiredGroupKeyVersion = null
 	constructor(
 		private readonly parsedCiphertext: ParsedCiphertextAesCbc,
 		private readonly aesCbcFacade: AesCbcFacade,
 		private readonly sessionKey: AesKey,
-		private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache,
+		private readonly instanceAesSubKeyCache: InstanceSubKeyCache<AesCbcSubKeys>,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 	getValue(): Uint8Array {
@@ -32,7 +32,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeys(this.sessionKey, this.parsedCiphertext.cipherVersion)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.sessionKey)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
 		return this.aesCbcFacade.decrypt(subKeys, this.parsedCiphertext, PaddingStandard.Pkcs5)
@@ -48,7 +48,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 		private readonly instanceTypeId: InstanceTypeId,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly associatedData: Uint8Array,
-		private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache,
+		private readonly instanceAeadSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 	) {
 		this.requiredGroupKeyVersion = parsedCiphertext.groupKeyVersion
 	}
@@ -75,7 +75,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 }
 
 export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
-	readonly requiredGroupKeyVersion = "none" as const
+	readonly requiredGroupKeyVersion = null
 	constructor(
 		private readonly parsedCiphertext: ParsedCiphertextAeadWithSessionKey,
 		private readonly aeadFacade: AeadFacade,
@@ -83,7 +83,7 @@ export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 		private readonly instanceTypeId: InstanceTypeId,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly associatedData: Uint8Array,
-		private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache,
+		private readonly instanceAeadSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 	) {}
 	getValue(): Uint8Array {
 		const instanceAeadSubKeyCacheKey = {

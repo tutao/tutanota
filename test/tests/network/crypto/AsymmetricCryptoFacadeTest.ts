@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
 import { PQFacade } from "../../../../src/platform-kit/base/base-crypto/PQFacade.js"
-import { matchers, object, verify, when } from "testdouble"
+import { instance, matchers, object, verify, when } from "testdouble"
 import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
@@ -191,8 +191,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should throw CryptoError if authentication fails", async function () {
 			const pubEncSymKey: Uint8Array = object()
 			const symKey = new Uint8Array([1, 2, 3, 4])
-			const keyPair = object<PQKeyPairs>()
-			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+			const keyPair = instance(PQKeyPairs)
 
 			const senderKeyVersion = "1"
 			const senderIdentifier = object<string>()
@@ -286,8 +285,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("should raise a Crypto Error when trying to decypher a RSA that is not an RSA KeyPair", async function () {
 			const pubEncSymKey: Uint8Array = object()
-			const keyPair = object<PQKeyPairs>()
-			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+			const keyPair = instance(PQKeyPairs)
 			await assertThrows(CryptoError, async function () {
 				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.RSA, pubEncSymKey)
 			})
@@ -295,8 +293,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("should call tuta crypt decryption when the protocol version is set to TUTA_CRYPT", async function () {
 			const pubEncSymKey: Uint8Array = object()
-			const keyPair = object<PQKeyPairs>()
-			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
+			const keyPair = instance(PQKeyPairs)
+			;(keyPair as any).keyPairType = KeyPairType.TUTA_CRYPT
 
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
 				decryptedSymKeyBytes: keyToUint8Array(aes256RandomKey()),
@@ -310,8 +308,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o("should raise a Crypto Error when trying to decypher a TutaCrypt that is not an TutaCrypt KeyPair", async function () {
 			const pubEncSymKey: Uint8Array = object()
-			const keyPair = object<RsaKeyPair>()
-			keyPair.keyPairType = KeyPairType.RSA
+			const keyPair = instance(RsaKeyPair)
 			await assertThrows(CryptoError, async function () {
 				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
 			})
@@ -330,7 +327,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 		o.beforeEach(function () {
 			recipientKyberPublicKey = object<KyberPublicKey>()
-			symKey = [1, 2, 3, 4] as Aes128Key
+			symKey = new Aes128Key([1, 2, 3, 4])
 			pubEncSymKeyBytes = object<Uint8Array>()
 			senderPqKeyPair = {
 				object: { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair: object(), kyberKeyPair: object() },
@@ -348,9 +345,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should encrypt the sym key with the recipient PQ public key", async function () {
-			const recipientPublicKeys: Versioned<PQPublicKeys> = object()
-			recipientPublicKeys.version = recipientKeyVersion
-			recipientPublicKeys.object.keyPairType = KeyPairType.TUTA_CRYPT
+			const recipientPublicKeys: Versioned<PQPublicKeys> = { object: new PQPublicKeys(object(), object()), version: recipientKeyVersion }
 
 			when(
 				pqFacade.encapsulateAndEncode(senderPqKeyPair.object.x25519KeyPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything()),
@@ -374,9 +369,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				const senderRsaKeyPair: Versioned<RsaKeyPair> = { object: RSA_TEST_KEYPAIR, version: senderKeyVersion }
 				when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderRsaKeyPair)
 
-				const recipientPublicKeys: Versioned<PQPublicKeys> = object()
-				recipientPublicKeys.version = recipientKeyVersion
-				recipientPublicKeys.object.keyPairType = KeyPairType.TUTA_CRYPT
+				const recipientPublicKeys: Versioned<PQPublicKeys> = { object: new PQPublicKeys(object(), object()), version: recipientKeyVersion }
 
 				when(pqFacade.encapsulateAndEncode(newIdentityEccPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything())).thenResolve(
 					pubEncSymKeyBytes,
@@ -407,15 +400,14 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 								arg.keyGroup === senderGroupId
 							)
 						}),
+						null,
 					),
 				)
 			},
 		)
 
 		o("should encrypt the sym key with the recipient RSA public key", async function () {
-			const recipientPublicKeys: Versioned<RsaPublicKey> = object()
-			recipientPublicKeys.object.keyPairType = KeyPairType.RSA
-			recipientPublicKeys.version = recipientKeyVersion
+			const recipientPublicKeys: Versioned<RsaPublicKey> = { object: new RsaPublicKey(0, 0, "", 0), version: recipientKeyVersion }
 
 			when(
 				rsa.encrypt(
@@ -435,9 +427,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("raise a ProgrammingError when passing an RSA public key", async function () {
-			const versionedRsaPublicKey: Versioned<RsaPublicKey> = object()
-			versionedRsaPublicKey.object.keyPairType = KeyPairType.RSA
-			versionedRsaPublicKey.version = recipientKeyVersion
+			const versionedRsaPublicKey: Versioned<RsaPublicKey> = { object: new RsaPublicKey(0, 0, "", 0), version: recipientKeyVersion }
 
 			await assertThrows(ProgrammingError, async function () {
 				await asymmetricCryptoFacade.tutaCryptEncryptSymKey(object(), versionedRsaPublicKey, object())

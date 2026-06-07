@@ -37,7 +37,7 @@ o.spec("NewsModel", function () {
 			}),
 		]
 
-		when(serviceExecutor.get(NewsService, null)).thenResolve(
+		when(serviceExecutor.get(NewsService, null, null)).thenResolve(
 			createTestEntity(NewsOutTypeRef, {
 				newsItemIds: newsIds,
 			}),
@@ -58,7 +58,7 @@ o.spec("NewsModel", function () {
 			await newsModel.acknowledgeNews(newsIds[0].newsItemId)
 
 			const expectedNewsIn = createTestEntity(NewsInTypeRef, { newsItemId: newsIds[0].newsItemId })
-			verify(serviceExecutor.post(NewsService, expectedNewsIn))
+			verify(serviceExecutor.post(NewsService, expectedNewsIn, null))
 		})
 	})
 })

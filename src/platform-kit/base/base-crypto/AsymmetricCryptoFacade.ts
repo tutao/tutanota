@@ -40,7 +40,7 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
 import { TypeId } from "../../meta/EntityTypes"
-import { RsaImplementation } from "../../crypto"
+import { PQKeyPairs, RsaImplementation } from "../../crypto"
 
 assertWorkerOrNode()
 

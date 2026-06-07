@@ -194,7 +194,7 @@ o.spec("ConfigurationDbTest", function () {
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(currentUserGroupKey)
 			dbKey = aes256RandomKey()
 			initializationVector = generateInitializationVector()
-			encIv = aesEncrypt(dbKey, initializationVector)
+			encIv = aesEncrypt(dbKey, initializationVector.bytes)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)).thenResolve(encIv)
 		})
 

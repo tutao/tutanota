@@ -1,5 +1,8 @@
 import {
+	Aes128Key,
+	Aes256Key,
 	AesKey,
+	FIXED_INITIALIZATION_VECTOR,
 	generateInitializationVector,
 	InitializationVector,
 	KdfNonce,
@@ -7,14 +10,28 @@ import {
 	uint8ArrayToKey,
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
-import { SymmetricAesCbcCipherVersion, SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
+import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "../encryption/symmetric/AesKeyLength"
+import { AesKeyLength, assertAesKey } from "../encryption/symmetric/AesKeyLength"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
-import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
+import {
+	AeadSubKeys,
+	AesCbcSubKeys,
+	InstanceTypeId,
+	KeyOrSubKey,
+	SYMMETRIC_KEY_DERIVER,
+	SymmetricKeyDeriver,
+	UnusedReservedUnauthenticatedSubKeys,
+} from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
-import { InitializationVectorSource, InitializationVectorVariant, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
+import {
+	InitializationVectorVariant,
+	ParsedCiphertextAesCbcThenHmac,
+	ParsedCiphertextUnusedReservedUnauthenticated,
+	parseVersionedCiphertext,
+} from "../encryption/symmetric/ParsedCiphertext"
+import { ProgrammingError } from "@tutao/app-env"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -62,7 +79,7 @@ export class SymmetricCipherFacade {
 	 * @param bytes The data to encrypt.
 	 * @return The encrypted bytes.
 	 */
-	encryptBytes(key: AesKey | AesCbcSubKeys, bytes: Uint8Array): Uint8Array {
+	encryptBytes(key: KeyOrSubKey, bytes: Uint8Array): Uint8Array {
 		return this.encrypt(key, bytes, PaddingStandard.Pkcs5, SymmetricCipherVersion.AesCbcThenHmac)
 	}
 
@@ -91,7 +108,7 @@ export class SymmetricCipherFacade {
 			bytes,
 			PaddingStandard.Pkcs5,
 			SymmetricCipherVersion.UnusedReservedUnauthenticated,
-			InitializationVectorVariant.Random,
+			generateInitializationVector(),
 			AuthenticationEnforcement.Relaxed,
 		)
 	}
@@ -102,8 +119,8 @@ export class SymmetricCipherFacade {
 	 * @deprecated use encryptBytes instead
 	 */
 	encryptBytesDeprecatedCustomInitializationVector(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
-		const cipherVersion: SymmetricAesCbcCipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		const cipherVersion: SymmetricCipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(key)
 		return this.aesCbcFacade.encrypt(subKeys, bytes, initializationVector, PaddingStandard.Pkcs5, cipherVersion)
 	}
 
@@ -115,8 +132,8 @@ export class SymmetricCipherFacade {
 	 * @deprecated use encryptBytes instead.
 	 */
 	encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
-		const cipherVersion: SymmetricAesCbcCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		const cipherVersion: SymmetricCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+		const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
 		return this.aesCbcFacade.encrypt(subKeys, bytes, initializationVector, PaddingStandard.Pkcs5, cipherVersion, AuthenticationEnforcement.Relaxed)
 	}
 
@@ -178,7 +195,8 @@ export class SymmetricCipherFacade {
 	 * @deprecated
 	 */
 	decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(key: AesKey, bytes: Uint8Array): AesKey {
-		return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed, AuthenticationEnforcement.Relaxed))
+		const decrypted = this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed, AuthenticationEnforcement.Relaxed)
+		return uint8ArrayToKey(decrypted)
 	}
 
 	/**
@@ -189,18 +207,19 @@ export class SymmetricCipherFacade {
 	 * @return The encrypted key.
 	 */
 	encryptKey(key: AesKey, keyToEncrypt: AesKey): Uint8Array {
-		switch (getAndVerifyAesKeyLength(key)) {
-			case AesKeyLength.Aes128:
-				// we never authenticate keys encrypted with a legacy AES-128 key, because we rotate all keys to 256 to ensure authentication
-				return this.encrypt(
-					key,
-					keyToUint8Array(keyToEncrypt),
-					PaddingStandard.None,
-					SymmetricCipherVersion.UnusedReservedUnauthenticated,
-					InitializationVectorVariant.Fixed,
-				)
-			case AesKeyLength.Aes256:
-				return this.encrypt(key, keyToUint8Array(keyToEncrypt), PaddingStandard.None, SymmetricCipherVersion.AesCbcThenHmac)
+		if (key instanceof Aes128Key) {
+			// we never authenticate keys encrypted with a legacy AES-128 key, because we rotate all keys to 256 to ensure authentication
+			return this.encrypt(
+				key,
+				keyToUint8Array(keyToEncrypt),
+				PaddingStandard.None,
+				SymmetricCipherVersion.UnusedReservedUnauthenticated,
+				FIXED_INITIALIZATION_VECTOR,
+			)
+		} else if (key instanceof Aes256Key) {
+			return this.encrypt(key, keyToUint8Array(keyToEncrypt), PaddingStandard.None, SymmetricCipherVersion.AesCbcThenHmac)
+		} else {
+			throw new ProgrammingError("Invalid AesKey type")
 		}
 	}
 
@@ -213,29 +232,36 @@ export class SymmetricCipherFacade {
 	 * @return The decrypted key.
 	 */
 	decryptKey(key: AesKey, bytes: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
-		switch (getAndVerifyAesKeyLength(key)) {
-			case AesKeyLength.Aes128:
-				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed), acceptedBitLength)
-			case AesKeyLength.Aes256:
-				return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None), acceptedBitLength)
+		if (key instanceof Aes128Key) {
+			return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed), acceptedBitLength)
+		} else if (key instanceof Aes256Key) {
+			return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None), acceptedBitLength)
 		}
+		throw new ProgrammingError("invalid key type")
 	}
 
 	encrypt(
-		key: AesKey | AesCbcSubKeys,
+		key: KeyOrSubKey,
 		plaintext: Uint8Array,
 		paddingStandard: PaddingStandard,
-		cipherVersion: SymmetricAesCbcCipherVersion,
-		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
+		cipherVersion: SymmetricCipherVersion,
+		initializationVector: InitializationVector = generateInitializationVector(),
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
-		const initializationVector: InitializationVectorSource =
-			initializationVectorVariant === InitializationVectorVariant.Random ? generateInitializationVector() : initializationVectorVariant
 		let subKeys: AesCbcSubKeys
-		if (Array.isArray(key)) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
-		} else {
+		if (key instanceof AesCbcSubKeys) {
 			subKeys = key
+		} else if (key instanceof AesKey) {
+			assertAesKey(key)
+			if (cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
+				subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(key)
+			} else if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
+				subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
+			} else {
+				throw new ProgrammingError("invalid cipher version")
+			}
+		} else {
+			throw new ProgrammingError("invalid key type")
 		}
 		return this.aesCbcFacade.encrypt(subKeys, plaintext, initializationVector, paddingStandard, cipherVersion, authenticationEnforcement)
 	}
@@ -251,18 +277,16 @@ export class SymmetricCipherFacade {
 		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
+		assertAesKey(key)
 		const parsedCiphertext = parseVersionedCiphertext(cipherText, initializationVectorVariant)
-		switch (parsedCiphertext.cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, parsedCiphertext.cipherVersion)
-				return this.aesCbcFacade.decrypt(subKeys, parsedCiphertext, paddingStandard, authenticationEnforcement)
-			}
-			case SymmetricCipherVersion.AeadWithGroupKey:
-			case SymmetricCipherVersion.AeadWithSessionKey: {
-				// use this as soon as we define what to use as associated data
-				throw new Error("not yet enabled")
-			}
+		if (parsedCiphertext instanceof ParsedCiphertextUnusedReservedUnauthenticated) {
+			const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
+			return this.aesCbcFacade.decrypt(subKeys, parsedCiphertext, paddingStandard, authenticationEnforcement)
+		} else if (parsedCiphertext instanceof ParsedCiphertextAesCbcThenHmac) {
+			const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(key)
+			return this.aesCbcFacade.decrypt(subKeys, parsedCiphertext, paddingStandard, authenticationEnforcement)
+		} else {
+			throw new Error("not yet enabled")
 		}
 	}
 
@@ -273,17 +297,15 @@ export class SymmetricCipherFacade {
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Promise<Uint8Array> {
 		const parsedCiphertext = parseVersionedCiphertext(ciphertext, initializationVectorVariant)
-		switch (parsedCiphertext.cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, parsedCiphertext.cipherVersion)
-				return this.aesCbcFacade.decryptAsync(subKeys, parsedCiphertext, authenticationEnforcement)
-			}
-			case SymmetricCipherVersion.AeadWithGroupKey:
-			case SymmetricCipherVersion.AeadWithSessionKey: {
-				// use this as soon as we define what to use as associated data
-				throw new Error("not yet enabled")
-			}
+		if (parsedCiphertext instanceof ParsedCiphertextUnusedReservedUnauthenticated) {
+			const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
+			return this.aesCbcFacade.decryptAsync(subKeys, parsedCiphertext, authenticationEnforcement)
+		} else if (parsedCiphertext instanceof ParsedCiphertextAesCbcThenHmac) {
+			const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(key)
+			return this.aesCbcFacade.decryptAsync(subKeys, parsedCiphertext, authenticationEnforcement)
+		} else {
+			// use this as soon as we define what to use as associated data
+			throw new Error("not yet enabled")
 		}
 	}
 

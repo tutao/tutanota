@@ -1,41 +1,27 @@
-import { AeadSubKeys, AesKey, SymmetricAeadCipherVersion, SymmetricAesCbcCipherVersion, SymmetricSubKeys } from "@tutao/crypto"
+import { AesKey } from "@tutao/crypto"
+import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 
-interface SubKeyCache<K, V> {
-	set: (instanceSubKeyCacheKey: K, cachedSubKeys: V) => void
-	get: (instanceSubKeyCacheKey: K) => V | null
-	has: (instanceSubKeyCacheKey: K) => boolean
-}
+export class InstanceSubKeyCache<V> {
+	map = new Map<string, V>()
 
-export function subKeyCache<K, S extends string | number | boolean, V>(serialize: (key: K) => S): SubKeyCache<K, V> {
-	const map = new Map<S, V>()
+	constructor() {}
 
-	return {
-		get(key: K): V | null {
-			return map.get(serialize(key)) ?? null
-		},
-		set(key: K, value: V): void {
-			map.set(serialize(key), value)
-		},
-		has(key: K): boolean {
-			return map.has(serialize(key))
-		},
+	get(key: InstanceSubKeyCacheKey): V | null {
+		return this.map.get(this.serializeInstanceSubKeyCacheKey(key)) ?? null
+	}
+	set(key: InstanceSubKeyCacheKey, value: V): void {
+		this.map.set(this.serializeInstanceSubKeyCacheKey(key), value)
+	}
+	has(key: InstanceSubKeyCacheKey): boolean {
+		return this.map.has(this.serializeInstanceSubKeyCacheKey(key))
+	}
+
+	private serializeInstanceSubKeyCacheKey(key: InstanceSubKeyCacheKey): string {
+		return `${key.cipherVersion},[${key.aesKey.bits.join(",")}]`
 	}
 }
 
-interface InstanceAesSubKeyCacheKey {
-	cipherVersion: SymmetricAesCbcCipherVersion
+interface InstanceSubKeyCacheKey {
+	cipherVersion: SymmetricCipherVersion
 	aesKey: AesKey
-}
-
-export type InstanceAesSubKeyCache = SubKeyCache<InstanceAesSubKeyCacheKey, SymmetricSubKeys>
-
-interface InstanceAeadSubKeyCacheKey {
-	cipherVersion: SymmetricAeadCipherVersion
-	aesKey: AesKey
-}
-
-export type InstanceAeadSubKeyCache = SubKeyCache<InstanceAeadSubKeyCacheKey, AeadSubKeys>
-
-export function serializeInstanceSubKeyCacheKey(key: InstanceAesSubKeyCacheKey | InstanceAeadSubKeyCacheKey): string {
-	return `${key.cipherVersion},[${key.aesKey.join(",")}]`
 }

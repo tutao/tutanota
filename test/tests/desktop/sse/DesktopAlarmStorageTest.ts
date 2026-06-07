@@ -54,7 +54,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const key = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
 
 		verify(confMock.getVar(DesktopConfigKey.pushEncSessionKeys), { times: 1 })
-		o(Array.from(assertNotNull(key))).deepEquals(decryptedKey)
+		o(Array.from(assertNotNull(key).bits)).deepEquals(decryptedKey.bits)
 	})
 
 	o("getPushIdentifierSessionKey with cached sessionKey", async function () {
@@ -65,7 +65,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 
 		const pushIdentifier: IdTuple = ["threeId", "fourId"]
 		const key = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
-		o(Array.from(assertNotNull(key))).deepEquals(uint8ArrayToKey(key4))
+		o(Array.from(assertNotNull(key).bits)).deepEquals(uint8ArrayToKey(key4).bits)
 	})
 
 	o("getPushIdentifierSessionKey when sessionKey is unavailable", async function () {
@@ -123,7 +123,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		await desktopStorage.storePushIdentifierSessionKey("fiveId", keyToUint8Array(newPushSessionKey))
 		const newPushIdentifier: IdTuple = ["threeId", "fiveId"]
 		const newPushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(newPushIdentifier)
-		o(Array.from(assertNotNull(newPushIdentifierSessionKey))).deepEquals(newPushSessionKey)
+		o(Array.from(assertNotNull(newPushIdentifierSessionKey).bits)).deepEquals(newPushSessionKey.bits)
 
 		const newAlarmNotification = createTestEntity(AlarmNotificationTypeRef, {
 			_id: "alarmNotificationB",

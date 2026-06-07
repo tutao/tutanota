@@ -472,6 +472,7 @@ o.spec("MailFacade test", function () {
 						mails: testIds,
 						unread: true,
 					}),
+					null,
 				),
 			)
 		})
@@ -489,6 +490,7 @@ o.spec("MailFacade test", function () {
 						mails: testIds,
 						unread: true,
 					}),
+					null,
 				),
 			)
 		})
@@ -508,11 +510,12 @@ o.spec("MailFacade test", function () {
 							mails: testIds.slice(i * MAX_NBR_OF_MAILS_SYNC_OPERATION, (i + 1) * MAX_NBR_OF_MAILS_SYNC_OPERATION),
 							unread: true,
 						}),
+						null,
 					),
 				)
 			}
 
-			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything()), { times: expectedBatches })
+			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything(), null), { times: expectedBatches })
 		})
 	})
 
@@ -540,7 +543,7 @@ o.spec("MailFacade test", function () {
 				mail.attachments.push(["someListId", attachmentId])
 			}
 			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
-				resolvedSessionKeyForInstance: [0, 1, 2, 3] as Aes128Key,
+				resolvedSessionKeyForInstance: new Aes128Key([0, 1, 2, 3]),
 				instanceSessionKeys,
 			})
 			return mail

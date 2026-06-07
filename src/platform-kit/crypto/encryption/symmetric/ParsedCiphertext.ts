@@ -1,55 +1,90 @@
 import {
 	FIXED_INITIALIZATION_VECTOR,
+	getSymmetricCipherVersion,
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
 	InitializationVector,
 	MacTag,
-	SymmetricCipherVersion,
 	validateInitializationVectorLength,
 } from "@tutao/crypto"
 import { assertNotNull, isKeyVersion, KeyVersion, Nullable } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "./SymmetricCipherUtils"
+import { SymmetricCipherVersion } from "./SymmetricCipherVersion"
 
 export enum InitializationVectorVariant {
 	Fixed = "fixedInitializationVector",
 	Random = "randomInitializationVector",
 }
 
-export type InitializationVectorSource = InitializationVector | typeof InitializationVectorVariant.Fixed
+abstract class ParsedCiphertext {
+	public abstract readonly cipherVersion: SymmetricCipherVersion
 
-export interface ParsedCiphertextUnusedReservedUnauthenticated {
-	cipherVersion: typeof SymmetricCipherVersion.UnusedReservedUnauthenticated
-	initializationVector: InitializationVector
-	ciphertext: Uint8Array
-	initializationVectorVariant: InitializationVectorVariant
+	constructor(
+		public readonly initializationVector: InitializationVector,
+		public readonly ciphertext: Uint8Array,
+	) {}
 }
 
-export interface ParsedCiphertextAesCbcThenHmac {
-	cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac
-	initializationVector: InitializationVector
-	ciphertext: Uint8Array
-	macTag: MacTag
-	initializationVectorVariant: InitializationVectorVariant
+export abstract class ParsedCiphertextAesCbc extends ParsedCiphertext {
+	constructor(
+		initializationVector: InitializationVector,
+		ciphertext: Uint8Array,
+		public readonly initializationVectorVariant: InitializationVectorVariant,
+	) {
+		super(initializationVector, ciphertext)
+	}
 }
 
-export interface ParsedCiphertextAeadWithGroupKey {
-	cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey
-	groupKeyVersion: KeyVersion
-	initializationVector: InitializationVector
-	ciphertext: Uint8Array
-	macTag: MacTag
+export abstract class ParsedCiphertextAead extends ParsedCiphertext {
+	cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+
+	constructor(
+		initializationVector: InitializationVector,
+		ciphertext: Uint8Array,
+		public readonly macTag: MacTag,
+	) {
+		super(initializationVector, ciphertext)
+	}
 }
 
-export interface ParsedCiphertextAeadWithSessionKey {
-	cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey
-	initializationVector: InitializationVector
-	ciphertext: Uint8Array
-	macTag: MacTag
+export class ParsedCiphertextUnusedReservedUnauthenticated extends ParsedCiphertextAesCbc {
+	cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+
+	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, initializationVectorVariant: InitializationVectorVariant) {
+		super(initializationVector, ciphertext, initializationVectorVariant)
+	}
 }
 
-export type ParsedCiphertextAesCbc = ParsedCiphertextUnusedReservedUnauthenticated | ParsedCiphertextAesCbcThenHmac
-export type ParsedCiphertextAead = ParsedCiphertextAeadWithGroupKey | ParsedCiphertextAeadWithSessionKey
-export type ParsedCiphertext = ParsedCiphertextAesCbc | ParsedCiphertextAead
+export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
+	cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+	constructor(
+		initializationVector: InitializationVector,
+		ciphertext: Uint8Array,
+		public readonly macTag: MacTag,
+		initializationVectorVariant: InitializationVectorVariant,
+	) {
+		super(initializationVector, ciphertext, initializationVectorVariant)
+	}
+}
+
+export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
+	cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+	constructor(
+		public readonly groupKeyVersion: KeyVersion,
+		initializationVector: InitializationVector,
+		ciphertext: Uint8Array,
+		macTag: MacTag,
+	) {
+		super(initializationVector, ciphertext, macTag)
+	}
+}
+
+export class ParsedCiphertextAeadWithSessionKey extends ParsedCiphertextAead {
+	cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, macTag: MacTag) {
+		super(initializationVector, ciphertext, macTag)
+	}
+}
 
 // Ciphertexts come in many flavors, containing potentially many elements. Not all elements will be present in every
 // flavor, but they are always laid out in the same order. The following diagram illustrates the general format:
@@ -81,11 +116,7 @@ export function parseVersionedCiphertext(
 		return parseVersionedCipherTextUnusedReservedUnauthenticated(versionedCiphertext, initializationVectorVariant)
 	}
 
-	const versionByte = versionedCiphertext[0]
-	if (!Object.values(SymmetricCipherVersion).includes(versionByte as SymmetricCipherVersion)) {
-		throw new CryptoError("invalid cipher version")
-	}
-	const cipherVersion = versionByte as SymmetricCipherVersion
+	const cipherVersion = getSymmetricCipherVersion(versionedCiphertext)
 	let ciphertext = versionedCiphertext.subarray(SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES)
 
 	if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
@@ -116,28 +147,11 @@ export function parseVersionedCiphertext(
 
 	switch (cipherVersion) {
 		case SymmetricCipherVersion.AesCbcThenHmac:
-			return {
-				cipherVersion,
-				initializationVector,
-				ciphertext,
-				macTag,
-				initializationVectorVariant,
-			}
+			return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
 		case SymmetricCipherVersion.AeadWithGroupKey:
-			return {
-				cipherVersion,
-				groupKeyVersion: assertNotNull(groupKeyVersion),
-				initializationVector,
-				ciphertext,
-				macTag,
-			}
+			return new ParsedCiphertextAeadWithGroupKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
 		case SymmetricCipherVersion.AeadWithSessionKey:
-			return {
-				cipherVersion,
-				initializationVector,
-				ciphertext,
-				macTag,
-			}
+			return new ParsedCiphertextAeadWithSessionKey(initializationVector, ciphertext, macTag)
 	}
 }
 
@@ -151,15 +165,13 @@ function parseVersionedCipherTextUnusedReservedUnauthenticated(
 	} else {
 		initializationVector = FIXED_INITIALIZATION_VECTOR
 	}
-	return {
-		cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
-		initializationVector,
-		ciphertext,
-		initializationVectorVariant,
-	}
+	return new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, ciphertext, initializationVectorVariant)
 }
 
-function extractInitializationVector(ciphertext: Uint8Array): { initializationVector: InitializationVector; ciphertext: Uint8Array } {
+function extractInitializationVector(ciphertext: Uint8Array): {
+	initializationVector: InitializationVector
+	ciphertext: Uint8Array
+} {
 	if (ciphertext.length < INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError("aes decryption failed> initialization vector must be 128 bits")
 	}
