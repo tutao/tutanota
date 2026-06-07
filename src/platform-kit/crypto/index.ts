@@ -156,12 +156,10 @@ export {
 	type InstanceTypeId,
 } from "./encryption/symmetric/SymmetricKeyDeriver.js"
 export {
-	SymmetricCipherVersion,
 	type SymmetricAesCbcCipherVersion,
-	type SymmetricAeadCipherVersion,
 	getSymmetricCipherVersion,
-	type SymmetricCipherVersionAeadWithGroupKey,
-	type SymmetricCipherVersionAeadWithSessionKey,
+	SymmetricCipherVersionAeadWithGroupKey,
+	SymmetricCipherVersionAeadWithSessionKey,
 	type SymmetricAeadCipherVersionMaybeWithGroupKeyVersion,
 } from "./encryption/symmetric/SymmetricCipherVersion.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"

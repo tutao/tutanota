@@ -1,13 +1,13 @@
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
+import { AbstractSymmetricCipherVersion, SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { AesKey, bitArrayToUint8Array, FIXED_INITIALIZATION_VECTOR, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertNotNull, concat } from "@tutao/utils"
+import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { SymmetricSubKeys } from "./SymmetricKeyDeriver"
+import { AesCbcThenHmacSubKeys, SymmetricSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
-import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc } from "./ParsedCiphertext"
+import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
 
 export enum AuthenticationEnforcement {
@@ -36,7 +36,7 @@ export class AesCbcFacade {
 		plainText: Uint8Array,
 		initializationVector: InitializationVectorSource,
 		paddingStandard: PaddingStandard,
-		cipherVersion: SymmetricCipherVersion,
+		cipherVersion: AbstractSymmetricCipherVersion,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
 		this.tryToEnforceAuthentication(subKeys, cipherVersion, authenticationEnforcement)
@@ -122,7 +122,11 @@ export class AesCbcFacade {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			const verifiableCiphertext = this.assembleVerifiableCiphertext(parsedCiphertext)
-			return verifyHmac(subKeys.authenticationKey, verifiableCiphertext, parsedCiphertext.macTag)
+			return verifyHmac(
+				downcast<AesCbcThenHmacSubKeys>(subKeys).authenticationKey,
+				verifiableCiphertext,
+				downcast<ParsedCiphertextAesCbcThenHmac>(parsedCiphertext).macTag,
+			)
 		} else if (parsedCiphertext.cipherVersion !== subKeys.cipherVersion) {
 			throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
 		}
@@ -137,7 +141,11 @@ export class AesCbcFacade {
 		}
 	}
 
-	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
+	private tryToEnforceAuthentication(
+		subKeys: SymmetricSubKeys,
+		cipherVersion: AbstractSymmetricCipherVersion,
+		authenticationEnforcement: AuthenticationEnforcement,
+	) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {

@@ -7,14 +7,26 @@ import {
 	uint8ArrayToKey,
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
-import { SymmetricAesCbcCipherVersion, SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
-import { Nullable } from "@tutao/utils"
+import {
+	SymmetricAesCbcCipherVersion,
+	SymmetricCipherVersion,
+	SymmetricCipherVersionAeadWithGroupKey,
+	SymmetricCipherVersionAeadWithSessionKey,
+	SymmetricCipherVersionAesCbcThenHmac,
+	SymmetricCipherVersionUnusedReservedUnauthenticated,
+} from "../encryption/symmetric/SymmetricCipherVersion.js"
+import { downcast, Nullable } from "@tutao/utils"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "../encryption/symmetric/AesKeyLength"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
-import { InitializationVectorSource, InitializationVectorVariant, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
+import {
+	InitializationVectorSource,
+	InitializationVectorVariant,
+	ParsedCiphertextAesCbc,
+	parseVersionedCiphertext,
+} from "../encryption/symmetric/ParsedCiphertext"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -256,12 +268,15 @@ export class SymmetricCipherFacade {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, parsedCiphertext.cipherVersion)
-				return this.aesCbcFacade.decrypt(subKeys, parsedCiphertext, paddingStandard, authenticationEnforcement)
+				return this.aesCbcFacade.decrypt(subKeys, downcast<ParsedCiphertextAesCbc>(parsedCiphertext), paddingStandard, authenticationEnforcement)
 			}
 			case SymmetricCipherVersion.AeadWithGroupKey:
 			case SymmetricCipherVersion.AeadWithSessionKey: {
 				// use this as soon as we define what to use as associated data
 				throw new Error("not yet enabled")
+			}
+			default: {
+				throw new Error("Unsupported cipher version: " + parsedCiphertext.cipherVersion.constructor.name)
 			}
 		}
 	}
@@ -273,16 +288,19 @@ export class SymmetricCipherFacade {
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Promise<Uint8Array> {
 		const parsedCiphertext = parseVersionedCiphertext(ciphertext, initializationVectorVariant)
-		switch (parsedCiphertext.cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac: {
+		switch (parsedCiphertext.cipherVersion.constructor) {
+			case SymmetricCipherVersionUnusedReservedUnauthenticated:
+			case SymmetricCipherVersionAesCbcThenHmac: {
 				const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, parsedCiphertext.cipherVersion)
-				return this.aesCbcFacade.decryptAsync(subKeys, parsedCiphertext, authenticationEnforcement)
+				return this.aesCbcFacade.decryptAsync(subKeys, downcast<ParsedCiphertextAesCbc>(parsedCiphertext), authenticationEnforcement)
 			}
-			case SymmetricCipherVersion.AeadWithGroupKey:
-			case SymmetricCipherVersion.AeadWithSessionKey: {
+			case SymmetricCipherVersionAeadWithGroupKey:
+			case SymmetricCipherVersionAeadWithSessionKey: {
 				// use this as soon as we define what to use as associated data
 				throw new Error("not yet enabled")
+			}
+			default: {
+				throw new Error("Unsupported cipher version: " + parsedCiphertext.cipherVersion.constructor.name)
 			}
 		}
 	}

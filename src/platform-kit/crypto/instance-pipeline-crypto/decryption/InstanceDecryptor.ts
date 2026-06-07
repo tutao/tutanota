@@ -1,14 +1,25 @@
-import { Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
+import { downcast, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
-import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
-import { CryptoError } from "@tutao/crypto/error"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache, serializeInstanceSubKeyCacheKey, subKeyCache } from "./SubKeyCache"
 import { AeadWithGroupKeyDecryptor, AeadWithSessionKeyDecryptor, AesCbcDecryptor, ValueDecryptor } from "./ValueDecryptor"
-import { parseVersionedCiphertext } from "../../encryption/symmetric/ParsedCiphertext"
+import {
+	ParsedCiphertextAeadWithGroupKey,
+	ParsedCiphertextAeadWithSessionKey,
+	ParsedCiphertextAesCbc,
+	parseVersionedCiphertext,
+} from "../../encryption/symmetric/ParsedCiphertext"
 import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
+import {
+	SymmetricCipherVersion,
+	SymmetricCipherVersionAeadWithGroupKey,
+	SymmetricCipherVersionAeadWithSessionKey,
+	SymmetricCipherVersionAesCbcThenHmac,
+	SymmetricCipherVersionUnusedReservedUnauthenticated,
+} from "../../encryption/symmetric/SymmetricCipherVersion"
 
 export const MissingSessionKey = "missing session key" as const
 export type MissingSessionKey = typeof MissingSessionKey
@@ -26,23 +37,29 @@ export class InstanceDecryptor {
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 
-	getValueDecryptor(versionedCiphertext: Uint8Array, fieldPath: string): ValueDecryptor | MissingSessionKey {
+	getValueDecryptor(versionedCiphertext: Uint8Array, fieldPath: string): ValueDecryptor {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
-		switch (parsedCiphertext.cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-			case SymmetricCipherVersion.AesCbcThenHmac: {
+		switch (parsedCiphertext.cipherVersion.constructor) {
+			case SymmetricCipherVersionUnusedReservedUnauthenticated:
+			case SymmetricCipherVersionAesCbcThenHmac: {
 				if (this.sessionKey == null) {
-					return MissingSessionKey
+					throw new SessionKeyNotFoundError("")
 				}
-				return new AesCbcDecryptor(parsedCiphertext, this.aesCbcFacade, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
+				return new AesCbcDecryptor(
+					downcast<ParsedCiphertextAesCbc>(parsedCiphertext),
+					this.aesCbcFacade,
+					this.sessionKey,
+					this.instanceAesSubKeyCache,
+					this.symmetricKeyDeriver,
+				)
 			}
-			case SymmetricCipherVersion.AeadWithGroupKey: {
+			case SymmetricCipherVersionAeadWithGroupKey: {
 				if (this.kdfNonce == null) {
 					throw new CryptoError("no kdf nonce for group key encrypted value")
 				}
 				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
 				return new AeadWithGroupKeyDecryptor(
-					parsedCiphertext,
+					downcast<ParsedCiphertextAeadWithGroupKey>(parsedCiphertext),
 					this.aeadFacade,
 					this.kdfNonce,
 					this.instanceTypeId,
@@ -51,13 +68,13 @@ export class InstanceDecryptor {
 					this.instanceAeadSubKeyCache,
 				)
 			}
-			case SymmetricCipherVersion.AeadWithSessionKey: {
+			case SymmetricCipherVersionAeadWithSessionKey: {
 				if (this.sessionKey == null) {
-					return MissingSessionKey
+					throw new SessionKeyNotFoundError("")
 				}
 				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
 				return new AeadWithSessionKeyDecryptor(
-					parsedCiphertext,
+					downcast<ParsedCiphertextAeadWithSessionKey>(parsedCiphertext),
 					this.aeadFacade,
 					this.sessionKey,
 					this.instanceTypeId,
@@ -67,6 +84,7 @@ export class InstanceDecryptor {
 				)
 			}
 		}
+		throw new CryptoError(`Unsupported cipher version ${parsedCiphertext.cipherVersion.constructor.name}`)
 	}
 
 	canAttemptDecryption(): boolean {
