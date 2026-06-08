@@ -50,7 +50,7 @@ export async function pMap<Element, NewElement>(
 	mapper: Mapper<Element, NewElement>,
 	options: Options = { concurrency: 1 },
 ): Promise<Array<NewElement>> {
-	const { concurrency } = options
+	const concurrency = options.concurrency ?? 1
 	return new Promise((resolve, reject) => {
 		if (!TypeChecks.isFunction(mapper)) {
 			throw new TypeError("Mapper function is required")
