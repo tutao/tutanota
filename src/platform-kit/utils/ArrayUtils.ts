@@ -303,7 +303,7 @@ export function groupByAndMap<T, R, E>(iterable: Iterable<T>, discriminator: (ar
 
 	for (const el of iterable) {
 		const key = discriminator(el)
-		getFromMap(map, key, () => []).push(mapper(el))
+		getFromMap(map, key, () => Array<E>()).push(mapper(el))
 	}
 
 	return map
