@@ -15,6 +15,7 @@ class TClassProperty extends TConstruct {
 	private readonly name: TIdentitider
 	private readonly dataType: TType
 	private readonly isReadOnly: boolean
+	private readonly isOverriden: boolean
 
 	private constructor(
 		public readonly isDefinedInConstructor: boolean,
@@ -27,6 +28,7 @@ class TClassProperty extends TConstruct {
 		this.name = new TIdentitider(property.getName())
 		this.dataType = new TType(property.getType())
 		this.isReadOnly = property.isReadonly()
+		this.isOverriden = property.hasOverrideKeyword()
 	}
 
 	public static outsideConstructorParam(property: PropertyDeclaration) {
@@ -40,13 +42,14 @@ class TClassProperty extends TConstruct {
 
 	generateKotlin(): ConstructOut {
 		const variableType = this.isReadOnly ? "val" : "var"
+		const overriden = this.isOverriden ? "override " : ""
 		const name = this.name.generateKotlin()
 		const dataType = this.dataType.generateKotlin()
 		if (this.initializer != null) {
 			const initializer = this.initializer.generateKotlin()
-			return `${variableType} ${name}: ${dataType} = ${initializer}`
+			return `${overriden}${variableType} ${name}: ${dataType} = ${initializer}`
 		} else {
-			return `${variableType} ${name}: ${dataType}`
+			return `${overriden}${variableType} ${name}: ${dataType}`
 		}
 	}
 }
