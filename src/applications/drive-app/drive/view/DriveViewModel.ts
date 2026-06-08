@@ -224,7 +224,7 @@ export class DriveViewModel {
 			if (op != null) {
 				let error: Error | null
 				if (update.status === OperationStatus.FAILURE) {
-					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
+					error = handleRestError(filterInt(assertNotNull(update.statusCode)), null, null, update.reason)
 				} else {
 					error = null
 				}

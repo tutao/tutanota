@@ -4,6 +4,7 @@ import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
 import { HttpMethod, MediaType, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { once } from "../utils/memoized"
+import { TsDate } from "../app-env/TranspileCompatibility"
 
 assertWorkerOrNode()
 
@@ -283,10 +284,10 @@ export class RestClient implements RestClientInterface {
 
 		if (serverTimestamp != null) {
 			// check that serverTimestamp has been returned
-			const serverTime = new Date(serverTimestamp).getTime()
+			const serverTime = new TsDate(serverTimestamp).getTime()
 
 			if (!isNaN(serverTime)) {
-				const now = Date.now()
+				const now = TsDate.now()
 				this.serverTimeOffsetMs = serverTime - now
 			}
 		}
@@ -299,7 +300,7 @@ export class RestClient implements RestClientInterface {
 	 */
 	getServerTimestampMs(): number {
 		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")
-		return Date.now() + timeOffset
+		return TsDate.now() + timeOffset
 	}
 
 	/**

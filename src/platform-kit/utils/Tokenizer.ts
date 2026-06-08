@@ -10,7 +10,7 @@ export function tokenize(text: string | null): string[] {
 	for (let i = 0; i < text.length; i++) {
 		let currentChar = text.charAt(i)
 
-		if (isEndOfWord(currentChar)) {
+		if (END_OF_WORD_CHARS.has(currentChar)) {
 			addCurrentWord(currentWord, words)
 			currentWord = []
 		} else {
@@ -22,6 +22,41 @@ export function tokenize(text: string | null): string[] {
 	return words
 }
 
+const END_OF_WORD_CHARS: Set<string> = new Set([
+	" ",
+	"\n",
+	"\r",
+	"\t",
+	"\x0B",
+	"\f",
+	".",
+	",",
+	",",
+	";",
+	"!",
+	"?",
+	"&",
+	'"',
+	"<",
+	">",
+	"-",
+	"+",
+	"=",
+	"(",
+	")",
+	"[",
+	"]",
+	"{",
+	"}",
+	"/",
+	"\\",
+	"^",
+	"_",
+	"`",
+	"~",
+	"|",
+	"@",
+])
 function addCurrentWord(currentWord: string[], words: string[]) {
 	while (currentWord.length > 0 && currentWord[0] === "'") {
 		currentWord.shift()
@@ -33,47 +68,5 @@ function addCurrentWord(currentWord: string[], words: string[]) {
 
 	if (currentWord.length > 0) {
 		words.push(currentWord.join("").toLowerCase())
-	}
-}
-
-function isEndOfWord(char: string) {
-	switch (char) {
-		case " ":
-		case "\n":
-		case "\r":
-		case "\t":
-		case "\x0B":
-		case "\f":
-		case ".":
-		case ",":
-		case ":":
-		case ";":
-		case "!":
-		case "?":
-		case "&":
-		case '"':
-		case "<":
-		case ">":
-		case "-":
-		case "+":
-		case "=":
-		case "(":
-		case ")":
-		case "[":
-		case "]":
-		case "{":
-		case "}":
-		case "/":
-		case "\\":
-		case "^":
-		case "_":
-		case "`":
-		case "~":
-		case "|":
-		case "@":
-			return true
-
-		default:
-			return false
 	}
 }

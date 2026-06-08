@@ -2,6 +2,7 @@
 
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt } from "@tutao/utils"
+import { TsNumber } from "../app-env/TranspileCompatibility"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
@@ -192,9 +193,10 @@ export class PayloadTooLargeError extends TutanotaError {
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
-export function handleRestError(errorCode: number, path?: string, errorId?: string | null, precondition?: string | null): TutanotaError {
-	let message = `${errorCode}: ${errorId ? errorId + " " : ""}${precondition ? precondition + " " : ""}${path}`
-
+export function handleRestError(errorCode: number, path: string | null, errorId: string | null, precondition: string | null): TutanotaError {
+	const errorIdStr = errorId == null ? "" : errorId + " "
+	const preconditionStr = precondition == null ? "" : precondition + " "
+	const message = `apple ${errorCode}: ${errorIdStr}${preconditionStr}${path}`
 	switch (errorCode) {
 		case ConnectionError.CODE:
 			return new ConnectionError(message)
@@ -274,7 +276,7 @@ export class SuspensionError extends TutanotaError {
 	constructor(message: string, suspensionTime: string | null) {
 		super("SuspensionError", message)
 
-		if (suspensionTime != null && Number.isNaN(filterInt(suspensionTime))) {
+		if (suspensionTime != null && TsNumber.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 
