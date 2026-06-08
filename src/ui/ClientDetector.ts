@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, envProvider, Mode } from "../platform-kit/app-env/Env"
+import { assertMainOrNodeBoot, envProvider, Mode, PlatformId } from "../platform-kit/app-env/Env"
 import { BrowserData, BrowserType, ClientPlatform, DeviceType } from "../platform-kit/app-env/boot/ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../platform-kit/app-env/AppType"
@@ -371,11 +371,11 @@ export class ClientDetector {
 			return `${client.device} ${appType} App`
 		} else if (envProvider.isBrowser()) {
 			return client.browser + " Browser"
-		} else if (this.env.platformId === "linux") {
+		} else if (this.env.platformId === PlatformId.Linux) {
 			return "Linux Desktop"
-		} else if (this.env.platformId === "darwin") {
+		} else if (this.env.platformId === PlatformId.Darwin) {
 			return "Mac Desktop"
-		} else if (this.env.platformId === "win32") {
+		} else if (this.env.platformId === PlatformId.Win32) {
 			return "Windows Desktop"
 		}
 
@@ -437,9 +437,9 @@ export class ClientDetector {
 
 	getClientPlatform(): ClientPlatform {
 		if (envProvider.isDesktop()) {
-			if (this.env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
-			if (this.env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
-			if (this.env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
+			if (this.env.platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
+			if (this.env.platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
+			if (this.env.platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS
 			return ClientPlatform.DESKTOP_UNKNOWN
 		}
 		if (!envProvider.isApp()) return ClientPlatform.WEB

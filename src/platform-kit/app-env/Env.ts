@@ -5,7 +5,7 @@ export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an 
 
 export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
-	staticUrl?: string // if null the url from the browser is used
+	staticUrl: string | null // if null the url from the browser is used
 	mode: Mode
 	platformId: PlatformId | null
 	dist: boolean
@@ -13,7 +13,14 @@ export type EnvType = {
 	timeout: number
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
-	clientName?: string
+	clientName: string | null
+}
+export const enum PlatformId {
+	Ios = "ios",
+	Android = "android",
+	Darwin = "darwin",
+	Linux = "linux",
+	Win32 = "win32",
 }
 
 /**
@@ -85,14 +92,14 @@ export class EnvProvider {
 		if (this.isApp() && this.env.platformId == null) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
-		return this.isApp() && this.env.platformId === "ios"
+		return this.isApp() && this.env.platformId === PlatformId.Ios
 	}
 
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
 	isAppleDevice(): boolean {
-		return this.env.platformId === "darwin" || this.isIOSApp()
+		return this.env.platformId === PlatformId.Darwin || this.isIOSApp()
 	}
 
 	isAndroidApp(): boolean {
@@ -100,7 +107,7 @@ export class EnvProvider {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 
-		return this.isApp() && this.env.platformId === "android"
+		return this.isApp() && this.env.platformId === PlatformId.Android
 	}
 
 	isApp(): boolean {
