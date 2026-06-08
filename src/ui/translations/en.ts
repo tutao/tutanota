@@ -2290,18 +2290,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"transfersDone_label": "Done",
-		"transfersCompleted_msg": "{done} of {total} completed",
-		"transfersFailed_label": "Error",
-		"transfersFailed_msg": "Something went wrong",
-		"transferring_label": "Transferring …",
-		"expandTransferStack_label": "Expand transfers",
-		"collapseTransferStack_label": "Collapse transfers",
-		"confirmCancelTransfers_msg": "Are you sure you want to cancel {count} transfers?",
-		"confirmCancelTransfers_action": "Cancel transfers",
-		"nativeFileUploadTooLarge_msg": "This file is too large to be uploaded - try uploading it from the web app for now.",
-		"selectAllFiles_action": "Select all files and folders",
-		"clearFileSelection_action": "Clear selected files and folders"
+		"zoomOut_action": "Zoom Out"
 	}
 }

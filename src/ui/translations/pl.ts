@@ -1667,6 +1667,7 @@ export default {
 		"redeemedGiftCardPosting_label": "Zrealizowana karta podarunkowa",
 		"redeemGiftCardWithAppStoreSubscription_msg": "Nie można zrealizować karty podarunkowej w ramach subskrypcji App Store.",
 		"redo_action": "Ponów",
+		"referAFriendBothBenefit_label": "sprawiasz, że świat staje się nieco bezpieczniejszy i bardziej prywatny",
 		"referAFriendBothBenefit_title": "Razem,",
 		"referAFriendFriendBenefit_label": "Bezpłatny miesiąc przy wyborze dowolnej oferty rocznej ",
 		"referAFriendFriendBenefit_title": "Twoi przyjaciele otrzymają:",

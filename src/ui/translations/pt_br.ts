@@ -1667,6 +1667,7 @@ export default {
 		"redeemedGiftCardPosting_label": "Cartão de presente resgatado",
 		"redeemGiftCardWithAppStoreSubscription_msg": "Você não pode resgatar um cartão presnte enquanto há uma subscrição na App Store.",
 		"redo_action": "Refazer",
+		"referAFriendBothBenefit_label": "você está tornando o mundo um pouco mais seguro e privado",
 		"referAFriendBothBenefit_title": "Juntos,",
 		"referAFriendFriendBenefit_label": "Um mês extra grátis em qualquer plano anual",
 		"referAFriendFriendBenefit_title": "Seus amigos terão:",
