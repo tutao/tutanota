@@ -23,7 +23,7 @@ export class TFunctionDecl extends TConstruct {
 			throw new IgnorableError("This is just a function signature decleration and not an actual implementation")
 		}
 		this.functionBody = NodeRedirector.redirectNode(functionDeclaration.getBody())
-		this.returnType = new TType(functionDeclaration.getReturnType())
+		this.returnType = new TType(functionDeclaration.getReturnType(), functionDeclaration.getReturnTypeNode())
 		this.parameters = new TConstructMultiple(...params)
 	}
 

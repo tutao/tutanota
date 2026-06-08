@@ -73,8 +73,8 @@ export class TImport extends TConstruct {
 
 	private getKotlinSpecifier(): string {
 		const namedImportsMap = {
-			"@tutao/utils": "de.tutao.platformKit.utils",
-			"@tutao/app-env": "de.tutao.platformKit.appEnv",
+			"tutao.utils": "de.tutao.platformKit.utils",
+			"tutao.appEnv": "de.tutao.platformKit.appEnv",
 		}
 
 		if (this.importKind === TImportKind.Relative) {

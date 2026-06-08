@@ -1,7 +1,19 @@
-import { ConstructOut, TConstruct } from "./TConstruct"
-import { ConditionalExpression, Expression, IfStatement, Statement } from "ts-morph"
+import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
+import {
+	CaseClause,
+	CaseOrDefaultClause,
+	ConditionalExpression,
+	DefaultClause,
+	Expression,
+	IfStatement,
+	Statement,
+	SwitchStatement,
+	SyntaxKind,
+} from "ts-morph"
 import { NodeRedirector } from "../NodeRedirector"
 import * as Assert from "node:assert"
+import { TBlock } from "./TBlock"
+import { TReturnStmt } from "./TReturnStmt"
 
 export class TIfStatement extends TConstruct {
 	private readonly ifCondition: TConstruct
@@ -43,12 +55,51 @@ export class TIfStatement extends TConstruct {
 	}
 }
 
-export class TConditionalExpr extends TConstruct {
-	constructor(conditionalExpression: ConditionalExpression) {
+class TSwitchClause extends TConstruct {
+	private readonly statements: TConstructMultiple
+	private readonly expression: TConstruct | null
+	constructor(caseClause: CaseOrDefaultClause) {
 		super()
+
+		if (caseClause instanceof CaseClause) {
+			this.expression = NodeRedirector.redirectNode(caseClause.getExpression())
+		} else if (caseClause instanceof DefaultClause) {
+			this.expression = null
+		}
+
+		let isTerminated = false
+		this.statements = new TConstructMultiple()
+		for (const stmt of caseClause.getStatements()) {
+			const statementConstruct = NodeRedirector.redirectNode(stmt)
+			if (statementConstruct instanceof TBlock) {
+				isTerminated = isTerminated || statementConstruct.findStatements((stmt) => stmt instanceof TReturnStmt) != null
+			} else {
+				isTerminated = isTerminated || [SyntaxKind.ReturnStatement, SyntaxKind.ThrowStatement, SyntaxKind.BreakStatement].includes(stmt.getKind())
+			}
+			this.statements.addConstructs(statementConstruct)
+		}
+		Assert.equal(isTerminated, true, "Try to have a terminating last statement in all case branch")
 	}
 
 	generateKotlin(): ConstructOut {
-		return ""
+		const expression = this.expression.generateKotlin()
+		const body = this.statements.withSeparator("\n;").generateKotlin()
+		return `${expression} -> ${body}`
+	}
+}
+
+export class TSwitchStatement extends TConstruct {
+	private readonly cased: TConstruct
+	private readonly clauses: TConstructMultiple<TSwitchClause>
+	constructor(switchStatement: SwitchStatement) {
+		super()
+		const statements = switchStatement.getClauses().map((clause) => new TSwitchClause(clause))
+		this.clauses = new TConstructMultiple(...statements)
+	}
+
+	generateKotlin(): ConstructOut {
+		const cased = this.cased.generateKotlin()
+		const clauses = this.clauses.withSeparator("\n").generateKotlin()
+		return `when (${cased}) { ${clauses} }`
 	}
 }

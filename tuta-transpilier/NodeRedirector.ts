@@ -29,6 +29,7 @@ import {
 	SatisfiesExpression,
 	StringLiteral,
 	SuperExpression,
+	SwitchStatement,
 	ThrowStatement,
 	TryStatement,
 	ts,
@@ -46,7 +47,7 @@ import { TClassDecl } from "./constructs/TClassDecl"
 import { TInterfaceDecl } from "./constructs/TInterfaceDecl"
 import { TEnum } from "./constructs/TEnum"
 import { TTypeAlias } from "./constructs/TTypeAlias"
-import { TIfStatement } from "./constructs/TIfStatement"
+import { TIfStatement, TSwitchStatement } from "./constructs/TIfStatement"
 import { TCall, TNew } from "./constructs/TCall"
 import { TArrow, TFunctionDecl } from "./constructs/TFunctionDecl"
 import { TBinaryExpr } from "./constructs/TBinaryExpr"
@@ -69,6 +70,7 @@ import { TForOfLoop, TWhileLoop } from "./constructs/TLoop"
 import { TElementAccess } from "./constructs/TElementAccess"
 import { TAsExpr } from "./constructs/TCastings"
 import { TBindingPatterns, TVariable } from "./constructs/TVariable"
+import { TReturnStmt } from "./constructs/TReturnStmt"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -94,7 +96,7 @@ export class NodeRedirector {
 		} else if (typedNode instanceof VariableDeclaration) {
 			switch (typedNode.getNameNode().getKind()) {
 				case SyntaxKind.Identifier:
-					return new TVariable(typedNode)
+					return TVariable.new(typedNode)
 				case SyntaxKind.ObjectBindingPattern:
 					return new TBindingPatterns(typedNode)
 				case SyntaxKind.ArrayBindingPattern:
@@ -119,6 +121,8 @@ export class NodeRedirector {
 			return TIfStatement.fromIfStatement(typedNode)
 		} else if (typedNode instanceof ConditionalExpression) {
 			return TIfStatement.fromConditionalStatement(typedNode)
+		} else if (typedNode instanceof SwitchStatement) {
+			return new TSwitchStatement(typedNode)
 		} else if (typedNode instanceof CallExpression) {
 			return TCall.from(typedNode)
 		} else if (typedNode instanceof ArrowFunction) {
@@ -143,16 +147,7 @@ export class NodeRedirector {
 		} else if (typedNode instanceof SatisfiesExpression) {
 			return NodeRedirector.redirectNode(typedNode.getExpression())
 		} else if (typedNode instanceof ReturnStatement) {
-			const childNodeCount = typedNode.getChildCount()
-			Assert.equal(childNodeCount === 1 || childNodeCount === 2, true, "return statement should have either 1 or 2 expression")
-			const [returnKeyword, returnExpression] = typedNode.getChildren()
-			const returnKeywordConstruct = new TOneToOneReplacement(returnKeyword, SyntaxKind.ReturnKeyword)
-			if (returnExpression == null) {
-				return returnKeywordConstruct
-			} else {
-				const returnExpressionConstruct = NodeRedirector.redirectNode(returnExpression)
-				return new TConstructMultiple(returnKeywordConstruct, returnExpressionConstruct)
-			}
+			return new TReturnStmt(typedNode)
 		} else if (typedNode instanceof Identifier) {
 			const symbol = typedNode.getSymbol()
 			Assert.notEqual(symbol, null, "Symbol for an identifier is null? is this defined in global .d.ts. Dont do that")

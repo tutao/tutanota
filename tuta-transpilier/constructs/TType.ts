@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct, TConstructMultiple, UnitConstructOut } from "./TConstruct"
-import { Signature, Type } from "ts-morph"
+import { Signature, Type, TypeNode } from "ts-morph"
 import * as Assert from "node:assert"
 import { TargetLanguage } from "../LangTarget"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
@@ -24,7 +24,7 @@ export class TType extends TConstruct {
 	private readonly genericTypes: Array<TType> = []
 	private readonly baseType: string | TType | TCallableTType
 
-	constructor(typ: Type) {
+	constructor(typ: Type, typeNode?: TypeNode) {
 		super()
 
 		const apparentType = typ.getApparentType()

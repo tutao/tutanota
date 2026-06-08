@@ -7,34 +7,38 @@ import * as Assert from "node:assert"
 import SyntaxKind = ts.SyntaxKind
 
 export class TBindingPatterns extends TConstruct {
-	private readonly declarationType: TVariableKind
-	private readonly destructuredProperties: TConstructMultiple<TTypedIdentifier>
-	private readonly initializer: TConstruct
+	private readonly expandedAssignments: TConstructMultiple<TVariable>
 
 	constructor(variableDeclaration: VariableDeclaration) {
 		super()
-		const declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
-		if (declarationType === VariableDeclarationKind.Const) {
-			this.declarationType = TVariableKind.Immutable
-		} else if (declarationType === VariableDeclarationKind.Let) {
-			this.declarationType = TVariableKind.Mutable
+		let variableKind: TVariableKind
+		const declarationKind = variableDeclaration.getVariableStatement().getDeclarationKind()
+		if (declarationKind === VariableDeclarationKind.Const) {
+			variableKind = TVariableKind.Immutable
+		} else if (declarationKind === VariableDeclarationKind.Let) {
+			variableKind = TVariableKind.Mutable
 		}
-		const initializer = variableDeclaration.getInitializerOrThrow("Object binding pattern should always have a initializer")
-		const initializerType = initializer.getContextualType().getApparentType()
-		this.initializer = NodeRedirector.redirectNode(initializer)
-		const destructuredProps = variableDeclaration
+		const initializerRaw = variableDeclaration.getInitializerOrThrow("Object binding pattern should always have a initializer")
+		const initializerType = initializerRaw.getContextualType().getApparentType()
+		const initializer = NodeRedirector.redirectNode(initializerRaw)
+		const bindedElements = variableDeclaration
 			.getNameNode()
 			.asKindOrThrow(SyntaxKind.ObjectBindingPattern, "only object destructuring is expected")
 			.getElements()
-			.map((bindingElem) => {
-				Assert.equal(bindingElem.getInitializer(), null, "Default deinitializer in object destruct pattern is not supported")
-				const propName = new TIdentitider(bindingElem.getName())
-				const propType = initializerType.getProperty(bindingElem.getName())
-			})
+		this.expandedAssignments = new TConstructMultiple()
+		for (const bindingElem of bindedElements) {
+			Assert.equal(bindingElem.getInitializer(), null, "Default deinitializer in object destruct pattern is not supported")
+			const propName = new TIdentitider(bindingElem.getName())
+			const propType = initializerType.getProperty(bindingElem.getName()).getDeclaredType()
+			const typedId = new TTypedIdentifier(propName, new TType(propType))
+			const propInitializer = new TConstructMultiple(initializer, propName).withSeparator(".")
+			const decl = TVariable.__fromDestructuredPattern(variableKind, typedId, propInitializer)
+			this.expandedAssignments.addConstructs(decl)
+		}
 	}
 
 	generateKotlin(): ConstructOut {
-		return this.expandedDecls.withSeparator("\n;").generateKotlin()
+		return this.expandedAssignments.withSeparator("\n;").generateKotlin()
 	}
 }
 
@@ -44,26 +48,30 @@ export const enum TVariableKind {
 }
 
 export class TVariable extends TConstruct {
-	private readonly declarationType: TVariableKind
-	private readonly typedIdentifier: TTypedIdentifier
-	private readonly initializer: TConstruct | null = null
-
-	constructor(variableDeclaration: VariableDeclaration) {
+	private constructor(
+		private readonly declarationType: TVariableKind,
+		private readonly typedIdentifier: TTypedIdentifier,
+		private readonly initializer: TConstruct | null = null,
+	) {
 		super()
-		const name = new TIdentitider(variableDeclaration.getSymbol().getName())
-		const dataType = new TType(variableDeclaration.getType())
-		this.typedIdentifier = new TTypedIdentifier(name, dataType)
-		const declarationType = variableDeclaration.getVariableStatement()?.getDeclarationKind() ?? VariableDeclarationKind.Const
-		if (declarationType === VariableDeclarationKind.Const) {
-			this.declarationType = TVariableKind.Immutable
-		} else if (declarationType === VariableDeclarationKind.Let) {
-			this.declarationType = TVariableKind.Mutable
+	}
+
+	public static new(variableDeclaration: VariableDeclaration): TVariable {
+		let declarationType: TVariableKind
+		const declarationKind = variableDeclaration.getVariableStatement()?.getDeclarationKind() ?? VariableDeclarationKind.Const
+		if (declarationKind === VariableDeclarationKind.Const) {
+			declarationType = TVariableKind.Immutable
+		} else if (declarationKind === VariableDeclarationKind.Let) {
+			declarationType = TVariableKind.Mutable
 		}
 
-		const initializer = variableDeclaration.getInitializer()
-		if (initializer) {
-			this.initializer = NodeRedirector.redirectNode(initializer)
-		}
+		const typedIdentifier = new TTypedIdentifier(new TIdentitider(variableDeclaration.getSymbol().getName()), new TType(variableDeclaration.getType()))
+		const initializer = variableDeclaration.getInitializer() ? NodeRedirector.redirectNode(variableDeclaration.getInitializer()) : null
+		return new TVariable(declarationType, typedIdentifier, initializer)
+	}
+
+	static __fromDestructuredPattern(declarationType: TVariableKind, typedIdentifier: TTypedIdentifier, initializer: TConstruct) {
+		return new TVariable(declarationType, typedIdentifier, initializer)
 	}
 
 	generateKotlin(): ConstructOut {
