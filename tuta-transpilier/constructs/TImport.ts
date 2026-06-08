@@ -79,7 +79,7 @@ export class TImport extends TConstruct {
 
 		if (this.importKind === TImportKind.Relative) {
 			const [layerName, moduleName] = this.specifierComponents
-			return `${layerName.generateKotlin()}.${moduleName.generateKotlin()}`
+			return `de.tutao.${layerName.generateKotlin()}.${moduleName.generateKotlin()}`
 		} else if (this.importKind === TImportKind.External) {
 			const specifierSuffix = this.specifierComponents.map((sc) => sc.generateKotlin()).join(".")
 			if (namedImportsMap[specifierSuffix]) {
