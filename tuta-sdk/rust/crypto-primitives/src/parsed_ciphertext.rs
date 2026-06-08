@@ -31,6 +31,18 @@ pub enum SymmetricCipherVersionError {
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum AesCipherVersion {
+	UnusedReservedUnauthenticated,
+	AesCbcThenHmac,
+}
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum AeadCipherVersion {
+	AeadWithGroupKey,
+	AeadWithSessionKey,
+}
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum SymmetricCipherVersion {
 	UnusedReservedUnauthenticated,
 	AesCbcThenHmac,
@@ -189,6 +201,10 @@ impl ParsedCiphertextAeadWithGroupKey {
 			.expect("There should be INITIALIZATION_VECTOR_BYTE_SIZE many bytes.")
 	}
 
+	pub fn initialization_vector_and_ciphertext(&self) -> &[u8] {
+		&self.versioned_ciphertext[self.initialization_vector_start..self.ciphertext.end]
+	}
+
 	pub fn ciphertext(&self) -> &[u8] {
 		&self.versioned_ciphertext[self.ciphertext.clone()]
 	}
@@ -215,6 +231,10 @@ impl ParsedCiphertextAeadWithSessionKey {
 			..self.initialization_vector_start + INITIALIZATION_VECTOR_BYTE_SIZE]
 			.try_into()
 			.expect("There should be INITIALIZATION_VECTOR_BYTE_SIZE many bytes.")
+	}
+
+	pub fn initialization_vector_and_ciphertext(&self) -> &[u8] {
+		&self.versioned_ciphertext[self.initialization_vector_start..self.ciphertext.end]
 	}
 
 	pub fn ciphertext(&self) -> &[u8] {
@@ -253,6 +273,15 @@ impl ParsedCiphertextAesCbc {
 			Self::AesCbcThenHmac(parsed_ciphertext) => parsed_ciphertext.ciphertext(),
 		}
 	}
+
+	pub fn cipher_version(&self) -> AesCipherVersion {
+		match self {
+			Self::UnusedReservedUnauthenticated(..) => {
+				AesCipherVersion::UnusedReservedUnauthenticated
+			},
+			Self::AesCbcThenHmac(..) => AesCipherVersion::AesCbcThenHmac,
+		}
+	}
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -271,6 +300,17 @@ impl ParsedCiphertextAead {
 		}
 	}
 
+	pub fn initialization_vector_and_ciphertext(&self) -> &[u8] {
+		match self {
+			Self::AeadWithGroupKey(parsed_ciphertext) => {
+				parsed_ciphertext.initialization_vector_and_ciphertext()
+			},
+			Self::AeadWithSessionKey(parsed_ciphertext) => {
+				parsed_ciphertext.initialization_vector_and_ciphertext()
+			},
+		}
+	}
+
 	pub fn ciphertext(&self) -> &[u8] {
 		match self {
 			Self::AeadWithGroupKey(parsed_ciphertext) => parsed_ciphertext.ciphertext(),
@@ -282,6 +322,13 @@ impl ParsedCiphertextAead {
 		match self {
 			Self::AeadWithGroupKey(parsed_ciphertext) => parsed_ciphertext.mac_tag(),
 			Self::AeadWithSessionKey(parsed_ciphertext) => parsed_ciphertext.mac_tag(),
+		}
+	}
+
+	pub fn cipher_version(&self) -> AeadCipherVersion {
+		match self {
+			Self::AeadWithGroupKey(..) => AeadCipherVersion::AeadWithGroupKey,
+			Self::AeadWithSessionKey(..) => AeadCipherVersion::AeadWithSessionKey,
 		}
 	}
 }
@@ -444,6 +491,17 @@ impl ParsedCiphertext {
 			.ok_or(CiphertextParserError::NotEnoughBytesForGroupKeyVersion)?;
 		ciphertext.start += 1;
 		Ok(group_key_version_byte.into())
+	}
+
+	pub fn cipher_version(&self) -> SymmetricCipherVersion {
+		match self {
+			Self::UnusedReservedUnauthenticated(..) => {
+				SymmetricCipherVersion::UnusedReservedUnauthenticated
+			},
+			Self::AesCbcThenHmac(..) => SymmetricCipherVersion::AesCbcThenHmac,
+			Self::AeadWithGroupKey(..) => SymmetricCipherVersion::AeadWithGroupKey,
+			Self::AeadWithSessionKey(..) => SymmetricCipherVersion::AeadWithSessionKey,
+		}
 	}
 }
 

@@ -4,6 +4,7 @@ use crate::aes::{
 use crate::blake3;
 use crate::blake3::BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES;
 use crate::key::GenericAesKey;
+use crate::parsed_ciphertext::{AeadCipherVersion, ParsedCiphertextAead};
 use crate::randomizer_facade::RandomizerFacade;
 use crate::versioned::Versioned;
 
@@ -130,6 +131,13 @@ impl AeadSubKeys {
 			AeadSubKeys::AeadWithSessionKeySubKeys { .. } => Ok(vec![3]),
 		}
 	}
+
+	pub fn cipher_version(&self) -> AeadCipherVersion {
+		match self {
+			Self::AeadWithGroupKeySubKeys { .. } => AeadCipherVersion::AeadWithGroupKey,
+			Self::AeadWithSessionKeySubKeys { .. } => AeadCipherVersion::AeadWithSessionKey,
+		}
+	}
 }
 
 pub struct AeadFacade {
@@ -220,72 +228,35 @@ impl AeadFacade {
 	pub fn decrypt(
 		&self,
 		sub_keys: &AeadSubKeys,
-		versioned_ciphertext: &[u8],
+		parsed_ciphertext: ParsedCiphertextAead,
 		associated_data: &[u8],
 	) -> Result<Vec<u8>, AeadDecryptError> {
-		if versioned_ciphertext.is_empty() {
+		if sub_keys.cipher_version() != parsed_ciphertext.cipher_version() {
 			return Err(AeadDecryptError::DecryptionError);
 		}
-		let version_byte = versioned_ciphertext[0];
-		let tagged_ciphertext: &[u8];
-		match version_byte {
-			2 => {
-				if let AeadSubKeys::AeadWithGroupKeySubKeys {
-					group_key_version, ..
-				} = sub_keys
-				{
-					if versioned_ciphertext.len() < 3 {
-						return Err(AeadDecryptError::DecryptionError);
-					}
-					let group_key_version_length_byte = versioned_ciphertext[1];
-					if group_key_version_length_byte != 0 {
-						return Err(AeadDecryptError::DecryptionError);
-					}
-					let group_key_version_byte = versioned_ciphertext[2];
-					if *group_key_version != <u8 as Into<u64>>::into(group_key_version_byte) {
-						return Err(AeadDecryptError::DecryptionError);
-					}
-					tagged_ciphertext = &versioned_ciphertext[3..];
-				} else {
-					return Err(AeadDecryptError::DecryptionError);
-				}
-			},
-			3 => {
-				if let AeadSubKeys::AeadWithSessionKeySubKeys { .. } = sub_keys {
-					tagged_ciphertext = &versioned_ciphertext[1..];
-				} else {
-					return Err(AeadDecryptError::DecryptionError);
-				}
-			},
-			_ => return Err(AeadDecryptError::DecryptionError),
-		};
 
-		let ciphertext_offset = INITIALIZATION_VECTOR_BYTE_SIZE;
-		if tagged_ciphertext.len() < ciphertext_offset + BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES {
-			return Err(AeadDecryptError::DecryptionError);
-		}
-		let end_of_ciphertext = tagged_ciphertext.len() - BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES;
-
-		let initialization_vector = &tagged_ciphertext[..ciphertext_offset];
-		let ciphertext = &tagged_ciphertext[ciphertext_offset..end_of_ciphertext];
-		let mut tag = [0u8; BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES];
-		tag.copy_from_slice(&tagged_ciphertext[end_of_ciphertext..]);
+		let initialization_vector_and_ciphertext =
+			parsed_ciphertext.initialization_vector_and_ciphertext();
+		let authentication_data = &[
+			&initialization_vector_and_ciphertext.len().to_be_bytes(),
+			initialization_vector_and_ciphertext,
+			associated_data,
+		];
 
 		blake3::verify_blake3_mac(
 			sub_keys.authentication_key().as_bytes(),
-			&[
-				&(end_of_ciphertext as u32).to_be_bytes(),
-				initialization_vector,
-				ciphertext,
-				associated_data,
-			],
-			tag,
+			authentication_data,
+			*parsed_ciphertext.mac_tag(),
 		)
 		.map_err(|_| AeadDecryptError::DecryptionError)?;
 
-		let nonce =
-			Nonce::try_from_slice(initialization_vector).expect("nonce should have correct size");
-		let mut plaintext = aes_ctr_decrypt(sub_keys.encryption_key(), ciphertext, &nonce);
+		let nonce = Nonce::try_from_slice(parsed_ciphertext.initialization_vector())
+			.expect("nonce should have correct size");
+		let mut plaintext = aes_ctr_decrypt(
+			sub_keys.encryption_key(),
+			parsed_ciphertext.ciphertext(),
+			&nonce,
+		);
 		Self::unpad(&mut plaintext)?;
 
 		Ok(plaintext)
