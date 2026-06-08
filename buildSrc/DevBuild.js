@@ -150,6 +150,8 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 			sourcemap: "inline",
 			// overwrite the files rather than keeping all versions in the build folder
 			chunkFileNames: "[name]-chunk.js",
+			banner: (chunk) =>
+				`console.log("instantiating chunk ${chunk.name}", "worker:", typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)`,
 		})
 	})
 
