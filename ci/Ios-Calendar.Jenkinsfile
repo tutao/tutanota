@@ -106,8 +106,8 @@ pipeline {
 								util.runFastlane("de.tutao.calendar", "build_calendar_adhoc_prod")
 								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 
-                                // Only build Appstore version if we are uploading to Nexus, it is identical except for
-                                // signing so there's no point in just building it.
+								// Only build Appstore version if we are uploading to Nexus, it is identical except for
+								// signing so there's no point in just building it.
 								if (params.UPLOAD) {
 									util.runFastlane("de.tutao.calendar", "build_calendar_appstore_prod")
 									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
@@ -118,34 +118,34 @@ pipeline {
 					}
 				}
 			}
+		}
 
-			stage('Upload to Nexus') {
-				environment {
-					PATH = "${env.NODE_PATH}:${env.PATH}"
-				}
-				when {
-					expression { params.UPLOAD }
-				}
-				agent {
-					label 'linux'
-				}
-				steps {
-					script {
-						if (params.STAGING) {
-							unstash 'ipa-adhoc-staging'
-							unstash 'ipa-staging'
-							publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "ipa")
-							publishToNexus("calendar-ios-test", "calendar-${VERSION}-test.ipa", "ipa")
-						}
+		stage('Upload to Nexus') {
+			environment {
+				PATH = "${env.NODE_PATH}:${env.PATH}"
+			}
+			when {
+				expression { params.UPLOAD }
+			}
+			agent {
+				label 'linux'
+			}
+			steps {
+				script {
+					if (params.STAGING) {
+						unstash 'ipa-adhoc-staging'
+						unstash 'ipa-staging'
+						publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "ipa")
+						publishToNexus("calendar-ios-test", "calendar-${VERSION}-test.ipa", "ipa")
+					}
 
-						if (params.PROD) {
-							unstash 'ipa-adhoc-production'
-							unstash 'ipa-production'
-							unstash 'dsym-production'
-							publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "ipa")
-							publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
-							publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
-						}
+					if (params.PROD) {
+						unstash 'ipa-adhoc-production'
+						unstash 'ipa-production'
+						unstash 'dsym-production'
+						publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "ipa")
+						publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
+						publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 					}
 				}
 			}
