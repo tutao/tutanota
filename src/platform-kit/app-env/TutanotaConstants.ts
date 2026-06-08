@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { isAdminClient, isApp, isDesktop } from "./Env"
-import { TsMath } from "./TranspileCompatibility"
+import { TsMath, TsObject } from "./TranspileCompatibility"
 
 /**
  * parameter names are shortened to reduce size
@@ -62,7 +62,7 @@ export const Const: ConstType = {
 	EXECUTE_KDF_MIGRATION: true,
 } as const
 
-export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
+export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
 	"tuta.com",
 	"tutamail.com",
 	"tuta.io",
