@@ -2288,7 +2288,6 @@ export type TranslationKeyType =
 	| "referAFriendBothBenefit_title"
 	| "referAFriendMoreInfo_label"
 	| "referAFriendBothBenefit_label"
-	| "emptyString_msg"
 	| "transfersDone_label"
 	| "transfersCompleted_msg"
 	| "transfersFailed_label"
@@ -2301,3 +2300,4 @@ export type TranslationKeyType =
 	| "nativeFileUploadTooLarge_msg"
 	| "selectAllFiles_action"
 	| "clearFileSelection_action"
+	| "emptyString_msg"
