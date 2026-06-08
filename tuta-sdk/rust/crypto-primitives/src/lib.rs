@@ -7,6 +7,7 @@ pub mod compatibility_test_utils;
 pub mod ed25519;
 pub mod hmac;
 pub mod key;
+pub mod parsed_ciphertext;
 pub mod randomizer_facade;
 pub mod sha;
 #[cfg(test)]
