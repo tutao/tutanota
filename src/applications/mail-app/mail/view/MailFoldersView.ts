@@ -204,6 +204,11 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						onHover: () => {
 							this.visibleRow = id
 						},
+						onDragEnter: () => {
+							if (hasChildren && !currentExpansionState) {
+								attrs.onFolderExpanded(system.folder, currentExpansionState)
+							}
+						},
 						fullFolderPath: fullFolderPath,
 					}),
 					childResult.children,
