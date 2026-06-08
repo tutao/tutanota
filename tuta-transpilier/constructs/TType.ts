@@ -7,13 +7,15 @@ import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 export const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "TsNumber", swift: "NSNumber" },
 	Boolean: { kotlin: "Boolean", swift: "" },
-	Array: { kotlin: "Array", swift: "" },
+	Array: { kotlin: "TsArray", swift: "" },
 	String: { kotlin: "TsString", swift: "" },
 	Void: { kotlin: "Unit", swift: "" },
 	Record: { kotlin: "Map", swift: "" },
 	Date: { kotlin: "TsDate", swift: "" },
 	Error: { kotlin: "TsError", swift: "" },
 	RegExp: { kotlin: "TsRegex", swift: "" },
+	Uint8Array: { kotlin: "TsUint8Array", swift: "" },
+	Map: { kotlin: "TsMap", swift: "" },
 } as const)
 
 export class TType extends TConstruct {
@@ -37,14 +39,26 @@ export class TType extends TConstruct {
 		} else if (typ.isArray()) {
 			this.baseType = typ.isReadonlyArray() ? "List" : "Array"
 			this.genericTypes.push(new TType(apparentType.getArrayElementType()))
+		} else if (typ.isTuple()) {
+			const [firstItem, secondItem, thirdItem, ...rest] = apparentType.getTupleElements()
+			Assert.notEqual(secondItem, null, "Tuple of only one type? Use the type directly")
+			Assert.equal(rest.length, 0, "Tuple with more than 3 elements? Prefer named type alias")
+			this.genericTypes.push(new TType(firstItem))
+			this.genericTypes.push(new TType(secondItem))
+			if (thirdItem != null) {
+				this.genericTypes.push(new TType(thirdItem))
+				this.baseType = "Pair"
+			} else {
+				this.baseType = "Triple"
+			}
 		} else if (typ.isBoolean() || typ.isBooleanLiteral()) {
 			this.baseType = "Boolean"
 		} else if (typ.isEnum()) {
 			Assert.notEqual(typeName, null, "All enum should have a name")
 			this.baseType = typeName
-		} else if (typ.isIntersection()) {
+		} else if (apparentType.isIntersection()) {
 			throw new Error("Convert it to interface and just extend that interface instead of using intersection")
-		} else if (typ.isAny()) {
+		} else if (typ.isAny() || typ.isUnknown()) {
 			this.baseType = "ANYYYYYY"
 		} else if (apparentType.getCallSignatures().length > 0) {
 			Assert.equal(apparentType.getCallSignatures().length, 1, "Callable type with overload ( multiple signature ) is not supported")
@@ -71,7 +85,14 @@ export class TType extends TConstruct {
 		} else if (typeName != null) {
 			this.baseType = typeName
 		} else {
-			throw new Error("Unknown type: " + typ.getText())
+			// common ts utility types
+			const [firstTypeArg, ...restTypeArgs] = typ.getAliasTypeArguments()
+			if (firstTypeArg != null && restTypeArgs.length === 0 && typ.isAssignableTo(firstTypeArg)) {
+				// for things like: `Awaited<T>`, which can be assigneable to just `T`
+				this.baseType = new TType(firstTypeArg)
+			} else {
+				throw new Error("Unknown type: " + typ.getText())
+			}
 		}
 
 		const typeArguments = apparentType.getAliasTypeArguments().map((t) => new TType(t))

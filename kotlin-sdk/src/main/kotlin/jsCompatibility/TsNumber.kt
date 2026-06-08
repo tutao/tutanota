@@ -41,4 +41,12 @@ class TsNumber() : Number() {
 		return TsNumber(this.value.minus(other.value))
 	}
 
+	operator fun plus(other: TsNumber): TsNumber {
+		return TsNumber(this.value.plus(other.value))
+	}
+
+	operator fun plus(other: Int): TsNumber {
+		return TsNumber(this.value.plus(other))
+	}
+
 }

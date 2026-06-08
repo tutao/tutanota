@@ -1,10 +1,11 @@
-import { ArrowFunction, Block, BodiedNode, FunctionDeclaration, MethodDeclaration, ParameteredNode, ReturnTypedNode } from "ts-morph"
+import { ArrowFunction, BodiedNode, FunctionDeclaration, MethodDeclaration, ParameteredNode, ReturnTypedNode } from "ts-morph"
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
 import { TIdentifierFormatting, TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TVisibility } from "./TVisibility"
 import { NodeRedirector } from "../NodeRedirector"
 import { TType } from "./TType"
 import { TEmpty } from "./TEmpty"
+import { IgnorableError } from "../errors/IgnorableError"
 
 export class TFunctionDecl extends TConstruct {
 	private readonly returnType: TType
@@ -18,6 +19,9 @@ export class TFunctionDecl extends TConstruct {
 	) {
 		super()
 		const params = functionDeclaration.getParameters().map((param) => new TTypedIdentifier(new TIdentitider(param.getName()), new TType(param.getType())))
+		if (functionDeclaration.getBody() == null) {
+			throw new IgnorableError("This is just a function signature decleration and not an actual implementation")
+		}
 		this.functionBody = NodeRedirector.redirectNode(functionDeclaration.getBody())
 		this.returnType = new TType(functionDeclaration.getReturnType())
 		this.parameters = new TConstructMultiple(...params)

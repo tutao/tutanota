@@ -1,11 +1,50 @@
-import { ConstructOut, TConstruct } from "./TConstruct"
-import { VariableDeclaration, VariableDeclarationKind } from "ts-morph"
+import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
+import { ts, VariableDeclaration, VariableDeclarationKind } from "ts-morph"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
 import { TType } from "./TType"
 import { NodeRedirector } from "../NodeRedirector"
+import * as Assert from "node:assert"
+import SyntaxKind = ts.SyntaxKind
+
+export class TBindingPatterns extends TConstruct {
+	private readonly declarationType: TVariableKind
+	private readonly destructuredProperties: TConstructMultiple<TTypedIdentifier>
+	private readonly initializer: TConstruct
+
+	constructor(variableDeclaration: VariableDeclaration) {
+		super()
+		const declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
+		if (declarationType === VariableDeclarationKind.Const) {
+			this.declarationType = TVariableKind.Immutable
+		} else if (declarationType === VariableDeclarationKind.Let) {
+			this.declarationType = TVariableKind.Mutable
+		}
+		const initializer = variableDeclaration.getInitializerOrThrow("Object binding pattern should always have a initializer")
+		const initializerType = initializer.getContextualType().getApparentType()
+		this.initializer = NodeRedirector.redirectNode(initializer)
+		const destructuredProps = variableDeclaration
+			.getNameNode()
+			.asKindOrThrow(SyntaxKind.ObjectBindingPattern, "only object destructuring is expected")
+			.getElements()
+			.map((bindingElem) => {
+				Assert.equal(bindingElem.getInitializer(), null, "Default deinitializer in object destruct pattern is not supported")
+				const propName = new TIdentitider(bindingElem.getName())
+				const propType = initializerType.getProperty(bindingElem.getName())
+			})
+	}
+
+	generateKotlin(): ConstructOut {
+		return this.expandedDecls.withSeparator("\n;").generateKotlin()
+	}
+}
+
+export const enum TVariableKind {
+	Mutable,
+	Immutable,
+}
 
 export class TVariable extends TConstruct {
-	private readonly declarationType: VariableDeclarationKind
+	private readonly declarationType: TVariableKind
 	private readonly typedIdentifier: TTypedIdentifier
 	private readonly initializer: TConstruct | null = null
 
@@ -14,7 +53,13 @@ export class TVariable extends TConstruct {
 		const name = new TIdentitider(variableDeclaration.getSymbol().getName())
 		const dataType = new TType(variableDeclaration.getType())
 		this.typedIdentifier = new TTypedIdentifier(name, dataType)
-		this.declarationType = variableDeclaration.getVariableStatement().getDeclarationKind()
+		const declarationType = variableDeclaration.getVariableStatement()?.getDeclarationKind() ?? VariableDeclarationKind.Const
+		if (declarationType === VariableDeclarationKind.Const) {
+			this.declarationType = TVariableKind.Immutable
+		} else if (declarationType === VariableDeclarationKind.Let) {
+			this.declarationType = TVariableKind.Mutable
+		}
+
 		const initializer = variableDeclaration.getInitializer()
 		if (initializer) {
 			this.initializer = NodeRedirector.redirectNode(initializer)
@@ -23,12 +68,10 @@ export class TVariable extends TConstruct {
 
 	generateKotlin(): ConstructOut {
 		let declarator: string
-		if (this.declarationType === VariableDeclarationKind.Const) {
+		if (this.declarationType === TVariableKind.Immutable) {
 			declarator = `val`
-		} else if (this.declarationType === VariableDeclarationKind.Let) {
+		} else if (this.declarationType === TVariableKind.Mutable) {
 			declarator = `var`
-		} else if (this.declarationType === VariableDeclarationKind.Using || this.declarationType === VariableDeclarationKind.AwaitUsing) {
-			throw new Error("awaitUsing or Using is not supported!!")
 		}
 
 		const typedId = this.typedIdentifier.generateKotlin()

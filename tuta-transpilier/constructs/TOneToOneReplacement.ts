@@ -28,6 +28,7 @@ const MAPPED_REPLACEMENTS: Record<any, TARGET_REPLACEMENT> = {
 	[SyntaxKind.LessThanToken]: { kotlin: null, swift: null },
 	[SyntaxKind.ExclamationToken]: { kotlin: "!", swift: null },
 	[SyntaxKind.PlusEqualsToken]: { kotlin: null, swift: null },
+	[SyntaxKind.PlusPlusToken]: { kotlin: null, swift: null },
 	[SyntaxKind.ThrowKeyword]: { kotlin: "throw", swift: "throw" },
 	[SyntaxKind.NullKeyword]: { kotlin: "null", swift: "nil" },
 	[SyntaxKind.FalseKeyword]: { kotlin: "false", swift: "" },
@@ -41,7 +42,7 @@ export class TOneToOneReplacement extends TConstruct {
 	constructor(symbolNode: TsNode, expectedWord: SyntaxKind | null) {
 		super()
 		const nodeKind = symbolNode.getKind()
-		Assert.equal(TOneToOneReplacement.canBeOneToOneReplaced(nodeKind), true, "Non-operator node passed")
+		Assert.equal(TOneToOneReplacement.canBeOneToOneReplaced(nodeKind), true, "Non-operator node passed: " + symbolNode.getKindName())
 		if (expectedWord) Assert.equal(expectedWord, nodeKind, "Expectation mismatch for token")
 
 		const nodeRawText = symbolNode.getText(false)

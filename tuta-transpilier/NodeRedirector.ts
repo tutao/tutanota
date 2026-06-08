@@ -12,6 +12,7 @@ import {
 	EnumDeclaration,
 	ExportDeclaration,
 	ExpressionStatement,
+	ForOfStatement,
 	FunctionDeclaration,
 	Identifier,
 	IfStatement,
@@ -33,6 +34,8 @@ import {
 	ts,
 	TypeAliasDeclaration,
 	TypeReferenceNode,
+	VariableDeclaration,
+	VariableDeclarationList,
 	VariableStatement,
 	WhileStatement,
 } from "ts-morph"
@@ -53,7 +56,6 @@ import { TIdentitider } from "./constructs/TIdentitider"
 import { TNumericLiteral, TStringLiteral } from "./constructs/TLiterals"
 import { TOneToOneReplacement } from "./constructs/TOneToOneReplacement"
 import { TNotSupported } from "./constructs/TNotSupported"
-import { TVariable } from "./constructs/TVariable"
 import { TArrayLiteral } from "./constructs/TArrayLiteral"
 import { IgnorableError } from "./errors/IgnorableError"
 import { TPropAccess } from "./constructs/TPropAccess"
@@ -63,9 +65,10 @@ import { TType } from "./constructs/TType"
 import { TRegexLiteral } from "./constructs/TRegexLiteral"
 import { TTry } from "./constructs/TTry"
 import { TNonNullExpr } from "./constructs/TNonNullExpr"
-import { TWhileLoop } from "./constructs/TLoop"
+import { TForOfLoop, TWhileLoop } from "./constructs/TLoop"
 import { TElementAccess } from "./constructs/TElementAccess"
 import { TAsExpr } from "./constructs/TCastings"
+import { TBindingPatterns, TVariable } from "./constructs/TVariable"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -86,8 +89,22 @@ export class NodeRedirector {
 		} else if (typedNode instanceof ExportDeclaration) {
 			return new TExportDecl(typedNode)
 		} else if (typedNode instanceof VariableStatement) {
-			const declarations = typedNode.getDeclarations().map((declaration) => new TVariable(declaration))
+			const declarations = typedNode.getDeclarations().map((declaration) => NodeRedirector.redirectNode(declaration))
 			return new TConstructMultiple(...declarations).withSeparator("\n")
+		} else if (typedNode instanceof VariableDeclaration) {
+			switch (typedNode.getNameNode().getKind()) {
+				case SyntaxKind.Identifier:
+					return new TVariable(typedNode)
+				case SyntaxKind.ObjectBindingPattern:
+					return new TBindingPatterns(typedNode)
+				case SyntaxKind.ArrayBindingPattern:
+					throw new IgnorableError("not yet implemented!")
+				default:
+					throw new Error("Invalid LHS for variable decleration")
+			}
+		} else if (typedNode instanceof VariableDeclarationList) {
+			const varDecls = typedNode.getDeclarations().map((v) => NodeRedirector.redirectNode(v))
+			return new TConstructMultiple(...varDecls)
 		} else if (typedNode instanceof ClassDeclaration) {
 			return new TClassDecl(typedNode)
 		} else if (typedNode instanceof InterfaceDeclaration) {
@@ -119,6 +136,8 @@ export class NodeRedirector {
 			return new TConstructMultiple(expression, new TEndOfExpression(typedNode)).withSeparator("")
 		} else if (typedNode instanceof WhileStatement) {
 			return new TWhileLoop(typedNode)
+		} else if (typedNode instanceof ForOfStatement) {
+			return new TForOfLoop(typedNode)
 		} else if (typedNode instanceof ElementAccessExpression) {
 			return new TElementAccess(typedNode)
 		} else if (typedNode instanceof SatisfiesExpression) {
