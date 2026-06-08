@@ -327,7 +327,9 @@ export function singleAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 		if (promise != null) {
 			return promise
 		} else {
-			promise = fn().finally(() => (promise = null))
+			promise = fn().finally(() => {
+				promise = null
+			})
 			return promise
 		}
 	}
