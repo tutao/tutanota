@@ -1,6 +1,6 @@
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { assertMainOrNode, CancelledError, isAdminClient, isAndroidApp, isApp, isDesktop, isIOSApp, isTest, ProgrammingError } from "@tutao/app-env"
-import { assert, assertNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
+import { assert, assertNotNull, getFirstOrThrow, isNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import type { NativeFileApp } from "../../../app-kit/native-bridge/common/FileApp.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
@@ -107,11 +107,17 @@ export class FileControllerNative extends FileController {
 			return
 		}
 		console.log("downloaded files in processing", downloadedFiles.length)
-		const dataFiles = (await promiseMap(downloadedFiles, (f) => this.fileApp.readDataFile(f.location))).filter(Boolean)
-		const fileInTemp =
-			dataFiles.length === 1
-				? downloadedFiles[0]
-				: await this.fileApp.writeDataFile(await zipDataFiles(dataFiles as Array<DataFile>, `${sortableTimestamp()}-attachments.zip`))
+		let fileInTemp: FileReference
+		if (downloadedFiles.length > 1) {
+			// If multiple files were downloaded they are zipped into one.
+			// Currently used for mail attachments only.
+			// Will fail if used with big data, use with caution.
+			// Ideally we shouldn't do it in the renderer process.
+			const dataFiles = (await promiseMap(downloadedFiles, (f) => this.fileApp.readDataFile(f.location))).filter(isNotNull)
+			fileInTemp = await this.fileApp.writeDataFile(await zipDataFiles(dataFiles, `${sortableTimestamp()}-attachments.zip`))
+		} else {
+			fileInTemp = getFirstOrThrow(downloadedFiles)
+		}
 		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name)
 	}
 
