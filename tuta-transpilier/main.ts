@@ -6,6 +6,7 @@ import { TUTANOTA_ROOT } from "./Constants"
 
 program
 	.addOption(new Option("--targetLanguage <targetLanguage>", "Language to transpile to").choices(["swift", "kotlin"]).default("kotlin"))
+	.option("--tsConfigFile <tsConfigFile>", "Typescript project to transpile")
 	.action(async (options) => {
 		let targetProjectRoot: string
 		if (options.targetLanguage === "kotlin") {
@@ -17,7 +18,7 @@ program
 		}
 
 		const project = new Project({
-			tsConfigFilePath: `src/platform-kit/tsconfig.app-env.json`,
+			tsConfigFilePath: options.tsConfigFile,
 			skipAddingFilesFromTsConfig: false,
 		})
 
