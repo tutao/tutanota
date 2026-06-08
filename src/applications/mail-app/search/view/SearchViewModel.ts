@@ -860,7 +860,7 @@ export class SearchViewModel {
 		} else {
 			this._conversationViewModel = null
 		}
-
+		this.updateSearchUrl()
 		this.updateUi()
 	}
 
