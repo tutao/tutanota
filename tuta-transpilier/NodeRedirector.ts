@@ -30,6 +30,7 @@ import {
 	StringLiteral,
 	SuperExpression,
 	SwitchStatement,
+	TemplateExpression,
 	ThrowStatement,
 	TryStatement,
 	ts,
@@ -71,6 +72,7 @@ import { TElementAccess } from "./constructs/TElementAccess"
 import { TAsExpr } from "./constructs/TCastings"
 import { TBindingPatterns, TVariable } from "./constructs/TVariable"
 import { TReturnStmt } from "./constructs/TReturnStmt"
+import { TTemplateExpr } from "./constructs/TTemplateExpr"
 import SyntaxKind = ts.SyntaxKind
 
 export class NodeRedirector {
@@ -156,6 +158,8 @@ export class NodeRedirector {
 			return new TNumericLiteral(typedNode)
 		} else if (typedNode instanceof StringLiteral) {
 			return new TStringLiteral(typedNode)
+		} else if (typedNode instanceof TemplateExpression) {
+			return new TTemplateExpr(typedNode)
 		} else if (TOneToOneReplacement.canBeOneToOneReplaced(nodeKind)) {
 			return new TOneToOneReplacement(typedNode, null)
 		} else if (typedNode instanceof ArrayLiteralExpression) {

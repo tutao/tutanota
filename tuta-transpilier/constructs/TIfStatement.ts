@@ -82,7 +82,7 @@ class TSwitchClause extends TConstruct {
 	}
 
 	generateKotlin(): ConstructOut {
-		const expression = this.expression.generateKotlin()
+		const expression = this.expression?.generateKotlin() ?? "else"
 		const body = this.statements.withSeparator("\n;").generateKotlin()
 		return `${expression} -> ${body}`
 	}
@@ -95,6 +95,7 @@ export class TSwitchStatement extends TConstruct {
 		super()
 		const statements = switchStatement.getClauses().map((clause) => new TSwitchClause(clause))
 		this.clauses = new TConstructMultiple(...statements)
+		this.cased = NodeRedirector.redirectNode(switchStatement.getExpression())
 	}
 
 	generateKotlin(): ConstructOut {

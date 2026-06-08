@@ -8,16 +8,13 @@ class TsString() {
 	}
 
 
-	override fun equals(other: Any?): Boolean {
-		return this.value.equals(other)
-	}
+	fun replace(regex: Regex, replacement: TsString) = TsString(regex.replace(this.value, replacement.value))
 
-	override fun toString(): String {
-		return this.value
-	}
+	operator fun plus(other: TsString) = TsString(this.value.plus(other.value))
+	operator fun plus(other: String) = TsString(this.value.plus(other))
+	override fun equals(other: Any?) = this.value.equals(other)
+	override fun toString(): String = this.value
+	override fun hashCode() = value.hashCode()
 
-	fun replace(regex: Regex, replacement: TsString): TsString {
-		return TsString(regex.replace(this.value, replacement.value))
-	}
 
 }

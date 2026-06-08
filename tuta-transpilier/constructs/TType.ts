@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct, TConstructMultiple, UnitConstructOut } from "./TConstruct"
-import { Signature, Type, TypeNode } from "ts-morph"
+import { Signature, Type } from "ts-morph"
 import * as Assert from "node:assert"
 import { TargetLanguage } from "../LangTarget"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
@@ -16,6 +16,8 @@ export const MappedPrimitiveType: Record<string, { kotlin: string; swift: string
 	RegExp: { kotlin: "TsRegex", swift: "" },
 	Uint8Array: { kotlin: "TsUint8Array", swift: "" },
 	Map: { kotlin: "TsMap", swift: "" },
+	Never: { kotlin: "Nothing", swift: "" },
+	URL: { kotlin: "TURL", swift: "" },
 } as const)
 
 export class TType extends TConstruct {
@@ -24,7 +26,7 @@ export class TType extends TConstruct {
 	private readonly genericTypes: Array<TType> = []
 	private readonly baseType: string | TType | TCallableTType
 
-	constructor(typ: Type, typeNode?: TypeNode) {
+	constructor(typ: Type) {
 		super()
 
 		const apparentType = typ.getApparentType()
@@ -39,6 +41,8 @@ export class TType extends TConstruct {
 		} else if (typ.isArray()) {
 			this.baseType = typ.isReadonlyArray() ? "List" : "Array"
 			this.genericTypes.push(new TType(apparentType.getArrayElementType()))
+		} else if (typ.isNever()) {
+			this.baseType = "Never"
 		} else if (typ.isTuple()) {
 			const [firstItem, secondItem, thirdItem, ...rest] = apparentType.getTupleElements()
 			Assert.notEqual(secondItem, null, "Tuple of only one type? Use the type directly")
@@ -84,6 +88,16 @@ export class TType extends TConstruct {
 			}
 		} else if (typeName != null) {
 			this.baseType = typeName
+
+			const aliasedTypeArguments = apparentType.getAliasTypeArguments()
+			const typeArguments = apparentType.getTypeArguments()
+			Assert.equal(aliasedTypeArguments.length === 0 || typeArguments.length === 0, true, "Can have both?")
+			if (typeArguments.length > 0) {
+				const nonCyclicArgs = typeArguments.filter((s) => s.getSymbol() !== typ.getSymbol()).map((t) => new TType(t))
+				this.genericTypes.push(...nonCyclicArgs)
+			} else if (aliasedTypeArguments.length > 0) {
+				this.genericTypes.push(...aliasedTypeArguments.map((t) => new TType(t)))
+			}
 		} else {
 			// common ts utility types
 			const [firstTypeArg, ...restTypeArgs] = typ.getAliasTypeArguments()
@@ -94,9 +108,6 @@ export class TType extends TConstruct {
 				throw new Error("Unknown type: " + typ.getText())
 			}
 		}
-
-		const typeArguments = apparentType.getAliasTypeArguments().map((t) => new TType(t))
-		this.genericTypes.push(...typeArguments)
 	}
 
 	public getFinalName(targetLanguage: TargetLanguage): string {

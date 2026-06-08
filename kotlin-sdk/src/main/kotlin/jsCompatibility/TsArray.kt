@@ -2,14 +2,16 @@ package de.tutao.jsCompatibility
 
 import java.util.function.IntFunction
 
-class TsArray<T>(private val list: List<T>) : List<T> by list {
-	constructor() : this(emptyList())
+class TsArray<T>(private val list: MutableList<T>) : MutableList<T> by list {
+	constructor() : this(mutableListOf())
 	constructor(init: Array<T>) : this(init.toMutableList()) {}
 
 	@Deprecated(level = DeprecationLevel.ERROR, message = "How do I implement this?")
 	override fun <T : Any?> toArray(generator: IntFunction<Array<out T?>?>): Array<out T?>? {
 		error("a")
 	}
+
+	fun push(item: T) = this.list.add(item)
 }
 
 
