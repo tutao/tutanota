@@ -10,7 +10,7 @@ import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { assertMainOrNode, isDesktop, Keys } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
-import { DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
+import { DragEnterHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
 
 assertMainOrNode()
@@ -22,6 +22,7 @@ export type NavButtonAttrs = {
 	click?: (event: Event, dom: HTMLElement) => unknown
 	colors?: NavButtonColor
 	dragStartHandler?: DragStartHandler
+	dragEnterHandler?: DragEnterHandler
 	dropHandler?: DropHandler
 	hideLabel?: boolean
 	vertical?: boolean
@@ -144,6 +145,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 				this._dropCounter++
 				this._draggedOver = true
 				ev.preventDefault()
+				a.dragEnterHandler?.(ev)
 			}
 
 			attr.ondragleave = (ev: DragEvent) => {

@@ -26,6 +26,7 @@ export type MailFolderRowAttrs = {
 	isLastSibling: boolean
 	editMode: boolean
 	onHover: () => void
+	onDragEnter: () => void
 	fullFolderPath: string
 }
 
@@ -33,7 +34,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	private hovered: boolean = false
 
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, folder, hasChildren, editMode } = vnode.attrs
+		const { count, button, rightButton, expanded, indentationLevel, folder, hasChildren, editMode, onDragEnter } = vnode.attrs
 		const icon = getFolderIcon(folder)
 		const onHover = () => {
 			vnode.attrs.onHover()
@@ -115,6 +116,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					...button,
 					onfocus: onHover,
 					onkeydown: handleBackwardsTab,
+					dragEnterHandler: onDragEnter,
 					disableSelectedBackground: true,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
