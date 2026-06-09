@@ -143,19 +143,6 @@ export function formatStorageSize(sizeInBytes: number): string {
 	return sizeInBytes + narrowNoBreakSpace + units[unitIndex]
 }
 
-export function urlEncodeHtmlTags(text: string): string {
-	return stripControlCharacters(text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"))
-}
-
-export function convertTextToHtml(text: string) {
-	return text.replace(/(\r)?\n/g, "<br>")
-}
-
-export function stripControlCharacters(text: string): string {
-	// In Unicode, "Control-characters" are U+0000—U+001F (C0 controls), U+007F (delete), and U+0080—U+009F (C1 controls).
-	return text.replace(/[\x00-\x1F\x7F\x80-\x9F]/g, "")
-}
-
 export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {
 	let minutesString = pad(minutes, 2)
 

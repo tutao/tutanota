@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/ui/utils/LanguageViewModel.js"
-import { formatDate, urlEncodeHtmlTags } from "../../../src/ui/utils/Formatter.js"
+import { formatDate } from "../../../src/ui/utils/Formatter.js"
 
 import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/applications/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
@@ -211,16 +211,6 @@ o.spec("Formatter", function () {
 		o(_getNumDaysInMonth(11, 2020)).equals(30)
 		o(_getNumDaysInMonth(12, 2021)).equals(31)
 		o(_getNumDaysInMonth(12, 2020)).equals(31)
-	})
-
-	o.spec("urlEncodeHtmlTags", function () {
-		o.test("when called with HTML tags they are replaced with HTML entities", function () {
-			o.check(urlEncodeHtmlTags(`hi& <tag>content " '</tag>`)).equals("hi&amp; &lt;tag&gt;content &quot; &#039;&lt;/tag&gt;")
-		})
-
-		o.test("when called with a string that has control characters they are removed", function () {
-			o.check(urlEncodeHtmlTags("ABC\tршيشسبنمت\x08\x7f\x9F")).equals("ABCршيشسبنمت")
-		})
 	})
 
 	function _checkparseBirthdayWithFormatter(text: string, expectedDay: number, expectedMonth: number, expectedYear: number | null | undefined) {
