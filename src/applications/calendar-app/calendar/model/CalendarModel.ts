@@ -386,7 +386,7 @@ export class CalendarModel {
 		}
 		let errorMessage = "Failed events: " + result.failedEvents.length + "\n"
 		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors))
-		errorMessage = "\nFailed alarms: " + result.failedAlarms.length + "\n"
+		errorMessage += "\nFailed alarms: " + result.failedAlarms.length + "\n"
 		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors))
 		throw new Error(errorMessage)
 	}
