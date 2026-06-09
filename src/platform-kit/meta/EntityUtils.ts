@@ -303,6 +303,7 @@ function _getDefaultValue(valueName: string, value: ModelValue, typeModel: TypeM
 				return false
 
 			case ValueTypeEnum.CustomId:
+				return null
 			case ValueTypeEnum.GeneratedId:
 				return null
 			// we have to use null although the value must be set to something different
