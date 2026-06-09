@@ -43,4 +43,33 @@ export class TTry extends TConstruct {
 
 		return `try ${tryBlock} ${catchClause} finally ${finallyBlock}`
 	}
+
+	generateSwift(): ConstructOut {
+		/**
+		 * In swift, the pattern is:
+		 * do {
+		 *     someNonFailingStatement()
+		 *     try failingStatement()
+		 * } catch {}
+		 *
+		 * We need to figure out which statement throws. which might be bit challenging
+		 * to do the exception is not part of function signature in kotlin/ts
+		 *
+		 * One approach might be to use a noOp decorator in all throwing function:
+		 * ```ts
+		 * @Throws
+		 * function someThrowing() {}
+		 * ```
+		 * and while generating, we can put `try` on the statement that throws,
+		 * We can do that in `TCall` construct. While outputting TCall, we can
+		 * check if the identifier is a function and if so check if have `@Throws`
+		 * annotation, if so prepend `try` keyword.
+		 * this means everything that can throw inside do {} block have to
+		 * be a functionCall. non-function call statements should not throw.
+		 *
+		 * This is also what kotlin does for swift interops ( NOT in multiplatform ):
+		 * https://github.com/kotlin-hands-on/kotlin-swift-interopedia/blob/main/docs/overview/Exceptions.md
+		 */
+		return ""
+	}
 }
