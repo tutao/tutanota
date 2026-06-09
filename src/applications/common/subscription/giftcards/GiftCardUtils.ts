@@ -13,9 +13,9 @@ import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsS
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { formatPrice } from "../utils/PriceUtils.js"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
-import { urlEncodeHtmlTags } from "../../../../ui/utils/Formatter.js"
 import QRCode from "qrcode-svg"
 import { CustomerInfo, CustomerInfoTypeRef, CustomerTypeRef, GiftCard, GiftCardTypeRef } from "@tutao/entities/sys"
+import { urlEncodeHtmlTags } from "@tutao/utils"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",

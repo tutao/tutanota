@@ -17,6 +17,7 @@ import {
 	Nullable,
 	ofClass,
 	startsWith,
+	urlEncodeHtmlTags,
 	utf8Uint8ArrayToString,
 } from "../../../../platform-kit/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -30,7 +31,7 @@ import { IndexingNotSupportedError } from "../../../common/api/common/error/Inde
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
-import { formatDateTime, urlEncodeHtmlTags } from "../../../../ui/utils/Formatter"
+import { formatDateTime } from "../../../../ui/utils/Formatter"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState"
