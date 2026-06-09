@@ -87,6 +87,8 @@ pub enum CiphertextParserError {
 	NotEnoughBytesForMacTag,
 	#[error("UnsupportedGroupKeyVersionLength")]
 	UnsupportedGroupKeyVersionLength,
+	#[error("InvalidNarrowing")]
+	InvalidNarrowing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -501,6 +503,40 @@ impl ParsedCiphertext {
 			Self::AesCbcThenHmac(..) => SymmetricCipherVersion::AesCbcThenHmac,
 			Self::AeadWithGroupKey(..) => SymmetricCipherVersion::AeadWithGroupKey,
 			Self::AeadWithSessionKey(..) => SymmetricCipherVersion::AeadWithSessionKey,
+		}
+	}
+}
+
+impl TryInto<ParsedCiphertextAesCbc> for ParsedCiphertext {
+	type Error = CiphertextParserError;
+
+	fn try_into(self) -> Result<ParsedCiphertextAesCbc, Self::Error> {
+		match self {
+			Self::UnusedReservedUnauthenticated(
+				parsed_ciphertext_unused_reserved_unauthenticated,
+			) => Ok(ParsedCiphertextAesCbc::UnusedReservedUnauthenticated(
+				parsed_ciphertext_unused_reserved_unauthenticated,
+			)),
+			Self::AesCbcThenHmac(parsed_ciphertext_aes_cbc_then_hmac) => Ok(
+				ParsedCiphertextAesCbc::AesCbcThenHmac(parsed_ciphertext_aes_cbc_then_hmac),
+			),
+			_ => Err(CiphertextParserError::InvalidNarrowing),
+		}
+	}
+}
+
+impl TryInto<ParsedCiphertextAead> for ParsedCiphertext {
+	type Error = CiphertextParserError;
+
+	fn try_into(self) -> Result<ParsedCiphertextAead, Self::Error> {
+		match self {
+			Self::AeadWithGroupKey(parsed_ciphertext_aead_with_group_key) => Ok(
+				ParsedCiphertextAead::AeadWithGroupKey(parsed_ciphertext_aead_with_group_key),
+			),
+			Self::AeadWithSessionKey(parsed_ciphertext_aead_with_session_key) => Ok(
+				ParsedCiphertextAead::AeadWithSessionKey(parsed_ciphertext_aead_with_session_key),
+			),
+			_ => Err(CiphertextParserError::InvalidNarrowing),
 		}
 	}
 }

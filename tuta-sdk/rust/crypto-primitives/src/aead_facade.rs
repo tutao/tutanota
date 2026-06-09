@@ -201,19 +201,21 @@ impl AeadFacade {
 	) -> Result<Vec<u8>, AeadEncryptError> {
 		let nonce = Nonce::generate(&self.randomizer_facade);
 		let ciphertext = aes::aes_ctr_encrypt(sub_keys.encryption_key(), padded_plaintext, &nonce);
-		let end_of_ciphertext: u32 =
-			INITIALIZATION_VECTOR_BYTE_SIZE as u32 + ciphertext.len() as u32;
+		let initialization_vector_and_ciphertext_length: u32 = (INITIALIZATION_VECTOR_BYTE_SIZE
+			+ ciphertext.len())
+		.try_into()
+		.expect("Ciphertext should not be this long.");
 		let tag = blake3::blake3_mac(
 			sub_keys.authentication_key().as_bytes(),
 			&[
-				&end_of_ciphertext.to_be_bytes(),
+				&initialization_vector_and_ciphertext_length.to_be_bytes(),
 				nonce.get_bytes(),
 				&ciphertext,
 				associated_data,
 			],
 		);
 
-		let mut versioned_ciphertext: Vec<u8> = sub_keys.ciphertext_version_prefix()?;
+		let mut versioned_ciphertext = sub_keys.ciphertext_version_prefix()?;
 		versioned_ciphertext.reserve(
 			INITIALIZATION_VECTOR_BYTE_SIZE + ciphertext.len() + BLAKE3_DEFAULT_OUTPUT_SIZE_BYTES,
 		);
@@ -228,18 +230,22 @@ impl AeadFacade {
 	pub fn decrypt(
 		&self,
 		sub_keys: &AeadSubKeys,
-		parsed_ciphertext: ParsedCiphertextAead,
+		parsed_ciphertext: &ParsedCiphertextAead,
 		associated_data: &[u8],
 	) -> Result<Vec<u8>, AeadDecryptError> {
 		if sub_keys.cipher_version() != parsed_ciphertext.cipher_version() {
 			return Err(AeadDecryptError::DecryptionError);
 		}
 
-		let initialization_vector_and_ciphertext =
-			parsed_ciphertext.initialization_vector_and_ciphertext();
-		let authentication_data = &[
-			&initialization_vector_and_ciphertext.len().to_be_bytes(),
-			initialization_vector_and_ciphertext,
+		let initialization_vector_and_ciphertext_length: u32 = parsed_ciphertext
+			.initialization_vector_and_ciphertext()
+			.len()
+			.try_into()
+			.expect("Ciphertext should not be this long.");
+		let authentication_data: &[&[u8]] = &[
+			&initialization_vector_and_ciphertext_length.to_be_bytes(),
+			parsed_ciphertext.initialization_vector(),
+			parsed_ciphertext.ciphertext(),
 			associated_data,
 		];
 
@@ -269,6 +275,7 @@ mod tests {
 	use crate::aes::{Aes256Key, INITIALIZATION_VECTOR_BYTE_SIZE};
 	use crate::compatibility_test_utils::get_compatibility_test_data;
 	use crate::key::GenericAesKey;
+	use crate::parsed_ciphertext::{InitializationVectorVariant, ParsedCiphertext};
 	use crate::randomizer_facade::{test_util::make_thread_rng_facade, RandomizerFacade};
 	use crate::test_utils::TestRng;
 	use crate::versioned::Versioned;
@@ -286,12 +293,22 @@ mod tests {
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
 		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
-		let ciphertext = aead_facade
+		let versioned_ciphertext = aead_facade
 			.encrypt(&sub_keys, plaintext, encryption_associated_data)
 			.unwrap();
+		let parsed_ciphertext = ParsedCiphertext::parse_versioned_ciphertext(
+			versioned_ciphertext,
+			InitializationVectorVariant::default(),
+		)
+		.unwrap();
+		let parsed_ciphertext_aead = parsed_ciphertext.try_into().unwrap();
 		let decryption_associated_data =
 			decryption_associated_data.unwrap_or_else(|| encryption_associated_data);
-		aead_facade.decrypt(&sub_keys, &ciphertext, decryption_associated_data)
+		aead_facade.decrypt(
+			&sub_keys,
+			&parsed_ciphertext_aead,
+			decryption_associated_data,
+		)
 	}
 
 	#[test]
@@ -334,12 +351,18 @@ mod tests {
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
 		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
-		let mut ciphertext = aead_facade
+		let mut versioned_ciphertext = aead_facade
 			.encrypt(&sub_keys, plaintext, associated_data)
 			.unwrap();
-		let last_ciphertext_byte = ciphertext.last_mut().unwrap();
+		let last_ciphertext_byte = versioned_ciphertext.last_mut().unwrap();
 		*last_ciphertext_byte = last_ciphertext_byte.wrapping_add(1);
-		let decrypted = aead_facade.decrypt(&sub_keys, &ciphertext, associated_data);
+		let parsed_ciphertext = ParsedCiphertext::parse_versioned_ciphertext(
+			versioned_ciphertext,
+			InitializationVectorVariant::default(),
+		)
+		.unwrap();
+		let parsed_ciphertext_aead = parsed_ciphertext.try_into().unwrap();
+		let decrypted = aead_facade.decrypt(&sub_keys, &parsed_ciphertext_aead, associated_data);
 		assert_eq!(decrypted, Err(AeadDecryptError::DecryptionError));
 	}
 
@@ -380,10 +403,16 @@ mod tests {
 			randomizer_facade.generate_random_array();
 		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
 		let associated_data = b"test";
-		let ciphertext = aead_facade
+		let versioned_ciphertext = aead_facade
 			.encrypt_internal(&sub_keys, wrongly_padded_plaintext, associated_data)
 			.unwrap();
-		aead_facade.decrypt(&sub_keys, &ciphertext, associated_data)
+		let parsed_ciphertext = ParsedCiphertext::parse_versioned_ciphertext(
+			versioned_ciphertext,
+			InitializationVectorVariant::default(),
+		)
+		.unwrap();
+		let parsed_ciphertext_aead = parsed_ciphertext.try_into().unwrap();
+		aead_facade.decrypt(&sub_keys, &parsed_ciphertext_aead, associated_data)
 	}
 
 	#[test]
@@ -424,27 +453,39 @@ mod tests {
 			};
 			let plaintext = aead_test.plaintext_base64;
 			let associated_data = &aead_test.associated_data;
-			let ciphertext = &aead_test.ciphertext_base64;
+			let versioned_ciphertext = &aead_test.ciphertext_base64;
 			let plaintext_key = aead_test.plaintext_key;
 			let encrypted_key = &aead_test.encrypted_key;
 
 			// encrypt data
-			let encrypted_bytes = aead_facade
+			let versioned_encrypted_bytes = aead_facade
 				.encrypt(&keys, plaintext.to_owned(), associated_data)
 				.unwrap();
-			assert_eq!(ciphertext, &encrypted_bytes);
+			assert_eq!(versioned_ciphertext, &versioned_encrypted_bytes);
+			let parsed_encrypted_bytes = ParsedCiphertext::parse_versioned_ciphertext(
+				versioned_encrypted_bytes,
+				InitializationVectorVariant::default(),
+			)
+			.unwrap();
+			let parsed_encrypted_bytes_aead = parsed_encrypted_bytes.try_into().unwrap();
 			let decrypted_bytes = aead_facade
-				.decrypt(&keys, &encrypted_bytes, associated_data)
+				.decrypt(&keys, &parsed_encrypted_bytes_aead, associated_data)
 				.unwrap();
 			assert_eq!(&plaintext, &decrypted_bytes);
 
 			//encrypt key
-			let re_encrypted_key = aead_facade
+			let versioned_re_encrypted_key = aead_facade
 				.encrypt(&keys, plaintext_key.to_owned(), associated_data)
 				.unwrap();
-			assert_eq!(encrypted_key, &re_encrypted_key);
+			assert_eq!(encrypted_key, &versioned_re_encrypted_key);
+			let parsed_re_encrypted_key = ParsedCiphertext::parse_versioned_ciphertext(
+				versioned_re_encrypted_key,
+				InitializationVectorVariant::default(),
+			)
+			.unwrap();
+			let parsed_re_encrypted_key_aead = parsed_re_encrypted_key.try_into().unwrap();
 			let decrypted_key = aead_facade
-				.decrypt(&keys, &re_encrypted_key, associated_data)
+				.decrypt(&keys, &parsed_re_encrypted_key_aead, associated_data)
 				.unwrap();
 			assert_eq!(&plaintext_key, &decrypted_key);
 		}
