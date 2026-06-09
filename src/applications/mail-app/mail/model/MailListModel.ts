@@ -25,6 +25,8 @@ import {
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
+import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 
 assertMainOrNode()
 
@@ -46,6 +48,7 @@ export class MailListModel implements MailSetListModel {
 		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.listModel = new ListModel({
 			fetch: (lastFetchedItem, count) => {
@@ -307,7 +310,14 @@ export class MailListModel implements MailSetListModel {
 		let complete = false
 
 		try {
-			const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(startingId), elementIdPart(startingId), count, true)
+			const mailSetEntries = await this.entityClient.loadRange(
+				MailSetEntryTypeRef,
+				listIdPart(startingId),
+				elementIdPart(startingId),
+				count,
+				true,
+				!this.syncTracker.isSyncDone ? { cacheMode: CacheMode.Direct } : undefined,
+			)
 
 			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
 			complete = mailSetEntries.length < count

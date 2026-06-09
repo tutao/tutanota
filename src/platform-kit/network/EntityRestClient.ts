@@ -93,6 +93,11 @@ export const enum CacheMode {
 
 	/** Prefer cached value, but in case of a cache miss, retrieve the value from network without writing it to cache. */
 	ReadOnly,
+
+	/**
+	 * Always retrieve from the network, and never save to cache.
+	 */
+	Direct,
 }
 
 /**
@@ -110,6 +115,8 @@ export function getCacheModeBehavior(cacheMode: CacheMode | undefined): {
 			return { readsFromCache: false, writesToCache: true }
 		case CacheMode.ReadOnly:
 			return { readsFromCache: true, writesToCache: false }
+		case CacheMode.Direct:
+			return { readsFromCache: false, writesToCache: false }
 	}
 }
 

@@ -527,6 +527,7 @@ export class MailViewModel {
 					this.processInboxHandler,
 					this.cacheStorage,
 					this.connectivityModel,
+					this.syncTracker,
 				)
 			}
 			this.listStreamSubscription?.end(true)
