@@ -717,7 +717,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				},
 				color,
 			}
-			addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)
+			addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.calendarTimeZone)
 
 			const occurrencesLeft =
 				newEventModel.editModels.whenModel.repeatEndOccurrences -

@@ -308,14 +308,14 @@ o.spec("CalendarEventWhenModel", function () {
 			})
 			berlinModel.repeatPeriod = RepeatPeriod.DAILY
 			const result = berlinModel.result
-			o(result.repeatRule?.timeZone).equals(berlinModel.zone)
+			o(result.repeatRule?.timeZone).equals(berlinModel.calendarTimeZone)
 			const krasnoyarskModel = getModelKrasnoyarsk({
 				startTime: result.startTime,
 				endTime: result.endTime,
 				repeatRule: result.repeatRule,
 			})
 			const newResult = krasnoyarskModel.result
-			o(newResult.repeatRule?.timeZone).equals(krasnoyarskModel.zone)
+			o(newResult.repeatRule?.timeZone).equals(krasnoyarskModel.calendarTimeZone)
 		})
 	})
 
@@ -346,7 +346,7 @@ o.spec("CalendarEventWhenModel", function () {
 					endValue: "1",
 					frequency: RepeatPeriod.DAILY,
 					excludedDates: [],
-					timeZone: model.zone,
+					timeZone: model.calendarTimeZone,
 					advancedRules: [],
 				}),
 			)
