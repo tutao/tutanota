@@ -94,10 +94,10 @@ pipeline {
 					releaseNotes = [
 							web             : params.web ? pregenerateReleaseNotes("web") : null,
 							desktop         : params.desktop ? pregenerateReleaseNotes("desktop") : null,
-							android_mail    : params.android ? pregenerateReleaseNotes("android") : null,
-							ios_mail        : params.ios ? pregenerateReleaseNotes("ios") : null,
-							android_calendar: params.android ? pregenerateReleaseNotes("android") : null,
-							ios_calendar    : params.ios ? pregenerateReleaseNotes("ios") : null,
+							android_mail    : params.android_mail ? pregenerateReleaseNotes("android") : null,
+							ios_mail        : params.ios_mail ? pregenerateReleaseNotes("ios") : null,
+							android_calendar: params.android_calendar ? pregenerateReleaseNotes("android") : null,
+							ios_calendar    : params.ios_calendar ? pregenerateReleaseNotes("ios") : null,
 							android_drive   : params.android_drive ? pregenerateReleaseNotes("android") : null,
 					]
 					echo("${releaseNotes}")
@@ -208,7 +208,7 @@ pipeline {
 					parallel {
 						stage("iOS Client") {
 							when {
-								expression { params.ios }
+								expression { params.ios_mail }
 							}
 							stages {
 								stage("Build iOS") {
@@ -251,7 +251,7 @@ pipeline {
 						} // stage ios client
 
 						stage("Android Client") {
-							when { expression { params.android } }
+							when { expression { params.android_mail } }
 							stages {
 								stage("Build Android") {
 									when {
