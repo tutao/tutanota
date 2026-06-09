@@ -398,6 +398,8 @@ fun createTestCalendarEvent(
 		sender = null,
 		pendingInvitation = null,
 		repeatRule = null,
-		organizer = null
+		organizer = null,
+		startTimeZone = null,
+		endTimeZone = null
 	)
 }
