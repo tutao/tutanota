@@ -1882,6 +1882,10 @@ pub struct CalendarEvent {
 	#[serde(rename = "1845")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1967")]
+	pub startTimeZone: Option<String>,
+	#[serde(rename = "1968")]
+	pub endTimeZone: Option<String>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]

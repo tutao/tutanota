@@ -42,6 +42,8 @@ o.spec("ImportExportUtilsTest", function () {
 				repeatRule: null,
 				attendees: null,
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 		})
 
