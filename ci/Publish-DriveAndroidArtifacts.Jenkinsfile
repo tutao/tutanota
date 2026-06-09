@@ -39,6 +39,7 @@ pipeline {
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-drive-android-release-${VERSION}"
 		STAGING_AAB_FILE_PATH = "artifacts/app-android/drive-tutao-releaseTest-${VERSION}.aab"
 		PROD_AAB_FILE_PATH = "artifacts/app-android/drive-tutao-release-${VERSION}.aab"
+		PROD_APK_FILE_PATH = "artifacts/app-android/drive-tutao-release-${VERSION}.apk"
 	}
 
     agent {
@@ -63,7 +64,7 @@ pipeline {
 					when { expression { params.STAGING } }
 					steps {
 						script {
-							downloadAndroidApp("drive-android-test", STAGING_AAB_FILE_PATH)
+							downloadAndroidApp("drive-android-test", STAGING_AAB_FILE_PATH, "aab")
 
 							// This doesn't publish to the main app on play store,
 							// instead it gets published to the hidden "tutanota-test" app
@@ -82,7 +83,7 @@ pipeline {
 					when { expression { params.PROD } }
 					steps {
 						script {
-							downloadAndroidApp("drive-android", PROD_AAB_FILE_PATH)
+							downloadAndroidApp("drive-android", PROD_AAB_FILE_PATH, "aab")
 
 							androidApkUpload(
 									googleCredentialsId: 'android-app-publisher-credentials',
@@ -101,7 +102,7 @@ pipeline {
 			when { expression { params.GITHUB_RELEASE } }
 			steps {
 				script {
-					downloadAndroidApp("drive-android", PROD_AAB_FILE_PATH)
+					downloadAndroidApp("drive-android-apk", PROD_APK_FILE_PATH, "apk")
 
 					sh 'npm ci'
 
@@ -109,7 +110,7 @@ pipeline {
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 						sh """node buildSrc/createReleaseDraft.js --name '[Drive] ${VERSION} (Android)' \
 															   --tag 'tutanota-drive-android-release-${VERSION}' \
-															   --uploadFile '${WORKSPACE}/${PROD_FILE_PATH}' \
+															   --uploadFile '${WORKSPACE}/${PROD_APK_FILE_PATH}' \
 															   --notes notes.txt"""
 					} // withCredentials
 					sh "rm notes.txt"
@@ -119,7 +120,7 @@ pipeline {
     } // stages
 } // pipeline
 
-def downloadAndroidApp(String artifactId, String filePath) {
+def downloadAndroidApp(String artifactId, String filePath, String fileExtension) {
     def util = load "ci/jenkins-lib/util.groovy"
 
     util.downloadFromNexus(
@@ -127,7 +128,7 @@ def downloadAndroidApp(String artifactId, String filePath) {
 		artifactId: artifactId,
 		version: "${VERSION}",
 		outFile: "${WORKSPACE}/${filePath}",
-		fileExtension: 'aab'
+		fileExtension: fileExtension
 	)
 
     if (!fileExists("${filePath}")) {

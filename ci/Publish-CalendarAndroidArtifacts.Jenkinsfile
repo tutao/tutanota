@@ -39,6 +39,7 @@ pipeline {
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-android-release-${VERSION}"
 		STAGING_AAB_FILE_PATH = "artifacts/app-android/calendar-tutao-releaseTest-${VERSION}.aab"
 		PROD_AAB_FILE_PATH = "artifacts/app-android/calendar-tutao-release-${VERSION}.aab"
+		PROD_APK_FILE_PATH = "artifacts/app-android/calendar-tutao-release-${VERSION}.apk"
 	}
 
     agent {
@@ -60,10 +61,10 @@ pipeline {
 		stage("Google Play Store") {
 			stages {
 				stage("Staging") {
-					when { expression { return params.STAGING } }
+					when { expression { params.STAGING } }
 					steps {
 						script {
-							downloadAndroidApp("calendar-android-test", STAGING_AAB_FILE_PATH)
+							downloadAndroidApp("calendar-android-test", STAGING_AAB_FILE_PATH, "aab")
 
 							// This doesn't publish to the main app on play store,
 							// instead it gets published to the hidden "tutanota-test" app
@@ -79,10 +80,10 @@ pipeline {
 					} // steps
 				} // stage Testing
 				stage("Production") {
-					when { expression { return params.PROD } }
+					when { expression { params.PROD } }
 					steps {
 						script {
-							downloadAndroidApp("calendar-android", PROD_AAB_FILE_PATH)
+							downloadAndroidApp("calendar-android", PROD_AAB_FILE_PATH, "aab")
 
 							androidApkUpload(
 									googleCredentialsId: 'android-app-publisher-credentials',
@@ -98,10 +99,10 @@ pipeline {
 			} // stages
 		} // stage Google Play Store
 		stage("Github release notes") {
-			when { expression { return params.GITHUB_RELEASE } }
+			when { expression { params.GITHUB_RELEASE } }
 			steps {
 				script {
-					downloadAndroidApp("calendar-android", PROD_AAB_FILE_PATH)
+					downloadAndroidApp("calendar-android-apk", PROD_APK_FILE_PATH, "apk")
 
 					sh 'npm ci'
 
@@ -109,7 +110,7 @@ pipeline {
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 						sh """node buildSrc/createReleaseDraft.js --name '[Calendar] ${VERSION} (Android)' \
 															   --tag 'tutanota-calendar-android-release-${VERSION}' \
-															   --uploadFile '${WORKSPACE}/${PROD_FILE_PATH}' \
+															   --uploadFile '${WORKSPACE}/${PROD_APK_FILE_PATH}' \
 															   --notes notes.txt"""
 					} // withCredentials
 					sh "rm notes.txt"
@@ -119,7 +120,7 @@ pipeline {
     } // stages
 } // pipeline
 
-def downloadAndroidApp(String artifactId, String filePath) {
+def downloadAndroidApp(String artifactId, String filePath, String fileExtension) {
     def util = load "ci/jenkins-lib/util.groovy"
 
     util.downloadFromNexus(
@@ -127,7 +128,7 @@ def downloadAndroidApp(String artifactId, String filePath) {
 		artifactId: artifactId,
 		version: "${VERSION}",
 		outFile: "${WORKSPACE}/${filePath}",
-		fileExtension: 'aab'
+		fileExtension: fileExtension
 	)
 
     if (!fileExists("${filePath}")) {
