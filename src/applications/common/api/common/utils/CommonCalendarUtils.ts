@@ -6,6 +6,7 @@ import { StrippedEntity } from "@tutao/meta"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../../calendar-app/calendar/export/CalendarParser"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
+export type CalendarEventTimeZones = Pick<CalendarEvent, "startTimeZone" | "endTimeZone">
 
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
@@ -166,6 +167,15 @@ export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): C
 }
 
 /**
+ * Sets seconds and milliseconds to zero
+ * @param date
+ * @returns {Date} A new normalized Date
+ */
+export function normalizeTime(date: Date) {
+	return new Date(new Date(date).setSeconds(0, 0))
+}
+
+/**
  * Converts runtime representation of an alarm into a db one.
  */
 export function serializeAlarmInterval(interval: AlarmInterval): string {
@@ -250,6 +260,7 @@ export function isSameExternalEvent(calendarEvent: CalendarEvent, icsCalendarEve
 
 	return sameUid && sameRecurrenceId
 }
+
 export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 	return {
 		alarmInfos: [],
@@ -268,5 +279,7 @@ export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 		sequence: "",
 		pendingInvitation: null,
 		sender: null,
+		startTimeZone: null,
+		endTimeZone: null,
 	}
 }
