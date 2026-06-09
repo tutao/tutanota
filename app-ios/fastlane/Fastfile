@@ -425,7 +425,7 @@ platform :ios do
 	# Calendar app publish actions
 	#
 	desc "Publish Calendar staging artifact to TestFlight"
-	lane :publish_calendar_appstore_staging_to_testflight do
+	lane :publish_calendar_appstore_staging_to_testflight do |options|
 		UI.message "Uploading Calendar staging app to TestFlight #{options[:file]}"
 
 		upload_to_testflight(
