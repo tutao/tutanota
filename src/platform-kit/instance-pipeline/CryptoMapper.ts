@@ -18,7 +18,6 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
-import { isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter.js"
 import { User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import {
@@ -31,7 +30,7 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeModel,
 } from "../meta/EntityTypes"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
+import { TypeModelResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
 
 export interface SymmetricGroupKeyLoader {
@@ -70,16 +69,11 @@ export abstract class LoggedInUserProvider {
 
 export class CryptoMapper {
 	constructor(
-		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+		private readonly typeModelResolver: TypeModelResolver,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		private readonly modelMapper: ModelMapper,
-	) {
-		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
-			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
-		}
-	}
+	) {}
 
 	async getInputKey(requiredGroupKeyVersion: "none" | KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<Nullable<AesKey>> {
 		if (requiredGroupKeyVersion === "none") {
@@ -96,7 +90,7 @@ export class CryptoMapper {
 	}
 
 	public async decryptParsedInstance(
-		serverTypeModel: ServerTypeModel | ClientTypeModel,
+		serverTypeModel: ServerTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
@@ -109,7 +103,7 @@ export class CryptoMapper {
 	}
 
 	private async decryptParsedInstanceInternal(
-		serverTypeModel: ServerTypeModel | ClientTypeModel,
+		serverTypeModel: ServerTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -152,7 +146,7 @@ export class CryptoMapper {
 			const encryptedInstanceValue = encryptedInstance[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
-				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
+				const associationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, associationType.refTypeId))
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
@@ -193,7 +187,7 @@ export class CryptoMapper {
 	 * The caller is responsible for handling the _errors property on each aggregate if it is set.
 	 */
 	public async decryptAggregateAssociation(
-		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
+		associationServerTypeModel: ServerTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -249,7 +243,7 @@ export class CryptoMapper {
 			const associationType = clientTypeModel.associations[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? clientTypeModel.app
-				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
+				const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 				encrypted[associationId] = await this.encryptAggregateAssociation(

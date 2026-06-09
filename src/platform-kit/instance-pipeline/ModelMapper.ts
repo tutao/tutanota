@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, InvalidModelError, isWebClient, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import {
 	base64ToBase64Url,
 	base64ToUint8Array,
@@ -13,7 +13,7 @@ import { AssociationType, Cardinality, Type, TypeRef, ValueType } from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../meta/EntityTypes"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
+import { TypeModelResolver } from "./EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -133,16 +133,7 @@ function assertCompatibleModelTypesForApplyingClientModel(
  *
  */
 export class ModelMapper {
-	constructor(
-		/** resolves meta against the type models used by the clients business logic. */
-		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		/** resolves meta against the current type models as used on the server the client connects to */
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
-	) {
-		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
-			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
-		}
-	}
+	constructor(private readonly typeModelResolver: TypeModelResolver) {}
 
 	async mapToInstances<T extends Entity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<Array<T>> {
 		return await promiseMap(parsedInstances, (parsedInstance) => this.mapToInstance(typeRef, parsedInstance))
@@ -152,9 +143,9 @@ export class ModelMapper {
 		// in case of a new type, the server should not send it to clients until the oldest client can handle it.
 		// if a type is not in the client's model anymore, it should have been removed from the business logic and
 		// the server should have stopped sending it by now.
-		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		// the server sent the instance, so it should be in the server's type models no matter what.
-		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const clientInstance: Record<string, unknown> = {
 			_type: typeRef,
 		}
@@ -226,7 +217,7 @@ export class ModelMapper {
 	}
 
 	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ClientModelParsedInstance> {
-		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const parsedInstance: Record<number, unknown> = {}
 

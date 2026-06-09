@@ -72,7 +72,7 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
-import { InstancePipeline, NamedClientModel } from "../../../platform-kit/instance-pipeline"
+import { InstancePipeline, NamedClientModel, ServerModelInfo, TypeModelResolver } from "../../../platform-kit/instance-pipeline"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "../../../platform-kit/rest-client"
@@ -212,9 +212,9 @@ async function createComponents(): Promise<Components> {
 
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
 	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially
+	const clientModelInfoAsServerModelInfo = clientModelInfo as unknown as ServerModelInfo
 	const nativeInstancePipeline = new InstancePipeline(
-		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
-		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
+		new TypeModelResolver(clientModelInfo, clientModelInfoAsServerModelInfo),
 		() => {
 			// Alarms are always encrypted using session keys by the client and never by the server.
 			// That is because, as they need to work offline, they cannot rely on being able to load group keys.

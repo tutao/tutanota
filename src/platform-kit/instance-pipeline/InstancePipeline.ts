@@ -12,9 +12,9 @@ import {
 	SymmetricCipherVersion,
 	validateKdfNonceLength,
 } from "@tutao/crypto"
-import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
-import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
+import { TypeModelResolver } from "./EntityFunctions"
 import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 
 assertWorkerOrNode()
@@ -28,23 +28,13 @@ export class InstancePipeline {
 	readonly modelMapper: ModelMapper
 
 	constructor(
-		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+		private readonly typeModelResolver: TypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
 	) {
-		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
-			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
-		}
-		this.typeMapper = new TypeMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
-		this.modelMapper = new ModelMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
-		this.cryptoMapper = new CryptoMapper(
-			clientTypeReferenceResolver,
-			serverTypeReferenceResolver,
-			symmetricCipherFacade,
-			symGroupKeyLoader,
-			this.modelMapper,
-		)
+		this.typeMapper = new TypeMapper(typeModelResolver)
+		this.modelMapper = new ModelMapper(typeModelResolver)
+		this.cryptoMapper = new CryptoMapper(typeModelResolver, symmetricCipherFacade, symGroupKeyLoader, this.modelMapper)
 	}
 
 	async mapAndEncrypt<T extends Entity>(
@@ -63,7 +53,7 @@ export class InstancePipeline {
 		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
 	}
 	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance> {
-		const typeModel = await this.clientTypeReferenceResolver(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const parsedInstance: ClientModelParsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
 		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, subKeyInfo)
@@ -78,7 +68,7 @@ export class InstancePipeline {
 	 * @returns The decrypted and mapped instance
 	 */
 	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: ServerModelUntypedInstance, sk: AesKey | null): Promise<T> {
-		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(serverTypeModel, instance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.modelMapper)
 		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(
