@@ -104,6 +104,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 		const calendarInfo = calendarEventPreviewModel.getCalendarInfoBase()
 
+		const startTimeZone = event.startTimeZone ?? getTimeZone()
 		return m(".flex.col.smaller", [
 			this.renderRow(
 				Icons.CalendarFilled,
@@ -116,7 +117,13 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				: null,
 			this.renderRow(
 				Icons.ClockFilled,
-				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
+				m(".flex.col", [
+					formatEventDuration(event, getTimeZone(), getTimeZone(), false),
+					event.startTimeZone || event.endTimeZone
+						? m("small.text-fade", formatEventDuration(event, startTimeZone, event.endTimeZone ?? startTimeZone, true))
+						: null,
+					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
+				]),
 				true,
 			),
 			this.renderLocation(event.location),
@@ -264,15 +271,15 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				".flex.items-center.justify-center",
 				{
 					style: {
-						width: "24px",
-						height: "24px",
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 					},
 				},
 				m("", {
 					style: {
 						borderRadius: "50%",
-						width: px(size.spacing_24),
-						height: px(size.spacing_24),
+						width: px(size.spacing_16),
+						height: px(size.spacing_16),
 						backgroundColor: `#${calendarColor}`,
 					},
 				}),
