@@ -1166,6 +1166,8 @@ export type CalendarEvent = {
 	sender: null | string;
 	pendingInvitation: null | boolean;
 	_kdfNonce: null | Uint8Array;
+	startTimeZone: null | string;
+	endTimeZone: null | string;
 
 	repeatRule: null | CalendarRepeatRule;
 	alarmInfos: IdTuple[];
