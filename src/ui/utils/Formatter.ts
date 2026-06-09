@@ -75,16 +75,46 @@ export function formatTimeOrDateOrYesterday(date: Date): string {
 	}
 }
 
-export function formatTime(date: Date): string {
-	return lang.formats.time.format(date)
+export function formatTime(date: Date, formatterOptions?: TimeZoneFormatterOptions | null): string {
+	const currentOptions = lang.formats.time.resolvedOptions()
+	const options: Intl.DateTimeFormatOptions = {
+		day: currentOptions.day,
+		month: currentOptions.month,
+		year: currentOptions.year,
+		hour: currentOptions.hour,
+		minute: currentOptions.minute,
+		hourCycle: currentOptions.hourCycle,
+		...formatterOptions,
+	} as Intl.DateTimeFormatOptions
+
+	const timeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
+
+	return timeFormat.format(date)
 }
 
 export function formatShortTime(date: Date): string {
 	return lang.formats.shortTime.format(date)
 }
 
-export function formatDateTime(date: Date): string {
-	return lang.formats.dateTime.format(date)
+export type TimeZoneFormatterOptions = {
+	timeZone?: Intl.DateTimeFormatOptions["timeZone"]
+	timeZoneName?: Intl.DateTimeFormatOptions["timeZoneName"]
+}
+export function formatDateTime(date: Date, formatterOptions?: TimeZoneFormatterOptions | null): string {
+	const currentOptions = lang.formats.dateTime.resolvedOptions()
+	const options: Intl.DateTimeFormatOptions = {
+		day: currentOptions.day,
+		month: currentOptions.month,
+		year: currentOptions.year,
+		hour: currentOptions.hour,
+		minute: currentOptions.minute,
+		hourCycle: currentOptions.hourCycle,
+		...formatterOptions,
+	} as Intl.DateTimeFormatOptions
+
+	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
+
+	return dateTimeFormat.format(date)
 }
 
 export function formatDateTimeShort(date: Date): string {

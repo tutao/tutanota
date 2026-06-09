@@ -269,7 +269,8 @@ export class CalendarNotificationSender {
 }
 
 function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
-	const duration = formatEventDuration(event, getTimeZone(), true)
+	const startTimeZone = event.startTimeZone ?? getTimeZone()
+	const duration = formatEventDuration(event, startTimeZone, event.endTimeZone ?? startTimeZone, true)
 	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
@@ -490,7 +491,8 @@ function isAttendanceUpdateNotification(eventInviteEmailType: EventInviteEmailTy
 
 function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, comment }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
-	const duration = formatEventDuration(event, getTimeZone(), true)
+	const startTimeZone = event.startTimeZone ?? getTimeZone()
+	const duration = formatEventDuration(event, startTimeZone, event.endTimeZone ?? startTimeZone, true)
 	const eventLines: string[] = []
 
 	eventLines.push(`${infoBannerMessage}`)

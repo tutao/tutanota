@@ -30,6 +30,7 @@ import {
 	formatMonthWithFullYear,
 	formatTime,
 	timeStringFromParts,
+	TimeZoneFormatterOptions,
 } from "../../../../ui/utils/Formatter.js"
 import {
 	AlarmInterval,
@@ -47,7 +48,6 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getStartOfWeek,
-	getTimeZone,
 	getWeekNumber,
 	incrementByRepeatPeriod,
 	StandardAlarmInterval,
@@ -92,6 +92,8 @@ import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { clone } from "../../../../platform-kit/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
+import { Type } from "cborg"
+import undefined = Type.undefined
 
 export interface IntervalOption {
 	value: number
@@ -398,11 +400,11 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 }
 
-export function formatEventDuration(event: CalendarEventTimes, zone: string, includeTimezone: boolean): string {
+export function formatEventDuration(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string, includeTimezone: boolean): string {
 	if (isAllDayEvent(event)) {
-		const startTime = getEventStart(event, zone)
+		const startTime = getEventStart(event, startTimeZone)
 		const startString = formatDateWithMonth(startTime)
-		const endTime = incrementByRepeatPeriod(getEventEnd(event, zone), RepeatPeriod.DAILY, -1, zone)
+		const endTime = incrementByRepeatPeriod(getEventEnd(event, endTimeZone), RepeatPeriod.DAILY, -1, endTimeZone)
 
 		if (isSameDayOfDate(startTime, endTime)) {
 			return `${lang.get("allDay_label")}, ${startString}`
@@ -410,16 +412,15 @@ export function formatEventDuration(event: CalendarEventTimes, zone: string, inc
 			return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
 		}
 	} else {
-		const startString = formatDateTime(event.startTime)
-		let endString
+		const startAndEndIsSameDay = isSameDay(event.startTime, event.endTime)
 
-		if (isSameDay(event.startTime, event.endTime)) {
-			endString = formatTime(event.endTime)
-		} else {
-			endString = formatDateTime(event.endTime)
-		}
+		const startFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: startTimeZone, timeZoneName: "short" } : null
+		const startString = formatDateTime(event.startTime, startFormatterOptions)
 
-		return `${startString} - ${endString} ${includeTimezone ? getTimeZone() : ""}`
+		const endFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: endTimeZone, timeZoneName: "short" } : null
+		let endString = startAndEndIsSameDay ? formatTime(event.endTime, endFormatterOptions) : formatDateTime(event.endTime, endFormatterOptions)
+
+		return `${startString} - ${endString}`
 	}
 }
 
