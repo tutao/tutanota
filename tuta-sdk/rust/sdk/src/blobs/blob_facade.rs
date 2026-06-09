@@ -1,5 +1,5 @@
 use crate::bindings::rest_client;
-use crate::bindings::rest_client::HttpMethod::POST;
+use crate::bindings::rest_client::HttpMethod::{GET, POST};
 use crate::bindings::rest_client::RestClient;
 use crate::bindings::rest_client::{RestClientOptions, RestResponse};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
@@ -22,7 +22,7 @@ use crate::tutanota_constants::{
 };
 use crate::type_model_provider::TypeModelProvider;
 use crate::GeneratedId;
-use crate::{crypto, ApiCallError, HeadersProvider};
+use crate::{crypto, ApiCallError, HeadersProvider, TypeRef};
 use base64::Engine;
 use crypto::sha256;
 use crypto_primitives::aes::InitializationVector;
@@ -69,6 +69,132 @@ impl BlobFacade {
 			json_serializer,
 			type_model_provider,
 		}
+	}
+
+	/// Load a blob element from a blob server, trying each server URL in order.
+	/// On `NotAuthorizedError` (HTTP 403), the token is evicted and the request
+	/// is retried once with a fresh token.
+	/// Mirrors TS `EntityRestClient.loadMultipleBlobElements()` +
+	/// `doBlobRequestWithRetry()` + `tryServers()`.
+	pub async fn load_blob_element(
+		&self,
+		type_ref: &TypeRef,
+		archive_id: &GeneratedId,
+		element_id: &GeneratedId,
+		instance_list_id: &GeneratedId,
+	) -> Result<Vec<u8>, ApiCallError> {
+		let type_model = self
+			.type_model_provider
+			.resolve_client_type_ref(type_ref)
+			.ok_or_else(|| {
+				ApiCallError::internal(format!("type model not found for {}", type_ref))
+			})?;
+		let path = format!(
+			"/rest/{app}/{name}/{list_id}",
+			app = type_ref.app,
+			name = type_model.name.to_lowercase(),
+			list_id = instance_list_id,
+		);
+
+		let mut attempt = 0u8;
+		loop {
+			let access_info = self
+				.blob_access_token_facade
+				.request_read_token_archive(archive_id)
+				.await?;
+
+			let query_params = self.create_read_query_params(
+				&access_info.blobAccessToken,
+				element_id,
+				type_model.version,
+			);
+			let encoded_query_params = rest_client::encode_query_params(query_params);
+
+			let mut last_retriable_error: Option<ApiCallError> = None;
+			let mut got_unauthorized = false;
+
+			for server in &access_info.servers {
+				let url = format!("{}{}{}", server.url, path, encoded_query_params);
+				let maybe_response = self
+					.rest_client
+					.request_binary(
+						url,
+						GET,
+						RestClientOptions {
+							body: None,
+							headers: Default::default(),
+							suspension_behavior: None,
+						},
+					)
+					.await;
+
+				match maybe_response {
+					Ok(RestResponse {
+						status: 200 | 201,
+						body,
+						..
+					}) => {
+						return body.ok_or_else(|| {
+							ApiCallError::internal("Empty response from blob server".to_owned())
+						});
+					},
+					Ok(RestResponse { status, .. }) => {
+						match HttpError::from_http_response(status, &Default::default()) {
+							Ok(HttpError::NotAuthorizedError) => {
+								got_unauthorized = true;
+								break;
+							},
+							Ok(
+								error @ (HttpError::ConnectionError
+								| HttpError::InternalServerError
+								| HttpError::NotFoundError),
+							) => {
+								last_retriable_error = Some(error.into());
+								continue;
+							},
+							Ok(error) => return Err(error.into()),
+							Err(error) => return Err(error),
+						}
+					},
+					Err(error) => {
+						last_retriable_error = Some(error.into());
+						continue;
+					},
+				}
+			}
+
+			if got_unauthorized && attempt == 0 {
+				self.blob_access_token_facade
+					.evict_archive_token(archive_id);
+				attempt += 1;
+				continue;
+			}
+
+			return Err(last_retriable_error.unwrap_or_else(|| {
+				if got_unauthorized {
+					HttpError::NotAuthorizedError.into()
+				} else {
+					ApiCallError::InternalSdkError {
+						error_message: "no blob servers available".to_owned(),
+					}
+				}
+			}));
+		}
+	}
+
+	fn create_read_query_params(
+		&self,
+		blob_access_token: &str,
+		element_id: &GeneratedId,
+		entity_version: u64,
+	) -> Vec<(String, String)> {
+		let mut query_params: Vec<(String, String)> = vec![
+			("ids".into(), element_id.to_string()),
+			("blobAccessToken".into(), blob_access_token.to_owned()),
+		];
+		let auth_headers = self.auth_headers_provider.provide_headers(entity_version);
+		query_params.extend(auth_headers);
+		query_params
 	}
 
 	/// Encrypt and upload multiple file_data (i.e. files) in minimum amount of requests to
@@ -1140,6 +1266,235 @@ mod tests {
 				.collect::<Vec<_>>(),
 			reference_tokens
 		);
+	}
+
+	fn make_read_token_mock(archive_id: GeneratedId, token: &str) -> MockBlobAccessTokenFacade {
+		let blob_access_info = BlobServerAccessInfo {
+			blobAccessToken: token.to_string(),
+			servers: vec![BlobServerUrl {
+				url: "https://w1.api.tuta.com".to_string(),
+				..create_test_entity()
+			}],
+			..create_test_entity()
+		};
+		let mut facade = MockBlobAccessTokenFacade::default();
+		facade
+			.expect_request_read_token_archive()
+			.with(predicate::eq(archive_id))
+			.return_once(move |_| Ok(blob_access_info));
+		facade
+	}
+
+	#[tokio::test]
+	async fn load_blob_element_success() {
+		let archive_id = GeneratedId("archId".to_owned());
+		let element_id = GeneratedId("elemId".to_owned());
+		let expected_body = b"decrypted blob data".to_vec();
+
+		let mut mock_token = make_read_token_mock(archive_id.clone(), "accessToken123");
+		mock_token.expect_evict_archive_token().never();
+
+		let expected_body_clone = expected_body.clone();
+		let list_id_check = archive_id.clone();
+		let element_id_check = element_id.clone();
+		let mut rest_client = MockRestClient::default();
+		rest_client
+			.expect_request_binary()
+			.times(1)
+			.withf(move |url, method, _opts| {
+				let uri = url.parse::<Uri>().unwrap();
+				assert_eq!("w1.api.tuta.com", uri.host().unwrap());
+				assert!(
+					uri.path().contains(&format!("/maildetailsblob/{list_id_check}")),
+					"path should contain list_id, got: {}",
+					uri.path()
+				);
+				let query = uri.query().unwrap_or("");
+				assert!(
+					query.contains(&format!("ids={element_id_check}")),
+					"query should contain ids param, got: {query}"
+				);
+				assert!(
+					query.contains("blobAccessToken=accessToken123"),
+					"query should contain blobAccessToken, got: {query}"
+				);
+				assert_eq!(&GET, method);
+				true
+			})
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: HashMap::new(),
+					body: Some(expected_body_clone),
+				})
+			});
+
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+			Arc::new(MockRestClient::new()),
+			Arc::new(MockFileClient::new()),
+			"http://localhost:9000".to_string(),
+		));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade: mock_token,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: RandomizerFacade::from_core(DeterministicRng(42)),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new(type_model_provider.clone())),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			type_model_provider,
+		};
+
+		use crate::entities::generated::tutanota::MailDetailsBlob;
+		let result = blob_facade
+			.load_blob_element(&MailDetailsBlob::type_ref(), &archive_id, &element_id, &archive_id)
+			.await
+			.expect("should succeed");
+		assert_eq!(expected_body, result);
+	}
+
+	#[tokio::test]
+	async fn load_blob_element_retries_on_403() {
+		let archive_id = GeneratedId("archId".to_owned());
+		let element_id = GeneratedId("elemId".to_owned());
+		let expected_body = b"retry succeeded".to_vec();
+
+		// first token returns 403, second succeeds
+		let access_info_first = BlobServerAccessInfo {
+			blobAccessToken: "expiredToken".to_string(),
+			servers: vec![BlobServerUrl {
+				url: "https://w1.api.tuta.com".to_string(),
+				..create_test_entity()
+			}],
+			..create_test_entity()
+		};
+		let access_info_second = BlobServerAccessInfo {
+			blobAccessToken: "freshToken".to_string(),
+			servers: vec![BlobServerUrl {
+				url: "https://w1.api.tuta.com".to_string(),
+				..create_test_entity()
+			}],
+			..create_test_entity()
+		};
+
+		let mut mock_token = MockBlobAccessTokenFacade::default();
+		mock_token
+			.expect_request_read_token_archive()
+			.times(1)
+			.with(predicate::eq(archive_id.clone()))
+			.return_once(move |_| Ok(access_info_first));
+		mock_token
+			.expect_request_read_token_archive()
+			.times(1)
+			.with(predicate::eq(archive_id.clone()))
+			.return_once(move |_| Ok(access_info_second));
+		mock_token
+			.expect_evict_archive_token()
+			.times(1)
+			.with(predicate::eq(archive_id.clone()))
+			.return_const(());
+
+		let expected_body_clone = expected_body.clone();
+		let mut rest_client = MockRestClient::default();
+		// First request: 403 (NotAuthorizedError)
+		rest_client
+			.expect_request_binary()
+			.times(1)
+			.withf(|url, _, _| url.contains("expiredToken"))
+			.return_once(|_, _, _| {
+				Ok(RestResponse {
+					status: 403,
+					headers: HashMap::new(),
+					body: None,
+				})
+			});
+		// Second request (after retry): 200
+		rest_client
+			.expect_request_binary()
+			.times(1)
+			.withf(|url, _, _| url.contains("freshToken"))
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: HashMap::new(),
+					body: Some(expected_body_clone),
+				})
+			});
+
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+			Arc::new(MockRestClient::new()),
+			Arc::new(MockFileClient::new()),
+			"http://localhost:9000".to_string(),
+		));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade: mock_token,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: RandomizerFacade::from_core(DeterministicRng(42)),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new(type_model_provider.clone())),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			type_model_provider,
+		};
+
+		use crate::entities::generated::tutanota::MailDetailsBlob;
+		let result = blob_facade
+			.load_blob_element(&MailDetailsBlob::type_ref(), &archive_id, &element_id, &archive_id)
+			.await
+			.expect("should succeed after retry");
+		assert_eq!(expected_body, result);
+	}
+
+	#[tokio::test]
+	async fn load_blob_element_returns_server_error_without_retry() {
+		// When all servers return retriable errors (Connection/InternalServer/NotFound)
+		// without a 403, the original error is returned without retrying — matching TS
+		// `tryServers` which throws the last error, and `doBlobRequestWithRetry` which
+		// only retries on `NotAuthorizedError`.
+		let archive_id = GeneratedId("archId".to_owned());
+		let element_id = GeneratedId("elemId".to_owned());
+
+		let mut mock_token = make_read_token_mock(archive_id.clone(), "token");
+		// Critical: token must NOT be evicted, retry must NOT happen.
+		mock_token.expect_evict_archive_token().never();
+
+		let mut rest_client = MockRestClient::default();
+		rest_client
+			.expect_request_binary()
+			.times(1)
+			.return_once(|_, _, _| {
+				Ok(RestResponse {
+					status: 500,
+					headers: HashMap::new(),
+					body: None,
+				})
+			});
+
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+			Arc::new(MockRestClient::new()),
+			Arc::new(MockFileClient::new()),
+			"http://localhost:9000".to_string(),
+		));
+		let blob_facade = BlobFacade {
+			blob_access_token_facade: mock_token,
+			rest_client: Arc::new(rest_client),
+			randomizer_facade: RandomizerFacade::from_core(DeterministicRng(42)),
+			auth_headers_provider: Arc::new(HeadersProvider { access_token: None }),
+			instance_mapper: Arc::new(InstanceMapper::new(type_model_provider.clone())),
+			json_serializer: Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			type_model_provider,
+		};
+
+		use crate::entities::generated::tutanota::MailDetailsBlob;
+		let err = blob_facade
+			.load_blob_element(&MailDetailsBlob::type_ref(), &archive_id, &element_id, &archive_id)
+			.await
+			.expect_err("should return error");
+
+		match err {
+			ApiCallError::ServerResponseError {
+				source: HttpError::InternalServerError,
+			} => {},
+			other => panic!("expected InternalServerError, got: {other:?}"),
+		}
 	}
 
 	#[test]

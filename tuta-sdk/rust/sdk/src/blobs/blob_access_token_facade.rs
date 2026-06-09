@@ -1,7 +1,9 @@
-use crate::blobs::blob_access_token_cache::{BlobAccessTokenCache, BlobWriteTokenKey};
+use crate::blobs::blob_access_token_cache::{
+	BlobAccessTokenCache, BlobReadArchiveTokenKey, BlobWriteTokenKey,
+};
 use crate::date::DateProvider;
 use crate::entities::generated::storage::{
-	BlobAccessTokenPostIn, BlobServerAccessInfo, BlobWriteData,
+	BlobAccessTokenPostIn, BlobReadData, BlobServerAccessInfo, BlobWriteData,
 };
 use crate::services::generated::storage::BlobAccessTokenService;
 #[cfg_attr(test, mockall_double::double)]
@@ -67,8 +69,44 @@ impl BlobAccessTokenFacade {
 		};
 
 		self.cache
-			.try_get_token(
+			.try_get_write_token(
 				&BlobWriteTokenKey::new(owner_group_id, archive_data_type),
+				loader,
+			)
+			.await
+	}
+
+	/// Requests an archive-level token for reading blob elements.
+	/// Mirrors TS `BlobAccessTokenFacade.requestReadTokenArchive()`.
+	pub async fn request_read_token_archive(
+		&self,
+		archive_id: &GeneratedId,
+	) -> Result<BlobServerAccessInfo, ApiCallError> {
+		let archive_id_clone = archive_id.clone();
+		let loader = move || async move {
+			let post_in = BlobAccessTokenPostIn {
+				_format: 0,
+				archiveDataType: None,
+				write: None,
+				read: Some(BlobReadData {
+					_id: Some(CustomId(
+						BASE64_URL_SAFE_NO_PAD
+							.encode(self.randomizer_facade.generate_random_array::<4>()),
+					)),
+					archiveId: archive_id_clone,
+					instanceListId: None,
+					instanceIds: vec![],
+				}),
+			};
+			self.service_executor
+				.post::<BlobAccessTokenService>(post_in, ExtraServiceParams::default())
+				.await
+				.map(|r| r.blobAccessInfo)
+		};
+
+		self.cache
+			.try_get_read_token(
+				&BlobReadArchiveTokenKey::new(archive_id),
 				loader,
 			)
 			.await
@@ -77,7 +115,13 @@ impl BlobAccessTokenFacade {
 	/// Remove a given write token from the cache.
 	#[allow(unused)]
 	pub fn evict_access_token(&self, key: &BlobWriteTokenKey) {
-		self.cache.evict(key);
+		self.cache.evict_write(key);
+	}
+
+	/// Remove a read archive token from the cache.
+	pub fn evict_archive_token(&self, archive_id: &GeneratedId) {
+		self.cache
+			.evict_read(&BlobReadArchiveTokenKey::new(archive_id));
 	}
 }
 #[cfg(test)]

@@ -6,6 +6,7 @@ use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
+use crate::crypto::crypto_facade::ResolvedSessionKey;
 use crate::crypto::key::AsymmetricKeyPair;
 use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
 use crate::crypto::X25519PublicKey;
@@ -114,6 +115,28 @@ impl CryptoEntityClient {
 			.await?;
 
 		self.process_server_response(parsed_entities).await
+	}
+
+	pub fn decrypt_with_owner_key<T: Entity + DeserializeOwned>(
+		&self,
+		parsed_entity: ParsedEntity,
+		session_key: &GenericAesKey,
+		owner_enc_session_key: Vec<u8>,
+		owner_key_version: u64,
+	) -> Result<T, ApiCallError> {
+		let type_model = self.entity_client.resolve_server_type_ref(&T::type_ref())?;
+		let resolved = ResolvedSessionKey {
+			session_key: session_key.clone(),
+			owner_enc_session_key,
+			owner_key_version,
+			sender_identity_pub_key: None,
+		};
+		let decrypted = self
+			.entity_facade
+			.decrypt_and_map(&type_model, parsed_entity, resolved)?;
+		self.instance_mapper
+			.parse_entity::<T>(decrypted)
+			.map_err(|e| ApiCallError::internal_with_err(e, "Failed to map decrypted blob entity"))
 	}
 
 	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
