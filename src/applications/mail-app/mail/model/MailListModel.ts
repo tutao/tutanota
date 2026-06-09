@@ -25,8 +25,8 @@ import {
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
-import { mailLocator } from "../../mailLocator"
 import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 
 assertMainOrNode()
 
@@ -48,6 +48,7 @@ export class MailListModel implements MailSetListModel {
 		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.listModel = new ListModel({
 			fetch: (lastFetchedItem, count) => {
@@ -315,7 +316,7 @@ export class MailListModel implements MailSetListModel {
 				elementIdPart(startingId),
 				count,
 				true,
-				!mailLocator.syncTracker.isSyncDone ? { cacheMode: CacheMode.Direct } : undefined,
+				!this.syncTracker.isSyncDone ? { cacheMode: CacheMode.Direct } : undefined,
 			)
 
 			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
