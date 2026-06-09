@@ -3,6 +3,7 @@ import { Signature, Type } from "ts-morph"
 import * as Assert from "node:assert"
 import { TargetLanguage } from "../LangTarget"
 import { TIdentitider, TTypedIdentifier } from "./TIdentitider"
+import { IgnorableError } from "../errors/IgnorableError"
 
 export const MappedPrimitiveType: Record<string, { kotlin: string; swift: string }> = Object.freeze({
 	Number: { kotlin: "TsNumber", swift: "NSNumber" },
@@ -105,7 +106,7 @@ export class TType extends TConstruct {
 				// for things like: `Awaited<T>`, which can be assigneable to just `T`
 				this.baseType = new TType(firstTypeArg)
 			} else {
-				throw new Error("Unknown type: " + typ.getText())
+				throw new IgnorableError("Unknown type: " + typ.getText())
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 import { ConstructOut, TConstruct, TConstructMultiple } from "./TConstruct"
-import { ClassDeclaration, ParameterDeclaration, PropertyDeclaration, ts } from "ts-morph"
+import { ClassDeclaration, InterfaceDeclaration, MethodSignature, ParameterDeclaration, PropertyDeclaration, PropertySignature, ts } from "ts-morph"
 import { TVisibility } from "./TVisibility"
 import { TType } from "./TType"
 import { TClassMethod } from "./TFunctionDecl"
@@ -15,12 +15,12 @@ class TClassProperty extends TConstruct {
 	private readonly name: TIdentitider
 	private readonly dataType: TType
 	private readonly isReadOnly: boolean
-	private readonly isOverriden: boolean
 
 	private constructor(
 		public readonly isDefinedInConstructor: boolean,
 		public readonly isStatic: boolean,
-		property: PropertyDeclaration | ParameterDeclaration,
+		private readonly isOverriden: boolean,
+		property: PropertyDeclaration | ParameterDeclaration | PropertySignature,
 	) {
 		super()
 		const initializer = property.getInitializer()
@@ -28,16 +28,19 @@ class TClassProperty extends TConstruct {
 		this.name = new TIdentitider(property.getName())
 		this.dataType = new TType(property.getType())
 		this.isReadOnly = property.isReadonly()
-		this.isOverriden = property.hasOverrideKeyword()
 	}
 
 	public static outsideConstructorParam(property: PropertyDeclaration) {
-		return new TClassProperty(false, property.isStatic(), property)
+		return new TClassProperty(false, property.isStatic(), property.hasOverrideKeyword(), property)
 	}
 
 	public static fromConstructorParam(property: ParameterDeclaration) {
 		Assert.equal(property.isParameterProperty(), true, "Given parameter is not a property")
-		return new TClassProperty(true, false, property)
+		return new TClassProperty(true, false, property.hasOverrideKeyword(), property)
+	}
+
+	public static fromInterfaceProperty(property: PropertySignature) {
+		return new TClassProperty(false, false, false, property)
 	}
 
 	generateKotlin(): ConstructOut {
@@ -138,5 +141,52 @@ export class TClassDecl extends TConstruct {
 			const properties = new TConstructMultiple(...this.properties).withSeparator("\n").generateKotlin()
 			return `${visibility} open class ${name} { ${staticThings}\n ${properties}\n ${methods} }`
 		}
+	}
+}
+
+class TInterfaceMethod extends TConstruct {
+	private readonly name: TIdentitider
+	private readonly arguments: TConstructMultiple<TTypedIdentifier>
+	private readonly returnType: TType
+
+	constructor(methodSignature: MethodSignature) {
+		super()
+		this.name = new TIdentitider(methodSignature.getName())
+		this.returnType = new TType(methodSignature.getReturnType())
+		const args = methodSignature.getParameters().map((p) => new TTypedIdentifier(new TIdentitider(p.getName()), new TType(p.getType())))
+		this.arguments = new TConstructMultiple(...args)
+	}
+
+	generateKotlin(): ConstructOut {
+		const name = this.name.generateKotlin()
+		const args = this.arguments.withSeparator(",").generateKotlin()
+		const returnType = this.returnType.generateKotlin()
+
+		return `fun ${name}(${args}): ${returnType}`
+	}
+}
+export class TInterfaceDecl extends TConstruct {
+	private readonly name: TIdentitider
+	private readonly visibility: TVisibility
+	private readonly properties: TConstructMultiple<TClassProperty>
+	private readonly methods: TConstructMultiple<TInterfaceMethod>
+
+	constructor(interfaceDecleration: InterfaceDeclaration) {
+		super()
+		this.visibility = TVisibility.checkExported(interfaceDecleration)
+		this.name = new TIdentitider(interfaceDecleration.getName())
+		const properties = interfaceDecleration.getProperties().map((p) => TClassProperty.fromInterfaceProperty(p))
+		const methods = interfaceDecleration.getMethods().map((m) => new TInterfaceMethod(m))
+		this.properties = new TConstructMultiple(...properties)
+		this.methods = new TConstructMultiple(...methods)
+	}
+
+	generateKotlin(): ConstructOut {
+		const visibility = this.visibility.generateKotlin()
+		const name = this.name.generateKotlin()
+		const properties = this.properties.withSeparator("\n")
+		const methods = this.methods.withSeparator("\n")
+		const body = new TConstructMultiple<TConstruct>(properties, methods).withSeparator("\n").generateKotlin()
+		return `${visibility} interface ${name} { ${body} }`
 	}
 }
