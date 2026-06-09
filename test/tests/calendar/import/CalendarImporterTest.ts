@@ -53,6 +53,8 @@ o.spec("CalendarImporter", function () {
 			repeatRule: overrides?.repeatRule ?? null,
 			attendees: null,
 			organizer: null,
+			startTimeZone: overrides?.repeatRule?.timeZone ?? null,
+			endTimeZone: overrides?.repeatRule?.timeZone ?? null,
 		}
 	}
 
@@ -346,6 +348,8 @@ o.spec("CalendarImporter", function () {
 				repeatRule: null,
 				attendees: null,
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 			const newProgenitor: IcsCalendarEvent = {
 				uid: "hello",
@@ -359,6 +363,8 @@ o.spec("CalendarImporter", function () {
 				repeatRule: null,
 				attendees: null,
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
 
@@ -396,6 +402,8 @@ o.spec("CalendarImporter", function () {
 				repeatRule: null,
 				attendees: null,
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 			const existingProgenitorIcs: IcsCalendarEvent = {
 				uid: "hello_existing",
@@ -409,6 +417,8 @@ o.spec("CalendarImporter", function () {
 				repeatRule: null,
 				attendees: null,
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
 
@@ -447,6 +457,8 @@ o.spec("CalendarImporter", function () {
 				repeatRule: null,
 				attendees: [],
 				organizer: null,
+				startTimeZone: null,
+				endTimeZone: null,
 			}
 
 			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(

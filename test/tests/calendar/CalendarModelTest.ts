@@ -746,6 +746,8 @@ o.spec("CalendarModel", function () {
 				location: baseExistingProgenitor.location,
 				repeatRule: baseExistingProgenitor.repeatRule,
 				recurrenceId: baseExistingProgenitor.recurrenceId,
+				startTimeZone: baseExistingProgenitor.startTimeZone,
+				endTimeZone: baseExistingProgenitor.endTimeZone,
 			}
 		})
 
