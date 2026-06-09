@@ -315,6 +315,7 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 				return false
 
 			case ValueType.CustomId:
+				return null
 			case ValueType.GeneratedId:
 				return null
 			// we have to use null although the value must be set to something different
