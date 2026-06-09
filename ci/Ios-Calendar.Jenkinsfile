@@ -135,7 +135,7 @@ pipeline {
 					if (params.STAGING) {
 						unstash 'ipa-adhoc-staging'
 						unstash 'ipa-staging'
-						publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "ipa")
+						publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
 						publishToNexus("calendar-ios-test", "calendar-${VERSION}-test.ipa", "ipa")
 					}
 
@@ -143,7 +143,7 @@ pipeline {
 						unstash 'ipa-adhoc-production'
 						unstash 'ipa-production'
 						unstash 'dsym-production'
-						publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "ipa")
+						publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "adhoc.ipa")
 						publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
 						publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 					}
