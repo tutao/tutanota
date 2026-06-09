@@ -180,7 +180,7 @@ export async function makeCalendarEventModel(
 	entityClient: EntityClient,
 	responseTo: Mail | null,
 	calendarInviteHandler: CalendarInviteHandler,
-	zone: string = getTimeZone(),
+	calendarTimeZone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
@@ -212,7 +212,7 @@ export async function makeCalendarEventModel(
 	)
 
 	const makeEditModels = (initializationEvent: CalendarEvent) => ({
-		whenModel: new CalendarEventWhenModel(initializationEvent, zone, uiUpdateCallback),
+		whenModel: new CalendarEventWhenModel(initializationEvent, calendarTimeZone, uiUpdateCallback),
 		whoModel: new CalendarEventWhoModel(
 			initializationEvent,
 			eventType,
@@ -248,7 +248,7 @@ export async function makeCalendarEventModel(
 		makeEditModels,
 		fetchRecurrenceIds,
 		showProgress,
-		zone,
+		calendarTimeZone,
 		calendarInviteHandler,
 	)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
@@ -503,6 +503,8 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 			startTime: whenResult.startTime,
 			endTime: whenResult.endTime,
 			repeatRule: whenResult.repeatRule,
+			startTimeZone: whenResult.startTimeZone,
+			endTimeZone: whenResult.endTimeZone,
 			// what?
 			summary,
 			description,

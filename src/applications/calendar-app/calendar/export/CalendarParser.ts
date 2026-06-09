@@ -60,6 +60,8 @@ export type IcsCalendarEvent = {
 	repeatRule: StrippedRepeatRule | null
 	attendees: Array<StrippedCalendarEventAttendee> | null
 	organizer: Stripped<EncryptedMailAddress> | null
+	startTimeZone: string | null
+	endTimeZone: string | null
 }
 export type ParsedEventAlarmTuple = {
 	icsCalendarEvent: IcsCalendarEvent
@@ -610,8 +612,8 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
-		const tzId = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
+		const startTzId = getTzId(startProp)
+		const { date: startTime, allDay } = parseTime(startProp.value, startTzId ?? undefined)
 
 		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 		let hasValidUid = false
@@ -633,10 +635,10 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		if (recurrenceIdProp != null && hasValidUid) {
 			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
 			// in that case, we just don't add the recurrenceId and import the event as a standalone.
-			recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
+			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
 		}
 
-		const endTime = parseEndTime(eventObj, allDay, startTime, tzId, zone)
+		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
 
 		let summary: string = ""
 		const maybeSummary = parseICalText(eventObj, "SUMMARY")
@@ -651,7 +653,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 
 		let repeatRule: RepeatRule | null = null
 		if (rruleProp != null) {
-			repeatRule = parseRrule(rruleProp, tzId)
+			repeatRule = parseRrule(rruleProp, startTzId)
 			repeatRule.excludedDates = parseExDates(excludedDateProps)
 		}
 
@@ -687,6 +689,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			}
 		}
 
+		const endProp = getProp(eventObj, "DTEND", true)
+		const endTzId = endProp ? getTzId(endProp) : null
 		const icsCalendarEvent: IcsCalendarEvent = {
 			summary,
 			description,
@@ -699,6 +703,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			repeatRule,
 			attendees,
 			organizer,
+			startTimeZone: startTzId,
+			endTimeZone: endTzId,
 		}
 
 		let alarms: AlarmInfoTemplate[] = []

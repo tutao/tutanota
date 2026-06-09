@@ -2,10 +2,12 @@ import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule, createAdvancedRe
 import { createDateWrapper, createRepeatRule, RepeatRule } from "@tutao/entities/sys"
 import {
 	CalendarEventTimes,
+	CalendarEventTimeZones,
 	getAllDayDateUTC,
 	getEventWithDefaultTimes,
 	isAllDayEvent,
 	isBefore,
+	normalizeTime,
 } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
@@ -22,15 +24,16 @@ import {
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { assertNotNull, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "../../../../../platform-kit/utils"
-import { clone, Stripped } from "../../../../../platform-kit/meta"
-import { EndType, RepeatPeriod, Weekday } from "../../../../../platform-kit/app-env"
+import { assertNotNull, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
+import { clone, Stripped } from "@tutao/meta"
+import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
 
-export type CalendarEventWhenModelResult = CalendarEventTimes & {
-	repeatRule: CalendarRepeatRule | null
-}
+export type CalendarEventWhenModelResult = CalendarEventTimes &
+	CalendarEventTimeZones & {
+		repeatRule: CalendarRepeatRule | null
+	}
 
 /*
  * start, end, repeat, exclusions, reschedulings
@@ -48,56 +51,43 @@ export class CalendarEventWhenModel {
 	private _startTime: Time | null
 	private _endTime: Time | null
 
+	private timeZones: CalendarEventTimeZones
+
 	constructor(
 		private readonly initialValues: Partial<Stripped<CalendarEvent>>,
-		readonly zone: string,
+		public readonly calendarTimeZone: string,
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {
-		let initialTimes: CalendarEventTimes
-		if (initialValues.startTime == null || initialValues.endTime == null) {
-			const defaultTimes = getEventWithDefaultTimes(initialValues.startTime)
-			initialTimes = {
-				startTime: initialValues.startTime ?? defaultTimes.startTime,
-				endTime: initialValues.endTime ?? defaultTimes.endTime,
-			}
-		} else {
-			initialTimes = {
-				startTime: initialValues.startTime,
-				endTime: initialValues.endTime,
-			}
+		const defaultTimes = getEventWithDefaultTimes(initialValues.startTime)
+		const initialTimes: CalendarEventTimes = {
+			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : normalizeTime(defaultTimes.startTime),
+			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : normalizeTime(defaultTimes.endTime),
 		}
-
-		// zero out the second and millisecond part of start/end time. can't use the getters for startTime and endTime
-		// because they depend on all-day status.
-		initialTimes.startTime = DateTime.fromJSDate(initialTimes.startTime, { zone })
-			.set({
-				second: 0,
-				millisecond: 0,
-			})
-			.toJSDate()
-		initialTimes.endTime = DateTime.fromJSDate(initialTimes.endTime, { zone })
-			.set({
-				second: 0,
-				millisecond: 0,
-			})
-			.toJSDate()
 
 		this._isAllDay = isAllDayEvent(initialTimes)
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
 
-		const start = getEventStart(initialTimes, this.zone)
-		const end = getEventEnd(initialTimes, this.zone)
+		const start = getEventStart(initialTimes, this.calendarTimeZone)
+		const end = getEventEnd(initialTimes, this.calendarTimeZone)
 		if (this._isAllDay) {
+			// FIXME what exactly are we doing here?
 			this._startTime = null
 			this._endTime = null
-			this._startDate = getStartOfDayWithZone(DateTime.fromJSDate(start, { zone }).toJSDate(), zone)
+			this._startDate = getStartOfDayWithZone(DateTime.fromJSDate(start, { zone: calendarTimeZone }).toJSDate(), calendarTimeZone)
 			this._endDate = incrementDate(end, -1)
 		} else {
-			this._startTime = Time.fromDateTime(DateTime.fromJSDate(start, { zone }))
-			this._endTime = Time.fromDateTime(DateTime.fromJSDate(end, { zone }))
-			this._startDate = getStartOfDayWithZone(DateTime.fromJSDate(start, { zone }).toJSDate(), zone)
-			this._endDate = getStartOfDayWithZone(DateTime.fromJSDate(end, { zone }).toJSDate(), zone)
+			this._startTime = Time.fromDateTime(DateTime.fromJSDate(start, { zone: calendarTimeZone }))
+			this._endTime = Time.fromDateTime(DateTime.fromJSDate(end, { zone: calendarTimeZone }))
+			this._startDate = getStartOfDayWithZone(DateTime.fromJSDate(start, { zone: calendarTimeZone }).toJSDate(), calendarTimeZone)
+			this._endDate = getStartOfDayWithZone(DateTime.fromJSDate(end, { zone: calendarTimeZone }).toJSDate(), calendarTimeZone)
 		}
+
+		this.timeZones = {
+			startTimeZone: initialValues.startTimeZone ?? null,
+			endTimeZone: initialValues.endTimeZone ?? null,
+		}
+
+		console.log({ timezones: this.timeZones })
 	}
 
 	/**
@@ -111,8 +101,8 @@ export class CalendarEventWhenModel {
 
 		if ((!value && this._startTime == null) || this._endTime == null) {
 			const defaultTimes = getEventWithDefaultTimes()
-			this._startTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.startTime, this))
-			this._endTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.endTime, this))
+			this._startTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.startTime, { zone: this.calendarTimeZone }))
+			this._endTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.endTime, { zone: this.calendarTimeZone }))
 		}
 
 		if (this.repeatRule == null) {
@@ -192,9 +182,9 @@ export class CalendarEventWhenModel {
 	set duration(value: { minutes: number }) {
 		if (value.minutes < 1) return
 		const diff = { minutes: this.duration.minutes - value.minutes }
-		const oldEndTime = this.endTime.toDateTime(this.endDate, this.zone)
+		const oldEndTime = this.endTime.toDateTime(this.endDate, this.calendarTimeZone)
 		const newEndTime = oldEndTime.plus(diff)
-		this._endDate = getStartOfDayWithZone(newEndTime.toJSDate(), this.zone)
+		this._endDate = getStartOfDayWithZone(newEndTime.toJSDate(), this.calendarTimeZone)
 		if (!this._isAllDay) {
 			this._endTime = Time.fromDateTime(newEndTime)
 		}
@@ -228,10 +218,10 @@ export class CalendarEventWhenModel {
 			const thisYear = new Date().getFullYear()
 			date.setFullYear(thisYear)
 		}
-		const valueDateTime = DateTime.fromJSDate(date, { zone: this.zone })
+		const valueDateTime = DateTime.fromJSDate(date, { zone: this.calendarTimeZone })
 		// asking for the rest in milliseconds causes luxon to give us an integer number of
 		// days in the duration which is what we want.
-		const diff = valueDateTime.diff(DateTime.fromJSDate(this._startDate, this), ["day", "millisecond"])
+		const diff = valueDateTime.diff(DateTime.fromJSDate(this._startDate, { zone: this.calendarTimeZone }), ["day", "millisecond"])
 		if (diff.as("millisecond") === 0) return
 		// we only want to add days, not milliseconds.
 		this.shiftEvent({ days: diff.days })
@@ -265,7 +255,7 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		this._endDate = DateTime.fromJSDate(value, this).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
+		this._endDate = DateTime.fromJSDate(value, { zone: this.calendarTimeZone }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
 		this.uiUpdateCallback()
 	}
 
@@ -368,7 +358,7 @@ export class CalendarEventWhenModel {
 						startTime: this._startDate,
 						endTime: this._endDate,
 					},
-					this.zone,
+					this.calendarTimeZone,
 				)
 				return
 			case EndType.Count:
@@ -412,7 +402,7 @@ export class CalendarEventWhenModel {
 	 */
 	get repeatEndDateForDisplay(): Date {
 		if (this.repeatRule?.endType === EndType.UntilDate) {
-			return getRepeatEndTimeForDisplay(this.repeatRule, this.isAllDay, this.zone)
+			return getRepeatEndTimeForDisplay(this.repeatRule, this.isAllDay, this.calendarTimeZone)
 		} else {
 			return new Date(
 				filterInt(
@@ -421,7 +411,7 @@ export class CalendarEventWhenModel {
 							startTime: this._startDate,
 							endTime: this._endDate,
 						},
-						this.zone,
+						this.calendarTimeZone,
 					),
 				),
 			)
@@ -439,9 +429,9 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		const repeatEndDate = incrementByRepeatPeriod(newRepeatEndDate, RepeatPeriod.DAILY, 1, this.zone)
+		const repeatEndDate = incrementByRepeatPeriod(newRepeatEndDate, RepeatPeriod.DAILY, 1, this.calendarTimeZone)
 		const times = this.getTimes()
-		if (repeatEndDate < getEventStart(times, this.zone)) {
+		if (repeatEndDate < getEventStart(times, this.calendarTimeZone)) {
 			throw new UserError("startAfterEnd_label")
 		}
 
@@ -449,13 +439,31 @@ export class CalendarEventWhenModel {
 		// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
 		// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
 		// regular events it is just a timestamp.
-		const numberEndDate = (this.isAllDay ? getAllDayDateUTCFromZone(repeatEndDate, this.zone) : repeatEndDate).getTime()
+		const numberEndDate = (this.isAllDay ? getAllDayDateUTCFromZone(repeatEndDate, this.calendarTimeZone) : repeatEndDate).getTime()
 		this.repeatRule.endValue = String(numberEndDate)
 		this.uiUpdateCallback()
 	}
 
 	get excludedDates(): ReadonlyArray<Date> {
 		return this.repeatRule?.excludedDates.map(({ date }) => date) ?? []
+	}
+
+	set startTimeZone(startTimeZone: string | null) {
+		this.timeZones.startTimeZone = startTimeZone
+		this.uiUpdateCallback()
+	}
+
+	get startTimeZone() {
+		return this.timeZones.startTimeZone
+	}
+
+	set endTimeZone(endTimeZone: string | null) {
+		this.timeZones.endTimeZone = endTimeZone
+		this.uiUpdateCallback()
+	}
+
+	get endTimeZone() {
+		return this.timeZones.endTimeZone
 	}
 
 	/**
@@ -551,13 +559,13 @@ export class CalendarEventWhenModel {
 	 * @param duration an object containing a duration in luxons year/quarter/... format
 	 */
 	shiftEvent(duration: DurationLikeObject): void {
-		const oldStartTime = this.startTime.toDateTime(this.startDate, this.zone)
-		const oldEndTime = this.endTime.toDateTime(this.endDate, this.zone)
+		const oldStartTime = this.startTime.toDateTime(this.startDate, this.calendarTimeZone)
+		const oldEndTime = this.endTime.toDateTime(this.endDate, this.calendarTimeZone)
 		const newStartDate = oldStartTime.plus(duration)
 		const newEndDate = oldEndTime.plus(duration)
 
-		this._startDate = getStartOfDayWithZone(newStartDate.toJSDate(), this.zone)
-		this._endDate = getStartOfDayWithZone(newEndDate.toJSDate(), this.zone)
+		this._startDate = getStartOfDayWithZone(newStartDate.toJSDate(), this.calendarTimeZone)
+		this._endDate = getStartOfDayWithZone(newEndDate.toJSDate(), this.calendarTimeZone)
 		if (!this._isAllDay) {
 			this._startTime = Time.fromDateTime(newStartDate)
 			this._endTime = Time.fromDateTime(newEndDate)
@@ -578,12 +586,15 @@ export class CalendarEventWhenModel {
 						advancedRules: [],
 					}),
 					...this.repeatRule,
-					timeZone: this.zone,
+					timeZone: this.timeZones.startTimeZone ?? this.calendarTimeZone,
 				}
 			: null
 		this.deleteExcludedDatesIfNecessary(repeatRule)
+
 		const { startTime, endTime } = this.getTimes()
-		return { startTime, endTime, repeatRule }
+		const { startTimeZone, endTimeZone } = this.timeZones
+
+		return { startTime, endTime, repeatRule, startTimeZone, endTimeZone }
 	}
 
 	/**
@@ -599,12 +610,12 @@ export class CalendarEventWhenModel {
 		},
 	): CalendarEventTimes {
 		if (this._isAllDay) {
-			const startTime = getAllDayDateUTCFromZone(startDate, this.zone)
-			const endTime = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(endDate, this.zone), this.zone)
+			const startTime = getAllDayDateUTCFromZone(startDate, this.calendarTimeZone)
+			const endTime = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(endDate, this.calendarTimeZone), this.calendarTimeZone)
 			return { startTime, endTime }
 		} else {
-			const startTime = this._startTime!.toDateTime(getStartOfDayWithZone(startDate, this.zone), this.zone).toJSDate()
-			const endTime = this._endTime!.toDateTime(getStartOfDayWithZone(endDate, this.zone), this.zone).toJSDate()
+			const startTime = this._startTime!.toDateTime(getStartOfDayWithZone(startDate, this.calendarTimeZone), this.calendarTimeZone).toJSDate()
+			const endTime = this._endTime!.toDateTime(getStartOfDayWithZone(endDate, this.calendarTimeZone), this.calendarTimeZone).toJSDate()
 			return { startTime, endTime }
 		}
 	}
