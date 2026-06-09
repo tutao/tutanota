@@ -1714,6 +1714,8 @@ impl EventFacade {
 			attendees: vec![],
 			invitedConfidentially: None,
 			repeatRule: None,
+			startTimeZone: None,
+			endTimeZone: None,
 			pendingInvitation: None,
 			uid: Some(uid),
 			_id: Some(IdTupleCustom {

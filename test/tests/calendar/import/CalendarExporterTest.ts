@@ -579,6 +579,8 @@ o.spec("CalendarExporter", function () {
 							repeatRule: null,
 							attendees: [],
 							organizer: null,
+							startTimeZone: null,
+							endTimeZone: null,
 						},
 						alarms: [],
 					},
@@ -618,6 +620,8 @@ o.spec("CalendarExporter", function () {
 				excludedDates: [],
 				endValue: null,
 			})
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
 
 			testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 		})
@@ -689,6 +693,9 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 			o("uppercase mailto", async function () {
@@ -727,6 +734,9 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 			o("without PARTSTAT", async function () {
@@ -767,6 +777,10 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 		})
@@ -867,6 +881,9 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
 						[
@@ -900,6 +917,9 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
 						[
@@ -986,6 +1006,8 @@ o.spec("CalendarExporter", function () {
 									).toJSDate(),
 									uid: "test@tuta.com",
 									repeatRule: null,
+									startTimeZone: null,
+									endTimeZone: null,
 								},
 								alarms: [],
 							},
@@ -1082,6 +1104,8 @@ END:VCALENDAR`
 							uid: "test@tuta.com",
 							hashedUid: null,
 							sequence: "1",
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [],
 					},
@@ -1123,6 +1147,8 @@ END:VCALENDAR`
 							sequence: "2",
 							uid: "test@tuta.com",
 							hashedUid: null,
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [alarmOne, alarmTwo],
 					},
@@ -1181,6 +1207,8 @@ END:VCALENDAR`
 								excludedDates: [],
 								advancedRules: [],
 							}),
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [],
 					},
@@ -1236,6 +1264,8 @@ END:VCALENDAR`
 								timeZone: "",
 								excludedDates: [],
 							}),
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [],
 					},
@@ -1258,6 +1288,8 @@ END:VCALENDAR`
 							repeatRule: event.repeatRule,
 							attendees: event.attendees,
 							organizer: event.organizer,
+							startTimeZone: null,
+							endTimeZone: null,
 						},
 						alarms: alarms.map((a) => ({
 							trigger: a.alarmInfo.trigger,
