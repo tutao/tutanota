@@ -568,7 +568,6 @@ export class EventBusClient {
 			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
 			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
 			await this.cache.recordSyncTime()
-			this.listener.onSyncDone()
 		} else {
 			await this.checkOutOfSync()
 		}
