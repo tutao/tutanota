@@ -5,7 +5,7 @@
     <name>Tuta Mail</name>
     <summary>Tuta Mail for Nextcloud</summary>
     <description>Seamless integration of Tuta Mail into Nextcloud.</description>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
     <licence>GPL-3.0-or-later</licence>
     <author mail="nextcloud@tutao.de" homepage="https://tuta.com">Tutao GmbH</author>
     <namespace>TutaMail</namespace>
@@ -26,6 +26,14 @@
         </navigation>
     </navigations>
     <external-app>
+        <routes>
+            <route>
+                <url>.*</url>
+                <verb>GET,POST,PUT,DELETE,PATCH</verb>
+                <access_level>USER</access_level>
+                <headers_to_exclude>[]</headers_to_exclude>
+            </route>
+        </routes>
         <docker-install>
             <registry>ghcr.io</registry>
             <image>tutao/tutamail-proxy</image>

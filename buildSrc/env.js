@@ -7,7 +7,7 @@ export function create(params) {
 
 	if (integrationPlatform === "Nextcloud") {
 		Object.values(domainConfigs).forEach((domainConfig) => {
-			domainConfig.apiUrl += "/index.php/apps/app_api/proxy/tutamail"
+			domainConfig.apiUrl += "/index.php/apps/exapps/tutamail"
 		})
 	}
 
