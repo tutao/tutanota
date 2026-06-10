@@ -29,6 +29,7 @@ import {
 	ParsedCiphertextUnusedReservedUnauthenticated,
 	parseVersionedCiphertext,
 } from "../encryption/symmetric/ParsedCiphertext"
+import { CryptoError } from "@tutao/crypto/error"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -130,7 +131,7 @@ export class SymmetricCipherFacade {
 	 */
 	encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
 		const cipherVersion: SymmetricCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key)
+		const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
 		return this.aesCbcFacade.encrypt(subKeys, bytes, initializationVector, PaddingStandard.Pkcs5, cipherVersion, AuthenticationEnforcement.Relaxed)
 	}
 
@@ -246,10 +247,20 @@ export class SymmetricCipherFacade {
 		const initializationVector: InitializationVectorSource =
 			initializationVectorVariant === InitializationVectorVariant.Random ? generateInitializationVector() : initializationVectorVariant
 		let subKeys: AesCbcSubKeys
-		if (Array.isArray(key)) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key)
+		if (cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
+			if (Array.isArray(key)) {
+				subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key)
+			} else {
+				subKeys = key
+			}
+		} else if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
+			if (Array.isArray(key)) {
+				subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
+			} else {
+				subKeys = key
+			}
 		} else {
-			subKeys = key
+			throw new CryptoError("cipher version not yet supported: " + cipherVersion)
 		}
 		return this.aesCbcFacade.encrypt(subKeys, plaintext, initializationVector, paddingStandard, cipherVersion, authenticationEnforcement)
 	}

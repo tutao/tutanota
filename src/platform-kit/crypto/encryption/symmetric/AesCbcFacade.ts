@@ -4,11 +4,13 @@ import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { AesCbcThenHmacSubKeys, SymmetricSubKeys } from "./SymmetricKeyDeriver"
+import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
 import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
+import { SubKeyInfoWithoutSessionKey, SubKeyInfoWithSessionKey } from "../../instance-pipeline-crypto/encryption/SubKeyProvider"
+import { SymmetricCipherFacade } from "../../instance-pipeline-crypto/SymmetricCipherFacade"
 
 export enum AuthenticationEnforcement {
 	Strict,
@@ -60,7 +62,11 @@ export class AesCbcFacade {
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				return unauthenticatedCiphertext
+				if (subKeys instanceof UnusedReservedUnauthenticatedSubKeys) {
+					return unauthenticatedCiphertext
+				} else {
+					throw new CryptoError("unexpected subKey for " + cipherVersion + " " + subKeys.constructor.name)
+				}
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				const authenticationKey = assertNotNull(subKeys.authenticationKey)
 				const authenticationTag = hmacSha256(authenticationKey, unauthenticatedCiphertext)
