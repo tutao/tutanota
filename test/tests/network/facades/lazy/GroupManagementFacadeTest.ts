@@ -74,7 +74,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		when(pqFacade.generateKeyPairs()).thenResolve(newMailGroupKeyPair)
 		when(cryptoWrapper.encryptKeyWithVersionedKey(anything(), anything())).thenReturn(object())
 		let mailGroupId = "sharedMailGroupId"
-		when(serviceExecutor.post(anything(), anything())).thenResolve({ mailGroup: mailGroupId })
+		when(serviceExecutor.post(anything(), anything(), null)).thenResolve({ mailGroup: mailGroupId })
 
 		await groupManagementFacade.createSharedMailGroup("some group", "example@tuta.com")
 

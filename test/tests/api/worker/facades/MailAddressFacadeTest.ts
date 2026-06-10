@@ -9,7 +9,7 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-
 import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider"
 
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
-import { EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
@@ -115,7 +115,7 @@ o.spec("MailAddressFacadeTest", function () {
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
-			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, { ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
+			when(nonCachingEntityClient.setup(null, matchers.anything(), null, { baseUrl: null, ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
 			when(
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,

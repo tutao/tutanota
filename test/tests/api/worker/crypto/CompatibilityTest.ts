@@ -1,5 +1,7 @@
 import o from "@tutao/otest"
 import {
+	AeadSubKeys,
+	AeadWithSessionKeySubKeys,
 	AesKeyLength,
 	AsymmetricKeyPair,
 	bitArrayToUint8Array,
@@ -188,6 +190,7 @@ o.spec("CompatibilityTest", function () {
 			const encryptedKey256 = encryptKey(key, keyToEncrypt256)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
+			console.log(decryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
 		}
 	})
@@ -220,7 +223,7 @@ o.spec("CompatibilityTest", function () {
 			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey), AesKeyLength.Aes256)
 			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey), AesKeyLength.Aes256)
 			const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
-			const subKeys = { cipherVersion, encryptionKey, authenticationKey }
+			const subKeys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 			const plaintext = base64ToUint8Array(td.plaintextBase64)
 			const associatedData = base64ToUint8Array(td.associatedData)
 			const versionedCiphertext = base64ToUint8Array(td.ciphertextBase64)
@@ -525,6 +528,7 @@ o.spec("CompatibilityTest", function () {
 					kdfNonce,
 					instanceTypeId,
 				)
+
 				o.check(keysFrom256).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
 					groupKeyVersion: 0,

@@ -158,6 +158,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 					matchers.argThat((data: IdentityKeyGetIn) => {
 						return data.identifier === identifier.identifier && identifier.identifierType === data.identifierType && data.version === null
 					}),
+					null,
 				),
 			).thenResolve(identityKeyGetOut)
 
@@ -203,7 +204,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 
 			const identityKey = await publicIdentityKeyProvider.loadPublicIdentityKey(identifier)
 
-			verify(serviceExecutor.get(IdentityKeyService, matchers.anything()), { times: 0 })
+			verify(serviceExecutor.get(IdentityKeyService, matchers.anything(), null), { times: 0 })
 			verify(identityKeyTrustDatabase.trust(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
 			o(identityKey).deepEquals(trustDBEntry)
@@ -227,6 +228,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 						matchers.argThat((data: IdentityKeyGetIn) => {
 							return data.identifier === identifier.identifier && identifier.identifierType === data.identifierType && data.version === null
 						}),
+						null,
 					),
 				).thenResolve(identityKeyGetOut)
 
@@ -265,14 +267,14 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 			o(await publicIdentityKeyProvider.loadPublicIdentityKey(identifier)).equals(null)
 			verify(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported(), { times: 0 })
 			verify(identityKeyTrustDatabase.getTrustedEntry(matchers.anything()), { times: 0 })
-			verify(serviceExecutor.get(IdentityKeyService, matchers.anything()), { times: 0 })
+			verify(serviceExecutor.get(IdentityKeyService, matchers.anything(), null), { times: 0 })
 		})
 
 		o("not found handled gracefully", async function () {
 			const identityKeyGetOut: IdentityKeyGetOut = object()
 			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
 			identityKeyGetOut.publicIdentityKeyVersion = "5"
-			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new restError.NotFoundError("not found"))
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything(), null)).thenReject(new restError.NotFoundError("not found"))
 			when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenResolve(false)
 
 			const identifier: PublicKeyIdentifier = {

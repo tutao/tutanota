@@ -34,7 +34,7 @@ export class InstanceDecryptor {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
 			if (this.sessionKey == null) {
-				throw new SessionKeyNotFoundError("")
+				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AesCbcDecryptor(parsedCiphertext, this.aesCbcFacade, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithGroupKey) {
@@ -53,7 +53,7 @@ export class InstanceDecryptor {
 			)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithSessionKey) {
 			if (this.sessionKey == null) {
-				throw new SessionKeyNotFoundError("")
+				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
 			return new AeadWithSessionKeyDecryptor(

@@ -45,7 +45,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	post<S extends PostService>(
 		service: S,
 		data: ParamTypeFromRef<S["post"]["data"]>,
-		params: Nullable<ExtraServiceParams>,
+		params: Nullable<ExtraServiceParams> = null,
 	): Promise<ReturnTypeFromRef<S["post"]["return"]>> {
 		return this.executeServiceRequest(service, HttpMethod.POST, data, params)
 	}

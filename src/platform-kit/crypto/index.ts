@@ -146,13 +146,13 @@ export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blak
 export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
 export {
-	type SymmetricSubKeys,
-	type AeadSubKeys,
-	type AeadWithGroupKeySubKeys,
-	type AeadWithSessionKeySubKeys,
-	type AesCbcSubKeys,
-	type AesCbcThenHmacSubKeys,
-	type UnusedReservedUnauthenticatedSubKeys,
+	SymmetricSubKeys,
+	AeadSubKeys,
+	AeadWithGroupKeySubKeys,
+	AeadWithSessionKeySubKeys,
+	AesCbcSubKeys,
+	AesCbcThenHmacSubKeys,
+	UnusedReservedUnauthenticatedSubKeys,
 	type InstanceTypeId,
 } from "./encryption/symmetric/SymmetricKeyDeriver.js"
 export { SymmetricCipherVersion, getSymmetricCipherVersion } from "./encryption/symmetric/SymmetricCipherVersion.js"

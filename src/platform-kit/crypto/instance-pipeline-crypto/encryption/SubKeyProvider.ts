@@ -1,4 +1,4 @@
-import { lazyMemoized, Nullable } from "@tutao/utils"
+import { lazyMemoized } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { AesCbcThenHmacSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
@@ -50,9 +50,6 @@ export class SubKeyProvider {
 	) {}
 
 	getSubKeys = lazyMemoized(() => {
-		if (this.subKeyInfo == null) {
-			throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a cipher version and a key!`)
-		}
 		switch (this.subKeyInfo.cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 				throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)

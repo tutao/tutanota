@@ -63,7 +63,7 @@ import {
 	RootInstanceTypeRef,
 } from "@tutao/entities/sys"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { CacheMode, EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
 
 const { anything } = matchers
@@ -1436,7 +1436,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mail1))
 				await storage.put(MailTypeRef, await toStorableInstance(mail2))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve([
 					await toStorableInstance(mail3),
 					await toStorableInstance(mail4),
 					await toStorableInstance(mail5),
@@ -1473,7 +1473,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mails[98]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[99]))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
 					await Promise.all(
 						mails
 							.slice(58, 98)
@@ -1482,7 +1482,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
 					await Promise.all(
 						mails
 							.slice(18, 58)
@@ -1491,7 +1491,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
 					await Promise.all(
 						mails
 							.slice(0, 18)
@@ -1528,15 +1528,15 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mails[0]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[1]))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
 					await Promise.all(mails.slice(2, 42).map(toStorableInstance)),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
 					await Promise.all(mails.slice(42, 82).map(toStorableInstance)),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, {})).thenResolve(
+				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
 					await Promise.all(mails.slice(82).map(toStorableInstance)),
 				)
 
@@ -1580,13 +1580,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mail3))
 
 				// First it will try to load in the direction of start id from the existing range
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true, {})).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve([
 					await toStorableInstance(mail1),
 				])
 
 				// It will then fall into the "load from within the range" case
 				// It will try to load starting from the end of the range
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id3, 7, false, {})).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id3, 7, false)).thenResolve([
 					await toStorableInstance(mail4),
 					await toStorableInstance(mail5),
 				])
@@ -1740,6 +1740,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			)
 
 			await cache.load(ContactTypeRef, contactId, {
+				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 				queryParams: {
 					myParam: "param",
 				},
@@ -1955,7 +1956,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			o("put", async function () {
 				userId = null
 				entityRestClient.setup = spy(async () => "id")
-				await cache.setup("listId", createTestEntity(ContactTypeRef, { _id: ["listId", "id"] }))
+				await cache.setup("listId", createTestEntity(ContactTypeRef, { _id: ["listId", "id"] }), {}, null)
 				o(entityRestClient.setup.callCount).equals(1)
 			})
 		})
@@ -1979,25 +1980,34 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					cacheMode: CacheMode.WriteOnly,
+				})
 				removeOriginals(cacheBypassed1)
 				o(cacheBypassed1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
-				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					cacheMode: CacheMode.WriteOnly,
+				})
 				removeOriginals(cacheBypassed2)
 				o(cacheBypassed2).deepEquals(contactOnTheServer)
 				// Since we're bypassing it, it should still be loaded remotely (but still cached)
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.load(ContactTypeRef, contactId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.ReadAndWrite })
 				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// We aren't bypassing it with Cache, so it should just use the cache
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					cacheMode: CacheMode.WriteOnly,
+				})
 				removeOriginals(cacheBypassed3)
 				o(cacheBypassed3).deepEquals(contactOnTheServer)
 				// Bypassing again; should be loaded remotely
@@ -2037,6 +2047,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed1.map(removeOriginals)
@@ -2047,6 +2058,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed2.map(removeOriginals)
@@ -2057,6 +2069,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadAndWrite,
 				})
 				cached.map(removeOriginals)
@@ -2071,6 +2084,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed3.map(removeOriginals)
@@ -2102,25 +2116,25 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly1)
 				o(cacheReadonly1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely (but not cached)
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
-				const cacheReadonly2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly2 = await cache.load(ContactTypeRef, contactId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly2)
 				o(cacheReadonly2).deepEquals(contactOnTheServer)
 				// It wasn't cached before, so it should be loaded remotely again
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
-				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.load(ContactTypeRef, contactId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.ReadAndWrite })
 				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// Again, it wasn't cached before, so it should be loaded remotely again
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
 
-				const cacheReadonly3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				const cacheReadonly3 = await cache.load(ContactTypeRef, contactId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.ReadOnly })
 				removeOriginals(cacheReadonly3)
 				o(cacheReadonly3).deepEquals(contactOnTheServer)
 				// Since it was cached before, it won't be loaded remotely
@@ -2158,6 +2172,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadOnly1.map(removeOriginals)
@@ -2168,6 +2183,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadAndWrite,
 				})
 				cached.map(removeOriginals)
@@ -2178,6 +2194,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const cacheReadOnly2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadOnly2.map(removeOriginals)
@@ -2221,13 +2238,17 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				o(cacheReadonly1).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					cacheMode: CacheMode.ReadAndWrite,
+				})
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Wasn't saved before
@@ -2235,6 +2256,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
 				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadonly2.map(removeOriginals)
@@ -2277,13 +2299,17 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				o(cacheReadonly1).deepEquals([contactBOnTheServer])
 				// Fresh cache
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
-				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					cacheMode: CacheMode.ReadAndWrite,
+				})
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactBOnTheServer])
 				// Was saved before now
@@ -2291,6 +2317,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
 				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadonly2.map(removeOriginals)

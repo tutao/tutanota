@@ -12,6 +12,7 @@ import {
 	InitializationVector,
 	keyToUint8Array,
 	MacTag,
+	ParsedCiphertextAesCbcThenHmac,
 	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -46,8 +47,8 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		aes128Key = _aes128RandomKey()
 		aes128SubKeys = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, encryptionKey: _aes128RandomKey(), authenticationKey: _aes128RandomKey() }
 		aes256SubKeys = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
-		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key, matchers.anything())).thenReturn(aes128SubKeys)
-		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, matchers.anything())).thenReturn(aes256SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key)).thenReturn(aes128SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key)).thenReturn(aes256SubKeys)
 		plaintext = keyToUint8Array(aes256RandomKey()) // just 32 random bytes
 		keyToEncrypt_128 = _aes128RandomKey()
 		keyToEncrypt_256 = aes256RandomKey()
@@ -112,13 +113,11 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 		})
 		o("decryptBytes 128", function () {
-			const parsedCiphertext: ParsedCiphertextAesCbc = {
-				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
-				initializationVector,
-				ciphertext: new Uint8Array([1, 2]),
-				macTag,
-				initializationVectorVariant: InitializationVectorVariant.Random,
-			}
+			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+			const ciphertext = new Uint8Array([1, 2])
+			const initializationVectorVariant = InitializationVectorVariant.Random
+			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
+
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector,
@@ -146,13 +145,11 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			o(decryptedBytes).equals(plaintext)
 		})
 		o("decryptBytes 256", function () {
-			const parsedCiphertext: ParsedCiphertextAesCbc = {
-				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
-				initializationVector,
-				ciphertext: new Uint8Array([1, 2]),
-				macTag,
-				initializationVectorVariant: InitializationVectorVariant.Random,
-			}
+			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+			const ciphertext = new Uint8Array([1, 2])
+			const initializationVectorVariant = InitializationVectorVariant.Random
+			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
+
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector,
@@ -231,19 +228,12 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 		})
 		o("decryptKey 256", function () {
-			const parsedCiphertext: ParsedCiphertextAesCbc = {
-				cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
-				initializationVector,
-				ciphertext: new Uint8Array([1, 2]),
-				macTag,
-				initializationVectorVariant: InitializationVectorVariant.Random,
-			}
-			const versionedCiphertext = concat(
-				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
-				parsedCiphertext.ciphertext,
-				macTag,
-			)
+			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+			const ciphertext = new Uint8Array([1, 2])
+			const initializationVectorVariant = InitializationVectorVariant.Random
+			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
+
+			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(cipherVersion), initializationVector, ciphertext, macTag)
 			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Strict)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)

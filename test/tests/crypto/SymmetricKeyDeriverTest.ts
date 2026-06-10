@@ -33,13 +33,13 @@ o.spec("SymmetricKeyDeriverTest", function () {
 	o.spec("unusedReservedUnauthenticated", function () {
 		o("aes 128", function () {
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key)
 			o(subKeys.authenticationKey).equals(null)
 			o(subKeys.encryptionKey).equals(aes128Key)
 		})
 		o("aes 256", function () {
 			const cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key)
 			o(subKeys.authenticationKey).equals(null)
 			o(subKeys.encryptionKey).equals(aes256Key)
 		})
@@ -47,7 +47,7 @@ o.spec("SymmetricKeyDeriverTest", function () {
 	o.spec("aesCbcThenHmac", function () {
 		o("aes 128", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key)
 			const hash = sha256Hash(keyToUint8Array(aes128Key))
 			const expectedEncryptionKey = uint8ArrayToKey(hash.subarray(0, getKeyLengthInBytes(AesKeyLength.Aes128)))
 			const expectedAuthenticationKey = uint8ArrayToKey(hash.subarray(getKeyLengthInBytes(AesKeyLength.Aes128), hash.length))
@@ -56,7 +56,7 @@ o.spec("SymmetricKeyDeriverTest", function () {
 		})
 		o("aes 256", function () {
 			const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, cipherVersion)
+			const subKeys = symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key)
 			const hash = sha512Hash(keyToUint8Array(aes256Key))
 			const expectedEncryptionKey = uint8ArrayToKey(hash.subarray(0, getKeyLengthInBytes(AesKeyLength.Aes256)))
 			const expectedAuthenticationKey = uint8ArrayToKey(hash.subarray(getKeyLengthInBytes(AesKeyLength.Aes256), hash.length))

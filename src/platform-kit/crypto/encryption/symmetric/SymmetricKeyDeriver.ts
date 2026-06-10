@@ -43,8 +43,8 @@ export class AesCbcThenHmacSubKeys extends AesCbcSubKeys {
 
 export abstract class AeadSubKeys extends SymmetricSubKeys {
 	constructor(
-		encryptionKey: AesKey,
-		override readonly authenticationKey: AesKey,
+		encryptionKey: Aes256Key,
+		override readonly authenticationKey: Aes256Key,
 	) {
 		super(encryptionKey, authenticationKey)
 	}
@@ -107,7 +107,7 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derive encryption and authentication keys for AEAD from groupKey in the correct version and kdfNonce for the instance type.
 	 */
-	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadSubKeys {
+	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadWithGroupKeySubKeys {
 		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
 		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)
@@ -117,7 +117,7 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derive encryption and authentication keys for AEAD from the session key for the instance type.
 	 */
-	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadSubKeys {
+	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadWithSessionKeySubKeys {
 		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = keyToUint8Array(sessionKey)
 		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)

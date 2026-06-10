@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 
-import { RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
 	Aes128Key,
@@ -50,7 +50,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-crypto/Constants.js"
-import { CacheMode } from "../../../src/platform-kit/network/EntityRestClient"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { DefaultLoginListener } from "../../../src/applications/common/misc/DefaultLoginListener"
@@ -135,7 +135,7 @@ o.spec("LoginFacadeTest", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+		when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 			createTestEntity(SaltReturnTypeRef, { salt: SALT, kdfVersion: DEFAULT_KDF_TYPE }),
 		)
 
@@ -212,14 +212,16 @@ o.spec("LoginFacadeTest", function () {
 			const accessToken = "accessToken"
 
 			o.beforeEach(async function () {
-				when(serviceExecutor.post(SessionService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.post(SessionService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createTestEntity(CreateSessionReturnTypeRef, {
 						user: userId,
 						accessToken: accessToken,
 						challenges: [],
 					}),
 				)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(await makeUser(userId))
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					await makeUser(userId),
+				)
 			})
 
 			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
@@ -331,7 +333,9 @@ o.spec("LoginFacadeTest", function () {
 				}
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				// The call to /sys/session/...
 				when(
@@ -474,7 +478,9 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -672,7 +678,9 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -780,9 +788,11 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
-				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
 				)
 
@@ -843,7 +853,9 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -933,7 +945,9 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
-				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
+					user,
+				)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -979,6 +993,7 @@ o.spec("LoginFacadeTest", function () {
 					argThat(({ kdfVersion, oldVerifier, pwEncUserGroupKey, salt, verifier }) => {
 						return kdfVersion === KdfType.Argon2id
 					}),
+					null,
 				),
 			)
 			verify(cacheManagmentFacadeMock.reloadUser())

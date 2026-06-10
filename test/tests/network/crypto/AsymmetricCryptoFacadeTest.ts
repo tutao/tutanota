@@ -407,6 +407,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 								arg.keyGroup === senderGroupId
 							)
 						}),
+						null,
 					),
 				)
 			},

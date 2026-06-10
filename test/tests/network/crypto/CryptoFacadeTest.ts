@@ -343,6 +343,7 @@ o.spec("CryptoFacadeTest", function () {
 				argThat((p: UpdatePermissionKeyData) => {
 					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
 				}),
+				null,
 			),
 		).thenResolve(undefined)
 

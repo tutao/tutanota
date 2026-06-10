@@ -6,6 +6,7 @@ import {
 	InstanceTypeId,
 	KdfNonce,
 	random,
+	SubKeyInfoWithGroupKey,
 	SymmetricCipherVersion,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -38,8 +39,7 @@ import {
 } from "../../../src/platform-kit/instance-pipeline"
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
-import { SubKeyInfo } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/encryption/SubKeyProvider"
-import { InstanceDecryptor, MissingSessionKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
+import { InstanceDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
@@ -257,7 +257,7 @@ o.spec("CryptoMapper", () => {
 			const value = random.generateRandomData(5)
 			const groupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const kdfNonce: KdfNonce = generateKdfNonce()
-			const subKeyInfo: SubKeyInfo = { cipherVersion: SymmetricCipherVersion.AeadWithGroupKey, groupKey, kdfNonce }
+			const subKeyInfo = new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, groupKey, kdfNonce)
 			const clientTypeModel: ClientTypeModel = object()
 			clientTypeModel.app = AppNameEnum.Tutanota
 			clientTypeModel.id = 29
@@ -406,7 +406,7 @@ o.spec("CryptoMapper", () => {
 		})
 
 		o.test("value decryption requires a session key but there is no session key", async () => {
-			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenReturn(MissingSessionKey)
+			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenThrow(SessionKeyNotFoundError)
 
 			await assertThrows(SessionKeyNotFoundError, () => cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, ""))
 		})
