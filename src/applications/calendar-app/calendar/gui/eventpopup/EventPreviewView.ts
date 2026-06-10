@@ -120,7 +120,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				m(".flex.col", [
 					formatEventDuration(event, getTimeZone(), getTimeZone(), false),
 					event.startTimeZone || event.endTimeZone
-						? m("small.text-fade", formatEventDuration(event, startTimeZone, event.endTimeZone ?? startTimeZone, true))
+						? m("small.text-fade", formatEventDuration(event, startTimeZone, event.endTimeZone ?? startTimeZone, true, "short"))
 						: null,
 					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
 				]),

@@ -116,7 +116,10 @@ export class CalendarEventWhenModel {
 				// we want to keep excluded dates if all we do is switching between all-day and normal event
 				this.repeatRule.excludedDates = this.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateUTC(date) }))
 			} else {
-				const startTime = this.startTime
+				// RECURRENCE-ID can have TZID, but we lose this info after parsing it from an ICS.
+				// Improving it would mean keeping it saved as another nullable field and using it
+				// for these excluded dates manipulations, etc.
+				const startTime = this.getStartTime(false)
 				this.repeatRule.excludedDates = this.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: startTime.toDate(date) }))
 			}
 		}
@@ -132,8 +135,16 @@ export class CalendarEventWhenModel {
 	 * the current start time (hour:minutes) of the event in the local time zone.
 	 * will return 00:00 for all-day events.
 	 */
-	get startTime(): Time {
-		return this._isAllDay ? new Time(0, 0) : this._startTime!
+	getStartTime(applyTimeZone: boolean): Time {
+		const startTime = applyTimeZone
+			? Time.fromDateTime(
+					assertNotNull(
+						this._startTime?.toDateTime(this._startDate, this.calendarTimeZone).setZone(this.startTimeZone ?? this.calendarTimeZone),
+						`Something went wrong with when resolving this event start time`,
+					),
+				)
+			: this._startTime!
+		return this._isAllDay ? new Time(0, 0) : startTime
 	}
 
 	/**
@@ -153,8 +164,16 @@ export class CalendarEventWhenModel {
 	 * the current end time (hour:minutes) of the event in the local time zone.
 	 * will return 00:00 for all-day events independently of the time zone.
 	 */
-	get endTime(): Time {
-		return this._isAllDay ? new Time(0, 0) : this._endTime!
+	getEndTime(applyTimeZone: boolean): Time {
+		const endTime = applyTimeZone
+			? Time.fromDateTime(
+					assertNotNull(
+						this._startTime?.toDateTime(this._startDate, this.calendarTimeZone).setZone(this.startTimeZone ?? this.calendarTimeZone),
+						`Something went wrong with when resolving this event start time`,
+					),
+				)
+			: this._endTime!
+		return this._isAllDay ? new Time(0, 0) : endTime
 	}
 
 	/**
@@ -182,7 +201,7 @@ export class CalendarEventWhenModel {
 	set duration(value: { minutes: number }) {
 		if (value.minutes < 1) return
 		const diff = { minutes: this.duration.minutes - value.minutes }
-		const oldEndTime = this.endTime.toDateTime(this.endDate, this.calendarTimeZone)
+		const oldEndTime = this.getEndTime().toDateTime(this.endDate, this.calendarTimeZone)
 		const newEndTime = oldEndTime.plus(diff)
 		this._endDate = getStartOfDayWithZone(newEndTime.toJSDate(), this.calendarTimeZone)
 		if (!this._isAllDay) {
@@ -559,8 +578,9 @@ export class CalendarEventWhenModel {
 	 * @param duration an object containing a duration in luxons year/quarter/... format
 	 */
 	shiftEvent(duration: DurationLikeObject): void {
-		const oldStartTime = this.startTime.toDateTime(this.startDate, this.calendarTimeZone)
-		const oldEndTime = this.endTime.toDateTime(this.endDate, this.calendarTimeZone)
+		const oldStartTime = this.getStartTime(false).toDateTime(this.startDate, this.calendarTimeZone)
+		const oldEndTime = this.getEndTime(false).toDateTime(this.endDate, this.calendarTimeZone)
+
 		const newStartDate = oldStartTime.plus(duration)
 		const newEndDate = oldEndTime.plus(duration)
 
