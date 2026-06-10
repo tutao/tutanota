@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-GITHUB_USERNAME := kibibytium
+GITHUB_ORG := tutao
 
 APP_ID := tutamail
 APP_NAME := TutaMail
@@ -29,7 +29,7 @@ help:
 .PHONY: build-push
 build-push:
 	docker login ghcr.io
-	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ghcr.io/$(GITHUB_USERNAME)/$(APP_ID):latest .
+	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ghcr.io/$(GITHUB_ORG)/tutamail-proxy:latest .
 
 .PHONY: register
 register:

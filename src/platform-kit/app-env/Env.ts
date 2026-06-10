@@ -33,7 +33,7 @@ export function getApiBaseUrl(domainConfig: DomainConfig): string {
 	} else if (isNextCloudPlugin()) {
 		const currentLocation = new URL(location.href)
 		// tutamail is the APP_ID for the nextcloud pluging. It is used for both the App and the ExApp (AppApi)
-		currentLocation.pathname = "/index.php/apps/app_api/proxy/tutamail"
+		currentLocation.pathname = "/index.php/apps/exapps/tutamail"
 		return currentLocation.toString()
 	} else {
 		return domainConfig.apiUrl
