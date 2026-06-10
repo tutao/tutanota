@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { isApp, TimeFormat } from "../../../../../platform-kit/app-env"
+import { isApp, TimeFormat } from "@tutao/app-env"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { Switch } from "../../../../../ui/base/Switch.js"
@@ -10,6 +10,9 @@ import { DatePicker } from "../pickers/DatePicker.js"
 import { TimePicker } from "../pickers/TimePicker.js"
 import { px, size } from "../../../../../ui/size.js"
 import { Divider } from "../../../../../ui/Divider.js"
+import { InputAttrs, SingleLineTextField } from "../../../../../ui/base/SingleLineTextField"
+import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField"
+import { formatEventDuration } from "../CalendarGuiUtils"
 
 export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number
@@ -116,6 +119,51 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 								renderAsTextField: false,
 							}),
 						),
+					]),
+					!editModel.isAllDay
+						? m(
+								"small.text-fade",
+								formatEventDuration(
+									{
+										startTime: editModel.getStartTime(false).toDate(new Date(editModel.startDate)),
+										endTime: editModel.getEndTime(false).toDate(new Date(editModel.endDate)),
+									},
+									editModel.calendarTimeZone,
+									editModel.calendarTimeZone,
+									true,
+									"longGeneric",
+								),
+							)
+						: null,
+					m(".flex.col", [
+						m(SingleLineTextField, {
+							type: LegacyTextFieldType.Text,
+							value: editModel.startTimeZone ?? "",
+							ariaLabel: lang.getTranslation("dataOutOfSync_msg").text,
+							oninput: (newValue: string) => {
+								editModel.startTimeZone = newValue
+							},
+							placeholder: "Start timezone",
+							disabled: editModel.isAllDay,
+							// classes: ["custom-text-color"], // Adding new styles
+							// style: {
+							// 	"font-size": px(font_size.base * 1.25), // Overriding the component style
+							// },
+						} satisfies InputAttrs<LegacyTextFieldType.Text>),
+						m(SingleLineTextField, {
+							type: LegacyTextFieldType.Text,
+							value: editModel.endTimeZone ?? "",
+							ariaLabel: lang.getTranslation("dataOutOfSync_msg").text,
+							oninput: (newValue: string) => {
+								editModel.endTimeZone = newValue
+							},
+							placeholder: "End timezone",
+							disabled: editModel.isAllDay,
+							// classes: ["custom-text-color"], // Adding new styles
+							// style: {
+							// 	"font-size": px(font_size.base * 1.25), // Overriding the component style
+							// },
+						} satisfies InputAttrs<LegacyTextFieldType.Text>),
 					]),
 				]),
 			]),

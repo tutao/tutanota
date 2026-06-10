@@ -400,7 +400,13 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 }
 
-export function formatEventDuration(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string, includeTimezone: boolean): string {
+export function formatEventDuration(
+	event: CalendarEventTimes,
+	startTimeZone: string,
+	endTimeZone: string,
+	includeTimezone: boolean,
+	timeZoneFormat?: Intl.DateTimeFormatOptions["timeZoneName"],
+): string {
 	if (isAllDayEvent(event)) {
 		const startTime = getEventStart(event, startTimeZone)
 		const startString = formatDateWithMonth(startTime)
@@ -414,10 +420,10 @@ export function formatEventDuration(event: CalendarEventTimes, startTimeZone: st
 	} else {
 		const startAndEndIsSameDay = isSameDay(event.startTime, event.endTime)
 
-		const startFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: startTimeZone, timeZoneName: "short" } : null
+		const startFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: startTimeZone, timeZoneName: timeZoneFormat } : null
 		const startString = formatDateTime(event.startTime, startFormatterOptions)
 
-		const endFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: endTimeZone, timeZoneName: "short" } : null
+		const endFormatterOptions: TimeZoneFormatterOptions | null = includeTimezone ? { timeZone: endTimeZone, timeZoneName: timeZoneFormat } : null
 		let endString = startAndEndIsSameDay ? formatTime(event.endTime, endFormatterOptions) : formatDateTime(event.endTime, endFormatterOptions)
 
 		return `${startString} - ${endString}`
