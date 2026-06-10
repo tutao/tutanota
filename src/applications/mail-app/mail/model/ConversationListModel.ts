@@ -13,7 +13,6 @@ import {
 	isEmpty,
 	isNotNull,
 	last,
-	lastThrow,
 	mapWithout,
 	memoizedWithHiddenArgument,
 } from "../../../../platform-kit/utils"
@@ -47,10 +46,6 @@ export class ConversationListModel implements MailSetListModel {
 	// Map conversation IDs (to ensure unique conversations)
 	private readonly conversationMap: Map<Id, LoadedConversation> = new Map()
 
-	// The last fetched mail set entry id; the list model does not track mailSets but conversations, thus we can't rely
-	// on it to give us the oldest retrieved mail.
-	private lastFetchedMailSetEntryId: Id | null = null
-
 	// keep a map for going from Mail element id -> conversation Id
 	private mailToConversationMap: ReadonlyMap<Id, Id> = new Map()
 
@@ -73,9 +68,9 @@ export class ConversationListModel implements MailSetListModel {
 		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {
 		this.listModel = new ListModel({
-			fetch: async (_, count) => {
-				const lastFetchedId = this.lastFetchedMailSetEntryId ?? CUSTOM_MAX_ID
-				return this.loadMails([mailSet.entries, lastFetchedId], count)
+			fetch: async (lastFetchedConversation, count) => {
+				const lastFetchedMailSetEntryId: IdTuple = lastFetchedConversation?.getOldestMail()?.mailSetEntryId ?? [mailSet.entries, CUSTOM_MAX_ID]
+				return this.loadMails(lastFetchedMailSetEntryId, count)
 			},
 
 			sortCompare: (item1, item2) => this.reverseSortConversation(item1, item2),
@@ -360,9 +355,10 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	async reload() {
+		// await any pending loading before clearing mail and conversation maps, as they are used when fetching entities
+		await this.listModel.waitLoad()
 		this.conversationMap.clear()
 		this.mailToConversationMap = new Map()
-		this.lastFetchedMailSetEntryId = null
 		await this.listModel.reload()
 	}
 
@@ -496,7 +492,6 @@ export class ConversationListModel implements MailSetListModel {
 			// Check for completeness before loading/filtering mails, as we may end up with even less mails than retrieved in either case
 			complete = mailSetEntries.length < count
 			if (mailSetEntries.length > 0) {
-				this.lastFetchedMailSetEntryId = getElementId(lastThrow(mailSetEntries))
 				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider)
 				items = await this.applyInboxRulesAndSpamPrediction(items)
 			}
@@ -510,9 +505,6 @@ export class ConversationListModel implements MailSetListModel {
 					items = await this.loadMailsFromCache(startingId, count)
 					if (items.length === 0) {
 						throw e // we couldn't get anything from the cache!
-					} else {
-						// set the last
-						this.lastFetchedMailSetEntryId = elementIdPart(lastThrow(items).mailSetEntryId)
 					}
 				}
 			} else {
@@ -695,6 +687,7 @@ function reverseCompareMailSetEntryId(id1: Id, id2: Id): number {
  * @VisibleForTesting
  */
 export class LoadedConversation {
+	/** conversationMails are sorted from new to old, and should not be mutated directly (use {@link insertOrUpdateMail} and {@link deleteMail} instead) */
 	readonly conversationMails: LoadedMail[] = []
 
 	// the mainMail is the mail this is shown in preview in the list, and is the mail shown when the list entry is clicked
@@ -779,6 +772,13 @@ export class LoadedConversation {
 	 */
 	getMainMail(): LoadedMail | null {
 		return this.mainMail
+	}
+
+	/**
+	 * Get the oldest mail of the conversation
+	 */
+	getOldestMail(): LoadedMail | null {
+		return last(this.conversationMails) ?? null
 	}
 
 	/**
