@@ -1,23 +1,14 @@
 import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
-import {
-	AbstractSymmetricCipherVersion,
-	SymmetricAeadCipherVersionMaybeWithGroupKeyVersion,
-	SymmetricAesCbcCipherVersion,
-	SymmetricCipherVersion,
-	SymmetricCipherVersionAeadWithGroupKey,
-	SymmetricCipherVersionAesCbcThenHmac,
-	SymmetricCipherVersionUnusedReservedUnauthenticated,
-} from "./SymmetricCipherVersion.js"
+import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { Aes256Key, AesKey, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat, KeyVersion } from "@tutao/utils"
-import { CryptoError } from "../../error.js"
 import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, VersionedKey } from "../../CryptoTypes"
 
 export abstract class SymmetricSubKeys {
-	abstract readonly cipherVersion: AbstractSymmetricCipherVersion
+	abstract readonly cipherVersion: SymmetricCipherVersion
 
 	constructor(
 		public readonly encryptionKey: AesKey,
@@ -95,28 +86,22 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
-	deriveSubKeys(key: AesKey, symmetricCipherVersion: SymmetricAesCbcCipherVersion): AesCbcSubKeys {
+	deriveSubKeysAesCbc(key: AesKey): AesCbcSubKeys {
 		const keyLength = getAndVerifyAesKeyLength(key)
-		if (symmetricCipherVersion instanceof SymmetricCipherVersionUnusedReservedUnauthenticated) {
-			return new UnusedReservedUnauthenticatedSubKeys(key)
-		} else if (symmetricCipherVersion instanceof SymmetricCipherVersionAesCbcThenHmac) {
-			let hashedKey: Uint8Array
-			switch (keyLength) {
-				case AesKeyLength.Aes128:
-					hashedKey = sha256Hash(keyToUint8Array(key))
-					break
-				case AesKeyLength.Aes256:
-					hashedKey = sha512Hash(keyToUint8Array(key))
-					break
-			}
-			const keyLengthInBytes = getKeyLengthInBytes(keyLength)
-			return new AesCbcThenHmacSubKeys(
-				uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
-				uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
-			)
-		} else {
-			throw new CryptoError(`unexpected cipher version ${symmetricCipherVersion}`)
+		let hashedKey: Uint8Array
+		switch (keyLength) {
+			case AesKeyLength.Aes128:
+				hashedKey = sha256Hash(keyToUint8Array(key))
+				break
+			case AesKeyLength.Aes256:
+				hashedKey = sha512Hash(keyToUint8Array(key))
+				break
 		}
+		const keyLengthInBytes = getKeyLengthInBytes(keyLength)
+		return new AesCbcThenHmacSubKeys(
+			uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
+			uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
+		)
 	}
 
 	/**

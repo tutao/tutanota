@@ -155,13 +155,7 @@ export {
 	type UnusedReservedUnauthenticatedSubKeys,
 	type InstanceTypeId,
 } from "./encryption/symmetric/SymmetricKeyDeriver.js"
-export {
-	type SymmetricAesCbcCipherVersion,
-	getSymmetricCipherVersion,
-	SymmetricCipherVersionAeadWithGroupKey,
-	SymmetricCipherVersionAeadWithSessionKey,
-	type SymmetricAeadCipherVersionMaybeWithGroupKeyVersion,
-} from "./encryption/symmetric/SymmetricCipherVersion.js"
+export { getSymmetricCipherVersion } from "./encryption/symmetric/SymmetricCipherVersion.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
 export * from "./CryptoTypes.js"
 export * from "./encryption/symmetric/ParsedCiphertext.js"

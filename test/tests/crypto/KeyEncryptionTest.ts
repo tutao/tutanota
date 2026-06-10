@@ -116,7 +116,7 @@ function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypte
 //Do not use outside this test!!!
 //No padding, no mac, fixed initialization vector
 function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
-	const subKeys = new SymmetricKeyDeriver().deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
+	const subKeys = new SymmetricKeyDeriver().deriveSubKeysAesCbc(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
 	const encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey),
 		uint8ArrayToBitArray(bytes),

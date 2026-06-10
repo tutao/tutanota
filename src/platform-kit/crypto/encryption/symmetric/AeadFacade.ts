@@ -7,6 +7,7 @@ import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
 import { CryptoError } from "../../error.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedCiphertextAead } from "./ParsedCiphertext"
+import { getVersionByte } from "./SymmetricCipherVersion"
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80
@@ -84,9 +85,9 @@ export class AeadFacade {
 			if (subKeys.groupKeyVersion == null) {
 				throw new ProgrammingError("AEAD encryption with group key requires a group key version")
 			}
-			return Uint8Array.of(subKeys.cipherVersion.getVersionByte(), keyVersionLengthByte, subKeys.groupKeyVersion)
+			return Uint8Array.of(getVersionByte(subKeys.cipherVersion), keyVersionLengthByte, subKeys.groupKeyVersion)
 		} else if (subKeys instanceof AeadWithSessionKeySubKeys) {
-			return Uint8Array.of(subKeys.cipherVersion.getVersionByte())
+			return Uint8Array.of(getVersionByte(subKeys.cipherVersion))
 		}
 		throw new ProgrammingError("invalid sub-keys")
 	}

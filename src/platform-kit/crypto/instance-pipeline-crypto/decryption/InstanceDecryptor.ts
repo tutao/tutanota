@@ -2,9 +2,8 @@ import { downcast, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
-import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache, serializeInstanceSubKeyCacheKey, subKeyCache } from "./SubKeyCache"
 import { AeadWithGroupKeyDecryptor, AeadWithSessionKeyDecryptor, AesCbcDecryptor, ValueDecryptor } from "./ValueDecryptor"
 import {
 	ParsedCiphertextAeadWithGroupKey,
@@ -13,20 +12,14 @@ import {
 	parseVersionedCiphertext,
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
-import {
-	SymmetricCipherVersion,
-	SymmetricCipherVersionAeadWithGroupKey,
-	SymmetricCipherVersionAeadWithSessionKey,
-	SymmetricCipherVersionAesCbcThenHmac,
-	SymmetricCipherVersionUnusedReservedUnauthenticated,
-} from "../../encryption/symmetric/SymmetricCipherVersion"
+import { InstanceSubKeyCache } from "./SubKeyCache"
 
 export const MissingSessionKey = "missing session key" as const
 export type MissingSessionKey = typeof MissingSessionKey
 
 export class InstanceDecryptor {
-	private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache = subKeyCache(serializeInstanceSubKeyCacheKey)
-	private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache = subKeyCache(serializeInstanceSubKeyCacheKey)
+	private readonly instanceAesSubKeyCache = new InstanceSubKeyCache<AesCbcSubKeys>()
+	private readonly instanceAeadSubKeyCache = new InstanceSubKeyCache<AeadSubKeys>()
 
 	constructor(
 		private readonly sessionKey: Nullable<AesKey>,

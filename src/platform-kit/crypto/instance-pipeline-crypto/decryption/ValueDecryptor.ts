@@ -1,14 +1,14 @@
 import { KeyVersion, Nullable } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
-import { InstanceAeadSubKeyCache, InstanceAesSubKeyCache } from "./SubKeyCache"
-import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricCipherVersion } from "@tutao/crypto"
+import { InstanceSubKeyCache } from "./SubKeyCache"
 
-/**
+/**`
  * Decrypts one attribute of one given instance.
  */
 export interface ValueDecryptor {
@@ -22,7 +22,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		private readonly parsedCiphertext: ParsedCiphertextAesCbc,
 		private readonly aesCbcFacade: AesCbcFacade,
 		private readonly sessionKey: AesKey,
-		private readonly instanceAesSubKeyCache: InstanceAesSubKeyCache,
+		private readonly instanceAesSubKeyCache: InstanceSubKeyCache<AesCbcSubKeys>,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 	getValue(): Uint8Array {
@@ -32,7 +32,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeys(this.sessionKey, this.parsedCiphertext.cipherVersion)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.sessionKey, this.parsedCiphertext.cipherVersion)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
 		return this.aesCbcFacade.decrypt(subKeys, this.parsedCiphertext, PaddingStandard.Pkcs5)
@@ -48,7 +48,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 		private readonly instanceTypeId: InstanceTypeId,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly associatedData: Uint8Array,
-		private readonly instanceAeadSubKeyCache: InstanceAeadSubKeyCache,
+		private readonly instanceAeadSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 	) {
 		this.requiredGroupKeyVersion = parsedCiphertext.groupKeyVersion
 	}
