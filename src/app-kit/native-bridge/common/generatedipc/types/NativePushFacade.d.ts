@@ -25,7 +25,7 @@ export interface NativePushFacade {
 
 	closePushNotifications(addressesArray: ReadonlyArray<string>): Promise<void>
 
-	scheduleAlarms(alarmNotificationsWireFormat: string, newDeviceSessionKey: string): Promise<void>
+	scheduleAlarms(alarmNotificationsWireFormat: string, newDeviceSessionKeyInfoWireFormat: string): Promise<void>
 
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage

@@ -6,7 +6,7 @@ import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
 import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "../../../../platform-kit/meta"
 import { InstancePipeline } from "../../../../platform-kit/instance-pipeline"
-import { base64ToKey } from "../../../../platform-kit/crypto"
+import { SessionKeyInfo } from "../../../../platform-kit/crypto"
 import { log } from "../DesktopLog"
 import { AlarmNotificationTypeRef } from "@tutao/entities/sys"
 
@@ -50,14 +50,14 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		await this.sse.connect()
 	}
 
-	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKey: Base64): Promise<void> {
+	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKeyInfoWireFormat: string): Promise<void> {
 		const alarms: ClientModelUntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
+		const newDeviceSessionKeyInfo: SessionKeyInfo = JSON.parse(newDeviceSessionKeyInfoWireFormat)
 		for (const alarm of alarms) {
-			const sk = base64ToKey(newDeviceSessionKey)
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
 				AlarmNotificationTypeRef,
 				alarm as unknown as ServerModelUntypedInstance,
-				sk,
+				newDeviceSessionKeyInfo.sessionKey,
 			)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 		}

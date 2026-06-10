@@ -1,8 +1,19 @@
 import { AttributeModel, elementIdPart, isSameTypeRef, TypeRef } from "../meta"
-import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	decryptKey,
+	SessionKeyInfo,
+	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
-import { SessionKeyNotFoundError } from "@tutao/crypto/error"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { HttpMethod, RestClientInterface } from "../rest-client/types"
 import { EntityClient } from "./EntityClient"
 import { IServiceExecutor } from "./ServiceRequest"
@@ -47,7 +58,7 @@ export class CryptoNetworkHelper {
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<AesKey | null> {
+	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<SessionKeyInfo | null> {
 		if (!instance._ownerGroup) {
 			throw new Error(`no owner group set  ${JSON.stringify(instance)}`)
 		}
@@ -59,9 +70,24 @@ export class CryptoNetworkHelper {
 			const sessionKey = aes256RandomKey()
 			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.symGroupKeyLoader.getCurrentSymGroupKey(instance._ownerGroup))
 			const encryptedSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
+			let cipherVersion
+			switch (this.loggedInUserProvider.getDefaultSymmetricEncryptionScheme()) {
+				case SymmetricEncryptionScheme.AesCbc:
+					cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+					break
+				case SymmetricEncryptionScheme.Aead:
+					cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+					break
+				default:
+					throw new CryptoError("missing or unknown symmetric encryption scheme")
+			}
+			const sessionKeyInfo = {
+				sessionKey,
+				cipherVersion,
+			}
 
 			this.setOwnerEncSessionKey(instance, encryptedSessionKey)
-			return sessionKey
+			return sessionKeyInfo
 		}
 		return null
 	}

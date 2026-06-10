@@ -12,6 +12,7 @@ import {
 	getKeyLengthInBytes,
 	keyToUint8Array,
 	sha256Hash,
+	SymmetricCipherVersion,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { LoginFacade, LoginFailReason, LoginListener } from "../../../src/platform-kit/base/facades/LoginFacade"
@@ -105,8 +106,8 @@ async function createSession(userId: string, accessKey: number[], instancePipeli
 		user: userId,
 		accessKey: keyToUint8Array(accessKey),
 	})
-	const untypedSession = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
-	return untypedSession
+	const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+	return await instancePipeline.mapAndEncrypt(SessionTypeRef, session, sessionKeyInfo)
 }
 
 o.spec("LoginFacadeTest", function () {

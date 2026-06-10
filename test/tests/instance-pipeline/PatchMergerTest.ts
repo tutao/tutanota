@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, AesKey, SymmetricCipherVersion, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, SessionKeyInfo, SymmetricCipherVersion, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
 import { convertJsToDbType, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
@@ -51,7 +51,7 @@ import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instan
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("PatchMergerTest", () => {
-	let sk: AesKey
+	let sessionKeyInfo: SessionKeyInfo
 	let ownerGroupKey: VersionedKey
 	let encryptedSessionKey: VersionedEncryptedKey
 	const keyLoaderFacadeMock = instance(KeyLoaderFacade)
@@ -85,16 +85,16 @@ o.spec("PatchMergerTest", () => {
 			},
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
-			return sk
+			return sessionKeyInfo.sessionKey
 		}
 
 		customCacheHandlerMap = object()
 		const modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 		storage = new EphemeralCacheStorage(modelMapper, typeModelResolver, customCacheHandlerMap)
 
-		sk = aes256RandomKey()
+		sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
-		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sessionKeyInfo.sessionKey!)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
 		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub, SYMMETRIC_CIPHER_FACADE)
 	})
@@ -196,8 +196,7 @@ o.spec("PatchMergerTest", () => {
 			const subjectAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "subject"))
 			const valueType = mailTypeModel.values[subjectAttributeId] as EncryptedModelValue
 			let plaintext = "new subject"
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(sessionKeyInfo, object())
 			let ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [
 				createPatch({
@@ -227,8 +226,7 @@ o.spec("PatchMergerTest", () => {
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
 			const plaintext = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(sessionKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [
 				createPatch({
@@ -257,8 +255,7 @@ o.spec("PatchMergerTest", () => {
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(sessionKeyInfo, object())
 			const encryptionAuthStatusUntypedValue = convertJsToDbType(
 				mailTypeModel.values[encryptionAuthStatusAttributeId].type,
 				patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, null, subKeyProvider, ""),
@@ -360,8 +357,7 @@ o.spec("PatchMergerTest", () => {
 
 			const pathString = `${senderAttributeId}/senderId/${nameAttributeId}`
 			let plaintext = "new name"
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(sessionKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
 			const patches: Array<Patch> = [
 				createPatch({
@@ -463,7 +459,7 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedSender = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, senderToAdd, sk)
+			const untypedSender = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, senderToAdd, sessionKeyInfo)
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: senderAttributeId.toString(),
@@ -490,7 +486,7 @@ o.spec("PatchMergerTest", () => {
 			const calendarEventTypeModel = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			const repeatRuleAttributeId = assertNotNull(AttributeModel.getAttributeId(calendarEventTypeModel, "repeatRule"))
 			const repeatRuleToAdd = createTestEntity(CalendarRepeatRuleTypeRef, { _id: "added-by-patch" })
-			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
+			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sessionKeyInfo)
 
 			const patches: Array<Patch> = [
 				createPatch({
@@ -540,7 +536,7 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sessionKeyInfo)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
@@ -720,7 +716,7 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sessionKeyInfo)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
@@ -779,8 +775,8 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sessionKeyInfo)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sessionKeyInfo)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
@@ -852,8 +848,8 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sessionKeyInfo)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sessionKeyInfo)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
@@ -924,8 +920,8 @@ o.spec("PatchMergerTest", () => {
 				address: "address@tutao.de",
 			})
 
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sessionKeyInfo)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sessionKeyInfo)
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
@@ -993,8 +989,8 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sessionKeyInfo)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sessionKeyInfo)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [

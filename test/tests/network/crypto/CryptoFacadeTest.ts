@@ -37,6 +37,7 @@ import {
 	PublicKeyIdentifierType,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
+	SymmetricCipherVersion,
 	X25519KeyPair,
 	X25519PublicKey,
 } from "../../../../src/platform-kit/crypto"
@@ -2070,8 +2071,9 @@ o.spec("CryptoFacadeTest", function () {
 			serverClassificationData: "0,10",
 		})
 
+		const sessionKeyInfo = { sessionKey, cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		// casting here is fine, since we just want to mimic server response data
-		return (await instancePipeline.mapAndEncrypt(MailTypeRef, mail, sessionKey)) as unknown as ServerModelUntypedInstance
+		return (await instancePipeline.mapAndEncrypt(MailTypeRef, mail, sessionKeyInfo)) as unknown as ServerModelUntypedInstance
 	}
 })
 

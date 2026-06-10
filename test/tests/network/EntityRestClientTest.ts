@@ -25,7 +25,7 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SessionKeyInfo, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
@@ -108,7 +108,7 @@ o.spec("EntityRestClient", function () {
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	const keyLoaderFacadeMock = instance(KeyLoaderFacade)
 	const ownerGroupId = "ownerGroupId"
-	let sk: AesKey
+	let sessionKeyInfo: SessionKeyInfo
 	let ownerGroupKey: VersionedKey
 	let encryptedSessionKey
 	let currentDebuggingStatus
@@ -131,9 +131,9 @@ o.spec("EntityRestClient", function () {
 
 		restClient = object()
 
-		sk = aes256RandomKey()
+		sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
-		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sessionKeyInfo.sessionKey!)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, 0)).thenResolve(ownerGroupKey.object)
 
 		fullyLoggedIn = true
@@ -157,7 +157,7 @@ o.spec("EntityRestClient", function () {
 			},
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
-			return sk
+			return sessionKeyInfo.sessionKey
 		}
 
 		loggedInUserProvider = downcast({
@@ -207,7 +207,7 @@ o.spec("EntityRestClient", function () {
 			const requestPath = `${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`
 
 			// mapAndEncrypt is a convenient way to get an instance with network debugging info
-			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
+			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sessionKeyInfo)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(instanceWithDebuggingInfo))
 			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
 			removeOriginals(loadResult)
@@ -225,7 +225,7 @@ o.spec("EntityRestClient", function () {
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
 			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`
-			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sessionKeyInfo)
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
 				restClient.request(requestPath, HttpMethod.GET, {
@@ -250,7 +250,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedAccountingInfo = await instancePipeline.mapAndEncrypt(AccountingInfoTypeRef, accountingInfo, sk)
+			const untypedAccountingInfo = await instancePipeline.mapAndEncrypt(AccountingInfoTypeRef, accountingInfo, sessionKeyInfo)
 			when(
 				restClient.request(`${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
@@ -276,7 +276,7 @@ o.spec("EntityRestClient", function () {
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
 			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`
-			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sessionKeyInfo)
 			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
@@ -295,7 +295,7 @@ o.spec("EntityRestClient", function () {
 
 			// repeat once again with network debugging enables
 			env.networkDebugging = true
-			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
+			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sessionKeyInfo)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(calendaroWithDebug))
 			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
 			removeOriginals(resultWithDebug)
@@ -311,9 +311,9 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
-			const ownerKeyProviderSk = aes256RandomKey()
+			const ownerKeyProviderSessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-			const ownerKeyProviderEncryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
+			const ownerKeyProviderEncryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSessionKeyInfo.sessionKey)
 			const calendar = createTestEntity(CalendarEventTypeRef, {
 				_id: [calendarListId, id1],
 				_permissions: "some id",
@@ -321,7 +321,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: ownerKeyProviderEncryptedSessionKey.key,
 				_ownerKeyVersion: ownerKeyProviderEncryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, ownerKeyProviderSk)
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, ownerKeyProviderSessionKeyInfo)
 
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
@@ -370,8 +370,8 @@ o.spec("EntityRestClient", function () {
 			})
 			const expectedLoadRangeResult = [calendar1, calendar2]
 
-			const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
-			const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
+			const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sessionKeyInfo)
+			const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sessionKeyInfo)
 
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedCalWithDebug1, untypedCalWithDebug2]))
 			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
@@ -401,8 +401,8 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCal1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
-			const untypedCal2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
+			const untypedCal1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sessionKeyInfo)
+			const untypedCal2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sessionKeyInfo)
 
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			when(
@@ -653,8 +653,8 @@ o.spec("EntityRestClient", function () {
 				}),
 			})
 
-			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
-			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
+			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sessionKeyInfo)
+			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sessionKeyInfo)
 
 			const blobAccessToken = "123"
 			let blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
@@ -734,8 +734,8 @@ o.spec("EntityRestClient", function () {
 				}),
 			})
 
-			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
-			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
+			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sessionKeyInfo)
+			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sessionKeyInfo)
 
 			const blobAccessToken = "123"
 			const otherServer = "otherServer"
@@ -811,7 +811,7 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Setup", function () {
-		o("Setup list entity", async function () {
+		o("Setup list entity idk", async function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {

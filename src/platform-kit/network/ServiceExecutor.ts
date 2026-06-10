@@ -20,6 +20,7 @@ import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolv
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { SymmetricCipherVersion, SymmetricEncryptionScheme } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -148,7 +149,23 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
 
-			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
+			let cipherVersion
+			switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
+				case SymmetricEncryptionScheme.AesCbc:
+					cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+					break
+				case SymmetricEncryptionScheme.Aead:
+					cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+					break
+			}
+			const sessionKey = params?.sessionKey
+			const sessionKeyInfo = sessionKey
+				? {
+						sessionKey,
+						cipherVersion,
+					}
+				: null
+			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, sessionKeyInfo)
 
 			return JSON.stringify(encryptedUntypedInstance)
 		} else {

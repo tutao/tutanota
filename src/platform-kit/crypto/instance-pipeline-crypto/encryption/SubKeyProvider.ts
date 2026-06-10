@@ -3,11 +3,13 @@ import { AesCbcThenHmacSubKeys, AesKey, InstanceTypeId, KdfNonce, SymmetricCiphe
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 
+export type SessionKeyInfo = {
+	cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac | typeof SymmetricCipherVersion.AeadWithSessionKey
+	sessionKey: Nullable<AesKey>
+}
+
 export type SubKeyInfo = Nullable<
-	| {
-			cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac | typeof SymmetricCipherVersion.AeadWithSessionKey
-			sessionKey: Nullable<AesKey>
-	  }
+	| SessionKeyInfo
 	| {
 			cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey
 			groupKey: Nullable<VersionedKey>

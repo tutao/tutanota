@@ -48,10 +48,10 @@ o.spec("computePatches", function () {
 	o("computePatches returns empty list for equal objects", async function () {
 		const testEntity = await createFilledTestEntity()
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -68,10 +68,10 @@ o.spec("computePatches", function () {
 		const date = new Date()
 		testEntity.testDate = date
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -93,10 +93,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testFinalBoolean = false
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -112,10 +112,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testBoolean = null
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -139,10 +139,10 @@ o.spec("computePatches", function () {
 		testEntity.testDate = date
 		testEntity.testBoolean = null
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -169,10 +169,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation[0].testNumber = "1234"
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -194,10 +194,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testListElementAssociation.push(["listId", "elementId"], ["list2Id", "element2Id"])
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -226,10 +226,10 @@ o.spec("computePatches", function () {
 		testEntity.testListElementAssociation.pop()
 		testEntity.testListElementAssociation.pop()
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 
 		const objectDiff = await computePatches(
 			originalParsedInstance,
@@ -252,10 +252,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testElementAssociation = "elementId"
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -277,10 +277,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testZeroOrOneListElementAssociation = ["listId", "elementId"]
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -302,10 +302,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testElementAssociation = null
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -434,10 +434,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation.pop()
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -460,10 +460,10 @@ o.spec("computePatches", function () {
 		const newValue = new Uint8Array(8)
 		testEntity.testAssociation[0].testSecondLevelAssociation[0].testBytes = newValue
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -485,10 +485,10 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation[0].testZeroOrOneAggregation = null
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		let objectDiff = await computePatches(
 			originalParsedInstance,
 			currentParsedInstance,
@@ -513,16 +513,15 @@ o.spec("computePatches", function () {
 		testEntity._original = structuredClone(testEntity)
 		testEntity.testAssociation[0].testZeroOrOneAggregation = testZeroOrOneAggregation
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			subKeyInfo,
+			sessionKeyInfo,
 		)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const testAssociationEncrypted = AttributeModel.getAttribute(
 			currentEncryptedParsedInstance,
 			"testAssociation",
@@ -556,16 +555,15 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		assertNotNull(testEntity.testAssociation[0].testZeroOrOneAggregation)._id = "newAggOnAggId"
 
-		let sk = aes256RandomKey()
+		const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
-		const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
 			testTypeModel as ClientTypeModel,
 			currentParsedInstance,
-			subKeyInfo,
+			sessionKeyInfo,
 		)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sessionKeyInfo)
 		const testAssociationEncrypted = AttributeModel.getAttribute(
 			currentEncryptedParsedInstance,
 			"testAssociation",

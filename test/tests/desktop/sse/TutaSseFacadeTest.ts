@@ -18,7 +18,7 @@ import {
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo.js"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
+import { aes256RandomKey, SymmetricCipherVersion } from "../../../../src/platform-kit/crypto"
 import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedMissedNotification"
@@ -193,12 +193,12 @@ o.spec("TutaSseFacade", () => {
 				notificationInfos: [notificationInfo],
 			})
 
-			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sessionKeyInfo)
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			when(alarmStorage.getNotificationSessionKey(alarmNotification.notificationSessionKeys)).thenResolve({
-				sessionKey: sk,
+				sessionKey: sessionKeyInfo.sessionKey,
 				notificationSessionKey: alarmNotification.notificationSessionKeys[0],
 			})
 
@@ -256,9 +256,9 @@ o.spec("TutaSseFacade", () => {
 				],
 			})
 
-			const sk = aes256RandomKey()
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve({
-				sessionKey: sk,
+				sessionKey: sessionKeyInfo.sessionKey,
 				notificationSessionKey: createTestEntity(NotificationSessionKeyTypeRef, {
 					pushIdentifier: ["pushIdentifierList", "pid"],
 					pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
@@ -268,7 +268,7 @@ o.spec("TutaSseFacade", () => {
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
-				sk,
+				sessionKeyInfo,
 			)) as unknown as ServerModelUntypedInstance
 			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance, typeModelResolver)
 			await sseFacade.handleAlarmNotification(encryptedMissedNotification)
@@ -299,13 +299,13 @@ o.spec("TutaSseFacade", () => {
 				],
 			})
 
-			const sk = aes256RandomKey()
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
 			// casting here is fine, since we just want to mimic server response data
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
-				sk,
+				sessionKeyInfo,
 			)) as unknown as ServerModelUntypedInstance
 			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance, typeModelResolver)
 
@@ -337,9 +337,9 @@ o.spec("TutaSseFacade", () => {
 				],
 			})
 
-			const sk = aes256RandomKey()
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve({
-				sessionKey: sk,
+				sessionKey: sessionKeyInfo.sessionKey,
 				notificationSessionKey: createTestEntity(NotificationSessionKeyTypeRef, {
 					pushIdentifier: ["pushIdentifierList", "pid"],
 					pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
@@ -353,7 +353,7 @@ o.spec("TutaSseFacade", () => {
 			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
-				sk,
+				sessionKeyInfo,
 			)) as unknown as ServerModelUntypedInstance
 			const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(MissedNotificationTypeRef)
 			const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
@@ -389,8 +389,8 @@ o.spec("TutaSseFacade", () => {
 				notificationInfos: [],
 			})
 
-			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sessionKeyInfo)
 
 			await sseFacade.connect()
 

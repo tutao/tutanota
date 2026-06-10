@@ -1,4 +1,4 @@
-import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, AesKey, CryptoWrapper, SessionKeyInfo, SymmetricCipherVersion, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
 import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
@@ -61,18 +61,32 @@ export class AlarmFacade {
 		)
 
 		const sessionKey = aes256RandomKey()
+		let cipherVersion
+		switch (this.userFacade.getDefaultSymmetricEncryptionScheme()) {
+			case SymmetricEncryptionScheme.AesCbc:
+				cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+				break
+			case SymmetricEncryptionScheme.Aead:
+				cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+				break
+		}
+		const sessionKeyInfo: SessionKeyInfo = {
+			sessionKey,
+			cipherVersion,
+		}
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
 		const encryptedNotificationsWireFormat = JSON.stringify(
 			await Promise.all(
 				alarmNotifications.map(async (an) => {
-					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
+					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKeyInfo)
 					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
 				}),
 			),
 		)
+		const sessionKeyInfoWireFormat = JSON.stringify(sessionKeyInfo)
 
-		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, keyToBase64(sessionKey))
+		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, sessionKeyInfoWireFormat)
 	}
 
 	private async prepareAlarmServicePostData(

@@ -32,7 +32,7 @@ interface NativePushFacade {
 	): Unit
 	suspend fun scheduleAlarms(
 		alarmNotificationsWireFormat: String,
-		newDeviceSessionKey: String,
+		newDeviceSessionKeyInfoWireFormat: String,
 	): Unit
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage

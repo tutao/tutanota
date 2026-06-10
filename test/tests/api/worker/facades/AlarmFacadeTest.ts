@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
 import { assertNotNull } from "../../../../../src/platform-kit/utils"
-import { AesKey, base64ToKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { AesKey, SymmetricEncryptionScheme, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -67,6 +67,7 @@ o.spec("AlarmFacadeTest", function () {
 		user = createTestEntity(UserTypeRef, { _id: "userId", userGroup: userGroupMembership })
 
 		when(userFacadeMock.getLoggedInUser()).thenReturn(user)
+		when(userFacadeMock.getDefaultSymmetricEncryptionScheme()).thenReturn(SymmetricEncryptionScheme.AesCbc)
 
 		alarmFacade = new AlarmFacade(
 			userFacadeMock,
@@ -173,12 +174,12 @@ o.spec("AlarmFacadeTest", function () {
 			when(cryptoWrapperMock.encryptKey(pushIdentifierSessionKey, matchers.anything())).thenReturn(pushIdentifierEncNotificationSessionKey)
 
 			const instanceCaptor = matchers.captor()
-			const sessionKeyCaptor = matchers.captor()
-			when(nativePushFacadeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyCaptor.capture())).thenResolve()
+			const sessionKeyInfoCaptor = matchers.captor()
+			when(nativePushFacadeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyInfoCaptor.capture())).thenResolve()
 
 			await alarmFacade.scheduleAlarmsForNewDevice(pushIdentifier, allAlarmEvents)
 
-			const sessionKey = base64ToKey(sessionKeyCaptor.value)
+			const sessionKey = JSON.parse(sessionKeyInfoCaptor.value).sessionKey
 			const allInstanceSentToFacade = instanceCaptor.value
 			const instanceLiteralSentToFacade = assertNotNull(JSON.parse(allInstanceSentToFacade)[0])
 

@@ -462,8 +462,8 @@ export class EntityRestClient implements EntityRestInterface {
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
-					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance)
-					return await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
+					const sessionKeyInfo = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance)
+					return await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sessionKeyInfo)
 				})
 				// informs the server that this is a POST_MULTIPLE request
 				const queryParams = {
@@ -552,8 +552,7 @@ export class EntityRestClient implements EntityRestInterface {
 		clientTypeModel: ClientTypeModel,
 	): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
-			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
-			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
+			return await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
 		} else {
 			if (ownerKey == null) {
 				if (instance._ownerGroup == null) {

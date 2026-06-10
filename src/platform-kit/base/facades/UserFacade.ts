@@ -14,7 +14,7 @@ export class UserFacade extends LoggedInUserProvider {
 	private user: User | null = null
 	private accessToken: string | null = null
 	private leaderStatus!: WebsocketLeaderStatus
-	private defaultSymmetricEncryptionScheme: SymmetricEncryptionScheme = SymmetricEncryptionScheme.AesCbc
+	private defaultSymmetricEncryptionScheme: SymmetricEncryptionScheme = SymmetricEncryptionScheme.Aead
 
 	constructor(
 		private readonly keyCache: KeyCache,

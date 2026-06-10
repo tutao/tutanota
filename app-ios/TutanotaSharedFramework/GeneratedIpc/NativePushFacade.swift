@@ -29,7 +29,7 @@ public protocol NativePushFacade : Sendable {
 	) async throws -> Void
 	func scheduleAlarms(
 		_ alarmNotificationsWireFormat: String,
-		_ newDeviceSessionKey: String
+		_ newDeviceSessionKeyInfoWireFormat: String
 	) async throws -> Void
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage

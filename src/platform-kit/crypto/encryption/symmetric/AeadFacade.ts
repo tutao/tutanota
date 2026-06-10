@@ -54,6 +54,7 @@ export class AeadFacade {
 	 * Encrypt with AEAD.
 	 */
 	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+		console.log(`Encrypting with AEAD: cipherVersion: ${subKeys.cipherVersion}, plaintext: "${plaintext}"`)
 		const paddedPlaintext = this.pad(plaintext)
 		return this.encryptInternal(subKeys, paddedPlaintext, associatedData)
 	}
@@ -116,6 +117,7 @@ export class AeadFacade {
 				[],
 			),
 		)
+		console.log(`Decrypting with AEAD: cipherVersion: ${parsedCiphertext.cipherVersion}, plaintext: "${this.unpad(paddedPlaintext)}"`)
 		return this.unpad(paddedPlaintext)
 	}
 

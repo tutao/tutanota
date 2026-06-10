@@ -5,7 +5,7 @@ import { DesktopConfigKey } from "../../../../platform-kit/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
-import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "../../../../platform-kit/crypto"
+import { AesKey, base64ToKey, decryptKey, keyToBase64, SessionKeyInfo, SymmetricCipherVersion, uint8ArrayToKey } from "../../../../platform-kit/crypto"
 import { ClientTypeModelResolver, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
 import { CryptoError } from "../../../../platform-kit/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
@@ -162,13 +162,21 @@ export class DesktopAlarmStorage {
 	}
 
 	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<UntypedInstance> {
-		let sk = newDeviceSessionKey
+		let sessionKey = newDeviceSessionKey
 		if (!newDeviceSessionKey) {
 			let notificationSessionKeyWrapper = await this.getNotificationSessionKey(an.notificationSessionKeys)
-			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
+			sessionKey = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
+		let sessionKeyInfo: SessionKeyInfo = {
+			sessionKey,
+			// The alarm notification encrypted with this session key only gets stored locally, so the threat model of
+			// an adversary controlling the server being able to manipulate the data does not apply. Because of this,
+			// there is no need to use AEAD, and we stick AesCbcThenHmac for backward compatibility.
+			cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
+		}
+
+		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKeyInfo)
 		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
 	}
 

@@ -8,7 +8,7 @@ import { deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { Aes128Key, aes256RandomKey } from "../../../src/platform-kit/crypto"
+import { Aes128Key, aes256RandomKey, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 
@@ -584,9 +584,9 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
-			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sk)
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKeyInfo)
+			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sessionKeyInfo.sessionKey)
 
 			respondWith(JSON.stringify(untypedInstance))
 
@@ -610,13 +610,13 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sessionKey = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKeyInfo)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(null)
 
 			respondWith(JSON.stringify(untypedInstance))
 
-			const response = await executor.get(CustomerAccountService, null, { sessionKey })
+			const response = await executor.get(CustomerAccountService, null, { sessionKey: sessionKeyInfo.sessionKey })
 
 			removeOriginals(response)
 
@@ -641,13 +641,13 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
-			const sessionKey = [1, 2, 3, 4] as Aes128Key
+			const sessionKeyInfo = { sessionKey: [1, 2, 3, 4] as Aes128Key, cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			const encrypted = { encrypted: "1" }
-			when(instancePipeline.mapAndEncrypt(GiftCardCreateDataTypeRef, giftCardCreateData, sessionKey)).thenResolve(encrypted)
+			when(instancePipeline.mapAndEncrypt(GiftCardCreateDataTypeRef, giftCardCreateData, sessionKeyInfo)).thenResolve(encrypted)
 
 			respondWith(undefined)
 
-			const response = await executor.get(getService, giftCardCreateData, { sessionKey })
+			const response = await executor.get(getService, giftCardCreateData, { sessionKey: sessionKeyInfo.sessionKey })
 
 			o(response).equals(undefined)
 			verify(

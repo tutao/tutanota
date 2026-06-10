@@ -18,7 +18,7 @@ import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo
 import { SseStorage } from "../../../../src/applications/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
+import { Aes128Key, aes256RandomKey, SymmetricCipherVersion } from "../../../../src/platform-kit/crypto"
 import { assertNotNull } from "../../../../src/platform-kit/utils"
 
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
@@ -202,8 +202,8 @@ o.spec("TutaNotificationHandler", () => {
 				}),
 			})
 
-			const sk = aes256RandomKey()
-			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
+			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sessionKeyInfo)
 
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -281,7 +281,7 @@ o.spec("TutaNotificationHandler", () => {
 			const notificationInfosSlice = notificationInfos.slice(0, 100)
 			const mailListElementIds = notificationInfosSlice.map((ni) => assertNotNull(ni.mailId).listElementId).join(encodeURIComponent(","))
 
-			const sk = aes256RandomKey()
+			const sessionKeyInfo = { sessionKey: aes256RandomKey(), cipherVersion: SymmetricCipherVersion.AesCbcThenHmac }
 			const mailMetadataPromises = notificationInfosSlice.map(({ mailId }) => {
 				const { listId, listElementId } = assertNotNull(mailId)
 				const mailMetadata: Mail = createSystemMail({
@@ -293,7 +293,7 @@ o.spec("TutaNotificationHandler", () => {
 						address: "recipient@example.com",
 					}),
 				})
-				return nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
+				return nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sessionKeyInfo)
 			})
 			const requestDefer = mockFetchRequest(
 				fetch,
