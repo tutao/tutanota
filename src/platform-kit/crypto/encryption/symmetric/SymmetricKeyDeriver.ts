@@ -110,10 +110,8 @@ export class SymmetricKeyDeriver {
 	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadSubKeys {
 		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
-		return this.deriveAeadSubKeys(inputKeyMaterial, context, {
-			cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
-			groupKeyVersion: groupKey.version,
-		})
+		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)
+		return new AeadWithGroupKeySubKeys(groupKey.version, keys.encryptionKey, keys.authenticationKey)
 	}
 
 	/**
@@ -122,21 +120,22 @@ export class SymmetricKeyDeriver {
 	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadSubKeys {
 		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = keyToUint8Array(sessionKey)
-		return this.deriveAeadSubKeys(inputKeyMaterial, context, { cipherVersion: SymmetricCipherVersion.AeadWithSessionKey })
+		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)
+		return new AeadWithSessionKeySubKeys(keys.encryptionKey, keys.authenticationKey)
 	}
 
-	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, cipherVersion: SymmetricAeadCipherVersionMaybeWithGroupKeyVersion): AeadSubKeys {
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array<ArrayBufferLike>, context: string): EncryptionAndAuthenticationKey {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 
 		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)
 		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES), AesKeyLength.Aes256)
-
-		if (cipherVersion instanceof SymmetricCipherVersionAeadWithGroupKey) {
-			return new AeadWithGroupKeySubKeys(cipherVersion.groupKeyVersion, encryptionKey, authenticationKey)
-		} else {
-			return new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
-		}
+		return { encryptionKey, authenticationKey }
 	}
+}
+
+type EncryptionAndAuthenticationKey = {
+	encryptionKey: Aes256Key
+	authenticationKey: Aes256Key
 }
 
 export const SYMMETRIC_KEY_DERIVER = new SymmetricKeyDeriver()

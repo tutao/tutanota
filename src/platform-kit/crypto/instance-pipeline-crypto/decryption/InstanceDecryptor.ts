@@ -32,50 +32,39 @@ export class InstanceDecryptor {
 
 	getValueDecryptor(versionedCiphertext: Uint8Array, fieldPath: string): ValueDecryptor {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
-		switch (parsedCiphertext.cipherVersion.constructor) {
-			case SymmetricCipherVersionUnusedReservedUnauthenticated:
-			case SymmetricCipherVersionAesCbcThenHmac: {
-				if (this.sessionKey == null) {
-					throw new SessionKeyNotFoundError("")
-				}
-				return new AesCbcDecryptor(
-					downcast<ParsedCiphertextAesCbc>(parsedCiphertext),
-					this.aesCbcFacade,
-					this.sessionKey,
-					this.instanceAesSubKeyCache,
-					this.symmetricKeyDeriver,
-				)
+		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
+			if (this.sessionKey == null) {
+				throw new SessionKeyNotFoundError("")
 			}
-			case SymmetricCipherVersionAeadWithGroupKey: {
-				if (this.kdfNonce == null) {
-					throw new CryptoError("no kdf nonce for group key encrypted value")
-				}
-				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
-				return new AeadWithGroupKeyDecryptor(
-					downcast<ParsedCiphertextAeadWithGroupKey>(parsedCiphertext),
-					this.aeadFacade,
-					this.kdfNonce,
-					this.instanceTypeId,
-					this.symmetricKeyDeriver,
-					associatedData,
-					this.instanceAeadSubKeyCache,
-				)
+			return new AesCbcDecryptor(parsedCiphertext, this.aesCbcFacade, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
+		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithGroupKey) {
+			if (this.kdfNonce == null) {
+				throw new CryptoError("no kdf nonce for group key encrypted value")
 			}
-			case SymmetricCipherVersionAeadWithSessionKey: {
-				if (this.sessionKey == null) {
-					throw new SessionKeyNotFoundError("")
-				}
-				const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
-				return new AeadWithSessionKeyDecryptor(
-					downcast<ParsedCiphertextAeadWithSessionKey>(parsedCiphertext),
-					this.aeadFacade,
-					this.sessionKey,
-					this.instanceTypeId,
-					this.symmetricKeyDeriver,
-					associatedData,
-					this.instanceAeadSubKeyCache,
-				)
+			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
+			return new AeadWithGroupKeyDecryptor(
+				downcast<ParsedCiphertextAeadWithGroupKey>(parsedCiphertext),
+				this.aeadFacade,
+				this.kdfNonce,
+				this.instanceTypeId,
+				this.symmetricKeyDeriver,
+				associatedData,
+				this.instanceAeadSubKeyCache,
+			)
+		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithSessionKey) {
+			if (this.sessionKey == null) {
+				throw new SessionKeyNotFoundError("")
 			}
+			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
+			return new AeadWithSessionKeyDecryptor(
+				parsedCiphertext,
+				this.aeadFacade,
+				this.sessionKey,
+				this.instanceTypeId,
+				this.symmetricKeyDeriver,
+				associatedData,
+				this.instanceAeadSubKeyCache,
+			)
 		}
 		throw new CryptoError(`Unsupported cipher version ${parsedCiphertext.cipherVersion.constructor.name}`)
 	}

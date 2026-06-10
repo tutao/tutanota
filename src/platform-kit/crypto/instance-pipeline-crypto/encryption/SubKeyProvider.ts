@@ -1,4 +1,4 @@
-import { lazyMemoized } from "@tutao/utils"
+import { lazyMemoized, Nullable } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { AesCbcThenHmacSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
@@ -15,6 +15,15 @@ export class SubKeyInfoWithSessionKey extends SubKeyInfo {
 		cipherVersion: SymmetricCipherVersion,
 		public readonly sessionKey: AesKey,
 	) {
+		super(cipherVersion)
+		if (cipherVersion !== SymmetricCipherVersion.AesCbcThenHmac && cipherVersion !== SymmetricCipherVersion.AeadWithSessionKey) {
+			throw new ProgrammingError("non session key cipher version")
+		}
+	}
+}
+
+export class SubKeyInfoWithoutSessionKey extends SubKeyInfo {
+	constructor(cipherVersion: SymmetricCipherVersion) {
 		super(cipherVersion)
 		if (cipherVersion !== SymmetricCipherVersion.AesCbcThenHmac && cipherVersion !== SymmetricCipherVersion.AeadWithSessionKey) {
 			throw new ProgrammingError("non session key cipher version")
@@ -45,6 +54,8 @@ export class SubKeyProvider {
 			throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a cipher version and a key!`)
 		}
 		switch (this.subKeyInfo.cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+				throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKey) {
 					return this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.subKeyInfo.sessionKey) as AesCbcThenHmacSubKeys

@@ -338,7 +338,7 @@ export class RestClient implements RestClientInterface {
 
 		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
 
-		if (body && body.payload.length > limit) {
+		if ((body instanceof RestBinaryBody || body instanceof RestTextBody) && body.payload.length > limit) {
 			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.payload.length}`)
 		}
 	}

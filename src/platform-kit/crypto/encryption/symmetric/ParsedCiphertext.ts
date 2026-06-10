@@ -4,19 +4,12 @@ import {
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
 	InitializationVector,
 	MacTag,
-	SymmetricCipherVersionAeadWithGroupKey,
-	SymmetricCipherVersionAeadWithSessionKey,
 	validateInitializationVectorLength,
 } from "@tutao/crypto"
 import { assertNotNull, isKeyVersion, KeyVersion, Nullable } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "./SymmetricCipherUtils"
-import {
-	AbstractSymmetricCipherVersion,
-	SymmetricCipherVersion,
-	SymmetricCipherVersionAesCbcThenHmac,
-	SymmetricCipherVersionUnusedReservedUnauthenticated,
-} from "./SymmetricCipherVersion"
+import { SymmetricCipherVersion } from "./SymmetricCipherVersion"
 
 export enum InitializationVectorVariant {
 	Fixed = "fixedInitializationVector",
@@ -26,7 +19,7 @@ export enum InitializationVectorVariant {
 export type InitializationVectorSource = InitializationVector | typeof InitializationVectorVariant.Fixed
 
 abstract class ParsedCiphertext {
-	public abstract readonly cipherVersion: AbstractSymmetricCipherVersion
+	public abstract readonly cipherVersion: SymmetricCipherVersion
 
 	constructor(
 		public readonly initializationVector: InitializationVector,
@@ -128,7 +121,7 @@ export function parseVersionedCiphertext(
 	const cipherVersion = getSymmetricCipherVersion(versionedCiphertext)
 	let ciphertext = versionedCiphertext.subarray(SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES)
 
-	if (cipherVersion instanceof SymmetricCipherVersionUnusedReservedUnauthenticated) {
+	if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 		return parseVersionedCipherTextUnusedReservedUnauthenticated(ciphertext, initializationVectorVariant)
 	}
 
@@ -154,14 +147,13 @@ export function parseVersionedCiphertext(
 		initializationVector = FIXED_INITIALIZATION_VECTOR
 	}
 
-	if (cipherVersion instanceof SymmetricCipherVersionAesCbcThenHmac) {
-		return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
-	} else if (cipherVersion instanceof SymmetricCipherVersionAeadWithGroupKey) {
-		return new ParsedCiphertextAeadWithGroupKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
-	} else if (cipherVersion instanceof SymmetricCipherVersionAeadWithSessionKey) {
-		return new ParsedCiphertextAeadWithSessionKey(initializationVector, ciphertext, macTag)
-	} else {
-		throw new CryptoError("aes decryption failed> unknown cipher version")
+	switch (cipherVersion) {
+		case SymmetricCipherVersion.AesCbcThenHmac:
+			return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
+		case SymmetricCipherVersion.AeadWithGroupKey:
+			return new ParsedCiphertextAeadWithGroupKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
+		case SymmetricCipherVersion.AeadWithSessionKey:
+			return new ParsedCiphertextAeadWithSessionKey(initializationVector, ciphertext, macTag)
 	}
 }
 

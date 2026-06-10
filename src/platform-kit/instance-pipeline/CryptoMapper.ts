@@ -13,6 +13,7 @@ import {
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
+	SymmetricCipherVersion,
 	SymmetricEncryptionScheme,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -32,7 +33,6 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
-import { SymmetricCipherVersion } from "../crypto/encryption/symmetric/SymmetricCipherVersion"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>

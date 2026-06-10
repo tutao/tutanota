@@ -51,6 +51,9 @@ import {
 	generateKdfNonce,
 	KdfNonce,
 	SubKeyInfo,
+	SubKeyInfoWithGroupKey,
+	SubKeyInfoWithoutSessionKey,
+	SubKeyInfoWithSessionKey,
 	SymmetricCipherVersion,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
@@ -457,7 +460,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey ?? null, instance, clientTypeModel)
-		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, subKeyInfo)
+		const untypedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(downcast<TypeRef<Entity>>(instance._type), instance, subKeyInfo)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
 			baseUrl: options?.baseUrl ?? null,
@@ -493,7 +496,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
-					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance)
+					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, null)
 					return await this.instancePipeline.mapAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request
@@ -585,8 +588,12 @@ export class EntityRestClient implements EntityRestInterface {
 		clientTypeModel: ClientTypeModel,
 	): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
-			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey ?? undefined)
-			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
+			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
+			if (sessionKey) {
+				return new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sessionKey)
+			} else {
+				return new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
+			}
 		} else {
 			if (ownerKey == null) {
 				if (instance._ownerGroup == null) {
@@ -601,7 +608,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 			const kdfNonce: KdfNonce = generateKdfNonce()
 			instance._kdfNonce = kdfNonce
-			return { cipherVersion: SymmetricCipherVersion.AeadWithGroupKey, groupKey: ownerKey, kdfNonce }
+			return new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, ownerKey, kdfNonce)
 		}
 	}
 
@@ -611,7 +618,11 @@ export class EntityRestClient implements EntityRestInterface {
 				ownerKey != null ? ownerKey.object : null,
 				instance,
 			)
-			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
+			if (sessionKey) {
+				return new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sessionKey)
+			} else {
+				return new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
+			}
 		} else {
 			if (!ownerKey) {
 				if (instance._ownerGroup == null) {
@@ -640,7 +651,7 @@ export class EntityRestClient implements EntityRestInterface {
 			} else {
 				kdfNonce = validateKdfNonceLength(instance._kdfNonce)
 			}
-			return { cipherVersion: SymmetricCipherVersion.AeadWithGroupKey, groupKey: ownerKey, kdfNonce }
+			return new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, ownerKey, kdfNonce)
 		}
 	}
 

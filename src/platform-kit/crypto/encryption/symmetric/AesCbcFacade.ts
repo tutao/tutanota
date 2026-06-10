@@ -1,4 +1,4 @@
-import { AbstractSymmetricCipherVersion, SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { AesKey, bitArrayToUint8Array, FIXED_INITIALIZATION_VECTOR, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat, downcast } from "@tutao/utils"
@@ -36,7 +36,7 @@ export class AesCbcFacade {
 		plainText: Uint8Array,
 		initializationVector: InitializationVectorSource,
 		paddingStandard: PaddingStandard,
-		cipherVersion: AbstractSymmetricCipherVersion,
+		cipherVersion: SymmetricCipherVersion,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
 		this.tryToEnforceAuthentication(subKeys, cipherVersion, authenticationEnforcement)
@@ -141,11 +141,7 @@ export class AesCbcFacade {
 		}
 	}
 
-	private tryToEnforceAuthentication(
-		subKeys: SymmetricSubKeys,
-		cipherVersion: AbstractSymmetricCipherVersion,
-		authenticationEnforcement: AuthenticationEnforcement,
-	) {
+	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {

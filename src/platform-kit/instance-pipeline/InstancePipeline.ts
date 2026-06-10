@@ -2,8 +2,8 @@ import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
-import { downcast, lazy, Nullable } from "@tutao/utils"
-import { AesKey, SubKeyInfo, SymmetricCipherFacade, SymmetricCipherVersion, validateKdfNonceLength } from "@tutao/crypto"
+import { assertNotNull, downcast, lazy, Nullable } from "@tutao/utils"
+import { AesKey, SubKeyInfo, SubKeyInfoWithSessionKey, SymmetricCipherFacade, SymmetricCipherVersion, validateKdfNonceLength } from "@tutao/crypto"
 import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
@@ -43,23 +43,16 @@ export class InstancePipeline {
 		typeRef: TypeRef<T>,
 		instance: T,
 		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
-	): Promise<ClientModelUntypedInstance>
-	async mapAndEncrypt<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance>
-	async mapAndEncrypt<T extends Entity>(
-		typeRef: TypeRef<T>,
-		instance: T,
-		sessionKeyOrSubKeyInfo: Promise<Nullable<AesKey>> | Nullable<AesKey> | SubKeyInfo,
 	): Promise<ClientModelUntypedInstance> {
+		const sk = assertNotNull(await sessionKey)
+		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+
+		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
+	}
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance> {
 		const typeModel = await this.clientTypeReferenceResolver(typeRef)
 		const parsedInstance: ClientModelParsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
-		let subKeyInfo: SubKeyInfo
-		if (isSubKeyInfo(sessionKeyOrSubKeyInfo)) {
-			subKeyInfo = sessionKeyOrSubKeyInfo
-		} else {
-			const sessionKey: Nullable<AesKey> = await sessionKeyOrSubKeyInfo
-			subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
-		}
 		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, subKeyInfo)
 		return await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 	}
