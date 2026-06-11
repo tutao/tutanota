@@ -297,8 +297,8 @@ export class EventBusClient {
 		return await this.instancePipeline.decryptAndMap(messageType, untypedInstanceSanitized, null)
 	}
 
-	private onError(error: any) {
-		console.log(TAG, "ws error:", error, JSON.stringify(error), "state:", this.state)
+	private onError(error: Event) {
+		console.log(TAG, "ws error type:", error.type, JSON.stringify(error), "state:", this.state)
 	}
 
 	private onMessage(message: MessageEvent<string>): void {
@@ -466,7 +466,7 @@ export class EventBusClient {
 
 	private onClose(event: CloseEvent) {
 		this.failedConnectionAttempts++
-		console.log(TAG, "ws close event:", event, "state:", this.state)
+		console.log(TAG, "ws close event code: ", event.code, " reason: ", event.reason, " wasClean:", event.wasClean, " state:", this.state)
 
 		this.loggedInUserProvider.setLeaderStatus(
 			createWebsocketLeaderStatus({
