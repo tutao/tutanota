@@ -9,24 +9,31 @@ import { clone } from "../../../../src/platform-kit/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { DateTime } from "luxon"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
-import { first } from "../../../../src/platform-kit/utils"
+import { DateProvider, first } from "../../../../src/platform-kit/utils"
 
 const { anything } = matchers
 o.spec("EventSeriesResolver", function () {
 	let mockCalendarModel: CalendarModel
 	let eventSeriesResolver: EventSeriesResolver
 
-	const timeZone = "Europe/Berlin"
+	const mockDateProvider: DateProvider = object({
+		now(): number {
+			return 0
+		},
+		timeZone(): string {
+			return "Europe/Berlin"
+		},
+	})
 	const calendarGroupId: string = "calendarGroupId"
 
 	o.beforeEach(function () {
 		mockCalendarModel = object()
-		eventSeriesResolver = new EventSeriesResolver(mockCalendarModel)
+		eventSeriesResolver = new EventSeriesResolver(mockCalendarModel, mockDateProvider)
 	})
 
 	o.spec("updateExistingProgenitorForNewAlteredInstances", function () {
 		let existingProgenitor: CalendarEventProgenitor
-		const startTime: DateTime = DateTime.fromObject({ year: 2026, month: 6, day: 1, hour: 10 }).setZone(timeZone)
+		const startTime: DateTime = DateTime.fromObject({ year: 2026, month: 6, day: 1, hour: 10 }).setZone(mockDateProvider.timeZone())
 
 		o.beforeEach(function () {
 			existingProgenitor = createTestEntity(CalendarEventTypeRef, {
@@ -39,7 +46,7 @@ o.spec("EventSeriesResolver", function () {
 			existingProgenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
-				timeZone,
+				timeZone: mockDateProvider.timeZone(),
 			})
 
 			when(mockCalendarModel.resolveCalendarEventProgenitor({ uid: existingProgenitor.uid, _ownerGroup: existingProgenitor._ownerGroup })).thenResolve(
@@ -186,7 +193,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 					excludedDates: [],
 				}),
 			}) as CalendarEventProgenitor
@@ -209,7 +216,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 				}),
 			}) as CalendarEventProgenitor
 			const existingAlteredInstance = createTestEntity(CalendarEventTypeRef, {
@@ -237,7 +244,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 				}),
 			}) as CalendarEventProgenitor
 			const newAlteredInstance = createTestEntity(CalendarEventTypeRef, {
@@ -261,7 +268,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 				}),
 			}) as CalendarEventProgenitor
 			const existingAlteredInstance = createTestEntity(CalendarEventTypeRef, {
@@ -361,7 +368,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 					excludedDates: [],
 				}),
 			}) as CalendarEventProgenitor
@@ -381,7 +388,7 @@ o.spec("EventSeriesResolver", function () {
 				repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
-					timeZone,
+					timeZone: mockDateProvider.timeZone(),
 					excludedDates: [],
 				}),
 			}) as CalendarEventProgenitor

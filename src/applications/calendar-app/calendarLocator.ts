@@ -132,11 +132,10 @@ import { SystemPermissionHandler } from "../common/native/SystemPermissionHandle
 import { ExposedCacheStorage } from "../../app-kit/local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE } from "../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { ClientModelInfo } from "../../platform-kit/instance-pipeline"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
-import { getTimeZone } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -841,14 +840,21 @@ class CalendarLocator implements CommonLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
-			const [{ parseCalendarFile }, { CalendarImporter }, { importCalendarFile }, { EventSeriesResolver }, { ImportInteractionHandler }] =
-				await Promise.all([
-					import("../calendar-app/calendar/export/CalendarParser"),
-					import("../common/calendar/import/CalendarImporter"),
-					import("../common/calendar/gui/CalendarImporterDialog"),
-					import("../common/calendar/import/EventSeriesResolver"),
-					import("../common/calendar/gui/ImportInteractionHandler"),
-				])
+			const [
+				{ parseCalendarFile },
+				{ CalendarImporter },
+				{ importCalendarFile },
+				{ EventSeriesResolver },
+				{ ImportInteractionHandler },
+				{ DefaultDateProvider },
+			] = await Promise.all([
+				import("../calendar-app/calendar/export/CalendarParser"),
+				import("../common/calendar/import/CalendarImporter"),
+				import("../common/calendar/gui/CalendarImporterDialog"),
+				import("../common/calendar/import/EventSeriesResolver"),
+				import("../common/calendar/gui/ImportInteractionHandler"),
+				import("../common/calendar/date/CalendarUtils"),
+			])
 			let parsedEvents: ParsedEventAlarmTuple[] = []
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
@@ -859,16 +865,17 @@ class CalendarLocator implements CommonLocator {
 			}
 			const calendarModel = await this.calendarModel()
 
+			const defaultDateProvider = new DefaultDateProvider()
 			await importCalendarFile(
-				await this.calendarModel(),
+				calendarModel,
 				this.logins.getUserController(),
 				parsedEvents,
 				new CalendarImporter(
 					calendarModel,
 					new ImportInteractionHandler(),
 					this.operationProgressTracker,
-					new EventSeriesResolver(calendarModel),
-					getTimeZone(),
+					new EventSeriesResolver(calendarModel, defaultDateProvider),
+					defaultDateProvider.timeZone(),
 				),
 			)
 		}

@@ -763,7 +763,7 @@ class DriveLocator implements CommonLocator {
 				{ importCalendarFile },
 				{ EventSeriesResolver },
 				{ ImportInteractionHandler },
-				{ getTimeZone },
+				{ DefaultDateProvider },
 			] = await Promise.all([
 				import("../calendar-app/calendar/export/CalendarParser"),
 				import("../common/calendar/import/CalendarImporter"),
@@ -784,6 +784,7 @@ class DriveLocator implements CommonLocator {
 
 			const calendarModel = await this.calendarModel()
 
+			const defaultDateProvider = new DefaultDateProvider()
 			await importCalendarFile(
 				calendarModel,
 				this.logins.getUserController(),
@@ -792,8 +793,8 @@ class DriveLocator implements CommonLocator {
 					calendarModel,
 					new ImportInteractionHandler(),
 					this.operationProgressTracker,
-					new EventSeriesResolver(calendarModel),
-					getTimeZone(),
+					new EventSeriesResolver(calendarModel, defaultDateProvider),
+					defaultDateProvider.timeZone(),
 				),
 			)
 		}

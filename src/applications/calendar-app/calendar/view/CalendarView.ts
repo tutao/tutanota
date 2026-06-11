@@ -35,6 +35,7 @@ import {
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
+	DefaultDateProvider,
 	extractContactIdFromEvent,
 	findFirstPrivateCalendar,
 	getTimeZone,
@@ -978,7 +979,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				this.viewModel.getCalendarModel(),
 				new ImportInteractionHandler(),
 				locator.operationProgressTracker,
-				new EventSeriesResolver(calendarModel),
+				new EventSeriesResolver(calendarModel, new DefaultDateProvider()),
 				getTimeZone(),
 			)
 

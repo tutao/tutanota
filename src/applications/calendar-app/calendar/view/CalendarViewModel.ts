@@ -42,6 +42,7 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	CalendarType,
+	DefaultDateProvider,
 	eventComparator,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
@@ -950,7 +951,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.calendarModel,
 			new ImportInteractionHandler(),
 			this.operationProgressTracker,
-			new EventSeriesResolver(this.calendarModel),
+			new EventSeriesResolver(this.calendarModel, new DefaultDateProvider()),
 			this.timeZone,
 		)
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)

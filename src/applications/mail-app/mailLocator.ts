@@ -169,7 +169,6 @@ import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
-import { getTimeZone } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -1146,14 +1145,21 @@ class MailLocator implements CommonLocator {
 
 			await importer.importContactsFromFile(vCardData, contactListId)
 		} else if (areAllFilesICS) {
-			const [{ parseCalendarFile }, { CalendarImporter }, { calendarSelectionDialog }, { EventSeriesResolver }, { ImportInteractionHandler }] =
-				await Promise.all([
-					import("../calendar-app/calendar/export/CalendarParser"),
-					import("../common/calendar/import/CalendarImporter"),
-					import("../common/calendar/gui/CalendarImporterDialog"),
-					import("../common/calendar/import/EventSeriesResolver"),
-					import("../common/calendar/gui/ImportInteractionHandler"),
-				])
+			const [
+				{ parseCalendarFile },
+				{ CalendarImporter },
+				{ calendarSelectionDialog },
+				{ EventSeriesResolver },
+				{ ImportInteractionHandler },
+				{ DefaultDateProvider },
+			] = await Promise.all([
+				import("../calendar-app/calendar/export/CalendarParser"),
+				import("../common/calendar/import/CalendarImporter"),
+				import("../common/calendar/gui/CalendarImporterDialog"),
+				import("../common/calendar/import/EventSeriesResolver"),
+				import("../common/calendar/gui/ImportInteractionHandler"),
+				import("../common/calendar/date/CalendarUtils"),
+			])
 
 			const calendarModel = await this.calendarModel()
 			const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
@@ -1176,13 +1182,13 @@ class MailLocator implements CommonLocator {
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, async (dialog, selectedCalendar) => {
 				dialog.close()
 
-				const calendarModel = await this.calendarModel()
+				const defaultDateProvider = new DefaultDateProvider()
 				const calendarImporter = new CalendarImporter(
 					calendarModel,
 					new ImportInteractionHandler(),
 					this.operationProgressTracker,
-					new EventSeriesResolver(calendarModel),
-					getTimeZone(),
+					new EventSeriesResolver(calendarModel, defaultDateProvider),
+					defaultDateProvider.timeZone(),
 				)
 				await calendarImporter.import(
 					selectedCalendar.groupRoot,

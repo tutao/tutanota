@@ -1,8 +1,7 @@
 import { CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
-import { assertNotNull, filterNull, first, groupBy, isNotNull } from "@tutao/utils"
+import { assertNotNull, DateProvider, filterNull, first, groupBy, isNotNull } from "@tutao/utils"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { repeatRuleWithExcludedAlteredInstances } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel"
-import { getTimeZone } from "../date/CalendarUtils"
 import { clone } from "@tutao/meta"
 import { TutanotaError } from "@tutao/app-env"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api/worker/facades/lazy/CalendarFacade"
@@ -11,7 +10,10 @@ import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api
  * Handles complex cases with event series and its altered instances
  */
 export class EventSeriesResolver {
-	constructor(private readonly calendarModel: CalendarModel) {}
+	constructor(
+		private readonly calendarModel: CalendarModel,
+		private readonly dateProvider: DateProvider,
+	) {}
 
 	/**
 	 * Updates exclusion dates from existing progenitors with the given altered instances
@@ -39,7 +41,7 @@ export class EventSeriesResolver {
 					"Trying to update a progenitor but there are no new altered instances. Possible error at uid lookup.",
 				)
 				const datesToExclude = filterNull(newAlteredInstances.map((alteredInstance) => alteredInstance.recurrenceId))
-				const repeatRuleWithExcludedDates = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, getTimeZone())
+				const repeatRuleWithExcludedDates = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, this.dateProvider.timeZone())
 				const progenitorWithNewExcludedDates = clone(progenitor)
 				progenitorWithNewExcludedDates.repeatRule = repeatRuleWithExcludedDates
 				return this.calendarModel.doUpdateEvent(progenitor, progenitorWithNewExcludedDates) as Promise<CalendarEventProgenitor>
@@ -73,7 +75,7 @@ export class EventSeriesResolver {
 			}
 			const progenitor = first(progenitors)!
 			const newAlteredInstancesRecurrenceIds = (newAlteredInstancesByUid.get(uid) ?? []).map((alteredInstance) => alteredInstance.recurrenceId)
-			progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, newAlteredInstancesRecurrenceIds, getTimeZone())
+			progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, newAlteredInstancesRecurrenceIds, this.dateProvider.timeZone())
 		}
 
 		const progenitorUidIndexEntries = filterNull(
@@ -88,7 +90,7 @@ export class EventSeriesResolver {
 			const uid = first(entry.alteredInstances)?.uid
 			if (datesToExclude && uid) {
 				const progenitor = assertNotNull(first(newProgenitorsByUid.get(uid)!))
-				progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, getTimeZone())
+				progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, this.dateProvider.timeZone())
 			}
 		}
 	}

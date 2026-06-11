@@ -1316,7 +1316,7 @@ export class MailViewerViewModel {
 	private async importCalendar(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const [{ CalendarImporter }, { ImportInteractionHandler }, { getTimeZone }, { EventSeriesResolver }] = await Promise.all([
+			const [{ CalendarImporter }, { ImportInteractionHandler }, { DefaultDateProvider }, { EventSeriesResolver }] = await Promise.all([
 				import("../../../common/calendar/import/CalendarImporter"),
 				import("../../../common/calendar/gui/ImportInteractionHandler"),
 				import("../../../common/calendar/date/CalendarUtils"),
@@ -1328,6 +1328,7 @@ export class MailViewerViewModel {
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
 			const calendarModel = await mailLocator.calendarModel()
+			const defaultDateProvider = new DefaultDateProvider()
 			await importCalendarFile(
 				calendarModel,
 				this.logins.getUserController(),
@@ -1336,8 +1337,8 @@ export class MailViewerViewModel {
 					calendarModel,
 					new ImportInteractionHandler(),
 					this.operationProgressTracker,
-					new EventSeriesResolver(calendarModel),
-					getTimeZone(),
+					new EventSeriesResolver(calendarModel, defaultDateProvider),
+					defaultDateProvider.timeZone(),
 				),
 			)
 		} catch (e) {
