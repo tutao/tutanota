@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
-import { SymmetricSubKeys } from "@tutao/crypto/symmetric-key-deriver"
+import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { Aes128Key, Aes256Key, aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, validateInitializationVectorLength } from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
@@ -23,37 +23,20 @@ o.spec("AesCbcFacadeTest", function () {
 	let encryption256Key: Aes256Key
 	let authentication128Key: Aes128Key
 	let encryption128Key: Aes128Key
-	let symmetricSubKeys128WithoutAuthenticationKey: SymmetricSubKeys
-	let symmetricSubKeys256WithoutAuthenticationKey: SymmetricSubKeys
-	let symmetricSubKeys128WithAuthenticationKey: SymmetricSubKeys
-	let symmetricSubKeys256WithAuthenticationKey: SymmetricSubKeys
+	let symmetricSubKeys128WithoutAuthenticationKey: UnusedReservedUnauthenticatedSubKeys
+	let symmetricSubKeys256WithoutAuthenticationKey: UnusedReservedUnauthenticatedSubKeys
+	let symmetricSubKeys128WithAuthenticationKey: AesCbcThenHmacSubKeys
+	let symmetricSubKeys256WithAuthenticationKey: AesCbcThenHmacSubKeys
 
 	o.beforeEach(function () {
 		encryption128Key = _aes128RandomKey()
 		authentication128Key = _aes128RandomKey()
 		encryption256Key = aes256RandomKey()
 		authentication256Key = aes256RandomKey()
-		symmetricSubKeys128WithoutAuthenticationKey = {
-			cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
-			encryptionKey: encryption128Key,
-			authenticationKey: null,
-		}
-		symmetricSubKeys256WithoutAuthenticationKey = {
-			cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
-			encryptionKey: encryption256Key,
-			authenticationKey: null,
-		}
-		symmetricSubKeys128WithAuthenticationKey = {
-			cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
-			encryptionKey: encryption128Key,
-			authenticationKey: authentication128Key,
-		}
-		symmetricSubKeys256WithAuthenticationKey = {
-			cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
-			encryptionKey: encryption256Key,
-			authenticationKey: authentication256Key,
-		}
-
+		symmetricSubKeys128WithoutAuthenticationKey = new UnusedReservedUnauthenticatedSubKeys(encryption128Key)
+		symmetricSubKeys256WithoutAuthenticationKey = new UnusedReservedUnauthenticatedSubKeys(encryption256Key)
+		symmetricSubKeys128WithAuthenticationKey = new AesCbcThenHmacSubKeys(encryption128Key, authentication128Key)
+		symmetricSubKeys256WithAuthenticationKey = new AesCbcThenHmacSubKeys(encryption256Key, authentication256Key)
 		aesCbcFacade = new AesCbcFacade()
 	})
 	o.spec("roundtrip 128", function () {

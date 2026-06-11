@@ -61,11 +61,11 @@ o.spec("ServiceExecutor", function () {
 	})
 
 	function assertThatNoRequestsWereMade() {
-		verify(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { ignoreExtraArgs: true, times: 0 })
+		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	function respondWith(response) {
-		when(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { ignoreExtraArgs: true }).thenResolve(response)
+		when(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
 	}
 
 	o("decryptResponse removes network debugging info", async function () {

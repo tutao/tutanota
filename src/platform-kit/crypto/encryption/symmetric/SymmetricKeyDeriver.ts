@@ -86,7 +86,7 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
-	deriveSubKeysAesCbc(key: AesKey): AesCbcSubKeys {
+	deriveSubKeysAesCbcHmac(key: AesKey): AesCbcSubKeys {
 		const keyLength = getAndVerifyAesKeyLength(key)
 		let hashedKey: Uint8Array
 		switch (keyLength) {

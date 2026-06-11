@@ -32,7 +32,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.sessionKey)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.sessionKey)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
 		return this.aesCbcFacade.decrypt(subKeys, this.parsedCiphertext, PaddingStandard.Pkcs5)

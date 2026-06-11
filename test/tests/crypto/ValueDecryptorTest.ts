@@ -3,6 +3,7 @@ import {
 	ParsedCiphertextAead,
 	ParsedCiphertextAesCbc,
 	ParsedCiphertextAesCbcThenHmac,
+	ParsedCiphertextUnusedReservedUnauthenticated,
 	parseVersionedCiphertext,
 } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
@@ -53,12 +54,11 @@ o.spec("ValueDecryptorTest", () => {
 
 	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
-		const parsedCiphertext: ParsedCiphertextAesCbc = {
-			cipherVersion: SymmetricCipherVersion.UnusedReservedUnauthenticated,
+		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(
 			initializationVector,
-			ciphertext: new Uint8Array([1, 2]),
-			initializationVectorVariant: InitializationVectorVariant.Random,
-		}
+			new Uint8Array([1, 2]),
+			InitializationVectorVariant.Random,
+		)
 		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector, parsedCiphertext.ciphertext)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")

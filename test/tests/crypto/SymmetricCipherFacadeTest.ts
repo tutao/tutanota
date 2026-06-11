@@ -49,8 +49,8 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		aes128Key = _aes128RandomKey()
 		aes128SubKeys = new AesCbcThenHmacSubKeys(_aes128RandomKey(), _aes128RandomKey())
 		aes256SubKeys = new AesCbcThenHmacSubKeys(aes256RandomKey(), aes256RandomKey())
-		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key)).thenReturn(aes128SubKeys)
-		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key)).thenReturn(aes256SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes128Key)).thenReturn(aes128SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes256Key)).thenReturn(aes256SubKeys)
 		plaintext = keyToUint8Array(aes256RandomKey()) // just 32 random bytes
 		keyToEncrypt_128 = _aes128RandomKey()
 		keyToEncrypt_256 = aes256RandomKey()

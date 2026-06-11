@@ -11,7 +11,7 @@ import {
 	tryServers,
 } from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
-import { func, instance, matchers, object, verify, when } from "testdouble"
+import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import {
 	arrayEquals,
@@ -216,7 +216,7 @@ o.spec("EntityRestClient", function () {
 	})
 
 	function assertThatNoRequestsWereMade() {
-		verify(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { ignoreExtraArgs: true, times: 0 })
+		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	o.spec("Load", function () {
@@ -1204,7 +1204,7 @@ o.spec("EntityRestClient", function () {
 			})
 
 			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newGroupMembers))
-			verify(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { times: 4, ignoreExtraArgs: true })
+			o(explain(restClient.request).callCount).equals(4)
 			o(result.failedInstances).deepEquals(newGroupMembers.slice(0, 100).concat(newGroupMembers.slice(200, 300)))
 			o(result.errors.length).equals(2)
 			o(result.errors.every((e) => e instanceof restError.BadRequestError)).equals(true)
@@ -1239,7 +1239,7 @@ o.spec("EntityRestClient", function () {
 				return await entityRestClient.setupMultiple(listId, instances)
 			})
 			//one post multiple and three individual posts
-			verify(restClient.request(anything(), anything(), DEFAULT_REST_CLIENT_OPTIONS), { ignoreExtraArgs: true, times: 4 })
+			verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 4 })
 			o(result.failedInstances.length).equals(1) //one individual post results in an error
 
 			o(result.errors.length).equals(1)

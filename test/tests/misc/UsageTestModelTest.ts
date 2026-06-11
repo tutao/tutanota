@@ -250,7 +250,7 @@ o.spec("UsageTestModel", function () {
 
 				await usageTestModel.sendPing(usageTest, stage, false)
 
-				verify(serviceExecutor.post(UsageTestParticipationService, anything(), null), {
+				verify(serviceExecutor.post(UsageTestParticipationService, anything(), anything()), {
 					times: 1,
 					ignoreExtraArgs: true,
 				})

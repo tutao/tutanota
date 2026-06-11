@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -19,7 +19,7 @@ o.spec("AeadFacadeTest", function () {
 		aeadFacade = new AeadFacade()
 		const encryptionKey = aes256RandomKey()
 		const authenticationKey = aes256RandomKey()
-		keys = { cipherVersion, encryptionKey, authenticationKey }
+		keys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 	})
 	o("encrypt roundtrip success", function () {
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
