@@ -8,7 +8,7 @@ import { isOfflineError, LockedError } from "../../../../platform-kit/rest-clien
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
-import { groupByAndMap } from "../../../../platform-kit/utils"
+import { groupByAndMap, noOp } from "../../../../platform-kit/utils"
 import { mailLocator } from "../../mailLocator.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
@@ -22,11 +22,17 @@ import { elementIdPart, isSameId, listIdPart } from "../../../../platform-kit/me
  * Dialog for Edit and Add folder are the same.
  * @param editedFolder if this is null, a folder is being added, otherwise a folder is being edited
  */
-export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedFolder: MailSet | null = null, parentFolder: MailSet | null = null) {
+export async function showEditFolderDialog(
+	mailBoxDetail: MailboxDetail,
+	editedFolder: MailSet | null = null,
+	parentFolder: MailSet | null = null,
+	prefilledFolderName: string | null = null,
+	onFolderCreated: (folderId: IdTuple) => void = noOp,
+) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const mailGroupId = mailBoxDetail.mailGroup._id
 	const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
-	let folderNameValue = editedFolder?.name ?? ""
+	let folderNameValue = editedFolder?.name ?? prefilledFolderName ?? ""
 	let targetFolders: SelectorItemList<MailSet | null> = folders
 		.getIndentedList(editedFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (mailSets can only be moved there, not created there)
@@ -81,7 +87,8 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 		try {
 			// if folder is null, create new folder
 			if (editedFolder === null) {
-				await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
+				const createdFolderId = await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
+				onFolderCreated?.(createdFolderId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
 				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {

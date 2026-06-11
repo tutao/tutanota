@@ -10,6 +10,13 @@ import "./typerefs/EntityFunctionsTest.js"
 import "./api/common/utils/FileUtilsTest.js"
 import "./api/common/utils/LoggerTest.js"
 import "./api/common/utils/PlainTextSearchTest.js"
+import "./api/common/utils/imapImportUtils/ImapImportUtilsTest.js"
+import "./api/common/utils/PlainTextToHtmlConverterTest.js"
+import "./api/worker/facades/ImapFacadeTest.js"
+import "./api/worker/facades/ImportMailFacadeTest.js"
+import "./api/worker/utils/imapImport/ImapImporterTest"
+import "./settings/imapimport/ImapImportControllerTest.js"
+import "./settings/imapimport/OAuthHandlerTest.js"
 import "./api/main/EntropyCollectorTest.js"
 import "./api/main/SyncTrackerTest.js"
 import "./instance-pipeline/CompressionTest.js"
@@ -297,6 +304,14 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
 		await import("./desktop/files/DesktopFileFacadeTest.js")
+		await import("./desktop/imapimport/DesktopImapSyncSystemFacadeTest.js")
+		await import("./desktop/imapimport/imapsync/imapmail/ImapMailRFC822ParserTest.js")
+		await import("./desktop/imapimport/imapsync/imapmail/ImapParserUtilsTest.js")
+		await import("./desktop/DesktopOauthWindowFacadeTest.js")
+		await import("./desktop/imapimport/imapsync/ImapSyncTest.js")
+		await import("./desktop/imapimport/imapsync/ImapSyncSessionTest.js")
+		await import("./desktop/imapimport/imapsync/DifferentialUidLoaderTest.js")
+		await import("./desktop/imapimport/imapsync/ImapSyncSessionProcessTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")

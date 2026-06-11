@@ -316,6 +316,18 @@ import("../../ui/translations/en.js")
 			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})
 
+		if (isDesktop()) {
+			mailLocator.logins.addPostLoginAction(async () => {
+				const { ImapImportPostLoginAction } = await import("./mail/imapimport/ImapImportPostLoginAction")
+				return new ImapImportPostLoginAction(
+					await mailLocator.imapImportController(),
+					mailLocator.customerFacade,
+					mailLocator.entityClient,
+					mailLocator.syncTracker,
+				)
+			})
+		}
+
 		mailLocator.logins.addPostLoginAction(async () => {
 			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")

@@ -17,6 +17,7 @@ export enum IconSize {
 	PX20,
 	PX24,
 	PX32,
+	PX40,
 	PX64,
 }
 
@@ -132,6 +133,9 @@ export class Icon implements Component<IconAttrs> {
 				break
 			case IconSize.PX32:
 				cls += "icon-32 "
+				break
+			case IconSize.PX40:
+				cls += "icon-40 "
 				break
 			case IconSize.PX64:
 				cls += "icon-64 "

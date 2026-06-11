@@ -34,6 +34,7 @@ import type { NativeInterface } from "../../../../app-kit/native-bridge/common/N
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
+	ImapSyncSystemFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
 	NativeCryptoFacadeSendDispatcher,
 	NativePushFacadeSendDispatcher,
@@ -130,6 +131,7 @@ import { initClientModels } from "../../../common/api/common/ClientModelInfoInit
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "@tutao/crypto"
+import { ImapImporter } from "../imapimport/ImapImporter"
 
 assertWorkerOrNode()
 
@@ -221,6 +223,9 @@ export type WorkerLocatorType = {
 	driveFacade: lazyAsync<DriveFacade>
 
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
+
+	// IMAP mail import
+	imapImporter: lazyAsync<ImapImporter>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -889,8 +894,29 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.spamClassifierStorageFacade = locator.configFacade
 	}
 
+	locator.imapImporter = lazyMemoized(async () => {
+		const { ImportMailFacade } = await import("../../../common/api/worker/facades/lazy/ImportMailFacade.js")
+		const { ImapFacade } = await import("../../../common/api/worker/facades/lazy/ImapFacade.js")
+		const mailFacade = await locator.mail()
+		const blobFacade = await locator.blob()
+		const importMailFacade = new ImportMailFacade(
+			mailFacade,
+			locator.serviceExecutor,
+			locator.cachingEntityClient,
+			blobFacade,
+			locator.crypto,
+			locator.keyLoader,
+			locator.instancePipeline,
+			locator.cryptoWrapper,
+		)
+		const imapFacade = new ImapFacade(mailFacade, locator.serviceExecutor, locator.cachingEntityClient, locator.keyLoader, locator.cryptoWrapper)
+
+		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
+	})
+
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		locator.mail,
+		locator.imapImporter,
 		locator.user,
 		locator.cachingEntityClient,
 		mainInterface.eventController,

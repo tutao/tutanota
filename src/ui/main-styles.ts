@@ -803,6 +803,9 @@ export class MainStyles {
 				".content-black": {
 					color: "black",
 				},
+				".provider-selector > button": {
+					color: theme.on_surface,
+				},
 				".content-fg": {
 					color: theme.on_surface,
 				},
@@ -1470,6 +1473,14 @@ export class MainStyles {
 				".icon-32 > svg": {
 					height: px(size.icon_32),
 					width: px(size.icon_32),
+				},
+				".icon-40": {
+					height: px(size.icon_40),
+					width: px(size.icon_40),
+				},
+				".icon-40 > svg": {
+					height: px(size.icon_40),
+					width: px(size.icon_40),
 				},
 				".icon-64": {
 					height: px(size.icon_64),
@@ -2496,8 +2507,11 @@ export class MainStyles {
 				".list-checkbox": {
 					opacity: "0.4",
 				},
-				".calendar-alternate-background": {
+				".alternate-background": {
 					background: `${theme.surface_container} !important`,
+				},
+				".surface-background": {
+					background: `${theme.surface} !important`,
 				},
 				".calendar-day:hover": {
 					background: theme.surface_container,
@@ -2708,6 +2722,11 @@ export class MainStyles {
 					// slash in content is content alt. so that it's ignored by screen readers
 					content: '"#" / ""',
 					color: theme.on_surface,
+				},
+				".custom-color-container .hex-code-text-field .inputWrapper::before": {
+					"margin-top": "6px",
+					"margin-bottom": "4px",
+					"padding-right": "4px",
 				},
 				".calendar-invite-field": {
 					"min-width": "80px",
@@ -3375,6 +3394,12 @@ export class MainStyles {
 					display: "flex",
 					"justify-content": "space-between",
 					"min-height": px(component_size.button_height_lg),
+				},
+				".hover-panel": {
+					position: "absolute",
+					border: `2px solid ${theme.outline}`,
+					"max-width": "250px",
+					"z-index": 1,
 				},
 			}
 		})

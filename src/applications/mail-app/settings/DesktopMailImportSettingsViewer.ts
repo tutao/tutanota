@@ -20,7 +20,7 @@ import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { MailSet } from "@tutao/entities/tutanota"
-import { ImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
+import { FileImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, isHighestTierPlan, LegacyPrivatePlans } from "../../../entities/sys/Utils"
 import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -292,7 +292,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 						cells: () => [
 							{
 								main: lang.get("mailImportHistoryTableRowTitle_label", {
-									"{status}": getReadableImportStatus(parseInt(im.status) as ImportStatus),
+									"{status}": getReadableImportStatus(parseInt(im.status) as FileImportStatus),
 									"{folder}": displayTargetFolder
 										? getFolderName(displayTargetFolder.folder)
 										: lang.get("mailImportHistoryTableRowFolderDeleted_label"),
@@ -337,19 +337,19 @@ export function getUiImportStatusTranslationKey(uiStatus: UiImportStatus): Trans
 	}
 }
 
-export function getReadableImportStatus(importStatus: ImportStatus): string {
+export function getReadableImportStatus(importStatus: FileImportStatus): string {
 	return lang.get(getImportStatusTranslationKey(importStatus))
 }
 
-export function getImportStatusTranslationKey(importStatus: ImportStatus): TranslationKey {
+export function getImportStatusTranslationKey(importStatus: FileImportStatus): TranslationKey {
 	switch (importStatus) {
-		case ImportStatus.Running:
+		case FileImportStatus.Running:
 			return "mailImportStatusRunning_label"
-		case ImportStatus.Paused:
+		case FileImportStatus.Paused:
 			return "mailImportStatusPaused_label"
-		case ImportStatus.Canceled:
+		case FileImportStatus.Canceled:
 			return "mailImportStatusCanceled_label"
-		case ImportStatus.Finished:
+		case FileImportStatus.Finished:
 			return "mailImportStatusFinished_label"
 	}
 }

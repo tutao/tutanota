@@ -17,6 +17,11 @@ export interface WizardPageAttrs<T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/
 	headerTitle(): MaybeTranslation
 
+	/**
+	 * Title of the action step displayed below the header
+	 */
+	stepTitle?: TranslationKey
+
 	/** Action that needs to be executed before switching to the next page.
 	 * @return true if the action was successful and the next page can be shown, false otherwise.
 	 **/
@@ -134,6 +139,8 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		const selectedIndex = a.currentPage ? enabledPages.indexOf(a.currentPage) : -1
 		const visiblePages = enabledPages.filter((page) => !page.attrs.hidePagingButtonForPage)
 		const lastIndex = visiblePages.length - 1
+		//If any page has a stepTitle, all pages should have it and we must render with index and title.
+		const shouldDisplayBreadcrumbsBelowIndexAndTitle = vnode.attrs.pages.some((page) => page.attrs.stepTitle !== undefined)
 
 		return m(
 			"#wizardDialogContent.pt-16",
@@ -145,23 +152,63 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 			[
 				a.currentPage && a.currentPage.attrs.hideAllPagingButtons
 					? null
-					: m(
-							"nav#wizard-paging.flex-space-around.center-vertically.mb-8.plr-48",
-							{
-								"aria-label": "Breadcrumb",
-							},
-							visiblePages.map((p, index) => [
-								m(WizardPagingButton, {
-									pageIndex: index,
-									getSelectedPageIndex: () => selectedIndex,
-									isClickable: () => a.allowedToVisitPage(index, selectedIndex),
-									navigateBackHandler: (index) => a._goToPageAction(index),
-								}),
-								index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
-							]),
-						),
+					: shouldDisplayBreadcrumbsBelowIndexAndTitle
+						? this.renderBreadCrumbsWithStepTitle(visiblePages, vnode, selectedIndex, a, lastIndex)
+						: this.renderBreadCrumbs(visiblePages, vnode, selectedIndex, a, lastIndex),
 				a.currentPage ? a.currentPage.view() : null,
 			],
+		)
+	}
+
+	private renderBreadCrumbs(
+		visiblePages: WizardPageWrapper<T>[],
+		vnode: Vnode<WizardDialogAttrs<T>>,
+		selectedIndex: number,
+		a: WizardDialogAttrs<T>,
+		lastIndex: number,
+	) {
+		return m(
+			"nav#wizard-paging.flex-space-around.center-vertically.mb-8.plr-48",
+			{
+				"aria-label": "Breadcrumb",
+			},
+			visiblePages.map((p, index) => [
+				m(WizardPagingButton, {
+					pageIndex: index,
+					getSelectedPageIndex: () => selectedIndex,
+					isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+					navigateBackHandler: (index) => a._goToPageAction(index),
+				}),
+				index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
+			]),
+		)
+	}
+
+	private renderBreadCrumbsWithStepTitle(
+		visiblePages: WizardPageWrapper<T>[],
+		vnode: Vnode<WizardDialogAttrs<T>>,
+		selectedIndex: number,
+		a: WizardDialogAttrs<T>,
+		lastIndex: number,
+	) {
+		return m(
+			"nav#wizard-paging.flex-space-around.center-vertically.mb-8.plr-48.gap-16",
+			{
+				"aria-label": "Breadcrumb",
+			},
+			//16px;
+			visiblePages.map((p, index) => {
+				return m(".flex.flex-column.flex-grow", [
+					m(WizardPagingButton, {
+						title: p.attrs.stepTitle !== undefined ? p.attrs.stepTitle : undefined,
+						pageIndex: index,
+						getSelectedPageIndex: () => selectedIndex,
+						isClickable: () => a.allowedToVisitPage(index, selectedIndex),
+						navigateBackHandler: (index) => a._goToPageAction(index),
+					}),
+					m(".flex-grow.mt-8", { class: this.getLineClass(index < selectedIndex) }),
+				])
+			}),
 		)
 	}
 
@@ -317,6 +364,7 @@ class WizardDialogAttrs<T> {
 }
 
 type WizardPagingButtonAttrs = {
+	title?: MaybeTranslation
 	pageIndex: number
 	getSelectedPageIndex: () => number
 	isClickable: () => boolean
@@ -333,34 +381,40 @@ export class WizardPagingButton {
 		const isSelectedPage = selectedPageIndex === pageIndex
 		const isPreviousPage = pageIndex < selectedPageIndex
 
-		return m(
-			"button.button-icon.flex-center.items-center",
-			{
-				tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
-				"aria-disabled": isClickable.toString(),
-				"aria-label": isClickable ? lang.get("previous_action") : nextIndex,
-				"aria-current": isSelectedPage ? "step" : "false",
-				"aria-live": isSelectedPage ? "polite" : "off",
-				class: this.getClass(isSelectedPage, isPreviousPage),
-				style: {
-					cursor: isClickable ? "pointer" : "auto",
+		//Make suure this flex or changes doesn't break the without title variation
+		return m(".flex.row.items-center.justify-start", [
+			m(
+				"button.button-icon.flex-center.items-center",
+				{
+					tabIndex: isClickable ? TabIndex.Default : TabIndex.Programmatic,
+					"aria-disabled": isClickable.toString(),
+					"aria-label": isClickable ? lang.get("previous_action") : nextIndex,
+					"aria-current": isSelectedPage ? "step" : "false",
+					"aria-live": isSelectedPage ? "polite" : "off",
+					class: this.getClass(isSelectedPage, isPreviousPage),
+					style: {
+						cursor: isClickable ? "pointer" : "auto",
+					},
+					onclick: () => {
+						if (isClickable) {
+							vnode.attrs.navigateBackHandler(pageIndex)
+						}
+					},
 				},
-				onclick: () => {
-					if (isClickable) {
-						vnode.attrs.navigateBackHandler(pageIndex)
-					}
-				},
-			},
-			isPreviousPage
-				? m(Icon, {
-						icon: Icons.Checkmark,
-						size: IconSize.PX24,
-						style: {
-							fill: theme.surface,
-						},
-					})
-				: nextIndex,
-		)
+				[
+					isPreviousPage
+						? m(Icon, {
+								icon: Icons.Checkmark,
+								size: IconSize.PX24,
+								style: {
+									fill: theme.surface,
+								},
+							})
+						: nextIndex,
+				],
+			),
+			vnode.attrs.title ? m(".plr-4", lang.getTranslationText(vnode.attrs.title)) : null,
+		])
 	}
 
 	// Apply the correct styling based on the current page number
@@ -392,7 +446,7 @@ export function createWizardDialog<T>({
 	data: T
 	pages: ReadonlyArray<WizardPageWrapper<T>>
 	closeAction?: () => $Promisable<void>
-	dialogType: DialogType.EditLarge | DialogType.EditSmall
+	dialogType: DialogType.EditLarge | DialogType.EditSmall | DialogType.SetupWizard
 	cancelButtonText?: TranslationKey
 	windowFacade: IWindowFacade
 }): WizardDialogAttrsBuilder<T> {
@@ -412,10 +466,22 @@ export function createWizardDialog<T>({
 		unregisterCloseListener()
 	}
 	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
-	const wizardDialog =
-		dialogType === DialogType.EditLarge
-			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
-			: Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
+
+	let wizardDialog: Dialog
+	switch (dialogType) {
+		case DialogType.EditSmall: {
+			wizardDialog = Dialog.editSmallDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
+			break
+		}
+		case DialogType.SetupWizard: {
+			wizardDialog = Dialog.openSetupWizardDialog(wizardDialogAttrs.headerBarAttrs, () => m(child))
+			break
+		}
+		case DialogType.EditLarge: {
+			wizardDialog = Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
+			break
+		}
+	}
 
 	view = () => m(WizardDialog, wizardDialogAttrs)
 	wizardDialog

@@ -280,6 +280,29 @@ export function mailMethodToCalendarMethod(mailMethod: MailMethod): CalendarMeth
 	}
 }
 
+export function calendarMethodToMailMethod(calendarMethod: CalendarMethod): MailMethod {
+	switch (calendarMethod) {
+		case CalendarMethod.PUBLISH:
+			return MailMethod.ICAL_PUBLISH
+		case CalendarMethod.REQUEST:
+			return MailMethod.ICAL_REQUEST
+		case CalendarMethod.REPLY:
+			return MailMethod.ICAL_REPLY
+		case CalendarMethod.ADD:
+			return MailMethod.ICAL_ADD
+		case CalendarMethod.CANCEL:
+			return MailMethod.ICAL_CANCEL
+		case CalendarMethod.REFRESH:
+			return MailMethod.ICAL_REFRESH
+		case CalendarMethod.COUNTER:
+			return MailMethod.ICAL_COUNTER
+		case CalendarMethod.DECLINECOUNTER:
+			return MailMethod.ICAL_DECLINECOUNTER
+		default:
+			return MailMethod.NONE
+	}
+}
+
 export const enum ExternalImageRule {
 	None = "0",
 	Allow = "1",
@@ -291,12 +314,26 @@ export const enum NewsletterBannerRule {
 	Block = "1",
 }
 
-export const enum ImportStatus {
+export const enum FileImportStatus {
 	Running = 0,
 	Paused = 1,
 	Canceled = 2,
 	Finished = 3,
 }
+
+export const enum ImapFolderSyncStatus {
+	RUNNING = "0",
+	PAUSED = "1",
+	FINISHED = "2",
+}
+
+export enum ImapAccountSyncStatus {
+	RUNNING = "0",
+	PAUSED = "1",
+	POSTPONED = "2",
+	FINISHED = "3",
+}
+
 
 export enum SpamDecision {
 	NONE = "0",
@@ -427,4 +464,20 @@ export interface WebFile {
 
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
+}
+
+export class ImapImportState {
+	state: ImapAccountSyncStatus
+	postponedUntil: Date
+
+	constructor(initialState: ImapAccountSyncStatus, postponedUntil: Date = new Date(Date.now())) {
+		this.state = initialState
+		this.postponedUntil = postponedUntil
+	}
+}
+
+export enum ImapSyncEventType {
+	CREATE,
+	UPDATE,
+	DELETE,
 }

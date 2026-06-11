@@ -1,4 +1,4 @@
-import { AllIcons, Icon } from "./Icon.js"
+import { AllIcons, Icon, IconSize } from "./Icon.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme.js"
 import type { InfoLink, TranslationKey } from "../utils/LanguageViewModel.js"
@@ -13,6 +13,7 @@ import { px, size } from "../size.js"
 
 export const enum BannerType {
 	Info = "info",
+	SettingsInfo = "settingsInfo",
 	Warning = "warning",
 }
 
@@ -43,7 +44,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 					}
 				: undefined
 		return m(
-			".center-vertically.border-bottom.pr-4.pl-12.border-radius.mt-4",
+			`.center-vertically.border-bottom.pr-4.pl-12.border-radius.mt-4${type === BannerType.SettingsInfo ? ".pt-32.pb-32" : ""}`,
 			{
 				style: {
 					border: `solid 2px ${type === BannerType.Warning ? theme.warning : theme.outline}`,
@@ -52,12 +53,17 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				},
 			},
 			[
-				m(".mt-8.mr-8.abs", this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
+				m(`${type === BannerType.SettingsInfo ? "" : ".mt-8"}.mr-8.abs`, this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
 				m(
 					"",
 					{ style: { "margin-left": px(size.icon_24 + 1) } }, // allow room for the icon
 					[
-						m(".mr-12.pt-8.pb-8", typeof message === "function" ? message() : m(".small.text-break", lang.get(message))),
+						m(
+							`.mr-12${type === BannerType.SettingsInfo ? "" : ".pt-8.pb-8"}`,
+							typeof message === "function"
+								? message()
+								: m(`${type === BannerType.SettingsInfo ? ".ml-24" : ".small"}.text-break`, lang.get(message)),
+						),
 						m(".flex.ml-negative-8", { style: buttonContainerStyle }, [this.renderButtons(buttons), this.renderHelpLink(helpLink)]),
 					],
 				),
@@ -68,6 +74,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 	renderIcon(icon: AllIcons, type: BannerType | null): Children {
 		return m(Icon, {
 			icon,
+			size: type === BannerType.SettingsInfo ? IconSize.PX24 : undefined,
 			style: {
 				fill: type === BannerType.Warning ? theme.warning : theme.on_surface_variant,
 				display: "block",

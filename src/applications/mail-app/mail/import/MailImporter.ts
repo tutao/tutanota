@@ -9,7 +9,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
 import { getApiBaseUrl, ProgrammingError } from "../../../../platform-kit/app-env"
 import { ImportFileMailState, ImportFileMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
-import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { FileImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { EventController } from "../../../common/api/main/EventController"
 import { ImportErrorCategories, MailImportError } from "../../../common/api/common/error/MailImportError.js"
 import { showSnackBar, SnackBarButtonAttrs } from "../../../../ui/base/SnackBar.js"
@@ -125,17 +125,17 @@ export class MailImporter {
 			// we can't use the result of loadAll (see below) as that might only read from offline cache and
 			// not include a new ImportMailState that was created without sending an entity event
 			const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, activeImportId)
-			const remoteStatus = parseInt(importMailState.status) as ImportStatus
+			const remoteStatus = parseInt(importMailState.status) as FileImportStatus
 
 			switch (remoteStatus) {
-				case ImportStatus.Canceled:
-				case ImportStatus.Finished:
+				case FileImportStatus.Canceled:
+				case FileImportStatus.Finished:
 					activeImportId = null
 					this.activeImport = null
 					break
 
-				case ImportStatus.Paused:
-				case ImportStatus.Running: {
+				case FileImportStatus.Paused:
+				case FileImportStatus.Running: {
 					let progressMonitor = this.activeImport?.progressMonitor ?? null
 					if (!progressMonitor) {
 						const totalCount = parseInt(importMailState.totalMails)
@@ -166,7 +166,7 @@ export class MailImporter {
 	}
 
 	async newImportStateFromServer(serverState: ImportFileMailState) {
-		const remoteStatus = parseInt(serverState.status) as ImportStatus
+		const remoteStatus = parseInt(serverState.status) as FileImportStatus
 
 		const wasUpdatedForThisImport = this.activeImport !== null && isSameId(this.activeImport.remoteStateId, serverState._id)
 		if (wasUpdatedForThisImport) {
@@ -180,7 +180,7 @@ export class MailImporter {
 				const newDoneWork = parseInt(serverState.successfulMails) + parseInt(serverState.failedMails)
 				activeImport.progressMonitor.updateTotalWork(newTotalWork)
 				activeImport.progressMonitor.totalWorkDone(newDoneWork)
-				if (remoteStatus === ImportStatus.Paused) {
+				if (remoteStatus === FileImportStatus.Paused) {
 					activeImport.progressMonitor.pauseEstimation()
 				} else {
 					activeImport.progressMonitor.continueEstimation()
@@ -203,7 +203,7 @@ export class MailImporter {
 	}
 
 	private isFinalisedImport(importMailState: ImportFileMailState) {
-		return parseInt(importMailState.status) === ImportStatus.Finished || parseInt(importMailState.status) === ImportStatus.Canceled
+		return parseInt(importMailState.status) === FileImportStatus.Finished || parseInt(importMailState.status) === FileImportStatus.Canceled
 	}
 
 	private getFoldersForMailGroup(mailGroupId: Id): FolderSystem {
@@ -482,21 +482,21 @@ export const enum UiImportStatus {
 	Cancelling,
 }
 
-function importStatusToUiImportStatus(importStatus: ImportStatus) {
+function importStatusToUiImportStatus(importStatus: FileImportStatus) {
 	// We do not render ImportStatus.Finished and ImportStatus.Canceled
 	// in the UI, and therefore return the corresponding previous states.
 	switch (importStatus) {
-		case ImportStatus.Finished:
+		case FileImportStatus.Finished:
 			return UiImportStatus.Running
-		case ImportStatus.Canceled:
+		case FileImportStatus.Canceled:
 			return UiImportStatus.Cancelling
-		case ImportStatus.Paused:
+		case FileImportStatus.Paused:
 			return UiImportStatus.Paused
-		case ImportStatus.Running:
+		case FileImportStatus.Running:
 			return UiImportStatus.Running
 	}
 }
 
-export function isFinalisedImport(remoteImportStatus: ImportStatus): boolean {
-	return remoteImportStatus === ImportStatus.Canceled || remoteImportStatus === ImportStatus.Finished
+export function isFinalisedImport(remoteImportStatus: FileImportStatus): boolean {
+	return remoteImportStatus === FileImportStatus.Canceled || remoteImportStatus === FileImportStatus.Finished
 }

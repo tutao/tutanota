@@ -75,6 +75,7 @@ import {
 	ContactSuggestion,
 	DesktopSystemFacade,
 	ExternalCalendarFacade,
+	ImapSyncFacade,
 	MobileContactsFacade,
 	MobilePaymentsFacade,
 	MobileSystemFacade,
@@ -182,6 +183,7 @@ class DriveLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
+	imapImporter!: ImapSyncFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -615,6 +617,8 @@ class DriveLocator implements CommonLocator {
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
 
+			// FIXME this is a hack to make the calendar app work. We should fix this properly.
+			this.imapImporter = {} as ImapSyncFacade
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -623,6 +627,7 @@ class DriveLocator implements CommonLocator {
 					async () => this.native,
 					() => this.desktopSettingsFacade,
 				),
+				this.imapImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

@@ -66,6 +66,9 @@ export const size = {
 	get icon_32(): number {
 		return this.core_32
 	},
+	get icon_40(): number {
+		return this.core_40
+	},
 	get icon_64(): number {
 		return this.core_64
 	},

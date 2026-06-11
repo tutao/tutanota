@@ -53,6 +53,7 @@ import { EntityRestInterface } from "../../../../platform-kit/network/EntityRest
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
+import { ImapImporter } from "../imapimport/ImapImporter"
 
 assertWorkerOrNode()
 
@@ -100,6 +101,7 @@ export interface WorkerInterface {
 	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
+	readonly imapImporter: ImapImporter
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -321,6 +323,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async driveFacade() {
 				return locator.driveFacade()
+			},
+			async imapImporter() {
+				return locator.imapImporter()
 			},
 		}
 	}

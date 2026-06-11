@@ -582,6 +582,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		null,
+		null,
 		locator.user,
 		locator.cachingEntityClient,
 		mainInterface.eventController,

@@ -28,7 +28,7 @@ import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTrac
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
-import { ImportFileMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -716,7 +716,15 @@ export class MailViewModel {
 
 		for (const update of updates) {
 			if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
-				await this.deleteMailSetEntryRangeForImportTargetFolder(update)
+				const targetFolder = await this.getFileImportTargetFolder(update)
+				if (targetFolder) {
+					await this.deleteMailSetEntryRangeFolder(targetFolder)
+				}
+			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
+				const targetFolder = await this.getImapImportTargetFolder(update)
+				if (targetFolder) {
+					await this.deleteMailSetEntryRangeFolder(targetFolder)
+				}
 			} else if (update.operation === OperationType.UPDATE) {
 				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
@@ -726,7 +734,15 @@ export class MailViewModel {
 						this.setListId(folderForMail)
 					}
 				} else if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
-					await this.deleteMailSetEntryRangeForImportTargetFolder(update)
+					const targetFolder = await this.getFileImportTargetFolder(update)
+					if (targetFolder) {
+						await this.deleteMailSetEntryRangeFolder(targetFolder)
+					}
+				} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
+					const targetFolder = await this.getImapImportTargetFolder(update)
+					if (targetFolder) {
+						await this.deleteMailSetEntryRangeFolder(targetFolder)
+					}
 				}
 			}
 
@@ -737,22 +753,31 @@ export class MailViewModel {
 		}
 	}
 
-	private async deleteMailSetEntryRangeForImportTargetFolder(update: EntityUpdateData) {
-		// We delete the range of MailSetEntries for the targetFolder entries list of the import.
-		// This makes sure, that we keep already downloaded MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
-		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to this import in background
+	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet) {
+		// This deletes the range of MailSetEntries for a targetFolder entries list,
+		// currently used when importing mails from a file or IMAP.
+		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show
+		// all mails inside the targetFolder correctly.
+		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to an import in the background
 		// and ensures that all imported mails are searchable immediately.
-		const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId!, update.instanceId])
-		const targetFolder = await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
-		if (targetFolder) {
-			const targetFolderEntriesListId = targetFolder.entries
-			await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
 
-			const selectedMailSet = this.getFolder()
-			if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
-				this.listModel?.reload()
-			}
+		const targetFolderEntriesListId = targetFolder.entries
+		await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
+
+		const selectedMailSet = this.getFolder()
+		if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
+			this.listModel?.reload()
 		}
+	}
+
+	private async getFileImportTargetFolder(update: EntityUpdateData) {
+		const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId!, update.instanceId])
+		return await this.mailModel.getMailSetById(elementIdPart(importMailState.targetFolder))
+	}
+
+	private async getImapImportTargetFolder(update: EntityUpdateData) {
+		const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, [update.instanceListId!, update.instanceId])
+		return await this.mailModel.getMailSetById(elementIdPart(imapFolderSyncState.mailFolder))
 	}
 
 	async switchToFolder(folderType: SystemFolderType): Promise<void> {
