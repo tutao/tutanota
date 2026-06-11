@@ -20,15 +20,17 @@ import {
 import {
 	CancelledError,
 	EncryptionAuthStatus,
+	isAndroidApp,
 	isApp,
 	isDesktop,
+	isIOSApp,
 	MailAuthenticationStatus,
 	ProgrammingError,
 	secondsToMillis,
 } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
-import { DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
+import { DownloadPostProcessing, DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
 import { modal } from "../../../../ui/base/Modal.js"
 import { ConversationViewModel } from "./ConversationViewModel.js"
@@ -66,11 +68,13 @@ import { ContactSelectionDialogAttrs } from "../../contacts/view/ContactSelectio
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { Contact, File, Mail, MailSet, MovedMails } from "@tutao/entities/tutanota"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
-import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import { Attachment, isDataFile, isFileReference, isTutanotaFile, MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { TransferId } from "../../../../entities/drive/Utils"
 import { elementIdPart, getIds, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
+import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
+import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
 
 const UNDO_SNACKBAR_SHOW_TIME = secondsToMillis(10)
 
@@ -916,5 +920,62 @@ export async function showDownloadProgressDialog(
 		await handleDownloadErrors(e, Dialog.message)
 	} finally {
 		transferProgressDispatcher.removeDownloadListener(listener)
+	}
+}
+
+export class AttachmentDownloader {
+	constructor(
+		private readonly fileController: FileController,
+		private readonly fileApp: NativeFileApp | null,
+		private readonly transferProgressDispatcher: TransferProgressDispatcher,
+	) {}
+
+	canOpenAttachment(attachment: Attachment): boolean {
+		// Can Open: Desktop, Android, iOS
+		// Data files can only be downloaded
+		return (isApp() || isDesktop()) && !isDataFile(attachment)
+	}
+
+	canDownloadAttachment(attachment: Attachment): boolean {
+		// Can Download: Web, Desktop, Android
+		// on iOS you always open and then choose where to save
+		// downloading a file reference does not make any sense, since the file is already on the file system
+		return !isIOSApp() && !isFileReference(attachment)
+	}
+
+	async openOrDownloadAttachment(attachment: Attachment, postDownload: DownloadPostProcessing) {
+		try {
+			if (isFileReference(attachment) && this.fileApp) {
+				if (postDownload === DownloadPostProcessing.Open) {
+					// downloading a file reference does not make any sense, since the file is already on the file system
+					await this.fileApp.open(attachment)
+				} else {
+					throw new ProgrammingError("File Reference cannot be downloaded")
+				}
+			} else if (isDataFile(attachment)) {
+				if (postDownload === DownloadPostProcessing.Write) {
+					// When it is a data file, only support downloading
+					await this.fileController.saveDataFile(attachment)
+				} else {
+					throw new ProgrammingError("Data File cannot be opened")
+				}
+			} else if (isTutanotaFile(attachment)) {
+				if (postDownload === DownloadPostProcessing.Open) {
+					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.open(attachment))
+				} else {
+					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.download(attachment))
+				}
+			} else {
+				throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
+			}
+		} catch (e) {
+			if (e instanceof FileOpenError) {
+				return Dialog.message("canNotOpenFileOnDevice_msg")
+			} else {
+				const msg = e.message || "unknown error"
+				console.error("could not open file:", msg)
+				return Dialog.message("errorDuringFileOpen_msg")
+			}
+		}
 	}
 }
