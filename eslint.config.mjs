@@ -3,6 +3,30 @@ import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
 import { defineConfig, globalIgnores } from "eslint/config"
 
+/** Disallow `undefined` as a value or type — platform-kit targets Kotlin/Swift which have no `undefined` concept. */
+const noUndefined = {
+	meta: {
+		type: "problem",
+		docs: {description: "Disallow usage of undefined (use null instead)"},
+		messages: {
+			noUndefined: "Do not use 'undefined'. Use 'null' instead — platform-kit code must be compatible with Kotlin/Swift which have no 'undefined' concept.",
+		},
+		schema: [],
+	},
+	create(context) {
+		return {
+			Identifier(node) {
+				if (node.name === "undefined") {
+					context.report({node, messageId: "noUndefined"})
+				}
+			},
+			TSUndefinedKeyword(node) {
+				context.report({node, messageId: "noUndefined"})
+			},
+		}
+	},
+}
+
 /** Only T | null is allowed as a union type (maps cleanly to Nullable<T> in Kotlin/Swift transpilation). */
 const noUnionExceptNullable = {
 	meta: {
@@ -138,8 +162,11 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: {"local": {rules: {noUnionExceptNullable}}},
-		rules: {"local/noUnionExceptNullable": "error"},
+		plugins: {"local": {rules: {noUnionExceptNullable, noUndefined}}},
+		rules: {
+			"local/noUnionExceptNullable": "error",
+			"local/noUndefined": "error",
+		},
 	},
 	[
 		globalIgnores([
