@@ -5,8 +5,7 @@ import { elementIdPart, OperationType } from "../../../../platform-kit/meta"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
-import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
-import { FileTypeRef } from "@tutao/entities/sys"
+import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "@tutao/entities/tutanota"
 import {
 	EntityEventsListener,
 	EntityUpdateData,

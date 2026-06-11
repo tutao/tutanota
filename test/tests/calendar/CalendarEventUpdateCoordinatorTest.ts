@@ -11,8 +11,7 @@ import { createTestEntity } from "../TestUtils"
 import { defer } from "../../../src/platform-kit/utils"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker"
 
-import { CalendarEventUpdate, CalendarEventUpdateTypeRef } from "@tutao/entities/tutanota"
-import { FileTypeRef } from "@tutao/entities/sys"
+import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "@tutao/entities/tutanota"
 import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventUpdateCoordinatorTest", function () {
