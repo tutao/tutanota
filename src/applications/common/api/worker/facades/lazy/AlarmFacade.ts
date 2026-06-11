@@ -28,6 +28,7 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarRepeatRule } from "@tutao/entities/tutanota"
+import { CryptoError } from "@tutao/crypto/error"
 
 export class AlarmFacade {
 	constructor(
@@ -69,6 +70,8 @@ export class AlarmFacade {
 			case SymmetricEncryptionScheme.Aead:
 				cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 				break
+			default:
+				throw new CryptoError("missing or unknown symmetric encryption scheme")
 		}
 		const sessionKeyInfo: SessionKeyInfo = {
 			sessionKey,

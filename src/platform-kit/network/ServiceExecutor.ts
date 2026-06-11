@@ -21,6 +21,7 @@ import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { SymmetricCipherVersion, SymmetricEncryptionScheme } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 
 assertWorkerOrNode()
 
@@ -157,6 +158,8 @@ export class ServiceExecutor implements IServiceExecutor {
 				case SymmetricEncryptionScheme.Aead:
 					cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 					break
+				default:
+					throw new CryptoError("missing or unknown symmetric encryption scheme")
 			}
 			const sessionKey = params?.sessionKey
 			const sessionKeyInfo = sessionKey

@@ -25,7 +25,16 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, PatchOperationType, TypeModelResolver, typeModelToRestPath } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, generateKdfNonce, KdfNonce, SessionKeyInfo, SymmetricCipherVersion, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	generateKdfNonce,
+	KdfNonce,
+	SessionKeyInfo,
+	SymmetricCipherVersion,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade"
@@ -110,8 +119,8 @@ o.spec("EntityRestClient", function () {
 	const ownerGroupId = "ownerGroupId"
 	let sessionKeyInfo: SessionKeyInfo
 	let ownerGroupKey: VersionedKey
-	let encryptedSessionKey
-	let currentDebuggingStatus
+	let encryptedSessionKey: VersionedEncryptedKey
+	let currentDebuggingStatus: boolean
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
 	let loggedInUserProvider: TestLoggedInUserProvider
@@ -139,7 +148,7 @@ o.spec("EntityRestClient", function () {
 		fullyLoggedIn = true
 		serviceExecutor = instance(ServiceExecutor)
 		cryptoFacadePartialStub = new CryptoFacade(
-			instance(UserFacade),
+			loggedInUserProvider as any as UserFacade,
 			instance(EntityClient),
 			instance(RestClient),
 			serviceExecutor,
@@ -811,7 +820,7 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Setup", function () {
-		o("Setup list entity idk", async function () {
+		o("Setup list entity", async function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
@@ -833,7 +842,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: argThat(async (json) => {
+					body: argThat(async (json: string) => {
 						const untypedInstance = JSON.parse(json)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
