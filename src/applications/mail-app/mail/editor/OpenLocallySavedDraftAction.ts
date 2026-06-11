@@ -11,9 +11,15 @@ import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridg
 import { isEditableDraft } from "../model/MailChecks"
 import { isOfflineError } from "../../../../platform-kit/rest-client/error"
 import { MailTypeRef } from "@tutao/entities/tutanota"
+import { FileController } from "../../../common/file/FileController"
+import { AttachmentDownloader } from "../view/MailGuiUtils"
 
 export interface OpenDraftFunctions {
-	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>
+	newMailEditorFromLocalDraftData(
+		mailboxModel: MailboxModel,
+		attachmentDownloader: AttachmentDownloader,
+		draft: LocalAutosavedDraftData,
+	): Promise<Dialog | null>
 
 	createEditDraftDialog(mailViewerViewModel: MailViewerViewModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>
 
@@ -27,6 +33,7 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 	constructor(
 		private readonly autosaveFacade: AutosaveFacade,
 		private readonly mailboxModel: MailboxModel,
+		private readonly attachmentDownloader: AttachmentDownloader,
 		private readonly entityClient: EntityClient,
 		private readonly openDraftFunctions: OpenDraftFunctions,
 	) {}
@@ -52,7 +59,7 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 		let dialog: Dialog | null
 		if (draft.mailId == null) {
 			// mail has never been saved before
-			dialog = await this.openDraftFunctions.newMailEditorFromLocalDraftData(this.mailboxModel, draft)
+			dialog = await this.openDraftFunctions.newMailEditorFromLocalDraftData(this.mailboxModel, this.attachmentDownloader, draft)
 		} else {
 			// mail has been saved, but we need to override it with our locally saved contents
 			let mailViewerViewModel: MailViewerViewModel
