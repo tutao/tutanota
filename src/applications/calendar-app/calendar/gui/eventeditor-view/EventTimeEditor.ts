@@ -81,7 +81,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: editModel.startTime,
+								time: editModel.getStartTime(true),
 								onTimeSelected: (time) => (editModel.startTime = time),
 								timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
@@ -111,7 +111,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: editModel.endTime,
+								time: editModel.getEndTime(true),
 								onTimeSelected: (time) => (editModel.endTime = time),
 								timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
@@ -142,6 +142,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							ariaLabel: lang.getTranslation("dataOutOfSync_msg").text,
 							oninput: (newValue: string) => {
 								editModel.startTimeZone = newValue
+								m.redraw()
 							},
 							placeholder: "Start timezone",
 							disabled: editModel.isAllDay,
@@ -156,6 +157,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							ariaLabel: lang.getTranslation("dataOutOfSync_msg").text,
 							oninput: (newValue: string) => {
 								editModel.endTimeZone = newValue
+								m.redraw()
 							},
 							placeholder: "End timezone",
 							disabled: editModel.isAllDay,
