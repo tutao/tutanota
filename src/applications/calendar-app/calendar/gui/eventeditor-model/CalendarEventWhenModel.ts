@@ -10,7 +10,7 @@ import {
 	normalizeTime,
 } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
-import { DateTime, DurationLikeObject } from "luxon"
+import { DateTime, DurationLikeObject, Info } from "luxon"
 import {
 	areAllAdvancedRepeatRulesValid,
 	areExcludedDatesEqual,
@@ -29,6 +29,7 @@ import { clone, Stripped } from "@tutao/meta"
 import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
+import isValidIANAZone = Info.isValidIANAZone
 
 export type CalendarEventWhenModelResult = CalendarEventTimes &
 	CalendarEventTimeZones & {
@@ -139,7 +140,9 @@ export class CalendarEventWhenModel {
 		const startTime = applyTimeZone
 			? Time.fromDateTime(
 					assertNotNull(
-						this._startTime?.toDateTime(this._startDate, this.calendarTimeZone).setZone(this.startTimeZone ?? this.calendarTimeZone),
+						this._startTime
+							?.toDateTime(this._startDate, this.calendarTimeZone)
+							.setZone(isValidIANAZone(this.startTimeZone ?? "") ? this.startTimeZone! : this.calendarTimeZone),
 						`Something went wrong with when resolving this event start time`,
 					),
 				)
@@ -168,7 +171,9 @@ export class CalendarEventWhenModel {
 		const endTime = applyTimeZone
 			? Time.fromDateTime(
 					assertNotNull(
-						this._startTime?.toDateTime(this._startDate, this.calendarTimeZone).setZone(this.startTimeZone ?? this.calendarTimeZone),
+						this._endTime
+							?.toDateTime(this._endDate, this.calendarTimeZone)
+							.setZone(isValidIANAZone(this.endTimeZone ?? "") ? this.endTimeZone! : this.calendarTimeZone),
 						`Something went wrong with when resolving this event start time`,
 					),
 				)
@@ -201,7 +206,7 @@ export class CalendarEventWhenModel {
 	set duration(value: { minutes: number }) {
 		if (value.minutes < 1) return
 		const diff = { minutes: this.duration.minutes - value.minutes }
-		const oldEndTime = this.getEndTime().toDateTime(this.endDate, this.calendarTimeZone)
+		const oldEndTime = this.getEndTime(false).toDateTime(this.endDate, this.calendarTimeZone)
 		const newEndTime = oldEndTime.plus(diff)
 		this._endDate = getStartOfDayWithZone(newEndTime.toJSDate(), this.calendarTimeZone)
 		if (!this._isAllDay) {
