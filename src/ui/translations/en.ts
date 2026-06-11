@@ -2302,6 +2302,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"revocation_action": "Revoke Contract",
+		"revocationForm_title": "Revocation Form",
+		"revocationPeriodEnded_msg": "This Account is not within the two week revocation period anymore. You can cancel your contract in the app settings."
 	}
 }

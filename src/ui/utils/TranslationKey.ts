@@ -2301,3 +2301,6 @@ export type TranslationKeyType =
 	| "selectAllFiles_action"
 	| "clearFileSelection_action"
 	| "emptyString_msg"
+	| "revocation_action"
+	| "revocationForm_title"
+	| "revocationPeriodEnded_msg"

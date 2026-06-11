@@ -2302,6 +2302,9 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"revocation_action": "Widerruf erklären",
+		"revocationForm_title": "Widerrufsformular",
+		"revocationPeriodEnded_msg": "Dieser Account ist nicht mehr innerhalb der zweiwöchigen Widerrufsfrist. Du kannst deinen Vertrag in den App-Einstellung regulär kündigen."
 	}
 }
