@@ -21,7 +21,7 @@ import { DiskFolder } from "../../drive-app/drive/view/DriveUtils"
 
 assertMainOrNode()
 
-const enum DownloadPostProcessing {
+export const enum DownloadPostProcessing {
 	Open,
 	Write,
 }

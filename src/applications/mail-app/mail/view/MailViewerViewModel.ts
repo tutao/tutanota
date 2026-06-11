@@ -23,8 +23,15 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
-import { getReferencedAttachments, loadInlineImages, moveMails, moveMailsToSystemFolder, showDownloadProgressDialog } from "./MailGuiUtils"
-import { FileController } from "../../../common/file/FileController"
+import {
+	AttachmentDownloader,
+	getReferencedAttachments,
+	loadInlineImages,
+	moveMails,
+	moveMailsToSystemFolder,
+	showDownloadProgressDialog,
+} from "./MailGuiUtils"
+import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -163,6 +170,7 @@ export class MailViewerViewModel {
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
 		private readonly fileController: FileController,
+		readonly attachmentDownloader: AttachmentDownloader,
 		readonly logins: LoginController,
 		private readonly eventController: EventController,
 		private readonly workerFacade: WorkerFacade,
@@ -1062,7 +1070,13 @@ export class MailViewerViewModel {
 				// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
 				await this.loadAll(Promise.resolve(), { notify: true })
 			}
-			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
+			const editor = await newMailEditorAsResponse(
+				args,
+				this.isBlockingExternalImages(),
+				this.getLoadedInlineImages(),
+				this.attachmentDownloader,
+				mailboxDetails,
+			)
 			editor?.show()
 		}
 	}
@@ -1206,6 +1220,7 @@ export class MailViewerViewModel {
 					},
 					this.isBlockingExternalImages() || !this.isShowingExternalContent(),
 					this.getLoadedInlineImages(),
+					this.attachmentDownloader,
 					mailboxDetails,
 				)
 				editor?.show()
@@ -1270,23 +1285,10 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async downloadAndOpenAttachment(file: File, open: boolean) {
+	async downloadAndOpenAttachment(file: File, postDownload: DownloadPostProcessing) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
-		try {
-			if (open) {
-				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], await this.fileController.open(file))
-			} else {
-				await showDownloadProgressDialog(this.transferProgressDispatcher, [file], await this.fileController.download(file))
-			}
-		} catch (e) {
-			if (e instanceof FileOpenError) {
-				console.warn("FileOpenError", e)
-				await Dialog.message("canNotOpenFileOnDevice_msg")
-			} else {
-				console.error("could not open file:", e.message ?? "unknown error")
-				await Dialog.message("errorDuringFileOpen_msg")
-			}
-		}
+		// When downloading from email, we know it will be a Tutanota file and so do not have to pass a NativeFileApp
+		await this.attachmentDownloader.openOrDownloadAttachment(file, postDownload)
 	}
 
 	async importAttachment(file: File) {
