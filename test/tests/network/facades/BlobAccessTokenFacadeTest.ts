@@ -267,7 +267,7 @@ o.spec("BlobAccessTokenFacade", function () {
 			const readToken = await blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 
 			o(readToken).deepEquals(blobAccessInfo)
-			verify(serviceMock.post(BlobAccessTokenService, anything(), null), { times: 1, ignoreExtraArgs: true })
+			verify(serviceMock.post(BlobAccessTokenService, anything()), { times: 1, ignoreExtraArgs: true })
 		})
 
 		o("when requested individual blobs and the server responded with instance token, the token is cached for the instances", async function () {
@@ -307,7 +307,7 @@ o.spec("BlobAccessTokenFacade", function () {
 			)
 
 			o(readToken).deepEquals(blobAccessInfo)
-			verify(serviceMock.post(BlobAccessTokenService, anything(), null), { times: 1, ignoreExtraArgs: true })
+			verify(serviceMock.post(BlobAccessTokenService, anything()), { times: 1, ignoreExtraArgs: true })
 		})
 
 		o("when requested individual blobs and the server responded with instance token that expired, new token is requested", async function () {
@@ -355,7 +355,7 @@ o.spec("BlobAccessTokenFacade", function () {
 			)
 
 			o(readToken).deepEquals(newAccessInfo)
-			verify(serviceMock.post(BlobAccessTokenService, anything(), null), { times: 2, ignoreExtraArgs: true })
+			verify(serviceMock.post(BlobAccessTokenService, anything()), { times: 2, ignoreExtraArgs: true })
 		})
 
 		o("when requested individual blobs but the server responded with archive token that expired, new token is requested", async function () {
@@ -389,7 +389,7 @@ o.spec("BlobAccessTokenFacade", function () {
 			const readToken = await blobAccessTokenFacade.requestReadTokenMultipleInstances(ArchiveDataType.Attachments, [referencingInstance], blobLoadOptions)
 
 			o(readToken).deepEquals(newAccessInfo)
-			verify(serviceMock.post(BlobAccessTokenService, anything(), null), { times: 2, ignoreExtraArgs: true })
+			verify(serviceMock.post(BlobAccessTokenService, anything()), { times: 2, ignoreExtraArgs: true })
 		})
 
 		o("cache read token archive expired", async function () {

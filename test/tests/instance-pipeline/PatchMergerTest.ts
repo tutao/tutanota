@@ -264,7 +264,7 @@ o.spec("PatchMergerTest", () => {
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
-			const subKeyInfo = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey: sk }
+			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
 			const encryptionAuthStatusUntypedValue = convertJsToDbType(
 				mailTypeModel.values[encryptionAuthStatusAttributeId].type,

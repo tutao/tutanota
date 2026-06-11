@@ -892,14 +892,14 @@ o.spec("EntityRestClient", function () {
 				JSON.stringify(untypedPersistentPostReturn),
 			)
 
-			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
 
 			o.check(newCalendar._kdfNonce).equals(null)
 			await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 			o.check(newCalendar._kdfNonce).notEquals(null)
 
-			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
+			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
 			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
@@ -927,7 +927,7 @@ o.spec("EntityRestClient", function () {
 				JSON.stringify(untypedPersistentPostReturn),
 			)
 
-			instancePipeline.mapAndEncrypt = spy(instancePipeline.mapAndEncrypt)
+			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
 
 			const originalKdfNonce = new Uint8Array(33) as KdfNonce // not length 32 so that it's not equal to the randomly generated one
 			newCalendar._kdfNonce = originalKdfNonce
@@ -936,8 +936,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(arrayEquals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
 
-			o.check(instancePipeline.mapAndEncrypt.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncrypt.invocations[0]
+			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
 			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()

@@ -115,7 +115,12 @@ o.spec("MailAddressFacadeTest", function () {
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
-			when(nonCachingEntityClient.setup(null, matchers.anything(), null, { baseUrl: null, ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
+			when(
+				nonCachingEntityClient.setup(null, matchers.anything(), matchers.anything(), {
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+					ownerKey: mailGroupKey,
+				}),
+			).thenResolve(mailboxPropertiesId)
 			when(
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,

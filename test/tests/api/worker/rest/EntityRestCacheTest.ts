@@ -1436,7 +1436,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mail1))
 				await storage.put(MailTypeRef, await toStorableInstance(mail2))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything())).thenResolve([
 					await toStorableInstance(mail3),
 					await toStorableInstance(mail4),
 					await toStorableInstance(mail5),
@@ -1473,7 +1473,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mails[98]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[99]))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything()),
+				).thenResolve(
 					await Promise.all(
 						mails
 							.slice(58, 98)
@@ -1482,7 +1484,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[58]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything()),
+				).thenResolve(
 					await Promise.all(
 						mails
 							.slice(18, 58)
@@ -1491,7 +1495,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					),
 				)
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve(
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[18]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything()),
+				).thenResolve(
 					await Promise.all(
 						mails
 							.slice(0, 18)
@@ -1528,17 +1534,17 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mails[0]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[1]))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
-					await Promise.all(mails.slice(2, 42).map(toStorableInstance)),
-				)
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
+				).thenResolve(await Promise.all(mails.slice(2, 42).map(toStorableInstance)))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
-					await Promise.all(mails.slice(42, 82).map(toStorableInstance)),
-				)
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
+				).thenResolve(await Promise.all(mails.slice(42, 82).map(toStorableInstance)))
 
-				when(clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false)).thenResolve(
-					await Promise.all(mails.slice(82).map(toStorableInstance)),
-				)
+				when(
+					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
+				).thenResolve(await Promise.all(mails.slice(82).map(toStorableInstance)))
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
 				result.map(removeOriginals)
@@ -1580,13 +1586,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mail3))
 
 				// First it will try to load in the direction of start id from the existing range
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true)).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything())).thenResolve([
 					await toStorableInstance(mail1),
 				])
 
 				// It will then fall into the "load from within the range" case
 				// It will try to load starting from the end of the range
-				when(clientMock.loadParsedInstancesRange(anything(), listId, id3, 7, false)).thenResolve([
+				when(clientMock.loadParsedInstancesRange(anything(), listId, id3, 7, false, anything())).thenResolve([
 					await toStorableInstance(mail4),
 					await toStorableInstance(mail5),
 				])
@@ -1619,9 +1625,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([MailTypeRef, listId, notInCache.map(getElementId), undefined, {}])(
-				"load multiple is called for mails not in cache",
-			)
+			o(loadMultipleParsedInstances.args).deepEquals([
+				MailTypeRef,
+				listId,
+				notInCache.map(getElementId),
+				undefined,
+				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			])("load multiple is called for mails not in cache")
 			for (const item of inCache.concat(notInCache)) {
 				o(await storage.get(MailTypeRef, listId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
@@ -1642,9 +1652,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all customers are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([CustomerTypeRef, null, notInCache.map((c) => c._id), undefined, {}])(
-				"load multiple is called for customers not in cache",
-			)
+			o(loadMultipleParsedInstances.args).deepEquals([
+				CustomerTypeRef,
+				null,
+				notInCache.map((c) => c._id),
+				undefined,
+				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			])("load multiple is called for customers not in cache")
 			for (const item of inCache.concat(notInCache)) {
 				o(await storage.get(CustomerTypeRef, null, item._id)).notEquals(null)("element is in cache " + item._id)
 			}
@@ -1666,9 +1680,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails details are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([MailDetailsBlobTypeRef, archiveId, notInCache.map(getElementId), undefined, {}])(
-				"load multiple is called for mails details not in cache",
-			)
+			o(loadMultipleParsedInstances.args).deepEquals([
+				MailDetailsBlobTypeRef,
+				archiveId,
+				notInCache.map(getElementId),
+				undefined,
+				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			])("load multiple is called for mails details not in cache")
 			for (const item of inCache.concat(notInCache)) {
 				o(await storage.get(MailDetailsBlobTypeRef, archiveId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
@@ -1725,6 +1743,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(isSameTypeRef(typeRef, ContactTypeRef)).equals(true)
 				o(id).deepEquals(contactId)
 				o(opts).deepEquals({
+					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					queryParams: {
 						myParam: "param",
 					},
