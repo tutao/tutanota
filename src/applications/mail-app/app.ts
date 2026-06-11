@@ -66,6 +66,7 @@ import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -320,11 +321,19 @@ import("../../ui/translations/en.js")
 			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
 			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils.js")
-			return new OpenLocallySavedDraftAction(mailLocator.autosaveFacade, mailLocator.mailboxModel, mailLocator.entityClient, {
-				newMailEditorFromLocalDraftData,
-				createEditDraftDialog,
-				mailViewerViewModelFactory: () => mailLocator.mailViewerViewModelFactory(),
-			})
+			const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
+			const fileApp = isBrowser() ? null : mailLocator.fileApp
+			return new OpenLocallySavedDraftAction(
+				mailLocator.autosaveFacade,
+				mailLocator.mailboxModel,
+				new AttachmentDownloader(mailLocator.fileController, fileApp, mailLocator.transferProgressDispatcher),
+				mailLocator.entityClient,
+				{
+					newMailEditorFromLocalDraftData,
+					createEditDraftDialog,
+					mailViewerViewModelFactory: () => mailLocator.mailViewerViewModelFactory(),
+				},
+			)
 		})
 
 		if (isDesktop()) {

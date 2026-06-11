@@ -68,6 +68,7 @@ import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "../../../../platform-kit/utils"
 import {
+	AttachmentDownloader,
 	createInlineImage,
 	replaceCidsWithInlineImages,
 	replaceInlineImagesWithCids,
@@ -147,6 +148,7 @@ const UNDO_SEND_TIMEOUT: number = secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
 
 export type MailEditorAttrs = {
 	model: SendMailModel
+	attachmentDownloader: AttachmentDownloader
 	doBlockExternalContent: Stream<boolean>
 	doShowToolbar: Stream<boolean>
 	onChange?: () => unknown
@@ -161,6 +163,7 @@ export type MailEditorAttrs = {
 
 export function createMailEditorAttrs(
 	model: SendMailModel,
+	attachmentDownloader: AttachmentDownloader,
 	doBlockExternalContent: boolean,
 	doFocusEditorOnLoad: boolean,
 	dialog: lazy<Dialog>,
@@ -171,6 +174,7 @@ export function createMailEditorAttrs(
 ): MailEditorAttrs {
 	return {
 		model,
+		attachmentDownloader,
 		doBlockExternalContent: stream(doBlockExternalContent),
 		doShowToolbar: stream<boolean>(false),
 		selectedNotificationLanguage: stream(""),
@@ -497,7 +501,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
 		this.attrs = a
-		const { model } = a
+		const { model, attachmentDownloader } = a
 		this.sendMailModel = model
 
 		const showConfidentialButton = model.containsExternalRecipients()
@@ -554,7 +558,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: (val) => model.setSubject(val),
 		}
 
-		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, () => {
+		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, attachmentDownloader, () => {
 			return this.editor.getDOM()
 		})
 
@@ -1127,12 +1131,18 @@ export class MailEditor implements Component<MailEditorAttrs> {
 /**
  * Creates a new Dialog with a MailEditor inside.
  * @param model
+ * @param attachmentDownloader
  * @param blockExternalContent
  * @param alwaysBlockExternalContent
  * @returns {Dialog}
  * @private
  */
-async function createMailEditorDialog(model: SendMailModel, blockExternalContent = false, alwaysBlockExternalContent = false): Promise<Dialog> {
+async function createMailEditorDialog(
+	model: SendMailModel,
+	attachmentDownloader: AttachmentDownloader,
+	blockExternalContent = false,
+	alwaysBlockExternalContent = false,
+): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 	let isSending = false
@@ -1279,6 +1289,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 								const conversationEntry = await model.entity.load(ConversationEntryTypeRef, model.draft.conversationEntry)
 								// blockExternalContent is just passed as true here, this should be fine as the lookup should find the actual setting and this is just used as a fallback
 								const editorDialog = await newMailEditorFromDraft(
+									attachmentDownloader,
 									model.draft,
 									await loadMailDetails(model.mailFacade, model.draft),
 									conversationEntry,
@@ -1455,6 +1466,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 
 	mailEditorAttrs = createMailEditorAttrs(
 		model,
+		attachmentDownloader,
 		blockExternalContent,
 		model.toRecipients().length !== 0,
 		() => dialog,
@@ -1578,6 +1590,7 @@ export async function newMailEditorAsResponse(
 	args: InitAsResponseArgs,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
+	attachmentDownloader: AttachmentDownloader,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog | null> {
 	if (!(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
@@ -1589,10 +1602,11 @@ export async function newMailEditorAsResponse(
 	await model.initAsResponse(args, inlineImages)
 
 	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
-	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
+	return createMailEditorDialog(model, attachmentDownloader, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 export async function newMailEditorFromDraft(
+	attachmentDownloader: AttachmentDownloader,
 	mail: Mail,
 	mailDetails: MailDetails,
 	conversationEntry: ConversationEntry,
@@ -1634,7 +1648,7 @@ export async function newMailEditorFromDraft(
 		await model.addRecipients({ to: localDraftData.to, cc: localDraftData.cc, bcc: localDraftData.bcc })
 	}
 
-	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
+	return createMailEditorDialog(model, attachmentDownloader, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
 async function confirmNewEditor(autosaveFacade: AutosaveFacade, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
@@ -1726,7 +1740,10 @@ export async function newMailEditorFromTemplate(
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
 	await model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
-	return await createMailEditorDialog(model)
+	return await createMailEditorDialog(
+		model,
+		new AttachmentDownloader(locator.fileController, isBrowser() ? null : mailLocator.fileApp, locator.transferProgressDispatcher),
+	)
 }
 
 /**
@@ -1737,7 +1754,11 @@ export async function newMailEditorFromTemplate(
  * @param mailboxModel
  * @param draft
  */
-export async function newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null> {
+export async function newMailEditorFromLocalDraftData(
+	mailboxModel: MailboxModel,
+	attachmentDownloader: AttachmentDownloader,
+	draft: LocalAutosavedDraftData,
+): Promise<Dialog | null> {
 	const details = await mailboxModel.getMailboxDetailsForMailGroup(draft.mailGroupId)
 	const recipients = {
 		to: draft.to,
@@ -1749,7 +1770,7 @@ export async function newMailEditorFromLocalDraftData(mailboxModel: MailboxModel
 	const model = await locator.sendMailModel(details, mailboxProperties)
 	await model.initWithTemplate(recipients, draft.subject, draft.body, [], draft.confidential, draft.senderAddress, true)
 	model.markAsChangedIfNecessary(true)
-	return await createMailEditorDialog(model)
+	return await createMailEditorDialog(model, attachmentDownloader)
 }
 
 /**
@@ -1788,7 +1809,13 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
-		.then((model) => createMailEditorDialog(model, false))
+		.then((model) =>
+			createMailEditorDialog(
+				model,
+				new AttachmentDownloader(locator.fileController, isBrowser() ? null : locator.fileApp, locator.transferProgressDispatcher),
+				false,
+			),
+		)
 		.then((dialog) => dialog.show())
 }
 
