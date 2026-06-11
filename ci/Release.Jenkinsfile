@@ -53,6 +53,11 @@ pipeline {
 				description: "Build Calendar Android app"
 		)
 		booleanParam(
+				name: 'ios_drive',
+				defaultValue: true,
+				description: "Build Drive iOS app"
+		)
+		booleanParam(
 				name: 'android_drive',
 				defaultValue: true,
 				description: "Build Drive Android app"
@@ -99,6 +104,7 @@ pipeline {
 							android_calendar: params.android_calendar ? pregenerateReleaseNotes("android") : null,
 							ios_calendar    : params.ios_calendar ? pregenerateReleaseNotes("ios") : null,
 							android_drive   : params.android_drive ? pregenerateReleaseNotes("android") : null,
+							ios_drive       : params.ios_drive ? pregenerateReleaseNotes("ios") : null,
 					]
 					echo("${releaseNotes}")
 				} // script
@@ -372,6 +378,44 @@ pipeline {
 				} // stage Calendar Mobile
 				stage("Drive Mobile") {
 					parallel {
+						stage("Drive iOS") {
+							when { expression { params.ios_drive } }
+							stages {
+								stage("Build Drive iOS") {
+									when { expression { shouldBuild() } }
+									steps {
+										script {
+											build job: 'tuta-drive-ios', parameters: [
+													booleanParam(name: "UPLOAD", value: params.target.equals("buildAndPublishToStaging")),
+													booleanParam(name: "STAGING", value: params.target.equals("buildAndPublishToStaging")),
+													booleanParam(name: "PROD", value: true),
+													string(name: "branch", value: params.branch)
+											]
+										} // script
+									} // steps
+								} // stage build
+								stage("Publish Drive iOS") {
+									when { expression { params.target != "dryRun" } }
+									steps {
+										script {
+											build job: 'tuta-drive-ios-publish', parameters: params.target.equals("publishToProd") ? [
+													booleanParam(name: "STAGING", value: false),
+													booleanParam(name: "PROD", value: true),
+													booleanParam(name: "GITHUB_RELEASE", value: true),
+													text(name: "releaseNotes", value: releaseNotes.ios_drive),
+													string(name: "branch", value: params.branch)
+											] : [
+													booleanParam(name: "STAGING", value: true),
+													booleanParam(name: "PROD", value: false),
+													booleanParam(name: "GITHUB_RELEASE", value: false),
+													string(name: "branch", value: params.branch)
+											]
+										} // script
+									} // steps
+								} // stage publish
+							} // stages
+						} // stage ios client
+
 						stage("Drive Android") {
 							when { expression { params.android_drive } }
 							stages {

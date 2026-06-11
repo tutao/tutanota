@@ -75,14 +75,14 @@ pipeline {
 
 								generateXCodeProjects()
 
-								util.runFastlane("de.tutao.calendar.test", "build_calendar_adhoc_staging")
-								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
+								util.runFastlane("de.tutao.drive.test", "build_drive_adhoc_staging")
+								stash includes: "app-ios/releases/drive-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 
 								// Only build Appstore version if we are uploading to Nexus, it is identical except for
 								// signing so there's no point in just building it.
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.calendar.test", "build_calendar_appstore_staging")
-									stash includes: "app-ios/releases/calendar-${VERSION}-test.ipa", name: 'ipa-staging'
+									util.runFastlane("de.tutao.drive.test", "build_drive_appstore_staging")
+									stash includes: "app-ios/releases/drive-${VERSION}-test.ipa", name: 'ipa-staging'
 								}
 							}
 						}
@@ -103,15 +103,15 @@ pipeline {
 								}
 
 								generateXCodeProjects()
-								util.runFastlane("de.tutao.calendar", "build_calendar_adhoc_prod")
-								stash includes: "app-ios/releases/calendar-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
+								util.runFastlane("de.tutao.drive", "build_drive_adhoc_prod")
+								stash includes: "app-ios/releases/drive-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 
 								// Only build Appstore version if we are uploading to Nexus, it is identical except for
 								// signing so there's no point in just building it.
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.calendar", "build_calendar_appstore_prod")
-									stash includes: "app-ios/releases/calendar-${VERSION}.ipa", name: 'ipa-production'
-									stash includes: "app-ios/releases/calendar-${VERSION}.app.dSYM.zip", name: 'dsym-production'
+									util.runFastlane("de.tutao.drive", "build_drive_appstore_prod")
+									stash includes: "app-ios/releases/drive-${VERSION}.ipa", name: 'ipa-production'
+									stash includes: "app-ios/releases/drive-${VERSION}.app.dSYM.zip", name: 'dsym-production'
 								}
 							}
 						}
@@ -135,17 +135,17 @@ pipeline {
 					if (params.STAGING) {
 						unstash 'ipa-adhoc-staging'
 						unstash 'ipa-staging'
-						publishToNexus("calendar-ios-test", "calendar-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
-						publishToNexus("calendar-ios-test", "calendar-${VERSION}-test.ipa", "ipa")
+						publishToNexus("drive-ios-test", "drive-${VERSION}-adhoc-test.ipa", "adhoc.ipa")
+						publishToNexus("drive-ios-test", "drive-${VERSION}-test.ipa", "ipa")
 					}
 
 					if (params.PROD) {
 						unstash 'ipa-adhoc-production'
 						unstash 'ipa-production'
 						unstash 'dsym-production'
-						publishToNexus("calendar-ios", "calendar-${VERSION}-adhoc.ipa", "adhoc.ipa")
-						publishToNexus("calendar-ios", "calendar-${VERSION}.ipa", "ipa")
-						publishToNexus("calendar-ios", "calendar-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
+						publishToNexus("drive-ios", "drive-${VERSION}-adhoc.ipa", "adhoc.ipa")
+						publishToNexus("drive-ios", "drive-${VERSION}.ipa", "ipa")
+						publishToNexus("drive-ios", "drive-${VERSION}.app.dSYM.zip", "app.dSYM.zip")
 					}
 				}
 			}
@@ -168,8 +168,8 @@ void buildWebapp(String stage) {
 		sh "pwd"
 		sh "echo $PATH"
 		sh "npm ci"
-		sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
-		sh "node buildSrc/prepareMobileBuild.js --app calendar"
+		sh "node --max-old-space-size=8192 webapp ${stage} --app drive"
+		sh "node buildSrc/prepareMobileBuild.js --app drive"
 	}
 }
 
