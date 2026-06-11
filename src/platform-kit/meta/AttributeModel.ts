@@ -14,6 +14,8 @@ import {
 import { ProgrammingError } from "@tutao/app-env"
 import { AppName } from "./TypeRef.js"
 
+import { deepMapKeys } from "./MetaCompatibility"
+
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
 		base: new Map(),
@@ -122,13 +124,4 @@ export class AttributeModel {
 		const filedId = assertNotNull(AttributeModel.getAttributeId(typeModel, attributeName))
 		return typeModel.associations[filedId]
 	}
-}
-
-export function deepMapKeys<K extends string, V>(obj: Record<string, any>, keyMapper: (k: string) => K, valueMapper: (v: any) => V): Record<K, V> {
-	return Object.keys(obj).reduce((acc: any, current: string) => {
-		const key = keyMapper(current)
-		const val = valueMapper(obj[current])
-		acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, keyMapper, valueMapper) : val
-		return acc
-	}, {})
 }

@@ -6,3 +6,5 @@ export * from "./EntityConstants.js"
 export * from "./EntityUtils.js"
 export * from "./IdUtils.js"
 export * from "./EntityTypes.js"
+
+export { deepMapKeys } from "./MetaCompatibility"

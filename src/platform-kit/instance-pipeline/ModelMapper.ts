@@ -9,10 +9,10 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { AssociationType, Cardinality, ParsedValue, ServerIncomingData, Type, TypeRef, ValueType, ValueTypeEnum } from "../meta"
+import { AssociationType, Cardinality, ModelValue, ParsedValue, ServerIncomingData, Type, TypeRef, ValueType, ValueTypeEnum } from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
-import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValueLegacy, ServerModelParsedInstance } from "../meta/EntityTypes"
+import { ClientModelParsedInstance, Entity, ModelAssociation, ServerModelParsedInstance } from "../meta/EntityTypes"
 import { TypeModelResolver } from "./EntityFunctions"
 
 assertWorkerOrNode()
@@ -30,9 +30,9 @@ export function assertCorrectValueCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
 	cardinality: Values<typeof Cardinality>,
-	parsedValue: Nullable<ParsedValueLegacy>,
-): Nullable<ParsedValueLegacy> {
-	if (cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && parsedValue != null)) {
+	parsedValue: ParsedValue,
+): ParsedValue {
+	if (cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && !parsedValue.isNull())) {
 		return parsedValue
 	}
 	throw new InvalidModelError(
@@ -159,8 +159,10 @@ export class ModelMapper {
 
 		for (const [attrIdStr, clientType] of Object.entries(clientTypeModel.values)) {
 			const attrId = parseInt(attrIdStr)
-			const serverType = serverTypeModel.values[attrId]
-			if (!serverType) {
+			const serverType: Nullable<ModelValue> = serverTypeModel.values[attrId]
+			if (serverType == null) {
+				// Case where a attribute have been removed from serverModel and was in clientModel
+
 				if (clientType.cardinality === Cardinality.One) {
 					clientInstance[clientType.name] = valueToDefault(clientType.type)
 				} else if (clientType.cardinality === Cardinality.ZeroOrOne) {
@@ -168,18 +170,13 @@ export class ModelMapper {
 				}
 			} else {
 				assertCompatibleModelTypesForApplyingClientModel(typeRef, attrIdStr, serverType.type, clientType.type)
-				let parsedValue = parsedInstance[attrId] as Nullable<ParsedValueLegacy>
+				let parsedValue = parsedInstance[attrId]
 
 				if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
-					parsedValue = parsedValue !== "0"
+					parsedValue.convertStringToBoolean()
 				} else if (serverType.type === ValueType.String && clientType.type === ValueType.Number) {
-					if (typeof parsedValue === "string") {
-						parsedValue = parseInt(parsedValue as string)
-						if (isNaN(parsedValue)) {
-							throw new ProgrammingError("string sent by the server cannot be converted to a number")
-						}
-					}
-				} else if (parsedValue == null && serverType.cardinality === Cardinality.One) {
+					parsedValue.convertStringToNumber()
+				} else if (parsedValue.isNull() && serverType.cardinality === Cardinality.One) {
 					parsedValue = valueToDefault(serverType.type)
 				}
 				clientInstance[clientType.name] = assertCorrectValueCardinality(typeRef, attrIdStr, clientType.cardinality, parsedValue)
@@ -188,24 +185,24 @@ export class ModelMapper {
 
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
+			const associationValues: Nullable<Array<ParsedValue>> = parsedInstance[assocId]?.getArray() ?? null
+
 			if (modelAssoc.type === AssociationType.Aggregation) {
 				const appName = modelAssoc.dependency ?? clientTypeModel.app
 				const assocTypeRef = new TypeRef(appName, modelAssoc.refTypeId)
-				const associationValues = parsedInstance[assocId] as Array<ServerModelParsedInstance>
+
 				const clientAssociationValues = []
-				if (associationValues) {
+				if (associationValues == null) {
+					// Case where a attribute have been removed from serverModel and was in clientModel
+				} else {
 					for (const value of associationValues) {
-						clientAssociationValues.push(await this.mapToInstance(assocTypeRef, value))
+						const aggregatedItem = value.getSeverAggregate()
+						clientAssociationValues.push(await this.mapToInstance(assocTypeRef, aggregatedItem))
 					}
 				}
 				clientInstance[modelAssoc.name] = assertAndSupplyCorrectAssociationClientCardinality(typeRef, assocIdStr, modelAssoc, clientAssociationValues)
 			} else {
-				clientInstance[modelAssoc.name] = assertAndSupplyCorrectAssociationClientCardinality(
-					typeRef,
-					assocIdStr,
-					modelAssoc,
-					parsedInstance[assocId] as ParsedAssociation,
-				)
+				clientInstance[modelAssoc.name] = assertAndSupplyCorrectAssociationClientCardinality(typeRef, assocIdStr, modelAssoc, associationValues)
 			}
 		}
 
@@ -218,52 +215,74 @@ export class ModelMapper {
 
 	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ClientModelParsedInstance> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-
-		const parsedInstance: Record<number, unknown> = {}
+		const parsedInstance: ClientModelParsedInstance = {} as ClientModelParsedInstance
 
 		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
 			const attrId = parseInt(attrIdStr)
-			let clientValue = ((instance as any)[modelValue.name] as Nullable<ParsedValue>) ?? null
+			const clientValue = (() => {
+				const jsValue: Nullable<any> = instance[modelValue.name] ?? null
+				if (jsValue == null) {
+					return ParsedValue.fromNull()
+				}
+				switch (modelValue.type) {
+					case ValueTypeEnum.CustomId:
+					case ValueTypeEnum.String:
+					case ValueTypeEnum.CompressedString:
+					case ValueTypeEnum.GeneratedId:
+					case ValueTypeEnum.Number:
+						return ParsedValue.fromString(jsValue as string)
 
-			if (clientTypeModel.type === Type.Aggregated && modelValue.name === "_id" && clientValue === null) {
-				parsedInstance[attrId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
+					case ValueTypeEnum.Boolean:
+						return ParsedValue.fromBoolean(jsValue as boolean)
+
+					case ValueTypeEnum.Bytes:
+						return ParsedValue.fromBytes(jsValue as Uint8Array)
+					case ValueTypeEnum.Date:
+						return ParsedValue.fromDate(jsValue as Date)
+				}
+			})()
+
+			if (clientTypeModel.type === Type.Aggregated && modelValue.name === "_id" && clientValue.isNull()) {
+				const randomAggregateId = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
+				parsedInstance[attrId] = ParsedValue.fromId(randomAggregateId)
 			} else {
 				parsedInstance[attrId] = clientValue
 			}
 		}
+
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
 			const appName = modelAssoc.dependency ?? clientTypeModel.app
 			const assocTypeRef = new TypeRef<any>(appName, modelAssoc.refTypeId)
-			if (modelAssoc.type === AssociationType.Aggregation) {
-				if (modelAssoc.cardinality === Cardinality.Any) {
-					const associationValues = (instance as any)[modelAssoc.name] as Array<Entity>
-					const parsedAssociationValues: Array<ClientModelParsedInstance> = []
-					if (associationValues) {
-						for (const value of associationValues) {
-							parsedAssociationValues.push(await this.mapToClientModelParsedInstance(assocTypeRef, value))
-						}
-					}
-					parsedInstance[assocId] = parsedAssociationValues
+
+			const associationValue = (async () => {
+				const jsValue: Nullable<any> = instance[modelAssoc.name] ?? null
+				if (jsValue == null) {
+					return ParsedValue.fromArray([])
+				} else if (modelAssoc.type === AssociationType.ListAssociation || modelAssoc.type === AssociationType.ElementAssociation) {
+					const ids = modelAssoc.cardinality === Cardinality.Any ? (jsValue as Array<Id>) : [jsValue as string]
+					const items = ids.map((i) => ParsedValue.fromId(i))
+					return ParsedValue.fromArray(items)
+				} else if (modelAssoc.type === AssociationType.Aggregation) {
+					const items = modelAssoc.cardinality === Cardinality.Any ? (jsValue as Array<any>) : [jsValue as any]
+					const mappedItems = items.map((i) => this.mapToClientModelParsedInstance(assocTypeRef, i))
+					return ParsedValue.fromAggregatedItems(await Promise.all(mappedItems))
+				} else if (
+					modelAssoc.type === AssociationType.BlobElementAssociation ||
+					modelAssoc.type === AssociationType.ListElementAssociationCustom ||
+					modelAssoc.type === AssociationType.ListElementAssociationGenerated
+				) {
+					const ids = modelAssoc.cardinality === Cardinality.Any ? (jsValue as Array<IdTuple>) : [jsValue as IdTuple]
+					const items = ids.map((i) => ParsedValue.fromIdTuple(i))
+					return ParsedValue.fromArray(items)
 				} else {
-					const associationValue = (instance as any)[modelAssoc.name] as Nullable<Entity>
-					let parsedAssociationValue: Array<ClientModelParsedInstance> = []
-					if (associationValue != null) {
-						parsedAssociationValue = [await this.mapToClientModelParsedInstance(assocTypeRef, associationValue)]
-					}
-					parsedInstance[assocId] = parsedAssociationValue
+					throw new ProgrammingError("All cases covered!!")
 				}
-			} else {
-				if (modelAssoc.cardinality === Cardinality.Any) {
-					const associationValues = (instance as any)[modelAssoc.name]
-					parsedInstance[assocId] = associationValues ? associationValues : []
-				} else {
-					const associationValue = (instance as any)[modelAssoc.name]
-					parsedInstance[assocId] = associationValue ? [associationValue] : []
-				}
-			}
+			})()
+			parsedInstance[assocId] = await associationValue
 		}
-		return parsedInstance as ClientModelParsedInstance
+
+		return parsedInstance
 	}
 }
 
@@ -351,20 +370,20 @@ export function decompressString(compressed: Uint8Array): string {
 	return utf8Uint8ArrayToString(output)
 }
 
-export function valueToDefault(type: ValueTypeEnum): ParsedValueLegacy {
+export function valueToDefault(type: ValueTypeEnum): ParsedValue {
 	switch (type) {
 		case ValueTypeEnum.String:
-			return ""
+			return ParsedValue.fromString("")
 		case ValueTypeEnum.CompressedString:
-			return ""
+			return ParsedValue.fromString("")
 		case ValueTypeEnum.Number:
-			return "0"
+			return ParsedValue.fromNumber(0)
 		case ValueTypeEnum.Bytes:
-			return new Uint8Array(0)
+			return ParsedValue.fromBytes(new Uint8Array(0))
 		case ValueTypeEnum.Date:
-			return new Date(0)
+			return ParsedValue.fromDate(new Date(0))
 		case ValueTypeEnum.Boolean:
-			return false
+			return ParsedValue.fromBoolean(false)
 		default:
 			throw new ProgrammingError(`${type} is not a value type with a defined default`)
 	}

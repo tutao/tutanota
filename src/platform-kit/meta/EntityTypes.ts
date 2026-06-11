@@ -2,6 +2,7 @@ import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
 import { assert, assertNotNull, Nullable } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * Tuta Metamodel Entity Types
@@ -211,13 +212,12 @@ export type ServerModelTypeSeparator = "ServerModel"
 export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 
 export type ClientModelParsedInstance = Distinct<ParsedInstance, ClientModelTypeSeparator>
-
 export type ServerModelParsedInstance = Distinct<ParsedInstance, ServerModelTypeSeparator>
+
 export type ClientModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ClientModelTypeSeparator>
-
 export type ServerModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ServerModelTypeSeparator>
-export type ClientModelUntypedInstance = Distinct<UntypedInstance, ClientModelTypeSeparator>
 
+export type ClientModelUntypedInstance = Distinct<UntypedInstance, ClientModelTypeSeparator>
 export type ServerModelUntypedInstance = Distinct<UntypedInstance, ServerModelTypeSeparator>
 
 // // //
@@ -363,10 +363,14 @@ export class ParsedValue {
 	getClientAggregate(): ClientModelEncryptedParsedInstance {
 		throw new Error("Method not implemented.")
 	}
+
+	getSeverAggregate(): ServerModelParsedInstance {
+		throw new Error("Method not implemented.")
+	}
 	getArray(): Array<ParsedValue> {
 		throw new Error("Method not implemented.")
 	}
-	static fromIdTuple(idTupleItem: ServerIncomingData[]): ParsedValue {
+	static fromIdTuple(idTuple: IdTuple): ParsedValue {
 		throw new Error("Method not implemented.")
 	}
 	private constructor(
@@ -435,6 +439,21 @@ export class ParsedValue {
 
 	getString(): string {
 		return this.stringValue
+	}
+
+	public convertStringToBoolean(): this {
+		this.boolValue = this.getString() !== "0"
+		this.stringValue = null
+		return this
+	}
+
+	public convertStringToNumber(): this {
+		this.numberValue = parseInt(this.getString())
+		this.stringValue = null
+		if (isNaN(this.numberValue)) {
+			throw new ProgrammingError("string sent by the server cannot be converted to a number")
+		}
+		return this
 	}
 
 	getNumber() {
