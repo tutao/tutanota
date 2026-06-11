@@ -20,7 +20,7 @@ import { createReferencingInstance, DownloadableFileEntity } from "../../../enti
 
 assertMainOrNode()
 
-const enum DownloadPostProcessing {
+export const enum DownloadPostProcessing {
 	Open,
 	Write,
 }

@@ -565,8 +565,11 @@ class MailLocator implements CommonLocator {
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("./mail/view/MailViewerViewModel.js")
+		const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
 		const eventRepository = await this.calendarEventsRepository()
 		const undoModel = await this.undoModel()
+		const fileApp = isBrowser() ? null : this.fileApp
+		const fileDownloader = new AttachmentDownloader(this.fileController, fileApp, this.transferProgressDispatcher)
 
 		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
@@ -579,6 +582,7 @@ class MailLocator implements CommonLocator {
 				this.contactModel,
 				this.configFacade,
 				this.fileController,
+				fileDownloader,
 				this.logins,
 				this.eventController,
 				this.workerFacade,

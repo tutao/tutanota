@@ -13,7 +13,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { isDarkTheme, theme } from "../../../../ui/theme"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { styles } from "../../../../ui/styles"
-import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
+import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
@@ -35,6 +35,7 @@ import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { File, Mail } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
 import { createEmailSenderListElement } from "@tutao/entities/sys"
+import { DownloadPostProcessing } from "../../../common/file/FileController"
 
 assertMainOrNode()
 
@@ -526,22 +527,22 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const domBody = await this.domBodyDeferred.promise
 		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event) => {
 			const inlineAttachment = this.viewModel.getAttachments().find((attachment) => attachment.cid === cid)
-			if (inlineAttachment && (!client.isMobileDevice() || !this.pinchZoomable || !this.pinchZoomable.isDraggingOrZooming())) {
+			if (inlineAttachment && (!this.pinchZoomable || !this.pinchZoomable.isDraggingOrZooming())) {
+				let dropdownOptions: DropdownChildAttrs[] = []
+				if (this.viewModel.attachmentDownloader.canOpenAttachment(inlineAttachment)) {
+					dropdownOptions.push({
+						label: "open_action",
+						click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, DownloadPostProcessing.Open),
+					})
+				}
+				if (this.viewModel.attachmentDownloader.canDownloadAttachment(inlineAttachment)) {
+					dropdownOptions.push({
+						label: "download_action",
+						click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, DownloadPostProcessing.Write),
+					})
+				}
 				const coords = getCoordsOfMouseOrTouchEvent(event)
-				showDropdownAtPosition(
-					[
-						{
-							label: "download_action",
-							click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, false),
-						},
-						{
-							label: "open_action",
-							click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, true),
-						},
-					],
-					coords.x,
-					coords.y,
-				)
+				showDropdownAtPosition(dropdownOptions, coords.x, coords.y)
 			}
 		})
 	}
