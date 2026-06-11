@@ -4708,6 +4708,8 @@ pub struct CustomerAccountTerminationPostIn {
 	pub _format: i64,
 	#[serde(rename = "2017")]
 	pub terminationDate: Option<DateTime>,
+	#[serde(rename = "2759")]
+	pub isContractRevocation: Option<bool>,
 	#[serde(rename = "2313")]
 	pub surveyData: Option<SurveyData>,
 }

@@ -3091,6 +3091,7 @@ export type CustomerAccountTerminationPostIn = {
 
 	_format: NumberString;
 	terminationDate: null | Date;
+	isContractRevocation: null | boolean;
 
 	surveyData: null | SurveyData;
 }
