@@ -528,4 +528,233 @@ platform :ios do
 		   force: options[:force]
 	   )
 	end
+
+	#
+	# Drive app
+	#
+	def drive_version
+		return get_version_number(target: "drive", xcodeproj: "drive.xcodeproj")
+	end
+
+	DRIVE_PROD_APP_IDS = [
+		"de.tutao.drive",
+		"de.tutao.drive.TutanotaShareExtension",
+		"de.tutao.drive.TutanotaNotificationExtension"
+	]
+	DRIVE_STAGING_APP_IDS = [
+		"de.tutao.drive.test",
+		"de.tutao.drive.test.TutanotaShareExtension",
+		"de.tutao.drive.test.TutanotaNotificationExtension"
+	]
+
+	#
+	# Drive app build actions
+	#
+
+	desc "Build Drive production release with AppStore configuration"
+	lane :build_drive_appstore_prod do |options|
+		match(
+			app_identifier: DRIVE_PROD_APP_IDS,
+			type: "appstore",
+			verbose: true,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+
+		allow_used_macros
+		clear_derived_data
+
+		build_app(
+			scheme: "drive prod",
+			output_directory: "releases",
+			output_name: "drive-#{drive_version}",
+			include_symbols: true,
+			verbose: true
+		)
+	end
+
+	desc "Build a Drive production release with ad-hoc configuration"
+	lane :build_drive_adhoc_prod do |options|
+		match(
+			app_identifier: DRIVE_PROD_APP_IDS,
+			type: "adhoc",
+			verbose: true,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+
+		allow_used_macros
+		clear_derived_data
+
+		build_app(
+			scheme: "drive prod",
+			output_directory: "releases",
+			output_name: "drive-#{drive_version}-adhoc",
+			export_options: {
+				method: "ad-hoc" # if not specified export_method defaults to app-store
+			},
+			verbose: true
+		)
+	end
+
+	desc "Build Drive staging release with AppStore configuration"
+	lane :build_drive_appstore_staging do
+		match(
+			app_identifier: DRIVE_STAGING_APP_IDS,
+			type: "appstore",
+			verbose: true,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+
+		allow_used_macros
+		clear_derived_data
+
+		build_app(
+			scheme: "drive staging",
+			output_directory: "releases",
+			output_name: "drive-#{drive_version}-test",
+			verbose: true
+		)
+	end
+
+	desc "Build Drive staging release with ad-hoc configuration"
+	lane :build_drive_adhoc_staging do
+		match(
+			app_identifier: DRIVE_STAGING_APP_IDS,
+			type: "adhoc",
+			verbose: true,
+			readonly: true,
+			generate_apple_certs: false,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+
+		allow_used_macros
+		clear_derived_data
+
+		build_app(
+			scheme: "drive staging",
+			output_directory: "releases",
+			output_name: "drive-#{drive_version}-adhoc-test",
+			export_options: {
+				method: "ad-hoc" # if not specified export_method defaults to app-store
+			},
+			verbose: true
+		)
+	end
+
+	#
+	# Drive app publish actions
+	#
+	desc "Publish Drive staging artifact to TestFlight"
+	lane :publish_drive_appstore_staging_to_testflight do |options|
+		UI.message "Uploading Drive staging app to TestFlight #{options[:file]}"
+
+		upload_to_testflight(
+			ipa: options[:file],
+			app_identifier: "de.tutao.drive.test",
+			skip_submission: true,
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+		)
+	end
+
+	desc "Publish Drive production artifact to AppStore"
+	lane :publish_drive_appstore_prod_to_app_store do |options|
+		UI.message "Uploading Drive staging app to App Store #{options[:file]}"
+
+		upload_to_app_store(
+			ipa: options[:file],
+			skip_screenshots: true,
+			submit_for_review: false,
+			precheck_include_in_app_purchases: false,
+			# must use force as long as we don't automatically create html previews
+			force: true,
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			app_identifier: "de.tutao.drive"
+		)
+	end
+
+	#
+	# Drive app tests
+	#
+	desc "Run Drive test cases (Github Actions)"
+	lane :test_drive_github do
+		allow_used_macros
+		run_tests(
+				scheme: "drive debug",
+		)
+		run_tests(
+				scheme: "TutanotaSharedFramework",
+		)
+	end
+
+	#
+	# Drive app certificate management
+	#
+	desc "Renew Drive appstore certificate for production"
+	lane :renew_drive_appstore_cert_prod do |options|
+		match(
+			app_identifier: DRIVE_PROD_APP_IDS,
+			type: "appstore",
+			verbose: true,
+			readonly: false,
+			generate_apple_certs: true,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			platform: "ios",
+			force: options[:force]
+		)
+	end
+
+	desc "Renew Drive adhoc certificate for production"
+	lane :renew_drive_adhoc_cert_prod do |options|
+		match(
+			app_identifier: DRIVE_PROD_APP_IDS,
+			type: "adhoc",
+			verbose: true,
+			readonly: false,
+			generate_apple_certs: true,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			platform: "ios",
+			force: options[:force]
+		)
+	end
+
+	desc "Renew Drive appstore certificate for staging"
+	lane :renew_drive_appstore_cert_staging do |options|
+	   match(
+		   app_identifier:DRIVE_STAGING_APP_IDS,
+		   type: "appstore",
+		   verbose: true,
+		   readonly: false,
+		   generate_apple_certs: true,
+		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+		   platform: "ios",
+		   force: options[:force]
+	   )
+	end
+
+	desc "Renew Drive adhoc certificate for staging"
+	lane :renew_drive_adhoc_cert_staging do |options|
+	   match(
+		   app_identifier: DRIVE_STAGING_APP_IDS,
+		   type: "adhoc",
+		   verbose: true,
+		   readonly: false,
+		   generate_apple_certs: true,
+		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+		   platform: "ios",
+		   force: options[:force]
+	   )
+	end
 end
