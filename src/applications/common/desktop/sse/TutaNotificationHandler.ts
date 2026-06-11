@@ -139,10 +139,7 @@ class TutaNotificationHandler {
 			result.push(
 				...(await Promise.all(
 					untypedInstances.map(async (untypedInstance) => {
-						const mailEncryptedParsedInstance: EncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(
-							mailModel,
-							untypedInstance,
-						)
+						const mailEncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(mailModel, untypedInstance)
 						const notificationInfo = notificationInfos.filter(
 							(info) =>
 								assertNotNull(info.mailId).listElementId ===

@@ -169,7 +169,7 @@ export class DesktopAlarmStorage {
 		}
 
 		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
-		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
+		return AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedAlarmNotification)
 	}
 
 	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {

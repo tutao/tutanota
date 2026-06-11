@@ -9,10 +9,10 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { AssociationType, Cardinality, Type, TypeRef, ValueType } from "../meta"
+import { AssociationType, Cardinality, ParsedValue, ServerIncomingData, Type, TypeRef, ValueType, ValueTypeEnum } from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
-import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../meta/EntityTypes"
+import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValueLegacy, ServerModelParsedInstance } from "../meta/EntityTypes"
 import { TypeModelResolver } from "./EntityFunctions"
 
 assertWorkerOrNode()
@@ -30,8 +30,8 @@ export function assertCorrectValueCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
 	cardinality: Values<typeof Cardinality>,
-	parsedValue: Nullable<ParsedValue>,
-): Nullable<ParsedValue> {
+	parsedValue: Nullable<ParsedValueLegacy>,
+): Nullable<ParsedValueLegacy> {
 	if (cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && parsedValue != null)) {
 		return parsedValue
 	}
@@ -168,7 +168,7 @@ export class ModelMapper {
 				}
 			} else {
 				assertCompatibleModelTypesForApplyingClientModel(typeRef, attrIdStr, serverType.type, clientType.type)
-				let parsedValue = parsedInstance[attrId] as Nullable<ParsedValue>
+				let parsedValue = parsedInstance[attrId] as Nullable<ParsedValueLegacy>
 
 				if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
 					parsedValue = parsedValue !== "0"
@@ -281,19 +281,27 @@ export class ModelMapper {
  *       the second.
  * @returns {string|string|Uint8Array|*}
  */
-export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullable<ParsedValue>): Nullable<string | Uint8Array> {
-	if (value == null) {
-		return null
-	} else if (type === ValueType.Bytes) {
-		return value as Uint8Array
-	} else if (type === ValueType.Boolean) {
-		return value ? "1" : "0"
-	} else if (type === ValueType.Date) {
-		return (value as Date).getTime().toString()
-	} else if (type === ValueType.CompressedString) {
-		return compressString(value as string)
-	} else {
-		return value as string
+export function convertJsToServerJson(type: ValueTypeEnum, value: ParsedValue): ServerIncomingData {
+	if (value.isNull()) {
+		ServerIncomingData.fromNull()
+	}
+	switch (type) {
+		case ValueTypeEnum.String:
+			return ServerIncomingData.fromString(value.getString())
+		case ValueTypeEnum.Number:
+			return ServerIncomingData.fromString(`${value.getNumber()}`)
+		case ValueTypeEnum.Date:
+			return ServerIncomingData.fromString(value.getDate().getTime().toString())
+		case ValueTypeEnum.GeneratedId:
+			return ServerIncomingData.fromString(value.getId())
+		case ValueTypeEnum.CompressedString:
+			return ServerIncomingData.fromString(uint8ArrayToBase64(compressString(value.getString())))
+		case ValueTypeEnum.Bytes:
+			return ServerIncomingData.fromString(uint8ArrayToBase64(value.getByteArray()))
+		case ValueTypeEnum.Boolean:
+			return ServerIncomingData.fromString(value.getBoolean() ? "1" : "0")
+		case ValueTypeEnum.CustomId:
+			return ServerIncomingData.fromString(value.getId())
 	}
 }
 
@@ -308,19 +316,25 @@ export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullabl
  * note: this function does not enforce this; the user has to check that the first invocation is compatible with
  *       the second.
  */
-export function convertDbToJsType(type: Values<typeof ValueType>, decryptedValue: Nullable<string | Uint8Array>): Nullable<ParsedValue> {
-	if (decryptedValue == null) {
-		return null
-	} else if (type === ValueType.Bytes) {
-		return base64ToUint8Array(decryptedValue as string)
-	} else if (type === ValueType.Boolean) {
-		return decryptedValue !== "0"
-	} else if (type === ValueType.Date) {
-		return new Date(parseInt(decryptedValue as string))
-	} else if (type === ValueType.CompressedString) {
-		return decompressString(base64ToUint8Array(decryptedValue as string))
-	} else {
-		return decryptedValue
+export function convertServerJsonToJsType(type: ValueTypeEnum, decryptedValue: string): ParsedValue {
+	switch (type) {
+		// FIXME: compare this functiont o original implementation
+		case ValueTypeEnum.String:
+			return ParsedValue.fromString(decryptedValue)
+		case ValueTypeEnum.Number:
+			return ParsedValue.fromNumber(parseInt(decryptedValue))
+		case ValueTypeEnum.Bytes:
+			return ParsedValue.fromBytes(base64ToUint8Array(decryptedValue))
+		case ValueTypeEnum.Date:
+			return ParsedValue.fromDate(new Date(parseInt(decryptedValue)))
+		case ValueTypeEnum.Boolean:
+			return ParsedValue.fromBoolean(decryptedValue !== "0")
+		case ValueTypeEnum.GeneratedId:
+			return ParsedValue.fromId(decryptedValue)
+		case ValueTypeEnum.CustomId:
+			return ParsedValue.fromCustomId(decryptedValue)
+		case ValueTypeEnum.CompressedString:
+			return ParsedValue.fromString(decompressString(base64ToUint8Array(decryptedValue)))
 	}
 }
 
@@ -337,22 +351,19 @@ export function decompressString(compressed: Uint8Array): string {
 	return utf8Uint8ArrayToString(output)
 }
 
-export function valueToDefault(type: Values<typeof ValueType>): ParsedValue {
+export function valueToDefault(type: ValueTypeEnum): ParsedValueLegacy {
 	switch (type) {
-		case ValueType.String:
-		case ValueType.CompressedString:
+		case ValueTypeEnum.String:
 			return ""
-
-		case ValueType.Number:
+		case ValueTypeEnum.CompressedString:
+			return ""
+		case ValueTypeEnum.Number:
 			return "0"
-
-		case ValueType.Bytes:
+		case ValueTypeEnum.Bytes:
 			return new Uint8Array(0)
-
-		case ValueType.Date:
+		case ValueTypeEnum.Date:
 			return new Date(0)
-
-		case ValueType.Boolean:
+		case ValueTypeEnum.Boolean:
 			return false
 		default:
 			throw new ProgrammingError(`${type} is not a value type with a defined default`)
@@ -360,24 +371,20 @@ export function valueToDefault(type: Values<typeof ValueType>): ParsedValue {
 }
 
 // visibleForTesting
-export function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
+export function isDefaultValue(type: ValueTypeEnum, value: unknown): boolean {
 	switch (type) {
-		case ValueType.String:
-		case ValueType.CompressedString:
+		case ValueTypeEnum.String:
 			return value === ""
-
-		case ValueType.Number:
+		case ValueTypeEnum.CompressedString:
+			return value === ""
+		case ValueTypeEnum.Number:
 			return value === "0"
-
-		case ValueType.Bytes:
+		case ValueTypeEnum.Bytes:
 			return (value as Uint8Array).length === 0
-
-		case ValueType.Date:
+		case ValueTypeEnum.Date:
 			return (value as Date).getTime() === 0
-
-		case ValueType.Boolean:
+		case ValueTypeEnum.Boolean:
 			return value === false
-
 		default:
 			throw new ProgrammingError(`${type} is not a value type with a defined default`)
 	}

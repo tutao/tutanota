@@ -5,17 +5,17 @@
 
 import { AssociationType, AttributeModel, hasError, isSameId, isSameTypeRef, TypeRef } from "../meta"
 import { assertNotNull, deepEqual, isEmpty, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
-import { convertDbToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
+import { convertServerJsonToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, InstanceTypeId, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import {
 	EncryptedModelValue,
 	EncryptedParsedAssociation,
-	EncryptedParsedValue,
+	EncryptedParsedValueLegacy,
 	Entity,
 	ParsedAssociation,
 	ParsedInstance,
-	ParsedValue,
+	ParsedValueLegacy,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
@@ -146,7 +146,10 @@ export class PatchMerger {
 			const pathResultTypeModel = pathResult.typeModel
 			// We need to map and decrypt for REPLACE and ADD_ITEM as the payloads are encrypted, REMOVE_ITEM only has either aggregate ids, generated ids, or id tuples
 			if (patch.patchOperation !== PatchOperationType.REMOVE_ITEM) {
-				const encryptedParsedValue: Nullable<EncryptedParsedValue | EncryptedParsedAssociation> = await this.parseValueOnPatch(pathResult, patch.value)
+				const encryptedParsedValue: Nullable<EncryptedParsedValueLegacy | EncryptedParsedAssociation> = await this.parseValueOnPatch(
+					pathResult,
+					patch.value,
+				)
 				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
 				const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
@@ -178,7 +181,7 @@ export class PatchMerger {
 	private async applyPatchOperation(
 		patchOperation: Values<PatchOperationType>,
 		pathResult: PathResult,
-		value: Nullable<ParsedValue | ParsedAssociation> | Array<Id | IdTuple>,
+		value: Nullable<ParsedValueLegacy | ParsedAssociation> | Array<Id | IdTuple>,
 	) {
 		const { attributeId, instanceToChange, typeModel } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
@@ -259,7 +262,7 @@ export class PatchMerger {
 			}
 			case PatchOperationType.REPLACE: {
 				if (isValue) {
-					instanceToChange[attributeId] = value as ParsedValue
+					instanceToChange[attributeId] = value as ParsedValueLegacy
 				} else if (isAssociation) {
 					instanceToChange[attributeId] = value as ParsedAssociation
 				}
@@ -271,7 +274,7 @@ export class PatchMerger {
 	private async parseValueOnPatch(
 		pathResult: PathResult,
 		value: string | null,
-	): Promise<Nullable<EncryptedParsedValue> | Nullable<EncryptedParsedAssociation>> {
+	): Promise<Nullable<EncryptedParsedValueLegacy> | Nullable<EncryptedParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
 		const isAssociation = typeModel.associations[attributeId] !== undefined
@@ -283,14 +286,15 @@ export class PatchMerger {
 			if (value == null || value === "" || valueInfo.encrypted) {
 				return value
 			} else {
-				return convertDbToJsType(valueType, value)
+				return convertServerJsonToJsType(valueType, value)
 			}
 		} else if (isAssociation) {
 			if (isNonAggregateAssociation) {
 				return JSON.parse(value!)
 			} else {
-				const aggregatedEntities = JSON.parse(value!) as Array<ServerModelUntypedInstance>
-				aggregatedEntities.map(AttributeModel.removeNetworkDebuggingInfoIfNeeded)
+				const aggregatedEntities = (JSON.parse(value!) as Array<ServerModelUntypedInstance>).map((item) =>
+					AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(item),
+				)
 				const modelAssociation = typeModel.associations[attributeId]
 				const appName = modelAssociation.dependency ?? typeModel.app
 				const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
@@ -306,11 +310,11 @@ export class PatchMerger {
 
 	private async decryptValueOnPatch(
 		pathResult: PathResult,
-		value: Nullable<EncryptedParsedValue | EncryptedParsedAssociation>,
+		value: Nullable<EncryptedParsedValueLegacy | EncryptedParsedAssociation>,
 		ownerGroup: Nullable<Id>,
 		instanceDecryptor: InstanceDecryptor,
 		fieldPath: string,
-	): Promise<Nullable<ParsedValue> | Nullable<ParsedAssociation>> {
+	): Promise<Nullable<ParsedValueLegacy> | Nullable<ParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
 		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation

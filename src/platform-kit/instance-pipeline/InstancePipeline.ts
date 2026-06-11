@@ -54,7 +54,7 @@ export class InstancePipeline {
 	}
 	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const parsedInstance: ClientModelParsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
+		const parsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
 		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, subKeyInfo)
 		return await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)

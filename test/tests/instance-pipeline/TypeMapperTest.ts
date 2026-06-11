@@ -98,7 +98,9 @@ o.spec("TypeMapper", function () {
 		})
 
 		o("can handle associations and aggregations with network debugging enabled", async function () {
-			o(AttributeModel.removeNetworkDebuggingInfoIfNeeded(serverModelUntypedInstanceNetworkDebugging)).deepEquals(serverModelUntypedInstance)
+			o(AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(serverModelUntypedInstanceNetworkDebugging)).deepEquals(
+				serverModelUntypedInstance,
+			)
 		})
 
 		o("can apply db types with network debugging enabled", async function () {

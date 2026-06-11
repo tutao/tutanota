@@ -4,8 +4,8 @@ import {
 	assertAndSupplyCorrectAssociationClientCardinality,
 	assertCorrectValueCardinality,
 	ClientTypeReferenceResolver,
-	convertDbToJsType,
-	convertJsToDbType,
+	convertServerJsonToJsType,
+	convertJsToServerJson,
 	isDefaultValue,
 	ModelMapper,
 	ServerTypeReferenceResolver,
@@ -31,54 +31,54 @@ o.spec("ModelMapper", function () {
 	o.spec("convertDbToJsType", function () {
 		o("convert value to JS Date", function () {
 			let value = new Date().getTime().toString()
-			o(convertDbToJsType(ValueType.Date, value)).deepEquals(new Date(parseInt(value)))
+			o(convertServerJsonToJsType(ValueType.Date, value)).deepEquals(new Date(parseInt(value)))
 		})
 		o("convert unencrypted Bytes to JS type", function () {
 			const valueBytes = random.generateRandomData(15)
 			const value = uint8ArrayToBase64(valueBytes)
-			const jsBytes = convertDbToJsType(ValueType.Bytes, value)
+			const jsBytes = convertServerJsonToJsType(ValueType.Bytes, value)
 			o(jsBytes instanceof Uint8Array).equals(true)
 			o(Array.from(jsBytes as Uint8Array)).deepEquals(Array.from(valueBytes))
 		})
 		o("convert unencrypted Boolean to JS type", function () {
-			o(convertDbToJsType(ValueType.Boolean, "0")).equals(false)
-			o(convertDbToJsType(ValueType.Boolean, "1")).equals(true)
+			o(convertServerJsonToJsType(ValueType.Boolean, "0")).equals(false)
+			o(convertServerJsonToJsType(ValueType.Boolean, "1")).equals(true)
 		})
 		o("convert unencrypted Number to JS type", function () {
-			o(convertDbToJsType(ValueType.Number, "0")).equals("0")
-			o(convertDbToJsType(ValueType.Number, "1")).equals("1")
-			o(convertDbToJsType(ValueType.Number, "12456")).equals("12456")
+			o(convertServerJsonToJsType(ValueType.Number, "0")).equals("0")
+			o(convertServerJsonToJsType(ValueType.Number, "1")).equals("1")
+			o(convertServerJsonToJsType(ValueType.Number, "12456")).equals("12456")
 		})
 		o("convert unencrypted compressedString to JS type", function () {
-			o(convertDbToJsType(ValueType.CompressedString, "")).equals("")
-			o(convertDbToJsType(ValueType.CompressedString, "QHRlc3Q=")).equals("test")
+			o(convertServerJsonToJsType(ValueType.CompressedString, "")).equals("")
+			o(convertServerJsonToJsType(ValueType.CompressedString, "QHRlc3Q=")).equals("test")
 		})
 	})
 	o.spec("convertJsToDbType", function () {
 		o("convert unencrypted Date to DB type", function () {
 			let value = new Date()
-			o(convertJsToDbType(ValueType.Date, value)).equals(value.getTime().toString())
+			o(convertJsToServerJson(ValueType.Date, value)).equals(value.getTime().toString())
 		})
 
 		o("convert unencrypted Bytes to DB type", function () {
 			let valueBytes = random.generateRandomData(15)
-			const dbBytes = convertJsToDbType(ValueType.Bytes, valueBytes)
+			const dbBytes = convertJsToServerJson(ValueType.Bytes, valueBytes)
 			o(dbBytes instanceof Uint8Array).equals(true)
 			o(uint8ArrayToBase64(dbBytes as Uint8Array)).equals(uint8ArrayToBase64(valueBytes))
 		})
 
 		o("convert unencrypted Boolean to DB type", function () {
 			let value = false
-			o(convertJsToDbType(ValueType.Boolean, value)).equals("0")
+			o(convertJsToServerJson(ValueType.Boolean, value)).equals("0")
 			value = true
-			o(convertJsToDbType(ValueType.Boolean, value)).equals("1")
+			o(convertJsToServerJson(ValueType.Boolean, value)).equals("1")
 		})
 
 		o("convert unencrypted Number to DB type", function () {
 			let value = "0"
-			o(convertJsToDbType(ValueType.Number, value)).equals("0")
+			o(convertJsToServerJson(ValueType.Number, value)).equals("0")
 			value = "1"
-			o(convertJsToDbType(ValueType.Number, value)).equals("1")
+			o(convertJsToServerJson(ValueType.Number, value)).equals("1")
 		})
 	})
 

@@ -10,7 +10,17 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
+import {
+	type AppName,
+	AttributeModel,
+	Entity,
+	hasError,
+	isSameTypeRef,
+	ServerModelParsedInstance,
+	ServerModelUntypedInstance,
+	timestampToGeneratedId,
+	TypeRef,
+} from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
@@ -34,7 +44,6 @@ import {
 } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
@@ -291,7 +300,7 @@ export class EventBusClient {
 	}
 
 	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: ServerModelUntypedInstance): Promise<E> {
-		const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
+		const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedInstance)
 		return await this.instancePipeline.decryptAndMap(messageType, untypedInstanceSanitized, null)
 	}
 
@@ -410,7 +419,7 @@ export class EventBusClient {
 			try {
 				const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 				const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
-				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
+				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedInstance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
 				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 				const migratedEntity = await this.entityMigrator.applyMigrations(typeRef, entityAdapter)
@@ -429,7 +438,8 @@ export class EventBusClient {
 						// handle MailDetails blobs
 						const mailDetailsBlobServerTypeModel = await this.typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
 						const mailDetailsBlobUntypedInstance = JSON.parse(event.blobInstance) as ServerModelUntypedInstance
-						const mailDetailsBlobUntypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(mailDetailsBlobUntypedInstance)
+						const mailDetailsBlobUntypedInstanceSanitized =
+							AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(mailDetailsBlobUntypedInstance)
 						const mailDetailsBlobEncryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(
 							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobUntypedInstanceSanitized,

@@ -2,14 +2,14 @@ import { assertNotNull, downcast, Nullable } from "@tutao/utils"
 import {
 	AttributeId,
 	AttributeName,
-	ClientModelUntypedInstance,
 	EncryptedParsedInstance,
 	ModelAssociation,
 	ModelValue,
+	ServerIncomingData,
 	ServerModelParsedInstance,
-	ServerModelUntypedInstance,
 	TypeId,
 	TypeModel,
+	UntypedInstance,
 } from "./EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AppName } from "./TypeRef.js"
@@ -27,11 +27,29 @@ export class AttributeModel {
 		drive: new Map(),
 	}
 
-	static removeNetworkDebuggingInfoIfNeeded<T extends ClientModelUntypedInstance | ServerModelUntypedInstance>(untypedInstance: T): T {
-		if (env.networkDebugging) {
-			return deepMapKeys(untypedInstance, (key: string) => key.split(":")[0])
-		}
-		return untypedInstance
+	static removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedInstance: object): UntypedInstance {
+		return deepMapKeys(
+			untypedInstance,
+
+			// convert all keys to number after removing name followed by `:`
+			(key: string) => {
+				const idStr = key.split(":")[0]
+				return parseInt(idStr).toString()
+			},
+
+			// convert all value to ServerIncomingData
+			(value) => {
+				if (value == null) {
+					return ServerIncomingData.fromNull()
+				} else if (typeof value === "string") {
+					return ServerIncomingData.fromString(value)
+				} else if (typeof value === "object") {
+					return ServerIncomingData.fromAggregatedItems(value)
+				} else {
+					throw new ProgrammingError("All of our values are string, array or nested object")
+				}
+			},
+		)
 	}
 
 	static getAttribute<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): T {
@@ -106,15 +124,11 @@ export class AttributeModel {
 	}
 }
 
-export function deepMapKeys(obj: any, fn: any): any {
-	return Array.isArray(obj)
-		? obj.map((val) => deepMapKeys(val, fn))
-		: typeof obj === "object"
-			? Object.keys(obj).reduce((acc: any, current: string) => {
-					const key = fn(current)
-					const val = obj[current]
-					acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, fn) : val
-					return acc
-				}, {})
-			: obj
+export function deepMapKeys<K extends string, V>(obj: Record<string, any>, keyMapper: (k: string) => K, valueMapper: (v: any) => V): Record<K, V> {
+	return Object.keys(obj).reduce((acc: any, current: string) => {
+		const key = keyMapper(current)
+		const val = valueMapper(obj[current])
+		acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, keyMapper, valueMapper) : val
+		return acc
+	}, {})
 }

@@ -7,7 +7,7 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
-import { convertJsToDbType, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
+import { convertJsToServerJson, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
@@ -266,7 +266,7 @@ o.spec("PatchMergerTest", () => {
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
 			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
-			const encryptionAuthStatusUntypedValue = convertJsToDbType(
+			const encryptionAuthStatusUntypedValue = convertJsToServerJson(
 				mailTypeModel.values[encryptionAuthStatusAttributeId].type,
 				patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, null, subKeyProvider, ""),
 			) as Nullable<string>

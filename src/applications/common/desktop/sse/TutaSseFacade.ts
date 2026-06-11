@@ -114,7 +114,7 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
+		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(
 			await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null),
 		)
 		return JSON.stringify(untypedInstance)

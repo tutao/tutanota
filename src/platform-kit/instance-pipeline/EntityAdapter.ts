@@ -1,5 +1,5 @@
 import { assertNotNull, downcast, Nullable } from "@tutao/utils"
-import { AttributeModel, TypeRef } from "../meta"
+import { AttributeModel, ParsedValue, TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { EncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, ServerModelParsedInstance, TypeModel } from "../meta/EntityTypes"
 import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
@@ -37,7 +37,8 @@ export class EntityAdapter implements Entity {
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_ownerEncSessionKey", this.typeModel)
 	}
 
-	set _ownerEncSessionKey(value: Uint8Array) {
+	set _ownerEncSessionKey(value: ParsedValue) {
+		const _isByteArray = value.getByteArray()
 		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))] = value
 	}
 

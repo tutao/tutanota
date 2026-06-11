@@ -2,7 +2,7 @@ import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	ClientModelUntypedInstance,
-	ParsedValue,
+	ParsedValueLegacy,
 	TypeModel,
 	UntypedValue,
 } from "../meta/EntityTypes.js"
@@ -24,8 +24,8 @@ export const enum PatchOperationType {
 // visible for testing
 export function areValuesDifferent(
 	valueType: Values<typeof ValueType>,
-	originalParsedValue: Nullable<ParsedValue>,
-	currentParsedValue: Nullable<ParsedValue>,
+	originalParsedValue: Nullable<ParsedValueLegacy>,
+	currentParsedValue: Nullable<ParsedValueLegacy>,
 ): boolean {
 	if (originalParsedValue === null && currentParsedValue === null) {
 		return false
@@ -90,8 +90,8 @@ export async function computePatches(
 			// keys are in the format attributeId:attributeName when networkDebugging is enabled
 			attributeIdStr += ":" + modelValue.name
 		}
-		let originalParsedValue = originalInstance[attributeId] as Nullable<ParsedValue>
-		let modifiedParsedValue = modifiedInstance[attributeId] as Nullable<ParsedValue>
+		let originalParsedValue = originalInstance[attributeId] as Nullable<ParsedValueLegacy>
+		let modifiedParsedValue = modifiedInstance[attributeId] as Nullable<ParsedValueLegacy>
 		let modifiedUntypedValue = modifiedUntypedInstance[attributeIdStr] as UntypedValue
 		if (areValuesDifferent(modelValue.type, originalParsedValue, modifiedParsedValue)) {
 			let value: string | null = null

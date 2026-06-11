@@ -1,6 +1,6 @@
 import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody, SuspensionBehavior } from "../rest-client/types"
-import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
+import { AttributeModel, ClientTypeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
@@ -19,8 +19,6 @@ import {
 } from "@tutao/instance-pipeline"
 import { CryptoNetworkHelper } from "./CryptoNetworkHelper"
 import {
-	ClientModelUntypedInstance,
-	ClientTypeModel,
 	Entity,
 	ListElementEntity,
 	ServerModelEncryptedParsedInstance,
@@ -191,7 +189,7 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: opts.baseUrl,
 		})
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(json))
+		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(json))
 
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
@@ -386,7 +384,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
-				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
+				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(instance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
 				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 				return this._decryptAndMap(
@@ -470,7 +468,7 @@ export class EntityRestClient implements EntityRestInterface {
 			responseType: MediaType.Json,
 		})
 		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
-		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(JSON.parse(persistencePostReturn))
+		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(persistencePostReturn))
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
 
@@ -761,7 +759,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async parseSetupMultiple(result: Array<UntypedInstance>): Promise<Array<Id>> {
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
-				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedPostReturn)
+				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedPostReturn)
 				const parsedInstance = await this.instancePipeline.decryptAndMap(PersistenceResourcePostReturnTypeRef, sanitisedUntypedPostReturn, null)
 				return parsedInstance.generatedId as Id // is null for customIds
 			})

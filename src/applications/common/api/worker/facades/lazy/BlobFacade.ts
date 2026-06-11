@@ -700,7 +700,7 @@ export class BlobFacade {
 
 	// Visible for testing
 	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
-		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
+		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(jsonData))
 		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
 		// post single always has a valid blobRefernceToken with cardinality one.

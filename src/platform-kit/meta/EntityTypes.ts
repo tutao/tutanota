@@ -1,6 +1,6 @@
-import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
+import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
-import { Nullable } from "@tutao/utils"
+import { assert, assertNotNull, Nullable } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
 
 /**
@@ -51,7 +51,7 @@ export type ModelValue = {
 	/* human-readable name */
 	name: AttributeName
 	/* the basic data type contained in the field*/
-	type: Values<typeof ValueType>
+	type: ValueTypeEnum
 	/* how many values can be assigned to the field */
 	cardinality: Values<typeof Cardinality>
 	/* whether the client is allowed to update the field */
@@ -165,7 +165,7 @@ export type UntypedAssociation =
 /**
  * Compound values. The keys are AttributeIds.
  */
-export type UntypedInstance = Record<string, UntypedValue | UntypedAssociation>
+export type UntypedInstance = Record<string, ServerIncomingData>
 
 /**
  * ParsedInstance stage. This exists in an encrypted and an unencrypted version.
@@ -174,7 +174,7 @@ export type UntypedInstance = Record<string, UntypedValue | UntypedAssociation>
  * entity.
  */
 
-export type EncryptedParsedValue =
+export type EncryptedParsedValueLegacy =
 	| Id // element association or list association or _id
 	| IdTuple // list element association
 	| boolean // unencrypted
@@ -189,15 +189,15 @@ export type EncryptedParsedAssociation =
 	| Array<EncryptedParsedInstance> // aggregate
 
 // this contains JS values except in encrypted fields, those are kept as a base64 string.
-export type EncryptedParsedInstance = Record<AttributeId, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation>
+export type EncryptedParsedInstance = Record<AttributeId, ParsedValue>
 
 /** only defined here for documentation purposes */
-export type ParsedValue = EncryptedParsedValue
+export type ParsedValueLegacy = EncryptedParsedValueLegacy
 /** only defined here for documentation purposes */
 export type ParsedAssociation = EncryptedParsedAssociation
 
 /** a parsed instance after/before going through decryption/encryption */
-export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedAssociation> & {
+export type ParsedInstance = Record<AttributeId, ParsedValue> & {
 	/** crypto errors that happened during deserialization/serialization */
 	_errors?: Record<AttributeId, string>
 }
@@ -268,7 +268,7 @@ export interface ITypeInfo {
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
-export interface Entity {
+export interface Entity extends Record<string, unknown> {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
 	_id?: Id | IdTuple
@@ -305,3 +305,155 @@ export const enum OperationType {
 	UPDATE = "1",
 	DELETE = "2",
 }
+
+export const enum ValueTypeEnum {
+	String = "String",
+	Number = "Number",
+	Bytes = "Bytes",
+	Date = "Date",
+	Boolean = "Boolean",
+	GeneratedId = "GeneratedId",
+	CustomId = "CustomId",
+	CompressedString = "CompressedString",
+}
+
+export class ServerIncomingData {
+	private constructor(
+		public readonly stringValue: Nullable<string>,
+		public readonly arrayValue: Nullable<Array<ServerIncomingData>>,
+		public readonly nestedObj: Nullable<ServerModelUntypedInstance>,
+	) {}
+
+	public isNull() {
+		return this.stringValue == null && this.arrayValue == null && this.nestedObj == null
+	}
+
+	public asString(): string {
+		assert(this.nestedObj == null && this.arrayValue == null, "Expected a string")
+		return assertNotNull(this.stringValue, "Expected string")
+	}
+	public asArray(): Array<ServerIncomingData> {
+		assert(this.nestedObj == null && this.stringValue == null, "Expected a array")
+		return assertNotNull(this.arrayValue, "Expected array")
+	}
+
+	public asNestedObj(): ServerModelUntypedInstance {
+		assert(this.arrayValue == null && this.stringValue == null, "Expected Object")
+		return assertNotNull(this.nestedObj, "Expected  Object")
+	}
+
+	public static fromNull() {
+		return new ServerIncomingData(null, null, null)
+	}
+
+	static fromString(value: string): ServerIncomingData {
+		return undefined
+	}
+
+	static fromAggregatedItems(value: Array<UntypedInstance>): ServerIncomingData {
+		return undefined
+	}
+
+	static fromIdList(value: Array<Id>): ServerIncomingData {}
+
+	static fromIdTupleList(value: Array<IdTuple>): ServerIncomingData {}
+}
+
+export class ParsedValue {
+	getClientAggregate(): ClientModelEncryptedParsedInstance {
+		throw new Error("Method not implemented.")
+	}
+	getArray(): Array<ParsedValue> {
+		throw new Error("Method not implemented.")
+	}
+	static fromIdTuple(idTupleItem: ServerIncomingData[]): ParsedValue {
+		throw new Error("Method not implemented.")
+	}
+	private constructor(
+		public readonly stringValue: Nullable<string>,
+		public readonly idValue: Nullable<Id>,
+		public readonly idTuple: Nullable<IdTuple>,
+		public readonly boolValue: Nullable<boolean>,
+		public readonly date: Nullable<Date>,
+		public readonly numberValue: Nullable<number>,
+		public readonly byteArray: Nullable<Uint8Array>,
+		public readonly aggregateItem: Nullable<UntypedInstance>,
+		public readonly arrayValue: Nullable<Array<ParsedValue>>,
+	) {}
+	public getByteArray(): Uint8Array {
+		return assertNotNull(this.byteArray, "Expected byteArray")
+	}
+
+	public static fromString(value: string) {
+		return new ParsedValue(value, null, null, null, null, null, null, null)
+	}
+	public static fromId(value: Id) {
+		return new ParsedValue(null, value, null, null, null, null, null, null)
+	}
+
+	public static fromNull() {
+		return new ParsedValue(null, null, null, null, null, null, null, null)
+	}
+	public isNull() {
+		// FIXME
+		return this.boolValue === null && this.idValue === null
+	}
+
+	static fromBytes(arrayBufferLikeUint8Array: Uint8Array): ParsedValue {
+		return undefined
+	}
+
+	static fromDate(date: Date): ParsedValue {
+		return undefined
+	}
+
+	static fromBoolean(b: boolean): ParsedValue {
+		return undefined
+	}
+
+	static fromCustomId(decryptedValue: string): ParsedValue {
+		return undefined
+	}
+
+	static fromNumber(number: number): ParsedValue {
+		return undefined
+	}
+
+	static fromAggregatedItems(aggregatedItems: Array<EncryptedParsedInstance>): ParsedValue {
+		throw new Error("Method not implemented.")
+	}
+
+	static fromArray(mappedIds: ParsedValue[]): ParsedValue {
+		return undefined
+	}
+
+	getBoolean(): boolean {
+		return false
+	}
+
+	getDate(): Date {}
+
+	getString(): string {
+		return this.stringValue
+	}
+
+	getNumber() {
+		return this.numberValue!
+	}
+
+	getId() {
+		return this.idValue!
+	}
+
+	getidTuple() {
+		return this.idTuple!
+	}
+}
+
+//	| Id // element association or list association or _id
+// 	| IdTuple // list element association
+// 	| boolean // unencrypted
+// 	| Date // unencrypted
+// 	| number // unencrypted
+// 	| string // unencrypted
+// 	| Uint8Array // Either Bytes or encrypted value

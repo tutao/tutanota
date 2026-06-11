@@ -17,7 +17,7 @@ import {
 	SymmetricEncryptionScheme,
 	VersionedKey,
 } from "@tutao/crypto"
-import { convertDbToJsType, convertJsToDbType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
+import { convertServerJsonToJsType, convertJsToServerJson, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { EntityAdapter } from "./EntityAdapter.js"
 import { User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import {
@@ -25,7 +25,7 @@ import {
 	ClientModelParsedInstance,
 	EncryptedModelValue,
 	ModelValue,
-	ParsedValue,
+	ParsedValueLegacy,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerTypeModel,
@@ -226,7 +226,7 @@ export class CryptoMapper {
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			const valueType = clientTypeModel.values[valueId]
-			const value = parsedInstance[valueId] as Nullable<ParsedValue>
+			const value = parsedInstance[valueId] as Nullable<ParsedValueLegacy>
 
 			let encryptedValue
 			if (valueType.encrypted) {
@@ -283,7 +283,7 @@ export class CryptoMapper {
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPath: string,
-	): Promise<Nullable<ParsedValue>> {
+	): Promise<Nullable<ParsedValueLegacy>> {
 		if (value == null) {
 			return null
 		} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
@@ -304,15 +304,15 @@ export class CryptoMapper {
 		} else if (valueType.type === ValueType.CompressedString) {
 			return decompressString(decryptedBytes)
 		} else {
-			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
+			return convertServerJsonToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
 	}
 
-	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValue>, subKeyProvider: SubKeyProvider, fieldPath: string): Nullable<Base64> {
+	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValueLegacy>, subKeyProvider: SubKeyProvider, fieldPath: string): Nullable<Base64> {
 		if (value == null) {
 			return null
 		}
-		const dbValue = convertJsToDbType(valueType.type, value)!
+		const dbValue = convertJsToServerJson(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
 		const subKeys = subKeyProvider.getSubKeys()
 		let encryptedBytes

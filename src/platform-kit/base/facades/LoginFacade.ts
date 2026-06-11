@@ -78,7 +78,6 @@ import {
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
 import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
-import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
 import {
 	ChangeKdfService,
@@ -1214,7 +1213,7 @@ export class LoginFacade implements SessionTypeProvider {
 				responseType: MediaType.Json,
 			})
 			.then(async (instance) => {
-				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(instance))
+				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(instance))
 				// Intentionally passing an UntypedInstance to AttributeModel to circumvent session key resolution during login.
 				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
 				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]

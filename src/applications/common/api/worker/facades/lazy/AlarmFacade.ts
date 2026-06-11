@@ -1,6 +1,6 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
-import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
+import { AttributeModel, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
@@ -67,7 +67,7 @@ export class AlarmFacade {
 			await Promise.all(
 				alarmNotifications.map(async (an) => {
 					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
-					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
+					return AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedInstance)
 				}),
 			),
 		)
