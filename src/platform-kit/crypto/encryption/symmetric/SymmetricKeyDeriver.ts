@@ -112,13 +112,15 @@ export class SymmetricKeyDeriver {
 				groupKeyVersion: cipherVersion.groupKeyVersion,
 				encryptionKey,
 				authenticationKey,
-			}
+				context,
+			} as any
 		} else {
 			return {
 				cipherVersion: cipherVersion.cipherVersion,
 				encryptionKey,
 				authenticationKey,
-			}
+				context,
+			} as any
 		}
 	}
 }

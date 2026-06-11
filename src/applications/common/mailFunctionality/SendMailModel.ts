@@ -980,8 +980,11 @@ export class SendMailModel {
 	 * @reject {LockedError}
 	 * @reject {UserError}
 	 * @param mailMethod
+	 * @param getConfirmation
+	 * @param waitHandler
 	 * @param tooManyRequestsError
 	 * @param sendAt Schedule send at a specific date and time
+	 * @param allowUndo
 	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false)
 	 */
 	async send(

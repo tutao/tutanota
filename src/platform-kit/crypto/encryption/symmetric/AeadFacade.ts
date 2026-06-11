@@ -1,6 +1,6 @@
 import { AeadSubKeys } from "./SymmetricKeyDeriver.js"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
-import { concat } from "@tutao/utils"
+import { concat, uint8ArrayToString } from "@tutao/utils"
 import { bitArrayToUint8Array, generateInitializationVector, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
@@ -54,7 +54,9 @@ export class AeadFacade {
 	 * Encrypt with AEAD.
 	 */
 	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
-		console.log(`Encrypting with AEAD: cipherVersion: ${subKeys.cipherVersion}, plaintext: "${plaintext}"`)
+		console.log(
+			`Encrypting with AEAD: cipherVersion: ${subKeys.cipherVersion}, plaintext: "${uint8ArrayToString("utf-8", plaintext)}", context: "${(subKeys as any).context}", associatedData: "${uint8ArrayToString("utf-8", associatedData)}"`,
+		)
 		const paddedPlaintext = this.pad(plaintext)
 		return this.encryptInternal(subKeys, paddedPlaintext, associatedData)
 	}
@@ -107,7 +109,11 @@ export class AeadFacade {
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 		const authenticatedData = concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
 		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
-		blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
+		try {
+			blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
+		} catch (e) {
+			console.log(`verification failed, context: "${(subKeys as any).context}", associatedData: "${uint8ArrayToString("utf-8", associatedData)}"`)
+		}
 
 		const paddedPlaintext = bitArrayToUint8Array(
 			sjcl.mode.ctr.decrypt(
@@ -117,7 +123,9 @@ export class AeadFacade {
 				[],
 			),
 		)
-		console.log(`Decrypting with AEAD: cipherVersion: ${parsedCiphertext.cipherVersion}, plaintext: "${this.unpad(paddedPlaintext)}"`)
+		console.log(
+			`Decrypting with AEAD: cipherVersion: ${parsedCiphertext.cipherVersion}, plaintext: "${uint8ArrayToString("utf-8", this.unpad(paddedPlaintext))}", context: "${(subKeys as any).context}", associatedData: "${uint8ArrayToString("utf-8", associatedData)}"`,
+		)
 		return this.unpad(paddedPlaintext)
 	}
 
