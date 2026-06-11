@@ -9,7 +9,7 @@ const TAG = "prepareMobileBuild:"
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program
 		.description("Prepare built web code for mobile app build")
-		.addOption(new Option("--app <app>", "which app to prepare build for").choices(["mail", "calendar"]))
+		.addOption(new Option("--app <app>", "which app to prepare build for").choices(["mail", "calendar", "drive"]))
 		.parse(process.argv)
 	await prepareMobileBuild(program.opts())
 }
