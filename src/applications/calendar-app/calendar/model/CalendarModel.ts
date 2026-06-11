@@ -1076,13 +1076,17 @@ export class CalendarModel {
 		}
 	}
 
-	public async getFirstUidIndexEntryMatch(uid: string) {
+	public async getFirstUidIndexEntryMatch(uid: string): Promise<ResolvedUidIndexEntry | null> {
 		const calendarInfos = await this.getCalendarInfos()
-		let match = null
+
 		for (const calendarGroupId of calendarInfos.keys()) {
-			match = await this.calendarFacade.getEventsByUid(uid, calendarGroupId, CachingMode.Bypass)
+			const entry = await this.calendarFacade.getEventsByUid(uid, calendarGroupId, CachingMode.Bypass)
+			if (entry) {
+				return entry
+			}
 		}
-		return match
+
+		return null
 	}
 
 	public async resolveFirstPrivateOwnedCalendar() {
