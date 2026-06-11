@@ -503,7 +503,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
-				o(updates).deepEquals([])
+				o(updates).deepEquals(batch)
 			})
 
 			o("update partially not found", async function () {
@@ -785,9 +785,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).deepEquals(null)
 
-				o(filteredUpdates.length).equals(1)
+				o(filteredUpdates.length).equals(2)
 				o(filteredUpdates.includes(batch[0])).equals(true)
-				o(filteredUpdates.includes(batch[1])).equals(false)
+				o(filteredUpdates.includes(batch[1])).equals(true)
 			})
 
 			o.test("Create event for new entity is received, it should not be downloaded - when update has instance attached", async () => {

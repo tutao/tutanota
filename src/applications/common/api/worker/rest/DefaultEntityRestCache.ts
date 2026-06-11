@@ -745,7 +745,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 			return update
 		} else {
-			return null
+			return update
 		}
 	}
 
