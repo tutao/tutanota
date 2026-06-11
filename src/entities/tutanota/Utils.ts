@@ -466,16 +466,6 @@ export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23"
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
 
-export class ImapImportState {
-	state: ImapAccountSyncStatus
-	postponedUntil: Date
-
-	constructor(initialState: ImapAccountSyncStatus, postponedUntil: Date = new Date(Date.now())) {
-		this.state = initialState
-		this.postponedUntil = postponedUntil
-	}
-}
-
 export enum ImapSyncEventType {
 	CREATE,
 	UPDATE,

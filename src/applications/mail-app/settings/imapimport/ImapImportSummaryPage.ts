@@ -427,9 +427,9 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 
 			return showErrorDialog ? Dialog.message("imapImportAuthFailed_msg" as TranslationKey).then(() => false) : Promise.resolve(false)
 		} else if (initializeResult.ok) {
-			this.data.imapImportState = initializeResult.ok.state
+			this.data.imapAccountSyncStatus = initializeResult.ok.state.status
 
-			if (this.data.imapImportState.state === ImapAccountSyncStatus.POSTPONED) {
+			if (this.data.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED) {
 				let postponedErrorMsg = "imapImportStartedPostponed_msg" as TranslationKey
 				return showErrorDialog ? Dialog.message(postponedErrorMsg).then(() => true) : Promise.resolve(true)
 			}

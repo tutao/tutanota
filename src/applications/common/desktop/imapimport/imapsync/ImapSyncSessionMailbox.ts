@@ -13,6 +13,7 @@ export class ImapSyncSessionMailbox {
 	mailCount: number | null = 0
 	importance: SyncSessionMailboxImportance = SyncSessionMailboxImportance.MEDIUM
 	lastFetchedMailSeq = 0
+	// todo lower importance if interrupted
 
 	private _specialUse: ImapMailboxSpecialUse | null = null
 

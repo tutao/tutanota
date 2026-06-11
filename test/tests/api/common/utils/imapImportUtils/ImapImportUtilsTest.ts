@@ -16,7 +16,7 @@ import {
 	ImapMailAttachmentDisposition,
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMail"
 import { ImapMailbox, ImapMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
-import { ImapImportState, ImapAccountSyncStatus, MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
+import { MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
 import { ImapAccountTypeRef, ImapFolderSyncStateTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
 
@@ -297,20 +297,6 @@ o.spec("ImapImportUtils", () => {
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			const file = result.attachments![0] as ImapImportDataFile
 			o.check(file.name).equals("unknown.txt")
-		})
-	})
-
-	o.spec("ImapImportState", () => {
-		o.test("initializes with given state and default postponedUntil", () => {
-			const stateMock = new ImapImportState(ImapAccountSyncStatus.RUNNING)
-			o.check(stateMock.state).equals(ImapAccountSyncStatus.RUNNING)
-		})
-
-		o.test("initializes with custom postponedUntil", () => {
-			const dateMock = new Date(2025, 0, 1)
-			const stateMock = new ImapImportState(ImapAccountSyncStatus.POSTPONED, dateMock)
-			o.check(stateMock.state).equals(ImapAccountSyncStatus.POSTPONED)
-			o.check(stateMock.postponedUntil).equals(dateMock)
 		})
 	})
 })

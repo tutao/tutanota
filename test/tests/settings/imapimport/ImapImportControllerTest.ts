@@ -89,7 +89,7 @@ o.spec("ImapImportController", () => {
 
 	o.test("continueImport - returns result on success", async () => {
 		const successResult: ImportResult = {
-			ok: { state: new ImapImportSession(accountSyncStateMock).imapImportState, remoteStateId: imapAccountSyncStateIdMock },
+			ok: { state: { status: accountSyncStateMock.status as ImapAccountSyncStatus }, remoteStateId: imapAccountSyncStateIdMock },
 		}
 		when(imapImporter.continueImport(imapAccountSyncStateIdMock)).thenResolve(successResult)
 
@@ -103,7 +103,7 @@ o.spec("ImapImportController", () => {
 		const authError: ImportResult = { error: new ImapError({}, ImapErrorCause.AUTH_FAILED) }
 		const successResult: ImportResult = {
 			ok: {
-				state: new ImapImportSession(accountSyncStateMock).imapImportState,
+				state: { status: accountSyncStateMock.status as ImapAccountSyncStatus },
 				remoteStateId: imapAccountSyncStateIdMock,
 			},
 		}

@@ -12,7 +12,7 @@ import { ImapImportIntroductionPage, ImapImportIntroductionPageAttrs } from "./I
 import ImapImportSummaryPage, { ImapImportSummaryPageAttrs } from "./ImapImportSummaryPage"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
-import { ImapImportState, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 
@@ -26,7 +26,7 @@ export type ImapImportData = {
 	imapAccountPassword: string
 	rootImportMailFolderName: string
 	revealImapAccountPassword: boolean
-	imapImportState: ImapImportState
+	imapAccountSyncStatus: ImapAccountSyncStatus
 	matchImapMailboxesToTutaMailSets: boolean
 	imapMailboxes: ImapMailbox[]
 	folderSystem: FolderSystem
@@ -52,7 +52,7 @@ export function showAddImapImportWizard(imapImportData: ImapImportData): Promise
 			pages: wizardPages,
 			closeAction: () => {
 				resolve()
-				if (imapImportData.imapImportState.state === ImapAccountSyncStatus.RUNNING) {
+				if (imapImportData.imapAccountSyncStatus === ImapAccountSyncStatus.RUNNING) {
 					Dialog.showImapInitializationSuccessfulDialog()
 				}
 				return Promise.resolve()

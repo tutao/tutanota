@@ -11,7 +11,6 @@ import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/I
 import { TitleSection } from "../../../../ui/TitleSection.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { getTypeString } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapAccountSyncStateTypeRef, ImapFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
@@ -26,7 +25,7 @@ import { ImapErrorCause } from "../../../common/api/common/utils/imapImportUtils
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"
 import { BannerType, InfoBanner } from "../../../../ui/base/InfoBanner"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { ImapImportState, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 
@@ -74,7 +73,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			imapAccountUsername: "",
 			imapAccountPassword: "",
 			rootImportMailFolderName: "",
-			imapImportState: new ImapImportState(ImapAccountSyncStatus.PAUSED),
+			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
 			matchImapMailboxesToTutaMailSets: false,
 			isImapServerSupportingOAuth: false,
 			revealImapAccountPassword: false,
@@ -135,7 +134,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			// )
 			const buttons: Children[] = []
 			if (imapImportController.shouldRenderPauseButton(session)) {
-				if (isSyncComplete || session.imapImportState.state === ImapAccountSyncStatus.POSTPONED) {
+				if (isSyncComplete || session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED) {
 					buttons.push(
 						m(IconButton, {
 							title: "resumeMailImport_action",
@@ -216,9 +215,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				"{completed}": session.syncProgress?.completed.toString() ?? "-",
 				"{total}": session.syncProgress?.total.toString() ?? "-",
 			})
-			if (session.imapImportState.state === ImapAccountSyncStatus.POSTPONED) {
+			if (session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED) {
 				syncMessage = lang.getTranslation("imapSyncPostponed_msg", {
-					"{postponedUntil}": session.imapImportState.postponedUntil.toLocaleTimeString(),
+					"{postponedUntil}": new Date(parseInt(session.imapAccountSyncState.postponedUntil)).toLocaleTimeString(),
 				})
 			}
 			const mailboxDetail = assertNotNull(this.imapImportController?.getDestinationMailboxDetailForSession(session))

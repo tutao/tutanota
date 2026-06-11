@@ -161,12 +161,14 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	private async startNextMailboxSync() {
+		// if on mailbox interrupted we need to lower the importance of the mailbox
+
 		const remainingMailboxes = this.syncSessionMailboxes.sort((a, b) => b.importance - a.importance)
 		if (isEmpty(remainingMailboxes)) {
 			await this.onAllMailboxesFinish()
 		}
 
-		const nextMailbox = remainingMailboxes.shift()
+		const nextMailbox = first(remainingMailboxes)
 		if (nextMailbox) {
 			this.startMailboxSync(nextMailbox)
 		}
@@ -273,6 +275,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				} else if (state === SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN) {
 					this.forceStopSyncSessionProcess(syncSessionMailbox, false)
 				}
+				this.syncSessionMailboxes.pop()
 			})
 		}
 	}
@@ -297,6 +300,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	onMailboxFinish(syncSessionMailbox: ImapSyncSessionMailbox): void {
+		console.log("onMailboxFinish -> " + syncSessionMailbox.mailboxState.path)
 		this.stopMailboxSync(syncSessionMailbox)
 
 		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {

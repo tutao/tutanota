@@ -91,19 +91,19 @@ export class ImapImportController {
 	}
 
 	shouldRenderPauseButton(session: ImapImportSession) {
-		return session.imapImportState.state === ImapAccountSyncStatus.RUNNING || session.imapImportState.state === ImapAccountSyncStatus.POSTPONED
+		return session.imapAccountSyncState.status === ImapAccountSyncStatus.RUNNING || session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED
 	}
 
 	shouldRenderResyncButton(session: ImapImportSession) {
-		return session.imapImportState.state === ImapAccountSyncStatus.PAUSED || session.imapImportState.state === ImapAccountSyncStatus.FINISHED
+		return session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED || session.imapAccountSyncState.status === ImapAccountSyncStatus.FINISHED
 	}
 
 	shouldRenderPauseIcon(session: ImapImportSession) {
-		return session.imapImportState.state === ImapAccountSyncStatus.PAUSED
+		return session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED
 	}
 
 	shouldRenderClockIcon(session: ImapImportSession) {
-		return session.imapImportState.state === ImapAccountSyncStatus.POSTPONED
+		return session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED
 	}
 
 	getDestinationMailboxDetailForSession(session: ImapImportSession) {

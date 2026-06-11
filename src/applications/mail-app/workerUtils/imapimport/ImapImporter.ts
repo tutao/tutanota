@@ -15,7 +15,7 @@ import {
 	imapAccountToImapCredentials,
 	imapMailToImportMailParams,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
-import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapImportState, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
 import {
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccount,
@@ -53,7 +53,13 @@ export type InitializeImapImportParams =
 			imapMailboxesToTutaMailSets?: never
 	  })
 
-export type ImapOk = { state: ImapImportState; remoteStateId: IdTuple }
+export type ImapOk = {
+	state: {
+		status: ImapAccountSyncStatus
+		postponedUntil?: Date
+	}
+	remoteStateId: IdTuple
+}
 
 export type ImportResult = {
 	ok?: ImapOk
@@ -91,23 +97,37 @@ export class ImapImporter implements ImapSyncFacade {
 	 */
 	async continueImport(imapAccountSyncStateId: IdTuple): Promise<ImportResult> {
 		const session = assertNotNull(this.getActiveImapImportSessionOrNull(imapAccountSyncStateId))
-		if (session.imapImportState.state === ImapAccountSyncStatus.RUNNING) {
-			return { ok: { state: session.imapImportState, remoteStateId: session.imapAccountSyncState._id } }
+		if (session.imapAccountSyncState.status === ImapAccountSyncStatus.RUNNING) {
+			return { ok: { state: { status: session.imapAccountSyncState.status }, remoteStateId: session.imapAccountSyncState._id } }
 		}
 
-		if (session.imapImportState.state === ImapAccountSyncStatus.POSTPONED && session.imapImportState.postponedUntil.getTime() > Date.now()) {
-			session.imapImportState.state = ImapAccountSyncStatus.POSTPONED
-			return { ok: { state: session.imapImportState, remoteStateId: session.imapAccountSyncState._id } }
+		if (
+			session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED &&
+			new Date(parseInt(session.imapAccountSyncState.postponedUntil)).getTime() > Date.now()
+		) {
+			session.imapAccountSyncState.status = ImapAccountSyncStatus.POSTPONED
+			return {
+				ok: {
+					state: {
+						status: session.imapAccountSyncState.status as ImapAccountSyncStatus,
+						postponedUntil: new Date(parseInt(session.imapAccountSyncState.postponedUntil)),
+					},
+					remoteStateId: session.imapAccountSyncState._id,
+				},
+			}
 		}
 
-		const postponedUntil = session.imapAccountSyncState.postponedUntil
-		if (postponedUntil) {
-			session.imapImportState.postponedUntil = new Date(Number.parseInt(postponedUntil))
-		}
-
-		if (session.imapImportState.postponedUntil.getTime() > Date.now()) {
-			session.imapImportState.state = ImapAccountSyncStatus.POSTPONED
-			return { ok: { state: session.imapImportState, remoteStateId: session.imapAccountSyncState._id } }
+		if (parseInt(session.imapAccountSyncState.postponedUntil) > Date.now()) {
+			session.imapAccountSyncState.status = ImapAccountSyncStatus.POSTPONED
+			return {
+				ok: {
+					state: {
+						status: session.imapAccountSyncState.status as ImapAccountSyncStatus,
+						postponedUntil: new Date(parseInt(session.imapAccountSyncState.postponedUntil)),
+					},
+					remoteStateId: session.imapAccountSyncState._id,
+				},
+			}
 		}
 
 		const imapAccount = imapAccountToImapCredentials(session.imapAccountSyncState.imapAccount)
@@ -129,7 +149,9 @@ export class ImapImporter implements ImapSyncFacade {
 			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState._id, ImapAccountSyncStatus.RUNNING)
 			session.imapAccountSyncState = await this.imapFacade.updateAllImapFolderSyncStates(session.imapAccountSyncState._id, ImapFolderSyncStatus.RUNNING)
 			session.imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(session.imapAccountSyncState.imapFolderSyncStateList)
-			return Promise.resolve({ ok: { state: session.imapImportState, remoteStateId: session.imapAccountSyncState._id } })
+			return Promise.resolve({
+				ok: { state: { status: session.imapAccountSyncState.status as ImapAccountSyncStatus }, remoteStateId: session.imapAccountSyncState._id },
+			})
 		}
 	}
 
