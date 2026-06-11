@@ -43,6 +43,7 @@ import {
 
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
+import { AttachmentDownloader } from "../../../../src/applications/mail-app/mail/view/MailGuiUtils"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -56,6 +57,7 @@ o.spec("MailViewerViewModel", function () {
 	let contactModel: ContactModel
 	let configFacade: ConfigurationDatabase
 	let fileController: FileController
+	let attachmentDownloader: AttachmentDownloader
 	let logins: LoginController
 	let eventController: EventController
 	let workerFacade: WorkerFacade
@@ -76,6 +78,7 @@ o.spec("MailViewerViewModel", function () {
 		contactModel = object()
 		configFacade = object()
 		fileController = object()
+		attachmentDownloader = object()
 		logins = object()
 		sendMailModel = object()
 		eventController = object()
@@ -99,6 +102,7 @@ o.spec("MailViewerViewModel", function () {
 			contactModel,
 			configFacade,
 			fileController,
+			attachmentDownloader,
 			logins,
 			eventController,
 			workerFacade,
