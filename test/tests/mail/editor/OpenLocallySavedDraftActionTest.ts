@@ -11,6 +11,7 @@ import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/applica
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { createTestEntity } from "../../TestUtils.js"
 import { MailState } from "../../../../src/entities/tutanota/Utils"
+import { AttachmentDownloader } from "../../../../src/applications/mail-app/mail/view/MailGuiUtils"
 
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction
@@ -18,6 +19,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 	let mail: Mail
 	let autosaveFacade: AutosaveFacade
 	let mailboxModel: MailboxModel
+	let attachmentDownloader: AttachmentDownloader
 	let entityClient: EntityClient
 	let openDraftFunctions: OpenDraftFunctions
 	let mailViewerViewModel: MailViewerViewModel
@@ -30,6 +32,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 			mailDetailsDraft: ["listId", "elementId"],
 		})
 		mailboxModel = object()
+		attachmentDownloader = object()
 		openDraftFunctions = object()
 		entityClient = object()
 		mailViewerViewModel = object()
@@ -41,14 +44,14 @@ o.spec("OpenLocallySavedDraftAction", () => {
 			return mailViewerViewModel
 		})
 
-		action = new OpenLocallySavedDraftAction(autosaveFacade, mailboxModel, entityClient, openDraftFunctions)
+		action = new OpenLocallySavedDraftAction(autosaveFacade, mailboxModel, attachmentDownloader, entityClient, openDraftFunctions)
 	})
 
 	o.test("no draft saved", async () => {
 		when(autosaveFacade.getAutosavedDraftData()).thenResolve(null)
 		await action._loadAutosavedDraft()
 
-		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		verify(openDraftFunctions.createEditDraftDialog(matchers.anything(), matchers.anything()), { times: 0 })
 		verify(openDraftFunctions.mailViewerViewModelFactory(), { times: 0 })
 	})
@@ -76,7 +79,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		when(autosaveFacade.getAutosavedDraftData()).thenResolve(draftData)
 		await action._loadAutosavedDraft()
 
-		verify(openDraftFunctions.newMailEditorFromLocalDraftData(mailboxModel, draftData))
+		verify(openDraftFunctions.newMailEditorFromLocalDraftData(mailboxModel, attachmentDownloader, draftData))
 
 		// no further interactions
 		verify(openDraftFunctions.createEditDraftDialog(matchers.anything(), matchers.anything()), { times: 0 })
@@ -112,7 +115,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		verify(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData))
 
 		// no further interactions
-		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
 	o.test("draft with set mail id and draft is opened", async () => {
@@ -145,7 +148,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 		verify(openDraftFunctions.createEditDraftDialog(mailViewerViewModel, draftData))
 
 		// no further interactions
-		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
 	o.spec("locally saved draft with set mail id but mail is no longer editable draft", () => {
@@ -180,7 +183,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 			verify(autosaveFacade.clearAutosavedDraftData())
 			// no further interactions
-			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(openDraftFunctions.mailViewerViewModelFactory(), { times: 0 })
 			verify(openDraftFunctions.createEditDraftDialog(matchers.anything(), matchers.anything()), { times: 0 })
 		})
@@ -216,7 +219,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 			verify(autosaveFacade.clearAutosavedDraftData())
 			// no further interactions
-			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(openDraftFunctions.mailViewerViewModelFactory(), { times: 0 })
 			verify(openDraftFunctions.createEditDraftDialog(matchers.anything(), matchers.anything()), { times: 0 })
 		})
@@ -253,7 +256,7 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 			verify(autosaveFacade.clearAutosavedDraftData())
 			// no further interactions
-			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(openDraftFunctions.newMailEditorFromLocalDraftData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(openDraftFunctions.mailViewerViewModelFactory(), { times: 0 })
 			verify(openDraftFunctions.createEditDraftDialog(matchers.anything(), matchers.anything()), { times: 0 })
 		})

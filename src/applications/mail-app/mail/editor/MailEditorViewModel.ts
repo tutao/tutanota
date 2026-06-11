@@ -5,16 +5,15 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FileNotFoundError } from "../../../common/api/common/error/FileNotFoundError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController.js"
+import { FileChooserMultiMode, DownloadPostProcessing, showFileChooser } from "../../../common/file/FileController.js"
 import { Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
-import { showDownloadProgressDialog } from "../view/MailGuiUtils"
-import { Attachment, FileReference, isDataFile, isFileReference, isTutanotaFile } from "../../../../entities/tutanota/Utils"
+import { Attachment, FileReference, isFileReference } from "../../../../entities/tutanota/Utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import { AttachmentDownloader } from "../view/MailGuiUtils"
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,
@@ -73,11 +72,17 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 		)
 }
 
-export function createAttachmentBubbleAttrs(model: SendMailModel, getDomElement: () => HTMLElement): Array<AttachmentBubbleAttrs> {
+export function createAttachmentBubbleAttrs(
+	model: SendMailModel,
+	fileDownloader: AttachmentDownloader,
+	getDomElement: () => HTMLElement,
+): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
 		attachment,
-		open: () => _openAndDownloadAttachment(attachment),
-		download: null,
+		open: fileDownloader.canOpenAttachment(attachment) ? () => fileDownloader.openOrDownloadAttachment(attachment, DownloadPostProcessing.Open) : null,
+		download: fileDownloader.canDownloadAttachment(attachment)
+			? () => fileDownloader.openOrDownloadAttachment(attachment, DownloadPostProcessing.Write)
+			: null,
 		remove: () => {
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {
@@ -94,28 +99,6 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, getDomElement:
 		fileImport: null,
 		type: AttachmentType.GENERIC,
 	}))
-}
-
-export async function _openAndDownloadAttachment(attachment: Attachment) {
-	try {
-		if (isFileReference(attachment)) {
-			await locator.fileApp.open(attachment)
-		} else if (isDataFile(attachment)) {
-			await locator.fileController.saveDataFile(attachment)
-		} else if (isTutanotaFile(attachment)) {
-			await showDownloadProgressDialog(locator.transferProgressDispatcher, [attachment], await locator.fileController.open(attachment))
-		} else {
-			throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
-		}
-	} catch (e) {
-		if (e instanceof FileOpenError) {
-			return Dialog.message("canNotOpenFileOnDevice_msg")
-		} else {
-			const msg = e.message || "unknown error"
-			console.error("could not open file:", msg)
-			return Dialog.message("errorDuringFileOpen_msg")
-		}
-	}
 }
 
 export const cleanupInlineAttachments: (arg0: HTMLElement, arg2: Array<Attachment>, arg3: Array<Attachment>) => void = debounce(
