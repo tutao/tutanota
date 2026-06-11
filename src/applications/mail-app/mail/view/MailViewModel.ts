@@ -28,9 +28,19 @@ import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTrac
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
-import { ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, Mail, MailBox, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import {
+	ImapAccountSyncStateTypeRef,
+	ImapFolderSyncStateTypeRef,
+	ImportFileMailStateTypeRef,
+	Mail,
+	MailBox,
+	MailSet,
+	MailSetEntryTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
+import { collapseId, elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
@@ -724,6 +734,15 @@ export class MailViewModel {
 				const targetFolder = await this.getImapImportTargetFolder(update)
 				if (targetFolder) {
 					await this.deleteMailSetEntryRangeFolder(targetFolder)
+				}
+				const imapFolderSyncState = await this.entityClient.load(
+					ImapFolderSyncStateTypeRef,
+					collapseId(update.instanceListId, update.instanceId) as IdTuple,
+				)
+				const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapFolderSyncState.imapAccountSyncState)
+				if (imapAccountSyncState.imapSyncLabel) {
+					const imapSyncLabel = await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
+					await this.deleteMailSetEntryRangeFolder(imapSyncLabel)
 				}
 			} else if (update.operation === OperationType.UPDATE) {
 				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {

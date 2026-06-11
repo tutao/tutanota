@@ -16,7 +16,7 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
-import { FeatureType, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+import { FeatureType, isBrowser, isDesktop, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 
 export interface DrawerMenuAttrs {
@@ -139,11 +139,16 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				m(IconButton, {
 					icon: Icons.Logout,
 					title: "switchAccount_action",
-					click: () =>
-						mailLocator
-							.imapImportController()
-							.then((controller) => controller.pauseImports())
-							.then(() => m.route.set(LogoutUrl)),
+					click: () => {
+						if (isDesktop()) {
+							mailLocator
+								.imapImportController()
+								.then((controller) => controller.pauseImports())
+								.then(() => m.route.set(LogoutUrl))
+						} else {
+							m.route.set(LogoutUrl)
+						}
+					},
 					colors: ButtonColor.DrawerNav,
 				}),
 			],
