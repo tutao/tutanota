@@ -193,7 +193,8 @@ export class SymmetricCipherFacade {
 	 * @deprecated
 	 */
 	decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(key: AesKey, bytes: Uint8Array): AesKey {
-		return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed, AuthenticationEnforcement.Relaxed))
+		const decrypted = this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed, AuthenticationEnforcement.Relaxed)
+		return uint8ArrayToKey(decrypted)
 	}
 
 	/**

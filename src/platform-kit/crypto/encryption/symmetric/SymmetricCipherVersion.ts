@@ -26,6 +26,8 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
 			return SymmetricCipherVersion.AeadWithGroupKey
 		} else if (versionByte === SymmetricCipherVersion.AeadWithSessionKey) {
 			return SymmetricCipherVersion.AeadWithSessionKey
+		} else if (versionByte === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
+			return SymmetricCipherVersion.UnusedReservedUnauthenticated
 		}
 		throw new CryptoError("invalid cipher version")
 	} else {
