@@ -95,6 +95,8 @@ export interface EventBusListener {
 
 const PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS = 1000
 
+const TAG = "[EventBusClient]"
+
 export class EventBusClient {
 	private state: EventBusState
 	private socket: WebSocket | null
@@ -175,7 +177,7 @@ export class EventBusClient {
 	 * @param connectMode
 	 */
 	async connect(connectMode: ConnectMode) {
-		console.log("ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
+		console.log(TAG, "ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
 
@@ -234,7 +236,7 @@ export class EventBusClient {
 		this.socket.onmessage = (message: MessageEvent<string>) => this.onMessage(message)
 
 		this.sleepDetector.start(() => {
-			console.log("ws sleep detected, reconnecting...")
+			console.log(TAG, "ws sleep detected, reconnecting...")
 			this.tryReconnect(true, true)
 		})
 	}
@@ -244,7 +246,7 @@ export class EventBusClient {
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(closeOption: CloseEventBusOption) {
-		console.log("ws close closeOption: ", closeOption, "state:", this.state)
+		console.log(TAG, "ws close closeOption: ", closeOption, "state:", this.state)
 
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
@@ -263,7 +265,7 @@ export class EventBusClient {
 	}
 
 	async tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
-		console.log("ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
+		console.log(TAG, "ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
 
 		if (this.reconnectTimer) {
 			// prevent reconnect race-condition
@@ -281,7 +283,7 @@ export class EventBusClient {
 	// Returning promise for tests
 	private onOpen(connectMode: ConnectMode): Promise<void> {
 		this.failedConnectionAttempts = 0
-		console.log("ws open state:", this.state)
+		console.log(TAG, "ws open state:", this.state)
 
 		const p = this.initEntityEvents(connectMode)
 
@@ -296,7 +298,7 @@ export class EventBusClient {
 	}
 
 	private onError(error: any) {
-		console.log("ws error:", error, JSON.stringify(error), "state:", this.state)
+		console.log(TAG, "ws error:", error, JSON.stringify(error), "state:", this.state)
 	}
 
 	private onMessage(message: MessageEvent<string>): void {
@@ -371,7 +373,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.InitialSyncDone: {
-				console.log("Reached final event, sync is done")
+				console.log(TAG, "Reached final event, sync is done")
 
 				this.isInitialSyncDone = true
 				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
@@ -397,7 +399,7 @@ export class EventBusClient {
 				break
 			}
 			default:
-				console.log("ws message with unknown type", type)
+				console.log(TAG, "ws message with unknown type", type)
 				break
 		}
 	}
@@ -464,7 +466,7 @@ export class EventBusClient {
 
 	private onClose(event: CloseEvent) {
 		this.failedConnectionAttempts++
-		console.log("ws close event:", event, "state:", this.state)
+		console.log(TAG, "ws close event:", event, "state:", this.state)
 
 		this.loggedInUserProvider.setLeaderStatus(
 			createWebsocketLeaderStatus({
@@ -518,27 +520,27 @@ export class EventBusClient {
 			.then(() => this.eventQueue.resume())
 			.catch(
 				ofClass(ConnectionError, (e) => {
-					console.log("ws not connected in connect(), close websocket", e)
+					console.log(TAG, "ws not connected in connect(), close websocket", e)
 					this.close(CloseEventBusOption.Reconnect)
 				}),
 			)
 			.catch(
 				ofClass(CancelledError, () => {
 					// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
-					console.log("ws cancelled retry process entity events after reconnect")
+					console.log(TAG, "ws cancelled retry process entity events after reconnect")
 				}),
 			)
 			.catch(
 				ofClass(ServiceUnavailableError, async (e) => {
 					// a ServiceUnavailableError is a temporary error, and we have to retry to avoid data inconsistencies
-					console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
+					console.log(TAG, "ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
 					let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 						// if we have a websocket reconnect we have to stop retrying
 						if (this.serviceUnavailableRetry === promise) {
-							console.log("ws retry initializing entity events")
+							console.log(TAG, "ws retry initializing entity events")
 							return this.initEntityEvents(connectMode)
 						} else {
-							console.log("ws cancel initializing entity events")
+							console.log(TAG, "ws cancel initializing entity events")
 						}
 					})
 					this.serviceUnavailableRetry = promise
@@ -608,7 +610,7 @@ export class EventBusClient {
 		try {
 			await this.processEventBatch(modification)
 		} catch (e) {
-			console.log("ws error while processing event batches", e)
+			console.log(TAG, "ws error while processing event batches", e)
 			this.listener.onError(e)
 			throw e
 		}
@@ -634,6 +636,7 @@ export class EventBusClient {
 	 */
 	private reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log(
+			TAG,
 			"ws reconnect socket.readyState: (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + (this.socket ? this.socket.readyState : "null"),
 			"state:",
 			this.state,
@@ -685,7 +688,7 @@ export class EventBusClient {
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
 				// a ServiceUnavailableError is a temporary error, and we have to retry to avoid data inconsistencies
-				console.log("ws retry processing event in 30s", e)
+				console.log(TAG, "ws retry processing event in 30s", e)
 				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 					// if we have a websocket reconnect we have to stop retrying
 					if (this.serviceUnavailableRetry === retryPromise) {
@@ -699,7 +702,7 @@ export class EventBusClient {
 			}
 
 			if (!isExpectedErrorForSynchronization(e)) {
-				console.log("EVENT", "error", e)
+				console.log(TAG, "EVENT", "error", e)
 				throw e
 			}
 		}
