@@ -3,7 +3,17 @@ import { sql } from "../../../../app-kit/local-store/Sql"
 import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { elementIdPart, getTypeString, ListElementEntity, listIdPart, ServerModelEncryptedParsedInstance, ServerTypeModel, Type, TypeRef } from "@tutao/meta"
+import {
+	elementIdPart,
+	GENERATED_MAX_ID,
+	getTypeString,
+	ListElementEntity,
+	listIdPart,
+	ServerModelEncryptedParsedInstance,
+	ServerTypeModel,
+	Type,
+	TypeRef,
+} from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
@@ -16,7 +26,7 @@ import { decode, encode } from "cborg"
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL, lastIndexedEntityListId TEXT NOT NULL, lastIndexedEntityElementId TEXT NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -40,6 +50,12 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 		          contentless_delete=1,
                   tokenize='signal_tokenizer'
               )`,
+		purgedWithCache: true,
+	},
+
+	// Used for handling imported emails.
+	import_mail_queue: {
+		definition: "CREATE TABLE IF NOT EXISTS import_mail_queue (listId TEXT NOT NULL PRIMARY KEY, elementId TEXT NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -79,6 +95,8 @@ export interface IndexedGroupData {
 	groupId: Id
 	type: GroupType
 	indexedTimestamp: number
+	lastIndexedEntityListId: string
+	lastIndexedEntityElementId: string
 }
 
 /**
@@ -91,23 +109,35 @@ export class OfflineStoragePersistence {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
-		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
-                                    FROM search_group_data`
+		const { query, params } = sql`SELECT groupId,
+											 CAST(groupType as TEXT) as type,
+											 indexedTimestamp,
+											 lastIndexedEntityListId,
+											 lastIndexedEntityElementId
+									  FROM search_group_data`
 		const rows = await this.sqlCipherFacade.all(query, params)
 		return rows.map(untagSqlObject).map((row) => row as unknown as IndexedGroupData)
 	}
 
-	async addIndexedGroup(id: Id, groupType: GroupType, indexedTimestamp: number): Promise<void> {
+	async addIndexedGroup(id: Id, groupType: GroupType, indexedTimestamp: number, lastIndexedEntity: IdTuple): Promise<void> {
 		const { query, params } = sql`INSERT
                                     INTO search_group_data
-                                    VALUES (${id}, ${groupType}, ${indexedTimestamp})`
+                                    VALUES (${id}, ${groupType}, ${indexedTimestamp}, ${listIdPart(lastIndexedEntity)}, ${elementIdPart(lastIndexedEntity)})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async updateIndexingTimestamp(groupId: Id, timestamp: number): Promise<void> {
 		const { query, params } = sql`UPDATE search_group_data
-                                    SET indexedTimestamp = ${timestamp}
-                                    WHERE groupId = ${groupId}`
+									  SET indexedTimestamp = ${timestamp}
+									  WHERE groupId = ${groupId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async updateIndexingElement(groupId: Id, lastIndexedEntity: IdTuple): Promise<void> {
+		const { query, params } = sql`UPDATE search_group_data
+									  SET lastIndexedEntityListId    = ${listIdPart(lastIndexedEntity)},
+										  lastIndexedEntityElementId = ${elementIdPart(lastIndexedEntity)}
+									  WHERE groupId = ${groupId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -358,6 +388,37 @@ export class OfflineStoragePersistence {
 										  FROM content_mail_index`
 			await this.sqlCipherFacade.run(query, params)
 		}
+	}
+
+	async removeImportQueueEntry(importedMails: Id) {
+		const { query, params } = sql`DELETE
+									  FROM import_mail_queue
+									  WHERE listId = ${importedMails}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async updateImportQueueProgress(importedMails: Id, latestMail: Id) {
+		const { query, params } = sql`INSERT
+		OR REPLACE INTO import_mail_queue VALUES (
+		${importedMails},
+		${latestMail}
+		)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async enqueueImport(importedMails: Id) {
+		return await this.updateImportQueueProgress(importedMails, GENERATED_MAX_ID)
+	}
+
+	async getImportQueueProgress(importedMails: Id): Promise<Id | null> {
+		const { query, params } = sql`SELECT elementId FROM import_mail_queue WHERE listId = ${importedMails}`
+		const value = await this.sqlCipherFacade.get(query, params)
+		return value && (untagSqlValue(value.elementId) as Id)
+	}
+
+	async getImportQueueEntries(): Promise<Id[]> {
+		const value = await this.sqlCipherFacade.all(`SELECT listId FROM import_mail_queue`, [])
+		return value.map((v) => untagSqlValue(v.listId) as Id)
 	}
 }
 
