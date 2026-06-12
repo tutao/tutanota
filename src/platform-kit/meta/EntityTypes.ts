@@ -2,6 +2,7 @@ import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
 import { assert, assertNotNull, deepEqual, isNotNull, Nullable } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * Tuta Metamodel Entity Types
@@ -366,11 +367,24 @@ export class ServerIncomingData {
 	asByteArray(): Uint8Array {
 		return new Uint8Array(0)
 	}
+
+	asIdTuple(): IdTuple {
+		const [lid, eid, ...rest] = this.asArray()
+		const idTuple: IdTuple = [lid.asString(), eid.asString()]
+		assert(rest.length === 0, "Expected an idTuple which should have 2 ids. Found more")
+		return idTuple
+	}
 }
 
 export class ParsedValue {
 	toString(): string {
 		return "some cool print; check this if it works"
+	}
+
+	public getIdOrIdTuple(): Id | IdTuple {
+		if (this.idValue) return this.idValue
+		if (this.idTuple) return this.idTuple
+		throw new ProgrammingError("Neither id nor IdTuple")
 	}
 
 	isSame(other: ParsedValue): boolean {
@@ -383,11 +397,7 @@ export class ParsedValue {
 		return false
 	}
 
-	getClientAggregate(): ClientModelEncryptedParsedInstance {
-		throw new Error("Method not implemented.")
-	}
-
-	getSeverAggregate(): ServerModelParsedInstance {
+	getAggregate(): ParsedInstance {
 		throw new Error("Method not implemented.")
 	}
 	getArray(): Array<ParsedValue> {

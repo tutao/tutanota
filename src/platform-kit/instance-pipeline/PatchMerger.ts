@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationType, AttributeModel, hasError, isSameId, isSameIdTuple, isSameTypeRef, ParsedValue, TypeRef } from "../meta"
+import { AssociationType, AttributeModel, hasError, isSameId, isSameIdTuple, isSameTypeRef, ParsedInstance, ParsedValue, TypeRef } from "../meta"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
 import { convertServerJsonToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, InstanceTypeId, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
@@ -200,9 +200,9 @@ export class PatchMerger {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
 					const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-					const aggregatesToAdd = valuesToAdd.map((a) => a.getSeverAggregate())
+					const aggregatesToAdd = valuesToAdd.map((a) => a.getAggregate())
 					const aggregationsWithCommonIdsButDifferentValues = associationArray
-						.map((a) => a.getSeverAggregate())
+						.map((a) => a.getAggregate())
 						.filter((aggregate) =>
 							aggregatesToAdd.some((item) => {
 								const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
@@ -254,7 +254,7 @@ export class PatchMerger {
 					const aggregationArray = instanceToChange[attributeId].getArray()
 					const aggregateIdsToRemove = value.getArray()
 					const remainingAggregations = aggregationArray.filter((element) => {
-						const aggregate = element.getSeverAggregate()
+						const aggregate = element.getAggregate()
 						return !aggregateIdsToRemove.some((item) => {
 							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
 							return isSameId(item.getId(), aggregate[aggregateIdAttributeId].getString() satisfies Id)
@@ -335,7 +335,7 @@ export class PatchMerger {
 				fieldPath,
 			)
 		} else if (isAggregation) {
-			const encryptedAggregatedEntities = value.getArray().map((a) => a.getSeverAggregate())
+			const encryptedAggregatedEntities = value.getArray().map((a) => a.getAggregate())
 			const modelAssociation = typeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
@@ -356,7 +356,7 @@ export class PatchMerger {
 		}
 	}
 
-	private async traversePath(parsedInstance: ServerModelParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult | null> {
+	private async traversePath(parsedInstance: ParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult | null> {
 		if (path.length === 0) {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
@@ -393,7 +393,7 @@ export class PatchMerger {
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
 			const maybeAggregateIdPathItem = path.shift() ?? null
-			const aggregateArray = parsedInstance[attributeId].getArray().map((a) => a.getSeverAggregate())
+			const aggregateArray = parsedInstance[attributeId].getArray().map((a) => a.getAggregate())
 			const aggregatedEntity = assertNotNull(
 				aggregateArray.find((entity) => {
 					const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))

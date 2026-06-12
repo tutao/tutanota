@@ -234,7 +234,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	async put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
 		const instanceClone = clone(instance)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		const instanceId = AttributeModel.getAttribute<IdTuple | Id>(instanceClone, "_id", typeModel)
+		const instanceId = AttributeModel.getAttributeOnClientInstance(instanceClone, "_id", typeModel).getIdOrIdTuple()
 		let { listId, elementId } = expandId(instanceId)
 		if (hasError(instance)) {
 			console.warn(
@@ -458,7 +458,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			const handler = this.customCacheHandlerMap.get(typeRef)
 
 			for (const [id, entity] of typeMap.entries()) {
-				const ownerGroup = AttributeModel.getAttribute<Id>(entity, "_ownerGroup", typeModel)
+				const ownerGroup = AttributeModel.getAttributeOnClientInstance(entity, "_ownerGroup", typeModel).getString()
 				if (ownerGroup === owner) {
 					await handler?.onBeforeCacheDeletion?.(id)
 					typeMap.delete(id)
@@ -486,7 +486,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const handler = this.customCacheHandlerMap.get(new TypeRef<SomeEntity>(typeModel.app, typeModel.id))
 		for (const [listId, listCache] of cacheForType.entries()) {
 			for (const [id, element] of listCache.elements.entries()) {
-				const ownerGroup = AttributeModel.getAttribute<Id>(element, "_ownerGroup", typeModel)
+				const ownerGroup = AttributeModel.getAttributeOnClientInstance(element, "_ownerGroup", typeModel).getString()
 				if (ownerGroup === owner) {
 					await handler?.onBeforeCacheDeletion?.([listId, id])
 					listIdsToDelete.push(listId)

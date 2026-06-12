@@ -120,12 +120,12 @@ export async function computePatches(
 				originalInstance[attributeId]
 					.getNullWhenNull()
 					?.getArray()
-					.map((a) => a.getClientAggregate()) ?? []
+					.map((a) => a.getAggregate()) ?? []
 			const modifiedAggregatedEntities =
 				originalInstance[attributeId]
 					.getNullWhenNull()
 					?.getArray()
-					.map((a) => a.getClientAggregate()) ?? []
+					.map((a) => a.getAggregate()) ?? []
 
 			const modifiedAggregatedUntypedEntities = modifiedUntypedInstance[attributeIdStr].asArray().map((a) => a.asNestedObj())
 
@@ -133,7 +133,7 @@ export async function computePatches(
 				instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))].getId(),
 			)
 			if (!isDistinctAggregateIds(modifiedAggregateIds)) {
-				const modifiedInstanceId = AttributeModel.getAttribute(modifiedInstance, "_id", typeModel)
+				const modifiedInstanceId = AttributeModel.getAttributeOnClientInstance(modifiedInstance, "_id", typeModel)
 				throw new ProgrammingError(
 					`Duplicate aggregate ids of aggregate ${appName}/${typeId} in modified instance ${typeModel.app}/${typeModel.id} :  ${modifiedInstanceId}`,
 				)

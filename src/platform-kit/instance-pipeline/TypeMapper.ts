@@ -4,11 +4,10 @@ import { convertJsToServerJson, convertServerJsonToJsType } from "./ModelMapper"
 import { TypeModelResolver } from "./EntityFunctions"
 import {
 	AssociationType,
-	ClientModelEncryptedParsedInstance,
 	ClientTypeModel,
+	ParsedInstance,
 	ParsedValue,
 	ServerIncomingData,
-	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 	TypeModel,
 	TypeRef,
@@ -27,8 +26,8 @@ import {
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
 
-	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: UntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
-		const parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
+	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: UntypedInstance): Promise<ParsedInstance> {
+		const parsedInstance: ParsedInstance = {}
 
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
@@ -84,7 +83,7 @@ export class TypeMapper {
 		return parsedInstance
 	}
 
-	async applyDbTypes(clientTypeModel: ClientTypeModel, instance: ClientModelEncryptedParsedInstance): Promise<UntypedInstance> {
+	async applyDbTypes(clientTypeModel: ClientTypeModel, instance: ParsedInstance): Promise<UntypedInstance> {
 		const untypedInstance = {} as UntypedInstance
 
 		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
@@ -110,7 +109,7 @@ export class TypeMapper {
 				const associationTypeModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const mappedAggregates = associationValues.map(async (aggregatedItem) => {
-					return await this.applyDbTypes(associationTypeModel, aggregatedItem.getClientAggregate())
+					return await this.applyDbTypes(associationTypeModel, aggregatedItem.getAggregate())
 				})
 				untypedInstance[debugAttrId] = ServerIncomingData.fromAggregatedItems(await Promise.all(mappedAggregates))
 			} else if (modelAssociation.type === AssociationType.ListAssociation || modelAssociation.type === AssociationType.ElementAssociation) {

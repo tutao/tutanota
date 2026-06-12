@@ -469,7 +469,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
 		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(persistencePostReturn))
-		return AttributeModel.getAttributeOrNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
+		return AttributeModel.getAttributeOrNullOnServerInstance(untypedPersistencePostReturn, "generatedId", postReturnTypeModel).asString()
 	}
 
 	async setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {

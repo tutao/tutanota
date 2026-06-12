@@ -853,7 +853,7 @@ o.spec("EntityRestClient", function () {
 					body: argThat(async (json: RestTextBody) => {
 						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
-							AttributeModel.getAttribute<Base64>(
+							AttributeModel.getAttributeOnClientInstance<Base64>(
 								untypedInstance,
 								"_ownerEncSessionKey",
 								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),
@@ -1042,7 +1042,7 @@ o.spec("EntityRestClient", function () {
 					body: argThat(async (json: RestTextBody) => {
 						const untypedInstance = JSON.parse(json.payload)
 						const ownerEncSk = base64ToUint8Array(
-							AttributeModel.getAttribute<Base64>(
+							AttributeModel.getAttributeOnClientInstance<Base64>(
 								untypedInstance,
 								"_ownerEncSessionKey",
 								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),

@@ -1,5 +1,5 @@
 import { base64ToUint8Array, Nullable } from "../../../platform-kit/utils"
-import { ServerModelUntypedInstance, TypeModel } from "../../../platform-kit/meta/EntityTypes"
+import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../platform-kit/meta/EntityTypes"
 import { ClientTypeModelResolver } from "../../../platform-kit/instance-pipeline/EntityFunctions"
 import { AttributeModel } from "../../../platform-kit/meta"
 import {
@@ -12,7 +12,7 @@ import {
 
 export class EncryptedMissedNotification {
 	private constructor(
-		public readonly notification: ServerModelUntypedInstance,
+		public readonly notification: UntypedInstance,
 		private readonly missedNotificationTypeModel: TypeModel,
 		private readonly alarmNotificationTypeModel: TypeModel,
 		private readonly notificationSessionKeyTypeModel: TypeModel,
@@ -34,24 +34,30 @@ export class EncryptedMissedNotification {
 	}
 
 	getNotificationSessionKeys(): Array<NotificationSessionKey> {
-		const alarmNotifications = AttributeModel.getAttribute<ServerModelUntypedInstance[]>(
-			this.notification,
-			"alarmNotifications",
-			this.missedNotificationTypeModel,
-		)
+		const alarmNotifications = AttributeModel.getAttributeOnServerInstance(this.notification, "alarmNotifications", this.missedNotificationTypeModel)
+			.asArray()
+			.map((a) => a.asNestedObj())
 		for (const alarmNotification of alarmNotifications) {
 			// all alarm notifications share the same keys (see CalendarFacade#encryptNotificationKeyForDevices)
-			const notificationSessionKeys = AttributeModel.getAttribute<ServerModelUntypedInstance[]>(
+			const notificationSessionKeys = AttributeModel.getAttributeOnServerInstance(
 				alarmNotification,
 				"notificationSessionKeys",
 				this.alarmNotificationTypeModel,
 			)
+				.asArray()
+				.map((a) => a.asNestedObj())
 			if (notificationSessionKeys.length > 0) {
 				return notificationSessionKeys.map((nsk) => {
 					return createNotificationSessionKey({
-						pushIdentifier: AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0],
+						pushIdentifier: AttributeModel.getAttributeOnServerInstance(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)
+							.asArray()[0]
+							.asIdTuple(),
 						pushIdentifierSessionEncSessionKey: base64ToUint8Array(
-							AttributeModel.getAttribute<Base64>(nsk, "pushIdentifierSessionEncSessionKey", this.notificationSessionKeyTypeModel),
+							AttributeModel.getAttributeOnServerInstance(
+								nsk,
+								"pushIdentifierSessionEncSessionKey",
+								this.notificationSessionKeyTypeModel,
+							).asString(),
 						),
 					})
 				})
@@ -61,14 +67,18 @@ export class EncryptedMissedNotification {
 	}
 
 	get lastProcessedNotificationId(): Nullable<Id> {
-		return AttributeModel.getAttributeOrNull<Id>(this.notification, "lastProcessedNotificationId", this.missedNotificationTypeModel)
+		return AttributeModel.getAttributeOrNullOnServerInstance(this.notification, "lastProcessedNotificationId", this.missedNotificationTypeModel).asString()
 	}
 
 	get notificationInfos(): ServerModelUntypedInstance[] {
-		return AttributeModel.getAttribute<ServerModelUntypedInstance[]>(this.notification, "notificationInfos", this.missedNotificationTypeModel)
+		return AttributeModel.getAttributeOnServerInstance(this.notification, "notificationInfos", this.missedNotificationTypeModel)
+			.asArray()
+			.map((a) => a.asNestedObj())
 	}
 
 	get alarmNotifications(): ServerModelUntypedInstance[] {
-		return AttributeModel.getAttribute<ServerModelUntypedInstance[]>(this.notification, "alarmNotifications", this.missedNotificationTypeModel)
+		return AttributeModel.getAttributeOnServerInstance(this.notification, "alarmNotifications", this.missedNotificationTypeModel)
+			.asArray()
+			.map((a) => a.asNestedObj())
 	}
 }

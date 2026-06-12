@@ -27,7 +27,7 @@ import {
 	ClientTypeModel,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
-	ValueType,
+	ValueTypeEnum,
 } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
 
@@ -349,10 +349,18 @@ o.spec("computePatches", function () {
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
 		const testAssociationFirstEncryptedInstance = (
-			AttributeModel.getAttribute(currentEncryptedParsedInstance, "testAssociation", testTypeModel) as Array<ClientModelEncryptedParsedInstance>
+			AttributeModel.getAttributeOnClientInstance(
+				currentEncryptedParsedInstance,
+				"testAssociation",
+				testTypeModel,
+			) as Array<ClientModelEncryptedParsedInstance>
 		)[1]
 		const testAssociationSecondEncryptedInstance = (
-			AttributeModel.getAttribute(currentEncryptedParsedInstance, "testAssociation", testTypeModel) as Array<ClientModelEncryptedParsedInstance>
+			AttributeModel.getAttributeOnClientInstance(
+				currentEncryptedParsedInstance,
+				"testAssociation",
+				testTypeModel,
+			) as Array<ClientModelEncryptedParsedInstance>
 		)[2]
 		let objectDiff = await computePatches(
 			originalParsedInstance,
@@ -401,7 +409,7 @@ o.spec("computePatches", function () {
 			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
-		const encryptedAssociationArray = AttributeModel.getAttribute(
+		const encryptedAssociationArray = AttributeModel.getAttributeOnClientInstance(
 			currentEncryptedParsedInstance,
 			"testAssociation",
 			testTypeModel,
@@ -523,13 +531,13 @@ o.spec("computePatches", function () {
 			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
-		const testAssociationEncrypted = AttributeModel.getAttribute(
+		const testAssociationEncrypted = AttributeModel.getAttributeOnClientInstance(
 			currentEncryptedParsedInstance,
 			"testAssociation",
 			testTypeModel,
 		) as Array<ClientModelEncryptedParsedInstance>
 		const addedTestAggregateOnAggregateEncrypted = (
-			AttributeModel.getAttribute(
+			AttributeModel.getAttributeOnClientInstance(
 				testAssociationEncrypted[0],
 				"testZeroOrOneAggregation",
 				testAggregateModel,
@@ -566,13 +574,13 @@ o.spec("computePatches", function () {
 			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
-		const testAssociationEncrypted = AttributeModel.getAttribute(
+		const testAssociationEncrypted = AttributeModel.getAttributeOnClientInstance(
 			currentEncryptedParsedInstance,
 			"testAssociation",
 			testTypeModel,
 		) as Array<ClientModelEncryptedParsedInstance>
 		const addedTestAggregateOnAggregateEncrypted = (
-			AttributeModel.getAttribute(
+			AttributeModel.getAttributeOnClientInstance(
 				testAssociationEncrypted[0],
 				"testZeroOrOneAggregation",
 				testAggregateModel,
@@ -611,13 +619,13 @@ o.spec("computePatches", function () {
 			subKeyInfo,
 		)
 		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
-		const testAssociationEncrypted = AttributeModel.getAttribute(
+		const testAssociationEncrypted = AttributeModel.getAttributeOnClientInstance(
 			currentEncryptedParsedInstance,
 			"testAssociation",
 			testTypeModel,
 		) as Array<ClientModelEncryptedParsedInstance>
 		const addedTestAggregateOnAggregateEncrypted = (
-			AttributeModel.getAttribute(
+			AttributeModel.getAttributeOnClientInstance(
 				testAssociationEncrypted[0],
 				"testSecondLevelAssociation",
 				testAggregateModel,
@@ -715,22 +723,22 @@ o.spec("computePatches", function () {
 })
 
 o("areValuesDifferent works as expected", function () {
-	o(areValuesDifferent(ValueType.String, "example", "example")).equals(false)
-	o(areValuesDifferent(ValueType.String, "example", "different")).equals(true)
-	o(areValuesDifferent(ValueType.Number, 123, 123)).equals(false)
-	o(areValuesDifferent(ValueType.Number, 123, 456)).equals(true)
-	o(areValuesDifferent(ValueType.Bytes, base64ToUint8Array("byte"), base64ToUint8Array("byte"))).equals(false)
-	o(areValuesDifferent(ValueType.Bytes, base64ToUint8Array("byte"), base64ToUint8Array("diffbyte"))).equals(true)
-	o(areValuesDifferent(ValueType.Date, new Date(2025, 6, 6), new Date(2025, 6, 6))).equals(false)
-	o(areValuesDifferent(ValueType.Date, new Date(2025, 6, 6), new Date(2025, 6, 5))).equals(true)
-	o(areValuesDifferent(ValueType.Boolean, true, true)).equals(false)
-	o(areValuesDifferent(ValueType.Boolean, true, false)).equals(true)
-	o(areValuesDifferent(ValueType.GeneratedId, GENERATED_MIN_ID, GENERATED_MIN_ID)).equals(false)
-	o(areValuesDifferent(ValueType.GeneratedId, GENERATED_MIN_ID, GENERATED_MAX_ID)).equals(true)
-	o(areValuesDifferent(ValueType.GeneratedId, [GENERATED_MIN_ID, GENERATED_MIN_ID], [GENERATED_MIN_ID, GENERATED_MIN_ID])).equals(false)
-	o(areValuesDifferent(ValueType.GeneratedId, [GENERATED_MIN_ID, GENERATED_MIN_ID], [GENERATED_MAX_ID, GENERATED_MAX_ID])).equals(true)
-	o(areValuesDifferent(ValueType.CustomId, "customId", "customId")).equals(false)
-	o(areValuesDifferent(ValueType.CustomId, "customId", "diffcustomId")).equals(true)
-	o(areValuesDifferent(ValueType.CompressedString, "compress string", "compress string")).equals(false)
-	o(areValuesDifferent(ValueType.CompressedString, "compress string", "compress different string")).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.String, "example", "example")).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.String, "example", "different")).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.Number, 123, 123)).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.Number, 123, 456)).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.Bytes, base64ToUint8Array("byte"), base64ToUint8Array("byte"))).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.Bytes, base64ToUint8Array("byte"), base64ToUint8Array("diffbyte"))).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.Date, new Date(2025, 6, 6), new Date(2025, 6, 6))).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.Date, new Date(2025, 6, 6), new Date(2025, 6, 5))).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.Boolean, true, true)).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.Boolean, true, false)).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.GeneratedId, GENERATED_MIN_ID, GENERATED_MIN_ID)).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.GeneratedId, GENERATED_MIN_ID, GENERATED_MAX_ID)).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.GeneratedId, [GENERATED_MIN_ID, GENERATED_MIN_ID], [GENERATED_MIN_ID, GENERATED_MIN_ID])).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.GeneratedId, [GENERATED_MIN_ID, GENERATED_MIN_ID], [GENERATED_MAX_ID, GENERATED_MAX_ID])).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.CustomId, "customId", "customId")).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.CustomId, "customId", "diffcustomId")).equals(true)
+	o(areValuesDifferent(ValueTypeEnum.CompressedString, "compress string", "compress string")).equals(false)
+	o(areValuesDifferent(ValueTypeEnum.CompressedString, "compress string", "compress different string")).equals(true)
 })

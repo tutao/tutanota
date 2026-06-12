@@ -1,6 +1,6 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
-import { TypeRef, UntypedInstance } from "../meta"
+import { ServerModelParsedInstance, TypeRef, UntypedInstance } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, lazy, Nullable } from "@tutao/utils"
 import {
@@ -69,7 +69,7 @@ export class InstancePipeline {
 	 */
 	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: UntypedInstance, sk: AesKey | null): Promise<T> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(serverTypeModel, instance)
+		const encryptedParsedInstance = (await this.typeMapper.applyJsTypes(serverTypeModel, instance)) as ServerModelParsedInstance
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.modelMapper)
 		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,

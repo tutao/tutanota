@@ -596,8 +596,8 @@ export class OfflineStorage implements CacheStorage {
 	): Promise<Array<StorableInstance>> {
 		const storables = await Promise.all(
 			instances.map(async (instance): Promise<Nullable<StorableInstance>> => {
-				const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
-				const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
+				const { listId, elementId } = expandId(AttributeModel.getAttributeOnClientInstance(instance, "_id", typeModel).getIdOrIdTuple())
+				const ownerGroup = AttributeModel.getAttributeOnClientInstance(instance, "_ownerGroup", typeModel).getId()
 				const serializedInstance = await this.serialize(instance)
 				return {
 					typeString,

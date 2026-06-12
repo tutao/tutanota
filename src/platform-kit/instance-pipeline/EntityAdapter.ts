@@ -1,5 +1,5 @@
 import { assertNotNull, Nullable } from "@tutao/utils"
-import { AttributeModel, ParsedValue, TypeRef } from "../meta"
+import { AttributeModel, ParsedValue, ServerModelParsedInstance, TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
 import { EncryptedParsedInstance, Entity, TypeModel } from "../meta/EntityTypes"
 import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
@@ -16,9 +16,9 @@ export class EntityAdapter implements Entity {
 	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, modelMapper: ModelMapper) {
 		let bucketKey: Nullable<BucketKey> = null
 		const bucketKeyParsedInstance =
-			AttributeModel.getAttributeOrNull(encryptedParsedInstance, "bucketKey", typeModel)
+			AttributeModel.getAttributeOrNullOnClientInstance(encryptedParsedInstance, "bucketKey", typeModel)
 				.getArray()
-				.map((a) => a.getSeverAggregate())
+				.map((a) => a.getAggregate() as ServerModelParsedInstance)
 				.at(0) ?? null
 
 		if (bucketKeyParsedInstance) {
@@ -29,7 +29,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _id(): Id | IdTuple {
-		return assertNotNull(AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_id", this.typeModel)) as any
+		return assertNotNull(AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_id", this.typeModel)).getIdOrIdTuple()
 	}
 
 	get _type(): TypeRef<this> {
@@ -37,7 +37,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _ownerEncSessionKey(): null | Uint8Array {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_ownerEncSessionKey", this.typeModel).byteArray
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerEncSessionKey", this.typeModel).byteArray
 	}
 
 	set _ownerEncSessionKey(value: ParsedValue) {
@@ -46,7 +46,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _ownerKeyVersion(): null | NumberString {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel).stringValue
 	}
 
 	set _ownerKeyVersion(value: NumberString) {
@@ -54,7 +54,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _kdfNonce(): null | Uint8Array {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_kdfNonce", this.typeModel).byteArray
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_kdfNonce", this.typeModel).byteArray
 	}
 
 	set _kdfNonce(value: Uint8Array) {
@@ -62,19 +62,19 @@ export class EntityAdapter implements Entity {
 	}
 
 	get ownerEncSessionKey(): null | Uint8Array {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "ownerEncSessionKey", this.typeModel).byteArray
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "ownerEncSessionKey", this.typeModel).byteArray
 	}
 
 	get ownerKeyVersion(): null | NumberString {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "ownerKeyVersion", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "ownerKeyVersion", this.typeModel).stringValue
 	}
 
 	get ownerEncSessionKeyVersion(): null | NumberString {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "ownerEncSessionKeyVersion", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "ownerEncSessionKeyVersion", this.typeModel).stringValue
 	}
 
 	get _ownerGroup(): null | Id {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_ownerGroup", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerGroup", this.typeModel).stringValue
 	}
 
 	set _ownerGroup(value: Id) {
@@ -82,18 +82,18 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _permissions(): null | Id {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_permissions", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_permissions", this.typeModel).stringValue
 	}
 
 	get _listEncSessionKey(): null | Uint8Array {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_listEncSessionKey", this.typeModel).byteArray
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_listEncSessionKey", this.typeModel).byteArray
 	}
 
 	get _ownerPublicEncSessionKey(): null | Uint8Array {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_ownerPublicEncSessionKey", this.typeModel).byteArray
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerPublicEncSessionKey", this.typeModel).byteArray
 	}
 
 	get _publicCryptoProtocolVersion(): null | NumberString {
-		return AttributeModel.getAttributeOrNull(this.encryptedParsedInstance, "_publicCryptoProtocolVersion", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_publicCryptoProtocolVersion", this.typeModel).stringValue
 	}
 }

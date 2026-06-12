@@ -85,6 +85,6 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 }
 
 function eventElementId(typeModel: TypeModel, lastEvent: ServerModelParsedInstance): Id {
-	const lastEventId = AttributeModel.getAttribute<IdTuple>(lastEvent, "_id", typeModel)
+	const lastEventId = AttributeModel.getAttributeOnClientInstance(lastEvent, "_id", typeModel).getidTuple()
 	return elementIdPart(lastEventId)
 }

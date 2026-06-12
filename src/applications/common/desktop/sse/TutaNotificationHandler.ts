@@ -3,7 +3,15 @@ import { NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-b
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/enums"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
-import { AttributeModel, EncryptedParsedInstance, ServerModelUntypedInstance, StrippedEntity, TypeModel } from "../../../../platform-kit/meta"
+import {
+	AttributeModel,
+	elementIdPart,
+	EncryptedParsedInstance,
+	ServerModelUntypedInstance,
+	ServerTypeModel,
+	StrippedEntity,
+	TypeModel,
+} from "../../../../platform-kit/meta"
 import { CredentialEncryptionMode } from "../../../../platform-kit/app-env"
 import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
@@ -133,7 +141,7 @@ class TutaNotificationHandler {
 
 			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>
 
-			const mailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
+			const mailModel = (await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)) as any as ServerTypeModel
 			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
 
 			result.push(
@@ -143,7 +151,7 @@ class TutaNotificationHandler {
 						const notificationInfo = notificationInfos.filter(
 							(info) =>
 								assertNotNull(info.mailId).listElementId ===
-								AttributeModel.getAttribute<IdTuple>(mailEncryptedParsedInstance, "_id", mailModel)[1],
+								elementIdPart(AttributeModel.getAttributeOnClientInstance(mailEncryptedParsedInstance, "_id", mailModel).getidTuple()),
 						)[0]
 						return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance, notificationInfo)
 					}),
@@ -161,16 +169,19 @@ class TutaNotificationHandler {
 		mi: EncryptedParsedInstance,
 		notificationInfo: StrippedEntity<NotificationInfo>,
 	): MailMetadata {
-		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
+		const mailId = AttributeModel.getAttributeOnClientInstance(mi, "_id", mailModel).getidTuple()
 
-		const firstRecipient = AttributeModel.getAttributeOrNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
-		const sender = AttributeModel.getAttribute<EncryptedParsedInstance[]>(mi, "sender", mailModel)[0]
+		const firstRecipientAddress =
+			AttributeModel.getAttributeOrNullOnClientInstance(mi, "firstRecipient", mailModel).arrayValue?.map((recipient) => {
+				return AttributeModel.getAttributeOnClientInstance(recipient.getAggregate(), "address", mailAddressModel).getString()
+			})[0] ?? null
+		const sender = AttributeModel.getAttributeOnClientInstance(mi, "sender", mailModel).getArray()[0].getAggregate()
+		const senderAddress = AttributeModel.getAttributeOnClientInstance(sender, "address", mailAddressModel).getString()
 
-		const senderAddress = AttributeModel.getAttribute<string>(sender, "address", mailAddressModel)
 		return {
 			id: mailId,
-			senderAddress: senderAddress,
-			firstRecipientAddress: firstRecipient ? AttributeModel.getAttribute(firstRecipient[0], "address", mailAddressModel) : null,
+			senderAddress,
+			firstRecipientAddress,
 			notificationInfo,
 		}
 	}

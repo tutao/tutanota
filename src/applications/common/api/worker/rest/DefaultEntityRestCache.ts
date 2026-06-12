@@ -254,9 +254,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const loadedIds = new Set(
 				entitiesInCache.map((e) => {
 					if (listId) {
-						return elementIdPart(downcast<IdTuple>(AttributeModel.getAttribute(e, "_id", typeModel)))
+						return elementIdPart(downcast<IdTuple>(AttributeModel.getAttributeOnClientInstance(e, "_id", typeModel)))
 					} else {
-						return downcast<Id>(AttributeModel.getAttribute(e, "_id", typeModel))
+						return downcast<Id>(AttributeModel.getAttributeOnClientInstance(e, "_id", typeModel))
 					}
 				}),
 			)
@@ -509,11 +509,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
 
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+				const id = AttributeModel.getAttributeOnClientInstance(getFirstOrThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel).getidTuple()
+				await this.storage.setLowerRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		} else {
 			// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
@@ -524,11 +521,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
 			} else if (isNotEmpty(instancesWithoutSessionKeyNotFoundErrors)) {
-				await this.storage.setUpperRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(lastThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+				const id = AttributeModel.getAttributeOnClientInstance(lastThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel).getidTuple()
+				await this.storage.setUpperRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		}
 	}

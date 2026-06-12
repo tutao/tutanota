@@ -1,4 +1,4 @@
-import { AssociationType, AttributeModel, Cardinality, ClientTypeModel, hasError, ParsedValue, TypeRef, ValueType } from "../meta"
+import { AssociationType, AttributeModel, Cardinality, ClientTypeModel, hasError, ParsedInstance, ParsedValue, TypeRef, ValueType } from "../meta"
 import {
 	base64ToUint8Array,
 	isNotNull,
@@ -157,7 +157,7 @@ export class CryptoMapper {
 				const associationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, associationType.refTypeId))
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 
-				const encryptedAggregates = encryptedInstanceValue.map((a) => a.getSeverAggregate())
+				const encryptedAggregates = encryptedInstanceValue.map((a) => a.getAggregate())
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedAggregates,
@@ -198,7 +198,7 @@ export class CryptoMapper {
 	 */
 	public async decryptAggregateAssociation(
 		associationServerTypeModel: ServerTypeModel,
-		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
+		encryptedInstanceValues: Array<ParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string,
@@ -209,7 +209,7 @@ export class CryptoMapper {
 			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				associationServerTypeModel,
-				encryptedAggregate,
+				encryptedAggregate as ServerModelEncryptedParsedInstance,
 				instanceDecryptor,
 				ownerKeyProvider,
 				fieldPathPrefixForThisAssociation,
@@ -221,7 +221,7 @@ export class CryptoMapper {
 
 	public async encryptParsedInstance(
 		clientTypeModel: ClientTypeModel,
-		parsedInstance: ClientModelParsedInstance,
+		parsedInstance: ParsedInstance,
 		subKeyInfo: SubKeyInfo | SubKeyProvider,
 		fieldPathPrefix: string = "",
 	): Promise<ClientModelEncryptedParsedInstance> {
@@ -248,7 +248,7 @@ export class CryptoMapper {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(appName, associationType.refTypeId))
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
-				const unencryptedAggregates = parsedInstance[associationId].getArray().map((a) => a.getClientAggregate())
+				const unencryptedAggregates = parsedInstance[associationId].getArray().map((a) => a.getAggregate() as ClientModelParsedInstance)
 				const encryptedAggregates = await this.encryptAggregateAssociation(
 					aggregateTypeModel,
 					unencryptedAggregates,
@@ -265,7 +265,7 @@ export class CryptoMapper {
 
 	private async encryptAggregateAssociation(
 		associationClientTypeModel: ClientTypeModel,
-		aggregateValues: Array<ClientModelParsedInstance>,
+		aggregateValues: Array<ParsedInstance>,
 		subKeyProvider: SubKeyProvider,
 		fieldPathPrefix: string,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {

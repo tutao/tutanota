@@ -43,15 +43,26 @@ export class AttributeModel {
 		)
 	}
 
-	static getAttribute(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
+	static getAttributeOnClientInstance(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
 		const attrId = assertNotNull(AttributeModel.getAttributeId(typeModel, attrName), `expected attribute ${attrName} in ${typeModel.app}/${typeModel.name}`)
 		const value = instance[attrId]
 		return assertNotNull(value, attrName)
 	}
 
-	static getAttributeOrNull(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
+	static getAttributeOrNullOnClientInstance(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		return isNotNull(attrId) ? instance[attrId] : ParsedValue.fromNull()
+	}
+
+	static getAttributeOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ServerIncomingData {
+		const attrId = assertNotNull(AttributeModel.getAttributeId(typeModel, attrName), `expected attribute ${attrName} in ${typeModel.app}/${typeModel.name}`)
+		const value = instance[attrId]
+		return assertNotNull(value, attrName)
+	}
+
+	static getAttributeOrNullOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ServerIncomingData {
+		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
+		return isNotNull(attrId) ? instance[attrId] : ServerIncomingData.fromNull()
 	}
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {

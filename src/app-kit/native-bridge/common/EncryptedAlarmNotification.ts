@@ -1,6 +1,6 @@
-import { assertNotNull, base64ToUint8Array } from "../../../platform-kit/utils"
-import { AttributeModel, isSameId } from "../../../platform-kit/meta"
-import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../platform-kit/meta/EntityTypes"
+import { base64ToUint8Array } from "../../../platform-kit/utils"
+import { AttributeModel } from "../../../platform-kit/meta"
+import { TypeModel, UntypedInstance } from "../../../platform-kit/meta/EntityTypes"
 import { ClientTypeModelResolver } from "../../../platform-kit/instance-pipeline/EntityFunctions"
 import {
 	AlarmInfoTypeRef,
@@ -12,13 +12,13 @@ import {
 
 export class EncryptedAlarmNotification {
 	private constructor(
-		public readonly untypedInstance: ServerModelUntypedInstance,
+		public readonly untypedInstance: UntypedInstance,
 		private alarmNotificationTypeModel: TypeModel,
 		private notificationSessionKeyTypeModel: TypeModel,
 		private alarmInfoTypeModel: TypeModel,
 	) {}
 
-	public static async from(untypedInstance: ServerModelUntypedInstance, typeModelResolver: ClientTypeModelResolver): Promise<EncryptedAlarmNotification> {
+	public static async from(untypedInstance: UntypedInstance, typeModelResolver: ClientTypeModelResolver): Promise<EncryptedAlarmNotification> {
 		const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
 		const notificationSessionKeyTypeModel = await typeModelResolver.resolveClientTypeReference(NotificationSessionKeyTypeRef)
 		const alarmInfoTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmInfoTypeRef)
@@ -28,44 +28,37 @@ export class EncryptedAlarmNotification {
 	}
 
 	getNotificationSessionKeys(): Array<NotificationSessionKey> {
-		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
+		const notificationSessionKeys = AttributeModel.getAttributeOnServerInstance(
 			this.untypedInstance,
 			"notificationSessionKeys",
 			this.alarmNotificationTypeModel,
 		)
+			.asArray()
+			.map((a) => a.asNestedObj())
 		return notificationSessionKeys.map((nsk) => {
 			return createNotificationSessionKey({
-				pushIdentifier: AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0],
+				pushIdentifier: AttributeModel.getAttributeOnServerInstance(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)
+					.asArray()[0]
+					.asIdTuple(),
 				pushIdentifierSessionEncSessionKey: base64ToUint8Array(
-					AttributeModel.getAttribute<Base64>(nsk, "pushIdentifierSessionEncSessionKey", this.notificationSessionKeyTypeModel),
+					AttributeModel.getAttributeOnServerInstance(nsk, "pushIdentifierSessionEncSessionKey", this.notificationSessionKeyTypeModel).asString(),
 				),
 			})
 		})
 	}
 
 	getAlarmId(): Id {
-		const alarmInfo = AttributeModel.getAttribute<UntypedInstance[]>(this.untypedInstance, "alarmInfo", this.alarmNotificationTypeModel)[0]
-		return AttributeModel.getAttribute(alarmInfo, "alarmIdentifier", this.alarmInfoTypeModel)
+		const alarmInfo = AttributeModel.getAttributeOnServerInstance(this.untypedInstance, "alarmInfo", this.alarmNotificationTypeModel)
+			.asArray()[0]
+			.asNestedObj()
+		return AttributeModel.getAttributeOnServerInstance(alarmInfo, "alarmIdentifier", this.alarmInfoTypeModel).asString()
 	}
 
 	getOperation() {
-		return AttributeModel.getAttribute<NumberString[]>(this.untypedInstance, "operation", this.alarmNotificationTypeModel)[0]
+		return AttributeModel.getAttributeOnServerInstance(this.untypedInstance, "operation", this.alarmNotificationTypeModel).asArray()[0].asIdTuple()
 	}
 
 	getUser(): Id {
-		return AttributeModel.getAttribute<Id[]>(this.untypedInstance, "user", this.alarmNotificationTypeModel)[0]
-	}
-
-	discardOtherNotificationSessionKeys(pushId: IdTuple) {
-		const nskAttrId = assertNotNull(AttributeModel.getAttributeId(this.alarmNotificationTypeModel, "notificationSessionKeys"))
-		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
-			this.untypedInstance,
-			"notificationSessionKeys",
-			this.alarmNotificationTypeModel,
-		)
-		this.untypedInstance[nskAttrId] = notificationSessionKeys.filter((nsk) => {
-			const currentPushId = AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0]
-			return isSameId(currentPushId, pushId)
-		})
+		return AttributeModel.getAttributeOnServerInstance(this.untypedInstance, "user", this.alarmNotificationTypeModel).asArray()[0].asString()
 	}
 }

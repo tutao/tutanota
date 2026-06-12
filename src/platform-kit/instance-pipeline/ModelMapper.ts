@@ -9,10 +9,21 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { AssociationType, Cardinality, ModelValue, ParsedValue, ServerIncomingData, Type, TypeRef, ValueType, ValueTypeEnum } from "../meta"
+import {
+	AssociationType,
+	Cardinality,
+	ModelValue,
+	ParsedValue,
+	ServerIncomingData,
+	ServerModelParsedInstance,
+	Type,
+	TypeRef,
+	ValueType,
+	ValueTypeEnum,
+} from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
-import { ClientModelParsedInstance, Entity, ModelAssociation, ServerModelParsedInstance } from "../meta/EntityTypes"
+import { ClientModelParsedInstance, Entity, ModelAssociation } from "../meta/EntityTypes"
 import { TypeModelResolver } from "./EntityFunctions"
 
 assertWorkerOrNode()
@@ -200,7 +211,7 @@ export class ModelMapper {
 					// Case where a attribute have been removed from serverModel and was in clientModel
 				} else {
 					for (const value of associationValues) {
-						const aggregatedItem = value.getSeverAggregate()
+						const aggregatedItem = value.getAggregate() as ServerModelParsedInstance
 						clientAssociationValues.push(await this.mapToInstance(assocTypeRef, aggregatedItem))
 					}
 				}
