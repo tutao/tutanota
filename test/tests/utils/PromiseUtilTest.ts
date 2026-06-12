@@ -1,6 +1,7 @@
 import o, { verify } from "@tutao/otest"
 import { defer, delay, promiseFilter, promiseMap } from "../../../src/platform-kit/utils"
 import { func, matchers, when } from "testdouble"
+import { MicrotaskBouncer } from "../../../src/platform-kit/utils/PromiseUtils"
 
 function mockDeferMapper() {
 	const mapper = func<(el: any, idx: number) => Promise<any>>((n) => n.promise)
@@ -120,6 +121,81 @@ o.spec("PromiseUtils", function () {
 			await delay(1)
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 4 })
 			o(await resultP).deepEquals([1, 4])
+		})
+	})
+
+	o.spec("MicrotaskBouncer", () => {
+		o.test("awaiting bounce yields to queued macro task when the time slice is over", async () => {
+			let isMacrotaskProcessed = false
+			setTimeout(() => {
+				isMacrotaskProcessed = true
+			}, 0)
+
+			let currentDate = 0
+			const microtaskBouncer = new MicrotaskBouncer(2, () => currentDate)
+
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isMacrotaskProcessed).equals(false)
+
+			currentDate = 1
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isMacrotaskProcessed).equals(false)
+
+			currentDate = 2
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isMacrotaskProcessed).equals(false)
+
+			currentDate = 3
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isMacrotaskProcessed).equals(true)
+		})
+
+		o.test("eviction timestamp resets after yielding", async () => {
+			let isFirstMacrotaskProcessed = false
+			setTimeout(() => {
+				isFirstMacrotaskProcessed = true
+			}, 0)
+
+			let currentDate = 0
+			const microtaskBouncer = new MicrotaskBouncer(2, () => currentDate)
+
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isFirstMacrotaskProcessed).equals(false)
+
+			currentDate = 3
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isFirstMacrotaskProcessed).equals(true)
+
+			let isSecondMacrotaskProcessed = false
+			setTimeout(() => {
+				isSecondMacrotaskProcessed = true
+			}, 0)
+
+			currentDate = 4
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isSecondMacrotaskProcessed).equals(false)
+
+			currentDate = 5
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isSecondMacrotaskProcessed).equals(false)
+
+			currentDate = 6
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isSecondMacrotaskProcessed).equals(false)
+
+			currentDate = 7
+			await microtaskBouncer.bounce()
+			await Promise.resolve()
+			o.check(isSecondMacrotaskProcessed).equals(true)
 		})
 	})
 })
