@@ -15,7 +15,7 @@ import {
 	isOfflineStorageAvailable,
 	ProgrammingError,
 } from "../../../../platform-kit/app-env"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEventTypeRef, ContactTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -88,6 +88,7 @@ import { initClientModels } from "../../../common/api/common/ClientModelInfoInit
 import { ImapImporter } from "../imapimport/ImapImporter"
 import { CustomContactEventCacheHandler } from "./CustomContactEventCacheHandler"
 import { WebMailIndexer } from "../index/WebMailIndexer"
+import { CustomImportMailStateCacheHandler } from "./CustomImportMailStateCacheHandler"
 
 assertWorkerOrNode()
 
@@ -309,6 +310,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				{
 					ref: UserTypeRef,
 					handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
+				},
+				{
+					ref: ImportFileMailStateTypeRef,
+					handler: new CustomImportMailStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 			)
 
