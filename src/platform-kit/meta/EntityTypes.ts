@@ -1,7 +1,7 @@
 import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
-import { assert, assertNotNull, deepEqual, isNotNull, Nullable } from "@tutao/utils"
-import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import { assert, assertNotNull, isNotNull, Nullable } from "@tutao/utils"
+import { BlobElement, Element, elementIdPart, ListElement, listIdPart } from "./EntityUtils.js"
 import { ProgrammingError } from "@tutao/app-env"
 
 /**
@@ -142,65 +142,17 @@ export type TypeModel = {
 }
 
 /**
- * Untyped Instance Stage - this is the result of deserializing a wire format representation of an entity instance.
- * it does not conform to a specific model type yet.
- */
-
-/*
- * at this stage, all values are encoded as strings or not present.
- */
-export type UntypedValue = Nullable<string>
-
-/**
- * the server sends the values of associations as arrays, the cardinality is checked just
- * before the actual instance is assembled for use by the business logic.
- */
-export type UntypedAssociation =
-	/** reference(s) to an ElementEntity instance or a list of ListElementEntity instances */
-	| Array<Id>
-	/** reference(s) to a specific ListElementEntity instance */
-	| Array<IdTuple>
-	/** compound AggregatedEntity instance(s) defined directly in its parent */
-	| Array<UntypedInstance>
-
-/**
  * Compound values. The keys are AttributeIds.
  */
-export type UntypedInstance = Record<string, ServerIncomingData>
-
-/**
- * ParsedInstance stage. This exists in an encrypted and an unencrypted version.
- *
- * here the field values already conform to their types defined in the type model of the containing
- * entity.
- */
-
-export type EncryptedParsedValueLegacy =
-	| Id // element association or list association or _id
-	| IdTuple // list element association
-	| boolean // unencrypted
-	| Date // unencrypted
-	| number // unencrypted
-	| string // unencrypted
-	| Uint8Array // Either Bytes or encrypted value
-
-export type EncryptedParsedAssociation =
-	| Array<Id> // element references / list references
-	| Array<IdTuple> // list element ref, card any
-	| Array<EncryptedParsedInstance> // aggregate
+export type UntypedInstance = Record<string, ParsedValue>
 
 // this contains JS values except in encrypted fields, those are kept as a base64 string.
 export type EncryptedParsedInstance = Record<AttributeId, ParsedValue>
 
-/** only defined here for documentation purposes */
-export type ParsedValueLegacy = EncryptedParsedValueLegacy
-/** only defined here for documentation purposes */
-export type ParsedAssociation = EncryptedParsedAssociation
-
 export type ParsedInstance = Record<AttributeId, ParsedValue>
 
 /** a parsed instance after/before going through decryption/encryption */
-export type ParsedInstanceWithCryptoError = Record<AttributeId, ParsedValue> & {
+export type ParsedInstanceWithCryptoError = ParsedInstance & {
 	/** crypto errors that happened during deserialization/serialization */
 	_errors?: Record<AttributeId, string>
 }
@@ -319,12 +271,16 @@ export const enum ValueTypeEnum {
 	CompressedString = "CompressedString",
 }
 
-export class ServerIncomingData {
+export class ParsedValue {
 	private constructor(
-		public readonly stringValue: Nullable<string>,
-		public readonly arrayValue: Nullable<Array<ServerIncomingData>>,
-		public readonly nestedObj: Nullable<ServerModelUntypedInstance>,
+		private readonly stringValue: Nullable<string>,
+		private readonly arrayValue: Nullable<Array<ParsedValue>>,
+		private readonly nestedObj: Nullable<UntypedInstance>,
 	) {}
+
+	public isString(): boolean {
+		return isNotNull(this.stringValue)
+	}
 
 	public isNull() {
 		return this.stringValue == null && this.arrayValue == null && this.nestedObj == null
@@ -334,36 +290,67 @@ export class ServerIncomingData {
 		assert(this.nestedObj == null && this.arrayValue == null, "Expected a string")
 		return assertNotNull(this.stringValue, "Expected string")
 	}
-	public asArray(): Array<ServerIncomingData> {
+
+	public asId(): Id {
+		return this.asString()
+	}
+	validateNumberValue() {
+		if (isNaN(parseInt(this.asString()))) {
+			throw new ProgrammingError("string sent by the server cannot be converted to a number")
+		}
+	}
+
+	public asArray(): Array<ParsedValue> {
 		assert(this.nestedObj == null && this.stringValue == null, "Expected a array")
 		return assertNotNull(this.arrayValue, "Expected array")
 	}
 
-	public asNestedObj(): ServerModelUntypedInstance {
+	public asNestedObj(): UntypedInstance {
 		assert(this.arrayValue == null && this.stringValue == null, "Expected Object")
 		return assertNotNull(this.nestedObj, "Expected  Object")
 	}
 
 	public static fromNull() {
-		return new ServerIncomingData(null, null, null)
+		return new ParsedValue(null, null, null)
 	}
 
-	static fromString(value: string): ServerIncomingData {
-		return undefined as any
+	static fromString(value: string): ParsedValue {
+		return new ParsedValue(value, null, null)
 	}
 
-	static fromAggregatedItems(value: Array<UntypedInstance>): ServerIncomingData {
-		return undefined as any
+	static fromAggregate(value: UntypedInstance): ParsedValue {
+		return new ParsedValue(null, null, value)
 	}
 
-	static fromIdList(value: Array<Id>): ServerIncomingData {
-		return undefined as any
+	static fromAggregatedItems(value: Array<UntypedInstance>): ParsedValue {
+		const items = value.map((a) => ParsedValue.fromAggregate(a))
+		return new ParsedValue(null, items, null)
 	}
 
-	static fromIdTupleList(value: Array<IdTuple>): ServerIncomingData {
-		return undefined as any
+	static fromIdList(value: Array<Id>): ParsedValue {
+		const items = value.map((a) => ParsedValue.fromString(a))
+		return new ParsedValue(null, items, null)
 	}
 
+	static fromIdTuple(idTuple: IdTuple): ParsedValue {
+		const listId = ParsedValue.fromString(listIdPart(idTuple))
+		const elId = ParsedValue.fromString(elementIdPart(idTuple))
+		return new ParsedValue(null, [listId, elId], null)
+	}
+
+	static fromIdTupleList(value: Array<IdTuple>): ParsedValue {
+		const items = value.map((idTuple) => ParsedValue.fromIdTuple(idTuple))
+		return new ParsedValue(null, items, null)
+	}
+
+	static fromBoolean(value: boolean): ParsedValue {
+		const stringValue = value ? "1" : "0"
+		return new ParsedValue(stringValue, null, null)
+	}
+
+	asBoolean(): boolean {
+		return this.stringValue !== "0"
+	}
 	asByteArray(): Uint8Array {
 		return new Uint8Array(0)
 	}
@@ -374,133 +361,8 @@ export class ServerIncomingData {
 		assert(rest.length === 0, "Expected an idTuple which should have 2 ids. Found more")
 		return idTuple
 	}
-}
 
-export class ParsedValue {
-	toString(): string {
-		return "some cool print; check this if it works"
-	}
-
-	public getIdOrIdTuple(): Id | IdTuple {
-		if (this.idValue) return this.idValue
-		if (this.idTuple) return this.idTuple
-		throw new ProgrammingError("Neither id nor IdTuple")
-	}
-
-	isSame(other: ParsedValue): boolean {
-		if (isNotNull(this.stringValue)) return this.getString() === other.getString()
-		if (isNotNull(this.boolValue)) return this.getBoolean() === other.getBoolean()
-		if (isNotNull(this.aggregateItem)) return deepEqual(this.aggregateItem, other.aggregateItem)
-		if (isNotNull(this.arrayValue)) return deepEqual(this.getArray(), other.getArray())
-
-		// todo: fill in all branch
-		return false
-	}
-
-	getAggregate(): ParsedInstance {
-		throw new Error("Method not implemented.")
-	}
-	getArray(): Array<ParsedValue> {
-		throw new Error("Method not implemented.")
-	}
-	static fromIdTuple(idTuple: IdTuple): ParsedValue {
-		throw new Error("Method not implemented.")
-	}
-	private constructor(
-		public readonly stringValue: Nullable<string>,
-		public readonly idValue: Nullable<Id>,
-		public readonly idTuple: Nullable<IdTuple>,
-		public readonly boolValue: Nullable<boolean>,
-		public readonly date: Nullable<Date>,
-		public readonly numberValue: Nullable<number>,
-		public readonly byteArray: Nullable<Uint8Array>,
-		public readonly aggregateItem: Nullable<UntypedInstance>,
-		public readonly arrayValue: Nullable<Array<ParsedValue>>,
-	) {}
-	public getByteArray(): Uint8Array {
-		return assertNotNull(this.byteArray, "Expected byteArray")
-	}
-
-	public static fromString(value: string) {
-		return new ParsedValue(value, null, null, null, null, null, null, null, null)
-	}
-	public static fromId(value: Id) {
-		return new ParsedValue(null, value, null, null, null, null, null, null, null)
-	}
-
-	public static fromNull() {
-		return new ParsedValue(null, null, null, null, null, null, null, null, null)
-	}
-	public isNull() {
-		// FIXME
-		return this.boolValue === null && this.idValue === null
-	}
-
-	public getNullWhenNull(): Nullable<this> {
-		if (this.isNull()) {
-			return null
-		} else {
-			return this
-		}
-	}
-
-	static fromBytes(arrayBufferLikeUint8Array: Uint8Array): ParsedValue {
-		return undefined as any
-	}
-
-	static fromDate(date: Date): ParsedValue {
-		return undefined as any
-	}
-
-	static fromBoolean(b: boolean): ParsedValue {
-		return undefined as any
-	}
-
-	static fromCustomId(decryptedValue: string): ParsedValue {
-		return undefined as any
-	}
-
-	static fromNumber(number: number): ParsedValue {
-		return undefined as any
-	}
-
-	static fromAggregatedItems(aggregatedItems: Array<EncryptedParsedInstance>): ParsedValue {
-		throw new Error("Method not implemented.")
-	}
-
-	static fromArray(mappedIds: ParsedValue[]): ParsedValue {
-		return undefined as any
-	}
-
-	getBoolean(): boolean {
-		return false
-	}
-
-	getDate(): Date {
-		return undefined as any
-	}
-
-	getString(): string {
-		return this.stringValue!
-	}
-
-	getNumber() {
-		return this.numberValue!
-	}
-
-	getId() {
-		return this.idValue!
-	}
-
-	getidTuple() {
-		return this.idTuple!
+	static fromId(id: Id): ParsedValue {
+		return ParsedValue.fromString(id)
 	}
 }
-
-//	| Id // element association or list association or _id
-// 	| IdTuple // list element association
-// 	| boolean // unencrypted
-// 	| Date // unencrypted
-// 	| number // unencrypted
-// 	| string // unencrypted
-// 	| Uint8Array // Either Bytes or encrypted value

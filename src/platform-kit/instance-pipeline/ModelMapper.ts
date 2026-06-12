@@ -9,18 +9,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import {
-	AssociationType,
-	Cardinality,
-	ModelValue,
-	ParsedValue,
-	ServerIncomingData,
-	ServerModelParsedInstance,
-	Type,
-	TypeRef,
-	ValueType,
-	ValueTypeEnum,
-} from "../meta"
+import { AssociationType, Cardinality, ModelValue, ParsedValue, ServerModelParsedInstance, Type, TypeRef, ValueType, ValueTypeEnum } from "../meta"
 import { compress, uncompress } from "./Compression"
 import { random } from "@tutao/crypto"
 import { ClientModelParsedInstance, Entity, ModelAssociation } from "../meta/EntityTypes"
@@ -183,14 +172,8 @@ export class ModelMapper {
 				assertCompatibleModelTypesForApplyingClientModel(typeRef, attrIdStr, serverType.type, clientType.type)
 				let parsedValue = parsedInstance[attrId]
 
-				if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
-					parsedValue = ParsedValue.fromBoolean(parsedValue.getString() !== "0")
-				} else if (serverType.type === ValueType.String && clientType.type === ValueType.Number) {
-					const numberValue = parseInt(parsedValue.getString())
-					if (isNaN(numberValue)) {
-						throw new ProgrammingError("string sent by the server cannot be converted to a number")
-					}
-					parsedValue = ParsedValue.fromNumber(numberValue)
+				if (clientType.type === ValueType.Number) {
+					parsedValue.validateNumberValue()
 				} else if (parsedValue.isNull() && serverType.cardinality === Cardinality.One) {
 					parsedValue = valueToDefault(serverType.type)
 				}
@@ -200,7 +183,7 @@ export class ModelMapper {
 
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
-			const associationValues: Nullable<Array<ParsedValue>> = parsedInstance[assocId]?.getArray() ?? null
+			const associationValues: Nullable<Array<ParsedValue>> = parsedInstance[assocId]?.asArray() ?? null
 
 			if (modelAssoc.type === AssociationType.Aggregation) {
 				const appName = modelAssoc.dependency ?? clientTypeModel.app
@@ -211,7 +194,7 @@ export class ModelMapper {
 					// Case where a attribute have been removed from serverModel and was in clientModel
 				} else {
 					for (const value of associationValues) {
-						const aggregatedItem = value.getAggregate() as ServerModelParsedInstance
+						const aggregatedItem = value.asNestedObj()
 						clientAssociationValues.push(await this.mapToInstance(assocTypeRef, aggregatedItem))
 					}
 				}
@@ -316,27 +299,27 @@ export class ModelMapper {
  *       the second.
  * @returns {string|string|Uint8Array|*}
  */
-export function convertJsToServerJson(type: ValueTypeEnum, value: ParsedValue): ServerIncomingData {
+export function convertJsToServerJson(type: ValueTypeEnum, value: ParsedValue): ParsedValue {
 	if (value.isNull()) {
-		ServerIncomingData.fromNull()
+		ParsedValue.fromNull()
 	}
 	switch (type) {
 		case ValueTypeEnum.String:
-			return ServerIncomingData.fromString(value.getString())
+			return ParsedValue.fromString(value.getString())
 		case ValueTypeEnum.Number:
-			return ServerIncomingData.fromString(`${value.getNumber()}`)
+			return ParsedValue.fromString(`${value.getNumber()}`)
 		case ValueTypeEnum.Date:
-			return ServerIncomingData.fromString(value.getDate().getTime().toString())
+			return ParsedValue.fromString(value.getDate().getTime().toString())
 		case ValueTypeEnum.GeneratedId:
-			return ServerIncomingData.fromString(value.getId())
+			return ParsedValue.fromString(value.getId())
 		case ValueTypeEnum.CompressedString:
-			return ServerIncomingData.fromString(uint8ArrayToBase64(compressString(value.getString())))
+			return ParsedValue.fromString(uint8ArrayToBase64(compressString(value.getString())))
 		case ValueTypeEnum.Bytes:
-			return ServerIncomingData.fromString(uint8ArrayToBase64(value.getByteArray()))
+			return ParsedValue.fromString(uint8ArrayToBase64(value.getByteArray()))
 		case ValueTypeEnum.Boolean:
-			return ServerIncomingData.fromString(value.getBoolean() ? "1" : "0")
+			return ParsedValue.fromString(value.getBoolean() ? "1" : "0")
 		case ValueTypeEnum.CustomId:
-			return ServerIncomingData.fromString(value.getId())
+			return ParsedValue.fromString(value.getId())
 	}
 }
 

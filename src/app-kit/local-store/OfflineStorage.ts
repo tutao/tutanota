@@ -18,12 +18,14 @@ import {
 	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
+	ParsedValue,
 	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
 	SomeEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeRef,
+	UntypedInstance,
 } from "../../platform-kit/meta"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -49,7 +51,7 @@ import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { OutOfSyncError } from "../../platform-kit/app-env/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper, TypeModelResolver } from "../../platform-kit/instance-pipeline"
-import { isAdminClient, isBrowser, isDesktop, isTest } from "../../platform-kit/app-env"
+import { isAdminClient, isBrowser, isDesktop, isTest, ProgrammingError } from "../../platform-kit/app-env"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { FormattedQuery, TaggedSqlValue } from "./Types"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
@@ -1015,8 +1017,18 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	private async serialize(parsedInstance: ServerModelParsedInstance): Promise<Uint8Array> {
+		const mapItem = () => {}
+		const mapInstance = (instance: ServerModelParsedInstance): Record<string, any> => {
+			const mappedObj: Record<string, any> = {}
+
+			for (const [attributeId, attributeValue] of Object.entries(instance)) {
+			}
+
+			return mappedObj
+		}
+
 		try {
-			return cborg.encode(parsedInstance, { typeEncoders: customTypeEncoders })
+			return cborg.encode(mapInstance(parsedInstance), { typeEncoders: customTypeEncoders })
 		} catch (e) {
 			console.log("[OfflineStorage] failed to encode entity with attribute ids: " + Object.keys(parsedInstance))
 			throw e
@@ -1026,9 +1038,37 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Convert the type from CBOR representation to the runtime type
 	 */
-	private async deserialize(loaded: Uint8Array): Promise<ServerModelParsedInstance | null> {
+	private async deserialize(loaded: Uint8Array): Promise<UntypedInstance | null> {
 		try {
-			return cborg.decode(loaded, { tags: customTypeDecoders })
+			const deserializedItem: Record<string, any> = cborg.decode(loaded, { tags: customTypeDecoders })
+
+			const mapValueToParsedValue = (attributeValue: any): ParsedValue => {
+				if (attributeValue == null) {
+					return ParsedValue.fromNull()
+				} else if (typeof attributeValue === "string") {
+					return ParsedValue.fromString(attributeValue)
+				} else if (attributeValue.constructor === Uint8Array.constructor) {
+					return ParsedValue.from(attributeValue as Uint8Array)
+				} else if (attributeValue.constructor === Date.constructor) {
+					return ParsedValue.fromDate(attributeValue as Date)
+				} else if (Array.isArray(attributeValue)) {
+					return ParsedValue.fromArray(attributeValue.map((a) => mapValueToParsedValue(a)))
+				} else if (typeof attributeValue === "object") {
+					return ParsedValue.fromSingleAggregate(mapInstance(attributeValue))
+				} else {
+					throw new ProgrammingError("Unknown value: " + JSON.stringify(attributeValue))
+				}
+			}
+
+			const mapInstance = (instance: Record<string, any>): UntypedInstance => {
+				const mappedInstance = {} as UntypedInstance
+				for (const [attributeIdStr, attributeValue] of Object.entries(instance)) {
+					mappedInstance[parseInt(attributeIdStr)] = mapValueToParsedValue(attributeValue)
+				}
+				return mappedInstance
+			}
+
+			return mapInstance(deserializedItem)
 		} catch (e) {
 			console.log(`Error with CBOR decode. Trying to decode (of type: ${typeof loaded}): ${loaded}`)
 			return null

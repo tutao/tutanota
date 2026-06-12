@@ -1,5 +1,5 @@
 import { assertNotNull, isNotNull } from "@tutao/utils"
-import { AttributeId, AttributeName, ModelAssociation, ModelValue, ParsedValue, ServerIncomingData, TypeId, TypeModel, UntypedInstance } from "./EntityTypes"
+import { AttributeId, AttributeName, ModelAssociation, ModelValue, ParsedValue, ParsedValue, TypeId, TypeModel, UntypedInstance } from "./EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AppName } from "./TypeRef.js"
 
@@ -31,11 +31,11 @@ export class AttributeModel {
 			// convert all value to ServerIncomingData
 			(value) => {
 				if (value == null) {
-					return ServerIncomingData.fromNull()
+					return ParsedValue.fromNull()
 				} else if (typeof value === "string") {
-					return ServerIncomingData.fromString(value)
+					return ParsedValue.fromString(value)
 				} else if (typeof value === "object") {
-					return ServerIncomingData.fromAggregatedItems(value)
+					return ParsedValue.fromAggregatedItems(value)
 				} else {
 					throw new ProgrammingError("All of our values are string, array or nested object")
 				}
@@ -54,15 +54,15 @@ export class AttributeModel {
 		return isNotNull(attrId) ? instance[attrId] : ParsedValue.fromNull()
 	}
 
-	static getAttributeOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ServerIncomingData {
+	static getAttributeOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ParsedValue {
 		const attrId = assertNotNull(AttributeModel.getAttributeId(typeModel, attrName), `expected attribute ${attrName} in ${typeModel.app}/${typeModel.name}`)
 		const value = instance[attrId]
 		return assertNotNull(value, attrName)
 	}
 
-	static getAttributeOrNullOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ServerIncomingData {
+	static getAttributeOrNullOnServerInstance(instance: UntypedInstance, attrName: string, typeModel: TypeModel): ParsedValue {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
-		return isNotNull(attrId) ? instance[attrId] : ServerIncomingData.fromNull()
+		return isNotNull(attrId) ? instance[attrId] : ParsedValue.fromNull()
 	}
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {

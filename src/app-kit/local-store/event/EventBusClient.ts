@@ -420,7 +420,10 @@ export class EventBusClient {
 				const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 				const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
 				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(untypedInstance)
-				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
+				const encryptedParsedInstance = (await this.instancePipeline.typeMapper.applyJsTypes(
+					serverTypeModel,
+					untypedInstanceSanitized,
+				)) as ServerModelParsedInstance
 				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
 				const migratedEntity = await this.entityMigrator.applyMigrations(typeRef, entityAdapter)
 				const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
@@ -440,10 +443,10 @@ export class EventBusClient {
 						const mailDetailsBlobUntypedInstance = JSON.parse(event.blobInstance) as ServerModelUntypedInstance
 						const mailDetailsBlobUntypedInstanceSanitized =
 							AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(mailDetailsBlobUntypedInstance)
-						const mailDetailsBlobEncryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(
+						const mailDetailsBlobEncryptedParsedInstance = (await this.instancePipeline.typeMapper.applyJsTypes(
 							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobUntypedInstanceSanitized,
-						)
+						)) as ServerModelParsedInstance
 						const parsedBlobInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 							mailDetailsBlobServerTypeModel,
 							mailDetailsBlobEncryptedParsedInstance,

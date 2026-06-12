@@ -1,18 +1,7 @@
-import { assert, assertNotNull } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { convertJsToServerJson, convertServerJsonToJsType } from "./ModelMapper"
 import { TypeModelResolver } from "./EntityFunctions"
-import {
-	AssociationType,
-	ClientTypeModel,
-	ParsedInstance,
-	ParsedValue,
-	ServerIncomingData,
-	ServerTypeModel,
-	TypeModel,
-	TypeRef,
-	UntypedInstance,
-} from "@tutao/meta"
+import { AssociationType, ClientTypeModel, ParsedInstance, ParsedValue, ServerTypeModel, TypeModel, TypeRef, UntypedInstance } from "@tutao/meta"
 
 /**
  * takes a raw parsed JSON value as received from the server and converts its attribute values from the
@@ -32,15 +21,11 @@ export class TypeMapper {
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
 			const untypedValue = instance[attrId]
-			assert(
-				untypedValue.arrayValue == null && untypedValue.nestedObj == null,
-				"values at this stage are only strings, the other types are only possible for associations",
-			)
 
 			if (untypedValue.isNull()) {
 				parsedInstance[attrId] = ParsedValue.fromNull()
 			} else {
-				const stringValue = assertNotNull(untypedValue.stringValue)
+				const stringValue = untypedValue.asString()
 				if (modelValue.encrypted) {
 					// will be decrypted and mapped at a later stage
 					parsedInstance[attrId] = ParsedValue.fromString(stringValue)
@@ -52,31 +37,28 @@ export class TypeMapper {
 
 		for (const [attrIdStr, modelAssociation] of Object.entries(serverTypeModel.associations)) {
 			const attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
-			const incomingData = instance[attrId]
-			const associationValues = assertNotNull(incomingData.arrayValue, "Always expected an array")
-			assert(incomingData.stringValue == null && incomingData.nestedObj == null, "All associations are kept inside an array")
+			const associationValues = instance[attrId].asArray()
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
-				const mappedAggregates = associationValues.map(async (aggregatedItem) => {
-					return await this.applyJsTypes(associationTypeModel, aggregatedItem.asNestedObj())
-				})
+				const mappedAggregates = associationValues
+					.map((nestedObj) => nestedObj.asNestedObj())
+					.map(async (aggregatedItem) => {
+						return await this.applyJsTypes(associationTypeModel, aggregatedItem)
+					})
 				parsedInstance[attrId] = ParsedValue.fromAggregatedItems(await Promise.all(mappedAggregates))
 			} else if (modelAssociation.type === AssociationType.ListAssociation || modelAssociation.type === AssociationType.ElementAssociation) {
-				const mappedIds = associationValues.map((idItem) => ParsedValue.fromId(idItem.asString()))
-				parsedInstance[attrId] = ParsedValue.fromArray(mappedIds)
+				const mappedIds = associationValues.map((idItem) => idItem.asId())
+				parsedInstance[attrId] = ParsedValue.fromIdList(mappedIds)
 			} else if (
 				modelAssociation.type === AssociationType.BlobElementAssociation ||
 				modelAssociation.type === AssociationType.ListElementAssociationGenerated ||
 				modelAssociation.type === AssociationType.ListElementAssociationCustom
 			) {
-				const mappedIds = associationValues.map((idItem) => {
-					const [listId, elementId] = idItem.asArray().map((a) => a.asString())
-					return ParsedValue.fromIdTuple([listId, elementId] satisfies IdTuple)
-				})
-				parsedInstance[attrId] = ParsedValue.fromArray(mappedIds)
+				const mappedIds = associationValues.map((idTupleItem) => idTupleItem.asIdTuple())
+				parsedInstance[attrId] = ParsedValue.fromIdTupleList(mappedIds)
 			}
 		}
 
@@ -91,7 +73,7 @@ export class TypeMapper {
 			const attrId = parseInt(attrIdStr)
 			const value = instance[attrId]
 
-			if (modelValue.encrypted && value.stringValue == null && !value.isNull()) {
+			if (modelValue.encrypted && value.isString() && !value.isNull()) {
 				throw new ProgrammingError(
 					`received encrypted value that is not a string, should have been converted already. ${clientTypeModel.name}/${clientTypeModel.id}, ${modelValue.name}`,
 				)
@@ -102,26 +84,28 @@ export class TypeMapper {
 		for (const [attrIdStr, modelAssociation] of Object.entries(clientTypeModel.associations)) {
 			const debugAttrId = env.networkDebugging ? attrIdStr + ":" + modelAssociation.name : attrIdStr
 			const attrId = parseInt(attrIdStr)
-			const associationValues = instance[attrId].getArray()
+			const associationValues = instance[attrId].asArray()
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? clientTypeModel.app
 				const associationTypeModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
-				const mappedAggregates = associationValues.map(async (aggregatedItem) => {
-					return await this.applyDbTypes(associationTypeModel, aggregatedItem.getAggregate())
-				})
-				untypedInstance[debugAttrId] = ServerIncomingData.fromAggregatedItems(await Promise.all(mappedAggregates))
+				const mappedAggregates = associationValues
+					.map((assoc) => assoc.asNestedObj())
+					.map(async (aggregatedItem) => {
+						return await this.applyDbTypes(associationTypeModel, aggregatedItem)
+					})
+				untypedInstance[debugAttrId] = ParsedValue.fromAggregatedItems(await Promise.all(mappedAggregates))
 			} else if (modelAssociation.type === AssociationType.ListAssociation || modelAssociation.type === AssociationType.ElementAssociation) {
-				const mappedIds = associationValues.map((id) => id.getString())
-				untypedInstance[debugAttrId] = ServerIncomingData.fromIdList(mappedIds)
+				const mappedIds = associationValues.map((id) => id.asId())
+				untypedInstance[debugAttrId] = ParsedValue.fromIdList(mappedIds)
 			} else if (
 				modelAssociation.type === AssociationType.BlobElementAssociation ||
 				modelAssociation.type === AssociationType.ListElementAssociationGenerated ||
 				modelAssociation.type === AssociationType.ListElementAssociationCustom
 			) {
-				const mappedIds = associationValues.map((id) => id.getidTuple())
-				untypedInstance[debugAttrId] = ServerIncomingData.fromIdTupleList(mappedIds)
+				const mappedIds = associationValues.map((id) => id.asIdTuple())
+				untypedInstance[debugAttrId] = ParsedValue.fromIdTupleList(mappedIds)
 			}
 		}
 

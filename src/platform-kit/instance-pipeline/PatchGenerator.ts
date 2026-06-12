@@ -1,4 +1,4 @@
-import { AttributeId, isSameIdTuple, ParsedInstance, ParsedValue, ServerIncomingData, TypeModel, UntypedInstance, ValueTypeEnum } from "@tutao/meta"
+import { AttributeId, isSameIdTuple, ParsedInstance, ParsedValue, ParsedValue, TypeModel, UntypedInstance, ValueTypeEnum } from "@tutao/meta"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs.js"
 import { TypeRef } from "../meta/TypeRef.js"
 import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, isNotEmpty, isNotNull, Nullable } from "@tutao/utils"
@@ -66,7 +66,7 @@ export async function computePatchPayload(
 export async function computePatches(
 	originalInstance: Record<AttributeId, ParsedValue>,
 	modifiedInstance: Record<AttributeId, ParsedValue>,
-	modifiedUntypedInstance: Record<string, ServerIncomingData>,
+	modifiedUntypedInstance: Record<string, ParsedValue>,
 	typeModel: TypeModel,
 	typeReferenceResolver: ClientTypeReferenceResolver,
 	isNetworkDebuggingEnabled: boolean,
@@ -195,7 +195,7 @@ export async function computePatches(
 						return isSameId(instance[aggregateIdAttributeId].getId(), commonAggregateId)
 					}),
 				)
-				const commonItemModifiedUntyped: Record<string, ServerIncomingData> = assertNotNull(
+				const commonItemModifiedUntyped: Record<string, ParsedValue> = assertNotNull(
 					modifiedAggregatedUntypedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
 						let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()

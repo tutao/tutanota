@@ -46,7 +46,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	get _ownerKeyVersion(): null | NumberString {
-		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel).stringValue
+		return AttributeModel.getAttributeOrNullOnClientInstance(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel).asString()
 	}
 
 	set _ownerKeyVersion(value: NumberString) {
@@ -58,7 +58,7 @@ export class EntityAdapter implements Entity {
 	}
 
 	set _kdfNonce(value: Uint8Array) {
-		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_kdfNonce"))] = ParsedValue.fromBytes(value)
+		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_kdfNonce"))] = ParsedValue.fromString(value)
 	}
 
 	get ownerEncSessionKey(): null | Uint8Array {
