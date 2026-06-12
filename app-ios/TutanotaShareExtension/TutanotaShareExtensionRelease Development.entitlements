@@ -4,8 +4,9 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.de.tutao.calendar.debug</string>
 		<string>group.de.tutao.tutanota.debug</string>
+		<string>group.de.tutao.calendar.debug</string>
+		<string>group.de.tutao.drive.debug</string>
 	</array>
 </dict>
 </plist>
