@@ -1222,10 +1222,20 @@ export class MailViewerViewModel {
 	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
 		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
-		const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
-			console.warn("Failed to urlify mail body!", e)
-			return rawBody
+		const timeoutUrlify = new Promise<string>((resolve) => {
+			setTimeout(() => {
+				console.warn("A mail has taken too long to be processed by urlify and we will use raw body instead.")
+				resolve(rawBody)
+			}, 25_000)
 		})
+
+		const urlified = await Promise.race([
+			this.workerFacade.urlify(rawBody).catch((e) => {
+				console.warn("Failed to urlify mail body!", e)
+				return rawBody
+			}),
+			timeoutUrlify,
+		])
 		const sanitizeResult = getHtmlSanitizer().sanitizeFragment(urlified, {
 			blockExternalContent,
 			allowRelativeLinks: isTutaTeamMail(mail),
