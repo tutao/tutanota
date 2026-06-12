@@ -663,10 +663,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return m(AttachmentBubble, {
 				attachment,
 				remove: null,
-				download:
-					isAndroidApp() || isDesktop()
-						? () => viewModel.downloadAndOpenAttachment(attachment, false)
-						: () => viewModel.downloadAndOpenAttachment(attachment, true),
+				download: () => viewModel.downloadAndOpenAttachment(attachment, false),
 				open: isAndroidApp() || isDesktop() ? () => viewModel.downloadAndOpenAttachment(attachment, true) : null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,

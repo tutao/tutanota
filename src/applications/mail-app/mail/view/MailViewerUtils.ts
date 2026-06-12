@@ -136,6 +136,7 @@ export async function createEditDraftDialog(viewModel: MailViewerViewModel, loca
 				}
 
 				const editorDialog = await newMailEditorFromDraft(
+					viewModel.attachmentDownloader,
 					viewModel.mail,
 					await loadMailDetails(locator.mailFacade, viewModel.mail),
 					conversationEntry,
