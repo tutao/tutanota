@@ -22,7 +22,7 @@ import {
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 } from "../encryption/Liboqs/KyberKeyPair.js"
-import { RawRsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
+import { RsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { AesKeyLength, getKeyLengthInBytes } from "../encryption/symmetric/AesKeyLength.js"
@@ -150,7 +150,7 @@ export class CryptoWrapper {
 		return kyberKeyPair.publicKey
 	}
 
-	verifyRsaPublicKey(rsaKeyPair: RsaKeyPair): RawRsaPublicKey {
+	verifyRsaPublicKey(rsaKeyPair: RsaKeyPair): RsaPublicKey {
 		const providedPublicKey = rsaKeyPair.publicKey
 		const extractedPubKey = extractRawPublicRsaKeyFromPrivateRsaKey(rsaKeyPair.privateKey)
 		if (

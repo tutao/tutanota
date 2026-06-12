@@ -75,6 +75,7 @@ export {
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
 export { Randomizer, random } from "./random/Randomizer.js"
+export { EntropyDataChunk } from "./random/EntropyDataChunk.js"
 export {
 	encode,
 	hexToRsaPublicKey,
@@ -86,14 +87,7 @@ export {
 	extractRawPublicRsaKeyFromPrivateRsaKey,
 	rsaPublicKeyToBytes,
 } from "./encryption/Rsa.js"
-export {
-	type RsaKeyPair,
-	type RsaX25519KeyPair,
-	type RsaPrivateKey,
-	type RawRsaPublicKey,
-	type RsaPublicKey,
-	type RsaX25519PublicKey,
-} from "./encryption/RsaKeyPair.js"
+export { RsaKeyPair, RsaX25519KeyPair, RsaPrivateKey, RsaPublicKey, RsaX25519PublicKey } from "./encryption/RsaKeyPair.js"
 export {
 	KeyPairType,
 	type AsymmetricKeyPair,
