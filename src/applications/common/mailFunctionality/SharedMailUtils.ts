@@ -7,11 +7,11 @@ import { lang, Language, TranslationKey } from "../../../ui/utils/LanguageViewMo
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
-import { showFileChooser } from "../file/FileController.js"
+import { FileChooserMultiMode, showFileChooser } from "../file/FileController.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { ImageHandler } from "../../../ui/editor/Editor"
-import { CustomerPropertiesTypeRef, GroupInfo, User } from "../../../entities/sys/TypeRefs"
-import { Contact, createContact, createContactMailAddress, Mail } from "../../../entities/tutanota/TypeRefs"
+import { CustomerPropertiesTypeRef, GroupInfo, User } from "@tutao/entities/sys"
+import { Contact, createContact, createContactMailAddress, Mail } from "@tutao/entities/tutanota"
 import { Attachment, ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
 import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
@@ -281,7 +281,7 @@ export function isNoReplyTeamAddress(address: string): boolean {
 }
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+	showFileChooser(FileChooserMultiMode.Multi, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig: DataFile[] = []
 
 		for (let file of files) {
