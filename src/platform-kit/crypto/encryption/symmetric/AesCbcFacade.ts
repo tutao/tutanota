@@ -1,11 +1,11 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
 import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
+import { AesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
@@ -108,7 +108,7 @@ export class AesCbcFacade {
 	): Promise<Uint8Array> {
 		await this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256Async)
 		try {
-			const encryptionKey = await crypto.subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
+			const encryptionKey = await crypto.subtle.importKey("raw", keyToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
 			return new Uint8Array(
 				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector.bytes }, encryptionKey, parsedCiphertext.ciphertext),
 			)
@@ -153,9 +153,9 @@ export class AesCbcFacade {
 				return
 			} else {
 				// we must enforce authentication but for legacy 128-bit keys we cannot (backward compatibility)
-				const keyLength = getAndVerifyAesKeyLength(subKeys.encryptionKey)
+				const keyLength = subKeys.encryptionKey.keyLength
 				if (subKeys.authenticationKey != null) {
-					if (getAndVerifyAesKeyLength(subKeys.authenticationKey) !== keyLength) {
+					if (subKeys.authenticationKey.keyLength !== keyLength) {
 						throw new CryptoError("invalid sub-keys")
 					}
 				}

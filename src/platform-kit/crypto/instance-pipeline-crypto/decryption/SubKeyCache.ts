@@ -17,7 +17,7 @@ export class InstanceSubKeyCache<V> {
 	}
 
 	private serializeInstanceSubKeyCacheKey(key: InstanceSubKeyCacheKey): string {
-		return `${key.cipherVersion},[${key.aesKey.join(",")}]`
+		return `${key.cipherVersion},[${key.aesKey.bits.join(",")}]`
 	}
 }
 

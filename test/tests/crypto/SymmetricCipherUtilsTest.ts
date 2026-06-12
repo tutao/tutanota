@@ -4,7 +4,6 @@ import {
 	AesKeyLength,
 	base64ToKey,
 	bitArrayToUint8Array,
-	getAndVerifyAesKeyLength,
 	keyToBase64,
 	keyToUint8Array,
 	uint8ArrayToBitArray,
@@ -36,11 +35,11 @@ o.spec("SymmetricCipherUtilsTest", function () {
 		o("check key", function () {
 			const expectedKeyLength = AesKeyLength.Aes256
 			const key = aes256RandomKey()
-			const actualKeyLength = getAndVerifyAesKeyLength(key)
+			const actualKeyLength = key.keyLength
 			o(actualKeyLength).equals(expectedKeyLength)
 			const key2 = aes256RandomKey()
 			o(key2).notDeepEquals(key)
-			o(getAndVerifyAesKeyLength(key2)).equals(expectedKeyLength)
+			o(key2.keyLength).equals(expectedKeyLength)
 		})
 	})
 })

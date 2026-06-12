@@ -165,7 +165,7 @@ export class CryptoWrapper {
 	}
 }
 
-function deriveKey({ salt, key, info, length }: { salt: string; key: number[]; info: string; length: number }) {
+function deriveKey({ salt, key, info, length }: { salt: string; key: AesKey; info: string; length: number }) {
 	return uint8ArrayToKey(hkdf(sha256Hash(stringToUtf8Uint8Array(salt)), keyToUint8Array(key), stringToUtf8Uint8Array(info), length))
 }
 

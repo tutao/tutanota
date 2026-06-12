@@ -14,7 +14,6 @@ import {
 	cryptoUtils,
 	CryptoWrapper,
 	EncryptedPqKeyPairs,
-	getAndVerifyAesKeyLength,
 	HkdfKeyDerivationDomains,
 	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
@@ -1364,7 +1363,7 @@ export class KeyRotationFacade {
  * We require AES keys to be 256-bit long to be quantum-safe because of Grover's algorithm.
  */
 function isQuantumSafe(key: AesKey) {
-	return getAndVerifyAesKeyLength(key) === AesKeyLength.Aes256
+	return key.keyLength === AesKeyLength.Aes256
 }
 
 function hasNonQuantumSafeKeys(...keys: AesKey[]) {
@@ -1395,8 +1394,11 @@ export class KeyRotationRolloutAction implements RolloutAction {
 		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {
-				const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
-				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, assert256BitKey(requiredPasswordKey))
+				let requiredPasswordKey: Nullable<Aes256Key> = null
+				if (this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation) {
+					requiredPasswordKey = assert256BitKey(this.userPassphraseKey)
+				}
+				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
 			}
 		}
 	}

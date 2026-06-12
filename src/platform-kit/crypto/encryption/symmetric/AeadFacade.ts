@@ -1,7 +1,6 @@
 import { AeadSubKeys, AeadWithGroupKeySubKeys, AeadWithSessionKeySubKeys } from "./SymmetricKeyDeriver.js"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
 import { concat } from "@tutao/utils"
-import { bitArrayToUint8Array, generateInitializationVector, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
+import { bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
 import { CryptoError } from "../../error.js"
@@ -63,8 +62,6 @@ export class AeadFacade {
 	 * @private
 	 */
 	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(subKeys)
-
 		const initializationVector = generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
 			sjcl.mode.ctr.encrypt(
@@ -78,7 +75,7 @@ export class AeadFacade {
 		const initializationVectorAndCiphertext = concat(initializationVector.bytes, aesCtrCiphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 
-		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
+		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
 		const tag = blake3Mac(authenticationKey, concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData))
 
 		return concat(this.ciphertextVersionPrefix(subKeys), initializationVectorAndCiphertext, tag)
@@ -101,7 +98,6 @@ export class AeadFacade {
 	 * Decrypt with AEAD.
 	 */
 	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(subKeys)
 		if (subKeys.cipherVersion !== parsedCiphertext.cipherVersion) {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
@@ -109,7 +105,7 @@ export class AeadFacade {
 		const initializationVectorAndCiphertext = concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 		const authenticatedData = concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
-		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
+		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
 		blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
 
 		const paddedPlaintext = bitArrayToUint8Array(
@@ -121,11 +117,6 @@ export class AeadFacade {
 			),
 		)
 		return this.unpad(paddedPlaintext)
-	}
-
-	private validateKeyLength(key: AeadSubKeys) {
-		getAndVerifyAesKeyLength(key.encryptionKey, [AesKeyLength.Aes256])
-		getAndVerifyAesKeyLength(key.authenticationKey, [AesKeyLength.Aes256])
 	}
 
 	private getSigned32BitIntegerFromNumberAsUint8Array(integer: number): Uint8Array {

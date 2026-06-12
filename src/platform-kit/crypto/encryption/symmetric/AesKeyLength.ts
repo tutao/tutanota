@@ -1,5 +1,5 @@
 import { CryptoError } from "@tutao/crypto/error"
-import { Aes256Key, BitArray } from "./SymmetricCipherUtils.js"
+import { Aes128Key, Aes256Key, AesKey, BitArray } from "./SymmetricCipherUtils.js"
 import { Nullable } from "@tutao/utils"
 
 export enum AesKeyLength {
@@ -16,22 +16,24 @@ export function getKeyLengthInBytes(keyLength: AesKeyLength): number {
 	return keyLength / 8
 }
 
-export function getAndVerifyAesKeyLength(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): AesKeyLength {
+export function wrapKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): Aes256Key {
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
-	if (acceptedBitLengths.includes(keyLength)) {
-		return keyLength
-	} else {
+	if (!acceptedBitLengths.includes(keyLength)) {
 		throw new CryptoError(`Illegal key length: ${keyLength} (expected: ${acceptedBitLengths})`)
+	}
+	switch (keyLength) {
+		case AesKeyLength.Aes128:
+			return new Aes128Key(key)
+		case AesKeyLength.Aes256:
+			return new Aes256Key(key)
 	}
 }
 
-export function assert256BitKey(key: BitArray): Aes256Key
-export function assert256BitKey(key: Nullable<BitArray>): Nullable<Aes256Key>
-export function assert256BitKey(key: Nullable<BitArray>): Nullable<Aes256Key> {
-	if (key == null) {
-		return null
+export function assert256BitKey(key: AesKey): Aes256Key {
+	if (key instanceof Aes256Key) {
+		return key
+	} else {
+		throw new CryptoError(`Illegal key length: ${getKeyLengthInBytes(key.bits.length * 4 * 8)} (expected: 256)`)
 	}
-	getAndVerifyAesKeyLength(key, [AesKeyLength.Aes256])
-	return key as Aes256Key
 }

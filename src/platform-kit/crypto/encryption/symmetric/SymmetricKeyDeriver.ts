@@ -1,13 +1,15 @@
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
+import { AesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { Aes256Key, AesKey, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { Aes128Key, Aes256Key, AesKey, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat, KeyVersion } from "@tutao/utils"
 import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, VersionedKey } from "../../CryptoTypes"
+import { ProgrammingError } from "@tutao/app-env"
 
-export abstract class SymmetricSubKeys {
+export abstract class KeyOrSubKey {}
+export abstract class SymmetricSubKeys implements KeyOrSubKey {
 	abstract readonly cipherVersion: SymmetricCipherVersion
 
 	constructor(
@@ -87,17 +89,17 @@ export class SymmetricKeyDeriver {
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
 	deriveSubKeysAesCbcHmac(key: AesKey): AesCbcSubKeys {
-		const keyLength = getAndVerifyAesKeyLength(key)
 		let hashedKey: Uint8Array
-		switch (keyLength) {
-			case AesKeyLength.Aes128:
-				hashedKey = sha256Hash(keyToUint8Array(key))
-				break
-			case AesKeyLength.Aes256:
-				hashedKey = sha512Hash(keyToUint8Array(key))
-				break
+		let keyLengthInBytes: number
+		if (key instanceof Aes128Key) {
+			hashedKey = sha256Hash(keyToUint8Array(key))
+			keyLengthInBytes = getKeyLengthInBytes(AesKeyLength.Aes128)
+		} else if (key instanceof Aes256Key) {
+			hashedKey = sha512Hash(keyToUint8Array(key))
+			keyLengthInBytes = getKeyLengthInBytes(AesKeyLength.Aes256)
+		} else {
+			throw new ProgrammingError("invalid key type")
 		}
-		const keyLengthInBytes = getKeyLengthInBytes(keyLength)
 		return new AesCbcThenHmacSubKeys(
 			uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
 			uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
@@ -124,7 +126,7 @@ export class SymmetricKeyDeriver {
 		return new AeadWithSessionKeySubKeys(keys.encryptionKey, keys.authenticationKey)
 	}
 
-	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array<ArrayBufferLike>, context: string): EncryptionAndAuthenticationKey {
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string): EncryptionAndAuthenticationKey {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 
 		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)

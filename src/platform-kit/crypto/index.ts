@@ -123,9 +123,9 @@ export {
 	createAuthVerifierAsBase64Url,
 	createAuthVerifier,
 	type BitArray,
-	type AesKey,
-	type Aes128Key,
-	type Aes256Key,
+	AesKey,
+	Aes128Key,
+	Aes256Key,
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
 	FIXED_INITIALIZATION_VECTOR,
 	type InitializationVector,
@@ -135,7 +135,7 @@ export {
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
-export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKeyLength.js"
+export { AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKeyLength.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
