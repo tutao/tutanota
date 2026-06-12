@@ -1,6 +1,6 @@
 import m from "mithril"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { contains, debounce, findAllAndRemove, isNotNull, ofClass } from "../../../../platform-kit/utils"
+import { contains, debounce, findAllAndRemove, isNotNull, ofClass } from "@tutao/utils"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FileNotFoundError } from "../../../common/api/common/error/FileNotFoundError"
@@ -9,8 +9,8 @@ import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { showFileChooser } from "../../../common/file/FileController.js"
-import { Mode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController.js"
+import { Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
 import { showDownloadProgressDialog } from "../view/MailGuiUtils"
 import { Attachment, FileReference, isDataFile, isFileReference, isTutanotaFile } from "../../../../entities/tutanota/Utils"
@@ -59,7 +59,7 @@ export async function chooseAndAttachFile(
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector = [Mode.App, Mode.Desktop].includes(env.mode)
 		? locator.fileApp.openFileChooser(boundingRect, fileTypes)
-		: showFileChooser(true, fileTypes)
+		: showFileChooser(FileChooserMultiMode.Multi, fileTypes)
 	return fileSelector
 		.catch(
 			ofClass(PermissionError, () => {

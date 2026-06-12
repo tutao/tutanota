@@ -8,7 +8,7 @@ import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/Legac
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import { locator } from "../../api/main/CommonLocator.js"
-import { showFileChooser } from "../../file/FileController.js"
+import { FileChooserMultiMode, showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import type { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
@@ -109,7 +109,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	}
 
 	private async editCustomLogo({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
-		const [file] = await showFileChooser(false)
+		const [file] = await showFileChooser(FileChooserMultiMode.Single)
 		if (!file) return
 
 		let extension = file.name.toLowerCase().substring(file.name.lastIndexOf(".") + 1)
