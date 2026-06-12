@@ -367,6 +367,6 @@ o.spec("RsaTest", function () {
 
 	o("extract public key", function () {
 		const extractedPublicKey = extractRawPublicRsaKeyFromPrivateRsaKey(RSA_TEST_KEYPAIR.privateKey)
-		o({ keyPairType: KeyPairType.RSA, ...extractedPublicKey }).deepEquals(RSA_TEST_KEYPAIR.publicKey)
+		o({ ...extractedPublicKey }).deepEquals(RSA_TEST_KEYPAIR.publicKey)
 	})
 })

@@ -59,7 +59,7 @@ o.spec("ValueDecryptorTest", () => {
 			new Uint8Array([1, 2]),
 			InitializationVectorVariant.Random,
 		)
-		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector, parsedCiphertext.ciphertext)
+		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector.bytes, parsedCiphertext.ciphertext)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")
 		valueDecryptor.getValue(null)
@@ -76,7 +76,12 @@ o.spec("ValueDecryptorTest", () => {
 		const initializationVectorVariant = InitializationVectorVariant.Random
 		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag, initializationVectorVariant)
 
-		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector, parsedCiphertext.ciphertext, macTag)
+		const ciphertext = concat(
+			symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
+			initializationVector.bytes,
+			parsedCiphertext.ciphertext,
+			macTag,
+		)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")
 		valueDecryptor.getValue(null)
@@ -89,7 +94,7 @@ o.spec("ValueDecryptorTest", () => {
 	o.test("AesCbc with session key missing", async () => {
 		for (const cipherVersion of [SymmetricCipherVersion.UnusedReservedUnauthenticated, SymmetricCipherVersion.AesCbcThenHmac]) {
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
-			const ciphertext = concat(Uint8Array.of(cipherVersion), initializationVector, macTag)
+			const ciphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, macTag)
 			const e = await assertThrows(SessionKeyNotFoundError, async () => {
 				instanceDecryptor.getValueDecryptor(ciphertext, "")
 			})
@@ -105,7 +110,7 @@ o.spec("ValueDecryptorTest", () => {
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(
 			Uint8Array.of(SymmetricCipherVersion.AeadWithGroupKey, keyVersionLengthByte, groupKeyVersion),
-			initializationVector,
+			initializationVector.bytes,
 			ciphertext,
 			macTag,
 		)
@@ -122,7 +127,7 @@ o.spec("ValueDecryptorTest", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector, ciphertext, macTag)
+		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals("none")
@@ -135,7 +140,7 @@ o.spec("ValueDecryptorTest", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector, ciphertext, macTag)
+		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const e = await assertThrows(SessionKeyNotFoundError, async () => {
 			instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
 		})

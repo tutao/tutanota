@@ -103,6 +103,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
+import { PQKeyPairs } from "../../../../src/platform-kit/crypto/encryption/PQKeyPairs.js"
 import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
@@ -569,17 +570,10 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(
-			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
-				{
-					keyPairType: pqKeyPairs_v1.keyPairType,
-					x25519KeyPair: pqKeyPairs_v1.x25519KeyPair,
-					kyberKeyPair: pqKeyPairs_v1.kyberKeyPair,
-				},
-				protocolVersion,
-				pubEncBucketKey,
-			),
-		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
+		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
+			decryptedAesKey: bk,
+			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
+		})
 		when(userFacade.createAuthHeaders()).thenReturn({})
 		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
 		when(
@@ -883,7 +877,7 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: object(),
 		}
-		recipientPublicKey.object.keyPairType = KeyPairType.TUTA_CRYPT
+		;(recipientPublicKey.object as any).keyPairType = KeyPairType.TUTA_CRYPT
 		const loadedRecipientPublicKey: VerifiedPublicEncryptionKey = {
 			publicEncryptionKey: recipientPublicKey,
 			verificationState: EncryptionKeyVerificationState.NO_ENTRY,
@@ -934,7 +928,7 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: object(),
 		}
-		recipientPublicKey.object.keyPairType = KeyPairType.TUTA_CRYPT
+		;(recipientPublicKey.object as any).keyPairType = KeyPairType.TUTA_CRYPT
 		const loadedRecipientPublicKey: VerifiedPublicEncryptionKey = {
 			publicEncryptionKey: recipientPublicKey,
 			verificationState: EncryptionKeyVerificationState.NO_ENTRY,
@@ -1100,11 +1094,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				kyberKeyPair: object(),
-				x25519KeyPair: object(),
-			},
+			object: new PQKeyPairs(object(), object()),
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
@@ -1130,11 +1120,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything(), anything())).thenResolve({
 			version: 1,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				kyberKeyPair: object(),
-				x25519KeyPair: object(),
-			},
+			object: new PQKeyPairs(object(), object()),
 		})
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
@@ -1717,11 +1703,7 @@ o.spec("CryptoFacadeTest", function () {
 			recipientKeyVersion: "0",
 		})
 		when(keyLoaderFacade.loadCurrentKeyPair(recipientUser.userGroup._id, anything())).thenResolve({
-			object: {
-				keyPairType: KeyPairType.RSA,
-				publicKey: RSA_TEST_KEYPAIR.publicKey,
-				privateKey: RSA_TEST_KEYPAIR.privateKey,
-			},
+			object: RSA_TEST_KEYPAIR,
 			version: 0,
 		})
 
@@ -1821,17 +1803,10 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(
-			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
-				{
-					keyPairType: pqKeyPairs.keyPairType,
-					x25519KeyPair: pqKeyPairs.x25519KeyPair,
-					kyberKeyPair: pqKeyPairs.kyberKeyPair,
-				},
-				CryptoProtocolVersion.TUTA_CRYPT,
-				pubEncBucketKey,
-			),
-		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
+		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
+			decryptedAesKey: bk,
+			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
+		})
 
 		when(
 			asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(

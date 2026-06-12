@@ -9,7 +9,6 @@ import {
 	aes256RandomKey,
 	AesCbcThenHmacSubKeys,
 	FIXED_INITIALIZATION_VECTOR,
-	InitializationVector,
 	keyToUint8Array,
 	MacTag,
 	ParsedCiphertextAesCbcThenHmac,
@@ -17,6 +16,7 @@ import {
 	UnusedReservedUnauthenticatedSubKeys,
 	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
+import { InitializationVector } from "../../../src/platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils.js"
 import { _aes128RandomKey } from "./AesTest.js"
 import { concat } from "../../../src/platform-kit/utils"
 import { InitializationVectorVariant } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
@@ -64,7 +64,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 				aesCbcFacade.encrypt(
 					aes256SubKeys,
 					plaintext,
-					matchers.argThat((arg) => arg instanceof Uint8Array),
+					matchers.argThat((arg) => arg instanceof InitializationVector),
 					PaddingStandard.Pkcs5,
 					SymmetricCipherVersion.AesCbcThenHmac,
 					AuthenticationEnforcement.Strict,
@@ -77,7 +77,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 				aesCbcFacade.encrypt(
 					aes256SubKeys,
 					plaintext,
-					matchers.argThat((arg) => arg instanceof Uint8Array),
+					matchers.argThat((arg) => arg instanceof InitializationVector),
 					PaddingStandard.Pkcs5,
 					SymmetricCipherVersion.AesCbcThenHmac,
 					AuthenticationEnforcement.Strict,
@@ -91,7 +91,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 				aesCbcFacade.encrypt(
 					subKeys,
 					plaintext,
-					matchers.argThat((arg) => arg instanceof Uint8Array),
+					matchers.argThat((arg) => arg instanceof InitializationVector),
 					PaddingStandard.Pkcs5,
 					SymmetricCipherVersion.UnusedReservedUnauthenticated,
 					AuthenticationEnforcement.Relaxed,
@@ -124,7 +124,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
+				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
 				macTag,
 			)
@@ -140,7 +140,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
+				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
 			)
 			when(
@@ -162,7 +162,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
+				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
 				macTag,
 			)
@@ -178,7 +178,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
+				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
 			)
 			when(
@@ -209,7 +209,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 				aesCbcFacade.encrypt(
 					subKeys,
 					keyToUint8Array(keyToEncrypt_128),
-					InitializationVectorVariant.Fixed,
+					FIXED_INITIALIZATION_VECTOR,
 					PaddingStandard.None,
 					SymmetricCipherVersion.UnusedReservedUnauthenticated,
 					AuthenticationEnforcement.Strict,
@@ -241,7 +241,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 				aesCbcFacade.encrypt(
 					aes256SubKeys,
 					keyToUint8Array(keyToEncrypt_256),
-					matchers.argThat((arg) => arg instanceof Uint8Array),
+					matchers.argThat((arg) => arg instanceof InitializationVector),
 					PaddingStandard.None,
 					SymmetricCipherVersion.AesCbcThenHmac,
 					AuthenticationEnforcement.Strict,
@@ -254,7 +254,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			const initializationVectorVariant = InitializationVectorVariant.Random
 			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
 
-			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(cipherVersion), initializationVector, ciphertext, macTag)
+			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Strict)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
@@ -269,7 +269,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 			const versionedCiphertext = concat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
-				initializationVector,
+				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
 			)
 

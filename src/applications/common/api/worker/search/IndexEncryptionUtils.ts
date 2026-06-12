@@ -1,4 +1,5 @@
 import { Aes256Key, InitializationVector } from "@tutao/crypto"
+import { FixedInitializationVector } from "../../../../../platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils.js"
 import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
@@ -21,9 +22,10 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbInitia
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Uint8Array {
-	return aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array(indexKey), dbInitializationVector).slice(
-		dbInitializationVector.bytes.length,
-	)
+	const encrypted = aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array(indexKey), dbInitializationVector)
+	// FixedInitializationVector does not prepend the IV to the output; only random IVs are prepended
+	const ivOffset = dbInitializationVector instanceof FixedInitializationVector ? 0 : dbInitializationVector.bytes.length
+	return encrypted.slice(ivOffset)
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbInitializationVector: InitializationVector): string {

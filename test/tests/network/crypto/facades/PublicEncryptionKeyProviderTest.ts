@@ -13,6 +13,7 @@ import {
 	PublicKeyIdentifierType,
 	RsaPublicKey,
 } from "../../../../../src/platform-kit/crypto"
+import { RsaX25519PublicKey } from "../../../../../src/platform-kit/crypto/encryption/RsaKeyPair.js"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { InvalidDataError } from "../../../../../src/platform-kit/rest-client/error"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
@@ -182,7 +183,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as unknown as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -212,7 +213,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as unknown as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -242,7 +243,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						x25519PublicKey: x25519PublicKey,
 						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					},
+					} as unknown as PQPublicKeys,
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -370,7 +371,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					keyPairType: KeyPairType.TUTA_CRYPT,
 					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
 					x25519PublicKey: x25519PublicKey,
-				},
+				} as unknown as PQPublicKeys,
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -398,7 +399,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					keyLength: 2048,
 					modulus: decodedRsaPublicKey.modulus,
 					publicExponent: decodedRsaPublicKey.publicExponent,
-				},
+				} as unknown as RsaPublicKey,
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -427,7 +428,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 					modulus: decodedRsaPublicKey.modulus,
 					publicExponent: decodedRsaPublicKey.publicExponent,
 					publicEccKey: x25519PublicKey,
-				},
+				} as unknown as RsaX25519PublicKey,
 			},
 			signature: publicKeyGetOut.signature,
 		}

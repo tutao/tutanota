@@ -9,12 +9,13 @@ import {
 	Ed25519KeyPair,
 	KeyPairType,
 	MacTag,
+	RsaKeyPair,
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
 import { CacheManagementFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
-import { matchers, object, verify, when } from "testdouble"
+import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 
 import { Ed25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
@@ -84,7 +85,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 			encryptingKeyVersion: userGroupKey.version,
 			key: object(),
 		}
-		let userGroupKeyPair: Versioned<AsymmetricKeyPair>
+		let userGroupKeyPair: Versioned<RsaKeyPair>
 		const identityKeyVersion = 0
 		const tag: MacTag = object()
 
@@ -100,7 +101,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		const publicKeySignature: PublicKeySignature = object()
 
 		o.beforeEach(function () {
-			userGroupKeyPair = object()
+			userGroupKeyPair = { object: instance(RsaKeyPair), version: 0 }
 			userGroup = createTestEntity(GroupTypeRef, {
 				_id: userGroupId,
 				currentKeys: object(),
@@ -168,7 +169,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		})
 
 		o("current group key RSA fails", async function () {
-			userGroupKeyPair.object.keyPairType = KeyPairType.RSA
+			;(userGroupKeyPair.object as any).keyPairType = KeyPairType.RSA
 			await assertThrows(ProgrammingError, async () => identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, []))
 		})
 

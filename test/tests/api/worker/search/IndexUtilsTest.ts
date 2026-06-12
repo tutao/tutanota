@@ -30,7 +30,7 @@ o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
 		let key = aes256RandomKey()
 		let encryptedKey = encryptIndexKeyBase64(key, "blubb", FIXED_INITIALIZATION_VECTOR)
-		let decrypted = aesDecryptUnauthenticated(key, concat(FIXED_INITIALIZATION_VECTOR, base64ToUint8Array(encryptedKey)))
+		let decrypted = aesDecryptUnauthenticated(key, concat(FIXED_INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {

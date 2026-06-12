@@ -1748,7 +1748,7 @@ o.spec("KeyRotationFacade", function () {
 				)
 
 				const rsaPublicKey: RsaPublicKey = object()
-				rsaPublicKey.keyPairType = KeyPairType.RSA
+				;(rsaPublicKey as any).keyPairType = KeyPairType.RSA
 
 				when(publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey(matchers.anything())).thenResolve({
 					publicEncryptionKey: {
@@ -2453,11 +2453,11 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 	const results = new Map<AesKey, MockedKeyPairs>()
 	for (const newKey of newKeys) {
 		const newKeyPairs: PQKeyPairs = object()
-		newKeyPairs.x25519KeyPair = {
+		;(newKeyPairs as any).x25519KeyPair = {
 			publicKey: object<Uint8Array>(),
 			privateKey: object<Uint8Array>(),
 		}
-		newKeyPairs.kyberKeyPair = {
+		;(newKeyPairs as any).kyberKeyPair = {
 			publicKey: { raw: object<Uint8Array>() },
 			privateKey: object<KyberPrivateKey>(),
 		}
@@ -2473,9 +2473,9 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 
 		const publicKey: Versioned<PQPublicKeys> = object()
 		const pqPublicKey: PQPublicKeys = object()
-		pqPublicKey.keyPairType = KeyPairType.TUTA_CRYPT
-		pqPublicKey.x25519PublicKey = object()
-		pqPublicKey.kyberPublicKey = object()
+		;(pqPublicKey as any).keyPairType = KeyPairType.TUTA_CRYPT
+		;(pqPublicKey as any).x25519PublicKey = object()
+		;(pqPublicKey as any).kyberPublicKey = object()
 		publicKey.version = 1
 		publicKey.object = pqPublicKey
 

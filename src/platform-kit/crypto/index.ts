@@ -103,7 +103,7 @@ export {
 	isVersionedRsaOrRsaX25519PublicKey,
 	isRsaX25519PublicKey,
 } from "./encryption/AsymmetricKeyPair.js"
-export { type PQKeyPairs, type PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
+export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"
 export { sha256Hash } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"

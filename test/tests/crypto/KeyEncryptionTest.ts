@@ -120,7 +120,7 @@ function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): 
 	const encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey),
 		uint8ArrayToBitArray(bytes),
-		uint8ArrayToBitArray(FIXED_INITIALIZATION_VECTOR),
+		uint8ArrayToBitArray(FIXED_INITIALIZATION_VECTOR.bytes),
 		[],
 		false,
 	)
