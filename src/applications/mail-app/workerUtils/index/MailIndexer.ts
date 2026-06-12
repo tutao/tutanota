@@ -24,6 +24,7 @@ export interface MailIndexer {
 	afterMailDeleted(mailid: IdTuple): Promise<void>
 	afterMailCreated(mailid: IdTuple): Promise<void>
 	afterMailUpdated(mailid: IdTuple): Promise<void>
+	beforeImportedMailFinished(importedMailsList: Id): Promise<void>
 	rebuildIndex(user: User): Promise<void>
 	extendMailIndex(user: User): Promise<void>
 }
