@@ -1,5 +1,6 @@
 import {
 	AesKey,
+	FIXED_INITIALIZATION_VECTOR,
 	generateInitializationVector,
 	InitializationVector,
 	KdfNonce,
@@ -22,7 +23,6 @@ import {
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
 import {
-	InitializationVectorSource,
 	InitializationVectorVariant,
 	ParsedCiphertextAesCbc,
 	ParsedCiphertextAesCbcThenHmac,
@@ -106,7 +106,7 @@ export class SymmetricCipherFacade {
 			bytes,
 			PaddingStandard.Pkcs5,
 			SymmetricCipherVersion.UnusedReservedUnauthenticated,
-			InitializationVectorVariant.Random,
+			generateInitializationVector(),
 			AuthenticationEnforcement.Relaxed,
 		)
 	}
@@ -213,7 +213,7 @@ export class SymmetricCipherFacade {
 					keyToUint8Array(keyToEncrypt),
 					PaddingStandard.None,
 					SymmetricCipherVersion.UnusedReservedUnauthenticated,
-					InitializationVectorVariant.Fixed,
+					FIXED_INITIALIZATION_VECTOR,
 				)
 			case AesKeyLength.Aes256:
 				return this.encrypt(key, keyToUint8Array(keyToEncrypt), PaddingStandard.None, SymmetricCipherVersion.AesCbcThenHmac)
@@ -242,11 +242,9 @@ export class SymmetricCipherFacade {
 		plaintext: Uint8Array,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
-		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
+		initializationVector: InitializationVector = generateInitializationVector(),
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
-		const initializationVector: InitializationVectorSource =
-			initializationVectorVariant === InitializationVectorVariant.Random ? generateInitializationVector() : initializationVectorVariant
 		let subKeys: AesCbcSubKeys
 		if (cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			if (Array.isArray(key)) {

@@ -67,10 +67,15 @@ export class AeadFacade {
 
 		const initializationVector = generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
-			sjcl.mode.ctr.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plaintext), uint8ArrayToBitArray(initializationVector), []),
+			sjcl.mode.ctr.encrypt(
+				new sjcl.cipher.aes(subKeys.encryptionKey),
+				uint8ArrayToBitArray(plaintext),
+				uint8ArrayToBitArray(initializationVector.bytes),
+				[],
+			),
 		)
 
-		const initializationVectorAndCiphertext = concat(initializationVector, aesCtrCiphertext)
+		const initializationVectorAndCiphertext = concat(initializationVector.bytes, aesCtrCiphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 
 		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
@@ -101,7 +106,7 @@ export class AeadFacade {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
 
-		const initializationVectorAndCiphertext = concat(parsedCiphertext.initializationVector, parsedCiphertext.ciphertext)
+		const initializationVectorAndCiphertext = concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 		const authenticatedData = concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
 		const authenticationKey = bitArrayToUint8Array(subKeys.authenticationKey)
@@ -111,7 +116,7 @@ export class AeadFacade {
 			sjcl.mode.ctr.decrypt(
 				new sjcl.cipher.aes(subKeys.encryptionKey),
 				uint8ArrayToBitArray(parsedCiphertext.ciphertext),
-				uint8ArrayToBitArray(parsedCiphertext.initializationVector),
+				uint8ArrayToBitArray(parsedCiphertext.initializationVector.bytes),
 				[],
 			),
 		)

@@ -16,8 +16,6 @@ export enum InitializationVectorVariant {
 	Random = "randomInitializationVector",
 }
 
-export type InitializationVectorSource = InitializationVector | typeof InitializationVectorVariant.Fixed
-
 abstract class ParsedCiphertext {
 	public abstract readonly cipherVersion: SymmetricCipherVersion
 

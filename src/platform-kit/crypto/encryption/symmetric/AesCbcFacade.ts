@@ -1,5 +1,5 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import { AesKey, bitArrayToUint8Array, FIXED_INITIALIZATION_VECTOR, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
@@ -7,10 +7,8 @@ import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
 import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
-import { InitializationVectorSource, InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
+import { InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
-import { SubKeyInfoWithoutSessionKey, SubKeyInfoWithSessionKey } from "../../instance-pipeline-crypto/encryption/SubKeyProvider"
-import { SymmetricCipherFacade } from "../../instance-pipeline-crypto/SymmetricCipherFacade"
 
 export enum AuthenticationEnforcement {
 	Strict,
@@ -36,7 +34,7 @@ export class AesCbcFacade {
 	encrypt(
 		subKeys: SymmetricSubKeys,
 		plainText: Uint8Array,
-		initializationVector: InitializationVectorSource,
+		initializationVector: InitializationVector,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
@@ -47,18 +45,18 @@ export class AesCbcFacade {
 			sjcl.mode.cbc.encrypt(
 				new sjcl.cipher.aes(subKeys.encryptionKey),
 				uint8ArrayToBitArray(plainText),
-				uint8ArrayToBitArray(initializationVector === InitializationVectorVariant.Fixed ? FIXED_INITIALIZATION_VECTOR : initializationVector),
+				uint8ArrayToBitArray(initializationVector.bytes),
 				[],
 				usePadding,
 			),
 		)
 
 		let unauthenticatedCiphertext
-		if (initializationVector === InitializationVectorVariant.Fixed) {
+		if (initializationVector instanceof FixedInitializationVector) {
 			unauthenticatedCiphertext = ciphertext
 		} else {
 			//version byte is not included into authentication tag for legacy reasons
-			unauthenticatedCiphertext = concat(initializationVector, ciphertext)
+			unauthenticatedCiphertext = concat(initializationVector.bytes, ciphertext)
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -93,7 +91,7 @@ export class AesCbcFacade {
 				sjcl.mode.cbc.decrypt(
 					new sjcl.cipher.aes(subKeys.encryptionKey),
 					uint8ArrayToBitArray(parsedCiphertext.ciphertext),
-					uint8ArrayToBitArray(parsedCiphertext.initializationVector),
+					uint8ArrayToBitArray(parsedCiphertext.initializationVector.bytes),
 					[],
 					usePadding,
 				),
@@ -112,7 +110,7 @@ export class AesCbcFacade {
 		try {
 			const encryptionKey = await crypto.subtle.importKey("raw", bitArrayToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
 			return new Uint8Array(
-				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector }, encryptionKey, parsedCiphertext.ciphertext),
+				await crypto.subtle.decrypt({ name: "AES-CBC", iv: parsedCiphertext.initializationVector.bytes }, encryptionKey, parsedCiphertext.ciphertext),
 			)
 		} catch (e) {
 			throw new CryptoError("aes decryption failed", e as Error)
@@ -141,7 +139,7 @@ export class AesCbcFacade {
 
 	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {
 		if (parsedCiphertext.initializationVectorVariant === InitializationVectorVariant.Random) {
-			return concat(parsedCiphertext.initializationVector, parsedCiphertext.ciphertext)
+			return concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		} else {
 			return parsedCiphertext.ciphertext
 		}
