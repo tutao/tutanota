@@ -8,7 +8,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
-import { filterInt, neverNull, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
+import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
@@ -25,8 +25,7 @@ import {
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platform-kit/app-env"
+import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "@tutao/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -757,9 +756,16 @@ function getAttendees(eventObj: ICalObject) {
 function getAlarms(eventObj: ICalObject, startTime: Date): AlarmInfoTemplate[] {
 	const alarms: AlarmInfoTemplate[] = []
 	for (const alarmChild of eventObj.children) {
-		if (alarmChild.type === "VALARM") {
-			const newAlarm = parseAlarm(alarmChild, startTime)
-			if (newAlarm) alarms.push(newAlarm)
+		if (alarmChild.type !== "VALARM") continue
+
+		const alarm = parseAlarm(alarmChild, startTime)
+		if (!alarm) continue
+
+		// Once we support other types of reminders, e.g via email, this has to be improved
+		const isDuplicate = alarms.some((existing) => existing.trigger === alarm.trigger)
+
+		if (!isDuplicate) {
+			alarms.push(alarm)
 		}
 	}
 	return alarms
