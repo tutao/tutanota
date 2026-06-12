@@ -11,19 +11,23 @@ import { MailIndexerNewMailDownloader } from "../../../../../src/applications/ma
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import {
 	BlobElementEntity,
+	compareOldestFirst,
 	elementIdPart,
+	EntityIdEncoding,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
 	getElementId,
 	getListId,
 	listIdPart,
-	OperationType,
 	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
 import {
 	BodyTypeRef,
+	File,
 	FileTypeRef,
+	ImportedFileMail,
 	ImportedFileMailTypeRef,
-	ImportFileMailStateTypeRef,
 	Mail,
 	MailBagTypeRef,
 	MailboxGroupRootTypeRef,
@@ -38,11 +42,9 @@ import {
 import { func, matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
-import { assertNotNull, collectToMap } from "../../../../../src/platform-kit/utils"
-import { ImportStatus } from "../../../../../src/entities/tutanota/Utils"
-import { EntityUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { assertNotNull, collectToMap, deepEqual } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 
@@ -101,12 +103,12 @@ o.spec("OfflineMailIndexer", () => {
 			_id: userId,
 		})
 		mail = createTestEntity(MailTypeRef, {
-			_id: ["hey", "i'm a mail id!!!"],
+			_id: ["---------z-z", "---------zzz"],
 			_ownerGroup: mailGroupId,
 		})
 
 		mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
-			_id: ["mailSetEntryList", "mailSetEntryId"],
+			_id: ["mailSetEntryList", "mailSetEntryElement"],
 			mail: mail._id,
 			_ownerGroup: mailGroupId,
 		})
@@ -136,6 +138,7 @@ o.spec("OfflineMailIndexer", () => {
 		})
 
 		when(modelMapper.mapToInstance(matchers.anything(), matchers.anything())).thenDo(async (_, i) => i)
+		when(persistence.getImportQueueEntries()).thenResolve([])
 	})
 
 	function addTestMail() {
@@ -217,7 +220,15 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		]
 		when(mailFacade.loadAttachments(mail)).thenResolve(attachments)
-		when(persistence.getIndexedGroups()).thenResolve([])
+		when(persistence.getIndexedGroups()).thenResolve([
+			{
+				groupId: mailGroupId,
+				type: GroupType.Mail,
+				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
+			},
+		])
 
 		user.memberships = [
 			createTestEntity(GroupMembershipTypeRef, {
@@ -262,7 +273,7 @@ o.spec("OfflineMailIndexer", () => {
 				}),
 			})
 			const mailMail = createTestEntity(MailTypeRef, {
-				_id: [mailListId, `I am mail #${i}`],
+				_id: [mailListId, `${i}`.padStart(GENERATED_MIN_ID.length, "0")],
 				mailDetails: mailDetails._id,
 			})
 			const mailAttachments = [
@@ -308,7 +319,15 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		)
 
-		when(persistence.getIndexedGroups()).thenResolve([])
+		when(persistence.getIndexedGroups()).thenResolve([
+			{
+				groupId: mailGroupId,
+				type: GroupType.Mail,
+				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
+			},
+		])
 
 		user.memberships = [
 			createTestEntity(GroupMembershipTypeRef, {
@@ -317,49 +336,48 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		]
 
-		console.log("start indexing")
 		await mailIndexer.extendMailIndex(user)
 
-		verify(persistence.storeMailData(mails))
+		// note: getRange just gets everything with the mock, and we're not guaranteed (or likely) to store in order, so
+		// we need to compare sorted
+		verify(
+			persistence.storeMailData(
+				matchers.argThat((arr: readonly MailWithDetailsAndAttachments[]) => {
+					const sorted = arr.toSorted((a, b) => compareOldestFirst(getElementId(a.mail), getElementId(b.mail), EntityIdEncoding.Base64Ext))
+					return deepEqual(sorted, mails)
+				}),
+			),
+		)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedMailDetailsBlobs())
 	})
 
-	o.spec("imported mail", () => {
-		async function handledUpdate(operationType: OperationType, status: ImportStatus) {
-			const importMailState = createTestEntity(ImportFileMailStateTypeRef, {
-				_id: ["importMailStateList", "importMailStateId"],
-				status: "" + status,
-				importedMails: "imported mails list",
-				_ownerGroup: mailGroupId,
-			})
+	o.spec("import mails", () => {
+		let importedMail: ImportedFileMail
+		let mailDetails: MailDetailsBlob
+		let attachments: File[]
 
-			const events = [
-				{
-					instanceListId: getListId(importMailState),
-					instanceId: getElementId(importMailState),
-					operation: operationType,
-					typeRef: ImportFileMailStateTypeRef,
-				},
-			] as any[] as EntityUpdateData[]
+		o.beforeEach(async () => {
+			mail.mailDetails = ["whooooa", "i'm a blob :D"]
 
-			const importedMail = createTestEntity(ImportedFileMailTypeRef, {
-				_id: [importMailState.importedMails, "an imported mail"],
+			importedMail = createTestEntity(ImportedFileMailTypeRef, {
+				_id: ["imported mails list", "an imported mail"],
 				mailSetEntry: mailSetEntry._id,
 				_ownerGroup: mailGroupId,
 			})
 
-			entityRestClientMock.addListInstances(importMailState, importedMail)
-
-			mail.mailDetails = ["whooooa", "i'm a blob :D"]
-
-			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
-
-			const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
+			mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: mail.mailDetails,
 				details: createTestEntity(MailDetailsTypeRef),
 			})
+			attachments = []
+
+			when(mailFacade.loadAttachments(mail)).thenResolve(attachments)
+			entityRestClientMock.addListInstances(importedMail)
+
+			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MAX_ID)
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
 
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenResolve([
 				new FakeServerEntity(mailDetails) as any,
@@ -370,12 +388,9 @@ o.spec("OfflineMailIndexer", () => {
 			}
 
 			addTestMail()
+		})
 
-			const attachments = []
-			when(mailFacade.loadAttachments(mail)).thenResolve(attachments)
-
-			await mailIndexer.processEntityEvents(events)
-
+		function do_verify() {
 			verify(
 				persistence.storeMailData([
 					{
@@ -385,86 +400,24 @@ o.spec("OfflineMailIndexer", () => {
 					},
 				]),
 			)
-
-			verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
+			verify(persistence.removeImportQueueEntry(listIdPart(importedMail._id)))
 			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(mail._id)))
 		}
 
-		async function skippedUpdate(operationType: OperationType, status: ImportStatus) {
-			const importMailState = createTestEntity(ImportFileMailStateTypeRef, {
-				_id: ["importMailStateList", "importMailStateId"],
-				status: "" + status,
-				importedMails: "imported mails list",
-				_ownerGroup: mailGroupId,
-			})
-
-			const events = [
-				{
-					instanceListId: getListId(importMailState),
-					instanceId: getElementId(importMailState),
-					operation: operationType,
-					typeRef: ImportFileMailStateTypeRef,
-				},
-			] as any[] as EntityUpdateData[]
-
-			const importedMail = createTestEntity(ImportedFileMailTypeRef, {
-				_id: [importMailState.importedMails, "an imported mail"],
-				mailSetEntry: mailSetEntry._id,
-				_ownerGroup: mailGroupId,
-			})
-
-			entityRestClientMock.addListInstances(importMailState, importedMail)
-
-			mail.mailDetails = ["whooooa", "i'm a blob :D"]
-
-			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
-
-			const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
-				_id: mail.mailDetails,
-				details: createTestEntity(MailDetailsTypeRef),
-			})
-
-			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenResolve([
-				new FakeServerEntity(mailDetails) as any,
-			])
-
-			entityAdapterFactory = (_, b) => {
-				return { encryptedParsedInstance: b as any as FakeServerEntity<BlobElementEntity>, _kdfNonce: null } as any
-			}
-
-			addTestMail()
-
-			await mailIndexer.processEntityEvents(events)
-
-			verify(persistence.storeMailData(matchers.anything()), { times: 0 })
-		}
-
-		o.test("update+finished is handled", async () => {
-			return await handledUpdate(OperationType.UPDATE, ImportStatus.Finished)
+		o.test("beforeImportedMailFinished", async () => {
+			await mailIndexer.beforeImportedMailFinished(listIdPart(importedMail._id))
+			await mailIndexer.waitForIndex()
+			do_verify()
 		})
 
-		o.test("update+canceled is handled", async () => {
-			return await handledUpdate(OperationType.UPDATE, ImportStatus.Canceled)
-		})
+		o.test("resume", async () => {
+			when(persistence.getIndexedGroups()).thenResolve([])
+			when(persistence.getImportQueueEntries()).thenResolve([listIdPart(importedMail._id)])
 
-		o.test("create+finished is handled", async () => {
-			return await handledUpdate(OperationType.CREATE, ImportStatus.Finished)
-		})
-
-		o.test("create+canceled is handled", async () => {
-			return await handledUpdate(OperationType.CREATE, ImportStatus.Canceled)
-		})
-
-		o.test("delete is skipped", async () => {
-			return await skippedUpdate(OperationType.DELETE, ImportStatus.Canceled)
-		})
-
-		o.test("running is skipped", async () => {
-			return await skippedUpdate(OperationType.CREATE, ImportStatus.Running)
-		})
-
-		o.test("paused is skipped", async () => {
-			return await skippedUpdate(OperationType.CREATE, ImportStatus.Paused)
+			await mailIndexer.extendMailIndex(user)
+			await mailIndexer.waitForIndex()
+			do_verify()
 		})
 	})
 })

@@ -666,6 +666,10 @@ export class WebMailIndexer implements MailIndexer {
 		}
 	}
 
+	async beforeImportedMailFinished(importedMailsList: Id): Promise<void> {
+		// no-op
+	}
+
 	private canIndexMail(mail: Mail): boolean {
 		// currentIndexTimestamp should be set at this point, or else backend would still be null
 		return mail.receivedDate.getTime() >= this.currentIndexTimestamp
