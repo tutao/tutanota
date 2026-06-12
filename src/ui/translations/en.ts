@@ -2207,7 +2207,7 @@ export default {
 		"upgradeRequired_msg": "This feature is not available on your plan, please upgrade to one of the following plans:",
 		"uploadCompleted_msg": "Upload completed",
 		"uploadFile_action": "Upload",
-		"uploadFolders_action": "Upload Folder",
+		"uploadFolders_action": "Upload folder",
 		"uploadInProgress_msg": "Uploading…",
 		"upToDate_label": "All up to date",
 		"url_label": "URL",
