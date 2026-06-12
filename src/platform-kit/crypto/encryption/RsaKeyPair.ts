@@ -9,12 +9,15 @@ export class RsaKeyPair extends AsymmetricKeyPair {
 		super(KeyPairType.RSA)
 	}
 }
-export class RsaX25519KeyPair extends AsymmetricKeyPair {
+export class RsaX25519KeyPair extends RsaKeyPair {
+	override keyPairType = KeyPairType.RSA_AND_X25519
 	constructor(
+		publicKey: RsaPublicKey,
+		privateKey: RsaPrivateKey,
 		public readonly publicEccKey: X25519PublicKey,
 		public readonly privateEccKey: X25519PrivateKey,
 	) {
-		super(KeyPairType.RSA)
+		super(publicKey, privateKey)
 	}
 }
 
@@ -35,17 +38,19 @@ export class RsaPrivateKey {
  * Just the raw values without the keyPair type
  */
 export class RsaPublicKey extends PublicKey {
+	keyPairType = KeyPairType.RSA
 	constructor(
 		public readonly version: number,
 		public readonly keyLength: number,
 		public readonly modulus: Base64,
 		public readonly publicExponent: number,
 	) {
-		super(KeyPairType.RSA)
+		super()
 	}
 }
 
 export class RsaX25519PublicKey extends RsaPublicKey {
+	keyPairType = KeyPairType.RSA_AND_X25519
 	constructor(
 		version: number,
 		keyLength: number,

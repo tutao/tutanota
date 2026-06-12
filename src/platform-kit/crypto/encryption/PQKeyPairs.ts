@@ -12,11 +12,12 @@ export class PQKeyPairs extends AsymmetricKeyPair {
 }
 
 export class PQPublicKeys extends PublicKey {
+	keyPairType = KeyPairType.TUTA_CRYPT
 	protected constructor(
 		public readonly x25519PublicKey: X25519PublicKey,
 		public readonly kyberPublicKey: KyberPublicKey,
 	) {
-		super(KeyPairType.TUTA_CRYPT)
+		super()
 	}
 }
 

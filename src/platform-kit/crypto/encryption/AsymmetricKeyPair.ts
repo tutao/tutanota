@@ -13,7 +13,7 @@ export abstract class AsymmetricKeyPair {
 }
 
 export abstract class PublicKey {
-	protected constructor(public readonly keyPairType: KeyPairType) {}
+	abstract readonly keyPairType: KeyPairType
 }
 
 export function isPqKeyPairs(keyPair: AsymmetricKeyPair): keyPair is PQKeyPairs {
