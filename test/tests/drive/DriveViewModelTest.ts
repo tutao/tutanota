@@ -98,6 +98,7 @@ o.spec("DriveViewModel", function () {
 			loginController,
 			userManagementFacade,
 			transferController,
+			null,
 			() => {},
 		)
 		await driveViewModel.init()

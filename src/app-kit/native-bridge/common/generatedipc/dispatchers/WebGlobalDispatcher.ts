@@ -1,9 +1,12 @@
 /* generated file, don't edit. */
 
-import { CommonNativeFacade, DesktopFacade, InterWindowEventFacade, MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CommonNativeFacadeReceiveDispatcher } from "./CommonNativeFacadeReceiveDispatcher.js"
+import { DesktopFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopFacadeReceiveDispatcher } from "./DesktopFacadeReceiveDispatcher.js"
+import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobileFacadeReceiveDispatcher } from "./MobileFacadeReceiveDispatcher.js"
 
 export class WebGlobalDispatcher {

@@ -107,6 +107,10 @@ export class FileFacadeReceiveDispatcher {
 				const filePath: string = arg[0]
 				return this.facade.readDataFile(filePath)
 			}
+			case "readDirectory": {
+				const filePath: string = arg[0]
+				return this.facade.readDirectory(filePath)
+			}
 		}
 	}
 }

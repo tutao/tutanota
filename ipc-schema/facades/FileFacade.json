@@ -223,6 +223,14 @@
 				}
 			],
 			"ret": "DataFile?"
+		},
+		"readDirectory": {
+			"arg": [
+				{
+					"filePath": "string"
+				}
+			],
+			"ret": "DirectoryContents"
 		}
 	}
 }

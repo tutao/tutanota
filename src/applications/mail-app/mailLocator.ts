@@ -168,6 +168,7 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../pla
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
+import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 
 assertMainOrNode()
 
@@ -1343,6 +1344,7 @@ class MailLocator implements CommonLocator {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
 		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
+		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 
 		const redraw = await this.redraw()
 		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
@@ -1356,6 +1358,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.userManagementFacade,
 			driveUploadStackModel,
+			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp) : null,
 			redraw,
 		)
 		await model.init()

@@ -1,7 +1,6 @@
 /* generated file, don't edit. */
 
 import { CredentialsInfo } from "./CredentialsInfo.js"
-
 /**
  * Credentials ready to be used at runtime
  */
