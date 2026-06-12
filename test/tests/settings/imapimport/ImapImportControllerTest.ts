@@ -246,7 +246,7 @@ o.spec("ImapImportController", () => {
 	o.test("getActiveImapImportSessions - returns activeSessions map", () => {
 		const map = new Map()
 		controller.activeImapImportSessions = map
-		o.check(controller.getActiveImapImportSessions()).equals(map)
+		o.check(controller.getActiveImapImportSessions()).equals(Array.from(map.values()))
 	})
 
 	o.test("getImapMailboxesFromServer - delegates to imapImporter", async () => {

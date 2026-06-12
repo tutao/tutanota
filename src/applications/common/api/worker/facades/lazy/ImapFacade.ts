@@ -107,10 +107,12 @@ export class ImapFacade {
 		return imapAccountSyncState
 	}
 
-	async updateImapAccountSyncStateStatus(imapAccountSyncStateId: IdTuple, importState: ImapAccountSyncStatus) {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		imapAccountSyncState.status = importState
-		await this.entityClient.update(imapAccountSyncState)
+	async updateImapAccountSyncStateStatus(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStatus: ImapAccountSyncStatus) {
+		if (imapAccountSyncState.status !== imapAccountSyncStatus) {
+			console.log("Updating imapAccountSyncState status from", imapAccountSyncState.status, "to", imapAccountSyncStatus)
+			imapAccountSyncState.status = imapAccountSyncStatus
+			await this.entityClient.update(imapAccountSyncState)
+		}
 	}
 
 	async deleteImapImport(imapAccountSyncStateId: IdTuple): Promise<void> {

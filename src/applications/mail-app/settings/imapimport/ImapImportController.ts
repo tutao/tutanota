@@ -22,7 +22,7 @@ export class ImapImportController {
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	// Visible for testing
-	activeImapImportSessions: Map<string, ImapImportSession> = new Map()
+	activeImapImportSessions: ImapImportSession[] = []
 	constructor(
 		private readonly imapImporter: ImapImporter,
 		private readonly mailModel: MailModel,
@@ -72,22 +72,22 @@ export class ImapImportController {
 	}
 
 	async pauseImports() {
-		await promiseMap(Array.from(this.activeImapImportSessions.values()), async (session) => {
+		await promiseMap(this.activeImapImportSessions, async (session) => {
 			await this.imapImporter.pauseImport(session.imapAccountSyncState._id)
 		})
 	}
 
 	async updateActiveSessions() {
 		const sessions = await this.imapImporter.getActiveImapImportSessions()
-		this.activeImapImportSessions = new Map(
-			Array.from(sessions.entries()).map(([key, session]) => {
-				session.syncProgress = {
-					completed: session.imapFolderSyncStates.filter((f) => f.status === ImapFolderSyncStatus.FINISHED).length,
-					total: session.imapFolderSyncStates.length,
-				}
-				return [key, session]
-			}),
-		)
+		console.log("ImapImportController Updating active sessions", Array.from(sessions.values()))
+		sessions.map((session) => {
+			session.syncProgress = {
+				completed: session.imapFolderSyncStates.filter((f) => f.status === ImapFolderSyncStatus.FINISHED).length,
+				total: session.imapFolderSyncStates.length,
+			}
+		})
+		this.activeImapImportSessions = sessions
+		console.log("ImapImportController Updated active sessions", this.activeImapImportSessions)
 	}
 
 	shouldRenderPauseButton(session: ImapImportSession) {
@@ -108,10 +108,6 @@ export class ImapImportController {
 
 	getDestinationMailboxDetailForSession(session: ImapImportSession) {
 		return this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailGroupInfo.group === session.imapAccountSyncState._ownerGroup)
-	}
-
-	getActiveImapImportSessions() {
-		return this.activeImapImportSessions
 	}
 
 	async getImapMailboxesFromServer(imapAccount: ImapCredentials) {

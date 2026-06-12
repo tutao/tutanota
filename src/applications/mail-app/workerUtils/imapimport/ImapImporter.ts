@@ -142,11 +142,11 @@ export class ImapImporter implements ImapSyncFacade {
 		const startImportError = await this.imapSyncSystemFacade.startSync(imapAccountSyncStateId, imapSyncState)
 
 		if (startImportError !== null) {
-			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState._id, ImapAccountSyncStatus.PAUSED)
+			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.PAUSED)
 			await this.imapFacade.updateAllImapFolderSyncStates(session.imapAccountSyncState._id, ImapFolderSyncStatus.PAUSED)
 			return Promise.resolve({ error: startImportError })
 		} else {
-			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState._id, ImapAccountSyncStatus.RUNNING)
+			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.RUNNING)
 			session.imapAccountSyncState = await this.imapFacade.updateAllImapFolderSyncStates(session.imapAccountSyncState._id, ImapFolderSyncStatus.RUNNING)
 			session.imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(session.imapAccountSyncState.imapFolderSyncStateList)
 			return Promise.resolve({
@@ -159,7 +159,7 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
 			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
-			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState._id, ImapAccountSyncStatus.PAUSED)
+			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.PAUSED)
 			session.imapAccountSyncState = await this.imapFacade.pauseRunningImapImportFolderSyncStates(session.imapAccountSyncState._id)
 			session.imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(session.imapAccountSyncState.imapFolderSyncStateList)
 		}
@@ -184,8 +184,10 @@ export class ImapImporter implements ImapSyncFacade {
 		return await this.imapSyncSystemFacade.getImapMailboxesFromServer(imapCredentials)
 	}
 
-	async getActiveImapImportSessions(): Promise<Map<string, ImapImportSession>> {
-		return Promise.resolve(this.activeImapImportSessions)
+	async getActiveImapImportSessions(): Promise<ImapImportSession[]> {
+		console.log("ImapImporter getActiveImapImportSessions")
+		console.log(Array.from(this.activeImapImportSessions.values()))
+		return Promise.resolve(Array.from(this.activeImapImportSessions.values()))
 	}
 
 	private async getImapAccountSyncState(initializeParams: InitializeImapImportParams) {
@@ -413,7 +415,7 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 		if (session) {
 			session.imapAccountSyncState.status = ImapAccountSyncStatus.FINISHED
-			await this.imapFacade.updateImapAccountSyncStateStatus(accountSyncStateId, ImapAccountSyncStatus.FINISHED)
+			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.FINISHED)
 			await this.imapFacade.updateAllImapFolderSyncStates(accountSyncStateId, ImapFolderSyncStatus.FINISHED)
 		}
 	}
@@ -421,7 +423,7 @@ export class ImapImporter implements ImapSyncFacade {
 	async onError(accountSyncStateId: IdTuple, imapError: ImapError): Promise<void> {
 		const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 		if (session) {
-			await this.imapFacade.updateImapAccountSyncStateStatus(accountSyncStateId, ImapAccountSyncStatus.PAUSED)
+			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.PAUSED)
 		}
 		console.error("Error while importing from IMAP, error:", accountSyncStateId, imapError)
 		return Promise.resolve()
@@ -429,6 +431,9 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async entityEventsReceived(updates: readonly EntityUpdateData[]) {
 		for (const update of updates) {
+			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update) || isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
+				console.log("ImapImporter entityEventsReceived", update.operation as OperationType, update.instanceListId, update.instanceId)
+			}
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
 				const accountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
 				const idKey = this.getImapImportSessionsMapKey(accountSyncStateId)

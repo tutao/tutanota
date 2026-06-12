@@ -3,7 +3,6 @@ import { ImapImportData, showAddImapImportWizard } from "./AddImapImportWizard.j
 import { assertMainOrNode } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
 import { ImapImportController } from "./ImapImportController.js"
-import { ImapImportSession } from "../../workerUtils/imapimport/ImapImportSession"
 import { mailLocator } from "../../mailLocator.js"
 import { theme } from "../../../../ui/theme"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
@@ -31,7 +30,6 @@ assertMainOrNode()
 
 class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	private imapImportController: ImapImportController | null = null
-	private sessions: ImapImportSession[] = []
 	private disableButtons: boolean = false
 	constructor() {}
 
@@ -42,7 +40,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const hasActiveSync = this.imapImportController !== null && this.imapImportController.getActiveImapImportSessions().size > 0
+		const hasActiveSync = this.imapImportController !== null && this.imapImportController.activeImapImportSessions.length > 0
 		return this.imapImportController !== null
 			? [
 					m(
@@ -120,18 +118,19 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderSyncProgress(imapImportController: ImapImportController): Children {
-		return Array.from(this.sessions).map((session) => {
+		return imapImportController.activeImapImportSessions.map((session) => {
 			// TODO fix folder count not updating
-			// console.log(session)
+			console.log("ImapImportSettingsViewer renderSyncProgress", session)
 			const accountSyncStateId = session.imapAccountSyncState._id
 			const isSyncComplete = session.syncProgress && session.syncProgress.completed === session.syncProgress.total
-			// console.log(
-			// 	session.imapAccountSyncState.imapAccount.username,
-			// 	session.imapFolderSyncStates.map((fss) => fss.status),
-			// 	session.syncProgress?.completed,
-			// 	session.syncProgress?.total,
-			// 	isSyncComplete,
-			// )
+			console.log(
+				"ImapImportSettingsViewer renderSyncProgress",
+				session.imapAccountSyncState.imapAccount.username,
+				session.imapFolderSyncStates.map((fss) => fss.status),
+				session.syncProgress?.completed,
+				session.syncProgress?.total,
+				isSyncComplete,
+			)
 			const buttons: Children[] = []
 			if (imapImportController.shouldRenderPauseButton(session)) {
 				if (isSyncComplete || session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED) {
@@ -273,8 +272,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private async updateUiState() {
 		if (this.imapImportController) {
+			console.log("ImapImportSettingsViewer updateUiState before", this.imapImportController.activeImapImportSessions)
 			await this.imapImportController.updateActiveSessions()
-			this.sessions = Array.from(this.imapImportController.getActiveImapImportSessions().values())
+			console.log("ImapImportSettingsViewer updateUiState after", this.imapImportController.activeImapImportSessions)
 		}
 		m.redraw()
 	}
@@ -282,7 +282,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update) || isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
-				this.updateUiState()
+				await this.updateUiState()
 			}
 		}
 	}
