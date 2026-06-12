@@ -2303,6 +2303,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"uploadFolder_action": "Upload Folders"
+		"uploadFolders_action": "Upload Folders"
 	}
 }

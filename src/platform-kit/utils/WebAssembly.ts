@@ -1,5 +1,4 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
-import { downcast } from "./Utils"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.
@@ -40,13 +39,14 @@ export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath:
 
 	let instantiatedSource: WebAssembly.WebAssemblyInstantiatedSource
 	if (wasmUrl.protocol === "file:") {
-		const bytes = await (await import("node:fs/promises")).readFile(wasmUrl)
+		// use module.require to opt out of bundler resolution (we ensure that the file is there manually)
+		const bytes = await module.require("node:fs/promises").readFile(wasmUrl)
 		instantiatedSource = await WebAssembly.instantiate(bytes)
 	} else {
 		const response = await fetch(wasmUrl)
 		instantiatedSource = await WebAssembly.instantiateStreaming(response)
 	}
-	return downcast<T>(instantiatedSource.instance.exports)
+	return instantiatedSource.instance.exports as unknown as T
 }
 
 /**
