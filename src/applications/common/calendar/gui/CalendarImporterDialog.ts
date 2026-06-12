@@ -1,5 +1,5 @@
 import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
-import { showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
+import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
@@ -73,7 +73,7 @@ export async function handleCalendarImport(
 async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	try {
 		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(true, allowedExtensions)
+		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
 		return contents.flat()
 	} catch (e) {
