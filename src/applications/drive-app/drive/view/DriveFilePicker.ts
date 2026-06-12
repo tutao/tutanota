@@ -1,4 +1,4 @@
-import { showBrowserFolderChooser, showStandardsFileChooser } from "../../../common/file/FileController"
+import { FileChooserMultiMode, showBrowserFolderChooser, showStandardsFileChooser } from "../../../common/file/FileController"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { PosRect } from "../../../../ui/utils/PosRect.js"
@@ -17,10 +17,10 @@ export interface DriveFilePicker {
 
 export class WebFilePicker implements DriveFilePicker {
 	pickFiles(_rect: PosRect): Promise<WebFile[]> {
-		return showStandardsFileChooser(true)
+		return showStandardsFileChooser(FileChooserMultiMode.Multi)
 	}
 	pickFolders(_rect: PosRect): Promise<DiskFolder<WebFile>[]> {
-		return showBrowserFolderChooser(true)
+		return showBrowserFolderChooser(FileChooserMultiMode.Multi)
 	}
 }
 

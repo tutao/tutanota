@@ -1,17 +1,17 @@
-import { showFileChooser, showNativeFilePicker } from "../../../common/file/FileController.js"
-import { utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
+import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../../common/file/FileController.js"
+import { utf8Uint8ArrayToString } from "@tutao/utils"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
-import { isApp } from "../../../../platform-kit/app-env"
+import { isApp } from "@tutao/app-env"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]
-	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(true, allowedExtensions)
+	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 	if (contactFiles.length <= 0) return
 	return showProgressDialog(
 		"pleaseWait_msg",

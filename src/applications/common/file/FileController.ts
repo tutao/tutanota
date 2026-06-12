@@ -183,11 +183,24 @@ export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile
 	)
 }
 
+export const enum FileChooserMultiMode {
+	Single,
+	Multi,
+}
+
+export const enum FileChooserFileMode {
+	File,
+	Folder,
+}
+
 /**
- * @param allowMultiple allow selecting multiple files
+ * @param multiMode
+ * @param fileMode if {@link FileChooserFileMode#Folder} is passed it `webkitdirectory` is added to the input element
+ * which presents the user with a folder picker instead. `change` even still contains only files but the files do have
+ * `webkitRelativePath` available to them.
  * @param allowedExtensions Array of extensions strings without "."
  */
-export function runFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<File[]> {
+export function runFileChooser(multiMode: FileChooserMultiMode, fileMode: FileChooserFileMode, allowedExtensions?: Array<string>): Promise<File[]> {
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	const fileInput = document.getElementById("hiddenFileChooser")
@@ -200,8 +213,11 @@ export function runFileChooser(allowMultiple: boolean, allowedExtensions?: Array
 
 	const newFileInput = document.createElement("input")
 	newFileInput.setAttribute("type", "file")
+	if (fileMode === FileChooserFileMode.Folder) {
+		newFileInput.setAttribute("webkitdirectory", "true")
+	}
 
-	if (allowMultiple) {
+	if (multiMode === FileChooserMultiMode.Multi) {
 		newFileInput.setAttribute("multiple", "multiple")
 	}
 
@@ -224,46 +240,8 @@ export function runFileChooser(allowMultiple: boolean, allowedExtensions?: Array
 	return promise
 }
 
-/**
- * @param allowMultiple allow selecting multiple files
- */
-export function runFolderChooser(allowMultiple: boolean): Promise<File[]> {
-	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
-	// remove the last file input
-	const fileInput = document.getElementById("hiddenFileChooser")
-	const body = neverNull(document.body)
-
-	if (fileInput) {
-		// remove the old one because it may contain a file already
-		body.removeChild(fileInput)
-	}
-
-	const newFileInput = document.createElement("input")
-	newFileInput.setAttribute("type", "file")
-	newFileInput.setAttribute("webkitdirectory", "true")
-
-	if (allowMultiple) {
-		newFileInput.setAttribute("multiple", "multiple")
-	}
-
-	newFileInput.setAttribute("id", "hiddenFileChooser")
-
-	newFileInput.style.display = "none"
-	const promise: Promise<File[]> = newPromise((resolve) => {
-		newFileInput.addEventListener("change", (e: Event) => {
-			console.log("input entries", newFileInput.webkitEntries)
-			resolve(newFileInput.files != null ? Array.from(newFileInput.files) : [])
-		})
-		newFileInput.addEventListener("cancel", () => resolve([]))
-	})
-	// the file input must be put into the dom, otherwise it does not work in IE
-	body.appendChild(newFileInput)
-	newFileInput.click()
-	return promise
-}
-
-export async function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
-	const files = await runFileChooser(allowMultiple, allowedExtensions)
+export async function showFileChooser(multiMode: FileChooserMultiMode, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+	const files = await runFileChooser(multiMode, FileChooserFileMode.File, allowedExtensions)
 	return readLocalFiles(files).catch(async (e) => {
 		console.log(e)
 		await Dialog.message("couldNotAttachFile_msg")
@@ -271,15 +249,15 @@ export async function showFileChooser(allowMultiple: boolean, allowedExtensions?
 	})
 }
 
-export async function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<WebFile>> {
-	const selectedFiles = await runFileChooser(allowMultiple, allowedExtensions)
+export async function showStandardsFileChooser(multiMode: FileChooserMultiMode, allowedExtensions?: Array<string>): Promise<Array<WebFile>> {
+	const selectedFiles = await runFileChooser(multiMode, FileChooserFileMode.File, allowedExtensions)
 	return selectedFiles.map((f) => {
 		return { _type: "WebFile", file: f }
 	})
 }
 
-export async function showBrowserFolderChooser(allowMultiple: boolean): Promise<DiskFolder<WebFile>[]> {
-	const selectedFiles = await runFolderChooser(allowMultiple)
+export async function showBrowserFolderChooser(multiMode: FileChooserMultiMode): Promise<DiskFolder<WebFile>[]> {
+	const selectedFiles = await runFileChooser(multiMode, FileChooserFileMode.Folder)
 	return buildDirectoryStructure(selectedFiles)
 }
 
