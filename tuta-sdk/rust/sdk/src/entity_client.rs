@@ -200,6 +200,63 @@ impl EntityClient {
 		Ok(parsed_entities)
 	}
 
+	const LOAD_MULTIPLE_LIMIT: usize = 100;
+
+	/// Fetches multiple list element entities by their element IDs, batched into
+	/// chunks of 100 per request. Does not guarantee order or completeness of
+	/// returned elements.
+	#[allow(clippy::unused_async, unused)]
+	pub async fn load_multiple(
+		&self,
+		type_ref: &TypeRef,
+		list_id: &GeneratedId,
+		element_ids: &[GeneratedId],
+	) -> Result<Vec<ParsedEntity>, ApiCallError> {
+		let type_model = self
+			.type_model_provider
+			.resolve_server_type_ref(type_ref)
+			.ok_or_else(|| TypeNotFound {
+				type_ref: type_ref.clone(),
+			})?;
+		assert_eq!(
+			type_model.element_type,
+			ElementType::ListElement,
+			"load_multiple only supports list element types"
+		);
+
+		if element_ids.is_empty() {
+			return Ok(Vec::new());
+		}
+
+		let mut all_parsed = Vec::with_capacity(element_ids.len());
+
+		for chunk in element_ids.chunks(Self::LOAD_MULTIPLE_LIMIT) {
+			let ids_param = chunk
+				.iter()
+				.map(|id| id.to_string())
+				.collect::<Vec<_>>()
+				.join(",");
+			let url = format!(
+				"{}/rest/{}/{}/{}?ids={}",
+				self.base_url, type_ref.app, type_model.name, list_id, ids_param
+			);
+			let response_bytes = self
+				.prepare_and_fire(type_ref, url)
+				.await?
+				.expect("no body");
+			let response_entities =
+				serde_json::from_slice::<Vec<RawEntity>>(response_bytes.as_slice())
+					.expect("invalid response");
+			let parsed: Vec<ParsedEntity> = response_entities
+				.into_iter()
+				.map(|e| self.json_serializer.parse(type_ref, e))
+				.collect::<Result<Vec<_>, _>>()?;
+			all_parsed.extend(parsed);
+		}
+
+		Ok(all_parsed)
+	}
+
 	#[allow(clippy::unused_async, unused)]
 	async fn post_instance_changes(
 		&self,
@@ -446,6 +503,12 @@ mockall::mock! {
 			start_id: &Id,
 			count: usize,
 			list_load_direction: ListLoadDirection,
+		) -> Result<Vec<ParsedEntity>, ApiCallError>;
+		pub async fn load_multiple(
+			&self,
+			type_ref: &TypeRef,
+			list_id: &GeneratedId,
+			element_ids: &[GeneratedId],
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
 		pub async fn setup_element(&self, type_ref: &TypeRef, entity: RawEntity) -> Vec<String>;
 		pub async fn setup_list_element(
@@ -935,5 +998,215 @@ mod stests {
 			.await
 			.expect("success");
 		assert_eq!(result_entities, vec![entity_2, entity_1]);
+	}
+
+	#[tokio::test]
+	async fn test_load_multiple_single_chunk() {
+		let type_provider = Arc::new(mock_type_model_provider());
+		let list_id = GeneratedId("list_id".to_owned());
+
+		let id_field_id = type_provider
+			.resolve_server_type_ref(&TestListGeneratedElementIdEntity::type_ref())
+			.expect("missing type")
+			.get_attribute_id_by_attribute_name(ID_FIELD)
+			.unwrap();
+		let field_field_id = type_provider
+			.resolve_server_type_ref(&TestListGeneratedElementIdEntity::type_ref())
+			.expect("missing type")
+			.get_attribute_id_by_attribute_name("field")
+			.unwrap();
+
+		let entity1: ParsedEntity = collection! {
+			id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("elem1".to_owned()))),
+			field_field_id => ElementValue::Bytes(vec![1, 2, 3])
+		};
+		let entity2: ParsedEntity = collection! {
+			id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), GeneratedId("elem2".to_owned()))),
+			field_field_id => ElementValue::Bytes(vec![4, 5, 6])
+		};
+
+		let json1 = JsonSerializer::new(type_provider.clone())
+			.serialize(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				entity1.clone(),
+			)
+			.unwrap();
+		let json2 = JsonSerializer::new(type_provider.clone())
+			.serialize(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				entity2.clone(),
+			)
+			.unwrap();
+
+		let mut rest_client = MockRestClient::new();
+		let url = "http://test.com/rest/entityclienttestapp/TestListGeneratedElementIdEntity/list_id?ids=elem1,elem2";
+		rest_client
+			.expect_request_binary()
+			.with(eq(url.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&vec![json1, json2]).unwrap()),
+				})
+			});
+
+		let auth_headers_provider = HeadersProvider::new(Some("123".to_owned()));
+		let entity_client = EntityClient::new(
+			Arc::new(rest_client),
+			Arc::new(JsonSerializer::new(type_provider.clone())),
+			"http://test.com".to_owned(),
+			Arc::new(auth_headers_provider),
+			type_provider.clone(),
+		);
+
+		let element_ids = vec![
+			GeneratedId("elem1".to_owned()),
+			GeneratedId("elem2".to_owned()),
+		];
+		let result = entity_client
+			.load_multiple(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				&list_id,
+				&element_ids,
+			)
+			.await
+			.expect("success");
+		assert_eq!(result, vec![entity1, entity2]);
+	}
+
+	#[tokio::test]
+	async fn test_load_multiple_empty_ids() {
+		let type_provider = Arc::new(mock_type_model_provider());
+		let list_id = GeneratedId("list_id".to_owned());
+
+		let mut rest_client = MockRestClient::new();
+		rest_client.expect_request_binary().times(0);
+
+		let auth_headers_provider = HeadersProvider::new(Some("123".to_owned()));
+		let entity_client = EntityClient::new(
+			Arc::new(rest_client),
+			Arc::new(JsonSerializer::new(type_provider.clone())),
+			"http://test.com".to_owned(),
+			Arc::new(auth_headers_provider),
+			type_provider.clone(),
+		);
+
+		let result = entity_client
+			.load_multiple(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				&list_id,
+				&[],
+			)
+			.await
+			.expect("success");
+		assert_eq!(result, Vec::<ParsedEntity>::new());
+	}
+
+	#[tokio::test]
+	async fn test_load_multiple_chunking() {
+		let type_provider = Arc::new(mock_type_model_provider());
+		let list_id = GeneratedId("list_id".to_owned());
+
+		let id_field_id = type_provider
+			.resolve_server_type_ref(&TestListGeneratedElementIdEntity::type_ref())
+			.expect("missing type")
+			.get_attribute_id_by_attribute_name(ID_FIELD)
+			.unwrap();
+		let field_field_id = type_provider
+			.resolve_server_type_ref(&TestListGeneratedElementIdEntity::type_ref())
+			.expect("missing type")
+			.get_attribute_id_by_attribute_name("field")
+			.unwrap();
+
+		let total = 150usize;
+		let mut all_element_ids = Vec::with_capacity(total);
+		let mut all_entities = Vec::with_capacity(total);
+		let mut all_json_chunk1 = Vec::with_capacity(100);
+		let mut all_json_chunk2 = Vec::with_capacity(50);
+
+		let serializer = JsonSerializer::new(type_provider.clone());
+
+		for i in 0..total {
+			let eid = GeneratedId(format!("e{i:04}"));
+			let entity: ParsedEntity = collection! {
+				id_field_id => ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(list_id.clone(), eid.clone())),
+				field_field_id => ElementValue::Bytes(vec![i as u8])
+			};
+			let json = serializer
+				.serialize(
+					&TestListGeneratedElementIdEntity::type_ref(),
+					entity.clone(),
+				)
+				.unwrap();
+			if i < 100 {
+				all_json_chunk1.push(json);
+			} else {
+				all_json_chunk2.push(json);
+			}
+			all_element_ids.push(eid);
+			all_entities.push(entity);
+		}
+
+		let ids_param_1 = all_element_ids[..100]
+			.iter()
+			.map(|id| id.to_string())
+			.collect::<Vec<_>>()
+			.join(",");
+		let ids_param_2 = all_element_ids[100..]
+			.iter()
+			.map(|id| id.to_string())
+			.collect::<Vec<_>>()
+			.join(",");
+		let url1 = format!(
+			"http://test.com/rest/entityclienttestapp/TestListGeneratedElementIdEntity/list_id?ids={}",
+			ids_param_1
+		);
+		let url2 = format!(
+			"http://test.com/rest/entityclienttestapp/TestListGeneratedElementIdEntity/list_id?ids={}",
+			ids_param_2
+		);
+
+		let mut rest_client = MockRestClient::new();
+		rest_client
+			.expect_request_binary()
+			.with(eq(url1), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&all_json_chunk1).unwrap()),
+				})
+			});
+		rest_client
+			.expect_request_binary()
+			.with(eq(url2), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&all_json_chunk2).unwrap()),
+				})
+			});
+
+		let auth_headers_provider = HeadersProvider::new(Some("123".to_owned()));
+		let entity_client = EntityClient::new(
+			Arc::new(rest_client),
+			Arc::new(JsonSerializer::new(type_provider.clone())),
+			"http://test.com".to_owned(),
+			Arc::new(auth_headers_provider),
+			type_provider.clone(),
+		);
+
+		let result = entity_client
+			.load_multiple(
+				&TestListGeneratedElementIdEntity::type_ref(),
+				&list_id,
+				&all_element_ids,
+			)
+			.await
+			.expect("success");
+		assert_eq!(result.len(), total);
+		assert_eq!(result, all_entities);
 	}
 }
