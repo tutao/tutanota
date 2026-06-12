@@ -17,6 +17,7 @@ import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } fr
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { File, Mail, MailDetails, MailTypeRef } from "@tutao/entities/tutanota"
+import { MicrotaskBouncer } from "../../../../platform-kit/utils/PromiseUtils"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(
@@ -31,10 +32,14 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 
 	async indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetailsAndAttachments[]): Promise<void> {
 		const indexUpdate = this.createIndexUpdate()
+		const microtaskBouncer = new MicrotaskBouncer()
+
 		for (const element of mailsWithDetails) {
+			await microtaskBouncer.bounce()
 			const keyToIndexEntries = await this.createMailIndexEntries(element.mail, element.mailDetails, element.attachments)
 			await this.core.encryptSearchIndexEntries(element.mail._id, assertNotNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
+
 		await this.core.writeIndexUpdateWithIndexTimestamps(
 			Array.from(dataPerGroup).map(([id, timestamp]) => ({
 				groupId: id,
