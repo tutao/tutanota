@@ -1,7 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
 import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "@tutao/crypto/symmetric-key-deriver"
-import { Aes128Key, Aes256Key, aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, validateInitializationVectorLength } from "../../../src/platform-kit/crypto"
+import {
+	Aes128Key,
+	Aes256Key,
+	aes256RandomKey,
+	FIXED_INITIALIZATION_VECTOR,
+	INITIALIZATION_VECTOR_LENGTH_BYTES,
+	validateInitializationVectorLength,
+} from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import {
@@ -47,7 +54,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const ciphertext = aesCbcFacade.encrypt(
 				symmetricSubKeys128WithoutAuthenticationKey,
 				plainText,
-				initializationVectorVariant,
+				FIXED_INITIALIZATION_VECTOR,
 				paddingStandard,
 				cipherVersion,
 			)
@@ -83,7 +90,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const ciphertext = aesCbcFacade.encrypt(
 				symmetricSubKeys128WithAuthenticationKey,
 				plainText,
-				initializationVectorVariant,
+				FIXED_INITIALIZATION_VECTOR,
 				paddingStandard,
 				cipherVersion,
 			)
@@ -198,7 +205,7 @@ o.spec("AesCbcFacadeTest", function () {
 			const ciphertext = aesCbcFacade.encrypt(
 				symmetricSubKeys256WithoutAuthenticationKey,
 				plainText,
-				initializationVectorVariant,
+				FIXED_INITIALIZATION_VECTOR,
 				paddingStandard,
 				cipherVersion,
 				AuthenticationEnforcement.Relaxed,

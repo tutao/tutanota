@@ -8,6 +8,7 @@ import {
 	AesKeyLength,
 	base64ToKey,
 	getKeyLengthInBytes,
+	InitializationVector,
 	keyToBase64,
 	random,
 	uint8ArrayToKey,
@@ -39,7 +40,7 @@ o.spec("aes", function () {
 		arrayRoundtrip(aesEncryptConfigurationDatabaseItem, aesDecrypt, aes256RandomKey(), initializationVector),
 	)
 
-	async function arrayRoundtrip(encrypt, decrypt, key, initializationVector?: Uint8Array) {
+	async function arrayRoundtrip(encrypt, decrypt, key, initializationVector?: InitializationVector) {
 		function runArrayRoundtrip(key: AesKey, plainText) {
 			let encrypted = encrypt(key, plainText, initializationVector)
 			return Promise.resolve(encrypted)

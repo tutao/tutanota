@@ -32,9 +32,12 @@ import {
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	MacTag,
-	PQKeyPairs,
+	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKey,
+	RsaKeyPair,
+	RsaX25519KeyPair,
+	RsaX25519PublicKey,
 	random,
 	Randomizer,
 	rsaDecrypt,
@@ -69,6 +72,7 @@ import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypt
 import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
 import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify } from "@tutao/crypto/blake3"
+import { PQKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/PQKeyPairs.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { aesDecrypt, aesEncrypt, asyncDecryptBytes } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
@@ -402,54 +406,33 @@ o.spec("CompatibilityTest", function () {
 			let encryptionPublicKey: PublicKey
 
 			if (td.pubKyberKey) {
-				let keyPairType = KeyPairType.TUTA_CRYPT
 				let kyberPublicKey = bytesToKyberPublicKey(hexToUint8Array(td.pubKyberKey))
 				let x25519PublicKey = hexToUint8Array(td.pubEccKey)
-				encryptionKeyPair = {
-					keyPairType,
-					kyberKeyPair: {
-						publicKey: kyberPublicKey,
-						privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
-					},
-					x25519KeyPair: {
-						privateKey: hexToUint8Array(td.privateEccKey),
-						publicKey: x25519PublicKey,
-					},
-				}
-				encryptionPublicKey = {
-					keyPairType,
-					kyberPublicKey,
-					x25519PublicKey,
-				}
+				const x25519KeyPair = { privateKey: hexToUint8Array(td.privateEccKey), publicKey: x25519PublicKey }
+				const kyberKeyPair = { publicKey: kyberPublicKey, privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)) }
+				encryptionKeyPair = new PQKeyPairs(x25519KeyPair, kyberKeyPair)
+				encryptionPublicKey = pqKeyPairsToPublicKeys(encryptionKeyPair as PQKeyPairs)
 			} else {
 				// we expect that an RSA key pair is present
 				let rsaPublicKey = hexToRsaPublicKey(td.pubRsaKey)
 				if (td.pubEccKey) {
-					let keyPairType = KeyPairType.RSA_AND_X25519
 					let publicEccKey = hexToUint8Array(td.pubEccKey)
-					encryptionKeyPair = {
-						publicKey: rsaPublicKey,
-						privateKey: hexToRsaPrivateKey(td.privateRsaKey),
-						keyPairType,
+					encryptionKeyPair = new RsaX25519KeyPair(
+						rsaPublicKey,
+						hexToRsaPrivateKey(td.privateRsaKey),
 						publicEccKey,
-						privateEccKey: hexToUint8Array(td.privateEccKey),
-					}
-					encryptionPublicKey = {
-						...rsaPublicKey,
-						keyPairType,
+						hexToUint8Array(td.privateEccKey),
+					)
+					encryptionPublicKey = new RsaX25519PublicKey(
+						rsaPublicKey.version,
+						rsaPublicKey.keyLength,
+						rsaPublicKey.modulus,
+						rsaPublicKey.publicExponent,
 						publicEccKey,
-					}
+					)
 				} else {
-					let keyPairType = KeyPairType.RSA
-					encryptionKeyPair = {
-						publicKey: rsaPublicKey,
-						privateKey: hexToRsaPrivateKey(td.privateRsaKey),
-						keyPairType,
-					}
-					encryptionPublicKey = {
-						...rsaPublicKey,
-						keyPairType,
-					}
+					encryptionKeyPair = new RsaKeyPair(rsaPublicKey, hexToRsaPrivateKey(td.privateRsaKey))
+					encryptionPublicKey = rsaPublicKey
 				}
 			}
 			const versionedEncryptionKeyPair: Versioned<AsymmetricKeyPair> = {

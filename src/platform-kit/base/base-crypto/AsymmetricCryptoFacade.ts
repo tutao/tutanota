@@ -40,7 +40,7 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
 import { TypeId } from "../../meta/EntityTypes"
-import { RsaImplementation } from "../../crypto"
+import { PQKeyPairs, RsaImplementation } from "../../crypto"
 
 assertWorkerOrNode()
 
@@ -207,7 +207,7 @@ export class AsymmetricCryptoFacade {
 				}
 			}
 			case CryptoProtocolVersion.TUTA_CRYPT: {
-				if (!isPqKeyPairs(recipientKeyPair)) {
+				if (!(recipientKeyPair instanceof PQKeyPairs)) {
 					throw new CryptoError("wrong key type. expected TutaCrypt. got " + recipientKeyPair.keyPairType)
 				}
 				const { decryptedSymKeyBytes, senderIdentityPubKey } = await this.pqFacade.decapsulateEncoded(pubEncSymKey, recipientKeyPair)
