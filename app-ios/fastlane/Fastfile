@@ -538,13 +538,11 @@ platform :ios do
 
 	DRIVE_PROD_APP_IDS = [
 		"de.tutao.drive",
-		"de.tutao.drive.TutanotaShareExtension",
-		"de.tutao.drive.TutanotaNotificationExtension"
+		"de.tutao.drive.TutanotaShareExtension"
 	]
 	DRIVE_STAGING_APP_IDS = [
 		"de.tutao.drive.test",
-		"de.tutao.drive.test.TutanotaShareExtension",
-		"de.tutao.drive.test.TutanotaNotificationExtension"
+		"de.tutao.drive.test.TutanotaShareExtension"
 	]
 
 	#
