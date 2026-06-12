@@ -9,16 +9,16 @@ function mockDeferMapper() {
 	return mapper
 }
 
-o.spec("PromiseUtils", function () {
-	o.spec("promiseMap Array<T>", function () {
-		o("empty", async function () {
-			o(await promiseMap([], (n) => n + 1)).deepEquals([])
+o.spec("PromiseUtils", () => {
+	o.spec("promiseMap Array<T>", () => {
+		o.test("empty", async () => {
+			o.check(await promiseMap([], (n) => n + 1)).deepEquals([])
 		})
-		o("non-empty", async function () {
-			o(await promiseMap([1, 2, 3], (n) => n + 1)).deepEquals([2, 3, 4])
+		o.test("non-empty", async () => {
+			o.check(await promiseMap([1, 2, 3], (n) => n + 1)).deepEquals([2, 3, 4])
 		})
 
-		o("parallel", async function () {
+		o.test("parallel", async () => {
 			const defer1 = defer<void>()
 			const defer2 = defer<void>()
 			const defer3 = defer<void>()
@@ -40,7 +40,7 @@ o.spec("PromiseUtils", function () {
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 3 })
 		})
 
-		o("async in order", async function () {
+		o.test("async in order", async () => {
 			const defer1 = defer()
 			const defer2 = defer()
 			const mapper = mockDeferMapper()
@@ -52,9 +52,9 @@ o.spec("PromiseUtils", function () {
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 2 })
 			defer2.resolve(2)
 			await Promise.resolve()
-			o(await resultPromise).deepEquals([1, 2])
+			o.check(await resultPromise).deepEquals([1, 2])
 		})
-		o("stops on rejection", async function () {
+		o.test("stops on rejection", async () => {
 			const defer1 = defer()
 			const defer2 = defer()
 			const mapper = mockDeferMapper()
@@ -62,40 +62,40 @@ o.spec("PromiseUtils", function () {
 			await Promise.resolve()
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 1 })
 			defer1.reject(new Error("test"))
-			await o(() => resultPromise).asyncThrows(Error)
+			await o.check(() => resultPromise).asyncThrows(Error)
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 1 })
 		})
-		o("stops on exception", async function () {
+		o.test("stops on exception", async () => {
 			const mapper = func<(number: number, idx: number) => Promise<number>>()
 			when(mapper(matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenDo(() => {
 				throw new Error("test")
 			})
-			await o(() => promiseMap([1, 2], mapper)).asyncThrows(Error)
+			await o.check(() => promiseMap([1, 2], mapper)).asyncThrows(Error)
 			// we would test that the mapper is called here but testdouble is not supporting that and are being very stubborn about it
 			//https://github.com/testdouble/testdouble.js/issues/412
 		})
 	})
-	o.spec("promiseFilter", function () {
+	o.spec("promiseFilter", () => {
 		async function isEven(n) {
 			return n % 2 === 0
 		}
 
-		o("sync", async function () {
+		o.test("sync", async () => {
 			const arr = [1, 2, 3, 4]
 			const result = await promiseFilter(arr, isEven)
-			o(result).deepEquals([2, 4])
+			o.check(result).deepEquals([2, 4])
 		})
-		o("async", async function () {
+		o.test("async", async () => {
 			const arr = [1, 2, 3, 4]
 			const result = await promiseFilter(arr, (n) => Promise.resolve(isEven(n)))
-			o(result).deepEquals([2, 4])
+			o.check(result).deepEquals([2, 4])
 		})
-		o("index", async function () {
+		o.test("index", async () => {
 			const arr = [1, 2, 3, 4]
 			const result = await promiseFilter(arr, (_, i) => Promise.resolve(isEven(i)))
-			o(result).deepEquals([1, 3])
+			o.check(result).deepEquals([1, 3])
 		})
-		o("no concurrency", async function () {
+		o.test("no concurrency", async () => {
 			// One deferred per each item we want to check
 			const arr = [1, 2, 3, 4]
 			const deferred = [defer<boolean>(), defer<boolean>(), defer<boolean>(), defer<boolean>()]
@@ -120,7 +120,7 @@ o.spec("PromiseUtils", function () {
 			deferred[3].resolve(true)
 			await delay(1)
 			verify(mapper(matchers.anything(), matchers.anything()), { times: 4 })
-			o(await resultP).deepEquals([1, 4])
+			o.check(await resultP).deepEquals([1, 4])
 		})
 	})
 
