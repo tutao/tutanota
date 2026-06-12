@@ -10,6 +10,7 @@ import { createTestEntity } from "../../../TestUtils"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { GENERATED_MAX_ID } from "../../../../../src/platform-kit/meta"
 
 o.spec("OfflineStorageIndexer", () => {
 	let userFacade: UserFacade
@@ -42,12 +43,16 @@ o.spec("OfflineStorageIndexer", () => {
 				groupId: removedGroupId,
 				type: GroupType.Mail,
 				indexedTimestamp: 1234,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			}
 			const groupThatStaysId = "groupThatStays"
 			const groupThatStays: IndexedGroupData = {
 				groupId: groupThatStaysId,
 				type: GroupType.Contact,
 				indexedTimestamp: 12345,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			}
 			when(persistence.getIndexedGroups()).thenResolve([removedGroup, groupThatStays])
 			user.memberships.push(
@@ -60,7 +65,7 @@ o.spec("OfflineStorageIndexer", () => {
 			await indexer.fullLoginInit()
 			verify(persistence.removeIndexedGroup(removedGroupId))
 			verify(persistence.removeIndexedGroup(groupThatStaysId), { times: 0 })
-			verify(persistence.addIndexedGroup(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(persistence.addIndexedGroup(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(contactIndexer.indexFullContactList())
 		})
 
@@ -70,12 +75,16 @@ o.spec("OfflineStorageIndexer", () => {
 				groupId: addedGroupId,
 				type: GroupType.Mail,
 				indexedTimestamp: 1234,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			}
 			const groupThatStaysId = "groupThatStays"
 			const groupThatStays: IndexedGroupData = {
 				groupId: groupThatStaysId,
 				type: GroupType.Contact,
 				indexedTimestamp: 12345,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			}
 			when(persistence.getIndexedGroups()).thenResolve([groupThatStays])
 			user.memberships.push(
@@ -92,8 +101,8 @@ o.spec("OfflineStorageIndexer", () => {
 			when(userFacade.getMembership(addedGroupId)).thenReturn(addedGroupMembership)
 
 			await indexer.fullLoginInit()
-			verify(persistence.addIndexedGroup(addedGroupId, GroupType.Mail, NOTHING_INDEXED_TIMESTAMP))
-			verify(persistence.addIndexedGroup(matchers.not(addedGroupId), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(persistence.addIndexedGroup(addedGroupId, GroupType.Mail, NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID]))
+			verify(persistence.addIndexedGroup(matchers.not(addedGroupId), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(persistence.removeIndexedGroup(matchers.anything()), { times: 0 })
 			verify(contactIndexer.indexFullContactList())
 		})

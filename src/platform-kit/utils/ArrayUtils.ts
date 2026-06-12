@@ -337,6 +337,7 @@ export function collectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element
 /**
  * split an array into chunks of a given size.
  * the last chunk will be smaller if there are less than chunkSize elements left.
+ * if array is empty, the last (and only) chunk will be empty (i.e. `[[]]` gets returned)
  * @param chunkSize
  * @param array
  * @returns {Array<Array<T>>}
