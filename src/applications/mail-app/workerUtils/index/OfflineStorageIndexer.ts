@@ -9,6 +9,7 @@ import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { GENERATED_MAX_ID } from "@tutao/meta"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
@@ -47,7 +48,7 @@ export class OfflineStorageIndexer implements Indexer {
 		for (const addedGroup of addedGroups) {
 			const membership = this.userFacade.getMembership(addedGroup)
 			const groupType = assertNotNull(membership.groupType) as GroupType
-			await this.persistence.addIndexedGroup(addedGroup, groupType, NOTHING_INDEXED_TIMESTAMP)
+			await this.persistence.addIndexedGroup(addedGroup, groupType, NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID])
 		}
 
 		await this.contactIndexer.indexFullContactList()
