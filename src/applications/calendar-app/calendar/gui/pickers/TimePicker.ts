@@ -15,7 +15,7 @@ import { lang, Translation, TranslationKey } from "../../../../../ui/utils/Langu
 
 export type TimePickerAttrs = {
 	time: Time | null
-	onTimeSelected: (arg0: Time | null) => unknown
+	onTimeSelected: (arg0: Time | null) => boolean
 	timeFormat: TimeFormat
 	disabled?: boolean
 	ariaLabel: TranslationKey | Translation
@@ -102,8 +102,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					if (this.value === inputValue) {
 						return
 					}
-					this.value = inputValue
-					attrs.onTimeSelected(Time.parseFromString(inputValue))
+					if (attrs.onTimeSelected(Time.parseFromString(inputValue))) {
+						this.value = inputValue
+					}
 				},
 			}),
 			m(
@@ -135,8 +136,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					if (this.value === value) {
 						return
 					}
-					this.value = value
-					attrs.onTimeSelected(Time.parseFromString(value))
+					if (attrs.onTimeSelected(Time.parseFromString(value))) {
+						this.value = value
+					}
 				},
 				disabled: attrs.disabled,
 			}),

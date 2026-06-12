@@ -37,7 +37,7 @@ export type CalendarEventWhenModelResult = CalendarEventTimes &
 	}
 
 /*
- * start, end, repeat, exclusions, reschedulings
+ * start, end, repeat, exclusions, rescheduling
  */
 export class CalendarEventWhenModel {
 	private repeatRule: CalendarRepeatRule | null = null
@@ -138,29 +138,29 @@ export class CalendarEventWhenModel {
 	 */
 	getStartTime(applyTimeZone: boolean): Time {
 		const startTime = applyTimeZone
-			? Time.fromDateTime(
-					assertNotNull(
-						this._startTime
-							?.toDateTime(this._startDate, this.calendarTimeZone)
-							.setZone(isValidIANAZone(this.startTimeZone ?? "") ? this.startTimeZone! : this.calendarTimeZone),
-						`Something went wrong with when resolving this event start time`,
-					),
-				)
+			? Time.fromDateTime(assertNotNull(this.getStartDateTimeWithTimezone(), `Something went wrong with when resolving this event start time`))
 			: this._startTime!
 		return this._isAllDay ? new Time(0, 0) : startTime
+	}
+
+	private getStartDateTimeWithTimezone() {
+		return this._startTime
+			?.toDateTime(this._startDate, this.calendarTimeZone)
+			.setZone(isValidIANAZone(this.startTimeZone ?? "") ? this.startTimeZone! : this.calendarTimeZone)
 	}
 
 	/**
 	 * set the time portion of the events start time. the date portion will not be modified.
 	 * will also adjust the end time accordingly to keep the event length the same.
 	 *  */
-	set startTime(v: Time | null) {
-		if (v == null || this._isAllDay) return
+	setStartTime(v: Time | null) {
+		if (v == null || this._isAllDay) return null
 		const startTime = this._startTime!
 		const delta = ((v.hour - startTime.hour) * 60 + (v.minute - startTime.minute)) * 60000
-		if (delta === 0) return
+		if (delta === 0) return null
 		this.shiftEvent({ millisecond: delta })
 		this.uiUpdateCallback()
+		return v.toString()
 	}
 
 	/**
@@ -169,16 +169,15 @@ export class CalendarEventWhenModel {
 	 */
 	getEndTime(applyTimeZone: boolean): Time {
 		const endTime = applyTimeZone
-			? Time.fromDateTime(
-					assertNotNull(
-						this._endTime
-							?.toDateTime(this._endDate, this.calendarTimeZone)
-							.setZone(isValidIANAZone(this.endTimeZone ?? "") ? this.endTimeZone! : this.calendarTimeZone),
-						`Something went wrong with when resolving this event start time`,
-					),
-				)
+			? Time.fromDateTime(assertNotNull(this.getEndDateTimeWithTimeZone(), `Something went wrong with when resolving this event start time`))
 			: this._endTime!
 		return this._isAllDay ? new Time(0, 0) : endTime
+	}
+
+	private getEndDateTimeWithTimeZone() {
+		return this._endTime
+			?.toDateTime(this._endDate, this.calendarTimeZone)
+			.setZone(isValidIANAZone(this.endTimeZone ?? "") ? this.endTimeZone! : this.calendarTimeZone)
 	}
 
 	/**
@@ -187,11 +186,12 @@ export class CalendarEventWhenModel {
 	 */
 	set endTime(v: Time | null) {
 		if (v == null || this._isAllDay) return
-		const startTime = this._startTime!
-		const currentStart = startTime.toDate(this._startDate)
-		const newEnd = v.toDate(this._endDate)
-		if (newEnd < currentStart) return
-		this._endTime = v
+		const currentStart = this.getStartDateTimeWithTimezone()!
+		const newEnd = this.getEndDateTimeWithTimeZone()?.set({ hour: v.hour, minute: v.minute })!
+
+		if (newEnd.toMillis() < currentStart.toMillis()) return
+
+		this._endTime = Time.fromDateTime(newEnd)
 		this.uiUpdateCallback()
 	}
 

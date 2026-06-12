@@ -82,7 +82,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							m(TimePicker, {
 								classes: appClasses,
 								time: editModel.getStartTime(true),
-								onTimeSelected: (time) => (editModel.startTime = time),
+								onTimeSelected: (time) => Boolean(editModel.setStartTime(time)),
 								timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
 								ariaLabel: "startTime_label",

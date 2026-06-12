@@ -754,7 +754,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												onTimeSelected: (time: Time | null) => {
 													if (time) {
 														model.setSendAtTime(time)
+														return true
 													}
+													return false
 												},
 												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
 												ariaLabel: lang.getTranslation("sendTime_label"),
