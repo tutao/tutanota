@@ -123,7 +123,7 @@ o.spec("ImapSyncSessionProcess", () => {
 	})
 
 	o.test("handleDeletedUids - emits DELETE events", async () => {
-		const openedMailbox = new ImapMailbox("INBOX")
+		const openedMailbox = { path: "INBOX" }
 		const deletedUids = [5, 10]
 		await sessionProcess["handleDeletedUids"](deletedUids, openedMailbox, eventListenerMock)
 		verify(eventListenerMock.onMultipleMails(anything(), ImapSyncEventType.DELETE), { times: 2 })
@@ -131,8 +131,8 @@ o.spec("ImapSyncSessionProcess", () => {
 
 	o.test("emitImapMailDeleteEvent - deletes from map and emits DELETE", () => {
 		const uid = 7
-		const mailbox = new ImapMailbox("INBOX")
-		syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.set(uid, new ImapMailId(uid))
+		const mailbox = { path: "INBOX" }
+		syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.set(uid, { uid })
 		sessionProcess["emitImapMailDeleteEvent"](uid, mailbox, eventListenerMock)
 		o.check(syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.has(uid)).equals(false)
 		verify(eventListenerMock.onMultipleMails(anything(), ImapSyncEventType.DELETE), { times: 1 })
@@ -181,9 +181,9 @@ o.spec("ImapSyncSessionProcess", () => {
 	})
 
 	o.test("handleQresyncFetchResult - splits into updates and creates", async () => {
-		syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.set(1, new ImapMailId(1))
-		const mail1 = new ImapMail(1, new ImapMailbox("INBOX"))
-		const mail2 = new ImapMail(2, new ImapMailbox("INBOX"))
+		syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.set(1, { uid: 1 })
+		const mail1 = { uid: 1, belongsToMailbox: { path: "INBOX" } }
+		const mail2 = { uid: 2, belongsToMailbox: { path: "INBOX" } }
 		await sessionProcess.handleQresyncFetchResult([mail1, mail2], eventListenerMock)
 		verify(eventListenerMock.onMultipleMails([mail1], ImapSyncEventType.UPDATE), { times: 1 })
 		verify(eventListenerMock.onMultipleMails([mail2], ImapSyncEventType.CREATE), { times: 1 })

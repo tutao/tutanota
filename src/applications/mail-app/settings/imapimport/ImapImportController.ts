@@ -6,14 +6,14 @@ import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { OAuthHandler, OAuthHandlerFactory } from "./oauth/OAuthHandler"
 import { assertNotNull, first, promiseMap } from "@tutao/utils"
-import { ImapError, ImapErrorCause } from "../../../common/api/common/utils/imapImportUtils/ImapError"
+import { ImapError, ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { getConfigForProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { getElementId } from "@tutao/meta"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus } from "../../../../entities/tutanota/Utils"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncState"
-import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { getSpecialUseAsSystemFolderType, ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { OauthFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 assertMainOrNode()
@@ -130,7 +130,7 @@ export class ImapImportController {
 		const folderSystem = await this.getFolderSystemForSelectedMailbox()
 		for (const imapMailbox of imapMailboxes) {
 			if (imapMailbox.specialUse) {
-				const systemFolderType = ImapMailbox.getSpecialUseAsSystemFolderType(imapMailbox)
+				const systemFolderType = getSpecialUseAsSystemFolderType(imapMailbox)
 				if (systemFolderType !== null) {
 					const systemFolder = assertNotNull(folderSystem.getSystemFolderByType(systemFolderType))
 					imapMailboxesToTutaFolders.set(imapMailbox.path, getElementId(systemFolder))

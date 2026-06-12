@@ -1,6 +1,6 @@
 import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
-import { ImapError } from "../../../api/common/utils/imapImportUtils/ImapError.js"
+import { ImapError } from "../../../api/common/error/ImapError.js"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 
 export interface ImapSyncEventListener {

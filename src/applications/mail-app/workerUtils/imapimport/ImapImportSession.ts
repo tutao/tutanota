@@ -1,15 +1,21 @@
 import { ImapAccountSyncState, ImapFolderSyncState } from "@tutao/entities/tutanota"
 
-export class ImapImportSession {
+export type ImapImportSession = {
 	imapAccountSyncState: ImapAccountSyncState
-	imapFolderSyncStates: ImapFolderSyncState[] = []
-	importedMessageIds: Set<string> = new Set()
-	imapMailboxesToTutaFolders: Map<string, Id> = new Map()
+	imapFolderSyncStates: ImapFolderSyncState[]
+	importedMessageIds: Set<string>
+	imapMailboxesToTutaFolders: Map<string, Id>
 	syncProgress?: {
 		completed: number
 		total: number
 	}
-	constructor(accountSyncState: ImapAccountSyncState) {
-		this.imapAccountSyncState = accountSyncState
+}
+
+export function newImapImportSession(accountSyncState: ImapAccountSyncState): ImapImportSession {
+	return {
+		imapAccountSyncState: accountSyncState,
+		imapFolderSyncStates: [],
+		importedMessageIds: new Set(),
+		imapMailboxesToTutaFolders: new Map(),
 	}
 }

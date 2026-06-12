@@ -21,7 +21,7 @@ o.spec("ImapParserUtils", function () {
 			internalDate: date,
 			flags: new Set<string>(),
 		}
-		const result = await imapMailFromImapFlowFetchMessageObject(testMail, new ImapMailbox("INBOX"), "external-id")
+		const result = await imapMailFromImapFlowFetchMessageObject(testMail, { path: "INBOX" }, "external-id")
 
 		o(result.modSeq).equals(BigInt(10))
 		o(result.size).equals(12345)

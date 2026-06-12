@@ -15,7 +15,7 @@ import {
 	ImapMailAttachment,
 	ImapMailAttachmentDisposition,
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMail"
-import { ImapMailbox, ImapMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
 import { ImapAccountTypeRef, ImapFolderSyncStateTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
@@ -167,7 +167,7 @@ o.spec("ImapImportUtils", () => {
 			imapMailMock = {
 				uid: 123,
 				modSeq: 456n,
-				belongsToMailbox: new ImapMailbox("INBOX").setSpecialUse(ImapMailboxSpecialUse.INBOX),
+				belongsToMailbox: { path: "INBOX", specialUse: ImapMailboxSpecialUse.INBOX },
 				flags: new Set(),
 				internalDate: new Date(2024, 0, 1),
 				envelope: {
@@ -257,13 +257,13 @@ o.spec("ImapImportUtils", () => {
 		})
 
 		o.test("sets state to SENT for Sent mailbox", () => {
-			imapMailMock.belongsToMailbox = new ImapMailbox("Sent").setSpecialUse(ImapMailboxSpecialUse.SENT)
+			imapMailMock.belongsToMailbox = { path: "Sent", specialUse: ImapMailboxSpecialUse.SENT }
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			o.check(result.state).equals(MailState.SENT)
 		})
 
 		o.test("sets state to DRAFT for Drafts mailbox", () => {
-			imapMailMock.belongsToMailbox = new ImapMailbox("Drafts").setSpecialUse(ImapMailboxSpecialUse.DRAFTS)
+			imapMailMock.belongsToMailbox = { path: "Drafts", specialUse: ImapMailboxSpecialUse.DRAFTS }
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			o.check(result.state).equals(MailState.DRAFT)
 		})
@@ -275,9 +275,13 @@ o.spec("ImapImportUtils", () => {
 		})
 
 		o.test("converts ImapMail attachments when no deduplicated ones", () => {
-			const attachmentMock: ImapMailAttachment = new ImapMailAttachment(3, "text/plain", Buffer.from([1, 2, 3]))
-				.setDisposition(ImapMailAttachmentDisposition.Attachment)
-				.setFilename("test.txt")
+			const attachmentMock: ImapMailAttachment = {
+				size: 3,
+				mimeType: "text/plain",
+				content: Buffer.from([1, 2, 3]),
+				disposition: ImapMailAttachmentDisposition.Attachment,
+				filename: "test.txt",
+			}
 			imapMailMock.attachments = [attachmentMock]
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			o.check(result.attachments!.length).equals(1)
@@ -290,9 +294,12 @@ o.spec("ImapImportUtils", () => {
 		})
 
 		o.test("generates filename as unknown.txt when missing", () => {
-			const attachmentMock: ImapMailAttachment = new ImapMailAttachment(1, "image/png", Buffer.from([1, 2, 3])).setDisposition(
-				ImapMailAttachmentDisposition.Inline,
-			)
+			const attachmentMock: ImapMailAttachment = {
+				size: 1,
+				mimeType: "image/png",
+				content: Buffer.from([1, 2, 3]),
+				disposition: ImapMailAttachmentDisposition.Inline,
+			}
 			imapMailMock.attachments = [attachmentMock]
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			const file = result.attachments![0] as ImapImportDataFile

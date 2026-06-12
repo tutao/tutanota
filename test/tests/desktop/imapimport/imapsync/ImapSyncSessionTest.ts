@@ -5,9 +5,9 @@ import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, ImapSyncSession, SyncSessionState } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
 import { ImapCredentials, ImapSyncState } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncState"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
-import { ImapErrorCause } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapError"
 import { ImapSyncSessionProcess } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionProcess"
 import { ImapSyncConfig } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
+import { ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 
 o.spec("ImapSyncSession", () => {
 	let eventListenerMock: ImapSyncEventListener
@@ -18,7 +18,7 @@ o.spec("ImapSyncSession", () => {
 
 	const imapAccount: ImapCredentials = { host: "localhost", port: 993, username: "user", password: "pass" }
 	const imapSyncState: ImapSyncState = {
-		imapAccount,
+		imapCredentials: imapAccount,
 		maxQuota: 100_000_000,
 		imapMailboxStates: [],
 	}

@@ -2,6 +2,6 @@
 	"name": "ImapError",
 	"type": "typeref",
 	"location": {
-		"typescript": "../src/applications/common/api/common/utils/imapImportUtils/ImapError.js"
+		"typescript": "../src/applications/common/api/common/error/ImapError.js"
 	}
 }

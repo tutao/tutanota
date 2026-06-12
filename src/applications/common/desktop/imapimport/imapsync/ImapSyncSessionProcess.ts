@@ -2,7 +2,6 @@ import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./Ima
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapCredentials, ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncState.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
-import { ImapError } from "../../../api/common/utils/imapImportUtils/ImapError.js"
 import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { DifferentialUidLoader, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
@@ -11,7 +10,8 @@ import { assertNotNull, isEmpty, isNotEmpty, splitInChunks } from "@tutao/utils"
 import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
-import { ImapSyncEventType, ImapFolderSyncStatus, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../entities/tutanota/Utils"
+import { ImapFolderSyncStatus, ImapSyncEventType, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../entities/tutanota/Utils"
+import { ImapError } from "../../../api/common/error/ImapError"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -91,7 +91,14 @@ export class ImapSyncSessionProcess {
 			const mailboxObject = await imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
 
 			// emit ImapMailboxStatus and update SyncSessionMailbox
-			const imapMailboxStatus = ImapMailboxStatus.fromImapFlowMailboxObject(mailboxObject)
+			const imapMailboxStatus: ImapMailboxStatus = {
+				path: mailboxObject.path,
+				uidValidity: mailboxObject.uidValidity,
+				uidNext: mailboxObject.uidNext,
+				messageCount: mailboxObject.exists,
+				highestModSeq: mailboxObject.highestModseq,
+				syncStatus: ImapFolderSyncStatus.RUNNING,
+			}
 			await adSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
 
@@ -162,7 +169,7 @@ export class ImapSyncSessionProcess {
 
 						switch (nextUidFetchRequest.fetchRequestType) {
 							case UidFetchRequestType.CREATE:
-								this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, new ImapMailId(imapMail.uid))
+								this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid })
 								if (this.adSyncConfig.emitAdSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 									imapMailsCreate.push(imapMail)
 								}
@@ -201,7 +208,7 @@ export class ImapSyncSessionProcess {
 			}
 
 			isMailboxFinished = true
-			imapMailboxStatus.setSyncStatus(ImapFolderSyncStatus.FINISHED)
+			imapMailboxStatus.syncStatus = ImapFolderSyncStatus.FINISHED
 			await adSyncEventListener.onMailboxStatus(imapMailboxStatus)
 		} catch (error: any) {
 			await adSyncEventListener.onError(new ImapError(error))
@@ -256,7 +263,7 @@ export class ImapSyncSessionProcess {
 
 		if (!isEmpty(mailCreates) && this.adSyncConfig.emitAdSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 			for (const imapMail of imapMails) {
-				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, new ImapMailId(imapMail.uid))
+				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid })
 			}
 			const chunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailCreates)
 			for (const chunk of chunks) {
@@ -298,7 +305,7 @@ export class ImapSyncSessionProcess {
 	// Visible for testing
 	async emitImapMailDeleteEvent(deletedUid: number, openedImapMailbox: ImapMailbox, adSyncEventListener: ImapSyncEventListener) {
 		if (this.adSyncConfig.emitAdSyncEventTypes.has(ImapSyncEventType.DELETE)) {
-			const imapMail = new ImapMail(deletedUid, openedImapMailbox)
+			const imapMail = { uid: deletedUid, belongsToMailbox: openedImapMailbox }
 			this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.delete(deletedUid)
 			await adSyncEventListener.onMultipleMails([imapMail], ImapSyncEventType.DELETE)
 		}

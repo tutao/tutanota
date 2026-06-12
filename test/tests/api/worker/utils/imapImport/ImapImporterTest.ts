@@ -8,8 +8,8 @@ import { ImapMailbox, ImapMailboxStatus } from "../../../../../../src/applicatio
 import { ImapMail, ImapMailAttachment, ImapMailEnvelope } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMail"
 import { ImapProvider } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { imapMailToImportMailParams } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapImportUtils"
-import { ImapImportSession } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
-import { ImapError, ImapErrorCause } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapError"
+import { newImapImportSession } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
+import { ImapError, ImapErrorCause } from "../../../../../../src/applications/common/api/common/error/ImapError"
 import { ImapGetMailboxResult } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../../src/entities/tutanota/Utils"
 import { ImapSyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
@@ -52,7 +52,7 @@ o.spec("ImapImporter", () => {
 		oAuthTokenEndpointResponse: null,
 	})
 	const imapAccountPlainMock: ImapCredentials = { host: "imap.test.com", port: 993, username: "user@test.com", password: "pass" }
-	const imapMailboxMock: ImapMailbox = new ImapMailbox("INBOX").setName("INBOX")
+	const imapMailboxMock: ImapMailbox = { path: "INBOX", name: "INBOX" }
 	const imapMailboxStatusMock: ImapMailboxStatus = {
 		path: "INBOX",
 		uidNext: 100,
@@ -60,10 +60,13 @@ o.spec("ImapImporter", () => {
 		highestModSeq: 67890n,
 		syncStatus: ImapFolderSyncStatus.RUNNING,
 	} as ImapMailboxStatus
-	const imapMailMock: ImapMail = new ImapMail(42, imapMailboxMock)
-		.setModSeq(123n)
-		.setEnvelope({ messageId: "msg123" } as ImapMailEnvelope)
-		.setAttachments([])
+	const imapMailMock: ImapMail = {
+		uid: 42,
+		belongsToMailbox: imapMailboxMock,
+		modSeq: 123n,
+		envelope: { messageId: "msg123" } as ImapMailEnvelope,
+		attachments: [],
+	}
 
 	let accountSyncStateMock: ImapAccountSyncState
 	let folderSyncStateMock: ImapFolderSyncState
@@ -165,7 +168,7 @@ o.spec("ImapImporter", () => {
 
 	o.test("continueImport - returns running state if already running", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.RUNNING
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const result = await importer.continueImport(accountSyncStateIdMock)
@@ -177,7 +180,7 @@ o.spec("ImapImporter", () => {
 
 	o.test("continueImport - starts import when state is not running and not postponed or postponement expired", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
@@ -196,7 +199,7 @@ o.spec("ImapImporter", () => {
 		const futureDate = new Date(Date.now() + 60000)
 		accountSyncStateMock.postponedUntil = futureDate.getTime().toString()
 		accountSyncStateMock.status = ImapAccountSyncStatus.POSTPONED
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const result = await importer.continueImport(accountSyncStateIdMock)
@@ -208,7 +211,7 @@ o.spec("ImapImporter", () => {
 
 	o.test("continueImport - handles startSync error and pauses", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const imapError = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
@@ -227,7 +230,7 @@ o.spec("ImapImporter", () => {
 
 	o.test("pauseImport - stops import and updates state", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.RUNNING
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
@@ -248,7 +251,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("deleteImport - deletes and stops import, removes session", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		when(imapFacadeMock.deleteImapImport(accountSyncStateIdMock)).thenResolve()
@@ -262,7 +265,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMailbox - handles CREATE event", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = []
 		session.imapMailboxesToTutaFolders = new Map()
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
@@ -276,7 +279,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMailbox - handles DELETE event", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
@@ -294,7 +297,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMailboxStatus - updates folder sync state", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
@@ -307,7 +310,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMailboxStatus - throws if uidvalidity is different", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
@@ -318,7 +321,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMultipleMails - imports mails that are not yet imported", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		session.importedMessageIds = new Set()
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
@@ -332,7 +335,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMultipleMails - does not import if messageId already seen", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		session.importedMessageIds = new Set(["msg123"])
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
@@ -345,7 +348,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onMultipleMails - handles SuspensionError by postponing import", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		session.importedMessageIds = new Set()
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
@@ -364,7 +367,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onPostpone - postpones the import", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const postponedUntil = Date.now() + 5000
@@ -383,7 +386,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("onFinish - marks session as FINISHED and updates folder states", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		when(imapFacadeMock.updateAllImapFolderSyncStates(accountSyncStateIdMock, ImapFolderSyncStatus.FINISHED)).thenResolve(accountSyncStateMock)
@@ -396,7 +399,7 @@ o.spec("ImapImporter", () => {
 
 	o.test("onError - sets session state to PAUSED", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.RUNNING
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const imapError = new ImapError("Some error", ImapErrorCause.LIST_MAILBOX_FAILED)
@@ -406,7 +409,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("entityEventsReceived - updates existing session on ImapAccountSyncState update", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapFolderSyncStates = [folderSyncStateMock]
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
@@ -450,7 +453,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("entityEventsReceived - deletes session on DELETE operation", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const update = {
@@ -469,9 +472,9 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("performAttachmentDeduplication - reuses existing attachment hash", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapAccountSyncState._ownerGroup = mailGroupIdMock
-		const attachment: ImapMailAttachment = new ImapMailAttachment(3, "text/plain", new Buffer([1, 2, 3]))
+		const attachment: ImapMailAttachment = { size: 3, mimeType: "text/plain", content: new Buffer([1, 2, 3]) }
 		const fileHash = uint8ArrayToString("utf-8", sha256Hash(attachment.content))
 		const existingFileIdMock: IdTuple = ["fileList", "fileElement"]
 
@@ -488,9 +491,9 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("performAttachmentDeduplication - uploads new attachment if not deduplicated", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		session.imapAccountSyncState._ownerGroup = mailGroupIdMock
-		const attachment: ImapMailAttachment = new ImapMailAttachment(3, "image/png", new Buffer([1, 2, 3])).setCid("cid123").setFilename("image.png")
+		const attachment: ImapMailAttachment = { size: 3, mimeType: "image/png", content: new Buffer([1, 2, 3]), cid: "cid123", filename: "image.png" }
 
 		const fileHash = uint8ArrayToString("utf-8", sha256Hash(attachment.content))
 		when(imapFacadeMock.getDeduplicatedImportedAttachmentsList(mailGroupIdMock)).thenResolve([])
@@ -517,7 +520,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("getActiveSessions - returns sessions map", async () => {
-		const session = new ImapImportSession(accountSyncStateMock)
+		const session = newImapImportSession(accountSyncStateMock)
 		importer.activeImapImportSessions.set("key", session)
 
 		const result = await importer.getActiveImapImportSessions()

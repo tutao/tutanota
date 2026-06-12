@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { ImapCredentials, ImapSyncState } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncState"
-import { ImapError, ImapErrorCause } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapError"
+import { ImapError, ImapErrorCause } from "../../../../src/applications/common/api/common/error/ImapError"
 import { ImapMailbox } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { ImapSync } from "../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import {
@@ -26,7 +26,7 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 		username: "user@test.com",
 		password: "pass",
 	}
-	const imapSyncStateMock = { imapAccount: imapAccountMock } as ImapSyncState
+	const imapSyncStateMock = { imapCredentials: imapAccountMock } as ImapSyncState
 	const imapErrorMock = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
 
 	o.beforeEach(() => {
@@ -59,7 +59,7 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 	})
 
 	o.test("getImapMailboxesFromServer - returns success result with mailboxes", async () => {
-		const mailboxesMock = [new ImapMailbox("INBOX").setName("INBOX")]
+		const mailboxesMock = [{ path: "INBOX", name: "INBOX" }]
 		when(transientImapSyncMock.getImapMailboxesFromServer(imapAccountMock)).thenResolve(mailboxesMock)
 
 		const result = await facade.getImapMailboxesFromServer(imapAccountMock)

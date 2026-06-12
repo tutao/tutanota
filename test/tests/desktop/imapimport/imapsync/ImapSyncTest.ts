@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { ImapSyncSession } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
 import { ImapSync } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import { ImapCredentials, ImapSyncState } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncState"
-import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapError"
+import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 import { object, verify, when } from "testdouble"
 import { ImapMailbox } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 
@@ -47,7 +47,7 @@ o.spec("ImapSync", () => {
 	})
 
 	o.test("getImapMailboxesFromServer - delegates and returns result", async () => {
-		const expectedMailboxes: ReadonlyArray<ImapMailbox> = [new ImapMailbox("INBOX")]
+		const expectedMailboxes: ReadonlyArray<ImapMailbox> = [{ path: "INBOX" }]
 		when(mockSyncSession.getImapMailboxesFromServer(imapAccount)).thenResolve(expectedMailboxes)
 
 		const result = await adSync.getImapMailboxesFromServer(imapAccount)

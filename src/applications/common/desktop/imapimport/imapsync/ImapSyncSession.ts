@@ -1,11 +1,11 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox, SyncSessionMailboxImportance } from "./ImapSyncSessionMailbox.js"
-import { ImapCredentials, ImapMailboxState, ImapSyncState } from "../../../api/common/utils/imapImportUtils/ImapSyncState.js"
+import { ImapCredentials, ImapSyncState } from "../../../api/common/utils/imapImportUtils/ImapSyncState.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { ImapMailbox } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
-import { ImapError, ImapErrorCause } from "../../../api/common/utils/imapImportUtils/ImapError"
+import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow } from "./imapflow-custom.js"
 import { ImapFlowOptions } from "imapflow"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
@@ -126,7 +126,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			return new ImapSyncSessionMailbox(mailboxState)
 		})
 
-		const imapAccount = this.imapSyncState.imapAccount
+		const imapAccount = this.imapSyncState.imapCredentials
 		const imapClient = await this.imapFlowFactory({
 			host: imapAccount.host,
 			port: imapAccount.port,
@@ -203,7 +203,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			listTreeResponse.folders
 				?.filter((listTreeResponse) => !listTreeResponse.disabled)
 				.map((listTreeResponse) => {
-					return ImapMailbox.fromImapFlowListTreeResponse(listTreeResponse, null)
+					return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
 				}) ?? []
 		)
 	}
@@ -237,7 +237,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
 			await this.adSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
-			syncSessionMailbox = new ImapSyncSessionMailbox(ImapMailboxState.fromImapMailbox(imapMailbox))
+			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map() })
 		}
 
 		if (imapMailbox.specialUse) {
@@ -269,7 +269,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			this.runningSyncSessionProcess = syncSessionProcess
 
-			syncSessionProcess.startSyncSessionProcess(this.imapSyncState.imapAccount, this.adSyncEventListener).then((state) => {
+			syncSessionProcess.startSyncSessionProcess(this.imapSyncState.imapCredentials, this.adSyncEventListener).then((state) => {
 				if (state === SyncSessionProcessState.CONNECTION_FAILED_REJECTED) {
 					this.forceStopSyncSessionProcess(syncSessionMailbox, true)
 				} else if (state === SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN) {

@@ -23,9 +23,8 @@ import { elementIdPart } from "@tutao/meta"
 import { InitializeImapImportParams } from "../../workerUtils/imapimport/ImapImporter"
 import { DEFAULT_IMAP_IMPORT_MAX_QUOTA } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { ImapErrorCause } from "../../../common/api/common/utils/imapImportUtils/ImapError"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 
 /**
  * continue an IMAP import after login if there is one.

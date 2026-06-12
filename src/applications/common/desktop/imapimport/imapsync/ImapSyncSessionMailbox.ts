@@ -49,5 +49,5 @@ export class ImapSyncSessionMailbox {
 }
 
 export function imapMailboxFromSyncSessionMailbox(syncSessionMailbox: ImapSyncSessionMailbox): ImapMailbox {
-	return new ImapMailbox(syncSessionMailbox.mailboxState.path)
+	return { path: syncSessionMailbox.mailboxState.path }
 }

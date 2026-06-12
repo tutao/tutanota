@@ -41,9 +41,9 @@ o.spec("DifferentialUidLoader", () => {
 		})
 
 		o.test("without QRESYNC: calculates diff and returns deleted UIDs", async () => {
-			importedUidToMailIdsMap.set(1, new ImapMailId(1))
-			importedUidToMailIdsMap.set(2, new ImapMailId(2))
-			importedUidToMailIdsMap.set(4, new ImapMailId(4))
+			importedUidToMailIdsMap.set(1, { uid: 1 })
+			importedUidToMailIdsMap.set(2, { uid: 2 })
+			importedUidToMailIdsMap.set(4, { uid: 4 })
 
 			const fetchStream = createFetchStream([
 				{ uid: 1 } as FetchMessageObject,
@@ -65,9 +65,9 @@ o.spec("DifferentialUidLoader", () => {
 			emitAdSyncEventTypes = new Set([ImapSyncEventType.CREATE])
 			loader = new DifferentialUidLoader(imapClientMock, importedUidToMailIdsMap, isEnableImapQresync, emitAdSyncEventTypes)
 
-			importedUidToMailIdsMap.set(1, new ImapMailId(1))
-			importedUidToMailIdsMap.set(2, new ImapMailId(2))
-			importedUidToMailIdsMap.set(4, new ImapMailId(4))
+			importedUidToMailIdsMap.set(1, { uid: 1 })
+			importedUidToMailIdsMap.set(2, { uid: 2 })
+			importedUidToMailIdsMap.set(4, { uid: 4 })
 
 			const fetchStream = createFetchStream([
 				{ uid: 1 } as FetchMessageObject,
@@ -89,9 +89,9 @@ o.spec("DifferentialUidLoader", () => {
 			emitAdSyncEventTypes = new Set([ImapSyncEventType.UPDATE])
 			loader = new DifferentialUidLoader(imapClientMock, importedUidToMailIdsMap, isEnableImapQresync, emitAdSyncEventTypes)
 
-			importedUidToMailIdsMap.set(1, new ImapMailId(1))
-			importedUidToMailIdsMap.set(2, new ImapMailId(2))
-			importedUidToMailIdsMap.set(4, new ImapMailId(4))
+			importedUidToMailIdsMap.set(1, { uid: 1 })
+			importedUidToMailIdsMap.set(2, { uid: 2 })
+			importedUidToMailIdsMap.set(4, { uid: 4 })
 
 			const fetchStream = createFetchStream([
 				{ uid: 1 } as FetchMessageObject,
@@ -112,9 +112,9 @@ o.spec("DifferentialUidLoader", () => {
 		})
 
 		o.test("returns deleted UIDs correctly", async () => {
-			importedUidToMailIdsMap.set(1, new ImapMailId(1))
-			importedUidToMailIdsMap.set(2, new ImapMailId(2))
-			importedUidToMailIdsMap.set(5, new ImapMailId(5))
+			importedUidToMailIdsMap.set(1, { uid: 1 })
+			importedUidToMailIdsMap.set(2, { uid: 2 })
+			importedUidToMailIdsMap.set(5, { uid: 5 })
 
 			const fetchStream = createFetchStream([{ uid: 1 } as FetchMessageObject, { uid: 3 } as FetchMessageObject, { uid: 4 } as FetchMessageObject])
 			imapClientMock.fetch = () => fetchStream
@@ -126,7 +126,7 @@ o.spec("DifferentialUidLoader", () => {
 		o.test("skips DELETE calculation if DELETE event type not in set", async () => {
 			emitAdSyncEventTypes.delete(ImapSyncEventType.DELETE)
 			loader = new DifferentialUidLoader(imapClientMock, importedUidToMailIdsMap, isEnableImapQresync, emitAdSyncEventTypes)
-			importedUidToMailIdsMap.set(1, new ImapMailId(1))
+			importedUidToMailIdsMap.set(1, { uid: 1 })
 			const fetchStream = createFetchStream([{ uid: 2 } as FetchMessageObject])
 			imapClientMock.fetch = () => fetchStream
 			const result = await loader.calculateUidDiff(0, null, 50)
@@ -219,7 +219,7 @@ o.spec("DifferentialUidLoader", () => {
 	})
 
 	o.test("calculateUidDiff followed by getNextUidFetchRequest", async () => {
-		importedUidToMailIdsMap.set(2, new ImapMailId(2))
+		importedUidToMailIdsMap.set(2, { uid: 2 })
 		const fetchStream = createFetchStream([{ uid: 1 }, { uid: 2 }, { uid: 3 }] as FetchMessageObject[])
 		imapClientMock.fetch = () => fetchStream
 		await loader.calculateUidDiff(0, null, 50)

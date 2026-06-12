@@ -29,7 +29,7 @@ import {
 	tokenEndpointResponseToOAuthTokenEndpointResponse,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImportResult, InitializeImapImportParams } from "../../workerUtils/imapimport/ImapImporter"
-import { ImapErrorCause } from "../../../common/api/common/utils/imapImportUtils/ImapError"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isValidCSSHexColor } from "../../../../ui/base/Color"

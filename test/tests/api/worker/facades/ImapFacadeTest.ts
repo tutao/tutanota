@@ -191,7 +191,7 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("createImportMailFolder - creates folder and returns sync state when no root folder and mapping exists", async () => {
-		const imapMailbox: ImapMailbox = new ImapMailbox("INBOX").setName("INBOX")
+		const imapMailbox: ImapMailbox = { path: "INBOX", name: "INBOX" }
 		const imapMailboxesToTutaFoldersMock = new Map([["INBOX", "mailSetElementId"]])
 		imapAccountSyncStateMock.rootImportMailFolder = null
 
@@ -208,7 +208,7 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("createImportMailFolder - creates new folder when root folder is set", async () => {
-		const imapMailbox: ImapMailbox = new ImapMailbox("Sent").setName("Sent")
+		const imapMailbox: ImapMailbox = { path: "Sent", name: "Sent" }
 		imapAccountSyncStateMock.rootImportMailFolder = rootImportMailFolderIdMock
 		when(mailFacadeMock.createMailFolder("Sent", null, mailGroupId)).thenResolve(mailFolderIdMock)
 
@@ -223,7 +223,7 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("createImportMailFolder - returns undefined if imapMailbox.name is falsy", async () => {
-		const imapMailbox: ImapMailbox = new ImapMailbox("").setName("")
+		const imapMailbox: ImapMailbox = { path: "", name: "" }
 		const result = await imapFacade.createImportMailFolder(imapMailbox, imapAccountSyncStateMock, null)
 		o.check(result).equals(undefined)
 	})

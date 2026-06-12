@@ -1,6 +1,6 @@
 import { ImapSync } from "./imapsync/ImapSync.js"
 import { ImapCredentials, ImapSyncState } from "../../api/common/utils/imapImportUtils/ImapSyncState.js"
-import { ImapError, ImapErrorCause } from "../../api/common/utils/imapImportUtils/ImapError.js"
+import { ImapError, ImapErrorCause } from "../../api/common/error/ImapError.js"
 import { ImapGetMailboxResult } from "../../api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 
@@ -26,9 +26,9 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 	async getImapMailboxesFromServer(imapAccount: ImapCredentials): Promise<ImapGetMailboxResult> {
 		try {
 			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapAccount)
-			return new ImapGetMailboxResult(mailboxes)
+			return { result: mailboxes }
 		} catch (e) {
-			return new ImapGetMailboxResult(undefined, new ImapError(e, ImapErrorCause.LIST_MAILBOX_FAILED))
+			return { error: new ImapError(e, ImapErrorCause.LIST_MAILBOX_FAILED) }
 		}
 	}
 

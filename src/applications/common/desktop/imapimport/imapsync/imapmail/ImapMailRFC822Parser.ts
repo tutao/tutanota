@@ -2,8 +2,9 @@ import { ImapMailAttachment, ImapMailAttachmentDisposition, ImapMailBody, ImapMa
 
 import { PostalMime } from "./postalmime-custom.js"
 import { promiseMap } from "@tutao/utils"
+import { imapMailEnvelopeFromPostalMimeEmail } from "./ImapParserUtils"
 
-export interface ParsedImapRFC822 {
+export type ParsedImapRFC822 = {
 	parsedEnvelope?: ImapMailEnvelope
 	parsedBody?: ImapMailBody
 	parsedAttachments?: ImapMailAttachment[]
@@ -19,25 +20,29 @@ export class ImapMailRFC822Parser {
 			attachmentEncoding: "arraybuffer",
 		})
 
-		parsedImapRFC822.parsedEnvelope = ImapMailEnvelope.fromPostalMimeEmail(email)
+		parsedImapRFC822.parsedEnvelope = imapMailEnvelopeFromPostalMimeEmail(email)
 
-		parsedImapRFC822.parsedBody = new ImapMailBody(email.html ?? "", email.text ?? "")
+		parsedImapRFC822.parsedBody = { html: email.html ?? "", plaintext: email.text ?? "" }
 
 		parsedImapRFC822.parsedAttachments = await promiseMap(email.attachments, async (attachment) => {
 			// when parsing, the encoding is set to arrayBuffer, so this will always be an arrayBuffer
 			const content = attachment.content as ArrayBuffer
 			const size = content.byteLength
-			const imapImportAttachment = new ImapMailAttachment(size, attachment.mimeType, Buffer.from(new Uint8Array(content)))
-				.setRelated(attachment.related ?? false) // related true == inline attachment
-				.setCid(attachment.contentId)
-				.setMethod(attachment.method)
+			const imapImportAttachment: ImapMailAttachment = {
+				size,
+				mimeType: attachment.mimeType,
+				content: Buffer.from(new Uint8Array(content)),
+				related: attachment.related ?? false, // related true == inline attachment
+				cid: attachment.contentId,
+				method: attachment.method,
+			}
 
 			if (attachment.filename) {
-				imapImportAttachment.setFilename(attachment.filename)
+				imapImportAttachment.filename = attachment.filename
 			}
 
 			if (attachment.disposition) {
-				imapImportAttachment.setDisposition(attachment.disposition as ImapMailAttachmentDisposition)
+				imapImportAttachment.disposition = attachment.disposition as ImapMailAttachmentDisposition
 			}
 
 			return imapImportAttachment
