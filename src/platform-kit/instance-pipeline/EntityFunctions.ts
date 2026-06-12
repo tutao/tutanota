@@ -1,6 +1,6 @@
 import { assertNotNull, lazyAsync } from "@tutao/utils"
 import { type AppName, AppNameEnum, TypeRef } from "../meta/TypeRef.js"
-import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "../meta/EntityTypes"
+import { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel, ValueTypeEnum } from "../meta/EntityTypes"
 import { AssociationType, Cardinality, Type, ValueType } from "../meta/EntityConstants.js"
 import { isTest, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
@@ -242,7 +242,7 @@ export class ServerModelInfo {
 				id: attrId,
 				name: this.asString(modelValueInfoRecord.name),
 				final: this.asBoolean(modelValueInfoRecord.final),
-				type: this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)),
+				type: this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)) as ValueTypeEnum,
 				encrypted: serverEncrypted,
 				cardinality: this.ensureVariantOf(Cardinality, String(modelValueInfoRecord.cardinality)),
 			}
@@ -286,7 +286,7 @@ export class ServerModelInfo {
 		)
 	}
 
-	private ensureVariantOfList<T extends string>(knownVariants: string[], inputStr: string): string {
+	private ensureVariantOfList(knownVariants: string[], inputStr: string): string {
 		return assertNotNull(
 			knownVariants.find((a) => a === inputStr),
 			`Unknown value ${inputStr}. Could be one of: ${knownVariants}`,

@@ -61,7 +61,7 @@ export class EncryptedMissedNotification {
 	}
 
 	get lastProcessedNotificationId(): Nullable<Id> {
-		return AttributeModel.getAttributeorNull<Id>(this.notification, "lastProcessedNotificationId", this.missedNotificationTypeModel)
+		return AttributeModel.getAttributeOrNull<Id>(this.notification, "lastProcessedNotificationId", this.missedNotificationTypeModel)
 	}
 
 	get notificationInfos(): ServerModelUntypedInstance[] {

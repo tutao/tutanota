@@ -15,7 +15,7 @@ import {
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { clone, isSameTypeRef, TypeRef } from "./index"
-import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
+import { ElementEntity, Entity, ModelValue, ParsedInstanceWithCryptoError, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -200,10 +200,15 @@ export function isSameId(id1: (Id | IdTuple) | null, id2: (Id | IdTuple) | null)
 	if (id1 === null || id2 === null) {
 		return false
 	} else if (id1 instanceof Array && id2 instanceof Array) {
-		return id1[0] === id2[0] && id1[1] === id2[1]
+		return isSameIdTuple(id1, id2)
 	} else {
 		return id1 === id2
 	}
+}
+
+export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null) {
+	if (id1 === null || id2 === null) return false
+	else return id1[0] === id2[0] && id1[1] === id2[1]
 }
 
 export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
@@ -569,7 +574,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
+export function hasError<K>(instance: Entity | ParsedInstanceWithCryptoError, key?: K): boolean {
 	const downCastedInstance = downcast(instance)
 	if (!instance) {
 		return true

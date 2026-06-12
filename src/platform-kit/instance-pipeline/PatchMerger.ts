@@ -3,24 +3,12 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationType, AttributeModel, hasError, isSameId, isSameTypeRef, TypeRef } from "../meta"
-import { assertNotNull, deepEqual, isEmpty, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
+import { AssociationType, AttributeModel, hasError, isSameId, isSameIdTuple, isSameTypeRef, ParsedValue, TypeRef } from "../meta"
+import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable, promiseMap } from "@tutao/utils"
 import { convertServerJsonToJsType, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, InstanceTypeId, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import {
-	EncryptedModelValue,
-	EncryptedParsedAssociation,
-	EncryptedParsedValueLegacy,
-	Entity,
-	ParsedAssociation,
-	ParsedInstance,
-	ParsedValueLegacy,
-	ServerModelEncryptedParsedInstance,
-	ServerModelParsedInstance,
-	ServerModelUntypedInstance,
-	ServerTypeModel,
-} from "../meta/EntityTypes"
+import { EncryptedModelValue, Entity, ServerModelParsedInstance, ServerModelUntypedInstance, ServerTypeModel } from "../meta/EntityTypes"
 import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
@@ -142,15 +130,13 @@ export class PatchMerger {
 				return false
 			}
 			const attributeId = pathResult.attributeId
-
 			const pathResultTypeModel = pathResult.typeModel
+			const associationType = pathResultTypeModel.associations[attributeId]?.type ?? null
+
 			// We need to map and decrypt for REPLACE and ADD_ITEM as the payloads are encrypted, REMOVE_ITEM only has either aggregate ids, generated ids, or id tuples
 			if (patch.patchOperation !== PatchOperationType.REMOVE_ITEM) {
-				const encryptedParsedValue: Nullable<EncryptedParsedValueLegacy | EncryptedParsedAssociation> = await this.parseValueOnPatch(
-					pathResult,
-					patch.value,
-				)
-				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
+				const encryptedParsedValue = await this.parseValueOnPatch(pathResult, patch.value)
+				const isAggregation = associationType === AssociationType.Aggregation
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
 				const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
 				const needsDecryption = ((isAggregation && typeModel.encrypted) || isEncryptedValue) && instanceDecryptor.canAttemptDecryption()
@@ -159,8 +145,8 @@ export class PatchMerger {
 					: encryptedParsedValue
 				await this.applyPatchOperation(patch.patchOperation, pathResult, value)
 			} else {
-				let idArray = JSON.parse(patch.value!) as Array<any>
-				await this.applyPatchOperation(patch.patchOperation, pathResult, idArray)
+				const idArray = JSON.parse(assertNotNull(patch.value)) as Array<any>
+				await this.applyPatchOperation(patch.patchOperation, pathResult, ParsedValue.fromArray(idArray))
 			}
 			return true
 		} catch (e) {
@@ -178,15 +164,20 @@ export class PatchMerger {
 			.join("/")
 	}
 
-	private async applyPatchOperation(
-		patchOperation: Values<PatchOperationType>,
-		pathResult: PathResult,
-		value: Nullable<ParsedValueLegacy | ParsedAssociation> | Array<Id | IdTuple>,
-	) {
+	private async applyPatchOperation(patchOperation: Values<PatchOperationType>, pathResult: PathResult, value: ParsedValue) {
 		const { attributeId, instanceToChange, typeModel } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
 		const isAssociation = typeModel.associations[attributeId] !== undefined
-		const isAggregationAssociation = isAssociation && typeModel.associations[attributeId].type === AssociationType.Aggregation
+		const associationType: Nullable<Values<typeof AssociationType>> = typeModel.associations[attributeId]?.type ?? null
+		const isAggregationAssociation = isAssociation && associationType === AssociationType.Aggregation
+		const isSingleIdAssociation =
+			isAssociation && (associationType === AssociationType.ElementAssociation || associationType === AssociationType.ListAssociation)
+		const isIdTupleAssociation =
+			isAssociation &&
+			(associationType === AssociationType.ListElementAssociationCustom ||
+				associationType === AssociationType.BlobElementAssociation ||
+				associationType === AssociationType.ListElementAssociationGenerated)
+
 		switch (patchOperation) {
 			case PatchOperationType.ADD_ITEM: {
 				if (isValue) {
@@ -194,8 +185,8 @@ export class PatchMerger {
 						"AddItem operation is supported for associations only, but the operation was called on value with id " + attributeId,
 					)
 				}
-				let associationArray = instanceToChange[attributeId] as ParsedAssociation
-				const valuesToAdd = value as ParsedAssociation
+				let associationArray = instanceToChange[attributeId].getArray()
+				const valuesToAdd = value.getArray() // todo: do ADD operation always have a list of item
 				const commonAssociationItems = associationArray.filter((association) => valuesToAdd.some((item) => deepEqual(item, association)))
 
 				// We fetch the latest state of the user immediately in LoginFacade#initSession, but we still receive
@@ -209,12 +200,15 @@ export class PatchMerger {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
 					const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate: ParsedInstance) =>
-						valuesToAdd.some((item: ParsedInstance) => {
-							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
-							return aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] && !deepEqual(item, aggregate)
-						}),
-					)
+					const aggregatesToAdd = valuesToAdd.map((a) => a.getSeverAggregate())
+					const aggregationsWithCommonIdsButDifferentValues = associationArray
+						.map((a) => a.getSeverAggregate())
+						.filter((aggregate) =>
+							aggregatesToAdd.some((item) => {
+								const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
+								return aggregate[aggregateIdAttributeId].getId() === item[aggregateIdAttributeId].getId() && !deepEqual(item, aggregate)
+							}),
+						)
 					if (!isEmpty(aggregationsWithCommonIdsButDifferentValues)) {
 						throw new PatchOperationError(
 							`PatchMerger attempted to add an existing aggregate with different values.  
@@ -224,7 +218,7 @@ export class PatchMerger {
 					}
 				}
 				const newAssociationValue = associationArray.concat(valuesToAdd)
-				instanceToChange[attributeId] = distinctAssociations(newAssociationValue)
+				instanceToChange[attributeId] = ParsedValue.fromArray(distinctAssociations(newAssociationValue))
 				break
 			}
 			case PatchOperationType.REMOVE_ITEM: {
@@ -232,103 +226,116 @@ export class PatchMerger {
 					throw new PatchOperationError(
 						"AddItem operation is supported for associations only, but the operation was called on value with id " + attributeId,
 					)
-				}
-				if (!isAggregationAssociation) {
-					const associationArray = instanceToChange[attributeId] as Array<Id | IdTuple>
-					const idsToRemove = value as Array<Id | IdTuple>
-					const remainingAssociations = associationArray.filter(
-						(element) =>
-							!idsToRemove.some((item) => {
-								return isSameId(element, item) // use is same id on the ids instead
-							}),
-					)
-					instanceToChange[attributeId] = distinctAssociations(remainingAssociations)
-				} else {
+				} else if (isSingleIdAssociation) {
+					const associationArray = instanceToChange[attributeId].getArray()
+					const idsToRemove = value.getArray()
+					let remainingAssociations = new Array<ParsedValue>()
+					if (isIdTupleAssociation) {
+						associationArray.filter(
+							(element) =>
+								!idsToRemove.some((item) => {
+									return isSameIdTuple(element.getidTuple(), item.getidTuple())
+								}),
+						)
+					} else if (isSingleIdAssociation) {
+						associationArray.filter(
+							(element) =>
+								!idsToRemove.some((item) => {
+									return isSameId(element.getId(), item.getId())
+								}),
+						)
+					}
+
+					instanceToChange[attributeId] = ParsedValue.fromArray(distinctAssociations(remainingAssociations))
+				} else if (isAggregationAssociation) {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
 					const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-					const aggregationArray = instanceToChange[attributeId] as Array<ParsedInstance>
-					const idsToRemove = value as Array<Id>
-					const remainingAggregations = aggregationArray.filter(
-						(element) =>
-							!idsToRemove.some((item) => {
-								const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
-								return isSameId(item as Id, element[aggregateIdAttributeId] as Id)
-							}),
-					)
-					instanceToChange[attributeId] = distinctAssociations(remainingAggregations)
+					const aggregationArray = instanceToChange[attributeId].getArray()
+					const aggregateIdsToRemove = value.getArray()
+					const remainingAggregations = aggregationArray.filter((element) => {
+						const aggregate = element.getSeverAggregate()
+						return !aggregateIdsToRemove.some((item) => {
+							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
+							return isSameId(item.getId(), aggregate[aggregateIdAttributeId].getString() satisfies Id)
+						})
+					})
+					instanceToChange[attributeId] = ParsedValue.fromArray(distinctAssociations(remainingAggregations))
 				}
 				break
 			}
 			case PatchOperationType.REPLACE: {
 				if (isValue) {
-					instanceToChange[attributeId] = value as ParsedValueLegacy
+					instanceToChange[attributeId] = value
 				} else if (isAssociation) {
-					instanceToChange[attributeId] = value as ParsedAssociation
+					instanceToChange[attributeId] = value
 				}
 				break
 			}
 		}
 	}
 
-	private async parseValueOnPatch(
-		pathResult: PathResult,
-		value: string | null,
-	): Promise<Nullable<EncryptedParsedValueLegacy> | Nullable<EncryptedParsedAssociation>> {
+	private async parseValueOnPatch(pathResult: PathResult, value: string | null): Promise<ParsedValue> {
 		const { typeModel, attributeId } = pathResult
-		const isValue = typeModel.values[attributeId] !== undefined
-		const isAssociation = typeModel.associations[attributeId] !== undefined
+		const isValue = isNotNull(typeModel.values[attributeId])
+		const isAssociation = isNotNull(typeModel.associations[attributeId])
 		const isAggregation = isAssociation && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		const isNonAggregateAssociation = isAssociation && !isAggregation
+
 		if (isValue) {
 			const valueInfo = typeModel.values[attributeId]
 			const valueType = valueInfo.type
-			if (value == null || value === "" || valueInfo.encrypted) {
-				return value
+			if (value == null) {
+				return ParsedValue.fromNull()
+			} else if (valueInfo.encrypted || value === "") {
+				return ParsedValue.fromString(value)
 			} else {
 				return convertServerJsonToJsType(valueType, value)
 			}
 		} else if (isAssociation) {
+			const associationValue = assertNotNull(value, "Association will always be there. at least empty array")
 			if (isNonAggregateAssociation) {
-				return JSON.parse(value!)
+				return JSON.parse(associationValue!)
 			} else {
-				const aggregatedEntities = (JSON.parse(value!) as Array<ServerModelUntypedInstance>).map((item) =>
+				const aggregatedEntities = (JSON.parse(associationValue) as Array<ServerModelUntypedInstance>).map((item) =>
 					AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(item),
 				)
 				const modelAssociation = typeModel.associations[attributeId]
 				const appName = modelAssociation.dependency ?? typeModel.app
 				const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-				return await promiseMap(
+				const aggregatedItems = await promiseMap(
 					aggregatedEntities,
 					async (entity: ServerModelUntypedInstance) => await this.instancePipeline.typeMapper.applyJsTypes(aggregationTypeModel, entity),
 				)
+				return ParsedValue.fromAggregatedItems(aggregatedItems)
 			}
 		}
 
-		return null
+		return ParsedValue.fromNull()
 	}
 
 	private async decryptValueOnPatch(
 		pathResult: PathResult,
-		value: Nullable<EncryptedParsedValueLegacy | EncryptedParsedAssociation>,
+		value: ParsedValue,
 		ownerGroup: Nullable<Id>,
 		instanceDecryptor: InstanceDecryptor,
 		fieldPath: string,
-	): Promise<Nullable<ParsedValueLegacy> | Nullable<ParsedAssociation>> {
+	): Promise<ParsedValue> {
 		const { typeModel, attributeId } = pathResult
-		const isValue = typeModel.values[attributeId] !== undefined
-		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation
+		const isValue = isNotNull(typeModel.values[attributeId])
+		const isAggregation = isNotNull(typeModel.associations[attributeId]) && typeModel.associations[attributeId].type === AssociationType.Aggregation
+
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId] as EncryptedModelValue
 			return this.instancePipeline.cryptoMapper.decryptValue(
 				encryptedValueInfo,
-				value as Base64,
+				value.getString(),
 				instanceDecryptor,
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
 				fieldPath,
 			)
 		} else if (isAggregation) {
-			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
+			const encryptedAggregatedEntities = value.getArray().map((a) => a.getSeverAggregate())
 			const modelAssociation = typeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
@@ -343,7 +350,7 @@ export class PatchMerger {
 				// we do not want to apply a patch that failed decryption
 				throw new CryptoError("Failed to decrypt aggregate on patch")
 			}
-			return decryptedAggregates
+			return ParsedValue.fromAggregatedItems(decryptedAggregates)
 		} else {
 			return value
 		}
@@ -385,12 +392,12 @@ export class PatchMerger {
 			const appName = modelAssociation.dependency ?? serverTypeModel.app
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
-			const maybeAggregateIdPathItem = path.shift()!
-			const aggregateArray = parsedInstance[attributeId] as Array<ServerModelParsedInstance>
+			const maybeAggregateIdPathItem = path.shift() ?? null
+			const aggregateArray = parsedInstance[attributeId].getArray().map((a) => a.getSeverAggregate())
 			const aggregatedEntity = assertNotNull(
 				aggregateArray.find((entity) => {
 					const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
-					return isSameId(maybeAggregateIdPathItem, entity[aggregateIdAttributeId] as Id)
+					return isSameId(maybeAggregateIdPathItem, entity[aggregateIdAttributeId].getId())
 				}),
 			)
 			return this.traversePath(aggregatedEntity, aggregationTypeModel, path)
@@ -400,15 +407,8 @@ export class PatchMerger {
 	}
 }
 
-export function distinctAssociations(associationArray: ParsedAssociation) {
-	return associationArray.reduce((acc: Array<any>, current) => {
-		if (!acc.some((item) => deepEqual(item, current))) {
-			if (current != null) {
-				acc.push(current)
-			}
-		}
-		return acc
-	}, [])
+export function distinctAssociations(associationArray: Array<ParsedValue>): Array<ParsedValue> {
+	return associationArray.filter((v) => !v.isNull() && !associationArray.some((a) => a.isSame(v)))
 }
 
 export type PathResult = {

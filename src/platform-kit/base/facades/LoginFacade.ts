@@ -1215,8 +1215,8 @@ export class LoginFacade implements SessionTypeProvider {
 			.then(async (instance) => {
 				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeededFromServerResponse(JSON.parse(instance))
 				// Intentionally passing an UntypedInstance to AttributeModel to circumvent session key resolution during login.
-				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
-				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
+				const accessKey = AttributeModel.getAttributeOrNull(untypedSession, "accessKey", SessionTypeModel).getString()
+				const userId = AttributeModel.getAttribute(untypedSession, "user", SessionTypeModel).getArray()[0].getId()
 				return {
 					userId,
 					accessKey: accessKey ? base64ToKey(accessKey) : null,

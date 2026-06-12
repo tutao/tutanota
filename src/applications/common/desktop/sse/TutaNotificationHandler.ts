@@ -163,7 +163,7 @@ class TutaNotificationHandler {
 	): MailMetadata {
 		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
 
-		const firstRecipient = AttributeModel.getAttributeorNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
+		const firstRecipient = AttributeModel.getAttributeOrNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
 		const sender = AttributeModel.getAttribute<EncryptedParsedInstance[]>(mi, "sender", mailModel)[0]
 
 		const senderAddress = AttributeModel.getAttribute<string>(sender, "address", mailAddressModel)

@@ -1,8 +1,7 @@
 import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
-import { assert, assertNotNull, Nullable } from "@tutao/utils"
+import { assert, assertNotNull, deepEqual, isNotNull, Nullable } from "@tutao/utils"
 import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
-import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * Tuta Metamodel Entity Types
@@ -197,8 +196,10 @@ export type ParsedValueLegacy = EncryptedParsedValueLegacy
 /** only defined here for documentation purposes */
 export type ParsedAssociation = EncryptedParsedAssociation
 
+export type ParsedInstance = Record<AttributeId, ParsedValue>
+
 /** a parsed instance after/before going through decryption/encryption */
-export type ParsedInstance = Record<AttributeId, ParsedValue> & {
+export type ParsedInstanceWithCryptoError = Record<AttributeId, ParsedValue> & {
 	/** crypto errors that happened during deserialization/serialization */
 	_errors?: Record<AttributeId, string>
 }
@@ -211,8 +212,8 @@ export type ServerModelTypeSeparator = "ServerModel"
 
 export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 
-export type ClientModelParsedInstance = Distinct<ParsedInstance, ClientModelTypeSeparator>
-export type ServerModelParsedInstance = Distinct<ParsedInstance, ServerModelTypeSeparator>
+export type ClientModelParsedInstance = Distinct<ParsedInstanceWithCryptoError, ClientModelTypeSeparator>
+export type ServerModelParsedInstance = Distinct<ParsedInstanceWithCryptoError, ServerModelTypeSeparator>
 
 export type ClientModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ClientModelTypeSeparator>
 export type ServerModelEncryptedParsedInstance = Distinct<EncryptedParsedInstance, ServerModelTypeSeparator>
@@ -268,7 +269,7 @@ export interface ITypeInfo {
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
-export interface Entity extends Record<string, unknown> {
+export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
 	_id?: Id | IdTuple
@@ -347,19 +348,41 @@ export class ServerIncomingData {
 	}
 
 	static fromString(value: string): ServerIncomingData {
-		return undefined
+		return undefined as any
 	}
 
 	static fromAggregatedItems(value: Array<UntypedInstance>): ServerIncomingData {
-		return undefined
+		return undefined as any
 	}
 
-	static fromIdList(value: Array<Id>): ServerIncomingData {}
+	static fromIdList(value: Array<Id>): ServerIncomingData {
+		return undefined as any
+	}
 
-	static fromIdTupleList(value: Array<IdTuple>): ServerIncomingData {}
+	static fromIdTupleList(value: Array<IdTuple>): ServerIncomingData {
+		return undefined as any
+	}
+
+	asByteArray(): Uint8Array {
+		return new Uint8Array(0)
+	}
 }
 
 export class ParsedValue {
+	toString(): string {
+		return "some cool print; check this if it works"
+	}
+
+	isSame(other: ParsedValue): boolean {
+		if (isNotNull(this.stringValue)) return this.getString() === other.getString()
+		if (isNotNull(this.boolValue)) return this.getBoolean() === other.getBoolean()
+		if (isNotNull(this.aggregateItem)) return deepEqual(this.aggregateItem, other.aggregateItem)
+		if (isNotNull(this.arrayValue)) return deepEqual(this.getArray(), other.getArray())
+
+		// todo: fill in all branch
+		return false
+	}
+
 	getClientAggregate(): ClientModelEncryptedParsedInstance {
 		throw new Error("Method not implemented.")
 	}
@@ -389,38 +412,46 @@ export class ParsedValue {
 	}
 
 	public static fromString(value: string) {
-		return new ParsedValue(value, null, null, null, null, null, null, null)
+		return new ParsedValue(value, null, null, null, null, null, null, null, null)
 	}
 	public static fromId(value: Id) {
-		return new ParsedValue(null, value, null, null, null, null, null, null)
+		return new ParsedValue(null, value, null, null, null, null, null, null, null)
 	}
 
 	public static fromNull() {
-		return new ParsedValue(null, null, null, null, null, null, null, null)
+		return new ParsedValue(null, null, null, null, null, null, null, null, null)
 	}
 	public isNull() {
 		// FIXME
 		return this.boolValue === null && this.idValue === null
 	}
 
+	public getNullWhenNull(): Nullable<this> {
+		if (this.isNull()) {
+			return null
+		} else {
+			return this
+		}
+	}
+
 	static fromBytes(arrayBufferLikeUint8Array: Uint8Array): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	static fromDate(date: Date): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	static fromBoolean(b: boolean): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	static fromCustomId(decryptedValue: string): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	static fromNumber(number: number): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	static fromAggregatedItems(aggregatedItems: Array<EncryptedParsedInstance>): ParsedValue {
@@ -428,32 +459,19 @@ export class ParsedValue {
 	}
 
 	static fromArray(mappedIds: ParsedValue[]): ParsedValue {
-		return undefined
+		return undefined as any
 	}
 
 	getBoolean(): boolean {
 		return false
 	}
 
-	getDate(): Date {}
+	getDate(): Date {
+		return undefined as any
+	}
 
 	getString(): string {
-		return this.stringValue
-	}
-
-	public convertStringToBoolean(): this {
-		this.boolValue = this.getString() !== "0"
-		this.stringValue = null
-		return this
-	}
-
-	public convertStringToNumber(): this {
-		this.numberValue = parseInt(this.getString())
-		this.stringValue = null
-		if (isNaN(this.numberValue)) {
-			throw new ProgrammingError("string sent by the server cannot be converted to a number")
-		}
-		return this
+		return this.stringValue!
 	}
 
 	getNumber() {

@@ -1,8 +1,8 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
-import { TypeRef } from "../meta"
+import { TypeRef, UntypedInstance } from "../meta"
 import { ModelMapper } from "./ModelMapper"
-import { assertNotNull, downcast, lazy, Nullable } from "@tutao/utils"
+import { downcast, lazy, Nullable } from "@tutao/utils"
 import {
 	AesKey,
 	SubKeyInfo,
@@ -15,7 +15,7 @@ import {
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { TypeModelResolver } from "./EntityFunctions"
-import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
+import { Entity } from "../meta/EntityTypes"
 
 assertWorkerOrNode()
 
@@ -41,7 +41,7 @@ export class InstancePipeline {
 		typeRef: TypeRef<T>,
 		instance: T,
 		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
-	): Promise<ClientModelUntypedInstance> {
+	): Promise<UntypedInstance> {
 		const sk = await sessionKey
 		let subKeyInfo: SubKeyInfo
 		if (sk) {
@@ -52,7 +52,7 @@ export class InstancePipeline {
 
 		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
 	}
-	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance> {
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<UntypedInstance> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const parsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
@@ -67,7 +67,7 @@ export class InstancePipeline {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: ServerModelUntypedInstance, sk: AesKey | null): Promise<T> {
+	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: UntypedInstance, sk: AesKey | null): Promise<T> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(serverTypeModel, instance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.modelMapper)

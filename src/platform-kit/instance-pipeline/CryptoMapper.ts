@@ -1,5 +1,15 @@
-import { AssociationType, AttributeModel, Cardinality, ClientTypeModel, hasError, TypeRef, ValueType } from "../meta"
-import { base64ToUint8Array, KeyVersion, lazy, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
+import { AssociationType, AttributeModel, Cardinality, ClientTypeModel, hasError, ParsedValue, TypeRef, ValueType } from "../meta"
+import {
+	base64ToUint8Array,
+	isNotNull,
+	KeyVersion,
+	lazy,
+	Nullable,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+	Versioned,
+} from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
@@ -9,7 +19,6 @@ import {
 	DomainSeparator,
 	InstanceDecryptor,
 	KdfNonce,
-	MissingSessionKey,
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
@@ -17,15 +26,13 @@ import {
 	SymmetricEncryptionScheme,
 	VersionedKey,
 } from "@tutao/crypto"
-import { convertServerJsonToJsType, convertJsToServerJson, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
+import { convertJsToServerJson, convertServerJsonToJsType, decompressString, ModelMapper, valueToDefault } from "./ModelMapper.js"
 import { EntityAdapter } from "./EntityAdapter.js"
 import { User, WebsocketLeaderStatus } from "../../entities/sys/TypeRefs"
 import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	EncryptedModelValue,
-	ModelValue,
-	ParsedValueLegacy,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
 	ServerTypeModel,
@@ -116,11 +123,11 @@ export class CryptoMapper {
 			const encryptedValue = encryptedInstance[valueId]
 
 			try {
-				if (!valueInfo.encrypted) {
+				if (!valueInfo.encrypted || encryptedValue.isNull()) {
 					decrypted[valueId] = encryptedValue
 				} else {
 					const encryptedValueInfo = valueInfo as EncryptedModelValue
-					const encryptedString = encryptedValue as Base64
+					const encryptedString = encryptedValue.getString()
 					const fieldPath = `${fieldPathPrefix}${valueInfo.id}`
 					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerKeyProvider, fieldPath)
 				}
@@ -142,20 +149,23 @@ export class CryptoMapper {
 		}
 
 		for (const associationId of Object.keys(serverTypeModel.associations).map(Number)) {
-			let associationType = serverTypeModel.associations[associationId]
-			const encryptedInstanceValue = encryptedInstance[associationId]
+			const associationType = serverTypeModel.associations[associationId]
+			const encryptedInstanceValue = encryptedInstance[associationId].getArray()
+
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, associationType.refTypeId))
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
+
+				const encryptedAggregates = encryptedInstanceValue.map((a) => a.getSeverAggregate())
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
-					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
+					encryptedAggregates,
 					instanceDecryptor,
 					ownerKeyProvider,
 					fieldPathPrefixForThisAssociation,
 				)
-				decrypted[associationId] = decryptedAggregates
+				decrypted[associationId] = ParsedValue.fromAggregatedItems(decryptedAggregates)
 				if (this.containErrors(decryptedAggregates)) {
 					// we must propagate up to the top level of the instance that there is an error somewhere in an aggregated type.
 					// this indicates to the caller whether decryption succeeded.
@@ -168,7 +178,7 @@ export class CryptoMapper {
 					decrypted._errors[associationId] = "Aggregated type decrypted with errors"
 				}
 			} else {
-				decrypted[associationId] = encryptedInstanceValue
+				decrypted[associationId] = ParsedValue.fromArray(encryptedInstanceValue)
 			}
 		}
 		return decrypted
@@ -215,48 +225,42 @@ export class CryptoMapper {
 		subKeyInfo: SubKeyInfo | SubKeyProvider,
 		fieldPathPrefix: string = "",
 	): Promise<ClientModelEncryptedParsedInstance> {
-		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-
-		let subKeyProvider: SubKeyProvider
-		if (subKeyInfo instanceof SubKeyProvider) {
-			subKeyProvider = subKeyInfo
-		} else {
-			subKeyProvider = this.symmetricCipherFacade.getSubKeyProvider(subKeyInfo, clientTypeModel)
-		}
+		const encryptedInstance: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
+		const subKeyProvider = subKeyInfo instanceof SubKeyProvider ? subKeyInfo : this.symmetricCipherFacade.getSubKeyProvider(subKeyInfo, clientTypeModel)
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
-			const valueType = clientTypeModel.values[valueId]
-			const value = parsedInstance[valueId] as Nullable<ParsedValueLegacy>
+			const valueType = clientTypeModel.values[valueId] as EncryptedModelValue
+			const value = parsedInstance[valueId]
 
-			let encryptedValue
 			if (valueType.encrypted) {
 				const fieldPath = `${fieldPathPrefix}${valueId}`
-				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, fieldPath)
+				const encryptedValue = this.encryptValue(valueType, value, subKeyProvider, fieldPath)
+				encryptedInstance[valueId] = isNotNull(encryptedValue) ? ParsedValue.fromString(encryptedValue) : ParsedValue.fromNull()
 			} else {
-				encryptedValue = value
+				encryptedInstance[valueId] = value
 			}
-
-			encrypted[valueId] = encryptedValue
 		}
 
 		for (const associationId of Object.keys(clientTypeModel.associations).map(Number)) {
 			const associationType = clientTypeModel.associations[associationId]
+
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(appName, associationType.refTypeId))
-				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
-				encrypted[associationId] = await this.encryptAggregateAssociation(
+				const unencryptedAggregates = parsedInstance[associationId].getArray().map((a) => a.getClientAggregate())
+				const encryptedAggregates = await this.encryptAggregateAssociation(
 					aggregateTypeModel,
-					aggregate,
+					unencryptedAggregates,
 					subKeyProvider,
 					fieldPathPrefixForThisAssociation,
 				)
+				encryptedInstance[associationId] = ParsedValue.fromAggregatedItems(encryptedAggregates)
 			} else {
-				encrypted[associationId] = parsedInstance[associationId]
+				encryptedInstance[associationId] = parsedInstance[associationId]
 			}
 		}
-		return encrypted
+		return encryptedInstance
 	}
 
 	private async encryptAggregateAssociation(
@@ -276,20 +280,16 @@ export class CryptoMapper {
 	}
 
 	async decryptValue(
-		valueType: ModelValue & {
-			encrypted: true
-		},
-		value: Nullable<Base64>,
+		valueType: EncryptedModelValue,
+		value: Base64,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPath: string,
-	): Promise<Nullable<ParsedValueLegacy>> {
-		if (value == null) {
-			return null
-		} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
+	): Promise<ParsedValue> {
+		if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
 			// Might happen if cardinality was changed from ZeroOrOne -> One -> ZeroOrOne
 			console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
-			return null
+			return ParsedValue.fromNull()
 		} else if (valueType.cardinality === Cardinality.One && value === "") {
 			// Migration for values added after the Type has been defined initially
 			return valueToDefault(valueType.type)
@@ -300,20 +300,20 @@ export class CryptoMapper {
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 
 		if (valueType.type === ValueType.Bytes) {
-			return decryptedBytes
+			return ParsedValue.fromBytes(decryptedBytes)
 		} else if (valueType.type === ValueType.CompressedString) {
-			return decompressString(decryptedBytes)
+			return ParsedValue.fromString(decompressString(decryptedBytes))
 		} else {
 			return convertServerJsonToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
 	}
 
-	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValueLegacy>, subKeyProvider: SubKeyProvider, fieldPath: string): Nullable<Base64> {
-		if (value == null) {
+	encryptValue(valueType: EncryptedModelValue, value: ParsedValue, subKeyProvider: SubKeyProvider, fieldPath: string): Nullable<Base64> {
+		if (value.isNull()) {
 			return null
 		}
 		const dbValue = convertJsToServerJson(valueType.type, value)!
-		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
+		const bytes = isNotNull(dbValue.stringValue) ? stringToUtf8Uint8Array(dbValue.stringValue) : dbValue.asByteArray()
 		const subKeys = subKeyProvider.getSubKeys()
 		let encryptedBytes
 		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {

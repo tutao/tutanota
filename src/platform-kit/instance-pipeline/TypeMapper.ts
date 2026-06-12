@@ -9,10 +9,10 @@ import {
 	ParsedValue,
 	ServerIncomingData,
 	ServerModelEncryptedParsedInstance,
-	ServerModelUntypedInstance,
 	ServerTypeModel,
 	TypeModel,
 	TypeRef,
+	UntypedInstance,
 } from "@tutao/meta"
 
 /**
@@ -27,7 +27,7 @@ import {
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
 
-	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
+	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: UntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
 		const parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
 
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
@@ -73,7 +73,10 @@ export class TypeMapper {
 				modelAssociation.type === AssociationType.ListElementAssociationGenerated ||
 				modelAssociation.type === AssociationType.ListElementAssociationCustom
 			) {
-				const mappedIds = associationValues.map((idItem) => ParsedValue.fromIdTuple(idItem.asArray()))
+				const mappedIds = associationValues.map((idItem) => {
+					const [listId, elementId] = idItem.asArray().map((a) => a.asString())
+					return ParsedValue.fromIdTuple([listId, elementId] satisfies IdTuple)
+				})
 				parsedInstance[attrId] = ParsedValue.fromArray(mappedIds)
 			}
 		}
@@ -81,8 +84,8 @@ export class TypeMapper {
 		return parsedInstance
 	}
 
-	async applyDbTypes(clientTypeModel: ClientTypeModel, instance: ClientModelEncryptedParsedInstance): Promise<ServerModelUntypedInstance> {
-		const untypedInstance: ServerModelUntypedInstance = {} as ServerModelUntypedInstance
+	async applyDbTypes(clientTypeModel: ClientTypeModel, instance: ClientModelEncryptedParsedInstance): Promise<UntypedInstance> {
+		const untypedInstance = {} as UntypedInstance
 
 		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
 			const debugAttrId = env.networkDebugging ? attrIdStr + ":" + modelValue.name : attrIdStr

@@ -1,16 +1,5 @@
-import { assertNotNull, downcast, Nullable } from "@tutao/utils"
-import {
-	AttributeId,
-	AttributeName,
-	EncryptedParsedInstance,
-	ModelAssociation,
-	ModelValue,
-	ServerIncomingData,
-	ServerModelParsedInstance,
-	TypeId,
-	TypeModel,
-	UntypedInstance,
-} from "./EntityTypes"
+import { assertNotNull, isNotNull } from "@tutao/utils"
+import { AttributeId, AttributeName, ModelAssociation, ModelValue, ParsedValue, ServerIncomingData, TypeId, TypeModel, UntypedInstance } from "./EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AppName } from "./TypeRef.js"
 
@@ -54,32 +43,22 @@ export class AttributeModel {
 		)
 	}
 
-	static getAttribute<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): T {
-		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
-		if (attrId) {
-			const value = instance[attrId]
-			return assertNotNull(downcast<T>(value), attrName)
-		} else {
-			throw new ProgrammingError("null not allowed")
-		}
+	static getAttribute(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
+		const attrId = assertNotNull(AttributeModel.getAttributeId(typeModel, attrName), `expected attribute ${attrName} in ${typeModel.app}/${typeModel.name}`)
+		const value = instance[attrId]
+		return assertNotNull(value, attrName)
 	}
 
-	static getAttributeorNull<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
+	static getAttributeOrNull(instance: Record<AttributeId, ParsedValue>, attrName: string, typeModel: TypeModel): ParsedValue {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
-		if (attrId) {
-			const value = instance[attrId]
-			return downcast<T>(value)
-		} else {
-			return null
-		}
+		return isNotNull(attrId) ? instance[attrId] : ParsedValue.fromNull()
 	}
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {
-		const typeIdMap = AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
-		if (typeIdMap == null) {
-			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
-		}
-
+		const typeIdMap = assertNotNull(
+			AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id),
+			`Unknown type: ${typeModel.app}/${typeModel.name}`,
+		)
 		return typeIdMap.get(attrName) ?? null
 	}
 
@@ -106,7 +85,7 @@ export class AttributeModel {
 		return AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)?.has(attributeName) ?? false
 	}
 
-	public static getAttributeId(typeModel: TypeModel, attributeName: string): number | null {
+	public static getAttributeId(typeModel: TypeModel, attributeName: string): AttributeId | null {
 		if (AttributeModel.isKnownAttribute(typeModel, attributeName)) {
 			AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
 			return assertNotNull(AttributeModel.getResolvedAttributeId(typeModel, attributeName))

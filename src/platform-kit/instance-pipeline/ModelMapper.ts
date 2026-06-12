@@ -173,9 +173,13 @@ export class ModelMapper {
 				let parsedValue = parsedInstance[attrId]
 
 				if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
-					parsedValue.convertStringToBoolean()
+					parsedValue = ParsedValue.fromBoolean(parsedValue.getString() !== "0")
 				} else if (serverType.type === ValueType.String && clientType.type === ValueType.Number) {
-					parsedValue.convertStringToNumber()
+					const numberValue = parseInt(parsedValue.getString())
+					if (isNaN(numberValue)) {
+						throw new ProgrammingError("string sent by the server cannot be converted to a number")
+					}
+					parsedValue = ParsedValue.fromNumber(numberValue)
 				} else if (parsedValue.isNull() && serverType.cardinality === Cardinality.One) {
 					parsedValue = valueToDefault(serverType.type)
 				}
@@ -213,7 +217,8 @@ export class ModelMapper {
 		return clientInstance as T
 	}
 
-	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ClientModelParsedInstance> {
+	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instanceEntity: T): Promise<ClientModelParsedInstance> {
+		const instance = instanceEntity as Record<string, unknown>
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const parsedInstance: ClientModelParsedInstance = {} as ClientModelParsedInstance
 
