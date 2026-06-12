@@ -31,4 +31,14 @@ o.spec("UrlifierTest", function () {
 		o.check(urlify(`<div><!---comment--->Actual markup</div>`)).equals(`<div><!---comment--->Actual markup</div>`)
 		o.check(urlify(`<div><!------comment------>Actual markup</div>`)).equals(`<div><!------comment------>Actual markup</div>`)
 	})
+
+	o.test("has the workaround for doctype public", function () {
+		const faultyHtml = `<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Transitional//EN""https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >\\n<html lang="de" xml:lang="de" style="background-color: #F1F1F1"><div>Some text</div></html>`
+		const expected = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\\n<html lang="de" xml:lang="de" style="background-color: #F1F1F1"><div>Some text</div></html>`
+		o.check(urlify(faultyHtml)).equals(expected)
+
+		const shortFaultyHtml = `<!DOCTYPE html PUBLIC><html lang="en" xml:lang="de"><div>http://hello.it</div></html>`
+		const expectedShort = `<!DOCTYPE html><html lang="en" xml:lang="de"><div><a href="http://hello.it" target="_blank" rel="noopener noreferrer">http://hello.it</a></div></html>`
+		o.check(urlify(shortFaultyHtml)).equals(expectedShort)
+	})
 })
