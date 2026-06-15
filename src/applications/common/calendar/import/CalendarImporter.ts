@@ -19,7 +19,6 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { DateTime } from "luxon"
 import { clone } from "@tutao/meta"
 import { EndType } from "@tutao/app-env"
-import { errorsToString } from "../../../../platform-kit/utils/Utils"
 
 export class CalendarImporter {
 	constructor(
@@ -143,13 +142,11 @@ export class CalendarImporter {
 			await this.operationProgressTracker.onProgress(operation.id, (prioritizedEvents.length / progressData.maxOperations) * 100)
 
 			if (isNotEmpty(result.failedEventErrors)) {
-				const errors = errorsToString(result.failedEventErrors)
-				throw new ImportError(Error(errors), "Failed to create calendar events", result.failedEvents.length)
+				throw new ImportError(result.failedEventErrors, "Failed to create calendar events", result.failedEvents.length)
 			}
 
 			if (isNotEmpty(result.failedAlarms)) {
-				const errors = errorsToString(result.failedAlarmErrors)
-				throw new ImportError(Error(errors), "Failed to create some alarms for imported events", result.failedAlarms.length)
+				throw new ImportError(result.failedAlarmErrors, "Failed to create some alarms for imported events", result.failedAlarms.length)
 			}
 
 			return result

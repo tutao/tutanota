@@ -352,6 +352,10 @@ export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
+export function errorsToString(errors: Array<ErrorInfo>): string {
+	return errors.map(errorToString).join("\n--- next error ---\n")
+}
+
 export function errorToString(error: ErrorInfo): string {
 	let errorString = error.name ? error.name : "?"
 
@@ -365,10 +369,6 @@ export function errorToString(error: ErrorInfo): string {
 	}
 
 	return errorString
-}
-
-export function errorsToString(errors: Array<ErrorInfo>): string {
-	return errors.join("\n--- next error ---\n")
 }
 
 /**

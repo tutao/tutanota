@@ -16,7 +16,7 @@ export class ContactFacade {
 			console.error(e)
 			if (e instanceof SetupMultipleError) {
 				console.error("Importing contacts failed", e)
-				throw new ImportError(e.errors[0], "Could not import all contacts", e.failedInstances.length)
+				throw new ImportError(e.errors, "Could not import all contacts", e.failedInstances.length)
 			}
 			throw e
 		}
