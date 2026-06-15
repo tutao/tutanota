@@ -77,7 +77,8 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 
 export function getMailSelectionMessage(selectedEntities: ReadonlyArray<Mail>): Translation {
 	let nbrOfSelectedMails = selectedEntities.length
-	let isConversationViewEnabled = deviceConfig.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
+	let isConversationViewEnabled =
+		!deviceConfig.getConversationViewShowOnlySelectedMail() && deviceConfig.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 
 	if (nbrOfSelectedMails === 0) {
 		return lang.getTranslation("noMail_msg")
