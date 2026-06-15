@@ -50,7 +50,6 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { WebFile } from "../../../../entities/tutanota/Utils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -663,6 +662,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			sortOrder: this.driveViewModel.getCurrentColumnSortOrder(),
 			onSortColumn: (column) => this.driveViewModel.sort(column),
 			clipboard: this.driveViewModel.clipboard,
+			onPaste: this.driveViewModel.currentFolder?.type !== DriveFolderType.Trash && this.driveViewModel.clipboard ? () => this.onPaste() : undefined,
 		} satisfies DriveFolderViewAttrs)
 	}
 
