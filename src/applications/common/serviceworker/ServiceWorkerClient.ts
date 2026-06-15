@@ -4,6 +4,7 @@ import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
 import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/ErrorUtils.js"
 import { isApp, isDesktop } from "@tutao/app-env"
+import type { ServiceWorkerMessage } from "./ServiceWorkerTypes"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
 	const notificationMessage: Component = {
@@ -69,19 +70,18 @@ export function init(domainConfig: DomainConfig) {
 					console.log("ServiceWorker has been installed")
 					showUpdateMessageIfNeeded(registration, domainConfig)
 					registration.addEventListener("updatefound", () => {
-						console.log("updatefound")
-						showUpdateMessageIfNeeded(registration, domainConfig)
+						console.log("SWC: updatefound")
 					})
 					const active = registration.active // Upon registration, check if we had an sw.
 
 					let refreshing = false // Prevent infinite reloading with devtools
 
 					serviceWorker.addEventListener("controllerchange", (e: Event) => {
-						console.log("controllerchange")
+						console.log("SWC: controllerchange")
 
 						if (!active || refreshing) {
 							// If we didn't have an sw, there's no need to reload, it's "installation" and not "update"
-							console.log(`Skip refreshing: active: ${String(active)} refreshing: ${String(refreshing)}`)
+							console.log(`SWC: Skip refreshing: active: ${String(active)} refreshing: ${String(refreshing)}`)
 							return
 						}
 
@@ -91,18 +91,25 @@ export function init(domainConfig: DomainConfig) {
 					})
 					serviceWorker.addEventListener("message", (event: MessageEvent) => {
 						if (event.data == null || typeof event.data !== "object") {
-							console.error("Got strange message from sw", event.data)
+							console.error("SWC: Got strange message from sw", event.data)
 							return
 						}
+						// Careful: SW can be newer than the client, it can be an unknown message despite this type.
+						const swMessage: ServiceWorkerMessage = event.data
 
-						if (event.data.type === "error") {
+						if (swMessage.type === "error") {
 							const unserializedError = objToError(event.data.value)
 							handleUncaughtError(unserializedError)
+						} else if (swMessage.type === "updateready") {
+							console.log("SWC: updateready", swMessage.version)
+							showUpdateMessageIfNeeded(registration, domainConfig)
+						} else {
+							console.warn("SWC unknown message from SW: ", swMessage)
 						}
 					})
 				})
 				.catch((e) => {
-					console.warn("Failed to register the service worker:", e.message)
+					console.warn("SWC: Failed to register the service worker:", e.message)
 
 					// We get a rejection when trying to register the service worker in firefox with security settings like
 					// "Delete cookies and site data and site data when Firefox is closed" enabled
@@ -113,6 +120,6 @@ export function init(domainConfig: DomainConfig) {
 				})
 		}
 	} else {
-		console.log("ServiceWorker is not supported")
+		console.log("SWC: ServiceWorker is not supported")
 	}
 }
