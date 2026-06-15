@@ -1,6 +1,7 @@
-// set by the build script
 import { getPathBases } from "../../mail-app/ApplicationPaths.js"
+import type { ServiceWorkerError, ServiceWorkerMessage } from "./ServiceWorkerTypes"
 
+// set by the build script
 // eslint-disable-next-line no-var
 declare var filesToCache: () => Array<string>
 // eslint-disable-next-line no-var
@@ -220,6 +221,13 @@ const init = (sw: ServiceWorker) => {
 			sw.precache().then(async () => {
 				if (await sw.shouldTakeOverImmediately(scope.caches)) {
 					scope.skipWaiting()
+				} else {
+					// Let clients know that update is ready. Normally we don't claim the clients automatically until the
+					// user initiates the update so we need to includeUncontrolled to let all clients know.
+					const clients = await scope.clients.matchAll({ includeUncontrolled: true })
+					for (const client of clients) {
+						client.postMessage({ type: "updateready", version: versionString } satisfies ServiceWorkerMessage)
+					}
 				}
 			}),
 		)
@@ -239,7 +247,7 @@ const init = (sw: ServiceWorker) => {
 		}
 	})
 	scope.addEventListener("error", ({ error }) => {
-		const serializedError = {
+		const serializedError: ServiceWorkerError = {
 			name: error.name,
 			message: error.message,
 			stack: error.stack,
@@ -250,7 +258,7 @@ const init = (sw: ServiceWorker) => {
 				c.postMessage({
 					type: "error",
 					value: serializedError,
-				})
+				} satisfies ServiceWorkerMessage)
 			}
 		})
 	})
