@@ -9,15 +9,18 @@ import { styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 import { isBrowser, isDesktop } from "@tutao/app-env"
+import { isNotNull } from "@tutao/utils"
 
 export function newItemActions({
 	onUploadFiles,
 	onCreateFolder,
 	onUploadFolders,
+	onPaste,
 }: {
 	onUploadFiles: (event: MouseEvent, dom: HTMLElement) => unknown
 	onUploadFolders: (event: MouseEvent, dom: HTMLElement) => unknown
 	onCreateFolder: (event: MouseEvent, dom: HTMLElement) => unknown
+	onPaste?: (event: MouseEvent, dom: HTMLElement) => unknown
 }): DropdownButtonAttrs[] {
 	let newItemDropdown: DropdownButtonAttrs[] = []
 	newItemDropdown.push(
@@ -43,6 +46,16 @@ export function newItemActions({
 			},
 			label: lang.getTranslation("uploadFolders_action"),
 			icon: Icons.Upload,
+		})
+	}
+
+	if (isNotNull(onPaste)) {
+		newItemDropdown.push({
+			click: (event, dom) => {
+				onPaste(event, dom)
+			},
+			label: lang.getTranslation("paste_action"),
+			icon: Icons.ClipboardFilled,
 		})
 	}
 
