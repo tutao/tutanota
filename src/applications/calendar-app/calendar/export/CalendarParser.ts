@@ -577,10 +577,9 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 }
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
-/** importer internals exported for testing */
-export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
+export function parseCalendarStringData(value: string, userCalendarTimeZone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree, zone)
+	return parseCalendarEvents(tree, userCalendarTimeZone)
 }
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
@@ -597,11 +596,11 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	}
 }
 
-export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
+export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string): ParsedCalendarData {
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = getContents(eventObjects, zone)
+	const contents = getContents(eventObjects, userCalendarTimeZone)
 
 	return {
 		method,
@@ -689,6 +688,9 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			}
 		}
 
+		const endProp = getProp(eventObj, "DTEND", true)
+		const endTzId = endProp ? getTzId(endProp) : null
+
 		const icsCalendarEvent: IcsCalendarEvent = {
 			summary,
 			description,
@@ -701,8 +703,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			repeatRule,
 			attendees,
 			organizer,
-			startTimeZone: null,
-			endTimeZone: null,
+			startTimeZone: startTzId,
+			endTimeZone: endTzId,
 		}
 
 		let alarms: AlarmInfoTemplate[] = []
@@ -910,23 +912,23 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
  * parse a ical time string and return a JS Date object along with a flag that determines
  * whether the time should be considered part of an all-day event
  * @param value {string} the time string to be parsed
- * @param zone {string} the time zone to use
+ * @param eventTzid {string} the TZID used in this {@link value}
  */
 export function parseTime(
 	value: string,
-	zone?: string,
+	eventTzid?: string,
 ): {
 	date: Date
 	allDay: boolean
 } {
 	const components = parseTimeIntoComponents(value)
 	// if minute is not provided it is an all day date YYYYMMDD
-	const allDay = !("minute" in components)
-	const effectiveZone = allDay ? "UTC" : (components.zone ?? zone)
+	const isAllDay = !("minute" in components)
+	const effectiveZone = isAllDay ? "UTC" : (components.zone ?? eventTzid)
 	delete components["zone"]
 	const filledComponents = Object.assign(
 		{},
-		allDay
+		isAllDay
 			? {
 					hour: 0,
 					minute: 0,
@@ -939,7 +941,7 @@ export function parseTime(
 
 	try {
 		const dateTime = DateTime.fromObject(filledComponents, { zone: effectiveZone })
-		return { date: toValidJSDate(dateTime, value, zone ?? null), allDay }
+		return { date: toValidJSDate(dateTime, value, eventTzid ?? null), allDay: isAllDay }
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw e
