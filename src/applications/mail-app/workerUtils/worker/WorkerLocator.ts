@@ -812,6 +812,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.login,
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
+			locator.instancePipeline,
 		)
 	})
 

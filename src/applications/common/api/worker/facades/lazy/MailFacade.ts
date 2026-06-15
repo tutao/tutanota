@@ -26,7 +26,10 @@ import {
 	murmurHash,
 	PublicKeyIdentifierType,
 	random,
+	SessionKeyInfo,
 	sha256Hash,
+	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
 	VersionedKey,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../../../../platform-kit/network/error/RecipientsNotFoundError.js"
@@ -55,7 +58,7 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../../../../platform-kit/network/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { OwnerEncSessionKeyProvider, UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
+import { InstancePipeline, OwnerEncSessionKeyProvider, UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
@@ -99,6 +102,8 @@ import {
 	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
+	createMail,
+	createMailAddress,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -226,6 +231,7 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+		private readonly instancePipeline: InstancePipeline,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -313,6 +319,60 @@ export class MailFacade {
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		// create Mail, MailDetail and Files
+
+		const dummyMail = createMail({
+			subject,
+			confidential,
+			method,
+			sender: createMailAddress({ address: senderMailAddress, name: senderName, contact: null }),
+			// everything below is garbage
+			mailDetails: null,
+			mailDetailsDraft: null,
+			attachments: [],
+			bucketKey: null,
+			sendAt: null,
+			unread: true,
+			authStatus: null,
+			differentEnvelopeSender: null,
+			encryptionAuthStatus: null,
+			movedTime: null,
+			serverClassificationData: null,
+			listUnsubscribe: false,
+			processNeeded: false,
+			phishingStatus: "",
+			processingState: "",
+			recipientCount: "",
+			replyType: "",
+			state: "",
+			receivedDate: new Date(),
+			sets: [],
+			conversationEntry: ["", ""],
+			_errors: {},
+			_type: MailTypeRef,
+			_id: ["", ""],
+			_permissions: "",
+			_format: "",
+			_ownerEncSessionKey: null,
+			_ownerKeyVersion: null,
+			clientSpamClassifierResult: null,
+			firstRecipient: null,
+		})
+
+		const sessionKeyInfo: SessionKeyInfo = {
+			cipherVersion:
+				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
+					? SymmetricCipherVersion.AeadWithSessionKey
+					: SymmetricCipherVersion.AesCbcThenHmac,
+			sessionKey: sk,
+		}
+		const clientModelUntypedInstance = this.instancePipeline.mapAndEncrypt(MailTypeRef, dummyMail, sessionKeyInfo)
+
+		// mapAndEncrypt each of them
+		// extract the values we need from each and put them on the DraftCreateData
+		// call serviceExecutor.post with already encrypted values
+
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,

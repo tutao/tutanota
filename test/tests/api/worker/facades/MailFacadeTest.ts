@@ -89,6 +89,7 @@ o.spec("MailFacade test", function () {
 			loginFacade,
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
+			object(),
 		)
 	})
 

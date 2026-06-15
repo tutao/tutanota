@@ -141,6 +141,10 @@ export class ServiceExecutor implements IServiceExecutor {
 		params: ExtraServiceParams | null,
 	): Promise<string | null> {
 		if (methodDefinition.data != null) {
+			if (params?.untypedInstance) {
+				return JSON.stringify(params.untypedInstance)
+			}
+
 			if (requestEntity == null || !isSameTypeRef(methodDefinition.data, requestEntity._type)) {
 				throw new ProgrammingError(`Invalid service data! ${service.name} ${method}`)
 			}

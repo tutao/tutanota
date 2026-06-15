@@ -1,5 +1,5 @@
 import { assertMainOrNode } from "@tutao/app-env"
-import { DeleteService, GetService, ParamTypeFromRef, PostService, PutService, ReturnTypeFromRef } from "../meta"
+import { ClientModelUntypedInstance, DeleteService, GetService, ParamTypeFromRef, PostService, PutService, ReturnTypeFromRef } from "../meta"
 import { AesKey } from "@tutao/crypto"
 import { SuspensionBehavior } from "../rest-client/types"
 
@@ -30,4 +30,5 @@ export interface ExtraServiceParams {
 	suspensionBehavior?: SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
+	untypedInstance?: ClientModelUntypedInstance
 }
