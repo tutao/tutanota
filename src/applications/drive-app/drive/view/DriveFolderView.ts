@@ -37,6 +37,7 @@ export interface DriveFolderViewAttrs {
 	sortOrder: SortingPreference
 	onSortColumn: (column: SortColumn) => unknown
 	clipboard: DriveClipboard | null
+	onPaste?: () => unknown
 }
 
 function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
@@ -68,6 +69,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			sortOrder,
 			onSortColumn,
 			clipboard,
+			onPaste,
 		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		const onDropInto = (item: FolderItem, event: DragEvent) => {
@@ -115,7 +117,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				oncontextmenu: (e: MouseEvent) => {
 					if (!isMobileDriveLayout()) {
 						e.preventDefault()
-						const dropdown = new Dropdown(() => newItemActions({ onUploadFiles, onCreateFolder, onUploadFolders }), 300)
+						const dropdown = new Dropdown(() => newItemActions({ onUploadFiles, onCreateFolder, onUploadFolders, onPaste }), 300)
 						dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 						modal.displayUnique(dropdown, false)
 					}
