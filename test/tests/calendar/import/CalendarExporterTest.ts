@@ -620,11 +620,12 @@ o.spec("CalendarExporter", function () {
 				excludedDates: [],
 				endValue: null,
 			})
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 			testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 		})
+
 		o("recurrence id on event without UID will be deleted", async function () {
 			const parsedEvent = parseCalendarStringData(
 				[
@@ -693,8 +694,8 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -734,8 +735,8 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -778,8 +779,8 @@ o.spec("CalendarExporter", function () {
 					}),
 				]
 
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -881,8 +882,8 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
@@ -917,8 +918,8 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = null
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = null
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
@@ -1006,8 +1007,8 @@ o.spec("CalendarExporter", function () {
 									).toJSDate(),
 									uid: "test@tuta.com",
 									repeatRule: null,
-									startTimeZone: null,
-									endTimeZone: null,
+									startTimeZone: zone,
+									endTimeZone: zone,
 								},
 								alarms: [],
 							},
@@ -1207,7 +1208,7 @@ END:VCALENDAR`
 								excludedDates: [],
 								advancedRules: [],
 							}),
-							startTimeZone: null,
+							startTimeZone: zone,
 							endTimeZone: null,
 						}),
 						alarms: [],
@@ -1264,8 +1265,8 @@ END:VCALENDAR`
 								timeZone: "",
 								excludedDates: [],
 							}),
-							startTimeZone: null,
-							endTimeZone: null,
+							startTimeZone: zone,
+							endTimeZone: zone,
 						}),
 						alarms: [],
 					},
@@ -1288,8 +1289,8 @@ END:VCALENDAR`
 							repeatRule: event.repeatRule,
 							attendees: event.attendees,
 							organizer: event.organizer,
-							startTimeZone: null,
-							endTimeZone: null,
+							startTimeZone: event.startTimeZone,
+							endTimeZone: event.endTimeZone,
 						},
 						alarms: alarms.map((a) => ({
 							trigger: a.alarmInfo.trigger,
