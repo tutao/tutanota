@@ -84,6 +84,7 @@ import { SecondFactorAuthDeleteDataTypeRef } from "./TypeRefs.js"
 import { CreateSessionDataTypeRef } from "./TypeRefs.js"
 import { CreateSessionReturnTypeRef } from "./TypeRefs.js"
 import { SignOrderProcessingAgreementDataTypeRef } from "./TypeRefs.js"
+import { SubscriptionRevocationServicePostInTypeRef } from "./TypeRefs.js"
 import { SurveyDataPostInTypeRef } from "./TypeRefs.js"
 import { SwitchAccountTypePostInTypeRef } from "./TypeRefs.js"
 import { SystemKeysReturnTypeRef } from "./TypeRefs.js"
@@ -495,6 +496,15 @@ export const SignOrderProcessingAgreementService = Object.freeze({
 	name: "SignOrderProcessingAgreementService",
 	get: null,
 	post: { data: SignOrderProcessingAgreementDataTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const SubscriptionRevocationService = Object.freeze({
+	app: "sys",
+	name: "SubscriptionRevocationService",
+	get: null,
+	post: { data: SubscriptionRevocationServicePostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)

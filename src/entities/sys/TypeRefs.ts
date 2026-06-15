@@ -455,6 +455,7 @@ export type CustomerInfo = {
 	supportInfo: null | Id;
 	managedByPartner: null | Id;
 	partnerManagedCustomers: null | Id;
+	revocationRequest: null | IdTuple;
 }
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", 195)
 
@@ -4312,4 +4313,39 @@ export type UpdateKdfNoncePostOut = {
 
 	_format: NumberString;
 	kdfNonce: Uint8Array;
+}
+export const SubscriptionRevocationRequestTypeRef: TypeRef<SubscriptionRevocationRequest> = new TypeRef("sys", 2759)
+
+export function createSubscriptionRevocationRequest(values: StrippedEntity<SubscriptionRevocationRequest>): SubscriptionRevocationRequest {
+    return Object.assign(create(typeModels[SubscriptionRevocationRequestTypeRef.typeId], SubscriptionRevocationRequestTypeRef), values)
+}
+
+export type SubscriptionRevocationRequest = {
+	_type: TypeRef<SubscriptionRevocationRequest>;
+	_original?: SubscriptionRevocationRequest
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	revocationRequestDate: Date;
+	isRefundProcessed: boolean;
+	latestDowngradeFailedNotification: null | Date;
+	downgradeGracePeriodEnd: null | Date;
+
+	customer: Id;
+}
+export const SubscriptionRevocationServicePostInTypeRef: TypeRef<SubscriptionRevocationServicePostIn> = new TypeRef("sys", 2771)
+
+export function createSubscriptionRevocationServicePostIn(values: StrippedEntity<SubscriptionRevocationServicePostIn>): SubscriptionRevocationServicePostIn {
+    return Object.assign(create(typeModels[SubscriptionRevocationServicePostInTypeRef.typeId], SubscriptionRevocationServicePostInTypeRef), values)
+}
+
+export type SubscriptionRevocationServicePostIn = {
+	_type: TypeRef<SubscriptionRevocationServicePostIn>;
+	_original?: SubscriptionRevocationServicePostIn
+
+	_format: NumberString;
+
+	surveyData: null | SurveyData;
 }

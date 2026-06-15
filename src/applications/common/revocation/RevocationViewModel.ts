@@ -3,26 +3,16 @@ import { InfoLink, lang, MaybeTranslation } from "../../../ui/utils/LanguageView
 import { LoginController } from "../api/main/LoginController.js"
 import { getLoginErrorStateAndMessage } from "../misc/LoginUtils.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
-import { TerminationPeriodOptions } from "../../../platform-kit/app-env"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
-import { incrementDate } from "../../../platform-kit/utils"
-import {
-	createCustomerAccountTerminationPostIn,
-	CustomerAccountTerminationRequest,
-	CustomerAccountTerminationRequestTypeRef,
-	CustomerAccountTerminationService,
-	SurveyData,
-} from "@tutao/entities/sys"
 import type { NewSessionData } from "../../../platform-kit/base/facades/LoginFacade"
+import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService, SurveyData } from "@tutao/entities/sys"
 
-export class TerminationViewModel {
+export class RevocationViewModel {
 	mailAddress: string
 	password: string
-	date: Date
-	terminationPeriodOption: TerminationPeriodOptions
-	acceptedTerminationRequest: CustomerAccountTerminationRequest | null
+	acceptedRevocationRequest: boolean
 	helpText: MaybeTranslation
 	loginState: LoginState
 	private temporarySession: NewSessionData | null
@@ -35,48 +25,46 @@ export class TerminationViewModel {
 	) {
 		this.mailAddress = ""
 		this.password = ""
-		this.date = incrementDate(new Date(), 1)
-		this.acceptedTerminationRequest = null
-		this.terminationPeriodOption = TerminationPeriodOptions.EndOfCurrentPeriod
+		this.acceptedRevocationRequest = false
 		this.helpText = "emptyString_msg"
 		this.loginState = LoginState.NotAuthenticated
 		this.temporarySession = null
 	}
 
-	async createAccountTerminationRequest(surveyData: SurveyData | null = null): Promise<void> {
+	async createSubscriptionRevocationRequest(surveyData: SurveyData | null = null): Promise<void> {
 		await this.authenticate()
 		if (this.loginState === LoginState.LoggedIn) {
-			await this.createTerminationRequest(surveyData)
+			await this.revocationRequest(surveyData)
 		}
 	}
 
 	/**
-	 * Creates the termination request based on the date option selected by the user and assument that the authentication was successfull.
+	 * Creates the subscription revocation request; assumes that the authentication was successful.
 	 */
-	private async createTerminationRequest(surveyData: SurveyData | null) {
+	private async revocationRequest(surveyData: SurveyData | null) {
 		try {
-			const inputData = createCustomerAccountTerminationPostIn({
-				terminationDate: this.getTerminationDate(),
-				surveyData: surveyData,
-			})
-			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData, null)
-			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
+			const inputData = createSubscriptionRevocationServicePostIn({ surveyData })
+			await this.serviceExecutor.post(SubscriptionRevocationService, inputData, null)
+			this.acceptedRevocationRequest = true
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {
 				switch (e.data) {
-					case "invalidTerminationDate":
-						this.onTerminationRequestFailed("terminationInvalidDate_msg")
-						break
-					case "alreadyCancelled":
-						this.onTerminationRequestFailed("terminationAlreadyCancelled_msg")
+					case "alreadyRevoked":
+						this.onRevocationRequestFailed("revocationAlreadySubmitted_msg")
 						break
 					case "noActiveSubscription":
-						this.onTerminationRequestFailed("terminationNoActiveSubscription_msg")
+						this.onRevocationRequestFailed("terminationNoActiveSubscription_msg") // message is generic enough to work for both termination and revocation requests
 						break
 					case "hasAppStoreSubscription":
-						this.onTerminationRequestFailed(
-							lang.getTranslation("revokeSubscriptionWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+						this.onRevocationRequestFailed(
+							lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
 						)
+						break
+					case "olderThanTwoWeeks":
+						this.onRevocationRequestFailed("revocationPeriodEnded_msg")
+						break
+					case "noPersonalPlan":
+						this.onRevocationRequestFailed("revocationOnlyPersonalPlans_msg")
 						break
 					default:
 						throw e
@@ -99,7 +87,7 @@ export class TerminationViewModel {
 		}
 	}
 
-	private onTerminationRequestFailed(errorMessage: MaybeTranslation) {
+	private onRevocationRequestFailed(errorMessage: MaybeTranslation) {
 		this.helpText = errorMessage
 	}
 
@@ -111,13 +99,6 @@ export class TerminationViewModel {
 	private onError(helpText: MaybeTranslation, state: LoginState) {
 		this.helpText = helpText
 		this.loginState = state
-	}
-
-	private getTerminationDate(): Date | null {
-		return this.terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod
-			? // The server will use the end of the current subscription period to cancel the account if the terminationDate is null.
-				null
-			: this.date
 	}
 
 	async authenticate(): Promise<void> {

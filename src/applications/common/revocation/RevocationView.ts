@@ -3,9 +3,9 @@ import { assertMainOrNode } from "../../../platform-kit/app-env"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { TerminationViewModel } from "./TerminationViewModel.js"
-import { TerminationForm } from "./TerminationForm.js"
-import { formatDateTime, formatDateWithMonth } from "../../../ui/utils/Formatter.js"
+import { RevocationViewModel } from "./RevocationViewModel.js"
+import { RevocationForm } from "./RevocationForm.js"
+import { formatDateTime } from "../../../ui/utils/Formatter.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
@@ -13,20 +13,19 @@ import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { createSurveyData, CustomerAccountTerminationRequest } from "@tutao/entities/sys"
-import { px } from "../../../ui/size"
+import { createSurveyData } from "@tutao/entities/sys"
 
 assertMainOrNode()
 
-export interface TerminationViewAttrs extends TopLevelAttrs {
-	makeViewModel: () => TerminationViewModel
+export interface RevocationViewAttrs extends TopLevelAttrs {
+	makeViewModel: () => RevocationViewModel
 }
 
-export class TerminationView extends BaseTopLevelView implements TopLevelView<TerminationViewAttrs> {
+export class RevocationView extends BaseTopLevelView implements TopLevelView<RevocationViewAttrs> {
 	private bottomMargin = 0
-	private model: TerminationViewModel
+	private model: RevocationViewModel
 
-	constructor({ attrs }: Vnode<TerminationViewAttrs>) {
+	constructor({ attrs }: Vnode<RevocationViewAttrs>) {
 		super()
 		this.model = attrs.makeViewModel()
 	}
@@ -40,7 +39,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		// do nothing
 	}
 
-	public view({ attrs }: Vnode<TerminationViewAttrs>) {
+	public view({ attrs }: Vnode<RevocationViewAttrs>) {
 		return m(
 			"#termination-view.main-view.flex.col.nav-bg",
 			{
@@ -63,9 +62,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 							},
 						},
 						m(".flex.col.pt-16.plr-24.content-bg.border-radius-12", [
-							this.model.acceptedTerminationRequest
-								? this.renderTerminationInfo(this.model.mailAddress, this.model.acceptedTerminationRequest)
-								: this.renderTerminationForm(),
+							this.model.acceptedRevocationRequest ? this.renderRevocationInfo(this.model.mailAddress) : this.renderRevocationForm(),
 						]),
 					),
 				),
@@ -73,21 +70,20 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 		)
 	}
 
-	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
+	private renderRevocationInfo(mailAddress: string): Children {
 		return m("", [
-			m(".h3.mt-16", "Termination successful"),
+			m(".h3.mt-16", lang.get("revocationSubmitted_label")),
 			m(
 				"p.mt-16",
-				lang.get("terminationSuccessful_msg", {
+				lang.get("revocationSubmitted_msg", {
 					"{accountName}": mailAddress,
-					"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),
-					"{deletionDate}": formatDateWithMonth(acceptedTerminationRequest.terminationDate),
+					"{receivedDate}": formatDateTime(new Date()),
 				}),
 			),
 		])
 	}
 
-	private async cancelWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
+	private async revokeWithProgressDialog(surveyResult: LeavingUserSurveyData | null) {
 		if (surveyResult && surveyResult.submitted && surveyResult.category && surveyResult.reason) {
 			const data = createSurveyData({
 				category: surveyResult.category,
@@ -97,24 +93,20 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				clientVersion: env.versionNumber,
 				clientPlatform: client.getClientPlatform().valueOf().toString(),
 			})
-			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
+			await showProgressDialog("pleaseWait_msg", this.model.createSubscriptionRevocationRequest(data))
 		} else {
-			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest())
+			await showProgressDialog("pleaseWait_msg", this.model.createSubscriptionRevocationRequest())
 		}
 		m.redraw()
 	}
 
-	private renderTerminationForm(): Children {
-		return m(TerminationForm, {
-			onSubmit: (surveyData) => this.cancelWithProgressDialog(surveyData),
+	private renderRevocationForm(): Children {
+		return m(RevocationForm, {
+			onSubmit: (surveyData) => this.revokeWithProgressDialog(surveyData),
 			mailAddress: this.model.mailAddress,
 			onMailAddressChanged: (mailAddress) => (this.model.mailAddress = mailAddress),
 			password: this.model.password,
 			onPasswordChanged: (password) => (this.model.password = password),
-			date: this.model.date,
-			onDateChanged: (date) => (this.model.date = date),
-			terminationPeriodOption: this.model.terminationPeriodOption,
-			onTerminationPeriodOptionChanged: (option) => (this.model.terminationPeriodOption = option),
 			helpText: lang.getTranslationText(this.model.helpText),
 		})
 	}

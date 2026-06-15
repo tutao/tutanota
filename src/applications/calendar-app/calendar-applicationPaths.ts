@@ -6,6 +6,7 @@ export type ApplicationPaths = Record<string, RouteResolver>
 type ViewResolvers = {
 	login: RouteResolver
 	termination: RouteResolver
+	revocation: RouteResolver
 	search: RouteResolver
 	settings: RouteResolver
 	calendar: RouteResolver
@@ -19,6 +20,7 @@ type ViewResolvers = {
 export function applicationPaths({
 	login,
 	termination,
+	revocation,
 	search,
 	settings,
 	calendar,
@@ -31,6 +33,7 @@ export function applicationPaths({
 	return {
 		"/login": login,
 		"/termination": termination,
+		"/revocation": revocation,
 		"/signup": signup,
 		"/recover": recover,
 		"/search/:category": search,

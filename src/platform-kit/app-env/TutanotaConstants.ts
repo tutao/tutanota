@@ -76,6 +76,7 @@ export enum ApprovalStatus {
 	PAID_SUBSCRIPTION_NEEDED = "8",
 	INITIAL_PAYMENT_PENDING = "9",
 	NO_ACTIVITY = "10",
+	DOWNGRADE_FAILED = "11",
 }
 
 export enum CustomDomainValidationResult {

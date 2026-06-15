@@ -106,6 +106,9 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 			)
 		}
 		return false
+	} else if (status === ApprovalStatus.DOWNGRADE_FAILED) {
+		await Dialog.message("downgradeFailed_msg")
+		return false
 	} else {
 		return true
 	}

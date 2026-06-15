@@ -754,6 +754,8 @@ pub struct CustomerInfo {
 	pub managedByPartner: Option<GeneratedId>,
 	#[serde(rename = "2683")]
 	pub partnerManagedCustomers: Option<GeneratedId>,
+	#[serde(rename = "2770")]
+	pub revocationRequest: Option<IdTupleGenerated>,
 }
 
 impl Entity for CustomerInfo {
@@ -6513,6 +6515,56 @@ impl Entity for UpdateKdfNoncePostOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2755),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SubscriptionRevocationRequest {
+	#[serde(rename = "2761")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2762")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2763")]
+	pub _format: i64,
+	#[serde(rename = "2764")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2766")]
+	pub revocationRequestDate: DateTime,
+	#[serde(rename = "2767")]
+	pub isRefundProcessed: bool,
+	#[serde(rename = "2768")]
+	pub latestDowngradeFailedNotification: Option<DateTime>,
+	#[serde(rename = "2769")]
+	pub downgradeGracePeriodEnd: Option<DateTime>,
+	#[serde(rename = "2765")]
+	pub customer: GeneratedId,
+}
+
+impl Entity for SubscriptionRevocationRequest {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2759),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SubscriptionRevocationServicePostIn {
+	#[serde(rename = "2772")]
+	pub _format: i64,
+	#[serde(rename = "2773")]
+	pub surveyData: Option<SurveyData>,
+}
+
+impl Entity for SubscriptionRevocationServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2771),
 		}
 	}
 }

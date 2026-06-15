@@ -2311,6 +2311,16 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"revocation_action": "Submit Revocation",
+		"revocationForm_title": "Revocation Form",
+		"revocationPeriodEnded_msg": "This Account is not within the two week revocation period anymore. You can cancel your contract in the app settings.",
+		"downgradeFailed_msg": "Your account could not be downgraded. You can no longer send and receive emails until you disable all active Premium features",
+		"revocationSubmitted_label": "Revocation Submitted",
+		"revocationSubmitted_msg": "The subscription revocation request for the account {accountName} has been submitted successfully. It was received on {receivedDate} and will be processed shortly.",
+		"revocationAlreadySubmitted_msg": "A subscription revocation request for this account has already been made.",
+		"revokeSubscriptionWithAppStoreSubscription_msg": "Your subscription is managed via the Apple App Store. You will need to revoke it from there. See {AppStorePayment}",
+		"revocation_text": "You can submit a subscription revocation if your account is on a personal paid plan within 14 days of its upgrade. \n\n Please provide the credentials for the account of which you want to revoke your subscription.",
+		"revocationOnlyPersonalPlans_msg": "Revocation requests can only be submitted for personal paid plans. Please contact support if you require assistance."
 	}
 }

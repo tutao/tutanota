@@ -61,6 +61,14 @@ export class LoginController {
 		return await this.loginFacade.createSession(username, password, client.getIdentifier(), SessionType.Persistent, null, true)
 	}
 
+	async createTemporarySessionOnly(username: string, password: string) {
+		return await this.loginFacade.createSession(username, password, client.getIdentifier(), SessionType.Temporary, null, true)
+	}
+
+	async deleteSession(accessToken: Base64Url): Promise<void> {
+		await this.loginFacade.deleteSession(accessToken)
+	}
+
 	/**
 	 * create a new session and set up stored credentials and offline database, if applicable.
 	 * @param username the mail address being used to log in

@@ -41,6 +41,8 @@ import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
+import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -197,6 +199,37 @@ import("../../ui/translations/en.js")
 							cache: {
 								makeViewModel: () =>
 									new TerminationViewModel(
+										calendarLocator.logins,
+										calendarLocator.secondFactorHandler,
+										calendarLocator.serviceExecutor,
+										calendarLocator.entityClient,
+									),
+								header: await calendarLocator.appHeaderAttrs(),
+							},
+						}
+					},
+					prepareAttrs: ({ makeViewModel, header }) => ({ makeViewModel, header }),
+					requireLogin: false,
+				},
+				calendarLocator.logins,
+			),
+			revocation: makeViewResolver<
+				RevocationViewAttrs,
+				RevocationView,
+				{
+					makeViewModel: () => RevocationViewModel
+					header: AppHeaderAttrs
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { RevocationViewModel } = await import("../common/revocation/RevocationViewModel.js")
+						const { RevocationView } = await import("../common/revocation/RevocationView.js")
+						return {
+							component: RevocationView,
+							cache: {
+								makeViewModel: () =>
+									new RevocationViewModel(
 										calendarLocator.logins,
 										calendarLocator.secondFactorHandler,
 										calendarLocator.serviceExecutor,

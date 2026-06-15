@@ -364,6 +364,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/common/subscription") ||
 		isIn("src/applications/common/ratings") ||
 		isIn("src/applications/common/termination") ||
+		isIn("src/applications/common/revocation") ||
 		isIn("src/applications/common/partner")
 	) {
 		// subscription and settings depend on each other right now.
