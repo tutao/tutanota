@@ -19,7 +19,7 @@ assertMainOrNode()
 /// and not run predictional locally
 export const SERVER_CLASSIFIERS_TO_TRUST = Object.freeze(
 	new Set<number>([
-		22, 23, 14, 6, 4, 2, 5, 28, 8, 27, 26,
+		4, 2, 5, 28, 8, 27, 26, 22, 23, 14, 6,
 		/// NOTE: Generate from: tutadb#ClassifierTypeTest#tutanota3_SERVER_CLASSIFIERS_TO_TRUST
 	]),
 )
