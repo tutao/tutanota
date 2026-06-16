@@ -135,7 +135,6 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { Indexer } from "./workerUtils/index/Indexer"
 import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
-import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
 import PublicEncryptionKeyProvider from "../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
@@ -329,7 +328,6 @@ class MailLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
 		const calendarEventsRepository = await this.calendarEventsRepository()
-		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		const calendarModel = await this.calendarModel()
 		return () => {
 			return new SearchViewModel(
@@ -348,7 +346,6 @@ class MailLocator implements CommonLocator {
 				calendarModel,
 				redraw,
 				deviceConfig.getMailAutoSelectBehavior(),
-				offlineStorageSettings,
 			)
 		}
 	}
@@ -1355,14 +1352,6 @@ class MailLocator implements CommonLocator {
 			this.mailModel,
 		)
 	})
-
-	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
-		if (!isBrowser() && !isAdminClient()) {
-			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
-		} else {
-			return null
-		}
-	}
 
 	readonly undoModel: lazyAsync<UndoModel> = lazyMemoized(async () => {
 		const { UndoModel } = await import("./UndoModel.js")
