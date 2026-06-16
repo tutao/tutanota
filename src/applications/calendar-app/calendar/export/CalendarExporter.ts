@@ -59,8 +59,8 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		dateStart = `DTSTART;VALUE=DATE:${formatDate(getAllDayDateLocal(event.startTime), localZone)}`
 		dateEnd = `DTEND;VALUE=DATE:${formatDate(getAllDayDateLocal(event.endTime), localZone)}`
 	} else if (repeatRule) {
-		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime, repeatRule.timeZone)}`
-		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime, repeatRule.timeZone)}`
+		dateStart = `DTSTART;TZID=${event.startTimeZone ?? repeatRule.timeZone}:${formatDateTime(event.startTime, repeatRule.timeZone)}`
+		dateEnd = `DTEND;TZID=${event.endTimeZone ?? repeatRule.timeZone}:${formatDateTime(event.endTime, repeatRule.timeZone)}`
 	} else {
 		dateStart = `DTSTART:${formatDateTimeUTC(event.startTime)}`
 		dateEnd = `DTEND:${formatDateTimeUTC(event.endTime)}`
