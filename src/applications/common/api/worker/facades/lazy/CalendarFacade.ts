@@ -93,6 +93,7 @@ export const enum CachingMode {
 
 export type AlarmInfoTemplate = Pick<AlarmInfo, "alarmIdentifier" | "trigger">
 
+const TAG = "[CalendarFacade]"
 export class CalendarFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
