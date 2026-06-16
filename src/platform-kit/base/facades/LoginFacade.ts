@@ -16,7 +16,7 @@ import {
 } from "@tutao/utils"
 import { AttributeModel, GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
 import {
@@ -43,7 +43,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { CryptoFacade } from "../base-crypto/CryptoFacade"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../network/ServiceRequest"
+import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
@@ -75,7 +75,7 @@ import {
 	UserTypeRef,
 	WebsocketLeaderStatus,
 } from "../../../entities/sys/TypeRefs"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
+import { EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
 import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
 import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
@@ -104,6 +104,12 @@ import {
 import { SessionTypeProvider } from "./SessionTypeProvider"
 import { CacheStorageLateInitializer } from "./CacheStorageLateInitializer"
 import { CacheManager } from "../base-crypto/persistence/CacheManager"
+import {
+	CacheMode,
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_EXTRA_SERVICE_PARAMS,
+	DEFAULT_REST_CLIENT_OPTIONS,
+} from "../../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

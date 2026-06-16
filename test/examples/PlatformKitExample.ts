@@ -32,7 +32,7 @@ import { NoOpLastProcessedEventBatchStorageFacade } from "../../src/applications
 import { loadWasmFromFileOrNetwork } from "../../src/platform-kit/utils/WebAssembly.js"
 import { generateKeyFromPassphraseArgon2id, type Argon2IDExports } from "../../src/platform-kit/crypto"
 import { RsaWeb } from "../../src/app-kit/native-bridge/worker/RsaImplementation.js"
-import { TutanotaEntityMigrator } from "../../src/applications/common/misc/TutanotaEntityMigrator.js"
+import { TutanotaEntityMigrator } from "../../src/applications/common/api/worker/TutanotaEntityMigrator.js"
 import { DefaultEntityRestCache } from "../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { DomainConfigProvider } from "../../src/applications/common/api/common/DomainConfigProvider.js"
 import { IdentityKeyTrustDatabase } from "../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"

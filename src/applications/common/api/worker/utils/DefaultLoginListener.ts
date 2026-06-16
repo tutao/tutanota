@@ -1,10 +1,10 @@
-import { CacheInfo, LoginFailReason, LoginListener } from "../../../platform-kit/base/facades/LoginFacade"
+import { CacheInfo, LoginFailReason, LoginListener } from "../../../../../platform-kit/base/facades/LoginFacade"
 import { SessionType } from "@tutao/app-env"
 import { Credentials } from "@tutao/network/types"
-import { EventBusClient } from "../../../app-kit/local-store/event/EventBusClient"
-import { CloseEventBusOption, ConnectMode } from "../../../platform-kit/network/Constants"
+import { EventBusClient } from "../../../../../app-kit/local-store/event/EventBusClient"
+import { CloseEventBusOption, ConnectMode } from "../../../../../platform-kit/network/Constants"
 import { Challenge } from "@tutao/entities/sys"
-import { UserFacade } from "../../../platform-kit/base/facades/UserFacade"
+import { UserFacade } from "../../../../../platform-kit/base/facades/UserFacade"
 import { lazy } from "@tutao/utils"
 
 export class DefaultLoginListener implements LoginListener {

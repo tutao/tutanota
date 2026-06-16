@@ -31,14 +31,7 @@ import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tut
 import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/network/LastProcessedEventBatchProvider.js"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
-import {
-	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	EntityRestClient,
-	EntityRestClientEraseOptions,
-	EntityRestClientLoadOptions,
-	EntityRestClientSetupOptions,
-	getCacheModeBehavior,
-} from "../../../../../platform-kit/network/EntityRestClient"
+import { EntityRestClient } from "../../../../../platform-kit/network/EntityRestClient"
 import {
 	CalendarEventUidIndexTypeRef,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -64,6 +57,13 @@ import {
 } from "@tutao/entities/sys"
 import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	EntityRestClientEraseOptions,
+	EntityRestClientLoadOptions,
+	EntityRestClientSetupOptions,
+	getCacheModeBehavior,
+} from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

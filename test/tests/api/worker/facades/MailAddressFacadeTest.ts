@@ -9,11 +9,11 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-
 import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider"
 
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
-import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { Aes128Key } from "@tutao/crypto/symmetric-cipher-utils"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade

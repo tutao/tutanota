@@ -84,7 +84,7 @@ import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEve
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
-import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 
 assertWorkerOrNode()

@@ -1,4 +1,4 @@
-import { addParamsToUrl, DEFAULT_REST_CLIENT_OPTIONS, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
+import { addParamsToUrl, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
 import { handleRestError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
@@ -46,6 +46,7 @@ import {
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { aesDecrypt, asyncDecryptBytes } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`

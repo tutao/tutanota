@@ -63,8 +63,9 @@ import {
 	RootInstanceTypeRef,
 } from "@tutao/entities/sys"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 

@@ -20,10 +20,10 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { size } from "../../../ui/size"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../platform-kit/network/EntityRestClient"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertMainOrNode()
 

@@ -1,5 +1,5 @@
 import { Versioned } from "@tutao/utils"
-import { SigningPublicKey } from "../../../crypto/encryption/Ed25519"
+import { SigningPublicKey } from "@tutao/crypto"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 
 export type TrustDBEntry = {

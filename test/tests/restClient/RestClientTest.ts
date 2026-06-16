@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
+import { RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestBinaryBody, RestClientMiddleware, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
@@ -13,6 +13,7 @@ import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDet
 import { getServiceRestPath } from "../../../src/platform-kit/meta"
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { ApplicationTypesService } from "@tutao/entities/base"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 

@@ -10,7 +10,7 @@ import {
 
 import { matchers, object, replace, verify, when } from "testdouble"
 import { Stage, UsageTest, UsageTestController } from "@tutao/usagetests"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest.js"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
@@ -31,6 +31,7 @@ import {
 import { clone } from "../../../src/platform-kit/meta"
 
 import { CustomerPropertiesTypeRef } from "@tutao/entities/sys"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 

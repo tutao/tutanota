@@ -9,7 +9,6 @@ import { IServiceExecutor } from "../../../../platform-kit/network/ServiceReques
 import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { MediaType } from "../../../../platform-kit/rest-client/types"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -43,6 +42,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "../../../../platform-kit/meta/EntityTypes"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertMainOrNode()
 

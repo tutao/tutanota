@@ -19,7 +19,7 @@ import { assertMainOrNode, DEFAULT_ERROR, isAndroidApp, Keys, TabIndex } from ".
 import { AriaWindow } from "../AriaUtils"
 import { styles } from "../styles"
 import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
-import { getAsLazy, mapLazily, MaybeLazy } from "../MaybeLazy"
+import { getAsLazy, mapLazily, MaybeLazy } from "./MaybeLazy"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import Stream from "mithril/stream"

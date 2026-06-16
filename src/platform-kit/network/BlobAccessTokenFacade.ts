@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "./ServiceRequest"
+import { IServiceExecutor } from "./ServiceRequest"
 import { DateProvider, deduplicate, first, isEmpty, lazyMemoized, Nullable } from "@tutao/utils"
 import { SuspensionBehavior } from "../rest-client/types"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
@@ -9,6 +9,7 @@ import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, 
 import { BlobAccessTokenService } from "../../entities/storage/Services"
 import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

@@ -1,5 +1,5 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "../../../src/platform-kit/rest-client"
+import { RestClient } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
@@ -15,7 +15,8 @@ import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/ent
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/network/ServiceRequest"
+
+import { DEFAULT_EXTRA_SERVICE_PARAMS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 

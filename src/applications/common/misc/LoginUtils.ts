@@ -26,9 +26,10 @@ import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { deviceConfig } from "./DeviceConfig"
-import { CacheMode } from "../../../platform-kit/network/EntityRestClient"
 import { Customer } from "@tutao/entities/sys"
 import { AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "../../../entities/sys/Utils"
+
+import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)

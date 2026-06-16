@@ -416,7 +416,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/platform-kit/network/EntityClient.ts") ||
 		isIn("src/platform-kit/network/ProgressMonitorInterface.ts") ||
 		isIn("src/app-kit/native-bridge/common/threading/WebTransport.ts") ||
-		isIn("src/platform-kit/instance-pipeline/EntityFunctions.ts")
+		isIn("src/platform-kit/instance-pipeline/EntityFunctions.ts") ||
+		isIn("src/platform-kit/instance-pipeline/RestClientOptions.ts")
 	) {
 		return "common"
 	} else if (isIn("src/platform-kit/rest-client") || isIn("src/platform-kit/crypto") || isIn("src/platform-kit/instance-pipeline")) {
@@ -451,7 +452,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "common"
 	} else if (isIn("src/ui/base")) {
 		return "gui-base"
-	} else if (isIn("src/ui")) {
+	} else if (isIn("src/ui") && !isIn("src/ui/translations")) {
 		return "main"
 	} else if (isIn("src/applications/common/calendar/import")) {
 		return "calendar-importer"
@@ -537,7 +538,7 @@ export function bundleDependencyCheckPlugin() {
 				}
 				for (const moduleId of Object.keys(chunk.modules)) {
 					// Its a translation file and they are in their own chunks. We can skip further checks.
-					if (moduleId.includes(path.normalize("src/applications/mail-app/translations"))) {
+					if (moduleId.includes(path.normalize("src/ui/translations"))) {
 						continue
 					}
 					const ownChunk = getChunkName(moduleId, { getModuleInfo })

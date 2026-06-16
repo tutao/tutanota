@@ -14,7 +14,7 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
 import { assertEnumValue, AttributeModel, ClientTypeModel, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
+import { RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	aes256RandomKey,
@@ -91,6 +91,7 @@ import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
 import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "../../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

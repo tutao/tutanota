@@ -1,6 +1,6 @@
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { EntityClient, loadMultipleFromLists } from "../../../../../../platform-kit/network/EntityClient"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
@@ -44,6 +44,7 @@ import {
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export interface BreadcrumbEntry {
 	folderName: string

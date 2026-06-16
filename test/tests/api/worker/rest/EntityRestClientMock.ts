@@ -23,9 +23,10 @@ import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../.
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { downcast, Nullable } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
-import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/network/EntityRestClient"
+import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
 import { SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {

@@ -8,7 +8,7 @@ import { sha256Hash } from "@tutao/crypto"
 import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
 import { decompressString } from "./ModelMapper.js"
 import { ApplicationTypesHash, ServerModelInfo } from "./EntityFunctions"
-import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "./RestClientOptions"
 
 assertWorkerOrNode()
 

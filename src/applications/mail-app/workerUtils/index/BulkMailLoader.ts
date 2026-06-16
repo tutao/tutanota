@@ -26,7 +26,6 @@ import { cryptoUtils } from "../../../../platform-kit/crypto"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { OwnerEncSessionKeyProvider } from "../../../../platform-kit/instance-pipeline"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	File,
 	FileTypeRef,
@@ -38,6 +37,7 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100

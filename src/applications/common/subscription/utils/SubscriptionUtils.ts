@@ -7,7 +7,6 @@ import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generat
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import {
 	AccountingInfo,
 	Booking,
@@ -36,6 +35,7 @@ import {
 	PlanType,
 } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export const enum UpgradeType {
 	/**

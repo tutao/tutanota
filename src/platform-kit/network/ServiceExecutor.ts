@@ -11,15 +11,16 @@ import {
 	ReturnTypeFromRef,
 	TypeRef,
 } from "../meta"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "@tutao/rest-client"
+import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
-import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
+import { IServiceExecutor } from "./ServiceRequest.js"
 import { lazy, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
+import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

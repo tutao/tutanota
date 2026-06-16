@@ -1,5 +1,5 @@
 import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel"
-import { MaybeLazy, resolveMaybeLazy } from "../../../../ui/MaybeLazy"
+import { MaybeLazy, resolveMaybeLazy } from "../../../../ui/base/MaybeLazy"
 import { assertMainOrNode, TutanotaError } from "@tutao/app-env"
 
 assertMainOrNode()

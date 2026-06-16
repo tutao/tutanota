@@ -4,7 +4,7 @@ import { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
-import { lazyStringValue } from "../../../ui/MaybeLazy"
+import { lazyStringValue } from "../../../ui/base/MaybeLazy"
 
 export interface SettingsNavButtonAttrs {
 	icon?: lazyIcon

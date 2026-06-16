@@ -11,7 +11,7 @@ import {
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
 import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
@@ -26,6 +26,7 @@ import {
 	GiftCardService,
 } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24

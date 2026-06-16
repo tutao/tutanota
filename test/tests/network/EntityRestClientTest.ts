@@ -1,15 +1,9 @@
 import o, { assertThrows, spy } from "@tutao/otest"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { AttributeModel, Entity, TypeModel, TypeRef } from "../../../src/platform-kit/meta"
-import {
-	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	doBlobRequestWithRetry,
-	EntityMigrator,
-	EntityRestClient,
-	tryServers,
-} from "../../../src/platform-kit/network/EntityRestClient"
+import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
@@ -84,6 +78,7 @@ import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/inst
 import { decryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything, argThat } = matchers
 

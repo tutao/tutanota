@@ -9,11 +9,12 @@ import { ResumeSessionErrorReason } from "../../../../platform-kit/base/facades/
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
-import { CacheMode } from "../../../../platform-kit/network/EntityRestClient"
 import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+
+import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertMainOrNodeBoot()
 

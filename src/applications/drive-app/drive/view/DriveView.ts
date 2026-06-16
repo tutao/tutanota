@@ -546,7 +546,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								IconButton,
 								attachDropdown({
 									mainButtonAttrs: { icon: Icons.Plus, title: "newDriveItem_action" },
-									childAttrs: () =>
+									childAttrs: async () =>
 										newItemActions({
 											onNewFile: (event, dom) => this.onNewFile(dom.getBoundingClientRect()),
 											onNewFolder: () => this.onNewFolder(),

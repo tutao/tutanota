@@ -33,7 +33,7 @@ import {
 	MultipleMailAddressAvailabilityService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/network/EntityRestClient"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

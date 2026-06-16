@@ -2,7 +2,7 @@ import { assertWorkerOrNode } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { PQFacade } from "../../base-crypto/PQFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
@@ -37,6 +37,7 @@ import {
 	UserAreaGroupData,
 } from "@tutao/entities/tutanota"
 import { CacheManager } from "../../base-crypto/persistence/CacheManager"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

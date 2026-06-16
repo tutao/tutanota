@@ -66,11 +66,11 @@ import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCac
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
-import { DefaultLoginListener } from "../../../common/misc/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../common/api/worker/utils/DefaultLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
-import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 
 assertWorkerOrNode()

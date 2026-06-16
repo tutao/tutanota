@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import td, { instance, matchers, object, when } from "testdouble"
 
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient, restError } from "../../../src/platform-kit/rest-client"
+import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
 	Aes128Key,
@@ -50,12 +50,12 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-crypto/Constants.js"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/network/EntityRestClient"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
-import { DefaultLoginListener } from "../../../src/applications/common/misc/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../src/applications/common/api/worker/utils/DefaultLoginListener"
 import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything, argThat } = matchers
 

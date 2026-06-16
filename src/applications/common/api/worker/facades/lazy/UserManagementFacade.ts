@@ -15,7 +15,7 @@ import {
 	random,
 	VersionedKey,
 } from "@tutao/crypto"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { PQFacade } from "../../../../../../platform-kit/base/base-crypto/PQFacade.js"

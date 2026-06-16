@@ -85,7 +85,6 @@ import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
 import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/network/EntityRestClient"
 import { NoopProgressMonitor, ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -138,6 +137,7 @@ import {
 import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "../export/CalendarParser"
 import { CalendarImporter, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3

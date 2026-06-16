@@ -1,11 +1,4 @@
 import {
-	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	EntityRestClientEraseOptions,
-	EntityRestClientLoadOptions,
-	EntityRestClientSetupOptions,
-	EntityRestClientUpdateOptions,
-} from "./EntityRestClient"
-import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -26,6 +19,13 @@ import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/inst
 import { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	EntityRestClientEraseOptions,
+	EntityRestClientLoadOptions,
+	EntityRestClientSetupOptions,
+	EntityRestClientUpdateOptions,
+} from "../instance-pipeline/RestClientOptions"
 
 export class EntityClient {
 	_target: EntityRestInterface

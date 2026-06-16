@@ -50,11 +50,11 @@ import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstan
 import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { EntityRestCache } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient"
-import { DefaultLoginListener } from "../../../common/misc/DefaultLoginListener"
+import { DefaultLoginListener } from "../../../common/api/worker/utils/DefaultLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
-import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
+import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade"
 

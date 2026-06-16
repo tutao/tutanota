@@ -52,7 +52,6 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/network/EntityRestClient"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
@@ -66,6 +65,7 @@ import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import type { NamedClientModel } from "@tutao/instance-pipeline"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertMainOrNodeBoot()
 bootFinished()

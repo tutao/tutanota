@@ -6,7 +6,7 @@ import type { GroupManagementFacade } from "../../../../../../platform-kit/base/
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
 import { LockedError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { BookingFacade } from "./BookingFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { PaymentInterval } from "../../../../subscription/utils/PriceUtils.js"
@@ -31,7 +31,6 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/network/EntityRestClient"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService } from "@tutao/entities/tutanota"
 import { SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
@@ -64,6 +63,11 @@ import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../.
 import { getByAbbreviation } from "../../../../gui/CountryList"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
+import {
+	CacheMode,
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_EXTRA_SERVICE_PARAMS,
+} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 

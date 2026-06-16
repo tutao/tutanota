@@ -13,13 +13,14 @@ import {
 	Type,
 } from "../../../src/platform-kit/meta"
 import { downcast, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "../../../src/platform-kit/rest-client"
+import { RestClient } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { ApplicationTypesGetOut, compressString, decompressString, ServerModelInfo, ServerModels } from "../../../src/platform-kit/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
 import { Mode } from "../../../src/platform-kit/app-env"
 import { FileFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types/FileFacade.js"
 import { ApplicationTypesService, baseModelInfo } from "@tutao/entities/base"
+import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 

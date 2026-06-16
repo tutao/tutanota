@@ -3,7 +3,7 @@ import { assertNotNull, neverNull } from "@tutao/utils"
 import { UsageTestMetricType } from "@tutao/app-env"
 import { SuspensionError } from "../api/common/error/SuspensionError"
 import { DateProvider } from "../../../platform-kit/utils/DateProvider.js"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
+import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
@@ -29,6 +29,7 @@ import {
 import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 
 const PRESELECTED_LIKERT_VALUE = null
 

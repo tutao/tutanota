@@ -6,7 +6,7 @@ import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
 import { InstancePipeline } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { DEFAULT_EXTRA_SERVICE_PARAMS, IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
@@ -28,6 +28,7 @@ import {
 } from "@tutao/entities/sys"
 import { CalendarEvent, CalendarRepeatRule } from "@tutao/entities/tutanota"
 import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export class AlarmFacade {
 	constructor(

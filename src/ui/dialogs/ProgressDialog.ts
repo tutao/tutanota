@@ -8,7 +8,7 @@ import { progressIcon } from "../base/Icon"
 import { CompletenessIndicator } from "../CompletenessIndicator.js"
 import Stream from "mithril/stream"
 import { delay } from "../../platform-kit/utils"
-import { MaybeLazy, resolveMaybeLazy } from "../MaybeLazy"
+import { MaybeLazy, resolveMaybeLazy } from "../base/MaybeLazy"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 
 assertMainOrNode()

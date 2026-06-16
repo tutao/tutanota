@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SettingsNavButton, SettingsNavButtonAttrs } from "../../calendar-app/gui/SettingsNavButton"
-import { lazyStringValue } from "../../../ui/MaybeLazy"
+import { lazyStringValue } from "../../../ui/base/MaybeLazy"
 import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { NavButtonAttrs } from "../../../ui/base/NavButton"
 import { styles } from "../../../ui/styles"

@@ -3,7 +3,7 @@ import type { TranslationKey } from "./utils/LanguageViewModel"
 import { lang } from "./utils/LanguageViewModel"
 import { Icon } from "./base/Icon"
 import { Icons } from "./base/icons/Icons"
-import { MaybeLazy, resolveMaybeLazy } from "./MaybeLazy"
+import { MaybeLazy, resolveMaybeLazy } from "./base/MaybeLazy"
 
 export type ScrollSelectListAttrs<T> = {
 	items: ReadonlyArray<T>

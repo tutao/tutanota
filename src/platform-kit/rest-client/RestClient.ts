@@ -29,18 +29,6 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 ])
 const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 
-export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
-	body: null,
-	responseType: null,
-	progressListener: null,
-	baseUrl: null,
-	headers: null,
-	queryParams: null,
-	noCORS: null,
-	abortSignal: null,
-	suspensionBehavior: SuspensionBehavior.Suspend,
-}
-
 /**
  * Allows REST communication with the server.
  * The RestClient observes upload/download progress and times

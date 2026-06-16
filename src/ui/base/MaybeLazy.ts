@@ -1,4 +1,4 @@
-import type { lazy } from "../platform-kit/utils"
+import type { lazy } from "@tutao/utils"
 
 export type MaybeLazy<T> = T | lazy<T>
 

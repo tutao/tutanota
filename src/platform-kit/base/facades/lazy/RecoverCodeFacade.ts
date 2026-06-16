@@ -19,7 +19,7 @@ import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys"
 import { asKdfType } from "../../base-crypto/Constants"
-import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../network/EntityRestClient"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
 
