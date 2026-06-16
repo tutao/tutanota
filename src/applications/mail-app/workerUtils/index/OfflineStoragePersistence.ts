@@ -407,6 +407,7 @@ export class OfflineStoragePersistence {
 	}
 
 	async enqueueImport(importedMails: Id) {
+		// GENERATED_MAX_ID starts it from the beginning (since this is loaded in reverse order)
 		return await this.updateImportQueueProgress(importedMails, GENERATED_MAX_ID)
 	}
 

@@ -8,7 +8,6 @@ import {
 	isEmpty,
 	isNotEmpty,
 	isNotNull,
-	newPromise,
 	promiseMap,
 	splitInChunks,
 } from "../../../../platform-kit/utils"
@@ -53,7 +52,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { ImapFolderSyncStatus, FileImportStatus } from "../../../../entities/tutanota/Utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
+import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
 
 assertWorkerOrNode()
 
@@ -387,7 +386,7 @@ export class WebMailIndexer implements MailIndexer {
 			const finalIteration = batchEnd <= rangeEnd
 
 			const allMails: MailSetEntry[] = (
-				await this.abortAware(() =>
+				await abortAware(this.abortController, () =>
 					promiseMap(
 						mailboxesToWrite,
 						async (mailbox: MboxIndexData) => {
@@ -410,7 +409,7 @@ export class WebMailIndexer implements MailIndexer {
 				// 	const mailData = await this.processIndexMails(mailSetEntriesToProcess, indexLoader)
 				// 	// this._core._stats.mailcount += mailData.length
 				// })
-				const mailData = await this.abortAware(() => this.processIndexMails(mailSetEntriesToProcess, indexLoader))
+				const mailData = await abortAware(this.abortController, () => this.processIndexMails(mailSetEntriesToProcess, indexLoader))
 
 				// this._core._stats.preparingTime += processTime
 
@@ -435,26 +434,6 @@ export class WebMailIndexer implements MailIndexer {
 		}
 
 		return { batchEnd: rangeEnd, done: true }
-	}
-
-	/** A helper to cancel an async operation with {@link CancelledError} as soon as possible. */
-	private abortAware<T>(loading: () => Promise<T>): Promise<T> {
-		type AbortEventListener = Parameters<AbortSignal["addEventListener"]>[1]
-
-		let listener: AbortEventListener | null = null
-		return Promise.race([
-			loading(),
-			newPromise<T>((_, reject) => {
-				// return right away if already aborted
-				if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled", this.abortController.signal.reason))
-				listener = () => reject(new CancelledError("mail indexing canceled", this.abortController.signal.reason))
-				this.abortController.signal.addEventListener("abort", listener, { once: true })
-			}),
-		]).finally(() => {
-			if (listener) {
-				this.abortController.signal.removeEventListener("abort", listener)
-			}
-		})
 	}
 
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
