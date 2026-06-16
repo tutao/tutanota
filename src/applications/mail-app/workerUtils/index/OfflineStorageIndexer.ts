@@ -75,7 +75,7 @@ export class OfflineStorageIndexer implements Indexer {
 	}
 
 	cancelMailIndexing() {
-		throw new ProgrammingError("cancelMailIndexing is not implemented for OfflineStorageIndexer")
+		this.mailIndexer.cancelMailIndexing()
 	}
 
 	async rebuildMailIndex() {

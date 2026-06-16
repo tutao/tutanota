@@ -1,6 +1,6 @@
 import { AppName, isSameTypeRef, TypeRef } from "@tutao/meta"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
-import { FULL_INDEXED_TIMESTAMP, isTest, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, isTest, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { GroupMembership, User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../entities/sys/Utils"
 import { ContactTypeRef, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
